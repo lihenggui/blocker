@@ -7,7 +7,7 @@ import android.os.Parcelable;
 
 /**
  * Created by Mercury on 2017/12/30.
- * An entity class that describe application infomation
+ * An entity class that describe simplified application information
  */
 
 public class Application implements Parcelable{
