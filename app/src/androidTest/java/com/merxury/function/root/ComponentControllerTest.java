@@ -10,7 +10,7 @@ import static org.junit.Assert.*;
 
 public class ComponentControllerTest {
     private static final String TAG = "Test";
-    ComponentController controller;
+    private ComponentController controller;
     @Before
     public void setUp() throws Exception {
         controller = ComponentController.getInstance();
@@ -21,15 +21,14 @@ public class ComponentControllerTest {
     }
 
     @Test
-    public void disableComponent() throws Exception {
-        boolean isSuccess = controller.disableComponent("com.weico.international", "service.CompleteReceiver1");
-        Log.d(TAG, String.valueOf(isSuccess));
+    public void switchComponent() throws Exception {
+        boolean isSuccess = controller.switchComponent("com.weico.international", "service.CompleteReceiver1", false);
+        assertEquals(false, isSuccess);
+        isSuccess = controller.switchComponent("com.weico.international", "service.CompleteReceiver", false);
+        assertEquals(true, isSuccess);
+        isSuccess = controller.switchComponent("com.weico.international", "service.CompleteReceiver", true);
+        assertEquals(true, isSuccess);
     }
 
-    @Test
-    public void enableComponent() throws Exception {
-        boolean isSuccess = controller.disableComponent("com.weico.international", "service.CompleteReceiver");
-        Log.d(TAG, String.valueOf(isSuccess));
-    }
 
 }
