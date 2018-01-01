@@ -37,9 +37,13 @@ dependencies {
     //butter knife support
     compile 'com.jakewharton:butterknife:8.8.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
-    //RootTools support
+    //RootTools and RootShell support
     compile(name: 'RootTools', ext: 'aar')
+    compile(name: 'RootShell', ext: 'aar')
     //Glide
     implementation 'com.github.bumptech.glide:glide:4.4.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.4.0'
+    //rxjava and rxandroid
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'io.reactivex.rxjava2:rxjava:2.1.8'
 }
