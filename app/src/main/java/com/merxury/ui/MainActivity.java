@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.merxury.blocker.R;
 import com.merxury.function.ApplicationComponents;
+import com.merxury.function.root.ComponentController;
 import com.stericson.RootTools.RootTools;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        RootTools.isAccessGiven();
         List<PackageInfo> info = ApplicationComponents.getApplicationList(this);
         List<PackageInfo> thirdPartyApplicationList = ApplicationComponents.getThirdPartyApplicationList(this);
         List<PackageInfo> systemApplicationList = ApplicationComponents.getSystemApplicationList(this);
