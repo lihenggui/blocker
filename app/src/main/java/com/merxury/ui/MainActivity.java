@@ -9,8 +9,7 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 import com.merxury.blocker.R;
-import com.merxury.function.ApplicationComponents;
-import com.merxury.function.root.ComponentController;
+import com.merxury.core.ApplicationComponents;
 import com.stericson.RootTools.RootTools;
 
 import java.util.List;

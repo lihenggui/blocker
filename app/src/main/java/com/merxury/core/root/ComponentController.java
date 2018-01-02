@@ -1,4 +1,4 @@
-package com.merxury.function.root;
+package com.merxury.core.root;
 
 import android.util.Log;
 

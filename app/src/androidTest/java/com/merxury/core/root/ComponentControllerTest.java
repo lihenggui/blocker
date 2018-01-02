@@ -1,6 +1,4 @@
-package com.merxury.function.root;
-
-import android.util.Log;
+package com.merxury.core.root;
 
 import org.junit.After;
 import org.junit.Before;
