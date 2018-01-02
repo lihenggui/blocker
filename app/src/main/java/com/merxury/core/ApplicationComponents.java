@@ -1,4 +1,4 @@
-package com.merxury.function;
+package com.merxury.core;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
