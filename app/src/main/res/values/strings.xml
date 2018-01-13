@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Blocker</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="system_app_tab_text">System</string>
+    <string name="third_party_app_tab_text">Third party</string>
+    <string name="action_settings">Settings</string>
+    <string name="app_icon_description">App Icon</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

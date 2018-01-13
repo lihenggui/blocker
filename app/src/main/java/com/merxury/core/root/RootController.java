@@ -1,7 +1,9 @@
 package com.merxury.core.root;
 
+import android.content.pm.PackageManager;
 import android.util.Log;
 
+import com.merxury.core.IController;
 import com.merxury.exception.ProcessUnexpectedTerminateException;
 import com.stericson.RootShell.execution.Command;
 import com.stericson.RootShell.execution.Shell;
@@ -17,38 +19,34 @@ import io.reactivex.functions.Function;
  * A class that controls the state of application components
  */
 
-public class ComponentController {
-    private static final String TAG = "ComponentController";
+public class RootController implements IController {
+    private static final String TAG = "RootController";
     private static final String DISABLE_COMPONENT_TEMPLATE = "pm disable %s/.%s";
     private static final String ENABLE_COMPONENT_TEMPLATE = "pm enable %s/.%s";
     private static final String FAILED_EXCEPTION_MSG = "java.lang.IllegalArgumentException";
 
     private Shell shell;
 
-    private ComponentController() {
+    private RootController() {
         RootTools.debugMode = true;
     }
 
-    public static ComponentController getInstance() {
-        return ComponentControllerHolder.INSTANCE;
+    public static RootController getInstance() {
+        return RootControllerHolder.INSTANCE;
     }
 
-    /**
-     * a method to change a component's state
-     *
-     * @param packageName   package name
-     * @param componentName component name
-     * @param state         true: enable component
-     *                      false: disable component
-     * @return true : changed component state successfully
-     * false: cannot disable component
-     */
-    public boolean switchComponent(String packageName, String componentName, boolean state) {
+    @Override
+    public boolean switchComponent(String packageName, String componentName, int state) {
         final String comm;
-        if (state) {
-            comm = String.format(ENABLE_COMPONENT_TEMPLATE, packageName, componentName);
-        } else {
-            comm = String.format(DISABLE_COMPONENT_TEMPLATE, packageName, componentName);
+        switch (state) {
+            case PackageManager.COMPONENT_ENABLED_STATE_ENABLED:
+                comm = String.format(ENABLE_COMPONENT_TEMPLATE, packageName, componentName);
+                break;
+            case PackageManager.COMPONENT_ENABLED_STATE_DISABLED:
+                comm = String.format(DISABLE_COMPONENT_TEMPLATE, packageName, componentName);
+                break;
+            default:
+                return false;
         }
         return Observable.create(new ObservableOnSubscribe<String>() {
             @Override
@@ -88,7 +86,7 @@ public class ComponentController {
         }).blockingFirst();
     }
 
-    private static class ComponentControllerHolder {
-        private static final ComponentController INSTANCE = new ComponentController();
+    private static class RootControllerHolder {
+        private static final RootController INSTANCE = new RootController();
     }
 }
