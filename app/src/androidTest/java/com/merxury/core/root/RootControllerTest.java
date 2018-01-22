@@ -23,6 +23,7 @@ public class RootControllerTest {
     private static final String TAG = "Test";
     private RootController controller;
     private Context context;
+
     @Before
     public void setUp() throws Exception {
         context = InstrumentationRegistry.getContext();
@@ -44,7 +45,7 @@ public class RootControllerTest {
     }
 
     @Test
-    public void performanceTest(){
+    public void performanceTest() {
         long time1, time2;
         time1 = System.currentTimeMillis();
         List<PackageInfo> info = ApplicationComponents.getApplicationList(context);
@@ -62,7 +63,7 @@ public class RootControllerTest {
         Log.d(TAG, "get system applitation list takes " + (time2 - time1) + "milliseconds");
 
         time1 = System.currentTimeMillis();
-        for(PackageInfo info1: info) {
+        for (PackageInfo info1 : info) {
             String packageName = info1.packageName;
             ActivityInfo[] activities = ApplicationComponents.getActivitiyList(context, packageName);
             ActivityInfo[] receiver = ApplicationComponents.getReceiverList(context, packageName);
