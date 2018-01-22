@@ -38,7 +38,7 @@ public class NonRootControllerTest {
     public void switchComponent() throws Exception {
         String packageName = "com.weico.international";
         String receiver = "com.sina.push.receiver.PushSDKReceiver";
-        controller.switchComponent(packageName, receiver, PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
+        controller.switchComponent(packageName, receiver, PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER);
     }
 
 }
