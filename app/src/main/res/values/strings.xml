@@ -7,4 +7,8 @@
     <string name="app_icon_description">App Icon</string>
     <string name="third_party_app">Third Party</string>
     <string name="system_app">System</string>
+    <string name="loading_text">Loading…</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

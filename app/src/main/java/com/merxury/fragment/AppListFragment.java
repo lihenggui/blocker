@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -31,14 +33,14 @@ public class AppListFragment extends Fragment {
     }
 
 
-    public static Fragment getInstance(Context context, boolean isSystemApp){
+    public static Fragment getInstance(PackageManager pm, boolean isSystemApp){
         AppListFragment fragment = new AppListFragment();
         Bundle bundle = new Bundle();
         List<PackageInfo> appList;
         if(isSystemApp) {
-            appList = ApplicationComponents.getSystemApplicationList(context);
+            appList = ApplicationComponents.getSystemApplicationList(pm);
         } else {
-            appList = ApplicationComponents.getThirdPartyApplicationList(context);
+            appList = ApplicationComponents.getThirdPartyApplicationList(pm);
         }
         //TODO performance optimization
         bundle.putParcelableArrayList(APP_LIST, new ArrayList<>(appList));
