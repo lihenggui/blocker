@@ -1,6 +1,7 @@
 package com.merxury.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.v7.widget.RecyclerView;
@@ -13,8 +14,24 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.merxury.blocker.R;
+import com.merxury.ui.ComponentActivity;
+import com.merxury.ui.MainActivity;
 
 import java.util.List;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.Scheduler;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleObserver;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiConsumer;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * Created by lihen on 2018/1/13.
@@ -37,13 +54,31 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        PackageInfo packageInfo = mPackageInfoList.get(position);
-        holder.mTextView.setText(packageInfo.applicationInfo.loadLabel(mPm));
+    public void onBindViewHolder(final ViewHolder holder, int position) {
+        final PackageInfo packageInfo = mPackageInfoList.get(position);
+        Single.create(new SingleOnSubscribe<String>() {
+            @Override
+            public void subscribe(SingleEmitter<String> emitter) throws Exception {
+                String appName = packageInfo.applicationInfo.loadLabel(mPm).toString();
+                emitter.onSuccess(appName);
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new BiConsumer<String, Throwable>() {
+            @Override
+            public void accept(String s, Throwable throwable) throws Exception {
+                holder.mTextView.setText(s);
+            }
+        });
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //TODO start intent
+                Context context = v.getContext();
+                Intent intent = new Intent(context, ComponentActivity.class);
+                intent.putExtra(MainActivity.PACKAGE_NAME, packageInfo.packageName);
+                context.startActivity(intent);
             }
         });
         RequestOptions options = new RequestOptions()

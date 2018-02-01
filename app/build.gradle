@@ -53,4 +53,5 @@ dependencies {
     implementation("com.mikepenz:materialdrawer:6.0.2@aar") {
         transitive = true
     }
+    compileOnly files(rootProject.rootDir.absolutePath + '/android-26/android.jar')
 }

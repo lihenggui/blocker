@@ -1,6 +1,7 @@
 package com.merxury.ui;
 
 import android.animation.ObjectAnimator;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
@@ -14,6 +15,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.merxury.adapter.FragmentAdapter;
 import com.merxury.blocker.R;
 import com.merxury.fragment.AppListFragment;
 import com.mikepenz.materialdrawer.Drawer;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    public static final String PACKAGE_NAME = "package_name";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,39 +82,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupViewPager(ViewPager viewPager) {
-        Adapter adapter = new Adapter(getSupportFragmentManager());
-        adapter.addFragment(AppListFragment.getInstance(this, false), getString(R.string.third_party_app));
-        adapter.addFragment(AppListFragment.getInstance(this, true), getString(R.string.system_app));
+        PackageManager pm = getPackageManager();
+        FragmentAdapter adapter = new FragmentAdapter(getSupportFragmentManager());
+        adapter.addFragment(AppListFragment.getInstance(pm, false), getString(R.string.third_party_app));
+        adapter.addFragment(AppListFragment.getInstance(pm, true), getString(R.string.system_app));
         viewPager.setAdapter(adapter);
-    }
-
-    static class Adapter extends FragmentPagerAdapter {
-        private final List<Fragment> mFragments = new ArrayList<>();
-        private final List<String> mFragmentTitles = new ArrayList<>();
-
-        public Adapter(FragmentManager fm) {
-            super(fm);
-        }
-
-        public void addFragment(Fragment fragment, String title) {
-            mFragments.add(fragment);
-            mFragmentTitles.add(title);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return mFragments.get(position);
-        }
-
-        @Override
-        public int getCount() {
-            return mFragments.size();
-        }
-
-        @Nullable
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return mFragmentTitles.get(position);
-        }
     }
 }
