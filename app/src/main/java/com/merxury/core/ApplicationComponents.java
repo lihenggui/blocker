@@ -210,6 +210,13 @@ public class ApplicationComponents {
         return info;
     }
 
+    /**
+     * check a component is enabled or not
+     *
+     * @param pm          PackageManager
+     * @param componentName name of a component
+     * @return true : component is enabled , false: component is disabled
+     */
     public static boolean checkComponentIsEnabled(PackageManager pm, ComponentName componentName) {
         int state = pm.getComponentEnabledSetting(componentName);
         return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;

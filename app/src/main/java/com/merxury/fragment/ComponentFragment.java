@@ -2,7 +2,6 @@ package com.merxury.fragment;
 
 import android.annotation.NonNull;
 import android.annotation.Nullable;
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
@@ -20,7 +19,6 @@ import com.merxury.adapter.ComponentsRecyclerViewAdapter;
 import com.merxury.blocker.R;
 import com.merxury.core.ApplicationComponents;
 
-import java.util.ArrayList;
 
 public class ComponentFragment extends Fragment {
     public static final int RECEIVER = 1;

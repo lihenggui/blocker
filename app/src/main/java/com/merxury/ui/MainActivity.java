@@ -1,13 +1,17 @@
 package com.merxury.ui;
 
+import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -24,27 +28,35 @@ import com.mikepenz.materialdrawer.DrawerBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindBitmap;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+
 public class MainActivity extends AppCompatActivity {
+    @BindView(R.id.toolbar)
+    Toolbar mToolbar;
+    @BindView(R.id.app_viewpager)
+    ViewPager mViewPager;
+    @BindView(R.id.app_kind_tabs)
+    TabLayout mTabLayout;
+
     public static final String PACKAGE_NAME = "package_name";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        ViewPager viewPager = findViewById(R.id.app_viewpager);
-        TabLayout appTab = findViewById(R.id.app_kind_tabs);
-        setSupportActionBar(toolbar);
-
+        ButterKnife.bind(this);
+        setSupportActionBar(mToolbar);
         final ActionBar ab = getSupportActionBar();
         if (ab != null) {
             ab.setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
             ab.setDisplayHomeAsUpEnabled(true);
         }
         setupDrawer();
-        setupViewPager(viewPager);
-        appTab.setupWithViewPager(viewPager);
+        setupViewPager(mViewPager);
+        mTabLayout.setupWithViewPager(mViewPager);
+        setupTab();
     }
 
     @Override
@@ -87,5 +99,58 @@ public class MainActivity extends AppCompatActivity {
         adapter.addFragment(AppListFragment.getInstance(pm, false), getString(R.string.third_party_app));
         adapter.addFragment(AppListFragment.getInstance(pm, true), getString(R.string.system_app));
         viewPager.setAdapter(adapter);
+    }
+
+    private void setupTab() {
+        changeColor(getColorForTab(0));
+        mTabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.md_white_1000));
+        mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                changeTabBackgroundColor(tab);
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+    }
+
+    private void changeTabBackgroundColor(TabLayout.Tab tab) {
+        int colorFrom;
+        if (mTabLayout.getBackground() != null) {
+            colorFrom = ((ColorDrawable) mTabLayout.getBackground()).getColor();
+        } else {
+            colorFrom =  ContextCompat.getColor(this, android.R.color.darker_gray);
+        }
+        int colorTo = getColorForTab(tab.getPosition());
+        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int color = (int) animation.getAnimatedValue();
+                changeColor(color);
+            }
+        });
+        colorAnimation.setDuration(500);
+        colorAnimation.start();
+    }
+
+    private int getColorForTab(int position) {
+        if (position == 0) return ContextCompat.getColor(this, R.color.md_blue_700);
+        else if (position == 1) return ContextCompat.getColor(this, R.color.md_red_700);
+        else return ContextCompat.getColor(this, R.color.md_grey_700);
+    }
+
+    private void changeColor(int color) {
+        mToolbar.setBackgroundColor(color);
+        mTabLayout.setBackgroundColor(color);
+        getWindow().setStatusBarColor(color);
     }
 }

@@ -7,6 +7,10 @@
     <string name="app_icon_description">App Icon</string>
     <string name="third_party_app">Third Party</string>
     <string name="system_app">System</string>
+    <string name="receiver">Receiver</string>
+    <string name="provider">Content Provider</string>
+    <string name="activity">Activity</string>
+    <string name="service">Service</string>
     <string name="loading_text">Loading…</string>
 
     <!-- TODO: Remove or change this placeholder text -->
