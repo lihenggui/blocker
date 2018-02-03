@@ -1,10 +1,15 @@
 package com.merxury.ui;
 
+import android.animation.ArgbEvaluator;
+import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -52,6 +57,7 @@ public class ComponentActivity extends AppCompatActivity {
         setupDrawer();
         setupViewPager(mViewPager);
         mTabLayout.setupWithViewPager(mViewPager);
+        setupTab();
     }
 
     @Override
@@ -76,10 +82,66 @@ public class ComponentActivity extends AppCompatActivity {
     private void setupViewPager(ViewPager viewPager) {
         PackageManager pm = getPackageManager();
         FragmentAdapter adapter = new FragmentAdapter(getSupportFragmentManager());
-        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.RECEIVER), "Receiver");
-        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.SERVICE), "Service");
-        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.ACTIVITY), "Activity");
-        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.PROVIDER), "Provider");
+        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.RECEIVER), getString(R.string.receiver));
+        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.SERVICE), getString(R.string.service));
+        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.ACTIVITY), getString(R.string.activity));
+        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.PROVIDER), getString(R.string.provider));
         viewPager.setAdapter(adapter);
+    }
+
+    private void setupTab() {
+        changeColor(getColorForTab(0));
+        mTabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.md_white_1000));
+        mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+               changeTabBackgroundColor(tab);
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+    }
+
+    private void changeTabBackgroundColor(TabLayout.Tab tab) {
+        int colorFrom;
+        if (mTabLayout.getBackground() != null) {
+            colorFrom = ((ColorDrawable) mTabLayout.getBackground()).getColor();
+        } else {
+            colorFrom =  ContextCompat.getColor(this, android.R.color.darker_gray);
+        }
+        int colorTo = getColorForTab(tab.getPosition());
+        ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
+        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int color = (int) animation.getAnimatedValue();
+                changeColor(color);
+            }
+        });
+        colorAnimation.setDuration(500);
+        colorAnimation.start();
+    }
+
+    private int getColorForTab(int position) {
+        if (position == 0) return ContextCompat.getColor(this, R.color.md_blue_700);
+        else if (position == 1) return ContextCompat.getColor(this, R.color.md_light_green_700);
+        else if (position == 2) return ContextCompat.getColor(this, R.color.md_orange_700);
+        else if (position == 3) return ContextCompat.getColor(this, R.color.md_red_700);
+        else return ContextCompat.getColor(this, R.color.md_grey_700);
+    }
+
+    private void changeColor(int color) {
+        mToolbar.setBackgroundColor(color);
+        mTabLayout.setBackgroundColor(color);
+        mCollapsingToolbarLayout.setBackgroundColor(color);
+        getWindow().setStatusBarColor(color);
     }
 }

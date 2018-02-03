@@ -1,7 +1,10 @@
 package com.merxury.adapter;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ComponentInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Parcelable;
@@ -13,6 +16,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 
 import com.merxury.blocker.R;
+import com.merxury.core.ApplicationComponents;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -37,6 +41,7 @@ public class ComponentsRecyclerViewAdapter extends RecyclerView.Adapter<Componen
     private ProviderInfo[] mProviders;
     private ComponentInfo[] mComponentInfos;
     private int mCategory;
+    private PackageManager mPm;
 
     public ComponentsRecyclerViewAdapter(int category, Parcelable[] parcelables) {
         mCategory = category;
@@ -69,7 +74,6 @@ public class ComponentsRecyclerViewAdapter extends RecyclerView.Adapter<Componen
                 for (int i = 0; i < parcelables.length; i++) {
                     mActivities[i] = (ActivityInfo) parcelables[i];
                 }
-
                 break;
             case PROVIDER:
                 mProviders = new ProviderInfo[parcelables.length];
@@ -84,19 +88,21 @@ public class ComponentsRecyclerViewAdapter extends RecyclerView.Adapter<Componen
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.component_item, parent, false);
+        Context context = parent.getContext();
+        View view = LayoutInflater.from(context).inflate(R.layout.component_item, parent, false);
+        mPm = context.getPackageManager();
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        if(position > mComponentInfos.length) {
+        if (position > mComponentInfos.length) {
             return;
         }
         final ComponentInfo info = mComponentInfos[position];
         String componentName = info.name;
         holder.mComponentName.setText(componentName);
-        holder.mSwitch.setChecked(info.enabled);
+        holder.mSwitch.setChecked(ApplicationComponents.checkComponentIsEnabled(mPm, new ComponentName(info.packageName, info.name)));
     }
 
     @Override
