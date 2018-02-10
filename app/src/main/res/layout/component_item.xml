@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:maxLines="1"
-        android:layout_alignBottom="@id/component_name"
+        android:layout_below="@id/component_name"
         />
 
     <Switch

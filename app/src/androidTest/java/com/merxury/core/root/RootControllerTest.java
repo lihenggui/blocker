@@ -48,27 +48,28 @@ public class RootControllerTest {
     public void performanceTest() {
         long time1, time2;
         time1 = System.currentTimeMillis();
-        List<PackageInfo> info = ApplicationComponents.getApplicationList(context);
+        PackageManager pm = context.getPackageManager();
+        List<PackageInfo> info = ApplicationComponents.getApplicationList(pm);
         time2 = System.currentTimeMillis();
         Log.d(TAG, "get applitation list takes " + (time2 - time1) + "milliseconds");
 
         time1 = System.currentTimeMillis();
-        List<PackageInfo> thirdPartyApplicationList = ApplicationComponents.getThirdPartyApplicationList(context);
+        List<PackageInfo> thirdPartyApplicationList = ApplicationComponents.getThirdPartyApplicationList(pm);
         time2 = System.currentTimeMillis();
         Log.d(TAG, "get 3rd applitation list takes " + (time2 - time1) + "milliseconds");
 
         time1 = System.currentTimeMillis();
-        List<PackageInfo> systemApplicationList = ApplicationComponents.getSystemApplicationList(context);
+        List<PackageInfo> systemApplicationList = ApplicationComponents.getSystemApplicationList(pm);
         time2 = System.currentTimeMillis();
         Log.d(TAG, "get system applitation list takes " + (time2 - time1) + "milliseconds");
 
         time1 = System.currentTimeMillis();
         for (PackageInfo info1 : info) {
             String packageName = info1.packageName;
-            ActivityInfo[] activities = ApplicationComponents.getActivitiyList(context, packageName);
-            ActivityInfo[] receiver = ApplicationComponents.getReceiverList(context, packageName);
-            ProviderInfo[] providers = ApplicationComponents.getProviderList(context, packageName);
-            ServiceInfo[] services = ApplicationComponents.getServiceList(context, packageName);
+            ActivityInfo[] activities = ApplicationComponents.getActivitiyList(pm, packageName);
+            ActivityInfo[] receiver = ApplicationComponents.getReceiverList(pm, packageName);
+            ProviderInfo[] providers = ApplicationComponents.getProviderList(pm, packageName);
+            ServiceInfo[] services = ApplicationComponents.getServiceList(pm, packageName);
         }
         time2 = System.currentTimeMillis();
         Log.d(TAG, "get all componments takes " + (time2 - time1) + "milliseconds");
