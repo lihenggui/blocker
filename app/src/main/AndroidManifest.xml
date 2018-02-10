@@ -24,6 +24,9 @@
         <activity
             android:name="com.merxury.ui.ComponentActivity"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+
+        <service android:name="com.merxury.service.ShellService"
+            android:exported="false"/>
     </application>
 
 </manifest>

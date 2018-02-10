@@ -58,14 +58,14 @@ public class ApplicationComponentsTest {
 
     @Test
     public void getApplicationComponents1() throws Exception {
-        PackageInfo info = ApplicationComponents.getApplicationComponents(context, "com.weico.international");
+        PackageInfo info = ApplicationComponents.getApplicationComponents(context.getPackageManager(), "com.weico.international");
         assertNotEquals(info, null);
     }
 
     @Test
     public void checkComponentIsEnabled() throws Exception {
         ComponentName name = new ComponentName("com.weico.international", "com.tencent.android.tpush.XGPushReceiver");
-        boolean enabled = ApplicationComponents.checkComponentIsEnabled(context, name);
+        boolean enabled = ApplicationComponents.checkComponentIsEnabled(context.getPackageManager(), name);
         assertEquals(enabled, false);
     }
 

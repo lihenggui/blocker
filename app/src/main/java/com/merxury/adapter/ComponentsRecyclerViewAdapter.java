@@ -100,8 +100,10 @@ public class ComponentsRecyclerViewAdapter extends RecyclerView.Adapter<Componen
             return;
         }
         final ComponentInfo info = mComponentInfos[position];
-        String componentName = info.name;
-        holder.mComponentName.setText(componentName);
+        String[] splitResult = info.name.split("\\.");
+        String splitName = splitResult.length == 0 ? "" : splitResult[splitResult.length - 1];
+        holder.mComponentName.setText(splitName);
+        holder.mComponentDescription.setText(info.name);
         holder.mSwitch.setChecked(ApplicationComponents.checkComponentIsEnabled(mPm, new ComponentName(info.packageName, info.name)));
     }
 

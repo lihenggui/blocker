@@ -4,17 +4,25 @@ import android.content.ComponentName;
 import android.content.pm.IPackageManager;
 import android.content.pm.PackageManager;
 import android.os.Binder;
+import android.os.IBinder;
+import android.os.Looper;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.util.Log;
 
+import com.merxury.blocker.core.root.service.IRootService;
 import com.merxury.core.IController;
 import com.stericson.RootShell.containers.RootClass;
 
-public class RootService implements IController{
-    private static final String TAG = "RootController-fast";
+public class RootService extends IRootService.Stub {
+    public static final String NAME = "blocker.rootservice";
+    private static final String TAG = "RootService";
     private static IPackageManager mPm;
-    private static RootService instance;
+
+
+    public RootService() {
+        mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
+    }
 
     @Override
     public boolean switchComponent(String packageName, String componentName, int state) {
@@ -29,21 +37,26 @@ public class RootService implements IController{
         return true;
     }
 
-    public static RootService getInstance() {
-        if(mPm == null) {
-            synchronized (RootService.class) {
-                if (mPm == null) {
-                    mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
-                }
-            }
-        }
-        if(instance == null) {
-            synchronized (RootService.class) {
-                if(instance == null) {
-                    instance = new RootService();
-                }
-            }
-        }
-        return instance;
+    @Override
+    public int getUid() throws RemoteException {
+        return Binder.getCallingUid();
     }
+
+    @Override
+    public int getPid() throws RemoteException {
+        return Binder.getCallingPid();
+    }
+
+
+    public boolean switchComponent(ComponentName name, int state) {
+        try {
+            mPm.setComponentEnabledSetting(name, state, PackageManager.DONT_KILL_APP, Binder.getCallingUid());
+        }catch (RemoteException e) {
+            e.printStackTrace();
+            Log.e(TAG, e.getMessage());
+            return false;
+        }
+        return true;
+    }
+
 }
