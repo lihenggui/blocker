@@ -1,7 +1,6 @@
 package com.merxury.ui;
 
 import android.animation.ArgbEvaluator;
-import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
@@ -10,13 +9,7 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.RemoteException;
-import android.os.ServiceManager;
-import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
@@ -24,7 +17,6 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -32,8 +24,6 @@ import android.widget.TextView;
 
 import com.merxury.adapter.FragmentAdapter;
 import com.merxury.blocker.R;
-import com.merxury.blocker.core.root.service.IRootService;
-import com.merxury.core.root.service.RootService;
 import com.merxury.fragment.AppListFragment;
 import com.merxury.service.ShellService;
 import com.merxury.utils.BindServiceHelper;
@@ -41,10 +31,6 @@ import com.merxury.utils.ContextUtils;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import butterknife.BindBitmap;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -76,17 +62,6 @@ public class MainActivity extends AppCompatActivity {
         setupViewPager(mViewPager);
         mTabLayout.setupWithViewPager(mViewPager);
         setupTab();
-        IRootService rootService = IRootService.Stub.asInterface(ServiceManager.getService(RootService.NAME));
-        if(rootService != null) {
-            Log.e("MainActivity", "service is null");
-            try {
-                rootService.switchComponent("com.weico.international", "service.CompleteReceiver", PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
-            }catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-
-
     }
 
     @Override
@@ -271,6 +246,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void startServer(Context context) {
 
-        startShell(context, ServerLauncher.COMMAND_ROOT);
+       // startShell(context, ServerLauncher.COMMAND_ROOT);
     }
 }
