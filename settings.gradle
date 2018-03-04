@@ -1,1 +1,1 @@
-include ':app', ':core-server', ':core-xml'
+include ':app', ':core-xml', ':core-server'

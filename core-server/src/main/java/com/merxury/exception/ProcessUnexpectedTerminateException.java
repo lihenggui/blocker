@@ -1,4 +1,4 @@
-package com.merxury.exception;
+package com.merxury.core.exception;
 
 /**
  * Created by Mercury on 2018/1/1.

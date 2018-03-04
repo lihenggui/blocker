@@ -2,7 +2,7 @@ package com.merxury.core.root;
 
 import android.util.Log;
 
-import com.merxury.exception.ProcessUnexpectedTerminateException;
+import com.merxury.core.exception.ProcessUnexpectedTerminateException;
 import com.stericson.RootShell.exceptions.RootDeniedException;
 import com.stericson.RootShell.execution.Command;
 import com.stericson.RootTools.RootTools;

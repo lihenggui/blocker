@@ -4,7 +4,6 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 
 import com.merxury.core.IController;
-import com.merxury.exception.ProcessUnexpectedTerminateException;
 import com.stericson.RootShell.exceptions.RootDeniedException;
 import com.stericson.RootShell.execution.Command;
 import com.stericson.RootTools.RootTools;
