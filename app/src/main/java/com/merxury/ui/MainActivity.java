@@ -208,7 +208,6 @@ public class MainActivity extends AppCompatActivity {
                         textView.setText(R.string.cannot_start_no_root);
                     }
 
-                    @Override
                     public void onCommandResult(int commandCode, int exitCode) {
                         mBindServiceHelper.unbind();
 
@@ -225,7 +224,6 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
 
-                    @Override
                     public void onLine(String line) {
                         if (mAlertDialog == null) {
                             return;
