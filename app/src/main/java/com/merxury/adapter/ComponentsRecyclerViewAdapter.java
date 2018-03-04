@@ -22,15 +22,12 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 import static com.merxury.fragment.ComponentFragment.ACTIVITY;
-import static com.merxury.fragment.ComponentFragment.ACTIVITY_NAME;
 import static com.merxury.fragment.ComponentFragment.PROVIDER;
 import static com.merxury.fragment.ComponentFragment.RECEIVER;
-import static com.merxury.fragment.ComponentFragment.RECEIVER_NAME;
 import static com.merxury.fragment.ComponentFragment.SERVICE;
-import static com.merxury.fragment.ComponentFragment.SERVICE_NAME;
 
 /**
- * Created by Wiki on 2018/1/25.
+ * Created by Mercury on 2018/1/25.
  */
 
 public class ComponentsRecyclerViewAdapter extends RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder> {
