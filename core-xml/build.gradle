@@ -2,6 +2,7 @@ apply plugin: 'java-library'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    compileOnly files(rootProject.rootDir.absolutePath + '/android-27/android.jar')
 }
 
 sourceCompatibility = "1.7"

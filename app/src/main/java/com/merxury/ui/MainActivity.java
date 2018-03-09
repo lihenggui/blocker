@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         if (mTabLayout.getBackground() != null) {
             colorFrom = ((ColorDrawable) mTabLayout.getBackground()).getColor();
         } else {
-            colorFrom =  ContextCompat.getColor(this, android.R.color.darker_gray);
+            colorFrom = ContextCompat.getColor(this, android.R.color.darker_gray);
         }
         int colorTo = getColorForTab(tab.getPosition());
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
@@ -244,6 +244,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void startServer(Context context) {
 
-       // startShell(context, ServerLauncher.COMMAND_ROOT);
+        // startShell(context, ServerLauncher.COMMAND_ROOT);
     }
 }
