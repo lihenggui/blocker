@@ -19,17 +19,10 @@ import com.merxury.ui.MainActivity;
 
 import java.util.List;
 
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.Observer;
-import io.reactivex.Scheduler;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
-import io.reactivex.SingleObserver;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.schedulers.Schedulers;
 
@@ -66,11 +59,11 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new BiConsumer<String, Throwable>() {
-            @Override
-            public void accept(String s, Throwable throwable) throws Exception {
-                holder.mTextView.setText(s);
-            }
-        });
+                    @Override
+                    public void accept(String s, Throwable throwable) throws Exception {
+                        holder.mTextView.setText(s);
+                    }
+                });
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

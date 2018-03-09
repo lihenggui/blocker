@@ -1,13 +1,13 @@
 package com.merxury.fragment;
 
-import android.annotation.NonNull;
-import android.annotation.Nullable;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -36,7 +36,8 @@ public class ComponentFragment extends Fragment {
 
     private Parcelable[] mParcelables;
 
-    public ComponentFragment(){}
+    public ComponentFragment() {
+    }
 
     public static Fragment getInstance(PackageManager pm, String packageName, int category) {
         ComponentFragment fragment = new ComponentFragment();
@@ -45,7 +46,7 @@ public class ComponentFragment extends Fragment {
         switch (category) {
             case RECEIVER:
                 ActivityInfo[] receivers = ApplicationComponents.getReceiverList(pm, packageName);
-                bundle.putParcelableArray(RECEIVER_NAME,receivers);
+                bundle.putParcelableArray(RECEIVER_NAME, receivers);
                 break;
             case SERVICE:
                 ServiceInfo[] services = ApplicationComponents.getServiceList(pm, packageName);
@@ -70,7 +71,7 @@ public class ComponentFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
-        if(args != null) {
+        if (args != null) {
             mCategory = args.getInt(CATEGORY);
             switch (mCategory) {
                 case RECEIVER:
@@ -85,7 +86,8 @@ public class ComponentFragment extends Fragment {
                 case PROVIDER:
                     mParcelables = args.getParcelableArray(PROVIDER_NAME);
                     break;
-                default:break;
+                default:
+                    break;
             }
         }
     }
@@ -101,8 +103,6 @@ public class ComponentFragment extends Fragment {
     private void setupRecyclerView(RecyclerView recyclerView) {
         recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
         recyclerView.setAdapter(new ComponentsRecyclerViewAdapter(mCategory, mParcelables));
-
     }
-
 
 }

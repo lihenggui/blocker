@@ -5,18 +5,10 @@ import android.util.Log;
 
 import com.merxury.core.IController;
 import com.stericson.RootShell.exceptions.RootDeniedException;
-import com.stericson.RootShell.execution.Command;
 import com.stericson.RootTools.RootTools;
-
-import org.jetbrains.annotations.Contract;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
-
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.functions.Function;
 
 /**
  * Created by Mercury on 2017/12/31.
@@ -33,7 +25,6 @@ public class RootController implements IController {
         RootTools.debugMode = true;
     }
 
-    @Contract(pure = true)
     public static RootController getInstance() {
         return RootControllerHolder.INSTANCE;
     }
@@ -54,7 +45,7 @@ public class RootController implements IController {
         try {
             String commandOutput = RootCommand.runBlockingCommand(comm);
             return !commandOutput.contains(FAILED_EXCEPTION_MSG);
-        }catch (RootDeniedException | TimeoutException | IOException e) {
+        } catch (RootDeniedException | TimeoutException | IOException e) {
             e.printStackTrace();
             Log.e(TAG, e.getMessage());
             return false;

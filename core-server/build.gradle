@@ -7,7 +7,6 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -33,14 +32,16 @@ repositories {
 }
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    compileOnly files(rootProject.rootDir.absolutePath + '/android-27/android.jar')
     implementation 'com.android.support:appcompat-v7:27.1.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     //rxjava and rxandroid
-    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    compile 'io.reactivex.rxjava2:rxjava:2.1.8'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.8'
     //RootTools and RootShell support
-    compile(name: 'RootTools', ext: 'aar')
-    compile(name: 'RootShell', ext: 'aar')
+    implementation(name: 'RootTools', ext: 'aar')
+    implementation(name: 'RootShell', ext: 'aar')
+    implementation 'eu.chainfire:libsuperuser:1.0.0.201704021214'
 }
