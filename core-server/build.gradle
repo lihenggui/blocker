@@ -40,6 +40,9 @@ dependencies {
     //rxjava and rxandroid
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.8'
+    //Rikka's Shizuku manager
+    implementation 'moe.shizuku.privilege:api-base:9'
+    implementation 'moe.shizuku.privilege:api-26:4'
     //RootTools and RootShell support
     implementation(name: 'RootTools', ext: 'aar')
     implementation(name: 'RootShell', ext: 'aar')
