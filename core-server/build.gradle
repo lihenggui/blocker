@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 27
@@ -29,9 +30,11 @@ repositories {
     flatDir {
         dirs 'libs'
     }
+    mavenCentral()
 }
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     compileOnly files(rootProject.rootDir.absolutePath + '/android-27/android.jar')
     implementation 'com.android.support:appcompat-v7:27.1.0'
     testImplementation 'junit:junit:4.12'
@@ -47,4 +50,5 @@ dependencies {
     implementation(name: 'RootTools', ext: 'aar')
     implementation(name: 'RootShell', ext: 'aar')
     implementation 'eu.chainfire:libsuperuser:1.0.0.201704021214'
+
 }
