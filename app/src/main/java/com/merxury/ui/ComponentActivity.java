@@ -4,8 +4,8 @@ import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
@@ -13,12 +13,10 @@ import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 
 import com.merxury.adapter.FragmentAdapter;
 import com.merxury.blocker.R;
-import com.merxury.fragment.AppListFragment;
 import com.merxury.fragment.ComponentFragment;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
@@ -95,7 +93,7 @@ public class ComponentActivity extends AppCompatActivity {
         mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-               changeTabBackgroundColor(tab);
+                changeTabBackgroundColor(tab);
             }
 
             @Override
@@ -115,7 +113,7 @@ public class ComponentActivity extends AppCompatActivity {
         if (mTabLayout.getBackground() != null) {
             colorFrom = ((ColorDrawable) mTabLayout.getBackground()).getColor();
         } else {
-            colorFrom =  ContextCompat.getColor(this, android.R.color.darker_gray);
+            colorFrom = ContextCompat.getColor(this, android.R.color.darker_gray);
         }
         int colorTo = getColorForTab(tab.getPosition());
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
@@ -131,11 +129,18 @@ public class ComponentActivity extends AppCompatActivity {
     }
 
     private int getColorForTab(int position) {
-        if (position == 0) return ContextCompat.getColor(this, R.color.md_blue_700);
-        else if (position == 1) return ContextCompat.getColor(this, R.color.md_light_green_700);
-        else if (position == 2) return ContextCompat.getColor(this, R.color.md_orange_700);
-        else if (position == 3) return ContextCompat.getColor(this, R.color.md_red_700);
-        else return ContextCompat.getColor(this, R.color.md_grey_700);
+        switch (position) {
+            case 0:
+                return ContextCompat.getColor(this, R.color.md_blue_700);
+            case 1:
+                return ContextCompat.getColor(this, R.color.md_light_green_700);
+            case 2:
+                return ContextCompat.getColor(this, R.color.md_orange_700);
+            case 3:
+                return ContextCompat.getColor(this, R.color.md_red_700);
+            default:
+                return ContextCompat.getColor(this, R.color.md_grey_700);
+        }
     }
 
     private void changeColor(int color) {
