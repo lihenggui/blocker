@@ -16,32 +16,30 @@ import com.merxury.adapter.AppListRecyclerViewAdapter;
 import com.merxury.blocker.R;
 import com.merxury.core.ApplicationComponents;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import io.reactivex.Completable;
+import io.reactivex.CompletableObserver;
+import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.annotations.Nullable;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 
 public class AppListFragment extends Fragment {
-    private static final String APP_LIST = "APP_LIST";
+    private static final String IS_SYSTEM = "IS_SYSTEM";
     private List<PackageInfo> mAppList;
     private ProgressBar mProgressBar;
+    private RecyclerView mAppListRecyclerView;
+    private AppListRecyclerViewAdapter mAppListRecyclerViewAdapter;
+    private boolean mSystem;
 
     public AppListFragment() {
     }
-
-
-    public static Fragment getInstance(PackageManager pm, boolean isSystemApp) {
+    public static Fragment getInstance(boolean isSystemApp) {
         AppListFragment fragment = new AppListFragment();
         Bundle bundle = new Bundle();
-        List<PackageInfo> appList;
-        if (isSystemApp) {
-            appList = ApplicationComponents.getSystemApplicationList(pm);
-        } else {
-            appList = ApplicationComponents.getThirdPartyApplicationList(pm);
-        }
-        //TODO performance optimization
-        bundle.putParcelableArrayList(APP_LIST, new ArrayList<>(appList));
+        bundle.putBoolean(IS_SYSTEM, isSystemApp);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -51,9 +49,41 @@ public class AppListFragment extends Fragment {
         super.onCreate(savedInstanceState);
         Bundle args = getArguments();
         if (args != null) {
-            mAppList = args.getParcelableArrayList(APP_LIST);
+            mSystem = args.getBoolean(IS_SYSTEM);
         }
+    }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        Completable.create(emitter -> {
+            PackageManager pm = getContext().getPackageManager();
+            if (mSystem) {
+                mAppList = ApplicationComponents.getSystemApplicationList(pm);
+            } else {
+                mAppList = ApplicationComponents.getThirdPartyApplicationList(pm);
+            }
+            emitter.onComplete();
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new CompletableObserver() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        mAppListRecyclerViewAdapter.addData(mAppList);
+                        mAppListRecyclerViewAdapter.notifyDataSetChanged();
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        //TODO error handling
+                    }
+                });
     }
 
     @Nullable
@@ -62,13 +92,15 @@ public class AppListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_app_list, container, false);
         mProgressBar = view.findViewById(R.id.app_loading_progress_bar);
-        RecyclerView rv = view.findViewById(R.id.app_list_fragment_recyclerview);
-        setupRecyclerView(rv);
-        return rv;
+        mAppListRecyclerView = view.findViewById(R.id.app_list_fragment_recyclerview);
+        mAppListRecyclerViewAdapter = new AppListRecyclerViewAdapter(getContext(), mAppList);
+        setupRecyclerView(mAppListRecyclerView);
+        return view;
     }
 
     private void setupRecyclerView(RecyclerView recyclerView) {
         recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
-        recyclerView.setAdapter(new AppListRecyclerViewAdapter(getContext(), mAppList));
+        recyclerView.setAdapter(mAppListRecyclerViewAdapter);
     }
+
 }

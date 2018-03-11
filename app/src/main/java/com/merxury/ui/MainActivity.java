@@ -84,10 +84,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupViewPager(ViewPager viewPager) {
-        PackageManager pm = getPackageManager();
         FragmentAdapter adapter = new FragmentAdapter(getSupportFragmentManager());
-        adapter.addFragment(AppListFragment.getInstance(pm, false), getString(R.string.third_party_app));
-        adapter.addFragment(AppListFragment.getInstance(pm, true), getString(R.string.system_app));
+        adapter.addFragment(AppListFragment.getInstance( false), getString(R.string.third_party_app));
+        adapter.addFragment(AppListFragment.getInstance(true), getString(R.string.system_app));
         viewPager.setAdapter(adapter);
     }
 
@@ -106,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onTabReselected(TabLayout.Tab tab) {
+            public void onTabReselected(TabLayout.Tab tabr) {
 
             }
         });

@@ -86,7 +86,7 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
 
     @Override
     public int getItemCount() {
-        return mPackageInfoList.size();
+        return mPackageInfoList == null ? 0 : mPackageInfoList.size();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
@@ -105,5 +105,10 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
         public String toString() {
             return super.toString() + " '" + mTextView.getText();
         }
+    }
+
+    public void addData(List<PackageInfo> list) {
+        this.mPackageInfoList = list;
+        notifyDataSetChanged();
     }
 }

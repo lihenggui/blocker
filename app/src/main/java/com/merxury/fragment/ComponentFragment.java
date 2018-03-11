@@ -98,7 +98,7 @@ public class ComponentFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_component, container, false);
         RecyclerView rv = view.findViewById(R.id.component_fragment_recyclerview);
         setupRecyclerView(rv);
-        return rv;
+        return view;
     }
 
     private void setupRecyclerView(RecyclerView recyclerView) {
