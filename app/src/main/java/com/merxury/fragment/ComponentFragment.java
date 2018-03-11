@@ -95,7 +95,8 @@ public class ComponentFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        RecyclerView rv = (RecyclerView) inflater.inflate(R.layout.fragment_component, container, false);
+        View view = inflater.inflate(R.layout.fragment_component, container, false);
+        RecyclerView rv = view.findViewById(R.id.component_fragment_recyclerview);
         setupRecyclerView(rv);
         return rv;
     }
