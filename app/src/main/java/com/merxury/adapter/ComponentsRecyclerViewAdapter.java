@@ -2,12 +2,9 @@ package com.merxury.adapter;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ProviderInfo;
-import android.content.pm.ServiceInfo;
-import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,13 +15,11 @@ import android.widget.TextView;
 import com.merxury.blocker.R;
 import com.merxury.core.ApplicationComponents;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
-
-import static com.merxury.fragment.ComponentFragment.ACTIVITY;
-import static com.merxury.fragment.ComponentFragment.PROVIDER;
-import static com.merxury.fragment.ComponentFragment.RECEIVER;
-import static com.merxury.fragment.ComponentFragment.SERVICE;
 
 /**
  * Created by Mercury on 2018/1/25.
@@ -32,59 +27,20 @@ import static com.merxury.fragment.ComponentFragment.SERVICE;
 
 public class ComponentsRecyclerViewAdapter extends RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder> {
 
-    private ActivityInfo[] mActivities;
-    private ActivityInfo[] mReceivers;
-    private ServiceInfo[] mServices;
-    private ProviderInfo[] mProviders;
-    private ComponentInfo[] mComponentInfos;
-    private int mCategory;
     private PackageManager mPm;
+    private List<ComponentInfo> mComponents;
 
-    public ComponentsRecyclerViewAdapter(int category, Parcelable[] parcelables) {
-        mCategory = category;
-        if (parcelables == null) {
-            return;
-        }
-
-        mComponentInfos = new ComponentInfo[parcelables.length];
-        for (int i = 0; i < parcelables.length; i++) {
-            mComponentInfos[i] = (ComponentInfo) parcelables[i];
-        }
-
-        switch (mCategory) {
-            case RECEIVER:
-                mReceivers = new ActivityInfo[parcelables.length];
-                for (int i = 0; i < parcelables.length; i++) {
-                    mReceivers[i] = (ActivityInfo) parcelables[i];
-                }
-
-                break;
-            case SERVICE:
-                mServices = new ServiceInfo[parcelables.length];
-                for (int i = 0; i < parcelables.length; i++) {
-                    mServices[i] = (ServiceInfo) parcelables[i];
-                }
-
-                break;
-            case ACTIVITY:
-                mActivities = new ActivityInfo[parcelables.length];
-                for (int i = 0; i < parcelables.length; i++) {
-                    mActivities[i] = (ActivityInfo) parcelables[i];
-                }
-                break;
-            case PROVIDER:
-                mProviders = new ProviderInfo[parcelables.length];
-                for (int i = 0; i < parcelables.length; i++) {
-                    mProviders[i] = (ProviderInfo) parcelables[i];
-                }
-                break;
-            default:
-                break;
-        }
+    public ComponentsRecyclerViewAdapter() {
+        mComponents = new ArrayList<>();
     }
 
+    public ComponentsRecyclerViewAdapter(List<ComponentInfo> components) {
+        mComponents = components;
+    }
+
+    @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         Context context = parent.getContext();
         View view = LayoutInflater.from(context).inflate(R.layout.component_item, parent, false);
         mPm = context.getPackageManager();
@@ -93,10 +49,10 @@ public class ComponentsRecyclerViewAdapter extends RecyclerView.Adapter<Componen
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        if (position > mComponentInfos.length) {
+        if (position > mComponents.size()) {
             return;
         }
-        final ComponentInfo info = mComponentInfos[position];
+        final ComponentInfo info = mComponents.get(position);
         String[] splitResult = info.name.split("\\.");
         String splitName = splitResult.length == 0 ? "" : splitResult[splitResult.length - 1];
         holder.mComponentName.setText(splitName);
@@ -106,11 +62,15 @@ public class ComponentsRecyclerViewAdapter extends RecyclerView.Adapter<Componen
 
     @Override
     public int getItemCount() {
-        return mComponentInfos == null ? 0 : mComponentInfos.length;
+        return mComponents.size();
+    }
+
+    public void addData(List<ComponentInfo> components) {
+        mComponents = components;
+        notifyDataSetChanged();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        private final View mView;
         @BindView(R.id.component_name)
         TextView mComponentName;
         @BindView(R.id.component_description)
@@ -120,7 +80,6 @@ public class ComponentsRecyclerViewAdapter extends RecyclerView.Adapter<Componen
 
         ViewHolder(View view) {
             super(view);
-            mView = view;
             ButterKnife.bind(this, view);
         }
     }

@@ -4,7 +4,7 @@
     android:orientation="vertical">
 
     <ProgressBar
-        android:id="@+id/loading_progress_bar"
+        android:id="@+id/comnponent_loading_progress_bar"
         style="@style/Base.Widget.AppCompat.ProgressBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
