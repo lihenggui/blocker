@@ -18,6 +18,8 @@ import com.merxury.core.ApplicationComponents;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
 import io.reactivex.Single;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -27,8 +29,9 @@ import io.reactivex.schedulers.Schedulers;
 
 public class AppListFragment extends Fragment {
     private static final String IS_SYSTEM = "IS_SYSTEM";
-    private ProgressBar mProgressBar;
-    private AppListRecyclerViewAdapter mAppListRecyclerViewAdapter;
+    @BindView(R.id.app_loading_progress_bar)
+    ProgressBar mProgressBar;
+    AppListRecyclerViewAdapter mAppListRecyclerViewAdapter;
     private boolean mSystem;
 
     public AppListFragment() {
@@ -79,7 +82,7 @@ public class AppListFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_app_list, container, false);
-        mProgressBar = view.findViewById(R.id.app_loading_progress_bar);
+        ButterKnife.bind(this, view);
         RecyclerView AppListRecyclerView = view.findViewById(R.id.app_list_fragment_recyclerview);
         mAppListRecyclerViewAdapter = new AppListRecyclerViewAdapter(getContext());
         setupRecyclerView(AppListRecyclerView);
