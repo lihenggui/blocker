@@ -9,7 +9,6 @@ import android.content.pm.ServiceInfo;
 import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
-import com.merxury.core.ApplicationComponents;
 import com.merxury.core.root.RootController;
 
 import org.junit.After;
@@ -18,7 +17,7 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class RootControllerTest {
     private static final String TAG = "Test";
@@ -67,7 +66,7 @@ public class RootControllerTest {
         time1 = System.currentTimeMillis();
         for (PackageInfo info1 : info) {
             String packageName = info1.packageName;
-            ActivityInfo[] activities = ApplicationComponents.getActivitiyList(pm, packageName);
+            ActivityInfo[] activities = ApplicationComponents.getActivityList(pm, packageName);
             ActivityInfo[] receiver = ApplicationComponents.getReceiverList(pm, packageName);
             ProviderInfo[] providers = ApplicationComponents.getProviderList(pm, packageName);
             ServiceInfo[] services = ApplicationComponents.getServiceList(pm, packageName);
