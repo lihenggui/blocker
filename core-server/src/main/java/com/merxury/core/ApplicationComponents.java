@@ -1,7 +1,6 @@
 package com.merxury.core;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -9,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ProviderInfo;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -79,7 +79,8 @@ public class ApplicationComponents {
      * @param packageName package name
      * @return list of activity
      */
-    public static ActivityInfo[] getActivitiyList(PackageManager pm, String packageName) {
+    @NonNull
+    public static ActivityInfo[] getActivityList(@NonNull PackageManager pm, @NonNull String packageName) {
         ActivityInfo[] activities = null;
         try {
             int flags = PackageManager.GET_ACTIVITIES;
@@ -92,7 +93,7 @@ public class ApplicationComponents {
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return activities;
+        return activities == null ? new ActivityInfo[0] : activities;
     }
 
     /**
@@ -102,7 +103,8 @@ public class ApplicationComponents {
      * @param packageName package name
      * @return list of receiver
      */
-    public static ActivityInfo[] getReceiverList(PackageManager pm, String packageName) {
+    @NonNull
+    public static ActivityInfo[] getReceiverList(@NonNull PackageManager pm, @NonNull String packageName) {
         ActivityInfo[] receivers = null;
         try {
             int flags = PackageManager.GET_RECEIVERS;
@@ -115,7 +117,8 @@ public class ApplicationComponents {
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return receivers;
+
+        return receivers == null ? new ActivityInfo[0] : receivers;
     }
 
     /**
@@ -125,7 +128,8 @@ public class ApplicationComponents {
      * @param packageName package name
      * @return list of service
      */
-    public static ServiceInfo[] getServiceList(PackageManager pm, String packageName) {
+    @NonNull
+    public static ServiceInfo[] getServiceList(@NonNull PackageManager pm, @NonNull String packageName) {
         ServiceInfo[] services = null;
         try {
             int flags = PackageManager.GET_SERVICES;
@@ -138,7 +142,7 @@ public class ApplicationComponents {
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return services;
+        return services == null ? new ServiceInfo[0] : services;
     }
 
     /**
@@ -148,7 +152,8 @@ public class ApplicationComponents {
      * @param packageName package name
      * @return list of provider
      */
-    public static ProviderInfo[] getProviderList(PackageManager pm, String packageName) {
+    @NonNull
+    public static ProviderInfo[] getProviderList(@NonNull PackageManager pm, @NonNull String packageName) {
         ProviderInfo[] providers = null;
         try {
             int flags = PackageManager.GET_PROVIDERS;
@@ -161,7 +166,7 @@ public class ApplicationComponents {
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return providers;
+        return providers == null ? new ProviderInfo[0] : providers;
     }
 
     /**
@@ -175,7 +180,7 @@ public class ApplicationComponents {
      *                    GET_SERVICES, GET_SIGNATURES, MATCH_DISABLED_COMPONENTS (API level 24), MATCH_DISABLED_UNTIL_USED_COMPONENTS(API level 24)
      * @return a set of components
      */
-    public static PackageInfo getApplicationComponents(PackageManager pm, String packageName, int flags) {
+    public static PackageInfo getApplicationComponents(@NonNull PackageManager pm, @NonNull String packageName, int flags) {
         PackageInfo info = null;
         try {
             info = pm.getPackageInfo(packageName, flags);

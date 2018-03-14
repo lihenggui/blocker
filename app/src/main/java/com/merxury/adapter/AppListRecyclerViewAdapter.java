@@ -27,7 +27,7 @@ import io.reactivex.functions.BiConsumer;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Created by lihen on 2018/1/13.
+ * Created by Mercury on 2018/1/13.
  */
 
 public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecyclerViewAdapter.ViewHolder> {
@@ -35,8 +35,7 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
     private List<PackageInfo> mPackageInfoList;
     private PackageManager mPm;
 
-    public AppListRecyclerViewAdapter(Context context, List<PackageInfo> packageList) {
-        mPackageInfoList = packageList;
+    public AppListRecyclerViewAdapter(Context context) {
         mPm = context.getPackageManager();
     }
 
@@ -86,7 +85,12 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
 
     @Override
     public int getItemCount() {
-        return mPackageInfoList.size();
+        return mPackageInfoList == null ? 0 : mPackageInfoList.size();
+    }
+
+    public void addData(List<PackageInfo> list) {
+        this.mPackageInfoList = list;
+        notifyDataSetChanged();
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
