@@ -1,12 +1,15 @@
 package com.merxury.fragment;
 
+import android.content.Context;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -37,18 +40,15 @@ public class ComponentFragment extends Fragment {
     public static final int PROVIDER = 4;
 
     public static final String CATEGORY = "category";
-    public static final String RECEIVER_NAME = "receiver";
-    public static final String SERVICE_NAME = "service";
-    public static final String ACTIVITY_NAME = "activity";
-    public static final String PROVIDER_NAME = "provider";
     public static final String PACKAGE_NAME = "package_name";
-    @BindView(R.id.comnponent_loading_progress_bar)
+
+    @BindView(R.id.component_loading_progress_bar)
     ProgressBar mProgressBar;
+    @BindView(R.id.component_swipe_refresh_layout)
+    SwipeRefreshLayout mSwipeRefreshLayout;
     ComponentsRecyclerViewAdapter mComponentsRecyclerViewAdapter;
     private int mCategory;
     private String mPackageName;
-    private Parcelable[] mParcelables;
-    private ComponentInfo[] mComponents;
     private Unbinder mUnbinder;
 
     public ComponentFragment() {
@@ -76,6 +76,10 @@ public class ComponentFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        loadData();
+    }
+
+    private void loadData() {
         Single.create((SingleOnSubscribe<List<ComponentInfo>>) emitter -> {
             PackageManager pm = getContext().getPackageManager();
             ComponentInfo[] componentInfo;
@@ -87,7 +91,7 @@ public class ComponentFragment extends Fragment {
                     componentInfo = ApplicationComponents.getServiceList(pm, mPackageName);
                     break;
                 case ACTIVITY:
-                    componentInfo = ApplicationComponents.getActivitiyList(pm, mPackageName);
+                    componentInfo = ApplicationComponents.getActivityList(pm, mPackageName);
                     break;
                 case PROVIDER:
                     componentInfo = ApplicationComponents.getProviderList(pm, mPackageName);
@@ -101,8 +105,14 @@ public class ComponentFragment extends Fragment {
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(appList -> {
-                    mProgressBar.setVisibility(View.GONE);
+                    if (mProgressBar.getVisibility() != View.GONE) {
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+                    if (mSwipeRefreshLayout.isRefreshing()) {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
                     mComponentsRecyclerViewAdapter.addData(appList);
+                    mComponentsRecyclerViewAdapter.notifyDataSetChanged();
                 }, throwable -> {
                     //TODO error handling
                 });
@@ -115,6 +125,7 @@ public class ComponentFragment extends Fragment {
         mUnbinder = ButterKnife.bind(this, view);
         RecyclerView rv = view.findViewById(R.id.component_fragment_recyclerview);
         setupRecyclerView(rv);
+        initSwipeRefreshLayout();
         return view;
     }
 
@@ -125,9 +136,17 @@ public class ComponentFragment extends Fragment {
     }
 
     private void setupRecyclerView(RecyclerView recyclerView) {
-        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
+        Context context = recyclerView.getContext();
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        recyclerView.setLayoutManager(layoutManager);
         mComponentsRecyclerViewAdapter = new ComponentsRecyclerViewAdapter();
         recyclerView.setAdapter(mComponentsRecyclerViewAdapter);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation()));
+    }
+
+    private void initSwipeRefreshLayout() {
+        mSwipeRefreshLayout.setOnRefreshListener(this::loadData);
     }
 
 }
