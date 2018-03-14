@@ -1,10 +1,14 @@
 package com.merxury.fragment;
 
+import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -20,6 +24,7 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.Unbinder;
 import io.reactivex.Single;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -31,7 +36,10 @@ public class AppListFragment extends Fragment {
     private static final String IS_SYSTEM = "IS_SYSTEM";
     @BindView(R.id.app_loading_progress_bar)
     ProgressBar mProgressBar;
+    @BindView(R.id.app_list_swipe_refresh_layout)
+    SwipeRefreshLayout mSwipeRefreshLayout;
     AppListRecyclerViewAdapter mAppListRecyclerViewAdapter;
+    private Unbinder mUnbinder;
     private boolean mSystem;
 
     public AppListFragment() {
@@ -57,6 +65,42 @@ public class AppListFragment extends Fragment {
     @Override
     public void onStart() {
         super.onStart();
+        loadData();
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_app_list, container, false);
+        mUnbinder = ButterKnife.bind(this, view);
+        RecyclerView AppListRecyclerView = view.findViewById(R.id.app_list_fragment_recyclerview);
+        mAppListRecyclerViewAdapter = new AppListRecyclerViewAdapter(getContext());
+        setupRecyclerView(AppListRecyclerView);
+        initSwipeRefreshLayout();
+        return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        mUnbinder.unbind();
+    }
+
+    private void setupRecyclerView(RecyclerView recyclerView) {
+        Context context = recyclerView.getContext();
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(mAppListRecyclerViewAdapter);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        recyclerView.addItemDecoration(new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation()));
+    }
+
+    private void initSwipeRefreshLayout() {
+        mSwipeRefreshLayout.setOnRefreshListener(this::loadData);
+    }
+
+    private void loadData() {
         Single.create((SingleOnSubscribe<List<PackageInfo>>) emitter -> {
             PackageManager pm = getContext().getPackageManager();
             List<PackageInfo> appList;
@@ -71,27 +115,15 @@ public class AppListFragment extends Fragment {
                 .subscribe(appList -> {
                     mAppListRecyclerViewAdapter.addData(appList);
                     mAppListRecyclerViewAdapter.notifyDataSetChanged();
-                    mProgressBar.setVisibility(View.GONE);
+                    if (mProgressBar.getVisibility() != View.GONE) {
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+                    if (mSwipeRefreshLayout.isRefreshing()) {
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
                 }, throwable -> {
                     //TODO error handling
                 });
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_app_list, container, false);
-        ButterKnife.bind(this, view);
-        RecyclerView AppListRecyclerView = view.findViewById(R.id.app_list_fragment_recyclerview);
-        mAppListRecyclerViewAdapter = new AppListRecyclerViewAdapter(getContext());
-        setupRecyclerView(AppListRecyclerView);
-        return view;
-    }
-
-    private void setupRecyclerView(RecyclerView recyclerView) {
-        recyclerView.setLayoutManager(new LinearLayoutManager(recyclerView.getContext()));
-        recyclerView.setAdapter(mAppListRecyclerViewAdapter);
     }
 
 }
