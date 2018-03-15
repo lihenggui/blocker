@@ -12,6 +12,7 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,7 +21,10 @@ import android.widget.ProgressBar;
 import com.merxury.adapter.AppListRecyclerViewAdapter;
 import com.merxury.blocker.R;
 import com.merxury.core.ApplicationComponents;
+import com.merxury.entity.Application;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import butterknife.BindView;
@@ -34,12 +38,15 @@ import io.reactivex.schedulers.Schedulers;
 
 
 public class AppListFragment extends Fragment {
+    private static final String TAG = "AppListFragment";
     private static final String IS_SYSTEM = "IS_SYSTEM";
+
     @BindView(R.id.app_loading_progress_bar)
     ProgressBar mProgressBar;
     @BindView(R.id.app_list_swipe_refresh_layout)
     SwipeRefreshLayout mSwipeRefreshLayout;
     AppListRecyclerViewAdapter mAppListRecyclerViewAdapter;
+
     private Unbinder mUnbinder;
     private boolean mSystem;
 
@@ -103,7 +110,7 @@ public class AppListFragment extends Fragment {
 
     @SuppressLint("CheckResult")
     private void loadData() {
-        Single.create((SingleOnSubscribe<List<PackageInfo>>) emitter -> {
+        Single.create((SingleOnSubscribe<List<Application>>) emitter -> {
             PackageManager pm = getContext().getPackageManager();
             List<PackageInfo> appList;
             if (mSystem) {
@@ -111,21 +118,35 @@ public class AppListFragment extends Fragment {
             } else {
                 appList = ApplicationComponents.getThirdPartyApplicationList(pm);
             }
-            emitter.onSuccess(appList);
+            List<Application> applications = new ArrayList<>(64);
+            for (PackageInfo info : appList) {
+                applications.add(new Application(pm, info));
+                Collections.sort(applications, (app1, app2) -> app1.getLabel().compareTo(app2.getLabel()));
+            }
+            emitter.onSuccess(applications);
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(appList -> {
+                    hideRefreshing();
+                    hideProgressBar();
                     mAppListRecyclerViewAdapter.addData(appList);
                     mAppListRecyclerViewAdapter.notifyDataSetChanged();
-                    if (mProgressBar.getVisibility() != View.GONE) {
-                        mProgressBar.setVisibility(View.GONE);
-                    }
-                    if (mSwipeRefreshLayout.isRefreshing()) {
-                        mSwipeRefreshLayout.setRefreshing(false);
-                    }
                 }, throwable -> {
+                    throwable.printStackTrace();
+                    Log.e(TAG, throwable.getMessage());
                     //TODO error handling
                 });
     }
 
+    private void hideProgressBar() {
+        if (mProgressBar.getVisibility() != View.GONE) {
+            mProgressBar.setVisibility(View.GONE);
+        }
+    }
+
+    private void hideRefreshing() {
+        if (mSwipeRefreshLayout.isRefreshing()) {
+            mSwipeRefreshLayout.setRefreshing(false);
+        }
+    }
 }

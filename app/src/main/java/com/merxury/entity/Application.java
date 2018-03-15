@@ -3,10 +3,12 @@ package com.merxury.entity;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import com.merxury.utils.ApkUtils;
 
@@ -19,6 +21,11 @@ import java.util.Arrays;
  */
 
 public class Application implements Parcelable {
+
+    private String packageName;
+    private String versionName;
+    private int versionCode;
+    private boolean enabled;
     public static final Creator<Application> CREATOR = new Creator<Application>() {
         @Override
         public Application createFromParcel(Parcel source) {
@@ -30,11 +37,6 @@ public class Application implements Parcelable {
             return new Application[size];
         }
     };
-    private String packageName;
-    private String versionName;
-    private int versionCode;
-    private boolean enabled;
-    private String appName;
     private int targetSdkVersion;
     private int minSdkVersion;
     private String nonLocalizedLabel;
@@ -46,25 +48,7 @@ public class Application implements Parcelable {
     private Application() {
     }
 
-    public Application(@NonNull PackageManager pm, @NonNull PackageInfo info) {
-        this(info);
-        ApplicationInfo appDetail = info.applicationInfo;
-        this.targetSdkVersion = appDetail.targetSdkVersion;
-        this.nonLocalizedLabel = appDetail.nonLocalizedLabel.toString();
-        this.sourceDir = appDetail.sourceDir;
-        this.publicSourceDir = appDetail.sourceDir;
-        this.dataDir = appDetail.dataDir;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            this.minSdkVersion = appDetail.minSdkVersion;
-        } else {
-            ApkUtils.getMinSdkVersion(new File(""));
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            this.splitNames = appDetail.splitNames;
-        } else {
-            this.splitNames = this.packageName.split("\\.");
-        }
-    }
+    private String label;
 
     public String getPackageName() {
         return packageName;
@@ -117,8 +101,29 @@ public class Application implements Parcelable {
         }
     }
 
+    public Application(@NonNull PackageManager pm, @NonNull PackageInfo info) {
+        this(info);
+        ApplicationInfo appDetail = info.applicationInfo;
+        this.targetSdkVersion = appDetail.targetSdkVersion;
+        this.nonLocalizedLabel = String.valueOf(appDetail.nonLocalizedLabel);
+        this.sourceDir = appDetail.sourceDir;
+        this.publicSourceDir = appDetail.sourceDir;
+        this.dataDir = appDetail.dataDir;
+        this.label = appDetail.loadLabel(pm).toString();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            minSdkVersion = appDetail.minSdkVersion;
+        } else {
+            minSdkVersion = ApkUtils.getMinSdkVersion(new File(publicSourceDir));
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            this.splitNames = appDetail.splitNames;
+        } else {
+            this.splitNames = this.packageName.split("\\.");
+        }
+    }
+
     protected Application(Parcel in) {
-        this.appName = in.readString();
+        this.label = in.readString();
         this.packageName = in.readString();
         this.versionName = in.readString();
         this.versionCode = in.readInt();
@@ -132,12 +137,8 @@ public class Application implements Parcelable {
         this.dataDir = in.readString();
     }
 
-    public String getAppName() {
-        return appName;
-    }
-
-    public void setAppName(String appName) {
-        this.appName = appName;
+    public String getLabel() {
+        return label;
     }
 
     public int getMinSdkVersion() {
@@ -194,10 +195,24 @@ public class Application implements Parcelable {
         this.dataDir = dataDir;
     }
 
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    @Nullable
+    public Drawable getApplicationIcon(PackageManager pm) {
+        try {
+            return pm.getApplicationIcon(packageName);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return "Application{" +
-                "appName='" + appName + '\'' +
+                "label='" + label + '\'' +
                 ", packageName='" + packageName + '\'' +
                 ", versionName='" + versionName + '\'' +
                 ", versionCode=" + versionCode +
@@ -214,7 +229,7 @@ public class Application implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.appName);
+        dest.writeString(this.label);
         dest.writeString(this.packageName);
         dest.writeString(this.versionName);
         dest.writeInt(this.versionCode);

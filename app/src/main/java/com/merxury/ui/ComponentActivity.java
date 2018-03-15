@@ -24,8 +24,11 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.merxury.adapter.FragmentAdapter;
 import com.merxury.blocker.R;
+import com.merxury.constant.Constant;
 import com.merxury.core.ApplicationComponents;
+import com.merxury.entity.Application;
 import com.merxury.fragment.ComponentFragment;
+import com.merxury.utils.ApplicationUtils;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 
@@ -57,7 +60,7 @@ public class ComponentActivity extends AppCompatActivity {
     @BindView(R.id.app_info_app_package_name)
     TextView mAppPackageName;
 
-    private String mPackageName;
+    private Application mApplicationInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,12 +68,13 @@ public class ComponentActivity extends AppCompatActivity {
         setContentView(R.layout.activity_component);
         ButterKnife.bind(this);
         Intent intent = getIntent();
-        mPackageName = intent.getStringExtra(MainActivity.PACKAGE_NAME);
+        mApplicationInfo = intent.getParcelableExtra(Constant.APPLICATION);
         initActionBar();
         initAppBriefInfoLayout(this);
         initDrawer();
         initViewPager();
         initTab();
+        initOnClickListener();
     }
 
     @Override
@@ -94,11 +98,12 @@ public class ComponentActivity extends AppCompatActivity {
 
     private void initViewPager() {
         PackageManager pm = getPackageManager();
+        String packageName = mApplicationInfo.getPackageName();
         FragmentAdapter adapter = new FragmentAdapter(getSupportFragmentManager());
-        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.RECEIVER), getString(R.string.receiver));
-        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.SERVICE), getString(R.string.service));
-        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.ACTIVITY), getString(R.string.activity));
-        adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.PROVIDER), getString(R.string.provider));
+        adapter.addFragment(ComponentFragment.getInstance(pm, packageName, ComponentFragment.RECEIVER), getString(R.string.receiver));
+        adapter.addFragment(ComponentFragment.getInstance(pm, packageName, ComponentFragment.SERVICE), getString(R.string.service));
+        adapter.addFragment(ComponentFragment.getInstance(pm, packageName, ComponentFragment.ACTIVITY), getString(R.string.activity));
+        adapter.addFragment(ComponentFragment.getInstance(pm, packageName, ComponentFragment.PROVIDER), getString(R.string.provider));
         mViewPager.setAdapter(adapter);
     }
 
@@ -180,7 +185,7 @@ public class ComponentActivity extends AppCompatActivity {
     private void initAppBriefInfoLayout(Context context) {
         final PackageManager pm = getPackageManager();
         Single.create((SingleOnSubscribe<PackageInfo>) emitter -> {
-            PackageInfo info = ApplicationComponents.getApplicationComponents(pm, mPackageName);
+            PackageInfo info = ApplicationComponents.getApplicationComponents(pm, mApplicationInfo.getPackageName());
             emitter.onSuccess(info);
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -193,5 +198,9 @@ public class ComponentActivity extends AppCompatActivity {
                 }, throwable -> {
                     //TODO Error handling
                 });
+    }
+
+    private void initOnClickListener() {
+        mAppIcon.setOnClickListener((view) -> ApplicationUtils.Companion.startApplication(this, mApplicationInfo.getPackageName()));
     }
 }

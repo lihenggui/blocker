@@ -11,7 +11,7 @@
     <string name="activity">Activity</string>
     <string name="service">Service</string>
     <string name="loading_text">Loading…</string>
-
+    <string name="app_cannot_start">This application cannot be started directly</string>
     <!--COPY FROM https://github.com/RikkaApps/Shizuku/blob/master/manager/src/main/res/values/strings.xml-->
     <string name="copy_command">Copy</string>
     <string name="send_command">Send</string>
