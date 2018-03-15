@@ -4,7 +4,6 @@
     <string name="system_app_tab_text">System</string>
     <string name="third_party_app_tab_text">Third party</string>
     <string name="action_settings">Settings</string>
-    <string name="app_icon_description">App Icon</string>
     <string name="third_party_app">Third Party</string>
     <string name="system_app">System</string>
     <string name="receiver">Receiver</string>
@@ -19,4 +18,7 @@
     <string name="starting_shell" translatable="false">Starting root shell…</string>
     <string name="cannot_start_no_root">Can\'t start service because root permission is not granted or this device is not rooted.</string>
     <string name="cannot_start_shell_failed">There\'s something wrong when running shell command.</string>
+
+    <!-- content description-->
+    <string name="app_icon_description">Application icon</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.merxury.fragment;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageManager;
@@ -79,6 +80,7 @@ public class ComponentFragment extends Fragment {
         loadData();
     }
 
+    @SuppressLint("CheckResult")
     private void loadData() {
         Single.create((SingleOnSubscribe<List<ComponentInfo>>) emitter -> {
             PackageManager pm = getContext().getPackageManager();
