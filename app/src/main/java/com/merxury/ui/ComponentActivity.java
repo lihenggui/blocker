@@ -22,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.merxury.adapter.FragmentAdapter;
 import com.merxury.blocker.R;
 import com.merxury.constant.Constant;
@@ -138,12 +139,9 @@ public class ComponentActivity extends AppCompatActivity {
         }
         int colorTo = getColorForTab(tab.getPosition());
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), colorFrom, colorTo);
-        colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                int color = (int) animation.getAnimatedValue();
-                changeColor(color);
-            }
+        colorAnimation.addUpdateListener(animation -> {
+            int color = (int) animation.getAnimatedValue();
+            changeColor(color);
         });
         colorAnimation.setDuration(500);
         colorAnimation.start();
@@ -192,6 +190,7 @@ public class ComponentActivity extends AppCompatActivity {
                 .subscribe(info -> {
                     Glide.with(context)
                             .load(info.applicationInfo.loadIcon(pm))
+                            .transition(new DrawableTransitionOptions().crossFade())
                             .into(mAppIcon);
                     mAppName.setText(info.applicationInfo.loadLabel(pm));
                     mAppPackageName.setText(info.packageName);
