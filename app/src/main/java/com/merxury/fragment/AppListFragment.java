@@ -1,5 +1,6 @@
 package com.merxury.fragment;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -74,9 +75,9 @@ public class AppListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_app_list, container, false);
         mUnbinder = ButterKnife.bind(this, view);
-        RecyclerView AppListRecyclerView = view.findViewById(R.id.app_list_fragment_recyclerview);
-        mAppListRecyclerViewAdapter = new AppListRecyclerViewAdapter(getContext());
-        setupRecyclerView(AppListRecyclerView);
+        RecyclerView appListRecyclerView = view.findViewById(R.id.app_list_fragment_recyclerview);
+        mAppListRecyclerViewAdapter = new AppListRecyclerViewAdapter(appListRecyclerView.getContext());
+        setupRecyclerView(appListRecyclerView);
         initSwipeRefreshLayout();
         return view;
     }
@@ -100,6 +101,7 @@ public class AppListFragment extends Fragment {
         mSwipeRefreshLayout.setOnRefreshListener(this::loadData);
     }
 
+    @SuppressLint("CheckResult")
     private void loadData() {
         Single.create((SingleOnSubscribe<List<PackageInfo>>) emitter -> {
             PackageManager pm = getContext().getPackageManager();

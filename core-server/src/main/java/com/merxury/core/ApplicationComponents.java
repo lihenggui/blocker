@@ -197,7 +197,8 @@ public class ApplicationComponents {
      * @param packageName package name
      * @return a set of components
      */
-    public static PackageInfo getApplicationComponents(PackageManager pm, String packageName) {
+    @NonNull
+    public static PackageInfo getApplicationComponents(@NonNull PackageManager pm, @NonNull String packageName) throws PackageManager.NameNotFoundException {
         int flags = PackageManager.GET_ACTIVITIES | PackageManager.GET_PROVIDERS |
                 PackageManager.GET_RECEIVERS | PackageManager.GET_SERVICES |
                 PackageManager.GET_INTENT_FILTERS;
@@ -212,6 +213,7 @@ public class ApplicationComponents {
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
+
         return info;
     }
 

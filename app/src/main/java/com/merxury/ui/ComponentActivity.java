@@ -2,10 +2,14 @@ package com.merxury.ui;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
@@ -14,15 +18,23 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.widget.ImageView;
+import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.merxury.adapter.FragmentAdapter;
 import com.merxury.blocker.R;
+import com.merxury.core.ApplicationComponents;
 import com.merxury.fragment.ComponentFragment;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import io.reactivex.Single;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 public class ComponentActivity extends AppCompatActivity {
 
@@ -36,6 +48,14 @@ public class ComponentActivity extends AppCompatActivity {
     TabLayout mTabLayout;
     @BindView(R.id.component_viewpager)
     ViewPager mViewPager;
+    @BindView(R.id.app_info_layout)
+    ConstraintLayout mAppBriefLayout;
+    @BindView(R.id.app_info_app_name)
+    TextView mAppName;
+    @BindView(R.id.app_info_icon)
+    ImageView mAppIcon;
+    @BindView(R.id.app_info_app_package_name)
+    TextView mAppPackageName;
 
     private String mPackageName;
 
@@ -44,18 +64,13 @@ public class ComponentActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_component);
         ButterKnife.bind(this);
-        setSupportActionBar(mToolbar);
-        final ActionBar ab = getSupportActionBar();
-        if (ab != null) {
-            ab.setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
-            ab.setDisplayHomeAsUpEnabled(true);
-        }
         Intent intent = getIntent();
         mPackageName = intent.getStringExtra(MainActivity.PACKAGE_NAME);
-        setupDrawer();
-        setupViewPager(mViewPager);
-        mTabLayout.setupWithViewPager(mViewPager);
-        setupTab();
+        initActionBar();
+        initAppBriefInfoLayout(this);
+        initDrawer();
+        initViewPager();
+        initTab();
     }
 
     @Override
@@ -73,21 +88,22 @@ public class ComponentActivity extends AppCompatActivity {
         super.onResume();
     }
 
-    private void setupDrawer() {
+    private void initDrawer() {
         Drawer drawer = new DrawerBuilder().withActivity(this).build();
     }
 
-    private void setupViewPager(ViewPager viewPager) {
+    private void initViewPager() {
         PackageManager pm = getPackageManager();
         FragmentAdapter adapter = new FragmentAdapter(getSupportFragmentManager());
         adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.RECEIVER), getString(R.string.receiver));
         adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.SERVICE), getString(R.string.service));
         adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.ACTIVITY), getString(R.string.activity));
         adapter.addFragment(ComponentFragment.getInstance(pm, mPackageName, ComponentFragment.PROVIDER), getString(R.string.provider));
-        viewPager.setAdapter(adapter);
+        mViewPager.setAdapter(adapter);
     }
 
-    private void setupTab() {
+    private void initTab() {
+        mTabLayout.setupWithViewPager(mViewPager);
         changeColor(getColorForTab(0));
         mTabLayout.setSelectedTabIndicatorColor(getResources().getColor(R.color.md_white_1000));
         mTabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -148,5 +164,34 @@ public class ComponentActivity extends AppCompatActivity {
         mTabLayout.setBackgroundColor(color);
         mCollapsingToolbarLayout.setBackgroundColor(color);
         getWindow().setStatusBarColor(color);
+    }
+
+    private void initActionBar() {
+        setSupportActionBar(mToolbar);
+        final ActionBar ab = getSupportActionBar();
+        if (ab != null) {
+            ab.setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp);
+            ab.setDisplayHomeAsUpEnabled(true);
+            ab.setDisplayShowTitleEnabled(false);
+        }
+    }
+
+    @SuppressLint("CheckResult")
+    private void initAppBriefInfoLayout(Context context) {
+        final PackageManager pm = getPackageManager();
+        Single.create((SingleOnSubscribe<PackageInfo>) emitter -> {
+            PackageInfo info = ApplicationComponents.getApplicationComponents(pm, mPackageName);
+            emitter.onSuccess(info);
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(info -> {
+                    Glide.with(context)
+                            .load(info.applicationInfo.loadIcon(pm))
+                            .into(mAppIcon);
+                    mAppName.setText(info.applicationInfo.loadLabel(pm));
+                    mAppPackageName.setText(info.packageName);
+                }, throwable -> {
+                    //TODO Error handling
+                });
     }
 }

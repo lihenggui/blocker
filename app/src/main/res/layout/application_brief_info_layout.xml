@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/app_info_icon"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="16dp"
+        android:contentDescription="@string/app_icon_description"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_android_green_24dp"
+        tools:src="@drawable/ic_android_green_24dp" />
+
+    <android.support.constraint.Barrier
+        android:id="@+id/app_info_icon_barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="end"
+        app:constraint_referenced_ids="app_info_icon" />
+
+    <TextView
+        android:id="@+id/app_info_app_name"
+        style="@style/InfoTextStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="App Info" />
+
+    <TextView
+        android:id="@+id/app_info_app_package_name"
+        style="@style/InfoTextStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintTop_toBottomOf="@id/app_info_app_name"
+        tools:text="Package name" />
+</android.support.constraint.ConstraintLayout>
