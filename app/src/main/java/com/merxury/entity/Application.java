@@ -3,10 +3,14 @@ package com.merxury.entity;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
+import com.merxury.utils.ApkUtils;
+
+import java.io.File;
 import java.util.Arrays;
 
 /**
@@ -50,8 +54,16 @@ public class Application implements Parcelable {
         this.sourceDir = appDetail.sourceDir;
         this.publicSourceDir = appDetail.sourceDir;
         this.dataDir = appDetail.dataDir;
-        this.splitNames = appDetail.splitNames;
-        this.minSdkVersion = appDetail.minSdkVersion;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            this.minSdkVersion = appDetail.minSdkVersion;
+        } else {
+            ApkUtils.getMinSdkVersion(new File(""));
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            this.splitNames = appDetail.splitNames;
+        } else {
+            this.splitNames = this.packageName.split("\\.");
+        }
     }
 
     public String getPackageName() {
