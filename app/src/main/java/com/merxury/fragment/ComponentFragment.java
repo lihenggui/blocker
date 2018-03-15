@@ -107,15 +107,14 @@ public class ComponentFragment extends Fragment {
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(appList -> {
-                    if (mProgressBar.getVisibility() != View.GONE) {
-                        mProgressBar.setVisibility(View.GONE);
-                    }
+                    hideProgressBar();
                     if (mSwipeRefreshLayout.isRefreshing()) {
                         mSwipeRefreshLayout.setRefreshing(false);
                     }
                     mComponentsRecyclerViewAdapter.addData(appList);
                     mComponentsRecyclerViewAdapter.notifyDataSetChanged();
                 }, throwable -> {
+                    hideProgressBar();
                     //TODO error handling
                 });
     }
@@ -151,4 +150,9 @@ public class ComponentFragment extends Fragment {
         mSwipeRefreshLayout.setOnRefreshListener(this::loadData);
     }
 
+    private void hideProgressBar() {
+        if (mProgressBar.getVisibility() != View.GONE) {
+            mProgressBar.setVisibility(View.GONE);
+        }
+    }
 }
