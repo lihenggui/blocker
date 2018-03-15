@@ -13,6 +13,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
 import com.merxury.blocker.R;
 import com.merxury.constant.Constant;
@@ -55,11 +56,12 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
         });
         RequestOptions options = new RequestOptions()
                 .fitCenter()
-                .placeholder(R.drawable.ic_android_green_24dp)
+                .placeholder(android.R.drawable.sym_def_app_icon)
                 .error(R.drawable.ic_error_red_24dp);
         Glide.with(holder.mImageView.getContext())
                 .load(application.getApplicationIcon(mPm))
                 .apply(options)
+                .transition(new DrawableTransitionOptions().crossFade())
                 .into(holder.mImageView);
     }
 
