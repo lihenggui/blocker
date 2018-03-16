@@ -61,7 +61,7 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
         Glide.with(holder.mImageView.getContext())
                 .load(application.getApplicationIcon(mPm))
                 .apply(options)
-                .transition(new DrawableTransitionOptions().crossFade())
+                .transition(new DrawableTransitionOptions().crossFade(300))
                 .into(holder.mImageView);
     }
 
