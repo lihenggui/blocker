@@ -13,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.bumptech.glide.request.RequestOptions;
 import com.merxury.blocker.R;
 import com.merxury.constant.Constant;
@@ -61,7 +60,6 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
         Glide.with(holder.mImageView.getContext())
                 .load(application.getApplicationIcon(mPm))
                 .apply(options)
-                .transition(new DrawableTransitionOptions().crossFade(300))
                 .into(holder.mImageView);
     }
 
