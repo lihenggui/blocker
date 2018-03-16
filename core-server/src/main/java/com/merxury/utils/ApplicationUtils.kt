@@ -3,7 +3,6 @@ package com.merxury.utils
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import com.merxury.blocker.R
 
 class ApplicationUtils {
     companion object {
