@@ -25,10 +25,19 @@
         </activity>
         <activity
             android:name="com.merxury.ui.ComponentActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
 
-        <service android:name="com.merxury.service.ShellService"
-            android:exported="false"/>
+        <service
+            android:name="com.merxury.service.ShellService"
+            android:exported="false" />
+
+        <activity android:name="com.merxury.ui.home.HomeActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

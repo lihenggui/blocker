@@ -1,4 +1,4 @@
-package com.merxury.adapter;
+package com.merxury.ui.home;
 
 import android.annotation.SuppressLint;
 import android.content.Context;

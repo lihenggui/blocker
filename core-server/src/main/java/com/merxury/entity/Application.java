@@ -22,10 +22,6 @@ import java.util.Arrays;
 
 public class Application implements Parcelable {
 
-    private String packageName;
-    private String versionName;
-    private int versionCode;
-    private boolean enabled;
     public static final Creator<Application> CREATOR = new Creator<Application>() {
         @Override
         public Application createFromParcel(Parcel source) {
@@ -37,6 +33,10 @@ public class Application implements Parcelable {
             return new Application[size];
         }
     };
+    private String packageName;
+    private String versionName;
+    private int versionCode;
+    private boolean enabled;
     private int targetSdkVersion;
     private int minSdkVersion;
     private String nonLocalizedLabel;
@@ -44,50 +44,9 @@ public class Application implements Parcelable {
     private String publicSourceDir;
     private String[] splitNames;
     private String dataDir;
-
-    private Application() {
-    }
-
     private String label;
 
-    public String getPackageName() {
-        return packageName;
-    }
-
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
-    }
-
-    public String getVersionName() {
-        return versionName;
-    }
-
-    public void setVersionName(String versionName) {
-        this.versionName = versionName;
-    }
-
-    public int getVersionCode() {
-        return versionCode;
-    }
-
-    public void setVersionCode(int versionCode) {
-        this.versionCode = versionCode;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public int getTargetSdkVersion() {
-        return targetSdkVersion;
-    }
-
-    public void setTargetSdkVersion(int targetSdkVersion) {
-        this.targetSdkVersion = targetSdkVersion;
+    private Application() {
     }
 
     public Application(@NonNull PackageInfo info) {
@@ -137,8 +96,52 @@ public class Application implements Parcelable {
         this.dataDir = in.readString();
     }
 
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public void setPackageName(String packageName) {
+        this.packageName = packageName;
+    }
+
+    public String getVersionName() {
+        return versionName;
+    }
+
+    public void setVersionName(String versionName) {
+        this.versionName = versionName;
+    }
+
+    public int getVersionCode() {
+        return versionCode;
+    }
+
+    public void setVersionCode(int versionCode) {
+        this.versionCode = versionCode;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    public int getTargetSdkVersion() {
+        return targetSdkVersion;
+    }
+
+    public void setTargetSdkVersion(int targetSdkVersion) {
+        this.targetSdkVersion = targetSdkVersion;
+    }
+
     public String getLabel() {
         return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public int getMinSdkVersion() {
@@ -185,18 +188,13 @@ public class Application implements Parcelable {
         return dataDir;
     }
 
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
     public void setDataDir(String dataDir) {
         this.dataDir = dataDir;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     @Nullable

@@ -18,10 +18,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
-import com.merxury.adapter.AppListRecyclerViewAdapter;
 import com.merxury.blocker.R;
 import com.merxury.core.ApplicationComponents;
 import com.merxury.entity.Application;
+import com.merxury.ui.home.AppListRecyclerViewAdapter;
 
 import java.util.ArrayList;
 import java.util.Collections;
