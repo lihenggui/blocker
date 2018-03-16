@@ -17,7 +17,7 @@ class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View, ove
 
     @SuppressLint("CheckResult")
     override fun loadApplicationList(context: Context) {
-        homeView.showLoadingProgress()
+        homeView.setLoadingIndicator(true)
         Single.create(SingleOnSubscribe<List<Application>> { emitter ->
             val pm = context.packageManager
             val applications: List<Application>
@@ -29,7 +29,7 @@ class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View, ove
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { applications ->
-                    homeView.hideLoadingProgress()
+                    homeView.setLoadingIndicator(false)
                     homeView.showApplicationList(applications)
                 }
 
