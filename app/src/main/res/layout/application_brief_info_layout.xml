@@ -9,8 +9,6 @@
         android:id="@+id/app_info_icon"
         android:layout_width="72dp"
         android:layout_height="72dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginStart="16dp"
         android:contentDescription="@string/app_icon_description"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -26,21 +24,55 @@
     <TextView
         android:id="@+id/app_info_app_name"
         style="@style/InfoTextStyle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/margin_start_text"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="App Info" />
 
     <TextView
-        android:id="@+id/app_info_app_package_name"
+        android:id="@+id/app_info_target_sdk_version"
         style="@style/InfoTextStyle"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
+        android:layout_marginTop="@dimen/margin_text_interval"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
         app:layout_constraintTop_toBottomOf="@id/app_info_app_name"
+        tools:text="Target SDK Version" />
+
+    <TextView
+        android:id="@+id/app_info_min_sdk_version"
+        style="@style/InfoTextStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_text_interval"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintTop_toBottomOf="@id/app_info_target_sdk_version"
+        tools:text="Minimum SDK Version" />
+
+    <android.support.constraint.Barrier
+        android:id="@+id/icon_bottom_barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="app_info_icon, app_info_min_sdk_version" />
+
+    <TextView
+        android:id="@+id/app_info_app_package_name"
+        style="@style/InfoTextStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_text_interval"
+        android:ellipsize="end"
+        android:maxLines="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintTop_toBottomOf="@id/icon_bottom_barrier"
         tools:text="Package name" />
+
+
 </android.support.constraint.ConstraintLayout>

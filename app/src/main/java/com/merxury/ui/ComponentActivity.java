@@ -3,9 +3,7 @@ package com.merxury.ui;
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -26,7 +24,6 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.merxury.adapter.FragmentAdapter;
 import com.merxury.blocker.R;
 import com.merxury.constant.Constant;
-import com.merxury.core.ApplicationComponents;
 import com.merxury.entity.Application;
 import com.merxury.fragment.ComponentFragment;
 import com.merxury.utils.ApplicationUtils;
@@ -35,10 +32,6 @@ import com.mikepenz.materialdrawer.DrawerBuilder;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Single;
-import io.reactivex.SingleOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.schedulers.Schedulers;
 
 public class ComponentActivity extends AppCompatActivity {
 
@@ -60,6 +53,10 @@ public class ComponentActivity extends AppCompatActivity {
     ImageView mAppIcon;
     @BindView(R.id.app_info_app_package_name)
     TextView mAppPackageName;
+    @BindView(R.id.app_info_target_sdk_version)
+    TextView mTargetSdkVersion;
+    @BindView(R.id.app_info_min_sdk_version)
+    TextView mMinSdkVersion;
 
     private Application mApplicationInfo;
 
@@ -71,7 +68,7 @@ public class ComponentActivity extends AppCompatActivity {
         Intent intent = getIntent();
         mApplicationInfo = intent.getParcelableExtra(Constant.APPLICATION);
         initActionBar();
-        initAppBriefInfoLayout(this);
+        initAppBriefInfoLayout();
         initDrawer();
         initViewPager();
         initTab();
@@ -180,23 +177,15 @@ public class ComponentActivity extends AppCompatActivity {
     }
 
     @SuppressLint("CheckResult")
-    private void initAppBriefInfoLayout(Context context) {
-        final PackageManager pm = getPackageManager();
-        Single.create((SingleOnSubscribe<PackageInfo>) emitter -> {
-            PackageInfo info = ApplicationComponents.getApplicationComponents(pm, mApplicationInfo.getPackageName());
-            emitter.onSuccess(info);
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(info -> {
-                    Glide.with(context)
-                            .load(info.applicationInfo.loadIcon(pm))
-                            .transition(new DrawableTransitionOptions().crossFade())
-                            .into(mAppIcon);
-                    mAppName.setText(info.applicationInfo.loadLabel(pm));
-                    mAppPackageName.setText(info.packageName);
-                }, throwable -> {
-                    //TODO Error handling
-                });
+    private void initAppBriefInfoLayout() {
+        mAppName.setText(getString(R.string.application_label, mApplicationInfo.getLabel()));
+        mAppPackageName.setText(getString(R.string.package_name, mApplicationInfo.getPackageName()));
+        mTargetSdkVersion.setText(getString(R.string.target_sdk_version, mApplicationInfo.getTargetSdkVersion()));
+        mMinSdkVersion.setText(getString(R.string.min_sdk_version, mApplicationInfo.getMinSdkVersion()));
+        Glide.with(this)
+                .load(mApplicationInfo.getApplicationIcon(getPackageManager()))
+                .transition(new DrawableTransitionOptions().crossFade())
+                .into(mAppIcon);
     }
 
     private void initOnClickListener() {
