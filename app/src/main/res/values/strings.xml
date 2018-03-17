@@ -12,6 +12,7 @@
     <string name="service">Service</string>
     <string name="loading_text">Loading…</string>
     <string name="app_cannot_start">This application cannot be started directly</string>
+    <string name="no_app_message">OOps, I cannot find any application.</string>
     <string name="application_label">Name: %1$s</string>
     <string name="min_sdk_version">Minimum SDK Version: %1$d</string>
     <string name="target_sdk_version">Target SDK Version: %1$d</string>
