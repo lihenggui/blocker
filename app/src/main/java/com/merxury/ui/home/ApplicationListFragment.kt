@@ -36,10 +36,9 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     override fun setLoadingIndicator(active: Boolean) {
         val root = view ?: return
-        with(root.findViewById<SwipeRefreshLayout>(R.id.app_list_swipe_refresh_layout)) {
+        with(root.findViewById<SwipeRefreshLayout>(R.id.appListSwipeLayout)) {
             post { isRefreshing = active }
         }
-
     }
 
     override fun searchForApplication(name: String) {
