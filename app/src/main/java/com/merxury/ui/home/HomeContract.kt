@@ -18,12 +18,12 @@ interface HomeContract {
         fun showApplicationList(applications: List<Application>)
         fun showNoApplication()
         fun showFilteringPopUpMenu()
+        fun showApplicationDetailsUi(application: Application)
     }
 
     interface Presenter : BasePresenter {
         var currentComparator: ApplicationComparatorType
-        var isSystemApplication: Boolean
-        fun loadApplicationList(context: Context)
+        fun loadApplicationList(context: Context, isSystemApplication: Boolean)
         fun openApplicationDetails(application: Application)
         fun result(requestCode: Int, resultCode: Int)
     }

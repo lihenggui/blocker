@@ -17,11 +17,6 @@
             android:name="com.merxury.ui.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name="com.merxury.ui.ComponentActivity"
@@ -31,10 +26,11 @@
             android:name="com.merxury.service.ShellService"
             android:exported="false" />
 
-        <activity android:name="com.merxury.ui.home.HomeActivity">
+        <activity
+            android:name="com.merxury.ui.home.HomeActivity"
+            android:theme="@style/AppTheme.OverlapSystemBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

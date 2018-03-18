@@ -2,7 +2,6 @@ package com.merxury.ui;
 
 import android.animation.ArgbEvaluator;
 import android.animation.ValueAnimator;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
@@ -14,9 +13,9 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import com.merxury.adapter.FragmentAdapter;
 import com.merxury.blocker.R;
 import com.merxury.fragment.AppListFragment;
+import com.merxury.ui.adapter.FragmentAdapter;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
 

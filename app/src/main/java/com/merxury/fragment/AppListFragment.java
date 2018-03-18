@@ -2,7 +2,6 @@ package com.merxury.fragment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -16,14 +15,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 
 import com.merxury.blocker.R;
 import com.merxury.core.ApplicationComponents;
 import com.merxury.entity.Application;
 import com.merxury.ui.home.AppListRecyclerViewAdapter;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -41,9 +38,7 @@ public class AppListFragment extends Fragment {
     private static final String TAG = "AppListFragment";
     private static final String IS_SYSTEM = "IS_SYSTEM";
 
-    @BindView(R.id.app_loading_progress_bar)
-    ProgressBar mProgressBar;
-    @BindView(R.id.app_list_swipe_refresh_layout)
+    @BindView(R.id.appListSwipeLayout)
     SwipeRefreshLayout mSwipeRefreshLayout;
     AppListRecyclerViewAdapter mAppListRecyclerViewAdapter;
 
@@ -82,8 +77,8 @@ public class AppListFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_app_list, container, false);
         mUnbinder = ButterKnife.bind(this, view);
-        RecyclerView appListRecyclerView = view.findViewById(R.id.app_list_fragment_recyclerview);
-        mAppListRecyclerViewAdapter = new AppListRecyclerViewAdapter(appListRecyclerView.getContext());
+        RecyclerView appListRecyclerView = view.findViewById(R.id.appListFragmentRecyclerView);
+        mAppListRecyclerViewAdapter = new AppListRecyclerViewAdapter(appListRecyclerView.getContext().getPackageManager(), null);
         setupRecyclerView(appListRecyclerView);
         initSwipeRefreshLayout();
         return view;
@@ -112,23 +107,18 @@ public class AppListFragment extends Fragment {
     private void loadData() {
         Single.create((SingleOnSubscribe<List<Application>>) emitter -> {
             PackageManager pm = getContext().getPackageManager();
-            List<PackageInfo> appList;
+            List<Application> appList;
             if (mSystem) {
                 appList = ApplicationComponents.getSystemApplicationList(pm);
             } else {
                 appList = ApplicationComponents.getThirdPartyApplicationList(pm);
             }
-            List<Application> applications = new ArrayList<>(64);
-            for (PackageInfo info : appList) {
-                applications.add(new Application(pm, info));
-                Collections.sort(applications, (app1, app2) -> app1.getLabel().compareTo(app2.getLabel()));
-            }
-            emitter.onSuccess(applications);
+            Collections.sort(appList, (app1, app2) -> app1.getLabel().compareTo(app2.getLabel()));
+            emitter.onSuccess(appList);
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(appList -> {
                     hideRefreshing();
-                    hideProgressBar();
                     mAppListRecyclerViewAdapter.addData(appList);
                     mAppListRecyclerViewAdapter.notifyDataSetChanged();
                 }, throwable -> {
@@ -138,11 +128,6 @@ public class AppListFragment extends Fragment {
                 });
     }
 
-    private void hideProgressBar() {
-        if (mProgressBar.getVisibility() != View.GONE) {
-            mProgressBar.setVisibility(View.GONE);
-        }
-    }
 
     private void hideRefreshing() {
         if (mSwipeRefreshLayout.isRefreshing()) {
