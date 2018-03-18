@@ -1,8 +1,6 @@
 package com.merxury.ui.home;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
@@ -15,9 +13,7 @@ import android.widget.TextView;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.merxury.blocker.R;
-import com.merxury.constant.Constant;
 import com.merxury.entity.Application;
-import com.merxury.ui.ComponentActivity;
 
 import java.util.List;
 
@@ -29,9 +25,11 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
 
     private List<Application> mPackageInfoList;
     private PackageManager mPm;
+    private ApplicationListFragment.AppItemListener mListener;
 
-    public AppListRecyclerViewAdapter(Context context) {
-        mPm = context.getPackageManager();
+    public AppListRecyclerViewAdapter(PackageManager pm, ApplicationListFragment.AppItemListener listener) {
+        mPm = pm;
+        mListener = listener;
     }
 
     @NonNull
@@ -47,11 +45,7 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
         final Application application = mPackageInfoList.get(position);
         holder.mTextView.setText(application.getLabel());
         holder.mView.setOnClickListener(v -> {
-            //TODO start intent
-            Context context = v.getContext();
-            Intent intent = new Intent(context, ComponentActivity.class);
-            intent.putExtra(Constant.APPLICATION, application);
-            context.startActivity(intent);
+            mListener.onAppClick(application);
         });
         RequestOptions options = new RequestOptions()
                 .fitCenter()

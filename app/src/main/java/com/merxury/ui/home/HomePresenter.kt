@@ -10,18 +10,16 @@ import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
-class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View, override var isSystemApplication: Boolean) : HomeContract.Presenter {
+class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View) : HomeContract.Presenter {
     init {
         homeView.presenter = this
     }
 
     @SuppressLint("CheckResult")
-    override fun loadApplicationList(context: Context) {
+    override fun loadApplicationList(context: Context, isSystemApplication: Boolean) {
         homeView.setLoadingIndicator(true)
         Single.create(SingleOnSubscribe<List<Application>> { emitter ->
-            val pm = context.packageManager
-            val applications: List<Application>
-            applications = when (isSystemApplication) {
+            val applications: List<Application> = when (isSystemApplication) {
                 false -> ApplicationComponents.getThirdPartyApplicationList(pm)
                 true -> ApplicationComponents.getSystemApplicationList(pm)
             }
@@ -32,19 +30,18 @@ class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View, ove
                     homeView.setLoadingIndicator(false)
                     homeView.showApplicationList(applications)
                 }
-
     }
 
     override fun openApplicationDetails(application: Application) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        homeView.showApplicationDetailsUi(application)
     }
 
     override fun result(requestCode: Int, resultCode: Int) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun start() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun start(context: Context) {
+
     }
 
     override var currentComparator = ApplicationComparatorType.ASCEND_BY_LABEL

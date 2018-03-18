@@ -21,11 +21,11 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
-import com.merxury.adapter.FragmentAdapter;
 import com.merxury.blocker.R;
 import com.merxury.constant.Constant;
 import com.merxury.entity.Application;
 import com.merxury.fragment.ComponentFragment;
+import com.merxury.ui.adapter.FragmentAdapter;
 import com.merxury.utils.ApplicationUtils;
 import com.mikepenz.materialdrawer.Drawer;
 import com.mikepenz.materialdrawer.DrawerBuilder;
