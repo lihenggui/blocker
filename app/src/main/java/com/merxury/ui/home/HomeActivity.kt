@@ -18,7 +18,6 @@ import kotlinx.android.synthetic.main.activity_home.*
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var presenter: HomePresenter
     private lateinit var viewPager: ViewPager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,7 +73,7 @@ class HomeActivity : AppCompatActivity() {
 
             }
 
-            override fun onTabReselected(tabr: TabLayout.Tab) {
+            override fun onTabReselected(tab: TabLayout.Tab) {
 
             }
         })
