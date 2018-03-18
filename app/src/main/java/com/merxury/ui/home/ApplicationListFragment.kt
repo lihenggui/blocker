@@ -6,6 +6,9 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.widget.SwipeRefreshLayout
+import android.support.v7.widget.DefaultItemAnimator
+import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.view.*
 import android.widget.ImageView
@@ -73,8 +76,9 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        savedInstanceState?.let {
-            isSystem = savedInstanceState.getBoolean(IS_SYSTEM)
+        val argument = arguments
+        argument?.let {
+            isSystem = argument.getBoolean(IS_SYSTEM)
         }
         listAdapter = AppListRecyclerViewAdapter(context?.packageManager, itemListener)
     }
@@ -89,7 +93,13 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_app_list, container, false)
         with(root) {
-            appListView = findViewById<RecyclerView>(R.id.appListFragmentRecyclerView).apply { adapter = listAdapter }
+            appListView = findViewById<RecyclerView>(R.id.appListFragmentRecyclerView).apply {
+                val layoutManager = LinearLayoutManager(context)
+                this.layoutManager = layoutManager
+                adapter = listAdapter
+                itemAnimator = DefaultItemAnimator()
+                addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
+            }
             findViewById<SwipeRefreshLayout>(R.id.appListSwipeLayout).apply {
                 setColorSchemeColors(
                         ContextCompat.getColor(context, R.color.colorPrimary),
@@ -107,6 +117,13 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         return root
     }
 
+    override fun onStart() {
+        super.onStart()
+        val fragmentContext = context
+        fragmentContext?.let {
+            presenter.loadApplicationList(fragmentContext, isSystem)
+        }
+    }
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
         inflater.inflate(R.menu.app_list_fragment_menu, menu)
     }
