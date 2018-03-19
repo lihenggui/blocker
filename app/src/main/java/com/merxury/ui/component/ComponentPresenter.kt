@@ -10,14 +10,15 @@ import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
-class ComponentPresenter(val pm: PackageManager, val componentView: ComponentContract.View) : ComponentContract.Presenter {
+class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.View) : ComponentContract.Presenter {
 
     init {
-        componentView.presenter = this
+        view.presenter = this
     }
 
     @SuppressLint("CheckResult")
     override fun loadComponents(pm: PackageManager, packageName: String, type: EComponentType) {
+        view.setLoadingIndicator(true)
         var componentList: List<ComponentInfo> = ArrayList()
         Single.create((SingleOnSubscribe<List<ComponentInfo>> { emitter ->
             componentList = when (type) {
@@ -30,11 +31,11 @@ class ComponentPresenter(val pm: PackageManager, val componentView: ComponentCon
         })).observeOn(Schedulers.io())
                 .subscribeOn(AndroidSchedulers.mainThread())
                 .subscribe({ components ->
-                    componentView.setLoadingIndicator(false)
+                    view.setLoadingIndicator(false)
                     if (components.isEmpty()) {
-                        componentView.showNoComponent()
+                        view.showNoComponent()
                     } else {
-                        componentView.showComponentList(components)
+                        view.showComponentList(components)
                     }
                 })
     }
