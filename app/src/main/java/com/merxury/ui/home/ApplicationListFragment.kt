@@ -15,7 +15,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.merxury.blocker.R
-import com.merxury.constant.Constant
 import com.merxury.entity.Application
 
 class ApplicationListFragment : Fragment(), HomeContract.View {
@@ -78,15 +77,14 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         super.onCreate(savedInstanceState)
         val argument = arguments
         argument?.let {
-            isSystem = argument.getBoolean(IS_SYSTEM)
+            isSystem = it.getBoolean(IS_SYSTEM)
         }
         listAdapter = AppListRecyclerViewAdapter(context?.packageManager, itemListener)
     }
     override fun onResume() {
         super.onResume()
-        val context = context
-        if (context != null) {
-            presenter.start(context)
+        context?.let {
+            presenter.start(it)
         }
     }
 
@@ -121,7 +119,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         super.onStart()
         val fragmentContext = context
         fragmentContext?.let {
-            presenter.loadApplicationList(fragmentContext, isSystem)
+            presenter.loadApplicationList(it, isSystem)
         }
     }
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {

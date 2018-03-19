@@ -18,11 +18,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 
-import com.merxury.adapter.ComponentsRecyclerViewAdapter;
 import com.merxury.blocker.R;
 import com.merxury.core.ApplicationComponents;
+import com.merxury.ui.component.ComponentsRecyclerViewAdapter;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -84,7 +84,7 @@ public class ComponentFragment extends Fragment {
     private void loadData() {
         Single.create((SingleOnSubscribe<List<ComponentInfo>>) emitter -> {
             PackageManager pm = getContext().getPackageManager();
-            ComponentInfo[] componentInfo;
+            List<ComponentInfo> componentInfo;
             switch (mCategory) {
                 case RECEIVER:
                     componentInfo = ApplicationComponents.getReceiverList(pm, mPackageName);
@@ -100,10 +100,10 @@ public class ComponentFragment extends Fragment {
                     break;
                 default:
                     //FLAG: It should not happen
-                    componentInfo = new ComponentInfo[0];
+                    componentInfo = new ArrayList<>();
                     break;
             }
-            emitter.onSuccess(Arrays.asList(componentInfo));
+            emitter.onSuccess(componentInfo);
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(appList -> {

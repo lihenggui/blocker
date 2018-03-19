@@ -1,6 +1,7 @@
 package com.merxury.ui.component
 
-import android.content.Context
+import android.content.pm.ComponentInfo
+import android.content.pm.PackageManager
 import com.merxury.ui.base.BasePresenter
 import com.merxury.ui.base.BaseView
 
@@ -8,15 +9,15 @@ import com.merxury.ui.base.BaseView
  * Created by Mercury on 2018/3/18.
  */
 interface ComponentContract {
-    interface Presenter : BasePresenter {
+    interface View : BaseView<Presenter> {
+        fun showComponentList(components: List<ComponentInfo>)
         fun setLoadingIndicator(active: Boolean)
-        fun showComponents()
-        fun searchForComponent()
         fun showNoComponent()
+        fun searchForComponent()
         fun showFilteringPopUpMenu()
     }
 
-    interface View : BaseView<Presenter> {
-        fun loadComponentList(context: Context)
+    interface Presenter : BasePresenter {
+        fun loadComponents(pm: PackageManager, packageName: String, type: EComponentType)
     }
 }

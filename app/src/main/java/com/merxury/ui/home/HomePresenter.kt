@@ -28,7 +28,11 @@ class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View) : H
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { applications ->
                     homeView.setLoadingIndicator(false)
-                    homeView.showApplicationList(applications)
+                    if (applications.isEmpty()) {
+                        homeView.showNoApplication()
+                    } else {
+                        homeView.showApplicationList(applications)
+                    }
                 }
     }
 
