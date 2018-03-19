@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.merxury.blocker.R
+import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
 
 class ComponentFragment : Fragment(), ComponentContract.View {
@@ -22,7 +23,9 @@ class ComponentFragment : Fragment(), ComponentContract.View {
     private lateinit var type: EComponentType
 
     override fun setLoadingIndicator(active: Boolean) {
-        val root = view ?: return
+        with(component_swipe_refresh_layout) {
+            post { isRefreshing = active }
+        }
     }
 
     override fun showNoComponent() {
@@ -67,6 +70,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                 }
             }
         }
+        return root
     }
 
     companion object {

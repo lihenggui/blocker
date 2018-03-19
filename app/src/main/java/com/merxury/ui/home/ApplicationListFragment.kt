@@ -16,6 +16,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.merxury.blocker.R
 import com.merxury.entity.Application
+import kotlinx.android.synthetic.main.fragment_app_list.*
 
 class ApplicationListFragment : Fragment(), HomeContract.View {
     override var isActive: Boolean = false
@@ -43,7 +44,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     override fun setLoadingIndicator(active: Boolean) {
         val root = view ?: return
-        with(root.findViewById<SwipeRefreshLayout>(R.id.appListSwipeLayout)) {
+        with(appListSwipeLayout) {
             post { isRefreshing = active }
         }
     }
@@ -81,6 +82,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         }
         listAdapter = AppListRecyclerViewAdapter(context?.packageManager, itemListener)
     }
+
     override fun onResume() {
         super.onResume()
         context?.let {
@@ -122,6 +124,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             presenter.loadApplicationList(it, isSystem)
         }
     }
+
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
         inflater.inflate(R.menu.app_list_fragment_menu, menu)
     }
