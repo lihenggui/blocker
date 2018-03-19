@@ -16,8 +16,7 @@
         <activity
             android:name="com.merxury.ui.MainActivity"
             android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar">
-        </activity>
+            android:theme="@style/AppTheme.NoActionBar"></activity>
         <activity
             android:name="com.merxury.ui.ComponentActivity"
             android:theme="@style/AppTheme.NoActionBar" />
@@ -32,9 +31,11 @@
             android:theme="@style/AppTheme.OverlapSystemBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name="com.merxury.ui.component.ComponentActivity"></activity>
     </application>
 
 </manifest>

@@ -1,4 +1,4 @@
-package com.merxury.constant
+package com.merxury.ui.home
 
 class Constant {
     companion object {

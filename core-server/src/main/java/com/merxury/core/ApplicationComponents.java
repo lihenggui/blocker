@@ -1,12 +1,10 @@
 package com.merxury.core;
 
 import android.content.ComponentName;
-import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ProviderInfo;
-import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -14,6 +12,7 @@ import android.util.Log;
 import com.merxury.entity.Application;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -84,8 +83,8 @@ public class ApplicationComponents {
      * @return list of activity
      */
     @NonNull
-    public static ActivityInfo[] getActivityList(@NonNull PackageManager pm, @NonNull String packageName) {
-        ActivityInfo[] activities = null;
+    public static List<ComponentInfo> getActivityList(@NonNull PackageManager pm, @NonNull String packageName) {
+        List<ComponentInfo> activities = new ArrayList<>();
         try {
             int flags = PackageManager.GET_ACTIVITIES;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -93,11 +92,11 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            activities = pm.getPackageInfo(packageName, flags).activities;
+            Collections.addAll(activities, pm.getPackageInfo(packageName, flags).activities);
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return activities == null ? new ActivityInfo[0] : activities;
+        return activities;
     }
 
     /**
@@ -108,8 +107,8 @@ public class ApplicationComponents {
      * @return list of receiver
      */
     @NonNull
-    public static ActivityInfo[] getReceiverList(@NonNull PackageManager pm, @NonNull String packageName) {
-        ActivityInfo[] receivers = null;
+    public static List<ComponentInfo> getReceiverList(@NonNull PackageManager pm, @NonNull String packageName) {
+        List<ComponentInfo> receivers = new ArrayList<>();
         try {
             int flags = PackageManager.GET_RECEIVERS;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -117,12 +116,12 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            receivers = pm.getPackageInfo(packageName, flags).receivers;
+            Collections.addAll(receivers, pm.getPackageInfo(packageName, flags).receivers);
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
 
-        return receivers == null ? new ActivityInfo[0] : receivers;
+        return receivers;
     }
 
     /**
@@ -133,8 +132,8 @@ public class ApplicationComponents {
      * @return list of service
      */
     @NonNull
-    public static ServiceInfo[] getServiceList(@NonNull PackageManager pm, @NonNull String packageName) {
-        ServiceInfo[] services = null;
+    public static List<ComponentInfo> getServiceList(@NonNull PackageManager pm, @NonNull String packageName) {
+        List<ComponentInfo> services = new ArrayList<>();
         try {
             int flags = PackageManager.GET_SERVICES;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -142,11 +141,11 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            services = pm.getPackageInfo(packageName, flags).services;
+            Collections.addAll(services, pm.getPackageInfo(packageName, flags).services);
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return services == null ? new ServiceInfo[0] : services;
+        return services;
     }
 
     /**
@@ -157,8 +156,8 @@ public class ApplicationComponents {
      * @return list of provider
      */
     @NonNull
-    public static ProviderInfo[] getProviderList(@NonNull PackageManager pm, @NonNull String packageName) {
-        ProviderInfo[] providers = null;
+    public static List<ComponentInfo> getProviderList(@NonNull PackageManager pm, @NonNull String packageName) {
+        List<ComponentInfo> providers = new ArrayList<>();
         try {
             int flags = PackageManager.GET_PROVIDERS;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -166,11 +165,11 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            providers = pm.getPackageInfo(packageName, flags).providers;
+            Collections.addAll(providers, pm.getPackageInfo(packageName, flags).providers);
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return providers == null ? new ProviderInfo[0] : providers;
+        return providers;
     }
 
     /**
