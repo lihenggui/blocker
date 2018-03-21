@@ -27,8 +27,6 @@ import com.merxury.fragment.ComponentFragment;
 import com.merxury.ui.adapter.FragmentAdapter;
 import com.merxury.ui.home.Constant;
 import com.merxury.utils.ApplicationUtils;
-import com.mikepenz.materialdrawer.Drawer;
-import com.mikepenz.materialdrawer.DrawerBuilder;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -69,7 +67,6 @@ public class ComponentActivity extends AppCompatActivity {
         mApplicationInfo = intent.getParcelableExtra(Constant.APPLICATION);
         initActionBar();
         initAppBriefInfoLayout();
-        initDrawer();
         initViewPager();
         initTab();
         initOnClickListener();
@@ -88,10 +85,6 @@ public class ComponentActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-    }
-
-    private void initDrawer() {
-        Drawer drawer = new DrawerBuilder().withActivity(this).build();
     }
 
     private void initViewPager() {

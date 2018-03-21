@@ -19,7 +19,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
     @SuppressLint("CheckResult")
     override fun loadComponents(pm: PackageManager, packageName: String, type: EComponentType) {
         view.setLoadingIndicator(true)
-        var componentList: List<ComponentInfo> = ArrayList()
+        var componentList: List<ComponentInfo>
         Single.create((SingleOnSubscribe<List<ComponentInfo>> { emitter ->
             componentList = when (type) {
                 EComponentType.RECEIVER -> ApplicationComponents.getReceiverList(pm, packageName)

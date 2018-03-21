@@ -2,6 +2,6 @@ package com.merxury.ui.home
 
 class Constant {
     companion object {
-        const val APPLICATION = "Application";
+        const val APPLICATION = "application"
     }
 }

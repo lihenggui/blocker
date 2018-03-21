@@ -13,14 +13,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity
-            android:name="com.merxury.ui.MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-        <activity
-            android:name="com.merxury.ui.ComponentActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
-
         <service
             android:name="com.merxury.service.ShellService"
             android:exported="false" />
@@ -35,7 +27,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.merxury.ui.component.ComponentActivity"></activity>
+        <activity
+            android:name="com.merxury.ui.component.ComponentActivity"
+            android:theme="@style/AppTheme.OverlapSystemBar" />
     </application>
 
 </manifest>

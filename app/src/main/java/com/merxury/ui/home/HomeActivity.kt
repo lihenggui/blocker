@@ -13,12 +13,12 @@ import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.AppCompatActivity
 import com.merxury.blocker.R
 import com.merxury.ui.adapter.FragmentAdapter
+import com.merxury.ui.base.IActivityView
 import com.merxury.util.setupActionBar
 import kotlinx.android.synthetic.main.activity_home.*
 
-class HomeActivity : AppCompatActivity() {
+class HomeActivity : AppCompatActivity(), IActivityView {
     private lateinit var drawerLayout: DrawerLayout
-    private lateinit var viewPager: ViewPager
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -27,16 +27,10 @@ class HomeActivity : AppCompatActivity() {
             setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp)
             setDisplayHomeAsUpEnabled(true)
         }
-        // Set up navigation drawer layout
-        drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout).apply {
-            //TODO("Setup color")
-        }
-        setupDrawerContent(findViewById(R.id.nav_view))
-        viewPager = findViewById<ViewPager>(R.id.app_viewpager).apply {
-            setupViewPager(this)
-        }
+        setupDrawerContent(nav_view)
+        setupViewPager(app_viewpager)
         findViewById<TabLayout>(R.id.app_kind_tabs).apply {
-            setupWithViewPager(viewPager)
+            setupWithViewPager(app_viewpager)
             setupTab(this)
         }
     }
@@ -62,11 +56,11 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupTab(tabLayout: TabLayout) {
-        changeColor(getColorForTab(0))
+        changeColor(getBackgroundColor(0))
         tabLayout.setSelectedTabIndicatorColor(resources.getColor(R.color.md_white_1000))
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
-                changeTabBackgroundColor(tabLayout, tab)
+                changeBackgroundColor(tabLayout, tab)
             }
 
             override fun onTabUnselected(tab: TabLayout.Tab) {
@@ -79,14 +73,22 @@ class HomeActivity : AppCompatActivity() {
         })
     }
 
-    private fun changeTabBackgroundColor(tabLayout: TabLayout, tab: TabLayout.Tab) {
+
+    private fun changeColor(color: Int) {
+        toolbar.setBackgroundColor(color)
+        app_kind_tabs.setBackgroundColor(color)
+        window.statusBarColor = color
+    }
+
+
+    private fun changeBackgroundColor(tabLayout: TabLayout, tab: TabLayout.Tab) {
         val colorFrom: Int
         if (tabLayout.background != null) {
             colorFrom = (tabLayout.background as ColorDrawable).color
         } else {
             colorFrom = ContextCompat.getColor(this, android.R.color.darker_gray)
         }
-        val colorTo = getColorForTab(tab.position)
+        val colorTo = getBackgroundColor(tab.position)
         val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
         colorAnimation.addUpdateListener { animation ->
             val color = animation.animatedValue as Int
@@ -96,18 +98,11 @@ class HomeActivity : AppCompatActivity() {
         colorAnimation.start()
     }
 
-    private fun getColorForTab(position: Int): Int {
-        return when (position) {
+    override fun getBackgroundColor(tabPosition: Int): Int {
+        return when (tabPosition) {
             0 -> ContextCompat.getColor(this, R.color.md_blue_700)
             1 -> ContextCompat.getColor(this, R.color.md_red_700)
             else -> ContextCompat.getColor(this, R.color.md_grey_700)
         }
     }
-
-    private fun changeColor(color: Int) {
-        toolbar.setBackgroundColor(color)
-        app_kind_tabs.setBackgroundColor(color)
-        window.statusBarColor = color
-    }
-
 }
