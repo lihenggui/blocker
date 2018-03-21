@@ -16,7 +16,6 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 
 import com.merxury.blocker.R;
 import com.merxury.core.ApplicationComponents;
@@ -43,9 +42,7 @@ public class ComponentFragment extends Fragment {
     public static final String CATEGORY = "category";
     public static final String PACKAGE_NAME = "package_name";
 
-    @BindView(R.id.component_loading_progress_bar)
-    ProgressBar mProgressBar;
-    @BindView(R.id.component_swipe_refresh_layout)
+    @BindView(R.id.componentListSwipeLayout)
     SwipeRefreshLayout mSwipeRefreshLayout;
     ComponentsRecyclerViewAdapter mComponentsRecyclerViewAdapter;
     private int mCategory;
@@ -124,7 +121,7 @@ public class ComponentFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_component, container, false);
         mUnbinder = ButterKnife.bind(this, view);
-        RecyclerView rv = view.findViewById(R.id.component_fragment_recyclerview);
+        RecyclerView rv = view.findViewById(R.id.componentListFragmentRecyclerView);
         setupRecyclerView(rv);
         initSwipeRefreshLayout();
         return view;
@@ -151,8 +148,6 @@ public class ComponentFragment extends Fragment {
     }
 
     private void hideProgressBar() {
-        if (mProgressBar.getVisibility() != View.GONE) {
-            mProgressBar.setVisibility(View.GONE);
-        }
+
     }
 }
