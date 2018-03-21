@@ -5,28 +5,22 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
-import android.support.v4.widget.SwipeRefreshLayout
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
 import android.view.*
-import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import com.merxury.blocker.R
 import com.merxury.entity.Application
+import com.merxury.ui.ComponentActivity
 import kotlinx.android.synthetic.main.fragment_app_list.*
+import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
 class ApplicationListFragment : Fragment(), HomeContract.View {
     override var isActive: Boolean = false
         get() = isAdded
 
     override lateinit var presenter: HomeContract.Presenter
-    private lateinit var noAppIcon: ImageView
-    private lateinit var noAppMainView: TextView
-    private lateinit var noAppContainer: LinearLayout
-    private lateinit var appListView: RecyclerView
     private lateinit var sortingFilterView: TextView
 
     private var isSystem: Boolean = false
@@ -54,13 +48,13 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun showApplicationList(applications: List<Application>) {
-        appListView.visibility = View.VISIBLE
+        appListFragmentRecyclerView.visibility = View.VISIBLE
         noAppContainer.visibility = View.GONE
         listAdapter.addData(applications)
     }
 
     override fun showNoApplication() {
-        appListView.visibility = View.GONE
+        appListFragmentRecyclerView.visibility = View.GONE
         noAppContainer.visibility = View.VISIBLE
     }
 
@@ -69,7 +63,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun showApplicationDetailsUi(application: Application) {
-        val intent = Intent()
+        val intent = Intent(context, ComponentActivity::class.java)
         intent.putExtra(Constant.APPLICATION, application)
         context?.startActivity(intent)
     }
@@ -93,14 +87,14 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_app_list, container, false)
         with(root) {
-            appListView = findViewById<RecyclerView>(R.id.appListFragmentRecyclerView).apply {
+            appListFragmentRecyclerView.apply {
                 val layoutManager = LinearLayoutManager(context)
                 this.layoutManager = layoutManager
                 adapter = listAdapter
                 itemAnimator = DefaultItemAnimator()
                 addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
             }
-            findViewById<SwipeRefreshLayout>(R.id.appListSwipeLayout).apply {
+            appListSwipeLayout.apply {
                 setColorSchemeColors(
                         ContextCompat.getColor(context, R.color.colorPrimary),
                         ContextCompat.getColor(context, R.color.colorAccent),
@@ -109,9 +103,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                 setOnRefreshListener { presenter.loadApplicationList(context, isSystem) }
             }
 
-            noAppContainer = findViewById(R.id.noAppContainer)
-            noAppIcon = findViewById(R.id.noAppIcon)
-            noAppMainView = findViewById(R.id.noAppMain)
         }
         setHasOptionsMenu(true)
         return root

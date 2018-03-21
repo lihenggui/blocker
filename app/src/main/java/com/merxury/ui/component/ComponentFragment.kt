@@ -23,13 +23,14 @@ class ComponentFragment : Fragment(), ComponentContract.View {
     private lateinit var type: EComponentType
 
     override fun setLoadingIndicator(active: Boolean) {
-        with(component_swipe_refresh_layout) {
+        with(componentListSwipeLayout) {
             post { isRefreshing = active }
         }
     }
 
     override fun showNoComponent() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        componentListFragmentRecyclerView.visibility = View.GONE
+        noComponentContainer.visibility = View.VISIBLE
     }
 
     override fun searchForComponent() {
@@ -40,26 +41,32 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+
     override fun showComponentList(components: List<ComponentInfo>) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        noComponentContainer.visibility = View.GONE
+        componentListFragmentRecyclerView.visibility = View.VISIBLE
+        componentAdapter.addData(components)
     }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val args = arguments
+        type = args?.getSerializable(Constant.CATEGORY) as EComponentType
+        packageName = args.getString(Constant.PACKAGE_NAME)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_component, container, false)
         with(root) {
-            component_fragment_recyclerview.apply {
+            componentListFragmentRecyclerView.apply {
                 val layoutManager = LinearLayoutManager(context)
                 this.layoutManager = layoutManager
                 this.adapter = componentAdapter
                 this.itemAnimator = DefaultItemAnimator()
                 addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
             }
-            component_swipe_refresh_layout.apply {
+            componentListSwipeLayout.apply {
                 setColorSchemeColors(
                         ContextCompat.getColor(context, R.color.colorPrimary),
                         ContextCompat.getColor(context, R.color.colorAccent),
