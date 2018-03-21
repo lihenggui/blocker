@@ -12,7 +12,6 @@ import android.view.*
 import android.widget.TextView
 import com.merxury.blocker.R
 import com.merxury.entity.Application
-import com.merxury.ui.ComponentActivity
 import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
@@ -37,7 +36,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     private lateinit var listAdapter: AppListRecyclerViewAdapter
 
     override fun setLoadingIndicator(active: Boolean) {
-        val root = view ?: return
         with(appListSwipeLayout) {
             post { isRefreshing = active }
         }
@@ -63,7 +61,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun showApplicationDetailsUi(application: Application) {
-        val intent = Intent(context, ComponentActivity::class.java)
+        val intent = Intent(context, com.merxury.ui.component.ComponentActivity::class.java)
         intent.putExtra(Constant.APPLICATION, application)
         context?.startActivity(intent)
     }
