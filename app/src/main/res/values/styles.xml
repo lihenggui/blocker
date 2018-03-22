@@ -34,7 +34,7 @@
         <item name="android:textColor">@color/md_white_1000</item>
         <item name="android:ellipsize">end</item>
         <item name="android:singleLine">true</item>
-        <item name="android:layout_marginStart">@dimen/margin_start_text</item>
+        <item name="android:layout_marginStart">0dp</item>
         <item name="android:layout_marginEnd">@dimen/margin_end_text</item>
     </style>
 

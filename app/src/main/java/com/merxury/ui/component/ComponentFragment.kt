@@ -82,6 +82,14 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         return root
     }
 
+    override fun onStart() {
+        super.onStart()
+        val packageManager = context?.packageManager
+        if (packageManager != null) {
+            presenter.loadComponents(packageManager, packageName, type)
+        }
+    }
+
     companion object {
         const val TAG = "ComponentFragment"
         fun newInstance(pm: PackageManager, packageName: String, type: EComponentType): Fragment {
