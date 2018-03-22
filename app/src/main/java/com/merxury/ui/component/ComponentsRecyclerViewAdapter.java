@@ -1,4 +1,4 @@
-package com.merxury.adapter;
+package com.merxury.ui.component;
 
 import android.content.ComponentName;
 import android.content.Context;

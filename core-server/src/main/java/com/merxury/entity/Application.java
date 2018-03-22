@@ -14,6 +14,7 @@ import com.merxury.utils.ApkUtils;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * Created by Mercury on 2017/12/30.
@@ -22,10 +23,6 @@ import java.util.Arrays;
 
 public class Application implements Parcelable {
 
-    private String packageName;
-    private String versionName;
-    private int versionCode;
-    private boolean enabled;
     public static final Creator<Application> CREATOR = new Creator<Application>() {
         @Override
         public Application createFromParcel(Parcel source) {
@@ -37,6 +34,12 @@ public class Application implements Parcelable {
             return new Application[size];
         }
     };
+
+    public static final String TAG = "ApplicationEntity";
+    private String packageName;
+    private String versionName;
+    private int versionCode;
+    private boolean enabled;
     private int targetSdkVersion;
     private int minSdkVersion;
     private String nonLocalizedLabel;
@@ -44,11 +47,57 @@ public class Application implements Parcelable {
     private String publicSourceDir;
     private String[] splitNames;
     private String dataDir;
+    private String label;
+    private Date installationDate;
 
     private Application() {
     }
 
-    private String label;
+    public Application(@NonNull PackageInfo info) {
+        this.packageName = info.packageName;
+        this.versionName = info.versionName;
+        this.versionCode = info.versionCode;
+        ApplicationInfo appDetails = info.applicationInfo;
+        if (appDetails != null) {
+            this.targetSdkVersion = appDetails.targetSdkVersion;
+            this.enabled = appDetails.enabled;
+        }
+    }
+
+    public Application(@NonNull PackageManager pm, @NonNull PackageInfo info) {
+        this(info);
+        ApplicationInfo appDetail = info.applicationInfo;
+        this.targetSdkVersion = appDetail.targetSdkVersion;
+        this.nonLocalizedLabel = String.valueOf(appDetail.nonLocalizedLabel);
+        this.sourceDir = appDetail.sourceDir;
+        this.publicSourceDir = appDetail.sourceDir;
+        this.dataDir = appDetail.dataDir;
+        this.label = appDetail.loadLabel(pm).toString();
+        File baseApkPath = new File(publicSourceDir);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            minSdkVersion = appDetail.minSdkVersion;
+        } else {
+            minSdkVersion = ApkUtils.getMinSdkVersion(baseApkPath);
+        }
+        this.splitNames = this.packageName.split("\\.");
+        this.installationDate = new Date();
+    }
+
+    protected Application(Parcel in) {
+        this.label = in.readString();
+        this.packageName = in.readString();
+        this.versionName = in.readString();
+        this.versionCode = in.readInt();
+        this.enabled = in.readByte() != 0;
+        this.minSdkVersion = in.readInt();
+        this.targetSdkVersion = in.readInt();
+        this.nonLocalizedLabel = in.readString();
+        this.sourceDir = in.readString();
+        this.publicSourceDir = in.readString();
+        this.splitNames = in.createStringArray();
+        this.dataDir = in.readString();
+        this.installationDate = new Date(in.readLong());
+    }
 
     public String getPackageName() {
         return packageName;
@@ -90,55 +139,12 @@ public class Application implements Parcelable {
         this.targetSdkVersion = targetSdkVersion;
     }
 
-    public Application(@NonNull PackageInfo info) {
-        this.packageName = info.packageName;
-        this.versionName = info.versionName;
-        this.versionCode = info.versionCode;
-        ApplicationInfo appDetails = info.applicationInfo;
-        if (appDetails != null) {
-            this.targetSdkVersion = appDetails.targetSdkVersion;
-            this.enabled = appDetails.enabled;
-        }
-    }
-
-    public Application(@NonNull PackageManager pm, @NonNull PackageInfo info) {
-        this(info);
-        ApplicationInfo appDetail = info.applicationInfo;
-        this.targetSdkVersion = appDetail.targetSdkVersion;
-        this.nonLocalizedLabel = String.valueOf(appDetail.nonLocalizedLabel);
-        this.sourceDir = appDetail.sourceDir;
-        this.publicSourceDir = appDetail.sourceDir;
-        this.dataDir = appDetail.dataDir;
-        this.label = appDetail.loadLabel(pm).toString();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            minSdkVersion = appDetail.minSdkVersion;
-        } else {
-            minSdkVersion = ApkUtils.getMinSdkVersion(new File(publicSourceDir));
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            this.splitNames = appDetail.splitNames;
-        } else {
-            this.splitNames = this.packageName.split("\\.");
-        }
-    }
-
-    protected Application(Parcel in) {
-        this.label = in.readString();
-        this.packageName = in.readString();
-        this.versionName = in.readString();
-        this.versionCode = in.readInt();
-        this.enabled = in.readByte() != 0;
-        this.minSdkVersion = in.readInt();
-        this.targetSdkVersion = in.readInt();
-        this.nonLocalizedLabel = in.readString();
-        this.sourceDir = in.readString();
-        this.publicSourceDir = in.readString();
-        this.splitNames = in.createStringArray();
-        this.dataDir = in.readString();
-    }
-
     public String getLabel() {
         return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
     }
 
     public int getMinSdkVersion() {
@@ -185,18 +191,21 @@ public class Application implements Parcelable {
         return dataDir;
     }
 
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
     public void setDataDir(String dataDir) {
         this.dataDir = dataDir;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public Date getInstallationDate() {
+        return installationDate;
+    }
+
+    public void setInstallationDate(Date installationDate) {
+        this.installationDate = installationDate;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     @Nullable
@@ -241,5 +250,6 @@ public class Application implements Parcelable {
         dest.writeString(this.publicSourceDir);
         dest.writeStringArray(this.splitNames);
         dest.writeString(this.dataDir);
+        dest.writeLong(this.installationDate.getTime());
     }
 }

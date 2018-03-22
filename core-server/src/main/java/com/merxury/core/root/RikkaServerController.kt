@@ -2,6 +2,7 @@ package com.merxury.core.root
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.os.Binder
 import android.util.Log
@@ -10,11 +11,7 @@ import moe.shizuku.api.ShizukuClient
 import moe.shizuku.api.ShizukuPackageManagerV26
 
 class RikkaServerController constructor(context: Context) : IController {
-    init {
-        ShizukuClient.initialize(context)
-    }
-
-    override fun switchComponent(packageName: String?, componentName: String?, state: Int): Boolean {
+    override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
         try {
             ShizukuPackageManagerV26.setComponentEnabledSetting(ComponentName(packageName, componentName), state, PackageManager.DONT_KILL_APP, Binder.getCallingUid())
         } catch (e: RuntimeException) {
@@ -23,6 +20,18 @@ class RikkaServerController constructor(context: Context) : IController {
             return false
         }
         return true
+    }
+
+    override fun enableComponent(componentInfo: ComponentInfo): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun disableComponent(componentInfo: ComponentInfo): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    init {
+        ShizukuClient.initialize(context)
     }
 
     companion object {

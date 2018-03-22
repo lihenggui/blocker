@@ -1,11 +1,8 @@
 package com.merxury.core;
 
 import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ProviderInfo;
-import android.content.pm.ServiceInfo;
 import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
@@ -27,7 +24,7 @@ public class RootControllerTest {
     @Before
     public void setUp() throws Exception {
         context = InstrumentationRegistry.getContext();
-        controller = RootController.getInstance();
+        controller = new RootController();
     }
 
     @After
@@ -53,26 +50,6 @@ public class RootControllerTest {
         time2 = System.currentTimeMillis();
         Log.d(TAG, "get applitation list takes " + (time2 - time1) + "milliseconds");
 
-        time1 = System.currentTimeMillis();
-        List<PackageInfo> thirdPartyApplicationList = ApplicationComponents.getThirdPartyApplicationList(pm);
-        time2 = System.currentTimeMillis();
-        Log.d(TAG, "get 3rd applitation list takes " + (time2 - time1) + "milliseconds");
-
-        time1 = System.currentTimeMillis();
-        List<PackageInfo> systemApplicationList = ApplicationComponents.getSystemApplicationList(pm);
-        time2 = System.currentTimeMillis();
-        Log.d(TAG, "get system applitation list takes " + (time2 - time1) + "milliseconds");
-
-        time1 = System.currentTimeMillis();
-        for (PackageInfo info1 : info) {
-            String packageName = info1.packageName;
-            ActivityInfo[] activities = ApplicationComponents.getActivityList(pm, packageName);
-            ActivityInfo[] receiver = ApplicationComponents.getReceiverList(pm, packageName);
-            ProviderInfo[] providers = ApplicationComponents.getProviderList(pm, packageName);
-            ServiceInfo[] services = ApplicationComponents.getServiceList(pm, packageName);
-        }
-        time2 = System.currentTimeMillis();
-        Log.d(TAG, "get all componments takes " + (time2 - time1) + "milliseconds");
     }
 
 
