@@ -10,7 +10,7 @@
         android:layout_width="72dp"
         android:layout_height="72dp"
         android:contentDescription="@string/app_icon_description"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:src="@android:drawable/sym_def_app_icon" />
 
@@ -18,7 +18,7 @@
         android:id="@+id/app_info_icon_barrier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:barrierDirection="end"
+        app:barrierDirection="start"
         app:constraint_referenced_ids="app_info_icon" />
 
     <TextView
@@ -26,9 +26,8 @@
         style="@style/InfoTextStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/margin_start_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintEnd_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="App Info" />
 
@@ -38,8 +37,8 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_text_interval"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintEnd_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/app_info_app_name"
         tools:text="Target SDK Version" />
 
@@ -49,10 +48,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_text_interval"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintEnd_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/app_info_target_sdk_version"
         tools:text="Minimum SDK Version" />
+
 
     <android.support.constraint.Barrier
         android:id="@+id/icon_bottom_barrier"
@@ -70,7 +70,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/app_info_icon_barrier"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/icon_bottom_barrier"
         tools:text="Package name" />
 
