@@ -19,17 +19,16 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
     @SuppressLint("CheckResult")
     override fun loadComponents(pm: PackageManager, packageName: String, type: EComponentType) {
         view.setLoadingIndicator(true)
-        var componentList: List<ComponentInfo>
         Single.create((SingleOnSubscribe<List<ComponentInfo>> { emitter ->
-            componentList = when (type) {
+            val componentList = when (type) {
                 EComponentType.RECEIVER -> ApplicationComponents.getReceiverList(pm, packageName)
                 EComponentType.ACTIVITY -> ApplicationComponents.getActivityList(pm, packageName)
                 EComponentType.SERVICE -> ApplicationComponents.getServiceList(pm, packageName)
                 EComponentType.PROVIDER -> ApplicationComponents.getProviderList(pm, packageName)
             }
             emitter.onSuccess(componentList)
-        })).observeOn(Schedulers.io())
-                .subscribeOn(AndroidSchedulers.mainThread())
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ components ->
                     view.setLoadingIndicator(false)
                     if (components.isEmpty()) {

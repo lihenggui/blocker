@@ -33,7 +33,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
 
-public class ComponentFragment extends Fragment {
+public class ComponentFragment1 extends Fragment {
     public static final int RECEIVER = 1;
     public static final int SERVICE = 2;
     public static final int ACTIVITY = 3;
@@ -49,11 +49,11 @@ public class ComponentFragment extends Fragment {
     private String mPackageName;
     private Unbinder mUnbinder;
 
-    public ComponentFragment() {
+    public ComponentFragment1() {
     }
 
-    public static Fragment getInstance(PackageManager pm, String packageName, int category) {
-        ComponentFragment fragment = new ComponentFragment();
+    public static Fragment getInstance(String packageName, int category) {
+        ComponentFragment1 fragment = new ComponentFragment1();
         Bundle bundle = new Bundle();
         bundle.putInt(CATEGORY, category);
         bundle.putString(PACKAGE_NAME, packageName);

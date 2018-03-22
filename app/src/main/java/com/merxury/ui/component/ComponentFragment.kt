@@ -62,6 +62,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
             componentListFragmentRecyclerView.apply {
                 val layoutManager = LinearLayoutManager(context)
                 this.layoutManager = layoutManager
+                componentAdapter = ComponentsRecyclerViewAdapter()
                 this.adapter = componentAdapter
                 this.itemAnimator = DefaultItemAnimator()
                 addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
@@ -77,6 +78,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                 }
             }
         }
+        setHasOptionsMenu(true)
         return root
     }
 

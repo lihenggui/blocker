@@ -92,7 +92,10 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            Collections.addAll(activities, pm.getPackageInfo(packageName, flags).activities);
+            ComponentInfo[] components = pm.getPackageInfo(packageName, flags).activities;
+            if (components != null && components.length > 0) {
+                Collections.addAll(activities, components);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
@@ -116,7 +119,10 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            Collections.addAll(receivers, pm.getPackageInfo(packageName, flags).receivers);
+            ComponentInfo[] components = pm.getPackageInfo(packageName, flags).receivers;
+            if (components != null && components.length > 0) {
+                Collections.addAll(receivers, components);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
@@ -141,7 +147,10 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            Collections.addAll(services, pm.getPackageInfo(packageName, flags).services);
+            ComponentInfo[] components = pm.getPackageInfo(packageName, flags).services;
+            if (components != null && components.length > 0) {
+                Collections.addAll(services, components);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
@@ -165,7 +174,10 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            Collections.addAll(providers, pm.getPackageInfo(packageName, flags).providers);
+            ComponentInfo[] components = pm.getPackageInfo(packageName, flags).providers;
+            if (components != null && components.length > 0) {
+                Collections.addAll(providers, components);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
