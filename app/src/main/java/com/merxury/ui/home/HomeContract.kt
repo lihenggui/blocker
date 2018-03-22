@@ -26,5 +26,6 @@ interface HomeContract {
         fun loadApplicationList(context: Context, isSystemApplication: Boolean)
         fun openApplicationDetails(application: Application)
         fun result(requestCode: Int, resultCode: Int)
+        fun sortApplicationList(applications: List<Application>): List<Application>
     }
 }

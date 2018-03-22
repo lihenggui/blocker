@@ -14,6 +14,7 @@ import com.merxury.utils.ApkUtils;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * Created by Mercury on 2017/12/30.
@@ -33,6 +34,8 @@ public class Application implements Parcelable {
             return new Application[size];
         }
     };
+
+    public static final String TAG = "ApplicationEntity";
     private String packageName;
     private String versionName;
     private int versionCode;
@@ -45,6 +48,7 @@ public class Application implements Parcelable {
     private String[] splitNames;
     private String dataDir;
     private String label;
+    private Date installationDate;
 
     private Application() {
     }
@@ -69,16 +73,14 @@ public class Application implements Parcelable {
         this.publicSourceDir = appDetail.sourceDir;
         this.dataDir = appDetail.dataDir;
         this.label = appDetail.loadLabel(pm).toString();
+        File baseApkPath = new File(publicSourceDir);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             minSdkVersion = appDetail.minSdkVersion;
         } else {
-            minSdkVersion = ApkUtils.getMinSdkVersion(new File(publicSourceDir));
+            minSdkVersion = ApkUtils.getMinSdkVersion(baseApkPath);
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            this.splitNames = appDetail.splitNames;
-        } else {
-            this.splitNames = this.packageName.split("\\.");
-        }
+        this.splitNames = this.packageName.split("\\.");
+        this.installationDate = new Date();
     }
 
     protected Application(Parcel in) {
@@ -94,6 +96,7 @@ public class Application implements Parcelable {
         this.publicSourceDir = in.readString();
         this.splitNames = in.createStringArray();
         this.dataDir = in.readString();
+        this.installationDate = new Date(in.readLong());
     }
 
     public String getPackageName() {
@@ -192,6 +195,14 @@ public class Application implements Parcelable {
         this.dataDir = dataDir;
     }
 
+    public Date getInstallationDate() {
+        return installationDate;
+    }
+
+    public void setInstallationDate(Date installationDate) {
+        this.installationDate = installationDate;
+    }
+
     @Override
     public int describeContents() {
         return 0;
@@ -239,5 +250,6 @@ public class Application implements Parcelable {
         dest.writeString(this.publicSourceDir);
         dest.writeStringArray(this.splitNames);
         dest.writeString(this.dataDir);
+        dest.writeLong(this.installationDate.getTime());
     }
 }

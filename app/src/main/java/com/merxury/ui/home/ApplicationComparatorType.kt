@@ -1,6 +1,7 @@
 package com.merxury.ui.home
 
 enum class ApplicationComparatorType {
-    ASCEND_BY_LABEL,
-    DESCEND_BY_LABEL
+    ASCENDING_BY_LABEL,
+    DESCENDING_BY_LABEL,
+    BY_INSTALLATION_DATE
 }

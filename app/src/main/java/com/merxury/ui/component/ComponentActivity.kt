@@ -14,6 +14,7 @@ import com.merxury.entity.Application
 import com.merxury.ui.adapter.FragmentAdapter
 import com.merxury.ui.base.IActivityView
 import com.merxury.util.setupActionBar
+import com.merxury.utils.ApplicationUtils
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
 
@@ -78,12 +79,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         })
     }
 
-    private fun changeColor(color: Int) {
-        component_toolbar.setBackgroundColor(color)
-        component_tabs.setBackgroundColor(color)
-        component_collapsing_toolbar.setBackgroundColor(color)
-        window.statusBarColor = color
-    }
+
     private fun showApplicationBriefInfo(application: Application) {
         app_info_app_name.text = getString(R.string.application_label, application.label)
         app_info_app_package_name.text = getString(R.string.package_name, application.packageName)
@@ -93,6 +89,15 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
                 .load(application.getApplicationIcon(packageManager))
                 .transition(DrawableTransitionOptions().crossFade())
                 .into(app_info_icon)
+        app_info_icon.setOnClickListener({ ApplicationUtils.startApplication(this, application.packageName) })
+    }
+
+
+    private fun changeColor(color: Int) {
+        component_toolbar.setBackgroundColor(color)
+        component_tabs.setBackgroundColor(color)
+        component_collapsing_toolbar.setBackgroundColor(color)
+        window.statusBarColor = color
     }
 
     private fun changeBackgroundColor(tab: TabLayout.Tab) {

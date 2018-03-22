@@ -23,7 +23,8 @@ class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View) : H
                 false -> ApplicationComponents.getThirdPartyApplicationList(pm)
                 true -> ApplicationComponents.getSystemApplicationList(pm)
             }
-            emitter.onSuccess(applications)
+            val sortedList = sortApplicationList(applications)
+            emitter.onSuccess(sortedList)
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe { applications ->
@@ -48,6 +49,15 @@ class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View) : H
 
     }
 
-    override var currentComparator = ApplicationComparatorType.ASCEND_BY_LABEL
+    override fun sortApplicationList(applications: List<Application>): List<Application> {
+        return when (currentComparator) {
+            ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.sortedBy { it.label }
+            ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.sortedByDescending { it.label }
+            ApplicationComparatorType.BY_INSTALLATION_DATE -> applications.sortedBy { it.packageName }
+        }
+
+    }
+
+    override var currentComparator = ApplicationComparatorType.ASCENDING_BY_LABEL
 
 }

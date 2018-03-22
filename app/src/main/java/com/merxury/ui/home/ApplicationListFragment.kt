@@ -9,6 +9,7 @@ import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.view.*
+import android.widget.PopupMenu
 import android.widget.TextView
 import com.merxury.blocker.R
 import com.merxury.entity.Application
@@ -57,7 +58,21 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun showFilteringPopUpMenu() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        PopupMenu(activity, activity?.findViewById(R.id.menu_filter)).apply {
+            menuInflater.inflate(R.menu.filter_application, menu)
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.name_asc -> presenter.currentComparator = ApplicationComparatorType.ASCENDING_BY_LABEL
+                    R.id.name_des -> presenter.currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
+                    R.id.installation_date -> presenter.currentComparator = ApplicationComparatorType.BY_INSTALLATION_DATE
+                    else -> presenter.currentComparator = ApplicationComparatorType.BY_INSTALLATION_DATE
+                }
+                presenter.loadApplicationList(context!!, isSystem)
+                true
+            }
+            show()
+        }
+
     }
 
     override fun showApplicationDetailsUi(application: Application) {
@@ -120,8 +135,10 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
+            R.id.menu_filter -> showFilteringPopUpMenu()
+            R.id.menu_refresh -> presenter.loadApplicationList(context!!, isSystem)
         }
-        TODO("Implement sorting menu")
+        return true
     }
 
     interface AppItemListener {
