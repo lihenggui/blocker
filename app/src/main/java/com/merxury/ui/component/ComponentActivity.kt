@@ -11,7 +11,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.merxury.blocker.R
 import com.merxury.entity.Application
-import com.merxury.fragment.ComponentFragment
 import com.merxury.ui.adapter.FragmentAdapter
 import com.merxury.ui.base.IActivityView
 import com.merxury.util.setupActionBar
@@ -19,6 +18,8 @@ import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
 
 class ComponentActivity : AppCompatActivity(), IActivityView {
+
+    private val CURRENT_FILTERING_KEY = "CURRENT_FILTERING_KEY"
 
     private lateinit var application: Application
 
@@ -41,12 +42,13 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         showApplicationBriefInfo(application)
     }
 
+
     private fun setupViewPager() {
         val adapter = FragmentAdapter(supportFragmentManager)
-        adapter.addFragment(ComponentFragment.getInstance(packageManager, packageName, ComponentFragment.RECEIVER), getString(R.string.receiver))
-        adapter.addFragment(ComponentFragment.getInstance(packageManager, packageName, ComponentFragment.SERVICE), getString(R.string.service))
-        adapter.addFragment(ComponentFragment.getInstance(packageManager, packageName, ComponentFragment.ACTIVITY), getString(R.string.activity))
-        adapter.addFragment(ComponentFragment.getInstance(packageManager, packageName, ComponentFragment.PROVIDER), getString(R.string.provider))
+        adapter.addFragment(ComponentFragment.newInstance(packageManager, packageName, EComponentType.RECEIVER), getString(R.string.receiver))
+        adapter.addFragment(ComponentFragment.newInstance(packageManager, packageName, EComponentType.SERVICE), getString(R.string.service))
+        adapter.addFragment(ComponentFragment.newInstance(packageManager, packageName, EComponentType.ACTIVITY), getString(R.string.activity))
+        adapter.addFragment(ComponentFragment.newInstance(packageManager, packageName, EComponentType.PROVIDER), getString(R.string.provider))
         component_viewpager.adapter = adapter
     }
 

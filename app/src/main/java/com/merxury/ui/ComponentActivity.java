@@ -23,7 +23,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions;
 import com.merxury.blocker.R;
 import com.merxury.entity.Application;
-import com.merxury.fragment.ComponentFragment;
+import com.merxury.fragment.ComponentFragment1;
 import com.merxury.ui.adapter.FragmentAdapter;
 import com.merxury.ui.home.Constant;
 import com.merxury.utils.ApplicationUtils;
@@ -91,10 +91,10 @@ public class ComponentActivity extends AppCompatActivity {
         PackageManager pm = getPackageManager();
         String packageName = mApplicationInfo.getPackageName();
         FragmentAdapter adapter = new FragmentAdapter(getSupportFragmentManager());
-        adapter.addFragment(ComponentFragment.getInstance(pm, packageName, ComponentFragment.RECEIVER), getString(R.string.receiver));
-        adapter.addFragment(ComponentFragment.getInstance(pm, packageName, ComponentFragment.SERVICE), getString(R.string.service));
-        adapter.addFragment(ComponentFragment.getInstance(pm, packageName, ComponentFragment.ACTIVITY), getString(R.string.activity));
-        adapter.addFragment(ComponentFragment.getInstance(pm, packageName, ComponentFragment.PROVIDER), getString(R.string.provider));
+        adapter.addFragment(ComponentFragment1.getInstance(packageName, ComponentFragment1.RECEIVER), getString(R.string.receiver));
+        adapter.addFragment(ComponentFragment1.getInstance(packageName, ComponentFragment1.SERVICE), getString(R.string.service));
+        adapter.addFragment(ComponentFragment1.getInstance(packageName, ComponentFragment1.ACTIVITY), getString(R.string.activity));
+        adapter.addFragment(ComponentFragment1.getInstance(packageName, ComponentFragment1.PROVIDER), getString(R.string.provider));
         mViewPager.setAdapter(adapter);
     }
 
