@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import com.merxury.blocker.R
 import com.merxury.core.IController
+import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
 
@@ -27,7 +28,8 @@ class ComponentFragment : Fragment(), ComponentContract.View {
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
-        controller = context as IController
+        val controllerView = context as ComponentContract.ControllerAttachedView
+        controller = controllerView.getController()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,6 +60,12 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                     presenter.loadComponents(context.packageManager, packageName, type)
                 }
             }
+            component_switch.setOnCheckedChangeListener({ view, isChecked ->
+                view
+                if (isChecked) {
+                    //placeholder
+                }
+            })
         }
         setHasOptionsMenu(true)
         return root
