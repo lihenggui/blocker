@@ -12,11 +12,16 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:name="com.merxury.ui.BlockerApplication"
         android:theme="@style/AppTheme">
+        <service
+            android:name="com.merxury.service.ShellService"
+            android:exported="false" />
+
         <activity
-            android:name="com.merxury.ui.MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name="com.merxury.ui.home.HomeActivity"
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme.OverlapSystemBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -24,11 +29,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.merxury.ui.ComponentActivity"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
-
-        <service android:name="com.merxury.service.ShellService"
-            android:exported="false"/>
+            android:name="com.merxury.ui.component.ComponentActivity"
+            android:theme="@style/AppTheme.OverlapSystemBar" />
     </application>
 
 </manifest>

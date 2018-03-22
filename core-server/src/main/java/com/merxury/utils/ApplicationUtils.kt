@@ -3,13 +3,13 @@ package com.merxury.utils
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import com.merxury.blocker.R
+import com.merxury.core.R
 
 class ApplicationUtils {
     companion object {
         private const val MARKET_URL = "market://details?id="
         fun startApplication(context: Context, packageName: String) {
-            var intent: Intent? = context.packageManager.getLaunchIntentForPackage(packageName)
+            val intent: Intent? = context.packageManager.getLaunchIntentForPackage(packageName)
             if (intent == null) {
                 showToastForShortTime(context, context.getString(R.string.app_cannot_start))
                 return

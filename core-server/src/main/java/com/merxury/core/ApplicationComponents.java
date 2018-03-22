@@ -1,17 +1,18 @@
 package com.merxury.core;
 
 import android.content.ComponentName;
-import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.pm.ProviderInfo;
-import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.merxury.entity.Application;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,7 +29,7 @@ public class ApplicationComponents {
      * @param pm PackageManager
      * @return list of package info
      */
-    public static List<PackageInfo> getApplicationList(PackageManager pm) {
+    public static List<PackageInfo> getApplicationList(@NonNull PackageManager pm) {
         return pm.getInstalledPackages(0);
     }
 
@@ -38,12 +39,13 @@ public class ApplicationComponents {
      * @param pm PackageManager
      * @return a list of installed third party applications
      */
-    public static List<PackageInfo> getThirdPartyApplicationList(PackageManager pm) {
-        List<PackageInfo> thirdPartyList = new ArrayList<>(64);
+    @NonNull
+    public static List<Application> getThirdPartyApplicationList(@NonNull PackageManager pm) {
         List<PackageInfo> installedApplications = pm.getInstalledPackages(0);
+        List<Application> thirdPartyList = new ArrayList<>(installedApplications.size());
         for (PackageInfo info : installedApplications) {
             if ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
-                thirdPartyList.add(info);
+                thirdPartyList.add(new Application(pm, info));
             }
         }
         return thirdPartyList;
@@ -55,18 +57,19 @@ public class ApplicationComponents {
      * @param pm PackageManager
      * @return a list of installed system applications
      */
-    public static List<PackageInfo> getSystemApplicationList(PackageManager pm) {
+    @NonNull
+    public static List<Application> getSystemApplicationList(@NonNull PackageManager pm) {
 
-        List<PackageInfo> sysAppList = new ArrayList<>(64);
         List<PackageInfo> installedApplications = pm.getInstalledPackages(0);
+        List<Application> sysAppList = new ArrayList<>(installedApplications.size());
         for (PackageInfo info : installedApplications) {
             if ((info.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0) {
                 //System App
-                sysAppList.add(info);
+                sysAppList.add(new Application(pm, info));
             }
             if ((info.applicationInfo.flags & ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0) {
                 //app was installed as an update to a built-in system app
-                sysAppList.add(info);
+                sysAppList.add(new Application(pm, info));
             }
         }
         return sysAppList;
@@ -80,8 +83,8 @@ public class ApplicationComponents {
      * @return list of activity
      */
     @NonNull
-    public static ActivityInfo[] getActivityList(@NonNull PackageManager pm, @NonNull String packageName) {
-        ActivityInfo[] activities = null;
+    public static List<ComponentInfo> getActivityList(@NonNull PackageManager pm, @NonNull String packageName) {
+        List<ComponentInfo> activities = new ArrayList<>();
         try {
             int flags = PackageManager.GET_ACTIVITIES;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -89,11 +92,14 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            activities = pm.getPackageInfo(packageName, flags).activities;
+            ComponentInfo[] components = pm.getPackageInfo(packageName, flags).activities;
+            if (components != null && components.length > 0) {
+                Collections.addAll(activities, components);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return activities == null ? new ActivityInfo[0] : activities;
+        return activities;
     }
 
     /**
@@ -104,8 +110,8 @@ public class ApplicationComponents {
      * @return list of receiver
      */
     @NonNull
-    public static ActivityInfo[] getReceiverList(@NonNull PackageManager pm, @NonNull String packageName) {
-        ActivityInfo[] receivers = null;
+    public static List<ComponentInfo> getReceiverList(@NonNull PackageManager pm, @NonNull String packageName) {
+        List<ComponentInfo> receivers = new ArrayList<>();
         try {
             int flags = PackageManager.GET_RECEIVERS;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -113,12 +119,15 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            receivers = pm.getPackageInfo(packageName, flags).receivers;
+            ComponentInfo[] components = pm.getPackageInfo(packageName, flags).receivers;
+            if (components != null && components.length > 0) {
+                Collections.addAll(receivers, components);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
 
-        return receivers == null ? new ActivityInfo[0] : receivers;
+        return receivers;
     }
 
     /**
@@ -129,8 +138,8 @@ public class ApplicationComponents {
      * @return list of service
      */
     @NonNull
-    public static ServiceInfo[] getServiceList(@NonNull PackageManager pm, @NonNull String packageName) {
-        ServiceInfo[] services = null;
+    public static List<ComponentInfo> getServiceList(@NonNull PackageManager pm, @NonNull String packageName) {
+        List<ComponentInfo> services = new ArrayList<>();
         try {
             int flags = PackageManager.GET_SERVICES;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -138,11 +147,14 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            services = pm.getPackageInfo(packageName, flags).services;
+            ComponentInfo[] components = pm.getPackageInfo(packageName, flags).services;
+            if (components != null && components.length > 0) {
+                Collections.addAll(services, components);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return services == null ? new ServiceInfo[0] : services;
+        return services;
     }
 
     /**
@@ -153,8 +165,8 @@ public class ApplicationComponents {
      * @return list of provider
      */
     @NonNull
-    public static ProviderInfo[] getProviderList(@NonNull PackageManager pm, @NonNull String packageName) {
-        ProviderInfo[] providers = null;
+    public static List<ComponentInfo> getProviderList(@NonNull PackageManager pm, @NonNull String packageName) {
+        List<ComponentInfo> providers = new ArrayList<>();
         try {
             int flags = PackageManager.GET_PROVIDERS;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -162,11 +174,14 @@ public class ApplicationComponents {
             } else {
                 flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
             }
-            providers = pm.getPackageInfo(packageName, flags).providers;
+            ComponentInfo[] components = pm.getPackageInfo(packageName, flags).providers;
+            if (components != null && components.length > 0) {
+                Collections.addAll(providers, components);
+            }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        return providers == null ? new ProviderInfo[0] : providers;
+        return providers;
     }
 
     /**
@@ -220,11 +235,11 @@ public class ApplicationComponents {
     /**
      * check a component is enabled or not
      *
-     * @param pm          PackageManager
+     * @param pm            PackageManager
      * @param componentName name of a component
      * @return true : component is enabled , false: component is disabled
      */
-    public static boolean checkComponentIsEnabled(PackageManager pm, ComponentName componentName) {
+    public static boolean checkComponentIsEnabled(@NonNull PackageManager pm, @NonNull ComponentName componentName) {
         int state = pm.getComponentEnabledSetting(componentName);
         return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
     }

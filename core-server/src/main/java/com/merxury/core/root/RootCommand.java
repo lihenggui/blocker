@@ -1,5 +1,6 @@
 package com.merxury.core.root;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.merxury.core.exception.ProcessUnexpectedTerminateException;
@@ -13,7 +14,6 @@ import java.util.concurrent.TimeoutException;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.functions.Function;
 
 /**
  * Created by Mercury on 2018/2/4.
@@ -22,6 +22,7 @@ import io.reactivex.functions.Function;
 public class RootCommand {
     private static final String TAG = "RootCommand";
 
+    @NonNull
     public static String runBlockingCommand(final String comm) throws RootDeniedException, IOException, TimeoutException {
         return Observable.create(new ObservableOnSubscribe<String>() {
             @Override
