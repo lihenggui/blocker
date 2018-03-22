@@ -12,6 +12,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:name="com.merxury.ui.BlockerApplication"
         android:theme="@style/AppTheme">
         <service
             android:name="com.merxury.service.ShellService"
