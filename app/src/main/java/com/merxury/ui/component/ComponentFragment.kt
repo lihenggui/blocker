@@ -1,5 +1,6 @@
 package com.merxury.ui.component
 
+import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -12,42 +13,22 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.merxury.blocker.R
+import com.merxury.core.IController
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
 
 class ComponentFragment : Fragment(), ComponentContract.View {
 
     override lateinit var presenter: ComponentContract.Presenter
+    private lateinit var controller: IController
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
     private lateinit var packageName: String
     private lateinit var type: EComponentType
 
-    override fun setLoadingIndicator(active: Boolean) {
-        with(componentListSwipeLayout) {
-            post { isRefreshing = active }
-        }
+    override fun onAttach(context: Context?) {
+        super.onAttach(context)
+        controller = context as IController
     }
-
-    override fun showNoComponent() {
-        componentListFragmentRecyclerView.visibility = View.GONE
-        noComponentContainer.visibility = View.VISIBLE
-    }
-
-    override fun searchForComponent() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun showFilteringPopUpMenu() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-
-    override fun showComponentList(components: List<ComponentInfo>) {
-        noComponentContainer.visibility = View.GONE
-        componentListFragmentRecyclerView.visibility = View.VISIBLE
-        componentAdapter.addData(components)
-    }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,6 +71,32 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         }
     }
 
+    override fun setLoadingIndicator(active: Boolean) {
+        with(componentListSwipeLayout) {
+            post { isRefreshing = active }
+        }
+    }
+
+    override fun showNoComponent() {
+        componentListFragmentRecyclerView.visibility = View.GONE
+        noComponentContainer.visibility = View.VISIBLE
+    }
+
+    override fun searchForComponent() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun showFilteringPopUpMenu() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+
+    override fun showComponentList(components: List<ComponentInfo>) {
+        noComponentContainer.visibility = View.GONE
+        componentListFragmentRecyclerView.visibility = View.VISIBLE
+        componentAdapter.addData(components)
+    }
+
     companion object {
         const val TAG = "ComponentFragment"
         fun newInstance(pm: PackageManager, packageName: String, type: EComponentType): Fragment {
@@ -101,5 +108,11 @@ class ComponentFragment : Fragment(), ComponentContract.View {
             fragment.presenter = ComponentPresenter(pm, fragment)
             return fragment
         }
+    }
+
+    interface ComponentItemListener {
+        fun onComponentClick()
+        fun onComponentLongClick()
+        fun swichComponent()
     }
 }
