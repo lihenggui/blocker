@@ -9,7 +9,7 @@ class ApplicationUtils {
     companion object {
         private const val MARKET_URL = "market://details?id="
         fun startApplication(context: Context, packageName: String) {
-            var intent: Intent? = context.packageManager.getLaunchIntentForPackage(packageName)
+            val intent: Intent? = context.packageManager.getLaunchIntentForPackage(packageName)
             if (intent == null) {
                 showToastForShortTime(context, context.getString(R.string.app_cannot_start))
                 return

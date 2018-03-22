@@ -8,9 +8,10 @@ import android.os.Bundle
 import android.support.design.widget.NavigationView
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
+import android.support.v4.view.GravityCompat
 import android.support.v4.view.ViewPager
-import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.AppCompatActivity
+import android.view.MenuItem
 import com.merxury.blocker.R
 import com.merxury.ui.adapter.FragmentAdapter
 import com.merxury.ui.base.IActivityView
@@ -18,7 +19,7 @@ import com.merxury.util.setupActionBar
 import kotlinx.android.synthetic.main.activity_home.*
 
 class HomeActivity : AppCompatActivity(), IActivityView {
-    private lateinit var drawerLayout: DrawerLayout
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -50,7 +51,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
                 startActivity(intent)
             }
             menuItem.isChecked = true
-            drawerLayout.closeDrawers()
+            drawer_layout.closeDrawers()
             true
         }
     }
@@ -73,6 +74,13 @@ class HomeActivity : AppCompatActivity(), IActivityView {
         })
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            drawer_layout.openDrawer(GravityCompat.START)
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
     private fun changeColor(color: Int) {
         toolbar.setBackgroundColor(color)
