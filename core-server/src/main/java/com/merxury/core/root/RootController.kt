@@ -28,6 +28,7 @@ class RootController : IController {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> String.format(DISABLE_COMPONENT_TEMPLATE, packageName, componentName)
             else -> return false
         }
+        Log.d(TAG, "command:$comm, componentState is $state")
         try {
             val commandOutput = RootCommand.runBlockingCommand(comm)
             return !commandOutput.contains(FAILED_EXCEPTION_MSG)

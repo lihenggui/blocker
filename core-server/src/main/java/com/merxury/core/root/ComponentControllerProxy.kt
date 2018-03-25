@@ -8,7 +8,7 @@ import com.merxury.core.IController
  * Created by Mercury on 2018/3/10.
  */
 
-class ComponentControllerProxy private constructor(method: EControllerMethod, context: Context) : IController {
+class ComponentControllerProxy private constructor(method: EControllerMethod, context: Context?) : IController {
 
     private lateinit var controller: IController
     private lateinit var controllerMethod: EControllerMethod
@@ -16,7 +16,7 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
     init {
         when (method) {
             EControllerMethod.PM -> controller = RootController()
-            EControllerMethod.SHIZUKU -> controller = RikkaServerController.getInstance(context)
+        //EControllerMethod.SHIZUKU -> controller = RikkaServerController.getInstance(context)
         }
     }
 
@@ -37,7 +37,7 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
         @Volatile
         var instance: ComponentControllerProxy? = null
 
-        fun getInstance(method: EControllerMethod, context: Context): ComponentControllerProxy =
+        fun getInstance(method: EControllerMethod, context: Context?): IController =
                 instance ?: synchronized(this) {
                     instance ?: ComponentControllerProxy(method, context).also {
                         it.controllerMethod = method

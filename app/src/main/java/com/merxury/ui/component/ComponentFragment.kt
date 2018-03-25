@@ -1,5 +1,6 @@
 package com.merxury.ui.component
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
@@ -9,27 +10,31 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
+import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.merxury.blocker.R
-import com.merxury.core.IController
+import com.merxury.core.ApplicationComponents
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
 
 class ComponentFragment : Fragment(), ComponentContract.View {
+    override fun setSwitchEnableState(view: ComponentContract.View, enabled: Boolean) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
     override lateinit var presenter: ComponentContract.Presenter
-    private lateinit var controller: IController
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
     private lateinit var packageName: String
     private lateinit var type: EComponentType
 
     override fun onAttach(context: Context?) {
         super.onAttach(context)
-        val controllerView = context as ComponentContract.ControllerAttachedView
-        controller = controllerView.getController()
+        if (context != null) {
+            presenter = ComponentPresenter(context.packageManager, this)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,12 +65,6 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                     presenter.loadComponents(context.packageManager, packageName, type)
                 }
             }
-            component_switch.setOnCheckedChangeListener({ view, isChecked ->
-                view
-                if (isChecked) {
-                    //placeholder
-                }
-            })
         }
         setHasOptionsMenu(true)
         return root
@@ -113,7 +112,6 @@ class ComponentFragment : Fragment(), ComponentContract.View {
             bundle.putSerializable(Constant.CATEGORY, type)
             bundle.putString(Constant.PACKAGE_NAME, packageName)
             fragment.arguments = bundle
-            fragment.presenter = ComponentPresenter(pm, fragment)
             return fragment
         }
     }
@@ -121,6 +119,45 @@ class ComponentFragment : Fragment(), ComponentContract.View {
     interface ComponentItemListener {
         fun onComponentClick()
         fun onComponentLongClick()
-        fun swichComponent()
+        fun switchComponent()
+    }
+
+    inner class ComponentsRecyclerViewAdapter(private var components: List<ComponentInfo> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
+
+        lateinit var pm: PackageManager
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.component_item, parent, false)
+            pm = parent.context.packageManager
+            return ViewHolder(view)
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.bindComponent(this.components[position])
+        }
+
+
+        override fun getItemCount(): Int {
+            return this.components.size
+        }
+
+        fun addData(components: List<ComponentInfo>) {
+            this.components = components
+            notifyDataSetChanged()
+        }
+
+        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            fun bindComponent(component: ComponentInfo) {
+                val componentShortName = component.name.split(".").last()
+                with(component) {
+                    itemView.component_name.text = componentShortName
+                    itemView.component_description.text = component.name
+                    itemView.component_switch.isChecked = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(component.packageName, component.name))
+                    itemView.component_switch.setOnCheckedChangeListener { buttonView, isChecked ->
+                        if (isChecked) presenter.enableComponent(component) else presenter.disableComponent(component)
+                    }
+                }
+            }
+        }
     }
 }
