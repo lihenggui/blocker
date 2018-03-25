@@ -5,12 +5,19 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import com.merxury.core.ApplicationComponents
+import com.merxury.core.IController
+import com.merxury.core.root.ComponentControllerProxy
+import com.merxury.core.root.EControllerMethod
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
-class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.View) : ComponentContract.Presenter {
+class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.View) : ComponentContract.Presenter, IController {
+
+    private val controller: IController by lazy {
+        ComponentControllerProxy.getInstance(EControllerMethod.PM, null)
+    }
 
     init {
         view.presenter = this
@@ -37,6 +44,33 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
                         view.showComponentList(components)
                     }
                 })
+    }
+
+    override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            emitter.onSuccess(controller.switchComponent(packageName, componentName, state))
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe()
+        return true
+    }
+
+    override fun enableComponent(componentInfo: ComponentInfo): Boolean {
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            emitter.onSuccess(controller.enableComponent(componentInfo))
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe()
+        return true
+    }
+
+    override fun disableComponent(componentInfo: ComponentInfo): Boolean {
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            emitter.onSuccess(controller.disableComponent(componentInfo))
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe()
+        return true
     }
 
 

@@ -10,9 +10,6 @@ import android.support.v7.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.merxury.blocker.R
-import com.merxury.core.IController
-import com.merxury.core.root.ComponentControllerProxy
-import com.merxury.core.root.EControllerMethod
 import com.merxury.entity.Application
 import com.merxury.ui.adapter.FragmentAdapter
 import com.merxury.ui.base.IActivityView
@@ -21,12 +18,12 @@ import com.merxury.utils.ApplicationUtils
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
 
-class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.ControllerAttachedView {
+class ComponentActivity : AppCompatActivity(), IActivityView {
 
     private val CURRENT_FILTERING_KEY = "CURRENT_FILTERING_KEY"
 
     private lateinit var application: Application
-    private lateinit var controller: ComponentControllerProxy
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,17 +37,11 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
         getDataFromIntent()
         setupViewPager()
         setupTab()
-        setupController()
     }
 
     override fun onStart() {
         super.onStart()
         showApplicationBriefInfo(application)
-    }
-
-
-    override fun getController(): IController {
-        return controller
     }
 
     private fun setupViewPager() {
@@ -86,10 +77,6 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
 
             }
         })
-    }
-
-    private fun setupController() {
-        controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, this)
     }
 
     private fun showApplicationBriefInfo(application: Application) {

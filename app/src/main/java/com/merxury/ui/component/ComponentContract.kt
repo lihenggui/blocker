@@ -10,19 +10,16 @@ import com.merxury.ui.base.BaseView
  * Created by Mercury on 2018/3/18.
  */
 interface ComponentContract {
-    interface ControllerAttachedView {
-        fun getController(): IController
-    }
-
     interface View : BaseView<Presenter> {
         fun showComponentList(components: List<ComponentInfo>)
         fun setLoadingIndicator(active: Boolean)
         fun showNoComponent()
         fun searchForComponent()
         fun showFilteringPopUpMenu()
+        fun setSwitchEnableState(view: View, enabled: Boolean)
     }
 
-    interface Presenter : BasePresenter {
+    interface Presenter : BasePresenter, IController {
         fun loadComponents(pm: PackageManager, packageName: String, type: EComponentType)
     }
 }
