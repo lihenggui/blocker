@@ -3,13 +3,8 @@ package com.merxury.core.root
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.util.Log
-
 import com.merxury.core.IController
-import com.stericson.RootShell.exceptions.RootDeniedException
 import com.stericson.RootTools.RootTools
-
-import java.io.IOException
-import java.util.concurrent.TimeoutException
 
 /**
  * Created by Mercury on 2017/12/31.
@@ -32,20 +27,9 @@ class RootController : IController {
         try {
             val commandOutput = RootCommand.runBlockingCommand(comm)
             return !commandOutput.contains(FAILED_EXCEPTION_MSG)
-        } catch (e: RootDeniedException) {
-            e.printStackTrace()
-            Log.e(TAG, e.message)
-            return false
-        } catch (e: TimeoutException) {
-            e.printStackTrace()
-            Log.e(TAG, e.message)
-            return false
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Log.e(TAG, e.message)
-            return false
+        } catch (e: Exception) {
+            throw e
         }
-
     }
 
     override fun enableComponent(componentInfo: ComponentInfo): Boolean {

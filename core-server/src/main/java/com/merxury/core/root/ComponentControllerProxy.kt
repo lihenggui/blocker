@@ -16,7 +16,6 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
     init {
         when (method) {
             EControllerMethod.PM -> controller = RootController()
-        //EControllerMethod.SHIZUKU -> controller = RikkaServerController.getInstance(context)
         }
     }
 

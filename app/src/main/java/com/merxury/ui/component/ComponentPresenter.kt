@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
+import android.util.Log
 import com.merxury.core.ApplicationComponents
 import com.merxury.core.IController
 import com.merxury.core.root.ComponentControllerProxy
@@ -51,7 +52,9 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
             emitter.onSuccess(controller.switchComponent(packageName, componentName, state))
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe()
+                .subscribe({}, { error: Throwable? ->
+                    Log.e(TAG, error?.message);
+                })
         return true
     }
 
@@ -77,4 +80,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
     override fun start(context: Context) {
     }
 
+    companion object {
+        const val TAG = "ComponentPresenter"
+    }
 }
