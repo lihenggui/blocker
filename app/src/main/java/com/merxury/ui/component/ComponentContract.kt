@@ -17,9 +17,12 @@ interface ComponentContract {
         fun searchForComponent()
         fun showFilteringPopUpMenu()
         fun setSwitchEnableState(view: View, enabled: Boolean)
+        fun showAlertDialog()
     }
 
     interface Presenter : BasePresenter, IController {
+        var currentComparator: EComponentComparatorType
         fun loadComponents(pm: PackageManager, packageName: String, type: EComponentType)
+        fun sortComponentList(components: List<ComponentInfo>, type: EComponentComparatorType): List<ComponentInfo>
     }
 }
