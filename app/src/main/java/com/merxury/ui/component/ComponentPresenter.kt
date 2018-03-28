@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
+import android.util.Log
 import com.merxury.core.ApplicationComponents
 import com.merxury.core.IController
 import com.merxury.core.root.ComponentControllerProxy
@@ -28,12 +29,13 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
     override fun loadComponents(pm: PackageManager, packageName: String, type: EComponentType) {
         view.setLoadingIndicator(true)
         Single.create((SingleOnSubscribe<List<ComponentInfo>> { emitter ->
-            val componentList = when (type) {
+            var componentList = when (type) {
                 EComponentType.RECEIVER -> ApplicationComponents.getReceiverList(pm, packageName)
                 EComponentType.ACTIVITY -> ApplicationComponents.getActivityList(pm, packageName)
                 EComponentType.SERVICE -> ApplicationComponents.getServiceList(pm, packageName)
                 EComponentType.PROVIDER -> ApplicationComponents.getProviderList(pm, packageName)
             }
+            componentList = sortComponentList(componentList, currentComparator)
             emitter.onSuccess(componentList)
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -64,7 +66,10 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
                     } else {
 
                     }
-                    error?.printStackTrace()
+                    error?.apply {
+                        printStackTrace()
+                        view.showAlertDialog()
+                    }
                 })
         return true
     }
@@ -81,7 +86,11 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { result, error ->
-                    error?.printStackTrace()
+                    error?.apply {
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view.showAlertDialog()
+                    }
                 })
         return true
     }
@@ -98,14 +107,26 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { result, error ->
-                    error?.printStackTrace()
+                    error?.apply {
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view.showAlertDialog()
+                    }
                 })
         return true
     }
 
+    override fun sortComponentList(components: List<ComponentInfo>, type: EComponentComparatorType): List<ComponentInfo> {
+        return when (type) {
+            EComponentComparatorType.NAME_ASCENDING -> components.sortedBy { it.name }
+            EComponentComparatorType.NAME_DESCENDING -> components.sortedByDescending { it.name }
+        }
+    }
 
     override fun start(context: Context) {
     }
+
+    override var currentComparator: EComponentComparatorType = EComponentComparatorType.NAME_ASCENDING
 
     companion object {
         const val TAG = "ComponentPresenter"

@@ -2,11 +2,13 @@ package com.merxury.ui.component
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.DialogInterface
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
@@ -21,6 +23,8 @@ import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
 
 class ComponentFragment : Fragment(), ComponentContract.View {
+
+
     override fun setSwitchEnableState(view: ComponentContract.View, enabled: Boolean) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
@@ -97,6 +101,17 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+
+    override fun showAlertDialog() {
+        context?.apply {
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle(resources.getString(R.string.alert_dialog_title_error))
+                    .setMessage(R.string.alert_dialog_message_error)
+                    .setPositiveButton(R.string.close, { dialog: DialogInterface, _: Int -> dialog.dismiss() })
+                    .show()
+        }
+
+    }
 
     override fun showComponentList(components: List<ComponentInfo>) {
         noComponentContainer.visibility = View.GONE

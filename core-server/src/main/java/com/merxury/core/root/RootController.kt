@@ -26,6 +26,7 @@ class RootController : IController {
         Log.d(TAG, "command:$comm, componentState is $state")
         try {
             val commandOutput = RootCommand.runBlockingCommand(comm)
+            Log.d(TAG, "Command output: $commandOutput")
             return !commandOutput.contains(FAILED_EXCEPTION_MSG)
         } catch (e: Exception) {
             throw e
