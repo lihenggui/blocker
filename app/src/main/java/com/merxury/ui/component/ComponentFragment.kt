@@ -168,11 +168,24 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                     itemView.component_name.text = componentShortName
                     itemView.component_description.text = component.name
                     itemView.component_switch.isChecked = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(component.packageName, component.name))
-                    itemView.component_switch.setOnCheckedChangeListener { buttonView, isChecked ->
-                        if (isChecked) presenter.enableComponent(component) else presenter.disableComponent(component)
+                    itemView.setOnClickListener {
+                        switchComponent(component, !it.component_switch.isChecked)
+                    }
+                    itemView.component_switch.setOnClickListener {
+                        switchComponent(component, it.component_switch.isChecked)
                     }
                 }
             }
+
+            private fun switchComponent(component: ComponentInfo, isChecked: Boolean) {
+                if (isChecked) {
+                    presenter.enableComponent(component)
+                } else {
+                    presenter.disableComponent(component)
+                }
+            }
         }
+
+
     }
 }
