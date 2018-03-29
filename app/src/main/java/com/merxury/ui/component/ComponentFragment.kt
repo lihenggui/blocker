@@ -12,9 +12,8 @@ import android.support.v7.widget.DefaultItemAnimator
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.PopupMenu
 import com.merxury.blocker.R
 import com.merxury.core.ApplicationComponents
 import kotlinx.android.synthetic.main.component_item.view.*
@@ -70,6 +69,20 @@ class ComponentFragment : Fragment(), ComponentContract.View {
 
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
+        inflater.inflate(R.menu.list_fragment_menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.menu_filter -> showFilteringPopUpMenu()
+            R.id.menu_refresh -> presenter.loadComponents(packageName, type)
+        }
+        return true
+    }
+
+
+
     override fun setLoadingIndicator(active: Boolean) {
         with(componentListSwipeLayout) {
             post { isRefreshing = active }
@@ -86,7 +99,21 @@ class ComponentFragment : Fragment(), ComponentContract.View {
     }
 
     override fun showFilteringPopUpMenu() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        PopupMenu(activity, activity?.findViewById(R.id.menu_filter)).apply {
+            menuInflater.inflate(R.menu.filter_component, menu)
+            setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.name_asc -> presenter.currentComparator = EComponentComparatorType.NAME_ASCENDING
+                    R.id.name_des -> presenter.currentComparator = EComponentComparatorType.NAME_DESCENDING
+                    R.id.package_name_asc -> presenter.currentComparator = EComponentComparatorType.PACKAGE_NAME_ASCENDING
+                    R.id.package_name_des -> presenter.currentComparator = EComponentComparatorType.PACKAGE_NAME_DESCENDING
+                }
+                presenter.loadComponents(packageName, type)
+                true
+            }
+            show()
+        }
+
     }
 
     override fun refreshComponentSwitchState(componentName: String) {
@@ -170,6 +197,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                     itemView.component_switch.isChecked = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(component.packageName, component.name))
                     itemView.setOnClickListener {
                         switchComponent(component, !it.component_switch.isChecked)
+                        it.component_switch.isChecked = !it.component_switch.isChecked
                     }
                     itemView.component_switch.setOnClickListener {
                         switchComponent(component, it.component_switch.isChecked)

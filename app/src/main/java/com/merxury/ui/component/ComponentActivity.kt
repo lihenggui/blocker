@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.view.MenuItem
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.merxury.blocker.R
@@ -31,7 +32,6 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         setContentView(R.layout.activity_component)
         // init toolbar
         setupActionBar(R.id.component_toolbar) {
-            setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp)
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowTitleEnabled(false)
         }
@@ -43,6 +43,13 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
     override fun onStart() {
         super.onStart()
         showApplicationBriefInfo(application)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            android.R.id.home -> finish()
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     private fun setupViewPager() {
