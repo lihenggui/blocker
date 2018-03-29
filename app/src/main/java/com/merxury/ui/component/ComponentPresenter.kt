@@ -9,6 +9,7 @@ import com.merxury.core.ApplicationComponents
 import com.merxury.core.IController
 import com.merxury.core.root.ComponentControllerProxy
 import com.merxury.core.root.EControllerMethod
+import com.merxury.entity.getSimpleName
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -26,7 +27,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
     }
 
     @SuppressLint("CheckResult")
-    override fun loadComponents(pm: PackageManager, packageName: String, type: EComponentType) {
+    override fun loadComponents(packageName: String, type: EComponentType) {
         view.setLoadingIndicator(true)
         Single.create((SingleOnSubscribe<List<ComponentInfo>> { emitter ->
             var componentList = when (type) {
@@ -118,8 +119,10 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
 
     override fun sortComponentList(components: List<ComponentInfo>, type: EComponentComparatorType): List<ComponentInfo> {
         return when (type) {
-            EComponentComparatorType.NAME_ASCENDING -> components.sortedBy { it.name }
-            EComponentComparatorType.NAME_DESCENDING -> components.sortedByDescending { it.name }
+            EComponentComparatorType.NAME_ASCENDING -> components.sortedBy { it.getSimpleName() }
+            EComponentComparatorType.NAME_DESCENDING -> components.sortedByDescending { it.getSimpleName() }
+            EComponentComparatorType.PACKAGE_NAME_ASCENDING -> components.sortedBy { it.name }
+            EComponentComparatorType.PACKAGE_NAME_DESCENDING -> components.sortedByDescending { it.name }
         }
     }
 

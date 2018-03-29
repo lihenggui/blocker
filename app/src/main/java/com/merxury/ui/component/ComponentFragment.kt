@@ -66,7 +66,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                         ContextCompat.getColor(context, R.color.colorPrimaryDark)
                 )
                 setOnRefreshListener {
-                    presenter.loadComponents(context.packageManager, packageName, type)
+                    presenter.loadComponents(packageName, type)
                 }
             }
         }
@@ -78,7 +78,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         super.onStart()
         val packageManager = context?.packageManager
         if (packageManager != null) {
-            presenter.loadComponents(packageManager, packageName, type)
+            presenter.loadComponents(packageName, type)
         }
     }
 
