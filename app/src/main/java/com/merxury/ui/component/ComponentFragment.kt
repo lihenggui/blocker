@@ -1,7 +1,6 @@
 package com.merxury.ui.component
 
 import android.content.ComponentName
-import android.content.Context
 import android.content.DialogInterface
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
@@ -24,41 +23,23 @@ import kotlinx.android.synthetic.main.fragment_component.view.*
 
 class ComponentFragment : Fragment(), ComponentContract.View {
 
-
-    override fun setSwitchEnableState(view: ComponentContract.View, enabled: Boolean) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     override lateinit var presenter: ComponentContract.Presenter
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
     private lateinit var packageName: String
     private lateinit var type: EComponentType
 
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-        if (context != null) {
-            presenter = ComponentPresenter(context.packageManager, this)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val args = arguments
         type = args?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = args.getString(Constant.PACKAGE_NAME)
+        presenter = ComponentPresenter(context!!.packageManager, this)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_component, container, false)
         with(root) {
-            componentListFragmentRecyclerView.apply {
-                val layoutManager = LinearLayoutManager(context)
-                this.layoutManager = layoutManager
-                componentAdapter = ComponentsRecyclerViewAdapter()
-                this.adapter = componentAdapter
-                this.itemAnimator = DefaultItemAnimator()
-                addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
-            }
             componentListSwipeLayout.apply {
                 setColorSchemeColors(
                         ContextCompat.getColor(context, R.color.colorPrimary),
@@ -69,6 +50,15 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                     presenter.loadComponents(packageName, type)
                 }
             }
+
+            componentListFragmentRecyclerView.apply {
+                val layoutManager = LinearLayoutManager(context)
+                this.layoutManager = layoutManager
+                componentAdapter = ComponentsRecyclerViewAdapter()
+                this.adapter = componentAdapter
+                this.itemAnimator = DefaultItemAnimator()
+                addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
+            }
         }
         setHasOptionsMenu(true)
         return root
@@ -76,10 +66,8 @@ class ComponentFragment : Fragment(), ComponentContract.View {
 
     override fun onStart() {
         super.onStart()
-        val packageManager = context?.packageManager
-        if (packageManager != null) {
-            presenter.loadComponents(packageName, type)
-        }
+        presenter.loadComponents(packageName, type)
+
     }
 
     override fun setLoadingIndicator(active: Boolean) {
@@ -101,6 +89,14 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    override fun refreshComponentSwitchState(componentName: String) {
+        val components = componentAdapter.getData()
+        for (i in components.indices) {
+            if (componentName == components[i].name) {
+                componentAdapter.notifyItemChanged(i)
+            }
+        }
+    }
 
     override fun showAlertDialog() {
         context?.apply {
@@ -159,6 +155,10 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         fun addData(components: List<ComponentInfo>) {
             this.components = components
             notifyDataSetChanged()
+        }
+
+        fun getData(): List<ComponentInfo> {
+            return components
         }
 
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {

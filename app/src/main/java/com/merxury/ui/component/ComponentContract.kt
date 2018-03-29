@@ -15,8 +15,8 @@ interface ComponentContract {
         fun showNoComponent()
         fun searchForComponent()
         fun showFilteringPopUpMenu()
-        fun setSwitchEnableState(view: View, enabled: Boolean)
         fun showAlertDialog()
+        fun refreshComponentSwitchState(componentName: String)
     }
 
     interface Presenter : BasePresenter, IController {
