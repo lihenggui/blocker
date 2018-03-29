@@ -2,6 +2,7 @@ package com.merxury.ui.home
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
+import android.app.ActivityManager
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -86,6 +87,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
         toolbar.setBackgroundColor(color)
         app_kind_tabs.setBackgroundColor(color)
         window.statusBarColor = color
+        setTaskDescription(ActivityManager.TaskDescription(null, null, ContextCompat.getColor(this, color)))
     }
 
 
