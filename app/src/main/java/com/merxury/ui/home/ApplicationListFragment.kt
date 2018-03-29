@@ -131,7 +131,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
-        inflater.inflate(R.menu.app_list_fragment_menu, menu)
+        inflater.inflate(R.menu.list_fragment_menu, menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

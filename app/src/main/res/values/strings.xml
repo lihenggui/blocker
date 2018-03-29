@@ -37,4 +37,6 @@
     <string name="alert_dialog_title_error">Oops</string>
     <string name="alert_dialog_message_error">Error occurs while switching the component state, did you get the root permission?</string>
     <string name="close">Close</string>
+    <string name="package_name_asc">Package Name (Ascending)</string>
+    <string name="package_name_des">Package Name (Descending)</string>
 </resources>
