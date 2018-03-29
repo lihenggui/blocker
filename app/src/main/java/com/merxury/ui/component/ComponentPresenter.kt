@@ -62,11 +62,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { result, error ->
-                    if (result) {
-
-                    } else {
-
-                    }
+                    view.refreshComponentSwitchState(componentName)
                     error?.apply {
                         printStackTrace()
                         view.showAlertDialog()
@@ -87,6 +83,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { result, error ->
+                    view.refreshComponentSwitchState(componentInfo.name)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
@@ -109,6 +106,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { result, error ->
                     error?.apply {
+                        view.refreshComponentSwitchState(componentInfo.name)
                         Log.e(TAG, message)
                         printStackTrace()
                         view.showAlertDialog()

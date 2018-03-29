@@ -87,6 +87,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         argument?.let {
             isSystem = it.getBoolean(IS_SYSTEM)
         }
+        presenter = HomePresenter(context!!.packageManager, this)
         listAdapter = AppListRecyclerViewAdapter(context?.packageManager, itemListener)
     }
 
@@ -152,7 +153,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             val bundle = Bundle()
             bundle.putBoolean(IS_SYSTEM, isSystem)
             fragment.arguments = bundle
-            fragment.presenter = HomePresenter(pm, fragment)
             return fragment
         }
 
