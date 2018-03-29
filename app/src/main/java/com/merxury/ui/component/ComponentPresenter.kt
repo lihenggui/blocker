@@ -28,6 +28,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
 
     @SuppressLint("CheckResult")
     override fun loadComponents(packageName: String, type: EComponentType) {
+        Log.i(TAG, "Trying to load components for $packageName, type: $type")
         view.setLoadingIndicator(true)
         Single.create((SingleOnSubscribe<List<ComponentInfo>> { emitter ->
             var componentList = when (type) {
@@ -64,6 +65,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
                 .subscribe(BiConsumer { result, error ->
                     view.refreshComponentSwitchState(componentName)
                     error?.apply {
+                        Log.e(TAG, message)
                         printStackTrace()
                         view.showAlertDialog()
                     }
@@ -73,6 +75,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
 
     @SuppressLint("CheckResult")
     override fun enableComponent(componentInfo: ComponentInfo): Boolean {
+        Log.i(TAG, "Trying to enable component: ${componentInfo.name}")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 val result = controller.enableComponent(componentInfo)
@@ -95,6 +98,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
 
     @SuppressLint("CheckResult")
     override fun disableComponent(componentInfo: ComponentInfo): Boolean {
+        Log.i(TAG, "Trying to disable component: ${componentInfo.name}")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 val result = controller.disableComponent(componentInfo)
@@ -104,9 +108,9 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(BiConsumer { result, error ->
+                .subscribe(BiConsumer { _, error ->
+                    view.refreshComponentSwitchState(componentInfo.name)
                     error?.apply {
-                        view.refreshComponentSwitchState(componentInfo.name)
                         Log.e(TAG, message)
                         printStackTrace()
                         view.showAlertDialog()
