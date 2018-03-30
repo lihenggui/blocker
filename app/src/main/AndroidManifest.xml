@@ -14,10 +14,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <service
-            android:name=".service.ShellService"
-            android:exported="false" />
-
         <activity
             android:name=".ui.home.HomeActivity"
             android:launchMode="singleTask"
