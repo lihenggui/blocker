@@ -39,4 +39,5 @@
     <string name="close">Close</string>
     <string name="package_name_asc">Package Name (Ascending)</string>
     <string name="package_name_des">Package Name (Descending)</string>
+    <string name="search">Search</string>
 </resources>
