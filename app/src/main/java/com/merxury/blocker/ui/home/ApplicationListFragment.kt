@@ -1,20 +1,21 @@
 package com.merxury.blocker.ui.home
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.MenuItemCompat
-import android.support.v7.widget.DefaultItemAnimator
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.SearchView
+import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
 import android.widget.TextView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.merxury.blocker.R
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.ui.component.ComponentActivity
+import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
@@ -90,7 +91,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             isSystem = it.getBoolean(IS_SYSTEM)
         }
         presenter = HomePresenter(context!!.packageManager, this)
-        listAdapter = AppListRecyclerViewAdapter(context?.packageManager, itemListener)
+        listAdapter = AppListRecyclerViewAdapter(itemListener)
     }
 
     override fun onResume() {
@@ -137,12 +138,12 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         val searchItem = menu?.findItem(R.id.menu_search)
         val searchView = MenuItemCompat.getActionView(searchItem) as SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextChange(newText: String?): Boolean {
+            override fun onQueryTextChange(newText: String): Boolean {
                 listAdapter.filter(newText)
                 return true
             }
 
-            override fun onQueryTextSubmit(query: String?): Boolean {
+            override fun onQueryTextSubmit(query: String): Boolean {
                 listAdapter.filter(query)
                 return true
             }
@@ -172,6 +173,59 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             return fragment
         }
 
+    }
+
+    inner class AppListRecyclerViewAdapter(private val listener: ApplicationListFragment.AppItemListener, private var applications: List<Application> = ArrayList()) : RecyclerView.Adapter<AppListRecyclerViewAdapter.ViewHolder>() {
+
+        private lateinit var pm: PackageManager
+        private var listCopy = ArrayList<Application>()
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.app_list_item, parent, false)
+            pm = parent.context.packageManager
+            return ViewHolder(view)
+        }
+
+        override fun getItemCount(): Int {
+            return this.applications.size
+        }
+
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.bindApplication(this.applications[position])
+        }
+
+        fun addData(applications: List<Application>) {
+            this.applications = applications
+            this.listCopy = ArrayList(applications)
+            notifyDataSetChanged()
+        }
+
+        fun filter(keyword: String) {
+            applications = if (keyword.isEmpty()) {
+                listCopy
+            } else {
+                listCopy.filter { it.label.contains(keyword, true) or it.packageName.contains(keyword, true) }
+            }
+            notifyDataSetChanged()
+        }
+
+        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+            fun bindApplication(application: Application) {
+                view?.apply {
+                    itemView.app_name.text = application.label
+                    itemView.setOnClickListener({ listener.onAppClick(application) })
+                    val options = RequestOptions()
+                            .fitCenter()
+                            .placeholder(android.R.drawable.sym_def_app_icon)
+                            .error(R.drawable.ic_error_red_24dp)
+                    Glide.with(this)
+                            .load(application.getApplicationIcon(pm))
+                            .apply(options)
+                            .into(itemView.app_icon)
+                }
+            }
+
+        }
     }
 
 }
