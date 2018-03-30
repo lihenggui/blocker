@@ -51,9 +51,9 @@ class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View) : H
 
     override fun sortApplicationList(applications: List<Application>): List<Application> {
         return when (currentComparator) {
-            ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.sortedBy { it.label }
-            ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.sortedByDescending { it.label }
-            ApplicationComparatorType.BY_INSTALLATION_DATE -> applications.sortedBy { it.packageName }
+            ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.sortedBy { it.label }.toMutableList()
+            ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.sortedByDescending { it.label }.toMutableList()
+            ApplicationComparatorType.BY_INSTALLATION_DATE -> applications.sortedBy { it.packageName }.toMutableList()
         }
 
     }

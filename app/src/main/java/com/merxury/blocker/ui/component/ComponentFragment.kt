@@ -7,11 +7,9 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
+import android.support.v4.view.MenuItemCompat
 import android.support.v7.app.AlertDialog
-import android.support.v7.widget.DefaultItemAnimator
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.LinearLayoutManager
-import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
 import com.merxury.blocker.R
@@ -71,6 +69,19 @@ class ComponentFragment : Fragment(), ComponentContract.View {
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
         inflater.inflate(R.menu.list_fragment_menu, menu)
+        val searchItem = menu?.findItem(R.id.menu_search)
+        val searchView = MenuItemCompat.getActionView(searchItem) as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextChange(newText: String): Boolean {
+                componentAdapter.filter(newText)
+                return true
+            }
+
+            override fun onQueryTextSubmit(query: String): Boolean {
+                componentAdapter.filter(query)
+                return true
+            }
+        })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -162,6 +173,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
     inner class ComponentsRecyclerViewAdapter(private var components: List<ComponentInfo> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
 
         lateinit var pm: PackageManager
+        private var listCopy = ArrayList<ComponentInfo>()
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.component_item, parent, false)
@@ -180,11 +192,21 @@ class ComponentFragment : Fragment(), ComponentContract.View {
 
         fun addData(components: List<ComponentInfo>) {
             this.components = components
+            this.listCopy = ArrayList(components)
             notifyDataSetChanged()
         }
 
         fun getData(): List<ComponentInfo> {
             return components
+        }
+
+        fun filter(keyword: String) {
+            components = if (keyword.isEmpty()) {
+                listCopy
+            } else {
+                listCopy.filter { it.name.contains(keyword, true) }
+            }
+            notifyDataSetChanged()
         }
 
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
