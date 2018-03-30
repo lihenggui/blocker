@@ -11,7 +11,7 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Created by Wiki on 2018/2/4.
+ * Created by Mercury on 2018/2/4.
  */
 public class RootServiceLauncherTest {
     private Context context;
