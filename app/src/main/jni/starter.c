@@ -28,7 +28,7 @@
 
 #define perrorf(...) fprintf(stderr, __VA_ARGS__)
 
-#define SERVER_CLASS_PATH "com.merxury.core.root.service.RootService"
+#define SERVER_CLASS_PATH "com.merxury.blocker.core.root.service.RootService"
 
 static void logcat(time_t now) {
     char command[BUFSIZ];
