@@ -15,6 +15,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.merxury.blocker.R;
 import com.merxury.blocker.entity.Application;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,12 +25,14 @@ import java.util.List;
 public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecyclerViewAdapter.ViewHolder> {
 
     private List<Application> mPackageInfoList;
+    private List<Application> mListCopy;
     private PackageManager mPm;
     private ApplicationListFragment.AppItemListener mListener;
 
     public AppListRecyclerViewAdapter(PackageManager pm, ApplicationListFragment.AppItemListener listener) {
         mPm = pm;
         mListener = listener;
+        mListCopy = new ArrayList<>();
     }
 
     @NonNull
@@ -64,6 +67,23 @@ public class AppListRecyclerViewAdapter extends RecyclerView.Adapter<AppListRecy
 
     public void addData(List<Application> list) {
         this.mPackageInfoList = list;
+        mListCopy = new ArrayList<>(mPackageInfoList);
+        notifyDataSetChanged();
+    }
+
+    public void filter(String text) {
+        mPackageInfoList.clear();
+        if (text.isEmpty()) {
+            mPackageInfoList.addAll(mListCopy);
+        } else {
+            text = text.toLowerCase();
+            for (Application application : mListCopy) {
+                if (application.getLabel().toLowerCase().contains(text)
+                        || application.getPackageName().toLowerCase().contains(text)) {
+                    mPackageInfoList.add(application);
+                }
+            }
+        }
         notifyDataSetChanged();
     }
 
