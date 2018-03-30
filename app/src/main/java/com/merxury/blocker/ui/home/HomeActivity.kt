@@ -39,8 +39,8 @@ class HomeActivity : AppCompatActivity(), IActivityView {
 
     private fun setupViewPager(viewPager: ViewPager) {
         val adapter = FragmentAdapter(supportFragmentManager)
-        adapter.addFragment(ApplicationListFragment.newInstance(packageManager, false), getString(R.string.third_party_app_tab_text))
-        adapter.addFragment(ApplicationListFragment.newInstance(packageManager, true), getString(R.string.system_app_tab_text))
+        adapter.addFragment(ApplicationListFragment.newInstance(false), getString(R.string.third_party_app_tab_text))
+        adapter.addFragment(ApplicationListFragment.newInstance(true), getString(R.string.system_app_tab_text))
         viewPager.adapter = adapter
     }
 
@@ -59,7 +59,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
 
     private fun setupTab(tabLayout: TabLayout) {
         changeColor(getBackgroundColor(0))
-        tabLayout.setSelectedTabIndicatorColor(resources.getColor(R.color.md_white_1000))
+        tabLayout.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.md_white_1000))
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 changeBackgroundColor(tabLayout, tab)

@@ -143,7 +143,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
 
     companion object {
         const val TAG = "ComponentFragment"
-        fun newInstance(pm: PackageManager, packageName: String, type: EComponentType): Fragment {
+        fun newInstance(packageName: String, type: EComponentType): Fragment {
             val fragment = ComponentFragment()
             val bundle = Bundle()
             bundle.putSerializable(Constant.CATEGORY, type)

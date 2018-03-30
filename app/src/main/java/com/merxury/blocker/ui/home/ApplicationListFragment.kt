@@ -1,7 +1,6 @@
 package com.merxury.blocker.ui.home
 
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -149,7 +148,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     companion object {
         const val IS_SYSTEM: String = "IS_SYSTEM"
-        fun newInstance(pm: PackageManager, isSystem: Boolean): Fragment {
+        fun newInstance(isSystem: Boolean): Fragment {
             val fragment = ApplicationListFragment()
             val bundle = Bundle()
             bundle.putBoolean(IS_SYSTEM, isSystem)

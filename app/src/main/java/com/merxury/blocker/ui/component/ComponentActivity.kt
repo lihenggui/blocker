@@ -54,10 +54,10 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
 
     private fun setupViewPager() {
         val adapter = FragmentAdapter(supportFragmentManager)
-        adapter.addFragment(ComponentFragment.newInstance(packageManager, application.packageName, EComponentType.RECEIVER), getString(R.string.receiver))
-        adapter.addFragment(ComponentFragment.newInstance(packageManager, application.packageName, EComponentType.SERVICE), getString(R.string.service))
-        adapter.addFragment(ComponentFragment.newInstance(packageManager, application.packageName, EComponentType.ACTIVITY), getString(R.string.activity))
-        adapter.addFragment(ComponentFragment.newInstance(packageManager, application.packageName, EComponentType.PROVIDER), getString(R.string.provider))
+        adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.RECEIVER), getString(R.string.receiver))
+        adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.SERVICE), getString(R.string.service))
+        adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.ACTIVITY), getString(R.string.activity))
+        adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.PROVIDER), getString(R.string.provider))
         component_viewpager.adapter = adapter
     }
 
@@ -71,7 +71,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
     private fun setupTab() {
         component_tabs.setupWithViewPager(component_viewpager)
         changeColor(getBackgroundColor(0))
-        component_tabs.setSelectedTabIndicatorColor(resources.getColor(R.color.md_white_1000))
+        component_tabs.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.md_white_1000))
         component_tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 changeBackgroundColor(tab)
