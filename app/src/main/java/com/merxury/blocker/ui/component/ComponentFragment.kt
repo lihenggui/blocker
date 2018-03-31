@@ -234,7 +234,5 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                 }
             }
         }
-
-
     }
 }
