@@ -73,12 +73,12 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         val searchView = MenuItemCompat.getActionView(searchItem) as SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String): Boolean {
-                componentAdapter.filter(newText)
+                searchForComponent(newText)
                 return true
             }
 
             override fun onQueryTextSubmit(query: String): Boolean {
-                componentAdapter.filter(query)
+                searchForComponent(query)
                 return true
             }
         })
@@ -104,8 +104,8 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         noComponentContainer.visibility = View.VISIBLE
     }
 
-    override fun searchForComponent() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun searchForComponent(name: String) {
+        componentAdapter.filter(name)
     }
 
     override fun showFilteringPopUpMenu() {
