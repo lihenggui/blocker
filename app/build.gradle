@@ -12,8 +12,8 @@ android {
         applicationId "com.merxury.blocker"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 1
-        versionName "0.0.1-alpha"
+        versionCode 2
+        versionName "0.0.2-internal-test"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -48,13 +48,8 @@ dependencies {
     implementation 'com.android.support:support-v4:27.1.0'
     implementation 'com.android.support:support-annotations:27.1.0'
     testImplementation 'junit:junit:4.12'
-
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    //butter knife support
-    implementation 'com.jakewharton:butterknife:8.8.1'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.8.1'
-    kapt 'com.jakewharton:butterknife-compiler:8.8.1'
     //Glide
     implementation 'com.github.bumptech.glide:glide:4.6.1'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.6.1'
@@ -67,7 +62,6 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.1.11'
 
-    implementation 'eu.chainfire:libsuperuser:1.0.0.201704021214'
     implementation project(':core-server')
     implementation project(':core-xml')
 }
