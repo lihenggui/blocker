@@ -46,7 +46,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun searchForApplication(name: String) {
-        TODO("not implemented")
+        listAdapter.filter(name)
     }
 
     override fun showApplicationList(applications: List<Application>) {
@@ -139,12 +139,12 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         val searchView = MenuItemCompat.getActionView(searchItem) as SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String): Boolean {
-                listAdapter.filter(newText)
+                searchForApplication(newText)
                 return true
             }
 
             override fun onQueryTextSubmit(query: String): Boolean {
-                listAdapter.filter(query)
+                searchForApplication(query)
                 return true
             }
         })

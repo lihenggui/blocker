@@ -13,7 +13,7 @@ interface ComponentContract {
         fun showComponentList(components: List<ComponentInfo>)
         fun setLoadingIndicator(active: Boolean)
         fun showNoComponent()
-        fun searchForComponent()
+        fun searchForComponent(name: String)
         fun showFilteringPopUpMenu()
         fun showAlertDialog()
         fun refreshComponentSwitchState(componentName: String)
