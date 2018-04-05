@@ -8,8 +8,8 @@ An useful tool that can controls activities,  broadcasts, services and providers
 4. Smart (WIP)
 
 ## Planning
-1. Add strategy support
-
+1. Add online strategy support
+2. IFW support
 
 ## Known Bugs
 1. The background color in nav_header cannot be changed
