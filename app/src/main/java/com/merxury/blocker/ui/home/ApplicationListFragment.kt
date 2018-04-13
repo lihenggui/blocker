@@ -9,7 +9,6 @@ import android.support.v4.view.MenuItemCompat
 import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
-import android.widget.TextView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.merxury.blocker.R
@@ -24,7 +23,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         get() = isAdded
 
     override lateinit var presenter: HomeContract.Presenter
-    private lateinit var sortingFilterView: TextView
 
     private var isSystem: Boolean = false
 
