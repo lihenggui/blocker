@@ -15,14 +15,15 @@ import com.merxury.blocker.R
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.ui.adapter.FragmentAdapter
 import com.merxury.blocker.ui.base.IActivityView
+import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
+import com.merxury.blocker.util.setupActionBar
 import com.merxury.blocker.utils.ApplicationUtils
-import com.merxury.util.setupActionBar
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
 
-class ComponentActivity : AppCompatActivity(), IActivityView {
+class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.ComponentMainView {
 
-    private val CURRENT_FILTERING_KEY = "CURRENT_FILTERING_KEY"
+    private lateinit var componentDataPresenter: ComponentContract.ComponentDataPresenter
 
     private lateinit var application: Application
 
@@ -35,6 +36,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowTitleEnabled(false)
         }
+        componentDataPresenter = ComponentDataPresenter(this)
         getDataFromIntent()
         setupViewPager()
         setupTab()
@@ -133,4 +135,17 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
             else -> ContextCompat.getColor(this, R.color.md_grey_700)
         }
     }
+
+    override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {
+        val adapter = FragmentAdapter(supportFragmentManager)
+        for (index in 0..adapter.count) {
+            val fragment = adapter.getItem(index) as ComponentContract.ComponentMainView
+            fragment.onComponentLoaded(appComponentInfo)
+        }
+    }
+
+    override fun getComponentDataPresenter(): ComponentContract.ComponentDataPresenter {
+        return componentDataPresenter
+    }
+
 }

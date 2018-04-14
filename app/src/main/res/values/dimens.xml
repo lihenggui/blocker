@@ -10,4 +10,5 @@
     <dimen name="margin_text_interval">8dp</dimen>
     <dimen name="margin_start_layout">20dp</dimen>
     <dimen name="margin_end_layout">16dp</dimen>
+    <dimen name="like_button_size">16dp</dimen>
 </resources>

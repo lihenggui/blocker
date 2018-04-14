@@ -10,7 +10,6 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.entity.getSimpleName
-import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.ui.strategy.service.ApiClient
 import com.merxury.blocker.ui.strategy.service.IClientServer
 import io.reactivex.Single
@@ -54,15 +53,6 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
                     } else {
                         view.showComponentList(components)
                     }
-                })
-        componentClient.findComponentComments(ComponentBriefInfo("test", "test", EComponentType.ACTIVITY).toQueryMap())
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ result ->
-                    Log.d(TAG, result.toString())
-                }, { t: Throwable? ->
-                    Log.e(TAG, t?.message)
                 })
     }
 

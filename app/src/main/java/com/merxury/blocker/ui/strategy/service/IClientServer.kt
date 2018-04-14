@@ -5,14 +5,11 @@ import com.merxury.blocker.ui.strategy.entity.Strategy
 import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.ui.strategy.entity.view.Result
 import io.reactivex.Observable
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.QueryMap
+import retrofit2.http.*
 
 interface IClientServer {
     @GET("/components")
-    fun findAllComponentsByPackageName(@QueryMap packageName: String): Observable<Result>
+    fun findAllComponentsByPackageName(@Query("packageName") packageName: String): Observable<Result>
 
     @GET("/component")
     fun findComponentComments(@QueryMap component: HashMap<String, String>): Observable<Result>
