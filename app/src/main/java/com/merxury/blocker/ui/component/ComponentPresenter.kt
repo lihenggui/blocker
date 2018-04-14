@@ -10,6 +10,9 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.entity.getSimpleName
+import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
+import com.merxury.blocker.ui.strategy.service.ApiClient
+import com.merxury.blocker.ui.strategy.service.IClientServer
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -21,7 +24,9 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
     private val controller: IController by lazy {
         ComponentControllerProxy.getInstance(EControllerMethod.PM, null)
     }
-
+    private val componentClient: IClientServer by lazy {
+        ApiClient.createClient()
+    }
     init {
         view.presenter = this
     }
@@ -36,6 +41,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
                 EComponentType.ACTIVITY -> ApplicationComponents.getActivityList(pm, packageName)
                 EComponentType.SERVICE -> ApplicationComponents.getServiceList(pm, packageName)
                 EComponentType.PROVIDER -> ApplicationComponents.getProviderList(pm, packageName)
+                else -> ArrayList<ComponentInfo>()
             }
             componentList = sortComponentList(componentList, currentComparator)
             emitter.onSuccess(componentList)
@@ -48,6 +54,15 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
                     } else {
                         view.showComponentList(components)
                     }
+                })
+        componentClient.findComponentComments(ComponentBriefInfo("test", "test", EComponentType.ACTIVITY).toQueryMap())
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result ->
+                    Log.d(TAG, result.toString())
+                }, { t: Throwable? ->
+                    Log.e(TAG, t?.message)
                 })
     }
 
