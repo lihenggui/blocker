@@ -40,4 +40,6 @@
     <string name="package_name_asc">Package Name (Ascending)</string>
     <string name="package_name_des">Package Name (Descending)</string>
     <string name="search">Search</string>
+    <string name="component_like_description">Like button</string>
+    <string name="component_dislike_description">Dislike button</string>
 </resources>

@@ -16,7 +16,7 @@ import android.view.MenuItem
 import com.merxury.blocker.R
 import com.merxury.blocker.ui.adapter.FragmentAdapter
 import com.merxury.blocker.ui.base.IActivityView
-import com.merxury.util.setupActionBar
+import com.merxury.blocker.util.setupActionBar
 import kotlinx.android.synthetic.main.activity_home.*
 
 class HomeActivity : AppCompatActivity(), IActivityView {

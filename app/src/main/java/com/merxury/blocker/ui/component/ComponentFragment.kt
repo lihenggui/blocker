@@ -13,13 +13,15 @@ import android.view.*
 import android.widget.PopupMenu
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
+import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
 
-class ComponentFragment : Fragment(), ComponentContract.View {
+class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentMainView {
 
     override lateinit var presenter: ComponentContract.Presenter
+    private lateinit var componentDataPresenter: ComponentContract.ComponentDataPresenter
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
     private lateinit var packageName: String
     private lateinit var type: EComponentType
@@ -31,6 +33,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         type = args?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = args.getString(Constant.PACKAGE_NAME)
         presenter = ComponentPresenter(context!!.packageManager, this)
+        componentDataPresenter = (activity as ComponentContract.ComponentMainView).getComponentDataPresenter()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -60,10 +63,10 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         return root
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onResume() {
+        super.onResume()
         presenter.loadComponents(packageName, type)
-
+        componentDataPresenter.loadComponentData(packageName)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
@@ -151,6 +154,14 @@ class ComponentFragment : Fragment(), ComponentContract.View {
         componentAdapter.addData(components)
     }
 
+    override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {
+        TODO("not implemented")
+    }
+
+    override fun getComponentDataPresenter(): ComponentContract.ComponentDataPresenter {
+        TODO("won't implemented")
+    }
+
     companion object {
         const val TAG = "ComponentFragment"
         fun newInstance(packageName: String, type: EComponentType): Fragment {
@@ -213,7 +224,7 @@ class ComponentFragment : Fragment(), ComponentContract.View {
                 val componentShortName = component.name.split(".").last()
                 with(component) {
                     itemView.component_name.text = componentShortName
-                    itemView.component_description.text = component.name
+                    itemView.component_package_name.text = component.name
                     itemView.component_switch.isChecked = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(component.packageName, component.name))
                     itemView.setOnClickListener {
                         switchComponent(component, !it.component_switch.isChecked)
