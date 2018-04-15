@@ -2,6 +2,7 @@ package com.merxury.blocker.ui.strategy.service
 
 import com.merxury.blocker.ui.strategy.entity.ComponentDescription
 import com.merxury.blocker.ui.strategy.entity.Strategy
+import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
 import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.ui.strategy.entity.view.Result
 import io.reactivex.Observable
@@ -9,38 +10,38 @@ import retrofit2.http.*
 
 interface IClientServer {
     @GET("/components")
-    fun findAllComponentsByPackageName(@Query("packageName") packageName: String): Observable<Result>
+    fun findAllComponentsByPackageName(@Query("packageName") packageName: String): Observable<Result<AppComponentInfo>>
 
     @GET("/component")
-    fun findComponentComments(@QueryMap component: HashMap<String, String>): Observable<Result>
+    fun findComponentComments(@QueryMap component: HashMap<String, String>): Observable<Result<List<ComponentDescription>>>
 
     @POST("/component/upvote")
-    fun upVoteForComponent(@Body component: ComponentBriefInfo): Observable<Result>
+    fun upVoteForComponent(@Body component: ComponentBriefInfo): Observable<Result<Any>>
 
     @POST("/component/downvote")
-    fun downVoteForComponent(@Body component: ComponentBriefInfo): Observable<Result>
+    fun downVoteForComponent(@Body component: ComponentBriefInfo): Observable<Result<Any>>
 
     @GET("/description")
-    fun getAllDescriptionsForComponent(@QueryMap component: HashMap<String, String>): Observable<Result>
+    fun getAllDescriptionsForComponent(@QueryMap component: HashMap<String, String>): Observable<List<ComponentDescription>>
 
     @POST("/description")
-    fun addDescription(@Body description: ComponentDescription): Observable<Result>
+    fun addDescription(@Body description: ComponentDescription): Observable<Result<Any>>
 
     @POST("/description/upvote")
-    fun upVoteForDescription(@Body id: Long): Observable<Result>
+    fun upVoteForDescription(@Body id: Long): Observable<Result<Any>>
 
     @POST("/description/downvote")
-    fun downVoteForDescription(@Body id: Long): Observable<Result>
+    fun downVoteForDescription(@Body id: Long): Observable<Result<Any>>
 
     @POST("/strategy")
-    fun addStrategy(@Body strategy: Strategy): Observable<Result>
+    fun addStrategy(@Body strategy: Strategy): Observable<Result<Any>>
 
     @POST("/strategy/upvote")
-    fun upVoteForStrategy(@Body id: Long): Observable<Result>
+    fun upVoteForStrategy(@Body id: Long): Observable<Result<Any>>
 
     @POST("/strategy/downvote")
-    fun downVoteForStrategy(@Body id: Long): Observable<Result>
+    fun downVoteForStrategy(@Body id: Long): Observable<Result<Any>>
 
     @POST("/strategy/auto")
-    fun autoFindStrategy(@Body packageNames: List<String>): List<Strategy>
+    fun autoFindStrategy(@Body packageNames: List<String>): Observable<Result<List<Strategy>>>
 }

@@ -40,7 +40,7 @@ class ComponentDataPresenter(val view: ComponentContract.ComponentMainView) : Co
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
-                    componentData = result.data as AppComponentInfo
+                    componentData = result.data
                     view.onComponentLoaded(componentData)
                     Log.i(TAG, "Get components for $packageName from server successfully.")
                 }, { error ->

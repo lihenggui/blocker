@@ -1,7 +1,7 @@
 package com.merxury.blocker.ui.strategy.entity.view
 
-data class Result(
+data class Result<T>(
         var code: Int,
         var msg: String,
-        var data: Any?
+        var data: T
 )
