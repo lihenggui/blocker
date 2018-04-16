@@ -3,10 +3,12 @@ package com.merxury.blocker.ui.component
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.app.ActivityManager
+import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import com.bumptech.glide.Glide
@@ -27,6 +29,8 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
 
     private lateinit var application: Application
 
+    private lateinit var adapter: FragmentAdapter
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +46,10 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
         setupTab()
     }
 
-    override fun onStart() {
-        super.onStart()
+    override fun onResume() {
+        super.onResume()
         showApplicationBriefInfo(application)
+        componentDataPresenter.loadComponentData(packageName)
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
@@ -55,7 +60,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
     }
 
     private fun setupViewPager() {
-        val adapter = FragmentAdapter(supportFragmentManager)
+        adapter = FragmentAdapter(supportFragmentManager)
         adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.RECEIVER), getString(R.string.receiver))
         adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.SERVICE), getString(R.string.service))
         adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.ACTIVITY), getString(R.string.activity))
@@ -137,11 +142,8 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
     }
 
     override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {
-        val adapter = FragmentAdapter(supportFragmentManager)
-        for (index in 0..adapter.count) {
-            val fragment = adapter.getItem(index) as ComponentContract.ComponentMainView
-            fragment.onComponentLoaded(appComponentInfo)
-        }
+        val intent = Intent(Constant.DETAIL_LOADED)
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
     override fun getComponentDataPresenter(): ComponentContract.ComponentDataPresenter {

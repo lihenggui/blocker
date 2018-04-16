@@ -44,6 +44,7 @@ class ComponentDataPresenter(val view: ComponentContract.ComponentMainView) : Co
                     view.onComponentLoaded(componentData)
                     Log.i(TAG, "Get components for $packageName from server successfully.")
                 }, { error ->
+                    error.printStackTrace()
                     Log.e(TAG, "Error occurs while getting component data from server. The message is : ${error.message}")
                 })
     }
