@@ -96,6 +96,10 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         context?.let {
             presenter.start(it)
         }
+        val fragmentContext = context
+        fragmentContext?.let {
+            presenter.loadApplicationList(it, isSystem)
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -120,14 +124,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         }
         setHasOptionsMenu(true)
         return root
-    }
-
-    override fun onStart() {
-        super.onStart()
-        val fragmentContext = context
-        fragmentContext?.let {
-            presenter.loadApplicationList(it, isSystem)
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {

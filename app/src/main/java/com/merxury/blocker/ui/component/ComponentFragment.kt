@@ -1,18 +1,19 @@
 package com.merxury.blocker.ui.component
 
-import android.content.ComponentName
-import android.content.DialogInterface
+import android.content.*
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
+import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
+import com.merxury.blocker.ui.strategy.entity.Component
 import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
@@ -21,10 +22,12 @@ import kotlinx.android.synthetic.main.fragment_component.view.*
 class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentMainView {
 
     override lateinit var presenter: ComponentContract.Presenter
-    private lateinit var componentDataPresenter: ComponentContract.ComponentDataPresenter
+    private lateinit var componentDetailsPresenter: ComponentContract.ComponentDataPresenter
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
     private lateinit var packageName: String
     private lateinit var type: EComponentType
+
+    private lateinit var receiver: OnComponentDetailsLoadedReceiver
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +36,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         type = args?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = args.getString(Constant.PACKAGE_NAME)
         presenter = ComponentPresenter(context!!.packageManager, this)
-        componentDataPresenter = (activity as ComponentContract.ComponentMainView).getComponentDataPresenter()
+        componentDetailsPresenter = (activity as ComponentContract.ComponentMainView).getComponentDataPresenter()
+        registerReceiver()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -65,8 +69,18 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onResume() {
         super.onResume()
+        registerReceiver()
         presenter.loadComponents(packageName, type)
-        componentDataPresenter.loadComponentData(packageName)
+    }
+
+    override fun onStop() {
+        unregisterReceiver()
+        super.onStop()
+    }
+
+    override fun onDestroy() {
+        unregisterReceiver()
+        super.onDestroy()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
@@ -155,11 +169,21 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {
-        TODO("not implemented")
+
     }
 
     override fun getComponentDataPresenter(): ComponentContract.ComponentDataPresenter {
         TODO("won't implemented")
+    }
+
+    private fun registerReceiver() {
+        val intentFilter = IntentFilter(Constant.DETAIL_LOADED)
+        receiver = OnComponentDetailsLoadedReceiver()
+        LocalBroadcastManager.getInstance(context!!).registerReceiver(receiver, intentFilter)
+    }
+
+    private fun unregisterReceiver() {
+        LocalBroadcastManager.getInstance(context!!).unregisterReceiver(receiver)
     }
 
     companion object {
@@ -184,6 +208,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
         lateinit var pm: PackageManager
         private var listCopy = ArrayList<ComponentInfo>()
+        private lateinit var componentData: AppComponentInfo
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.component_item, parent, false)
@@ -193,8 +218,30 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             holder.bindComponent(this.components[position])
+            updateComponentDetails(position, holder)
         }
 
+        private fun updateComponentDetails(position: Int, holder: ViewHolder) {
+            if (::componentData.isInitialized) {
+                var components =
+                        when (type) {
+                            EComponentType.ACTIVITY -> componentData.activity
+                            EComponentType.RECEIVER -> componentData.receiver
+                            EComponentType.SERVICE -> componentData.service
+                            EComponentType.PROVIDER -> componentData.provider
+                            EComponentType.UNKNOWN -> ArrayList()
+                        }
+                val name = this.components[position].name
+                run outside@{
+                    components?.forEach inside@{
+                        if (it.name == name) {
+                            holder.updateComponentDetails(it)
+                            return@outside
+                        }
+                    }
+                }
+            }
+        }
 
         override fun getItemCount(): Int {
             return this.components.size
@@ -203,6 +250,11 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         fun addData(components: List<ComponentInfo>) {
             this.components = components
             this.listCopy = ArrayList(components)
+            notifyDataSetChanged()
+        }
+
+        fun addComponentDetails(componentData: AppComponentInfo) {
+            this.componentData = componentData
             notifyDataSetChanged()
         }
 
@@ -236,6 +288,13 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 }
             }
 
+            fun updateComponentDetails(component: Component) {
+                with(component) {
+                    itemView.component_description.text = component.bestComment?.description
+                    itemView.component_like_count.text = component.upVoteCount.toString()
+                    itemView.component_dislike_count.text = component.downVoteCount.toString()
+                }
+            }
             private fun switchComponent(component: ComponentInfo, isChecked: Boolean) {
                 if (isChecked) {
                     presenter.enableComponent(component)
@@ -244,7 +303,12 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 }
             }
         }
+    }
 
-
+    inner class OnComponentDetailsLoadedReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val details = componentDetailsPresenter.getComponentData(packageName)
+            componentAdapter.addComponentDetails(details)
+        }
     }
 }
