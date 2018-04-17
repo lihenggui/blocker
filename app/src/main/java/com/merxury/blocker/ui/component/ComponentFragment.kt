@@ -19,7 +19,7 @@ import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
 
-class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentMainView {
+class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentMainView, ComponentContract.ComponentItemListener {
 
     override lateinit var presenter: ComponentContract.Presenter
     private lateinit var componentDetailsPresenter: ComponentContract.ComponentDataPresenter
@@ -168,6 +168,28 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         componentAdapter.addData(components)
     }
 
+    override fun onComponentClick(component: ComponentInfo) {
+    }
+
+    override fun onComponentLongClick(component: ComponentInfo) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onSwitchClick(component: ComponentInfo, isChecked: Boolean) {
+        if (isChecked) {
+            presenter.enableComponent(component)
+        } else {
+            presenter.disableComponent(component)
+        }
+    }
+
+    override fun onUpVoteClick(component: ComponentInfo) {
+    }
+
+    override fun onDownVoteClick(component: ComponentInfo) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {
 
     }
@@ -198,17 +220,13 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
     }
 
-    interface ComponentItemListener {
-        fun onComponentClick()
-        fun onComponentLongClick()
-        fun switchComponent()
-    }
 
     inner class ComponentsRecyclerViewAdapter(private var components: List<ComponentInfo> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
 
         lateinit var pm: PackageManager
         private var listCopy = ArrayList<ComponentInfo>()
         private lateinit var componentData: AppComponentInfo
+        private lateinit var listener: ComponentContract.ComponentItemListener
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val view = LayoutInflater.from(parent.context).inflate(R.layout.component_item, parent, false)
@@ -223,7 +241,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
         private fun updateComponentDetails(position: Int, holder: ViewHolder) {
             if (::componentData.isInitialized) {
-                var components =
+                val components =
                         when (type) {
                             EComponentType.ACTIVITY -> componentData.activity
                             EComponentType.RECEIVER -> componentData.receiver
@@ -274,16 +292,32 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             fun bindComponent(component: ComponentInfo) {
                 val componentShortName = component.name.split(".").last()
-                with(component) {
-                    itemView.component_name.text = componentShortName
-                    itemView.component_package_name.text = component.name
-                    itemView.component_switch.isChecked = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(component.packageName, component.name))
-                    itemView.setOnClickListener {
-                        switchComponent(component, !it.component_switch.isChecked)
+                with(itemView) {
+                    component_name.text = componentShortName
+                    component_package_name.text = component.name
+                    component_switch.isChecked = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(component.packageName, component.name))
+                    setOnClickListener {
+                        listener.onSwitchClick(component, !it.component_switch.isChecked)
                         it.component_switch.isChecked = !it.component_switch.isChecked
                     }
-                    itemView.component_switch.setOnClickListener {
-                        switchComponent(component, it.component_switch.isChecked)
+                    setOnLongClickListener {
+                        listener.onComponentLongClick(component)
+                        true
+                    }
+                    component_switch.setOnClickListener {
+                        listener.onSwitchClick(component, it.component_switch.isChecked)
+                    }
+                    component_like_button.setOnClickListener {
+                        listener.onUpVoteClick(component)
+                    }
+                    component_like_count.setOnClickListener {
+                        listener.onUpVoteClick(component)
+                    }
+                    component_dislike_button.setOnClickListener {
+                        listener.onDownVoteClick(component)
+                    }
+                    component_dislike_count.setOnClickListener {
+                        listener.onDownVoteClick(component)
                     }
                 }
             }
@@ -295,12 +329,9 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     itemView.component_dislike_count.text = component.downVoteCount.toString()
                 }
             }
+
             private fun switchComponent(component: ComponentInfo, isChecked: Boolean) {
-                if (isChecked) {
-                    presenter.enableComponent(component)
-                } else {
-                    presenter.disableComponent(component)
-                }
+
             }
         }
     }
