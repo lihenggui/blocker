@@ -36,4 +36,12 @@ interface ComponentContract {
         fun onComponentLoaded(appComponentInfo: AppComponentInfo)
         fun getComponentDataPresenter(): ComponentDataPresenter
     }
+
+    interface ComponentItemListener {
+        fun onComponentClick(component: ComponentInfo)
+        fun onComponentLongClick(component: ComponentInfo)
+        fun onSwitchClick(component: ComponentInfo, isChecked: Boolean)
+        fun onUpVoteClick(component: ComponentInfo)
+        fun onDownVoteClick(component: ComponentInfo)
+    }
 }
