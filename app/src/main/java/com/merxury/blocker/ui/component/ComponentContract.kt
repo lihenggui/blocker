@@ -24,6 +24,10 @@ interface ComponentContract {
         var currentComparator: EComponentComparatorType
         fun loadComponents(packageName: String, type: EComponentType)
         fun sortComponentList(components: List<ComponentInfo>, type: EComponentComparatorType): List<ComponentInfo>
+        fun checkComponentIsVoted(component: ComponentInfo): Boolean
+        fun voteForComponent(component: ComponentInfo)
+        fun downVoteForComponent(component: ComponentInfo)
+        fun writeComponentVoteState(component: ComponentInfo, like: Boolean)
     }
 
     interface ComponentDataPresenter : BasePresenter {
