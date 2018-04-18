@@ -10,6 +10,7 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.entity.getSimpleName
+import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.ui.strategy.service.ApiClient
 import com.merxury.blocker.ui.strategy.service.IClientServer
 import io.reactivex.Single
@@ -19,6 +20,7 @@ import io.reactivex.functions.BiConsumer
 import io.reactivex.schedulers.Schedulers
 
 class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.View) : ComponentContract.Presenter, IController {
+    private lateinit var context: Context
 
     private val controller: IController by lazy {
         ComponentControllerProxy.getInstance(EControllerMethod.PM, null)
@@ -26,6 +28,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
     private val componentClient: IClientServer by lazy {
         ApiClient.createClient()
     }
+
     init {
         view.presenter = this
     }
@@ -133,7 +136,47 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
         }
     }
 
+    override fun checkComponentIsVoted(component: ComponentInfo): Boolean {
+        val sharedPreferences = context.getSharedPreferences(component.packageName, Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean(component.name, false)
+
+    }
+
+    override fun writeComponentVoteState(component: ComponentInfo, like: Boolean) {
+        val sharedPreferences = context.getSharedPreferences(component.packageName, Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putBoolean(component.name, like)
+        editor.apply()
+    }
+
+    @SuppressLint("CheckResult")
+    override fun voteForComponent(component: ComponentInfo) {
+        componentClient.upVoteForComponent(ComponentBriefInfo(component))
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result ->
+
+                }, { error ->
+
+                })
+    }
+
+    @SuppressLint("CheckResult")
+    override fun downVoteForComponent(component: ComponentInfo) {
+        componentClient.downVoteForComponent(ComponentBriefInfo(component))
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result ->
+
+                }, { error ->
+
+                })
+    }
+
     override fun start(context: Context) {
+        this.context = context
     }
 
     override var currentComparator: EComponentComparatorType = EComponentComparatorType.NAME_ASCENDING

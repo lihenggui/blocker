@@ -58,6 +58,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 val layoutManager = LinearLayoutManager(context)
                 this.layoutManager = layoutManager
                 componentAdapter = ComponentsRecyclerViewAdapter()
+                componentAdapter.setOnClickListener(this@ComponentFragment)
                 this.adapter = componentAdapter
                 this.itemAnimator = DefaultItemAnimator()
                 addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
@@ -184,10 +185,11 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun onUpVoteClick(component: ComponentInfo) {
+        presenter.voteForComponent(component)
     }
 
     override fun onDownVoteClick(component: ComponentInfo) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        presenter.downVoteForComponent(component)
     }
 
     override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {
@@ -205,7 +207,9 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     private fun unregisterReceiver() {
-        LocalBroadcastManager.getInstance(context!!).unregisterReceiver(receiver)
+        context?.run {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
+        }
     }
 
     companion object {
@@ -289,6 +293,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             notifyDataSetChanged()
         }
 
+        fun setOnClickListener(listener: ComponentContract.ComponentItemListener) {
+            this.listener = listener
+        }
+
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             fun bindComponent(component: ComponentInfo) {
                 val componentShortName = component.name.split(".").last()
@@ -333,6 +341,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             private fun switchComponent(component: ComponentInfo, isChecked: Boolean) {
 
             }
+
         }
     }
 
