@@ -7,7 +7,7 @@ import com.merxury.ifw.entity.Rules;
 
 import java.nio.file.Path;
 
-public class IntentFirawall implements IIntentFirewall {
+public class IntentFirewall implements IIntentFirewall {
 
     private String filePath;
     private Rules rules;
