@@ -25,6 +25,7 @@ repositories {
     flatDir {
         dirs 'libs'
     }
+    mavenCentral()
 }
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
@@ -34,6 +35,12 @@ dependencies {
     //RootTools and RootShell support
     implementation(name: 'RootTools', ext: 'aar')
     implementation(name: 'RootShell', ext: 'aar')
+    // Simple Xml
+    implementation ('org.simpleframework:simple-xml:2.7.+') {
+        exclude module: 'stax'
+        exclude module: 'stax-api'
+        exclude module: 'xpp3'
+    }
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'

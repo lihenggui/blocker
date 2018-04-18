@@ -1,4 +1,4 @@
-package com.merxury.ifw_api;
+package com.merxury.ifw;
 
 import org.junit.Test;
 
