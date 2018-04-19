@@ -13,13 +13,17 @@ import com.merxury.blocker.entity.getSimpleName
 import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.ui.strategy.service.ApiClient
 import com.merxury.blocker.ui.strategy.service.IClientServer
+import com.merxury.ifw.IntentFirewall
+import com.merxury.ifw.IntentFirewallImpl
+import com.merxury.ifw.entity.ComponentType
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiConsumer
 import io.reactivex.schedulers.Schedulers
 
-class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.View) : ComponentContract.Presenter, IController {
+class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.View, val packageName: String) : ComponentContract.Presenter, IController {
+
     private lateinit var context: Context
 
     private val controller: IController by lazy {
@@ -27,6 +31,10 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
     }
     private val componentClient: IClientServer by lazy {
         ApiClient.createClient()
+    }
+
+    private val ifwController: IntentFirewall by lazy {
+        IntentFirewallImpl(context, packageName)
     }
 
     init {
@@ -175,8 +183,34 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
                 })
     }
 
+    override fun addToIFW(component: ComponentInfo, type: EComponentType) {
+        when (type) {
+            EComponentType.ACTIVITY -> ifwController.addComponent(component, ComponentType.ACTIVITY)
+            EComponentType.RECEIVER -> ifwController.addComponent(component, ComponentType.BROADCAST)
+            EComponentType.SERVICE -> ifwController.addComponent(component, ComponentType.SERVICE)
+            else -> return
+        }
+    }
+
+    override fun removeFromIFW(component: ComponentInfo, type: EComponentType) {
+        when (type) {
+            EComponentType.ACTIVITY -> ifwController.removeComponent(component, ComponentType.ACTIVITY)
+            EComponentType.RECEIVER -> ifwController.removeComponent(component, ComponentType.BROADCAST)
+            EComponentType.SERVICE -> ifwController.removeComponent(component, ComponentType.SERVICE)
+            else -> return
+        }
+    }
+
+    override fun checkComponentEnableState(component: ComponentInfo): Boolean {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun start(context: Context) {
         this.context = context
+    }
+
+    override fun destroy() {
+        ifwController.saveRules()
     }
 
     override var currentComparator: EComponentComparatorType = EComponentComparatorType.NAME_ASCENDING
