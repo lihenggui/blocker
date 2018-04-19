@@ -40,29 +40,29 @@ public class IntentFirewallTest {
     @Test
     public void addComponent() throws Exception {
         ComponentInfo componentInfo = new ComponentInfo();
-        componentInfo.packageName = "com.weico";
-        componentInfo.name = "activity1";
+        componentInfo.packageName = "com.android.camera2";
+        componentInfo.name = "com.android.camera.settings.CameraSettingsActivity";
         ComponentInfo componentInfo1 = new ComponentInfo();
-        componentInfo1.packageName = "com.weico";
-        componentInfo1.name = "activity2";
+        componentInfo1.packageName = "com.android.camera2";
+        componentInfo1.name = "com.android.camera.CaptureActivity";
         firewall.addComponent(componentInfo, ComponentType.ACTIVITY);
         firewall.addComponent(componentInfo1, ComponentType.ACTIVITY);
         ComponentInfo componentInfo3 = new ComponentInfo();
-        componentInfo3.packageName = "com.weico";
-        componentInfo3.name = "broadcast1";
+        componentInfo3.packageName = "com.android.camera2";
+        componentInfo3.name = "com.android.camera.VideoCamera";
         ComponentInfo componentInfo4 = new ComponentInfo();
-        componentInfo4.packageName = "com.weico";
-        componentInfo4.name = "broadcast2";
-        firewall.addComponent(componentInfo3, ComponentType.BROADCAST);
-        firewall.addComponent(componentInfo4, ComponentType.BROADCAST);
+        componentInfo4.packageName = "com.example.android.architecture.blueprints.todomvp.mock";
+        componentInfo4.name = "com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActivity";
+        firewall.addComponent(componentInfo3, ComponentType.ACTIVITY);
+        firewall.addComponent(componentInfo4, ComponentType.ACTIVITY);
         ComponentInfo componentInfo5 = new ComponentInfo();
-        componentInfo5.packageName = "com.weico";
-        componentInfo5.name = "service1";
+        componentInfo5.packageName = "com.example.android.architecture.blueprints.todomvp.mock";
+        componentInfo5.name = "com.example.android.architecture.blueprints.todoapp.statistics.StatisticsActivity";
         ComponentInfo componentInfo6 = new ComponentInfo();
-        componentInfo6.packageName = "com.weico";
-        componentInfo6.name = "service";
-        firewall.addComponent(componentInfo5, ComponentType.SERVICE);
-        firewall.addComponent(componentInfo6, ComponentType.SERVICE);
+        componentInfo6.packageName = "com.android.settings";
+        componentInfo6.name = ".Settings";
+        firewall.addComponent(componentInfo5, ComponentType.ACTIVITY);
+        firewall.addComponent(componentInfo6, ComponentType.ACTIVITY);
         File file = firewall.saveRules();
         Log.i(TAG, file.toString());
     }
