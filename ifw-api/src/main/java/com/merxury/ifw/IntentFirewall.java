@@ -107,7 +107,7 @@ public class IntentFirewall implements IIntentFirewall {
             filters = new ArrayList<>();
         }
         String filterRule = formatName(componentInfo.packageName, componentInfo.name);
-        for (ComponentFilter filter : filters) {
+        for (ComponentFilter filter : new ArrayList<>(filters)) {
             if (filterRule.equals(filter.getName())) {
                 filters.remove(filter);
             }
