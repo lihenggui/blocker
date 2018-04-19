@@ -3,8 +3,12 @@ package com.merxury.ifw.entity;
 import org.simpleframework.xml.Attribute;
 
 public class ComponentFilter {
-    @Attribute(required = true)
+    @Attribute
     private String name;
+
+    public ComponentFilter(String name) {
+        this.name = name;
+    }
 
     public String getName() {
         return name;
