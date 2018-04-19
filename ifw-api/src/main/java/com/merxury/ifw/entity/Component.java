@@ -13,7 +13,7 @@ public class Component {
     @Attribute
     protected boolean log = true;
 
-    @ElementList(name = "component-filter", inline = true)
+    @ElementList(entry = "component-filter", inline = true)
     protected List<ComponentFilter> componentFilters;
 
     @Element(name = "intent-filter", required = false)
