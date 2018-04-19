@@ -13,28 +13,22 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-
 /**
  * Created by Mercury on 2018/4/19.
  */
-public class IntentFirewallTest {
-    private static final String TAG = "IntentFirewallTest";
+public class IntentFirewallImplTest {
+    private static final String TAG = "IntentFirewallImplTest";
     Context context;
-    IIntentFirewall firewall;
+    IntentFirewall firewall;
 
     @Before
     public void setUp() throws Exception {
         context = InstrumentationRegistry.getTargetContext();
-        firewall = new IntentFirewall(context, "com.weico");
+        firewall = new IntentFirewallImpl(context, "com.weico");
     }
 
     @After
     public void tearDown() throws Exception {
-    }
-
-    @Test
-    public void saveRules() throws Exception {
     }
 
     @Test
@@ -63,8 +57,8 @@ public class IntentFirewallTest {
         componentInfo6.name = ".Settings";
         firewall.addComponent(componentInfo5, ComponentType.ACTIVITY);
         firewall.addComponent(componentInfo6, ComponentType.ACTIVITY);
-        File file = firewall.saveRules();
-        Log.i(TAG, file.toString());
+        String filePath = firewall.saveRules();
+        Log.i(TAG, filePath);
     }
 
     @Test
@@ -73,8 +67,8 @@ public class IntentFirewallTest {
         componentInfo.packageName = "com.weico";
         componentInfo.name = "activity1";
         firewall.removeComponent(componentInfo, ComponentType.ACTIVITY);
-        File file = firewall.saveRules();
-        Log.i(TAG, file.toString());
+        String filePath = firewall.saveRules();
+        Log.i(TAG, filePath);
     }
 
     @Test
@@ -93,6 +87,12 @@ public class IntentFirewallTest {
         componentInfo2.packageName = "com.weico";
         componentInfo2.name = "broadcast1";
         Assert.assertEquals(true, firewall.getComponentEnableState(componentInfo2));
+    }
+
+    @Test
+    public void removeRules() {
+        String filename = "com.weico";
+        firewall.removeRules(filename);
     }
 
 }
