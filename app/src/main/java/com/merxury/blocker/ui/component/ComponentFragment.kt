@@ -35,7 +35,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         val args = arguments
         type = args?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = args.getString(Constant.PACKAGE_NAME)
-        presenter = ComponentPresenter(context!!.packageManager, this)
+        presenter = ComponentPresenter(context!!.packageManager, this, packageName)
         componentDetailsPresenter = (activity as ComponentContract.ComponentMainView).getComponentDataPresenter()
         registerReceiver()
     }
@@ -76,6 +76,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onStop() {
         unregisterReceiver()
+        presenter.destroy()
         super.onStop()
     }
 
@@ -336,10 +337,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     itemView.component_like_count.text = component.upVoteCount.toString()
                     itemView.component_dislike_count.text = component.downVoteCount.toString()
                 }
-            }
-
-            private fun switchComponent(component: ComponentInfo, isChecked: Boolean) {
-
             }
 
         }

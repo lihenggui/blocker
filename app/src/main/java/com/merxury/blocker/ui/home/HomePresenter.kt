@@ -49,6 +49,10 @@ class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View) : H
 
     }
 
+    override fun destroy() {
+
+    }
+
     override fun sortApplicationList(applications: List<Application>): List<Application> {
         return when (currentComparator) {
             ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.sortedBy { it.label }.toMutableList()
