@@ -1,6 +1,7 @@
 package com.merxury.blocker.ui.component
 
 import android.annotation.SuppressLint
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
@@ -22,9 +23,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiConsumer
 import io.reactivex.schedulers.Schedulers
 
-class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.View, val packageName: String) : ComponentContract.Presenter, IController {
-
-    private lateinit var context: Context
+class ComponentPresenter(val context: Context, val view: ComponentContract.View, val packageName: String) : ComponentContract.Presenter, IController {
+    private val pm: PackageManager
 
     private val controller: IController by lazy {
         ComponentControllerProxy.getInstance(EControllerMethod.PM, null)
@@ -39,6 +39,7 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
 
     init {
         view.presenter = this
+        pm = context.packageManager
     }
 
     @SuppressLint("CheckResult")
@@ -202,15 +203,20 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
     }
 
     override fun checkComponentEnableState(component: ComponentInfo): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(component.packageName, component.name)) and
+                ifwController.getComponentEnableState(component)
     }
 
     override fun start(context: Context) {
-        this.context = context
+
     }
 
     override fun destroy() {
-        ifwController.saveRules()
+        try {
+            ifwController.saveRules()
+        } catch (e: Exception) {
+            Log.w(TAG, "Cannot save rules, message is ${e.message}")
+        }
     }
 
     override var currentComparator: EComponentComparatorType = EComponentComparatorType.NAME_ASCENDING
