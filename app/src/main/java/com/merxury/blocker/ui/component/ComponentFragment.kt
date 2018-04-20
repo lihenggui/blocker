@@ -12,7 +12,6 @@ import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
 import com.merxury.blocker.R
-import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.ui.strategy.entity.Component
 import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
 import kotlinx.android.synthetic.main.component_item.view.*
@@ -35,7 +34,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         val args = arguments
         type = args?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = args.getString(Constant.PACKAGE_NAME)
-        presenter = ComponentPresenter(context!!.packageManager, this, packageName)
+        presenter = ComponentPresenter(context!!, this, packageName)
         componentDetailsPresenter = (activity as ComponentContract.ComponentMainView).getComponentDataPresenter()
         registerReceiver()
     }
@@ -304,7 +303,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 with(itemView) {
                     component_name.text = componentShortName
                     component_package_name.text = component.name
-                    component_switch.isChecked = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(component.packageName, component.name))
+                    component_switch.isChecked = presenter.checkComponentEnableState(component)
                     setOnClickListener {
                         listener.onSwitchClick(component, !it.component_switch.isChecked)
                         it.component_switch.isChecked = !it.component_switch.isChecked

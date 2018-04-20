@@ -13,9 +13,14 @@ import io.reactivex.schedulers.Schedulers
  */
 
 class ComponentDataPresenter(val view: ComponentContract.ComponentMainView) : ComponentContract.ComponentDataPresenter {
+
     private lateinit var componentData: AppComponentInfo
     private lateinit var client: IClientServer
     override fun start(context: Context) {
+    }
+
+    override fun destroy() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun getComponentData(packageName: String): AppComponentInfo {
@@ -48,6 +53,7 @@ class ComponentDataPresenter(val view: ComponentContract.ComponentMainView) : Co
                     Log.e(TAG, "Error occurs while getting component data from server. The message is : ${error.message}")
                 })
     }
+
 
     companion object {
         const val TAG = "ComponentDataPresenter"

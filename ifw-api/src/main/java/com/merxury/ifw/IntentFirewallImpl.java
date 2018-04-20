@@ -140,22 +140,22 @@ public class IntentFirewallImpl implements IntentFirewall {
         if (rules.getActivity() != null) {
             List<ComponentFilter> componentFilters = rules.getActivity().getComponentFilters();
             if (getFilterEnableState(componentInfo, componentFilters)) {
-                return true;
+                return false;
             }
         }
         if (rules.getBroadcast() != null) {
             List<ComponentFilter> componentFilters = rules.getBroadcast().getComponentFilters();
             if (getFilterEnableState(componentInfo, componentFilters)) {
-                return true;
+                return false;
             }
         }
         if (rules.getService() != null) {
             List<ComponentFilter> componentFilters = rules.getService().getComponentFilters();
             if (getFilterEnableState(componentInfo, componentFilters)) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     @Override
@@ -175,15 +175,15 @@ public class IntentFirewallImpl implements IntentFirewall {
 
     private boolean getFilterEnableState(ComponentInfo componentInfo, List<ComponentFilter> componentFilters) {
         if (componentFilters == null) {
-            return false;
+            return true;
         }
         for (ComponentFilter filter : componentFilters) {
             String filterName = formatName(componentInfo.packageName, componentInfo.name);
             if (filterName.equals(filter.getName())) {
-                return true;
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
     private void openFile() {

@@ -42,4 +42,8 @@
     <string name="search">Search</string>
     <string name="component_like_description">Like button</string>
     <string name="component_dislike_description">Dislike button</string>
+    <string name="block_by_ifw">Block By IFW</string>
+    <string name="view_component_comments">View All Comments</string>
+    <string name="upvote">Up Vote</string>
+    <string name="downvote">Down Vote</string>
 </resources>
