@@ -61,6 +61,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 this.adapter = componentAdapter
                 this.itemAnimator = DefaultItemAnimator()
                 addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
+                registerForContextMenu(this)
             }
         }
         setHasOptionsMenu(true)
@@ -107,6 +108,15 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             R.id.menu_refresh -> presenter.loadComponents(packageName, type)
         }
         return true
+    }
+
+    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        activity?.menuInflater?.inflate(R.menu.component_list_long_click_menu, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem?): Boolean {
+        return super.onContextItemSelected(item)
     }
 
 
@@ -173,7 +183,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun onComponentLongClick(component: ComponentInfo) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
     }
 
     override fun onSwitchClick(component: ComponentInfo, isChecked: Boolean) {
@@ -224,8 +234,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
     }
 
-
     inner class ComponentsRecyclerViewAdapter(private var components: List<ComponentInfo> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
+
 
         lateinit var pm: PackageManager
         private var listCopy = ArrayList<ComponentInfo>()
@@ -240,6 +250,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             holder.bindComponent(this.components[position])
+            holder.itemView.isLongClickable = true
             updateComponentDetails(position, holder)
         }
 
@@ -307,10 +318,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     setOnClickListener {
                         listener.onSwitchClick(component, !it.component_switch.isChecked)
                         it.component_switch.isChecked = !it.component_switch.isChecked
-                    }
-                    setOnLongClickListener {
-                        listener.onComponentLongClick(component)
-                        true
                     }
                     component_switch.setOnClickListener {
                         listener.onSwitchClick(component, it.component_switch.isChecked)
