@@ -185,21 +185,59 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     override fun addToIFW(component: ComponentInfo, type: EComponentType) {
-        when (type) {
-            EComponentType.ACTIVITY -> ifwController.addComponent(component, ComponentType.ACTIVITY)
-            EComponentType.RECEIVER -> ifwController.addComponent(component, ComponentType.BROADCAST)
-            EComponentType.SERVICE -> ifwController.addComponent(component, ComponentType.SERVICE)
-            else -> return
-        }
+        Log.i(TAG, "Trying to disable component via IFW: ${component.name}")
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            try {
+                when (type) {
+                    EComponentType.ACTIVITY -> ifwController.addComponent(component, ComponentType.ACTIVITY)
+                    EComponentType.RECEIVER -> ifwController.addComponent(component, ComponentType.BROADCAST)
+                    EComponentType.SERVICE -> ifwController.addComponent(component, ComponentType.SERVICE)
+                    else -> {
+                    }
+                }
+                emitter.onSuccess(true)
+                //TODO Duplicated code
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(BiConsumer { _, error ->
+                    view.refreshComponentSwitchState(component.name)
+                    error?.apply {
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view.showAlertDialog()
+                    }
+                })
     }
 
     override fun removeFromIFW(component: ComponentInfo, type: EComponentType) {
-        when (type) {
-            EComponentType.ACTIVITY -> ifwController.removeComponent(component, ComponentType.ACTIVITY)
-            EComponentType.RECEIVER -> ifwController.removeComponent(component, ComponentType.BROADCAST)
-            EComponentType.SERVICE -> ifwController.removeComponent(component, ComponentType.SERVICE)
-            else -> return
-        }
+        Log.i(TAG, "Trying to disable component via IFW: ${component.name}")
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            try {
+                when (type) {
+                    EComponentType.ACTIVITY -> ifwController.removeComponent(component, ComponentType.ACTIVITY)
+                    EComponentType.RECEIVER -> ifwController.removeComponent(component, ComponentType.BROADCAST)
+                    EComponentType.SERVICE -> ifwController.removeComponent(component, ComponentType.SERVICE)
+                    else -> {
+                    }
+                }
+                emitter.onSuccess(true)
+                //TODO Duplicated code
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(BiConsumer { _, error ->
+                    view.refreshComponentSwitchState(component.name)
+                    error?.apply {
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view.showAlertDialog()
+                    }
+                })
     }
 
     override fun checkComponentEnableState(component: ComponentInfo): Boolean {
