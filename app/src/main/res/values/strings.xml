@@ -46,4 +46,6 @@
     <string name="view_component_comments">View All Comments</string>
     <string name="upvote">Up Vote</string>
     <string name="downvote">Down Vote</string>
+    <string name="enable_by_ifw">Enable by IFW</string>
+    <string name="start_component">Start Component</string>
 </resources>

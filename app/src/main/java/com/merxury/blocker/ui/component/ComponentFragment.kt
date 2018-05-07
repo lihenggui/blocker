@@ -12,6 +12,7 @@ import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
 import com.merxury.blocker.R
+import com.merxury.blocker.ui.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.strategy.entity.Component
 import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
 import kotlinx.android.synthetic.main.component_item.view.*
@@ -115,8 +116,20 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         activity?.menuInflater?.inflate(R.menu.component_list_long_click_menu, menu)
     }
 
-    override fun onContextItemSelected(item: MenuItem?): Boolean {
-        return super.onContextItemSelected(item)
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val position = (item.menuInfo as ContextMenuRecyclerView.RecyclerContextMenuInfo).position
+        val component = componentAdapter.getData()[position]
+        when (item.itemId) {
+            R.id.block_by_ifw -> presenter.disableComponent(component)
+            R.id.enable_by_ifw -> presenter.enableComponent(component)
+            R.id.start_component -> {
+            }
+            R.id.view_component_comments -> {
+            }
+            R.id.menu_upvote_component -> presenter.voteForComponent(component)
+            R.id.menu_downvote_component -> presenter.downVoteForComponent(component)
+        }
+        return true
     }
 
 
@@ -235,7 +248,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     inner class ComponentsRecyclerViewAdapter(private var components: List<ComponentInfo> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
-
 
         lateinit var pm: PackageManager
         private var listCopy = ArrayList<ComponentInfo>()

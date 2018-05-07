@@ -4,6 +4,12 @@
         android:id="@+id/block_by_ifw"
         android:title="@string/block_by_ifw" />
     <item
+        android:id="@+id/enable_by_ifw"
+        android:title="@string/enable_by_ifw" />
+    <item
+        android:id="@+id/start_component"
+        android:title="@string/start_component" />
+    <item
         android:id="@+id/view_component_comments"
         android:title="@string/view_component_comments" />
     <item
