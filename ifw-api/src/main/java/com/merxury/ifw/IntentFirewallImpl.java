@@ -31,6 +31,7 @@ public class IntentFirewallImpl implements IntentFirewall {
     private String filename;
     private Rules rules;
     private String tmpFolder;
+    private boolean modified;
 
     public IntentFirewallImpl(Context context, String filename) {
         this.filename = filename + extension;
@@ -53,6 +54,9 @@ public class IntentFirewallImpl implements IntentFirewall {
 
     @Override
     public String saveRules() throws Exception {
+        if (!modified) {
+            return "";
+        }
         Serializer serializer = new Persister();
         File file = new File(tmpFolder + File.separator + filename);
         serializer.write(rules, file);
@@ -100,6 +104,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         }
         String filterRule = formatName(componentInfo.packageName, componentInfo.name);
         filters.add(new ComponentFilter(filterRule));
+        modified = true;
     }
 
     private void removeComponentFilter(ComponentInfo componentInfo, Component component) {
@@ -116,6 +121,7 @@ public class IntentFirewallImpl implements IntentFirewall {
                 filters.remove(filter);
             }
         }
+        modified = true;
     }
 
     @Override

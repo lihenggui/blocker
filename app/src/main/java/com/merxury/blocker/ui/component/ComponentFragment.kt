@@ -120,8 +120,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         val position = (item.menuInfo as ContextMenuRecyclerView.RecyclerContextMenuInfo).position
         val component = componentAdapter.getData()[position]
         when (item.itemId) {
-            R.id.block_by_ifw -> presenter.disableComponent(component)
-            R.id.enable_by_ifw -> presenter.enableComponent(component)
+            R.id.block_by_ifw -> presenter.addToIFW(component, type)
+            R.id.enable_by_ifw -> presenter.removeFromIFW(component, type)
             R.id.start_component -> {
             }
             R.id.view_component_comments -> {
