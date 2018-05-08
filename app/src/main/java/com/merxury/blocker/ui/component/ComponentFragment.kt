@@ -117,12 +117,17 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
+        if (!userVisibleHint) {
+            return false
+        }
         val position = (item.menuInfo as ContextMenuRecyclerView.RecyclerContextMenuInfo).position
         val component = componentAdapter.getData()[position]
         when (item.itemId) {
             R.id.block_by_ifw -> presenter.addToIFW(component, type)
             R.id.enable_by_ifw -> presenter.removeFromIFW(component, type)
             R.id.start_component -> {
+            }
+            R.id.menu_comments -> {
             }
             R.id.view_component_comments -> {
             }
