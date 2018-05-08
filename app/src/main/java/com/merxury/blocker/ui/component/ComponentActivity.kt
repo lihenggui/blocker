@@ -40,17 +40,14 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowTitleEnabled(false)
         }
-        componentDataPresenter = ComponentDataPresenter(this)
+        setupPresenter()
         getDataFromIntent()
         setupViewPager()
         setupTab()
+        showApplicationBriefInfo(application)
+        componentDataPresenter.loadComponentData()
     }
 
-    override fun onResume() {
-        super.onResume()
-        showApplicationBriefInfo(application)
-        componentDataPresenter.loadComponentData(packageName)
-    }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
@@ -148,6 +145,10 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
 
     override fun getComponentDataPresenter(): ComponentContract.ComponentDataPresenter {
         return componentDataPresenter
+    }
+
+    private fun setupPresenter() {
+        componentDataPresenter = ComponentDataPresenter(this, packageName)
     }
 
 }

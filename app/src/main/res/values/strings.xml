@@ -50,4 +50,7 @@
     <string name="start_component">Start Component</string>
     <string name="comment">Comment</string>
     <string name="add_comment_hint">Put your comment…</string>
+    <string name="add_comment">Add A Comment</string>
+    <string name="cancel">Cancel</string>
+    <string name="send">Send</string>
 </resources>

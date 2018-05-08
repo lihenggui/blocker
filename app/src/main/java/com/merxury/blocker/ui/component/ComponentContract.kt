@@ -18,6 +18,7 @@ interface ComponentContract {
         fun showFilteringPopUpMenu()
         fun showAlertDialog()
         fun refreshComponentSwitchState(componentName: String)
+        fun showAddComment(component: ComponentInfo)
     }
 
     interface Presenter : BasePresenter, IController {
@@ -34,9 +35,11 @@ interface ComponentContract {
     }
 
     interface ComponentDataPresenter : BasePresenter {
-        fun getComponentData(packageName: String): AppComponentInfo
-        fun loadComponentData(packageName: String)
-        fun refreshComponentData(packageName: String)
+        val packageName: String
+        fun getComponentData(): AppComponentInfo
+        fun loadComponentData()
+        fun refreshComponentData()
+        fun sendComment(component: ComponentInfo, comment: String)
     }
 
     interface ComponentMainView {

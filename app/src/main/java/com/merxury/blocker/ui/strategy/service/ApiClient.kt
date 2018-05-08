@@ -11,7 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
  * Created by Mercury on 2018/4/14.
  */
 object ApiClient {
-    const val API_SERVER_ADDRESS = "http://192.168.199.218:8080"
+    const val API_SERVER_ADDRESS = "http://blockerapi.merxury.com:8080/"
     fun createClient(): IClientServer {
         val builder = OkHttpClient.Builder()
         if (BuildConfig.DEBUG) {

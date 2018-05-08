@@ -84,22 +84,23 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val argument = arguments
-        argument?.let {
-            isSystem = it.getBoolean(IS_SYSTEM)
+        argument?.run {
+            isSystem = this.getBoolean(IS_SYSTEM)
+
         }
         presenter = HomePresenter(context!!.packageManager, this)
         listAdapter = AppListRecyclerViewAdapter(itemListener)
+        context?.run {
+            presenter.start(this)
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        context?.let {
-            presenter.start(it)
+    override fun onStart() {
+        super.onStart()
+        context?.run {
+            presenter.loadApplicationList(this, isSystem)
         }
-        val fragmentContext = context
-        fragmentContext?.let {
-            presenter.loadApplicationList(it, isSystem)
-        }
+
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

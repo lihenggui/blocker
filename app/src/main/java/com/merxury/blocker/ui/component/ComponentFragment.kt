@@ -10,6 +10,7 @@ import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.*
 import android.view.*
+import android.widget.EditText
 import android.widget.PopupMenu
 import com.merxury.blocker.R
 import com.merxury.blocker.ui.baseview.ContextMenuRecyclerView
@@ -29,6 +30,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     private lateinit var receiver: OnComponentDetailsLoadedReceiver
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        componentDetailsPresenter = (context as ComponentContract.ComponentMainView).getComponentDataPresenter()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,7 +41,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         type = args?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = args.getString(Constant.PACKAGE_NAME)
         presenter = ComponentPresenter(context!!, this, packageName)
-        componentDetailsPresenter = (activity as ComponentContract.ComponentMainView).getComponentDataPresenter()
         registerReceiver()
     }
 
@@ -127,8 +131,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             R.id.enable_by_ifw -> presenter.removeFromIFW(component, type)
             R.id.start_component -> {
             }
-            R.id.menu_comments -> {
-            }
+            R.id.menu_comments -> showAddComment(component)
             R.id.view_component_comments -> {
             }
             R.id.menu_upvote_component -> presenter.voteForComponent(component)
@@ -188,7 +191,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     .setPositiveButton(R.string.close, { dialog: DialogInterface, _: Int -> dialog.dismiss() })
                     .show()
         }
-
     }
 
     override fun showComponentList(components: List<ComponentInfo>) {
@@ -218,6 +220,22 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onDownVoteClick(component: ComponentInfo) {
         presenter.downVoteForComponent(component)
+    }
+
+    override fun showAddComment(component: ComponentInfo) {
+        context?.apply {
+            val view = layoutInflater.inflate(R.layout.add_comment, null)
+            val commentInput = view.findViewById<EditText>(R.id.add_comment_input)
+            AlertDialog.Builder(this)
+                    .setTitle(R.string.add_comment)
+                    .setCancelable(true)
+                    .setView(view)
+                    .setNegativeButton(R.string.cancel, { dialog, _ -> dialog.dismiss() })
+                    .setPositiveButton(R.string.send, { dialog, which -> componentDetailsPresenter.sendComment(component, commentInput.text.toString()) })
+                    .create()
+                    .show()
+        }
+
     }
 
     override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {
@@ -367,7 +385,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     inner class OnComponentDetailsLoadedReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val details = componentDetailsPresenter.getComponentData(packageName)
+            val details = componentDetailsPresenter.getComponentData()
             componentAdapter.addComponentDetails(details)
         }
     }
