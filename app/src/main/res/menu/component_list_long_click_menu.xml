@@ -10,6 +10,10 @@
         android:id="@+id/start_component"
         android:title="@string/start_component" />
     <item
+        android:id="@+id/menu_comments"
+        android:title="@string/comment" />
+
+    <item
         android:id="@+id/view_component_comments"
         android:title="@string/view_component_comments" />
     <item

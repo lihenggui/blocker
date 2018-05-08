@@ -48,4 +48,6 @@
     <string name="downvote">Down Vote</string>
     <string name="enable_by_ifw">Enable by IFW</string>
     <string name="start_component">Start Component</string>
+    <string name="comment">Comment</string>
+    <string name="add_comment_hint">Put your comment…</string>
 </resources>
