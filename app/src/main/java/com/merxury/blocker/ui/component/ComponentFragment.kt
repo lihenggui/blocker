@@ -231,7 +231,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     .setCancelable(true)
                     .setView(view)
                     .setNegativeButton(R.string.cancel, { dialog, _ -> dialog.dismiss() })
-                    .setPositiveButton(R.string.send, { dialog, which -> componentDetailsPresenter.sendComment(component, commentInput.text.toString()) })
+                    .setPositiveButton(R.string.send, { dialog, which -> componentDetailsPresenter.sendDescription(component, type, commentInput.text.toString()) })
                     .create()
                     .show()
         }
