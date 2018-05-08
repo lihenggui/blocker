@@ -1,6 +1,7 @@
 package com.merxury.blocker.ui.component
 
 import android.content.Context
+import android.content.pm.ComponentInfo
 import android.util.Log
 import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
 import com.merxury.blocker.ui.strategy.service.ApiClient
@@ -12,34 +13,34 @@ import io.reactivex.schedulers.Schedulers
  * Created by Mercury on 2018/4/14.
  */
 
-class ComponentDataPresenter(val view: ComponentContract.ComponentMainView) : ComponentContract.ComponentDataPresenter {
+class ComponentDataPresenter(val view: ComponentContract.ComponentMainView, override val packageName: String) : ComponentContract.ComponentDataPresenter {
 
     private lateinit var componentData: AppComponentInfo
-    private lateinit var client: IClientServer
+    private val client: IClientServer by lazy {
+        ApiClient.createClient()
+    }
+
     override fun start(context: Context) {
     }
 
     override fun destroy() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
     }
 
-    override fun getComponentData(packageName: String): AppComponentInfo {
+    override fun getComponentData(): AppComponentInfo {
         if (!::componentData.isInitialized) {
-            loadComponentData(packageName)
+            loadComponentData()
         }
         return componentData
     }
 
-    override fun loadComponentData(packageName: String) {
+    override fun loadComponentData() {
         if (!::componentData.isInitialized) {
-            refreshComponentData(packageName)
+            refreshComponentData()
         }
     }
 
-    override fun refreshComponentData(packageName: String) {
-        if (!::client.isInitialized) {
-            client = ApiClient.createClient()
-        }
+    override fun refreshComponentData() {
         client.findAllComponentsByPackageName(packageName)
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
@@ -52,6 +53,9 @@ class ComponentDataPresenter(val view: ComponentContract.ComponentMainView) : Co
                     error.printStackTrace()
                     Log.e(TAG, "Error occurs while getting component data from server. The message is : ${error.message}")
                 })
+    }
+
+    override fun sendComment(component: ComponentInfo, comment: String) {
     }
 
 
