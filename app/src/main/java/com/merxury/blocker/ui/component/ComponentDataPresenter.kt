@@ -3,6 +3,7 @@ package com.merxury.blocker.ui.component
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.util.Log
+import com.merxury.blocker.ui.strategy.entity.ComponentDescription
 import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
 import com.merxury.blocker.ui.strategy.service.ApiClient
 import com.merxury.blocker.ui.strategy.service.IClientServer
@@ -55,7 +56,17 @@ class ComponentDataPresenter(val view: ComponentContract.ComponentMainView, over
                 })
     }
 
-    override fun sendComment(component: ComponentInfo, comment: String) {
+    override fun sendDescription(component: ComponentInfo, type: EComponentType, description: String) {
+        val componentDescription = ComponentDescription(name = component.name, packageName = component.packageName,
+                type = type, description = description)
+        client.addDescription(componentDescription)
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result -> }, { error ->
+                    error.printStackTrace()
+                    Log.e(TAG, "Error occurs while sending description to server, Message is : ${error.message}")
+                })
     }
 
 

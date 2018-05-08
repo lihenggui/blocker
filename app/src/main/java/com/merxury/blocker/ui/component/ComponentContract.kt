@@ -39,7 +39,7 @@ interface ComponentContract {
         fun getComponentData(): AppComponentInfo
         fun loadComponentData()
         fun refreshComponentData()
-        fun sendComment(component: ComponentInfo, comment: String)
+        fun sendDescription(component: ComponentInfo, type: EComponentType, description: String)
     }
 
     interface ComponentMainView {
