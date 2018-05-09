@@ -6,6 +6,9 @@ public class ComponentFilter {
     @Attribute
     private String name;
 
+    public ComponentFilter() {
+    }
+
     public ComponentFilter(String name) {
         this.name = name;
     }

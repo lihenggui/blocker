@@ -142,7 +142,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
 
     override fun setLoadingIndicator(active: Boolean) {
-        with(componentListSwipeLayout) {
+        componentListSwipeLayout?.run {
             post { isRefreshing = active }
         }
     }
