@@ -185,7 +185,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     override fun addToIFW(component: ComponentInfo, type: EComponentType) {
-        Log.i(TAG, "Trying to disable component via IFW: ${component.name}")
+        Log.i(TAG, "Disable component via IFW: ${component.name}")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 when (type) {
@@ -213,7 +213,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     override fun removeFromIFW(component: ComponentInfo, type: EComponentType) {
-        Log.i(TAG, "Trying to disable component via IFW: ${component.name}")
+        Log.i(TAG, "Disable component via IFW: ${component.name}")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 when (type) {

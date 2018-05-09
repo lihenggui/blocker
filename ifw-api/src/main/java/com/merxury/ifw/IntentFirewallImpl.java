@@ -30,12 +30,14 @@ public class IntentFirewallImpl implements IntentFirewall {
     private static String filterTemplate = "%s/%s";
     private String filename;
     private Rules rules;
-    private String tmpFolder;
+    private String tmpPath;
+    private String destPath;
     private boolean modified;
 
-    public IntentFirewallImpl(Context context, String filename) {
-        this.filename = filename + extension;
-        tmpFolder = context.getCacheDir().toString();
+    public IntentFirewallImpl(Context context, String packageName) {
+        this.filename = packageName + extension;
+        tmpPath = context.getCacheDir().toString() + File.separator + filename;
+        destPath = getIfwRulePath();
         openFile();
     }
 
@@ -58,12 +60,10 @@ public class IntentFirewallImpl implements IntentFirewall {
             return "";
         }
         Serializer serializer = new Persister();
-        File file = new File(tmpFolder + File.separator + filename);
+        File file = new File(tmpPath);
         serializer.write(rules, file);
-        String tmpFilePath = file.getAbsolutePath();
-        String destPath = StorageUtils.getSystemSecureDirectory().getPath() + ifwFolder + filename;
-        PermissionUtils.setPermission(tmpFilePath, 644);
-        RootTools.copyFile(tmpFilePath, destPath, false, true);
+        PermissionUtils.setPermission(tmpPath, 644);
+        RootTools.copyFile(tmpPath, destPath, false, true);
         return destPath;
     }
 
@@ -157,9 +157,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         }
         if (rules.getService() != null) {
             List<ComponentFilter> componentFilters = rules.getService().getComponentFilters();
-            if (getFilterEnableState(componentInfo, componentFilters)) {
-                return false;
-            }
+            return !getFilterEnableState(componentInfo, componentFilters);
         }
         return true;
     }
@@ -193,13 +191,16 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     private void openFile() {
-        File file = new File(tmpFolder + File.pathSeparator + filename);
-        if (file.exists()) {
+        File destFile = new File(destPath);
+        if (destFile.exists()) {
+            RootTools.copyFile(destPath, tmpPath, false, true);
+            File tmpFile = new File(tmpPath);
             Serializer serializer = new Persister();
             try {
-                rules = serializer.read(Rules.class, file);
+                rules = serializer.read(Rules.class, tmpFile);
             } catch (Exception e) {
                 handleException(e);
+                rules = new Rules();
             }
         } else {
             rules = new Rules();
@@ -208,6 +209,10 @@ public class IntentFirewallImpl implements IntentFirewall {
 
     private String formatName(String packageName, String name) {
         return String.format(filterTemplate, packageName, name);
+    }
+
+    private String getIfwRulePath() {
+        return StorageUtils.getSystemSecureDirectory().getPath() + ifwFolder + filename;
     }
 
     private void handleException(Exception e) {
