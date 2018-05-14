@@ -39,25 +39,25 @@ public class IntentFirewallImplTest {
         ComponentInfo componentInfo1 = new ComponentInfo();
         componentInfo1.packageName = "com.android.camera2";
         componentInfo1.name = "com.android.camera.CaptureActivity";
-        firewall.addComponent(componentInfo, ComponentType.ACTIVITY);
-        firewall.addComponent(componentInfo1, ComponentType.ACTIVITY);
+        firewall.add(componentInfo, ComponentType.ACTIVITY);
+        firewall.add(componentInfo1, ComponentType.ACTIVITY);
         ComponentInfo componentInfo3 = new ComponentInfo();
         componentInfo3.packageName = "com.android.camera2";
         componentInfo3.name = "com.android.camera.VideoCamera";
         ComponentInfo componentInfo4 = new ComponentInfo();
         componentInfo4.packageName = "com.example.android.architecture.blueprints.todomvp.mock";
         componentInfo4.name = "com.example.android.architecture.blueprints.todoapp.taskdetail.TaskDetailActivity";
-        firewall.addComponent(componentInfo3, ComponentType.ACTIVITY);
-        firewall.addComponent(componentInfo4, ComponentType.ACTIVITY);
+        firewall.add(componentInfo3, ComponentType.ACTIVITY);
+        firewall.add(componentInfo4, ComponentType.ACTIVITY);
         ComponentInfo componentInfo5 = new ComponentInfo();
         componentInfo5.packageName = "com.example.android.architecture.blueprints.todomvp.mock";
         componentInfo5.name = "com.example.android.architecture.blueprints.todoapp.statistics.StatisticsActivity";
         ComponentInfo componentInfo6 = new ComponentInfo();
         componentInfo6.packageName = "com.android.settings";
         componentInfo6.name = ".Settings";
-        firewall.addComponent(componentInfo5, ComponentType.ACTIVITY);
-        firewall.addComponent(componentInfo6, ComponentType.ACTIVITY);
-        String filePath = firewall.saveRules();
+        firewall.add(componentInfo5, ComponentType.ACTIVITY);
+        firewall.add(componentInfo6, ComponentType.ACTIVITY);
+        String filePath = firewall.save();
         Log.i(TAG, filePath);
     }
 
@@ -66,8 +66,8 @@ public class IntentFirewallImplTest {
         ComponentInfo componentInfo = new ComponentInfo();
         componentInfo.packageName = "com.weico";
         componentInfo.name = "activity1";
-        firewall.removeComponent(componentInfo, ComponentType.ACTIVITY);
-        String filePath = firewall.saveRules();
+        firewall.remove(componentInfo, ComponentType.ACTIVITY);
+        String filePath = firewall.save();
         Log.i(TAG, filePath);
     }
 
@@ -92,7 +92,7 @@ public class IntentFirewallImplTest {
     @Test
     public void removeRules() {
         String filename = "com.weico";
-        firewall.removeRules(filename);
+        firewall.clear(filename);
     }
 
 }
