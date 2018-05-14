@@ -25,17 +25,16 @@ import java.util.List;
 public class IntentFirewallImpl implements IntentFirewall {
 
     private static final String TAG = "IntentFirewallImpl";
-    private static final String extension = ".xml";
-    private static final String ifwFolder = "/ifw/";
-    private static String filterTemplate = "%s/%s";
+    private static final String EXTENSION = ".xml";
+    private static final String IFW_FOLDER = "/ifw/";
+    private static final String FILTER_TEMPLATE = "%s/%s";
     private String filename;
     private Rules rules;
     private String tmpPath;
     private String destPath;
-    private boolean modified;
 
     public IntentFirewallImpl(Context context, String packageName) {
-        this.filename = packageName + extension;
+        this.filename = packageName + EXTENSION;
         tmpPath = context.getCacheDir().toString() + File.separator + filename;
         destPath = getIfwRulePath();
         openFile();
@@ -47,7 +46,7 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     public void setFilename(String filename) {
-        this.filename = filename + extension;
+        this.filename = filename + EXTENSION;
     }
 
     public Rules getRules() {
@@ -55,47 +54,54 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     @Override
-    public String saveRules() throws Exception {
-        if (!modified) {
-            return "";
-        }
+    public void save() throws Exception {
         Serializer serializer = new Persister();
         File file = new File(tmpPath);
         serializer.write(rules, file);
         PermissionUtils.setPermission(tmpPath, 644);
         RootTools.copyFile(tmpPath, destPath, false, true);
-        return destPath;
     }
 
     @Override
-    public void addComponent(ComponentInfo component, ComponentType type) {
+    public boolean add(ComponentInfo component, ComponentType type) {
+        boolean result = false;
         switch (type) {
             case ACTIVITY:
                 if (rules.getActivity() == null) {
                     rules.setActivity(new Activity());
                 }
-                addComponentFilter(component, rules.getActivity());
+                result = addComponentFilter(component, rules.getActivity());
                 break;
             case BROADCAST:
                 if (rules.getBroadcast() == null) {
                     rules.setBroadcast(new Broadcast());
                 }
-                addComponentFilter(component, rules.getBroadcast());
+                result = addComponentFilter(component, rules.getBroadcast());
                 break;
             case SERVICE:
                 if (rules.getService() == null) {
                     rules.setService(new Service());
                 }
-                addComponentFilter(component, rules.getService());
+                result = addComponentFilter(component, rules.getService());
                 break;
             default:
                 break;
         }
+        if (result) {
+            try {
+                save();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e(TAG, e.getMessage());
+                return false;
+            }
+        }
+        return result;
     }
 
-    private void addComponentFilter(ComponentInfo componentInfo, Component component) {
+    private boolean addComponentFilter(ComponentInfo componentInfo, Component component) {
         if (component == null) {
-            return;
+            return false;
         }
         List<ComponentFilter> filters = component.getComponentFilters();
         if (filters == null) {
@@ -104,12 +110,12 @@ public class IntentFirewallImpl implements IntentFirewall {
         }
         String filterRule = formatName(componentInfo.packageName, componentInfo.name);
         filters.add(new ComponentFilter(filterRule));
-        modified = true;
+        return true;
     }
 
-    private void removeComponentFilter(ComponentInfo componentInfo, Component component) {
+    private boolean removeComponentFilter(ComponentInfo componentInfo, Component component) {
         if (component == null) {
-            return;
+            return false;
         }
         List<ComponentFilter> filters = component.getComponentFilters();
         if (filters == null) {
@@ -121,24 +127,35 @@ public class IntentFirewallImpl implements IntentFirewall {
                 filters.remove(filter);
             }
         }
-        modified = true;
+        return true;
     }
 
     @Override
-    public void removeComponent(ComponentInfo component, ComponentType type) {
+    public boolean remove(ComponentInfo component, ComponentType type) {
+        boolean result = false;
         switch (type) {
             case ACTIVITY:
-                removeComponentFilter(component, rules.getActivity());
+                result = removeComponentFilter(component, rules.getActivity());
                 break;
             case BROADCAST:
-                removeComponentFilter(component, rules.getBroadcast());
+                result = removeComponentFilter(component, rules.getBroadcast());
                 break;
             case SERVICE:
-                removeComponentFilter(component, rules.getService());
+                result = removeComponentFilter(component, rules.getService());
                 break;
             default:
                 break;
         }
+        if (result) {
+            try {
+                save();
+            } catch (Exception e) {
+                e.printStackTrace();
+                Log.e(TAG, e.getMessage());
+                return false;
+            }
+        }
+        return result;
     }
 
     @Override
@@ -163,16 +180,16 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     @Override
-    public void removeRules() {
-        removeRules(filename);
+    public void clear() {
+        clear(filename);
     }
 
     @Override
-    public void removeRules(String name) {
+    public void clear(String name) {
         if (name == null) {
             return;
         }
-        String rulePath = StorageUtils.getSystemSecureDirectory() + ifwFolder + filename;
+        String rulePath = StorageUtils.getSystemSecureDirectory() + IFW_FOLDER + filename;
         Log.d(TAG, "delete file: " + rulePath);
         RootTools.deleteFileOrDirectory(rulePath, false);
     }
@@ -208,11 +225,11 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     private String formatName(String packageName, String name) {
-        return String.format(filterTemplate, packageName, name);
+        return String.format(FILTER_TEMPLATE, packageName, name);
     }
 
     private String getIfwRulePath() {
-        return StorageUtils.getSystemSecureDirectory().getPath() + ifwFolder + filename;
+        return StorageUtils.getSystemSecureDirectory().getPath() + IFW_FOLDER + filename;
     }
 
     private void handleException(Exception e) {

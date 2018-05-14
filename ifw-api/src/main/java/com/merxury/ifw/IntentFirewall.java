@@ -5,15 +5,15 @@ import android.content.pm.ComponentInfo;
 import com.merxury.ifw.entity.ComponentType;
 
 public interface IntentFirewall {
-    String saveRules() throws Exception;
+    void save() throws Exception;
 
-    void addComponent(ComponentInfo component, ComponentType type);
+    boolean add(ComponentInfo component, ComponentType type);
 
-    void removeComponent(ComponentInfo component, ComponentType type);
+    boolean remove(ComponentInfo component, ComponentType type);
 
     boolean getComponentEnableState(ComponentInfo componentInfo);
 
-    void removeRules();
+    void clear();
 
-    void removeRules(String name);
+    void clear(String name);
 }

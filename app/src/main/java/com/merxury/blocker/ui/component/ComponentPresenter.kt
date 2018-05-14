@@ -189,9 +189,9 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 when (type) {
-                    EComponentType.ACTIVITY -> ifwController.addComponent(component, ComponentType.ACTIVITY)
-                    EComponentType.RECEIVER -> ifwController.addComponent(component, ComponentType.BROADCAST)
-                    EComponentType.SERVICE -> ifwController.addComponent(component, ComponentType.SERVICE)
+                    EComponentType.ACTIVITY -> ifwController.add(component, ComponentType.ACTIVITY)
+                    EComponentType.RECEIVER -> ifwController.add(component, ComponentType.BROADCAST)
+                    EComponentType.SERVICE -> ifwController.add(component, ComponentType.SERVICE)
                     else -> {
                     }
                 }
@@ -217,9 +217,9 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 when (type) {
-                    EComponentType.ACTIVITY -> ifwController.removeComponent(component, ComponentType.ACTIVITY)
-                    EComponentType.RECEIVER -> ifwController.removeComponent(component, ComponentType.BROADCAST)
-                    EComponentType.SERVICE -> ifwController.removeComponent(component, ComponentType.SERVICE)
+                    EComponentType.ACTIVITY -> ifwController.remove(component, ComponentType.ACTIVITY)
+                    EComponentType.RECEIVER -> ifwController.remove(component, ComponentType.BROADCAST)
+                    EComponentType.SERVICE -> ifwController.remove(component, ComponentType.SERVICE)
                     else -> {
                     }
                 }
@@ -251,7 +251,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
 
     override fun destroy() {
         try {
-            ifwController.saveRules()
+            ifwController.save()
         } catch (e: Exception) {
             Log.w(TAG, "Cannot save rules, message is ${e.message}")
         }
