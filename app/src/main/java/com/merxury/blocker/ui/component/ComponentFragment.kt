@@ -12,6 +12,7 @@ import android.support.v7.widget.*
 import android.view.*
 import android.widget.EditText
 import android.widget.PopupMenu
+import android.widget.Toast
 import com.merxury.blocker.R
 import com.merxury.blocker.ui.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.strategy.entity.Component
@@ -134,8 +135,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             R.id.menu_comments -> showAddComment(component)
             R.id.view_component_comments -> {
             }
-            R.id.menu_upvote_component -> presenter.voteForComponent(component)
-            R.id.menu_downvote_component -> presenter.downVoteForComponent(component)
+            R.id.menu_upvote_component -> presenter.voteForComponent(component, type)
+            R.id.menu_downvote_component -> presenter.downVoteForComponent(component, type)
         }
         return true
     }
@@ -174,7 +175,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     }
 
-    override fun refreshComponentSwitchState(componentName: String) {
+    override fun refreshComponentState(componentName: String) {
         val components = componentAdapter.getData()
         for (i in components.indices) {
             if (componentName == components[i].name) {
@@ -216,11 +217,15 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun onUpVoteClick(component: ComponentInfo) {
-        presenter.voteForComponent(component)
+        // TODO add cancel vote in future version
+        if (!presenter.checkComponentIsVoted(component)) {
+            presenter.voteForComponent(component, type)
+        }
     }
 
     override fun onDownVoteClick(component: ComponentInfo) {
-        presenter.downVoteForComponent(component)
+        // TODO add cancel vote in future version
+        presenter.downVoteForComponent(component, type)
     }
 
     override fun showAddComment(component: ComponentInfo) {
@@ -237,6 +242,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     .show()
         }
 
+    }
+
+    override fun showVoteFail() {
+        Toast.makeText(context, resources.getText(R.string.vote_fail), Toast.LENGTH_SHORT).show()
     }
 
     override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {

@@ -17,8 +17,9 @@ interface ComponentContract {
         fun searchForComponent(name: String)
         fun showFilteringPopUpMenu()
         fun showAlertDialog()
-        fun refreshComponentSwitchState(componentName: String)
+        fun refreshComponentState(componentName: String)
         fun showAddComment(component: ComponentInfo)
+        fun showVoteFail()
     }
 
     interface Presenter : BasePresenter, IController {
@@ -26,8 +27,8 @@ interface ComponentContract {
         fun loadComponents(packageName: String, type: EComponentType)
         fun sortComponentList(components: List<ComponentInfo>, type: EComponentComparatorType): List<ComponentInfo>
         fun checkComponentIsVoted(component: ComponentInfo): Boolean
-        fun voteForComponent(component: ComponentInfo)
-        fun downVoteForComponent(component: ComponentInfo)
+        fun voteForComponent(component: ComponentInfo, type: EComponentType)
+        fun downVoteForComponent(component: ComponentInfo, type: EComponentType)
         fun writeComponentVoteState(component: ComponentInfo, like: Boolean)
         fun addToIFW(component: ComponentInfo, type: EComponentType)
         fun removeFromIFW(component: ComponentInfo, type: EComponentType)
