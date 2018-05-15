@@ -22,17 +22,17 @@ public class RootControllerTest {
     private Context context;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         context = InstrumentationRegistry.getContext();
         controller = new RootController();
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
     }
 
     @Test
-    public void switchComponent() throws Exception {
+    public void switchComponent() {
         boolean isSuccess = controller.switchComponent("com.weico.international", "service.CompleteReceiver1", PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
         assertEquals(false, isSuccess);
         isSuccess = controller.switchComponent("com.weico.international", "service.CompleteReceiver", PackageManager.COMPONENT_ENABLED_STATE_DISABLED);

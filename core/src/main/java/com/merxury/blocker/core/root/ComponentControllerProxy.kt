@@ -1,6 +1,5 @@
 package com.merxury.blocker.core.root
 
-import android.content.Context
 import android.content.pm.ComponentInfo
 import com.merxury.blocker.core.IController
 
@@ -8,7 +7,7 @@ import com.merxury.blocker.core.IController
  * Created by Mercury on 2018/3/10.
  */
 
-class ComponentControllerProxy private constructor(method: EControllerMethod, context: Context?) : IController {
+class ComponentControllerProxy private constructor(method: EControllerMethod) : IController {
 
     private lateinit var controller: IController
     private lateinit var controllerMethod: EControllerMethod
@@ -36,9 +35,9 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
         @Volatile
         var instance: ComponentControllerProxy? = null
 
-        fun getInstance(method: EControllerMethod, context: Context?): IController =
+        fun getInstance(method: EControllerMethod): IController =
                 instance ?: synchronized(this) {
-                    instance ?: ComponentControllerProxy(method, context).also {
+                    instance ?: ComponentControllerProxy(method).also {
                         it.controllerMethod = method
                         instance = it
                     }

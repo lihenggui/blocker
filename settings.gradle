@@ -1,1 +1,1 @@
-include ':app', ':core-server', ':ifw-api'
+include ':app', ':core', ':ifw-api'

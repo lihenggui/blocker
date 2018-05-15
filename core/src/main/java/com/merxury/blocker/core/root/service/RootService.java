@@ -8,6 +8,9 @@ import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.util.Log;
 
+/**
+ * Reserved code, for future use
+ */
 public class RootService extends IRootService.Stub {
     public static final String NAME = "blocker.rootservice";
     private static final String TAG = "RootService";
@@ -32,12 +35,12 @@ public class RootService extends IRootService.Stub {
     }
 
     @Override
-    public int getUid() throws RemoteException {
+    public int getUid() {
         return Binder.getCallingUid();
     }
 
     @Override
-    public int getPid() throws RemoteException {
+    public int getPid() {
         return Binder.getCallingPid();
     }
 

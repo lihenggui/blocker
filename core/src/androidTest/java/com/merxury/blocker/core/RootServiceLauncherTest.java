@@ -17,12 +17,12 @@ public class RootServiceLauncherTest {
     private Context context;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         context = InstrumentationRegistry.getContext();
     }
 
     @Test
-    public void startService() throws Exception {
+    public void startService() {
         boolean result = RootServiceLauncher.startService(context);
         assertEquals(result, true);
     }
