@@ -3,6 +3,9 @@ package com.merxury.blocker.core.root.service;
 import android.os.Looper;
 import android.os.ServiceManager;
 
+/**
+ * Reserved code, for future use
+ */
 public class ServiceRegister {
     public static final String TAG = "ServiceRegister";
 

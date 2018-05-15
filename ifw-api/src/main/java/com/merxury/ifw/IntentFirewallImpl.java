@@ -2,6 +2,7 @@ package com.merxury.ifw;
 
 import android.content.Context;
 import android.content.pm.ComponentInfo;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.merxury.ifw.entity.Activity;
@@ -38,15 +39,6 @@ public class IntentFirewallImpl implements IntentFirewall {
         tmpPath = context.getCacheDir().toString() + File.separator + filename;
         destPath = getIfwRulePath();
         openFile();
-    }
-
-
-    public String getFilename() {
-        return filename;
-    }
-
-    public void setFilename(String filename) {
-        this.filename = filename + EXTENSION;
     }
 
     public Rules getRules() {
@@ -109,6 +101,12 @@ public class IntentFirewallImpl implements IntentFirewall {
             component.setComponentFilters(filters);
         }
         String filterRule = formatName(componentInfo.packageName, componentInfo.name);
+        //Duplicate filter detection
+        for (ComponentFilter filter : filters) {
+            if (filter.getName().equals(filterRule)) {
+                return false;
+            }
+        }
         filters.add(new ComponentFilter(filterRule));
         return true;
     }
@@ -228,6 +226,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         return String.format(FILTER_TEMPLATE, packageName, name);
     }
 
+    @NonNull
     private String getIfwRulePath() {
         return StorageUtils.getSystemSecureDirectory().getPath() + IFW_FOLDER + filename;
     }

@@ -14,6 +14,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Created by Mercury on 2018/2/4.
+ * Reserved code, for future use
  */
 
 public class RootServiceLauncher {

@@ -213,7 +213,7 @@ public class ApplicationComponents {
      * @return a set of components
      */
     @NonNull
-    public static PackageInfo getApplicationComponents(@NonNull PackageManager pm, @NonNull String packageName) throws PackageManager.NameNotFoundException {
+    public static PackageInfo getApplicationComponents(@NonNull PackageManager pm, @NonNull String packageName) {
         int flags = PackageManager.GET_ACTIVITIES | PackageManager.GET_PROVIDERS |
                 PackageManager.GET_RECEIVERS | PackageManager.GET_SERVICES |
                 PackageManager.GET_INTENT_FILTERS;

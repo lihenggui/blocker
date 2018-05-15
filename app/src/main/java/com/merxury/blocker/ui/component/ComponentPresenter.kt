@@ -27,7 +27,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     private val pm: PackageManager
 
     private val controller: IController by lazy {
-        ComponentControllerProxy.getInstance(EControllerMethod.PM, null)
+        ComponentControllerProxy.getInstance(EControllerMethod.PM)
     }
     private val componentClient: IClientServer by lazy {
         ApiClient.createClient()
