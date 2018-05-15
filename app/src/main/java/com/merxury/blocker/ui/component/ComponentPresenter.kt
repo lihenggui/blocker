@@ -80,7 +80,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentSwitchState(componentName)
+                    view.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
@@ -103,7 +103,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentSwitchState(componentInfo.name)
+                    view.refreshComponentState(componentInfo.name)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
@@ -126,7 +126,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentSwitchState(componentInfo.name)
+                    view.refreshComponentState(componentInfo.name)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
@@ -159,26 +159,28 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     @SuppressLint("CheckResult")
-    override fun voteForComponent(component: ComponentInfo) {
-        componentClient.upVoteForComponent(ComponentBriefInfo(component))
+    override fun voteForComponent(component: ComponentInfo, type: EComponentType) {
+        componentClient.upVoteForComponent(ComponentBriefInfo(component.packageName, component.name, type))
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
-
+                    writeComponentVoteState(component, true)
+                    view.refreshComponentState(component.name)
                 }, { error ->
 
                 })
     }
 
     @SuppressLint("CheckResult")
-    override fun downVoteForComponent(component: ComponentInfo) {
-        componentClient.downVoteForComponent(ComponentBriefInfo(component))
+    override fun downVoteForComponent(component: ComponentInfo, type: EComponentType) {
+        componentClient.downVoteForComponent(ComponentBriefInfo(component.packageName, component.name, type))
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
-
+                    writeComponentVoteState(component, false)
+                    view.refreshComponentState(component.name)
                 }, { error ->
 
                 })
@@ -203,7 +205,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentSwitchState(component.name)
+                    view.refreshComponentState(component.name)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
@@ -231,7 +233,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentSwitchState(component.name)
+                    view.refreshComponentState(component.name)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
