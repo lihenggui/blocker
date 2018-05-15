@@ -9,6 +9,7 @@ import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.merxury.blocker.R
 import com.merxury.blocker.entity.Application
@@ -207,11 +208,13 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             fun bindApplication(application: Application) {
                 view?.apply {
                     itemView.app_name.text = application.label
+                    itemView.app_icon.setImageDrawable(application.getApplicationIcon(pm))
                     itemView.setOnClickListener({ listener.onAppClick(application) })
                     val options = RequestOptions()
                             .fitCenter()
                             .placeholder(android.R.drawable.sym_def_app_icon)
                             .error(R.drawable.ic_error_red_24dp)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
                     Glide.with(this)
                             .load(application.getApplicationIcon(pm))
                             .apply(options)

@@ -1,8 +1,11 @@
 package com.merxury.blocker.core.root
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.util.Log
+import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
 import com.stericson.RootTools.RootTools
 
@@ -11,7 +14,7 @@ import com.stericson.RootTools.RootTools
  * A class that controls the state of application components
  */
 
-class RootController : IController {
+class RootController(val context: Context) : IController {
 
     init {
         RootTools.debugMode = true
@@ -33,12 +36,16 @@ class RootController : IController {
         }
     }
 
-    override fun enableComponent(componentInfo: ComponentInfo): Boolean {
+    override fun enable(componentInfo: ComponentInfo): Boolean {
         return switchComponent(componentInfo.packageName, componentInfo.name, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
     }
 
-    override fun disableComponent(componentInfo: ComponentInfo): Boolean {
+    override fun disable(componentInfo: ComponentInfo): Boolean {
         return switchComponent(componentInfo.packageName, componentInfo.name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+    }
+
+    override fun checkComponentEnableState(componentInfo: ComponentInfo): Boolean {
+        return ApplicationComponents.checkComponentIsEnabled(context.packageManager, ComponentName(componentInfo.packageName, componentInfo.name))
     }
 
     companion object {

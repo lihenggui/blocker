@@ -31,7 +31,6 @@ interface ComponentContract {
         fun writeComponentVoteState(component: ComponentInfo, like: Boolean)
         fun addToIFW(component: ComponentInfo, type: EComponentType)
         fun removeFromIFW(component: ComponentInfo, type: EComponentType)
-        fun checkComponentEnableState(component: ComponentInfo): Boolean
     }
 
     interface ComponentDataPresenter : BasePresenter {
