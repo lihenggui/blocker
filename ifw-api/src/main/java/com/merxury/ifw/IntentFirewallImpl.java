@@ -158,23 +158,17 @@ public class IntentFirewallImpl implements IntentFirewall {
 
     @Override
     public boolean getComponentEnableState(ComponentInfo componentInfo) {
+        List<ComponentFilter> filters = new ArrayList<>();
         if (rules.getActivity() != null) {
-            List<ComponentFilter> componentFilters = rules.getActivity().getComponentFilters();
-            if (getFilterEnableState(componentInfo, componentFilters)) {
-                return false;
-            }
+            filters.addAll(rules.getActivity().getComponentFilters());
         }
         if (rules.getBroadcast() != null) {
-            List<ComponentFilter> componentFilters = rules.getBroadcast().getComponentFilters();
-            if (getFilterEnableState(componentInfo, componentFilters)) {
-                return false;
-            }
+            filters.addAll(rules.getBroadcast().getComponentFilters());
         }
         if (rules.getService() != null) {
-            List<ComponentFilter> componentFilters = rules.getService().getComponentFilters();
-            return !getFilterEnableState(componentInfo, componentFilters);
+            filters.addAll(rules.getService().getComponentFilters());
         }
-        return true;
+        return getFilterEnableState(componentInfo, filters);
     }
 
     @Override

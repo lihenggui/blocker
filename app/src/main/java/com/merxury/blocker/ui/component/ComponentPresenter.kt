@@ -27,7 +27,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     private val pm: PackageManager
 
     private val controller: IController by lazy {
-        ComponentControllerProxy.getInstance(EControllerMethod.PM)
+        ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
     }
     private val componentClient: IClientServer by lazy {
         ApiClient.createClient()
@@ -91,11 +91,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     @SuppressLint("CheckResult")
-    override fun enableComponent(componentInfo: ComponentInfo): Boolean {
+    override fun enable(componentInfo: ComponentInfo): Boolean {
         Log.i(TAG, "Trying to enable component: ${componentInfo.name}")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
-                val result = controller.enableComponent(componentInfo)
+                val result = controller.enable(componentInfo)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -114,11 +114,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     @SuppressLint("CheckResult")
-    override fun disableComponent(componentInfo: ComponentInfo): Boolean {
+    override fun disable(componentInfo: ComponentInfo): Boolean {
         Log.i(TAG, "Trying to disable component: ${componentInfo.name}")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
-                val result = controller.disableComponent(componentInfo)
+                val result = controller.disable(componentInfo)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 emitter.onError(e)

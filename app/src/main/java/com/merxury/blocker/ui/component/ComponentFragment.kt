@@ -194,8 +194,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun showComponentList(components: List<ComponentInfo>) {
-        noComponentContainer.visibility = View.GONE
-        componentListFragmentRecyclerView.visibility = View.VISIBLE
+        noComponentContainer?.visibility = View.GONE
+        componentListFragmentRecyclerView?.visibility = View.VISIBLE
         componentAdapter.addData(components)
     }
 
@@ -208,9 +208,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onSwitchClick(component: ComponentInfo, isChecked: Boolean) {
         if (isChecked) {
-            presenter.enableComponent(component)
+            presenter.enable(component)
+            presenter.removeFromIFW(component, type)
         } else {
-            presenter.disableComponent(component)
+            presenter.disable(component)
         }
     }
 
