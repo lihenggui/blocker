@@ -113,6 +113,15 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                 adapter = listAdapter
                 itemAnimator = DefaultItemAnimator()
                 addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
+                addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                    override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
+                        when (newState) {
+                            RecyclerView.SCROLL_STATE_IDLE -> Glide.with(this@ApplicationListFragment).resumeRequests()
+                            RecyclerView.SCROLL_STATE_DRAGGING -> Glide.with(this@ApplicationListFragment).pauseRequests()
+                        }
+                        super.onScrollStateChanged(recyclerView, newState)
+                    }
+                })
             }
             appListSwipeLayout.apply {
                 setColorSchemeColors(
