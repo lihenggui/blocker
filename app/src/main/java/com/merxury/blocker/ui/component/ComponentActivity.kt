@@ -40,8 +40,8 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowTitleEnabled(false)
         }
-        setupPresenter()
         getDataFromIntent()
+        setupPresenter()
         setupViewPager()
         setupTab()
         showApplicationBriefInfo(application)
@@ -148,7 +148,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
     }
 
     private fun setupPresenter() {
-        componentDataPresenter = ComponentDataPresenter(this, packageName)
+        componentDataPresenter = ComponentDataPresenter(this, application.packageName)
     }
 
 }

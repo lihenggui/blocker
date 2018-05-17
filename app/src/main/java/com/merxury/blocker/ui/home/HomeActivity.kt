@@ -46,10 +46,12 @@ class HomeActivity : AppCompatActivity(), IActivityView {
 
     private fun setupDrawerContent(navigationView: NavigationView) {
         navigationView.setNavigationItemSelectedListener { menuItem ->
-            //just placeholders
-            if (menuItem.itemId == R.id.list_navigation_menu_item) {
-                val intent = Intent(this@HomeActivity, HomeActivity::class.java)
-                startActivity(intent)
+            //placeholders
+            when (menuItem.itemId) {
+                R.id.list_navigation_menu_item -> {
+                    val intent = Intent(this@HomeActivity, HomeActivity::class.java)
+                    startActivity(intent)
+                }
             }
             menuItem.isChecked = true
             drawer_layout.closeDrawers()

@@ -197,6 +197,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                     else -> {
                     }
                 }
+                ifwController.save()
                 emitter.onSuccess(true)
                 //TODO Duplicated code
             } catch (e: Exception) {
@@ -204,9 +205,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(BiConsumer { _, error ->
+                .subscribe({ _ ->
                     view.refreshComponentState(component.name)
+                }, { error ->
                     error?.apply {
+                        ifwController.reload()
                         Log.e(TAG, message)
                         printStackTrace()
                         view.showAlertDialog()
@@ -225,6 +228,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                     else -> {
                     }
                 }
+                ifwController.save()
                 emitter.onSuccess(true)
                 //TODO Duplicated code
             } catch (e: Exception) {
@@ -232,9 +236,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(BiConsumer { _, error ->
+                .subscribe({ _ ->
                     view.refreshComponentState(component.name)
+                }, { error ->
                     error?.apply {
+                        ifwController.reload()
                         Log.e(TAG, message)
                         printStackTrace()
                         view.showAlertDialog()

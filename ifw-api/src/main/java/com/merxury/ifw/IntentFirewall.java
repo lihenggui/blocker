@@ -16,4 +16,6 @@ public interface IntentFirewall {
     void clear();
 
     void clear(String name);
+
+    void reload();
 }
