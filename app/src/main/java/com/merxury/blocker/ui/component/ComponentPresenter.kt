@@ -10,6 +10,7 @@ import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.root.RootCommand
 import com.merxury.blocker.entity.getSimpleName
 import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.ui.strategy.service.ApiClient
@@ -24,6 +25,7 @@ import io.reactivex.functions.BiConsumer
 import io.reactivex.schedulers.Schedulers
 
 class ComponentPresenter(val context: Context, val view: ComponentContract.View, val packageName: String) : ComponentContract.Presenter, IController {
+
     private val pm: PackageManager
 
     private val controller: IController by lazy {
@@ -246,6 +248,29 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                         view.showAlertDialog()
                     }
                 })
+    }
+
+    override fun launchActivity(component: ComponentInfo) {
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            val command = "am start -n ${component.packageName}/${component.name}"
+            try {
+                RootCommand.runBlockingCommand(command)
+                emitter.onSuccess(true)
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ _ ->
+
+                }, { error ->
+                    error?.apply {
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view.showAlertDialog()
+                    }
+                })
+
     }
 
     override fun checkComponentEnableState(component: ComponentInfo): Boolean {
