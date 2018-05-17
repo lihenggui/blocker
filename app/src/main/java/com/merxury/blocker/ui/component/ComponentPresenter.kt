@@ -44,7 +44,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
 
     @SuppressLint("CheckResult")
     override fun loadComponents(packageName: String, type: EComponentType) {
-        Log.i(TAG, "Trying to load components for $packageName, type: $type")
+        Log.i(TAG, "Load components for $packageName, type: $type")
         view.setLoadingIndicator(true)
         Single.create((SingleOnSubscribe<List<ComponentInfo>> { emitter ->
             var componentList = when (type) {
@@ -92,7 +92,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
 
     @SuppressLint("CheckResult")
     override fun enable(componentInfo: ComponentInfo): Boolean {
-        Log.i(TAG, "Trying to enable component: ${componentInfo.name}")
+        Log.i(TAG, "Enable component: ${componentInfo.name}")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 val result = controller.enable(componentInfo)
@@ -115,7 +115,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
 
     @SuppressLint("CheckResult")
     override fun disable(componentInfo: ComponentInfo): Boolean {
-        Log.i(TAG, "Trying to disable component: ${componentInfo.name}")
+        Log.i(TAG, "Disable component: ${componentInfo.name}")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 val result = controller.disable(componentInfo)

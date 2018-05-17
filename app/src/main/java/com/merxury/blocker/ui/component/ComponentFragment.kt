@@ -43,6 +43,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         packageName = args.getString(Constant.PACKAGE_NAME)
         presenter = ComponentPresenter(context!!, this, packageName)
         registerReceiver()
+        presenter.loadComponents(packageName, type)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -77,7 +78,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     override fun onResume() {
         super.onResume()
         registerReceiver()
-        presenter.loadComponents(packageName, type)
     }
 
     override fun onStop() {
@@ -149,8 +149,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun showNoComponent() {
-        componentListFragmentRecyclerView.visibility = View.GONE
-        noComponentContainer.visibility = View.VISIBLE
+        componentListFragmentRecyclerView?.visibility = View.GONE
+        noComponentContainer?.visibility = View.VISIBLE
     }
 
     override fun searchForComponent(name: String) {
