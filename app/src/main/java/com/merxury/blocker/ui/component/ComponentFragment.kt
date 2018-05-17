@@ -119,6 +119,9 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         activity?.menuInflater?.inflate(R.menu.component_list_long_click_menu, menu)
+        if (type != EComponentType.ACTIVITY) {
+            menu?.removeItem(R.id.launch_activity)
+        }
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -130,8 +133,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         when (item.itemId) {
             R.id.block_by_ifw -> presenter.addToIFW(component, type)
             R.id.enable_by_ifw -> presenter.removeFromIFW(component, type)
-            R.id.start_component -> {
-            }
+            R.id.launch_activity -> presenter.launchActivity(component)
             R.id.menu_comments -> showAddComment(component)
             R.id.view_component_comments -> {
             }

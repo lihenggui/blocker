@@ -7,8 +7,8 @@
         android:id="@+id/enable_by_ifw"
         android:title="@string/enable_by_ifw" />
     <item
-        android:id="@+id/start_component"
-        android:title="@string/start_component" />
+        android:id="@+id/launch_activity"
+        android:title="@string/launch_activity" />
     <item
         android:id="@+id/menu_comments"
         android:title="@string/comment" />
