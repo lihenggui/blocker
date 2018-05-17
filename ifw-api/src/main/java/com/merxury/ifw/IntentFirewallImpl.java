@@ -79,15 +79,6 @@ public class IntentFirewallImpl implements IntentFirewall {
             default:
                 break;
         }
-        if (result) {
-            try {
-                save();
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.e(TAG, e.getMessage());
-                return false;
-            }
-        }
         return result;
     }
 
@@ -144,15 +135,6 @@ public class IntentFirewallImpl implements IntentFirewall {
             default:
                 break;
         }
-        if (result) {
-            try {
-                save();
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.e(TAG, e.getMessage());
-                return false;
-            }
-        }
         return result;
     }
 
@@ -184,6 +166,11 @@ public class IntentFirewallImpl implements IntentFirewall {
         String rulePath = StorageUtils.getSystemSecureDirectory() + IFW_FOLDER + filename;
         Log.d(TAG, "delete file: " + rulePath);
         RootTools.deleteFileOrDirectory(rulePath, false);
+    }
+
+    @Override
+    public void reload() {
+        openFile();
     }
 
     private boolean getFilterEnableState(ComponentInfo componentInfo, List<ComponentFilter> componentFilters) {

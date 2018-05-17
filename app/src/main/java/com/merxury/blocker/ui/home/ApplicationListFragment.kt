@@ -18,6 +18,7 @@ import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
+
 class ApplicationListFragment : Fragment(), HomeContract.View {
     override var isActive: Boolean = false
         get() = isAdded
