@@ -49,6 +49,9 @@ public class IntentFirewallImpl implements IntentFirewall {
     public void save() throws Exception {
         Serializer serializer = new Persister();
         File file = new File(tmpPath);
+        if (file.exists()) {
+            RootTools.deleteFileOrDirectory(file.getAbsolutePath(), false);
+        }
         serializer.write(rules, file);
         PermissionUtils.setPermission(tmpPath, 644);
         RootTools.copyFile(tmpPath, destPath, false, true);
