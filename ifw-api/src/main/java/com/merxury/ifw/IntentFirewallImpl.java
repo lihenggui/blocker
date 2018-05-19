@@ -28,16 +28,28 @@ public class IntentFirewallImpl implements IntentFirewall {
     private static final String EXTENSION = ".xml";
     private static final String IFW_FOLDER = "/ifw/";
     private static final String FILTER_TEMPLATE = "%s/%s";
+    private static IntentFirewallImpl instance;
     private String filename;
     private Rules rules;
     private String tmpPath;
     private String destPath;
+    private String packageName;
 
     public IntentFirewallImpl(Context context, String packageName) {
+        this.packageName = packageName;
         this.filename = packageName + EXTENSION;
         tmpPath = context.getFilesDir().toString() + File.separator + filename;
         destPath = getIfwRulePath();
         openFile();
+    }
+
+    public static IntentFirewall getInstance(@NonNull Context context, String packageName) {
+        synchronized (IntentFirewallImpl.class) {
+            if (instance == null || !instance.getPackageName().equals(packageName)) {
+                instance = new IntentFirewallImpl(context, packageName);
+            }
+        }
+        return instance;
     }
 
     public Rules getRules() {
@@ -52,7 +64,7 @@ public class IntentFirewallImpl implements IntentFirewall {
             RootTools.deleteFileOrDirectory(file.getAbsolutePath(), false);
         }
         serializer.write(rules, file);
-        PermissionUtils.setPermission(tmpPath, 644);
+        PermissionUtils.setPermission(tmpPath, 777);
         RootTools.copyFile(tmpPath, destPath, false, true);
     }
 
@@ -193,6 +205,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         if (destFile.exists()) {
             RootTools.copyFile(destPath, tmpPath, false, false);
             File tmpFile = new File(tmpPath);
+
             Serializer serializer = new Persister();
             try {
                 rules = serializer.read(Rules.class, tmpFile);
@@ -219,5 +232,9 @@ public class IntentFirewallImpl implements IntentFirewall {
         if (BuildConfig.DEBUG) {
             e.printStackTrace();
         }
+    }
+
+    public String getPackageName() {
+        return packageName;
     }
 }
