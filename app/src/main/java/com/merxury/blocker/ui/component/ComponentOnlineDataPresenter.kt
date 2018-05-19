@@ -1,7 +1,6 @@
 package com.merxury.blocker.ui.component
 
 import android.content.Context
-import android.content.pm.ComponentInfo
 import android.util.Log
 import com.merxury.blocker.ui.strategy.entity.ComponentDescription
 import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
@@ -14,7 +13,7 @@ import io.reactivex.schedulers.Schedulers
  * Created by Mercury on 2018/4/14.
  */
 
-class ComponentDataPresenter(val view: ComponentContract.ComponentMainView, override val packageName: String) : ComponentContract.ComponentDataPresenter {
+class ComponentOnlineDataPresenter(val view: ComponentContract.ComponentMainView, override val packageName: String) : ComponentContract.ComponentOnlineDataPresenter {
 
     private lateinit var componentData: AppComponentInfo
     private val client: IClientServer by lazy {
@@ -56,8 +55,8 @@ class ComponentDataPresenter(val view: ComponentContract.ComponentMainView, over
                 })
     }
 
-    override fun sendDescription(component: ComponentInfo, type: EComponentType, description: String) {
-        val componentDescription = ComponentDescription(name = component.name, packageName = component.packageName,
+    override fun sendDescription(packageName: String, componentName: String, type: EComponentType, description: String) {
+        val componentDescription = ComponentDescription(name = componentName, packageName = packageName,
                 type = type, description = description)
         client.addDescription(componentDescription)
                 .subscribeOn(Schedulers.io())
@@ -71,6 +70,6 @@ class ComponentDataPresenter(val view: ComponentContract.ComponentMainView, over
 
 
     companion object {
-        const val TAG = "ComponentDataPresenter"
+        const val TAG = "ComponentOnlineDataPres"
     }
 }

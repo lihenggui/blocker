@@ -2,7 +2,6 @@ package com.merxury.blocker.core.root
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
@@ -44,8 +43,8 @@ class RootController(val context: Context) : IController {
         return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
     }
 
-    override fun checkComponentEnableState(componentInfo: ComponentInfo): Boolean {
-        return ApplicationComponents.checkComponentIsEnabled(context.packageManager, ComponentName(componentInfo.packageName, componentInfo.name))
+    override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
+        return ApplicationComponents.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))
     }
 
     companion object {

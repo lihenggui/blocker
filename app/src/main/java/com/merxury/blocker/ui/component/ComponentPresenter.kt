@@ -11,7 +11,6 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootCommand
-import com.merxury.blocker.entity.getSimpleName
 import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.ui.strategy.service.ApiClient
 import com.merxury.blocker.ui.strategy.service.IClientServer
@@ -48,16 +47,17 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     override fun loadComponents(packageName: String, type: EComponentType) {
         Log.i(TAG, "Load components for $packageName, type: $type")
         view.setLoadingIndicator(true)
-        Single.create((SingleOnSubscribe<List<ComponentInfo>> { emitter ->
-            var componentList = when (type) {
+        Single.create((SingleOnSubscribe<List<ComponentItemViewModel>> { emitter ->
+            val componentList = when (type) {
                 EComponentType.RECEIVER -> ApplicationComponents.getReceiverList(pm, packageName)
                 EComponentType.ACTIVITY -> ApplicationComponents.getActivityList(pm, packageName)
                 EComponentType.SERVICE -> ApplicationComponents.getServiceList(pm, packageName)
                 EComponentType.PROVIDER -> ApplicationComponents.getProviderList(pm, packageName)
                 else -> ArrayList<ComponentInfo>()
             }
-            componentList = sortComponentList(componentList, currentComparator)
-            emitter.onSuccess(componentList)
+            var viewModels = initViewModel(componentList)
+            viewModels = sortComponentList(viewModels, currentComparator)
+            emitter.onSuccess(viewModels)
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ components ->
@@ -65,7 +65,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                     if (components.isEmpty()) {
                         view.showNoComponent()
                     } else {
-                        view.showComponentList(components)
+                        view.showComponentList(components.toMutableList())
                     }
                 })
     }
@@ -138,51 +138,60 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         return true
     }
 
-    override fun sortComponentList(components: List<ComponentInfo>, type: EComponentComparatorType): List<ComponentInfo> {
+    override fun sortComponentList(components: List<ComponentItemViewModel>, type: EComponentComparatorType): List<ComponentItemViewModel> {
         return when (type) {
-            EComponentComparatorType.NAME_ASCENDING -> components.sortedBy { it.getSimpleName() }
-            EComponentComparatorType.NAME_DESCENDING -> components.sortedByDescending { it.getSimpleName() }
-            EComponentComparatorType.PACKAGE_NAME_ASCENDING -> components.sortedBy { it.name }
-            EComponentComparatorType.PACKAGE_NAME_DESCENDING -> components.sortedByDescending { it.name }
+            EComponentComparatorType.SIMPLE_NAME_ASCENDING -> components.sortedBy { it.simpleName }
+            EComponentComparatorType.SIMPLE_NAME_DESCENDING -> components.sortedByDescending { it.simpleName }
+            EComponentComparatorType.NAME_ASCENDING -> components.sortedBy { it.name }
+            EComponentComparatorType.NAME_DESCENDING -> components.sortedByDescending { it.name }
         }
     }
 
-    override fun checkComponentIsVoted(component: ComponentInfo): Boolean {
-        val sharedPreferences = context.getSharedPreferences(component.packageName, Context.MODE_PRIVATE)
-        return sharedPreferences.getBoolean(component.name, false)
-
+    override fun checkComponentIsUpVoted(packageName: String, componentName: String): Boolean {
+        val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean(componentName + UPVOTED, false)
     }
 
-    override fun writeComponentVoteState(component: ComponentInfo, like: Boolean) {
-        val sharedPreferences = context.getSharedPreferences(component.packageName, Context.MODE_PRIVATE)
+    override fun checkComponentIsDownVoted(packageName: String, componentName: String): Boolean {
+        val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean(componentName + DOWNVOTED, false)
+    }
+
+
+    override fun writeComponentVoteState(packageName: String, componentName: String, like: Boolean) {
+        val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
-        editor.putBoolean(component.name, like)
+        if (like) {
+            editor.putBoolean(componentName + UPVOTED, like)
+        } else {
+            editor.putBoolean(componentName + DOWNVOTED, like)
+        }
         editor.apply()
     }
 
     @SuppressLint("CheckResult")
-    override fun voteForComponent(component: ComponentInfo, type: EComponentType) {
-        componentClient.upVoteForComponent(ComponentBriefInfo(component.packageName, component.name, type))
+    override fun voteForComponent(packageName: String, componentName: String, type: EComponentType) {
+        componentClient.upVoteForComponent(ComponentBriefInfo(packageName, componentName, type))
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
-                    writeComponentVoteState(component, true)
-                    view.refreshComponentState(component.name)
+                    writeComponentVoteState(packageName, componentName, true)
+                    view.refreshComponentState(componentName)
                 }, { error ->
 
                 })
     }
 
     @SuppressLint("CheckResult")
-    override fun downVoteForComponent(component: ComponentInfo, type: EComponentType) {
-        componentClient.downVoteForComponent(ComponentBriefInfo(component.packageName, component.name, type))
+    override fun downVoteForComponent(packageName: String, componentName: String, type: EComponentType) {
+        componentClient.downVoteForComponent(ComponentBriefInfo(packageName, componentName, type))
                 .subscribeOn(Schedulers.io())
                 .unsubscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
-                    writeComponentVoteState(component, false)
-                    view.refreshComponentState(component.name)
+                    writeComponentVoteState(packageName, componentName, false)
+                    view.refreshComponentState(componentName)
                 }, { error ->
 
                 })
@@ -250,9 +259,9 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                 })
     }
 
-    override fun launchActivity(component: ComponentInfo) {
+    override fun launchActivity(packageName: String, componentName: String) {
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
-            val command = "am start -n ${component.packageName}/${component.name}"
+            val command = "am start -n $packageName/$componentName"
             try {
                 RootCommand.runBlockingCommand(command)
                 emitter.onSuccess(true)
@@ -273,9 +282,36 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
 
     }
 
-    override fun checkComponentEnableState(component: ComponentInfo): Boolean {
-        return ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(component.packageName, component.name)) and
-                ifwController.getComponentEnableState(component)
+    override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
+        return ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(packageName, componentName))
+
+    }
+
+    override fun checkIFWState(packageName: String, componentName: String): Boolean {
+        return ifwController.getComponentEnableState(packageName, componentName)
+    }
+
+    override fun getComponentViewModel(packageName: String, componentName: String): ComponentItemViewModel {
+        val viewModel = ComponentItemViewModel(packageName = packageName, name = componentName)
+        viewModel.simpleName = componentName.split(".").last()
+        updateComponentViewModel(viewModel)
+        return viewModel
+    }
+
+    override fun updateComponentViewModel(viewModel: ComponentItemViewModel) {
+        viewModel.state = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(viewModel.packageName, viewModel.name))
+        viewModel.ifwState = ifwController.getComponentEnableState(viewModel.packageName, viewModel.name)
+        viewModel.upVoted = checkComponentIsUpVoted(viewModel.packageName, viewModel.name)
+        viewModel.downVoted = checkComponentIsDownVoted(viewModel.packageName, viewModel.name)
+    }
+
+
+    private fun initViewModel(componentList: List<ComponentInfo>): List<ComponentItemViewModel> {
+        val viewModels = ArrayList<ComponentItemViewModel>()
+        componentList.forEach {
+            viewModels.add(getComponentViewModel(it.packageName, it.name))
+        }
+        return viewModels
     }
 
     override fun start(context: Context) {
@@ -283,16 +319,14 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     override fun destroy() {
-        try {
-            ifwController.save()
-        } catch (e: Exception) {
-            Log.w(TAG, "Cannot save rules, message is ${e.message}")
-        }
+
     }
 
-    override var currentComparator: EComponentComparatorType = EComponentComparatorType.NAME_ASCENDING
+    override var currentComparator: EComponentComparatorType = EComponentComparatorType.SIMPLE_NAME_ASCENDING
 
     companion object {
         const val TAG = "ComponentPresenter"
+        const val UPVOTED = "_voted"
+        const val DOWNVOTED = "_downvoted"
     }
 }

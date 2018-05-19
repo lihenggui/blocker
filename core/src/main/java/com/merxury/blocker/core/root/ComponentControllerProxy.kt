@@ -1,7 +1,6 @@
 package com.merxury.blocker.core.root
 
 import android.content.Context
-import android.content.pm.ComponentInfo
 import com.merxury.blocker.core.IController
 
 /**
@@ -32,8 +31,8 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
         return controller.disable(packageName, componentName)
     }
 
-    override fun checkComponentEnableState(componentInfo: ComponentInfo): Boolean {
-        return controller.checkComponentEnableState(componentInfo)
+    override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
+        return controller.checkComponentEnableState(packageName, componentName)
     }
 
     companion object {

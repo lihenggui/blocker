@@ -1,7 +1,5 @@
 package com.merxury.blocker.core
 
-import android.content.pm.ComponentInfo
-
 /**
  * Created by Mercury on 2018/1/13.
  * An Interface that defines what controller should do
@@ -25,5 +23,5 @@ interface IController {
 
     fun disable(packageName: String, componentName: String): Boolean
 
-    fun checkComponentEnableState(componentInfo: ComponentInfo): Boolean
+    fun checkComponentEnableState(cpackageName: String, componentName: String): Boolean
 }
