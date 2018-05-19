@@ -35,7 +35,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     private val ifwController: IntentFirewall by lazy {
-        IntentFirewallImpl(context, packageName)
+        IntentFirewallImpl.getInstance(context, packageName)
     }
 
     init {

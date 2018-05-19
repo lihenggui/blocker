@@ -3,10 +3,8 @@ package com.merxury.blocker.ui.home
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.app.ActivityManager
-import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.support.design.widget.NavigationView
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GravityCompat
@@ -17,10 +15,18 @@ import com.merxury.blocker.R
 import com.merxury.blocker.ui.adapter.FragmentAdapter
 import com.merxury.blocker.ui.base.IActivityView
 import com.merxury.blocker.util.setupActionBar
+import com.mikepenz.materialdrawer.AccountHeaderBuilder
+import com.mikepenz.materialdrawer.Drawer
+import com.mikepenz.materialdrawer.DrawerBuilder
+import com.mikepenz.materialdrawer.model.DividerDrawerItem
+import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
 import kotlinx.android.synthetic.main.activity_home.*
+
 
 class HomeActivity : AppCompatActivity(), IActivityView {
 
+    private lateinit var drawer: Drawer
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
@@ -29,7 +35,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
             setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp)
             setDisplayHomeAsUpEnabled(true)
         }
-        setupDrawerContent(nav_view)
+        setupDrawerContent(savedInstanceState)
         setupViewPager(app_viewpager)
         findViewById<TabLayout>(R.id.app_kind_tabs).apply {
             setupWithViewPager(app_viewpager)
@@ -44,19 +50,33 @@ class HomeActivity : AppCompatActivity(), IActivityView {
         viewPager.adapter = adapter
     }
 
-    private fun setupDrawerContent(navigationView: NavigationView) {
-        navigationView.setNavigationItemSelectedListener { menuItem ->
-            //placeholders
-            when (menuItem.itemId) {
-                R.id.list_navigation_menu_item -> {
-                    val intent = Intent(this@HomeActivity, HomeActivity::class.java)
-                    startActivity(intent)
+    private fun setupDrawerContent(savedInstanceState: Bundle?) {
+        val item1 = PrimaryDrawerItem().withIdentifier(1).withName(R.string.app_list_title).withIcon(R.drawable.ic_list)
+        val item2 = SecondaryDrawerItem().withIdentifier(2).withName(R.string.action_settings).withIcon(R.drawable.ic_settings)
+        val headerResult = AccountHeaderBuilder()
+                .withActivity(this)
+                .withTranslucentStatusBar(true)
+                .withHeaderBackground(R.color.colorPrimary)
+                .withSavedInstance(savedInstanceState)
+                .build()
+
+        drawer = DrawerBuilder()
+                .withActivity(this)
+                .withToolbar(toolbar)
+                .withSavedInstance(savedInstanceState)
+                .withActionBarDrawerToggleAnimated(true)
+                .withAccountHeader(headerResult)
+                .addDrawerItems(
+                        item1,
+                        DividerDrawerItem(),
+                        item2
+                )
+                .withOnDrawerItemClickListener { view, position, drawerItem ->
+                    // do something with the clicked item :D
+                    true
                 }
-            }
-            menuItem.isChecked = true
-            drawer_layout.closeDrawers()
-            true
-        }
+                .build()
+
     }
 
     private fun setupTab(tabLayout: TabLayout) {
@@ -115,6 +135,13 @@ class HomeActivity : AppCompatActivity(), IActivityView {
             0 -> ContextCompat.getColor(this, R.color.md_blue_700)
             1 -> ContextCompat.getColor(this, R.color.md_red_700)
             else -> ContextCompat.getColor(this, R.color.md_grey_700)
+        }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        if (drawer.isDrawerOpen) {
+            drawer.closeDrawer()
         }
     }
 }
