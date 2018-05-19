@@ -209,25 +209,25 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     }
 
-    override fun onSwitchClick(component: ComponentInfo, isChecked: Boolean) {
+    override fun onSwitchClick(name: String, isChecked: Boolean) {
         if (isChecked) {
-            presenter.enable(component)
-            presenter.removeFromIFW(component, type)
+            presenter.enable(packageName, name)
+            presenter.removeFromIFW(packageName, name, type)
         } else {
-            presenter.disable(component)
+            presenter.disable(packageName, name)
         }
     }
 
-    override fun onUpVoteClick(component: ComponentInfo) {
+    override fun onUpVoteClick(name: String) {
         // TODO add cancel vote in future version
-        if (!presenter.checkComponentIsVoted(component)) {
-            presenter.voteForComponent(component, type)
+        if (!presenter.checkComponentIsVoted(packageName, name)) {
+            presenter.voteForComponent(packageName, name, type)
         }
     }
 
-    override fun onDownVoteClick(component: ComponentInfo) {
+    override fun onDownVoteClick(name: String) {
         // TODO add cancel vote in future version
-        presenter.downVoteForComponent(component, type)
+        presenter.downVoteForComponent(packageName, name, type)
     }
 
     override fun showAddComment(component: ComponentInfo) {
@@ -282,10 +282,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
     }
 
-    inner class ComponentsRecyclerViewAdapter(private var components: List<ComponentInfo> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
+    inner class ComponentsRecyclerViewAdapter(private var components: List<ComponentItemViewModel> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
 
         lateinit var pm: PackageManager
-        private var listCopy = ArrayList<ComponentInfo>()
+        private var listCopy = ArrayList<ComponentItemViewModel>()
         private lateinit var componentData: AppComponentInfo
         private lateinit var listener: ComponentContract.ComponentItemListener
 
@@ -327,7 +327,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             return this.components.size
         }
 
-        fun addData(components: List<ComponentInfo>) {
+        fun addData(components: List<ComponentItemViewModel>) {
             this.components = components
             this.listCopy = ArrayList(components)
             notifyDataSetChanged()
@@ -338,7 +338,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             notifyDataSetChanged()
         }
 
-        fun getData(): List<ComponentInfo> {
+        fun getData(): List<ComponentItemViewModel> {
             return components
         }
 
@@ -356,30 +356,29 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
 
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            fun bindComponent(component: ComponentInfo) {
-                val componentShortName = component.name.split(".").last()
+            fun bindComponent(component: ComponentItemViewModel) {
                 with(itemView) {
-                    component_name.text = componentShortName
-                    component_package_name.text = component.name
-                    component_switch.isChecked = presenter.checkComponentEnableState(component)
+                    component_name.text = component.name
+                    component_package_name.text = component.packageName
+                    component_switch.isChecked = component.state && component.ifwState
                     setOnClickListener {
-                        listener.onSwitchClick(component, !it.component_switch.isChecked)
+                        listener.onSwitchClick(component.name, !it.component_switch.isChecked)
                         it.component_switch.isChecked = !it.component_switch.isChecked
                     }
                     component_switch.setOnClickListener {
-                        listener.onSwitchClick(component, it.component_switch.isChecked)
+                        listener.onSwitchClick(component.name, it.component_switch.isChecked)
                     }
                     component_like_button.setOnClickListener {
-                        listener.onUpVoteClick(component)
+                        listener.onUpVoteClick(component.name)
                     }
                     component_like_count.setOnClickListener {
-                        listener.onUpVoteClick(component)
+                        listener.onUpVoteClick(component.name)
                     }
                     component_dislike_button.setOnClickListener {
-                        listener.onDownVoteClick(component)
+                        listener.onDownVoteClick(component.name)
                     }
                     component_dislike_count.setOnClickListener {
-                        listener.onDownVoteClick(component)
+                        listener.onDownVoteClick(component.name)
                     }
                 }
             }

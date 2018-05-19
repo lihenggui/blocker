@@ -26,12 +26,12 @@ interface ComponentContract {
         var currentComparator: EComponentComparatorType
         fun loadComponents(packageName: String, type: EComponentType)
         fun sortComponentList(components: List<ComponentInfo>, type: EComponentComparatorType): List<ComponentInfo>
-        fun checkComponentIsVoted(component: ComponentInfo): Boolean
-        fun voteForComponent(component: ComponentInfo, type: EComponentType)
-        fun downVoteForComponent(component: ComponentInfo, type: EComponentType)
+        fun checkComponentIsVoted(packageName: String, componentName: String): Boolean
+        fun voteForComponent(packageName: String, componentName: String, type: EComponentType)
+        fun downVoteForComponent(packageName: String, componentName: String, type: EComponentType)
         fun writeComponentVoteState(component: ComponentInfo, like: Boolean)
-        fun addToIFW(component: ComponentInfo, type: EComponentType)
-        fun removeFromIFW(component: ComponentInfo, type: EComponentType)
+        fun addToIFW(packageName: String, componentName: String, type: EComponentType)
+        fun removeFromIFW(packageName: String, componentName: String, type: EComponentType)
         fun launchActivity(component: ComponentInfo)
     }
 
@@ -51,8 +51,8 @@ interface ComponentContract {
     interface ComponentItemListener {
         fun onComponentClick(component: ComponentInfo)
         fun onComponentLongClick(component: ComponentInfo)
-        fun onSwitchClick(component: ComponentInfo, isChecked: Boolean)
-        fun onUpVoteClick(component: ComponentInfo)
-        fun onDownVoteClick(component: ComponentInfo)
+        fun onSwitchClick(name: String, isChecked: Boolean)
+        fun onUpVoteClick(name: String)
+        fun onDownVoteClick(name: String)
     }
 }

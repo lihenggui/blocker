@@ -93,11 +93,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     @SuppressLint("CheckResult")
-    override fun enable(componentInfo: ComponentInfo): Boolean {
-        Log.i(TAG, "Enable component: ${componentInfo.name}")
+    override fun enable(packageName: String, componentName: String): Boolean {
+        Log.i(TAG, "Enable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
-                val result = controller.enable(componentInfo)
+                val result = controller.enable(packageName, componentName)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -105,7 +105,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentState(componentInfo.name)
+                    view.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
@@ -116,11 +116,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     @SuppressLint("CheckResult")
-    override fun disable(componentInfo: ComponentInfo): Boolean {
-        Log.i(TAG, "Disable component: ${componentInfo.name}")
+    override fun disable(packageName: String, componentName: String): Boolean {
+        Log.i(TAG, "Disable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
-                val result = controller.disable(componentInfo)
+                val result = controller.disable(packageName, componentName)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -128,7 +128,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentState(componentInfo.name)
+                    view.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
@@ -188,14 +188,14 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                 })
     }
 
-    override fun addToIFW(component: ComponentInfo, type: EComponentType) {
-        Log.i(TAG, "Disable component via IFW: ${component.name}")
+    override fun addToIFW(packageName: String, componentName: String, type: EComponentType) {
+        Log.i(TAG, "Disable component via IFW: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 when (type) {
-                    EComponentType.ACTIVITY -> ifwController.add(component, ComponentType.ACTIVITY)
-                    EComponentType.RECEIVER -> ifwController.add(component, ComponentType.BROADCAST)
-                    EComponentType.SERVICE -> ifwController.add(component, ComponentType.SERVICE)
+                    EComponentType.ACTIVITY -> ifwController.add(packageName, componentName, ComponentType.ACTIVITY)
+                    EComponentType.RECEIVER -> ifwController.add(packageName, componentName, ComponentType.BROADCAST)
+                    EComponentType.SERVICE -> ifwController.add(packageName, componentName, ComponentType.SERVICE)
                     else -> {
                     }
                 }
@@ -208,7 +208,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _ ->
-                    view.refreshComponentState(component.name)
+                    view.refreshComponentState(componentName)
                 }, { error ->
                     error?.apply {
                         ifwController.reload()
@@ -219,14 +219,14 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                 })
     }
 
-    override fun removeFromIFW(component: ComponentInfo, type: EComponentType) {
-        Log.i(TAG, "Disable component via IFW: ${component.name}")
+    override fun removeFromIFW(packageName: String, componentName: String, type: EComponentType) {
+        Log.i(TAG, "Disable component via IFW: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 when (type) {
-                    EComponentType.ACTIVITY -> ifwController.remove(component, ComponentType.ACTIVITY)
-                    EComponentType.RECEIVER -> ifwController.remove(component, ComponentType.BROADCAST)
-                    EComponentType.SERVICE -> ifwController.remove(component, ComponentType.SERVICE)
+                    EComponentType.ACTIVITY -> ifwController.remove(packageName, componentName, ComponentType.ACTIVITY)
+                    EComponentType.RECEIVER -> ifwController.remove(packageName, componentName, ComponentType.BROADCAST)
+                    EComponentType.SERVICE -> ifwController.remove(packageName, componentName, ComponentType.SERVICE)
                     else -> {
                     }
                 }
@@ -239,7 +239,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _ ->
-                    view.refreshComponentState(component.name)
+                    view.refreshComponentState(componentName)
                 }, { error ->
                     error?.apply {
                         ifwController.reload()

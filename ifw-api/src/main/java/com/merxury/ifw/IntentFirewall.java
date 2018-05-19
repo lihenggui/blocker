@@ -7,9 +7,9 @@ import com.merxury.ifw.entity.ComponentType;
 public interface IntentFirewall {
     void save() throws Exception;
 
-    boolean add(ComponentInfo component, ComponentType type);
+    boolean add(String packageName, String componentName, ComponentType type);
 
-    boolean remove(ComponentInfo component, ComponentType type);
+    boolean remove(String packageName, String componentName, ComponentType type);
 
     boolean getComponentEnableState(ComponentInfo componentInfo);
 
