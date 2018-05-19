@@ -21,9 +21,9 @@ interface IController {
      */
     fun switchComponent(packageName: String, componentName: String, state: Int): Boolean
 
-    fun enable(componentInfo: ComponentInfo): Boolean
+    fun enable(packageName: String, componentName: String): Boolean
 
-    fun disable(componentInfo: ComponentInfo): Boolean
+    fun disable(packageName: String, componentName: String): Boolean
 
     fun checkComponentEnableState(componentInfo: ComponentInfo): Boolean
 }

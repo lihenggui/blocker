@@ -58,26 +58,26 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     @Override
-    public boolean add(ComponentInfo component, ComponentType type) {
+    public boolean add(String packageName, String componentName, ComponentType type) {
         boolean result = false;
         switch (type) {
             case ACTIVITY:
                 if (rules.getActivity() == null) {
                     rules.setActivity(new Activity());
                 }
-                result = addComponentFilter(component, rules.getActivity());
+                result = addComponentFilter(packageName, componentName, rules.getActivity());
                 break;
             case BROADCAST:
                 if (rules.getBroadcast() == null) {
                     rules.setBroadcast(new Broadcast());
                 }
-                result = addComponentFilter(component, rules.getBroadcast());
+                result = addComponentFilter(packageName, componentName, rules.getBroadcast());
                 break;
             case SERVICE:
                 if (rules.getService() == null) {
                     rules.setService(new Service());
                 }
-                result = addComponentFilter(component, rules.getService());
+                result = addComponentFilter(packageName, componentName, rules.getService());
                 break;
             default:
                 break;
@@ -85,7 +85,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         return result;
     }
 
-    private boolean addComponentFilter(ComponentInfo componentInfo, Component component) {
+    private boolean addComponentFilter(String packageName, String componentName, Component component) {
         if (component == null) {
             return false;
         }
@@ -94,7 +94,7 @@ public class IntentFirewallImpl implements IntentFirewall {
             filters = new ArrayList<>();
             component.setComponentFilters(filters);
         }
-        String filterRule = formatName(componentInfo.packageName, componentInfo.name);
+        String filterRule = formatName(packageName, componentName);
         //Duplicate filter detection
         for (ComponentFilter filter : filters) {
             if (filter.getName().equals(filterRule)) {
@@ -105,7 +105,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         return true;
     }
 
-    private boolean removeComponentFilter(ComponentInfo componentInfo, Component component) {
+    private boolean removeComponentFilter(String packageName, String componentName, Component component) {
         if (component == null) {
             return false;
         }
@@ -113,7 +113,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         if (filters == null) {
             filters = new ArrayList<>();
         }
-        String filterRule = formatName(componentInfo.packageName, componentInfo.name);
+        String filterRule = formatName(packageName, componentName);
         for (ComponentFilter filter : new ArrayList<>(filters)) {
             if (filterRule.equals(filter.getName())) {
                 filters.remove(filter);
@@ -123,17 +123,17 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     @Override
-    public boolean remove(ComponentInfo component, ComponentType type) {
+    public boolean remove(String packageName, String componentName, ComponentType type) {
         boolean result = false;
         switch (type) {
             case ACTIVITY:
-                result = removeComponentFilter(component, rules.getActivity());
+                result = removeComponentFilter(packageName, componentName, rules.getActivity());
                 break;
             case BROADCAST:
-                result = removeComponentFilter(component, rules.getBroadcast());
+                result = removeComponentFilter(packageName, componentName, rules.getBroadcast());
                 break;
             case SERVICE:
-                result = removeComponentFilter(component, rules.getService());
+                result = removeComponentFilter(packageName, componentName, rules.getService());
                 break;
             default:
                 break;

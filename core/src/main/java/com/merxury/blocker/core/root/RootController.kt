@@ -36,12 +36,12 @@ class RootController(val context: Context) : IController {
         }
     }
 
-    override fun enable(componentInfo: ComponentInfo): Boolean {
-        return switchComponent(componentInfo.packageName, componentInfo.name, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+    override fun enable(packageName: String, componentName: String): Boolean {
+        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
     }
 
-    override fun disable(componentInfo: ComponentInfo): Boolean {
-        return switchComponent(componentInfo.packageName, componentInfo.name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+    override fun disable(packageName: String, componentName: String): Boolean {
+        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
     }
 
     override fun checkComponentEnableState(componentInfo: ComponentInfo): Boolean {

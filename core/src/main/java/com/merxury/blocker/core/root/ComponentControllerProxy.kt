@@ -24,12 +24,12 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
         return controller.switchComponent(packageName, componentName, state)
     }
 
-    override fun enable(componentInfo: ComponentInfo): Boolean {
-        return controller.enable(componentInfo)
+    override fun enable(packageName: String, componentName: String): Boolean {
+        return controller.enable(packageName, componentName)
     }
 
-    override fun disable(componentInfo: ComponentInfo): Boolean {
-        return controller.disable(componentInfo)
+    override fun disable(packageName: String, componentName: String): Boolean {
+        return controller.disable(packageName, componentName)
     }
 
     override fun checkComponentEnableState(componentInfo: ComponentInfo): Boolean {
