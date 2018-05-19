@@ -1,7 +1,6 @@
 package com.merxury.ifw;
 
 import android.content.Context;
-import android.content.pm.ComponentInfo;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
@@ -36,7 +35,7 @@ public class IntentFirewallImpl implements IntentFirewall {
 
     public IntentFirewallImpl(Context context, String packageName) {
         this.filename = packageName + EXTENSION;
-        tmpPath = context.getCacheDir().toString() + File.separator + filename;
+        tmpPath = context.getFilesDir().toString() + File.separator + filename;
         destPath = getIfwRulePath();
         openFile();
     }
@@ -142,7 +141,7 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     @Override
-    public boolean getComponentEnableState(ComponentInfo componentInfo) {
+    public boolean getComponentEnableState(String packageName, String componentName) {
         List<ComponentFilter> filters = new ArrayList<>();
         if (rules.getActivity() != null) {
             filters.addAll(rules.getActivity().getComponentFilters());
@@ -153,7 +152,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         if (rules.getService() != null) {
             filters.addAll(rules.getService().getComponentFilters());
         }
-        return getFilterEnableState(componentInfo, filters);
+        return getFilterEnableState(packageName, componentName, filters);
     }
 
     @Override
@@ -176,12 +175,12 @@ public class IntentFirewallImpl implements IntentFirewall {
         openFile();
     }
 
-    private boolean getFilterEnableState(ComponentInfo componentInfo, List<ComponentFilter> componentFilters) {
+    private boolean getFilterEnableState(String packageName, String componentName, List<ComponentFilter> componentFilters) {
         if (componentFilters == null) {
             return true;
         }
         for (ComponentFilter filter : componentFilters) {
-            String filterName = formatName(componentInfo.packageName, componentInfo.name);
+            String filterName = formatName(packageName, componentName);
             if (filterName.equals(filter.getName())) {
                 return false;
             }
@@ -192,7 +191,7 @@ public class IntentFirewallImpl implements IntentFirewall {
     private void openFile() {
         File destFile = new File(destPath);
         if (destFile.exists()) {
-            RootTools.copyFile(destPath, tmpPath, false, true);
+            RootTools.copyFile(destPath, tmpPath, false, false);
             File tmpFile = new File(tmpPath);
             Serializer serializer = new Persister();
             try {

@@ -25,7 +25,7 @@ import kotlinx.android.synthetic.main.application_brief_info_layout.*
 
 class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.ComponentMainView {
 
-    private lateinit var componentDataPresenter: ComponentContract.ComponentDataPresenter
+    private lateinit var componentOnlineDataPresenter: ComponentContract.ComponentOnlineDataPresenter
 
     private lateinit var application: Application
 
@@ -45,7 +45,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
         setupViewPager()
         setupTab()
         showApplicationBriefInfo(application)
-        componentDataPresenter.loadComponentData()
+        componentOnlineDataPresenter.loadComponentData()
     }
 
 
@@ -143,12 +143,12 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
-    override fun getComponentDataPresenter(): ComponentContract.ComponentDataPresenter {
-        return componentDataPresenter
+    override fun getComponentDataPresenter(): ComponentContract.ComponentOnlineDataPresenter {
+        return componentOnlineDataPresenter
     }
 
     private fun setupPresenter() {
-        componentDataPresenter = ComponentDataPresenter(this, application.packageName)
+        componentOnlineDataPresenter = ComponentOnlineDataPresenter(this, application.packageName)
     }
 
 }

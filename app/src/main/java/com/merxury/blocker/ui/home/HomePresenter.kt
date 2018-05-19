@@ -62,6 +62,6 @@ class HomePresenter(val pm: PackageManager, val homeView: HomeContract.View) : H
 
     }
 
-    override var currentComparator = ApplicationComparatorType.ASCENDING_BY_LABEL
+    override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
 
 }

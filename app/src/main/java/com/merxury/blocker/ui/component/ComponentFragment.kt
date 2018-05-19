@@ -1,7 +1,6 @@
 package com.merxury.blocker.ui.component
 
 import android.content.*
-import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
@@ -24,7 +23,7 @@ import kotlinx.android.synthetic.main.fragment_component.view.*
 class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentMainView, ComponentContract.ComponentItemListener {
 
     override lateinit var presenter: ComponentContract.Presenter
-    private lateinit var componentDetailsPresenter: ComponentContract.ComponentDataPresenter
+    private lateinit var componentOnlineDetailsPresenter: ComponentContract.ComponentOnlineDataPresenter
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
     private lateinit var packageName: String
     private lateinit var type: EComponentType
@@ -33,7 +32,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        componentDetailsPresenter = (context as ComponentContract.ComponentMainView).getComponentDataPresenter()
+        componentOnlineDetailsPresenter = (context as ComponentContract.ComponentMainView).getComponentDataPresenter()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -131,14 +130,14 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         val position = (item.menuInfo as ContextMenuRecyclerView.RecyclerContextMenuInfo).position
         val component = componentAdapter.getData()[position]
         when (item.itemId) {
-            R.id.block_by_ifw -> presenter.addToIFW(component, type)
-            R.id.enable_by_ifw -> presenter.removeFromIFW(component, type)
-            R.id.launch_activity -> presenter.launchActivity(component)
-            R.id.menu_comments -> showAddComment(component)
+            R.id.block_by_ifw -> presenter.addToIFW(component.packageName, component.name, type)
+            R.id.enable_by_ifw -> presenter.removeFromIFW(component.packageName, component.name, type)
+            R.id.launch_activity -> presenter.launchActivity(component.packageName, component.name)
+            R.id.menu_comments -> showAddComment(component.packageName, component.name)
             R.id.view_component_comments -> {
             }
-            R.id.menu_upvote_component -> presenter.voteForComponent(component, type)
-            R.id.menu_downvote_component -> presenter.downVoteForComponent(component, type)
+            R.id.menu_upvote_component -> presenter.voteForComponent(component.packageName, component.name, type)
+            R.id.menu_downvote_component -> presenter.downVoteForComponent(component.packageName, component.name, type)
         }
         return true
     }
@@ -164,10 +163,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             menuInflater.inflate(R.menu.filter_component, menu)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.name_asc -> presenter.currentComparator = EComponentComparatorType.NAME_ASCENDING
-                    R.id.name_des -> presenter.currentComparator = EComponentComparatorType.NAME_DESCENDING
-                    R.id.package_name_asc -> presenter.currentComparator = EComponentComparatorType.PACKAGE_NAME_ASCENDING
-                    R.id.package_name_des -> presenter.currentComparator = EComponentComparatorType.PACKAGE_NAME_DESCENDING
+                    R.id.name_asc -> presenter.currentComparator = EComponentComparatorType.SIMPLE_NAME_ASCENDING
+                    R.id.name_des -> presenter.currentComparator = EComponentComparatorType.SIMPLE_NAME_DESCENDING
+                    R.id.package_name_asc -> presenter.currentComparator = EComponentComparatorType.NAME_ASCENDING
+                    R.id.package_name_des -> presenter.currentComparator = EComponentComparatorType.NAME_DESCENDING
                 }
                 presenter.loadComponents(packageName, type)
                 true
@@ -181,7 +180,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         val components = componentAdapter.getData()
         for (i in components.indices) {
             if (componentName == components[i].name) {
+                val viewModel = presenter.getComponentViewModel(packageName, componentName)
+                components[i] = viewModel
                 componentAdapter.notifyItemChanged(i)
+                break
             }
         }
     }
@@ -196,23 +198,25 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
     }
 
-    override fun showComponentList(components: List<ComponentInfo>) {
+    override fun showComponentList(components: MutableList<ComponentItemViewModel>) {
         noComponentContainer?.visibility = View.GONE
         componentListFragmentRecyclerView?.visibility = View.VISIBLE
-        componentAdapter.addData(components)
+        componentAdapter.updateData(components)
     }
 
-    override fun onComponentClick(component: ComponentInfo) {
+    override fun onComponentClick(name: String) {
     }
 
-    override fun onComponentLongClick(component: ComponentInfo) {
+    override fun onComponentLongClick(name: String) {
 
     }
 
     override fun onSwitchClick(name: String, isChecked: Boolean) {
         if (isChecked) {
             presenter.enable(packageName, name)
-            presenter.removeFromIFW(packageName, name, type)
+            if (!presenter.checkIFWState(packageName, name)) {
+                presenter.removeFromIFW(packageName, name, type)
+            }
         } else {
             presenter.disable(packageName, name)
         }
@@ -220,7 +224,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onUpVoteClick(name: String) {
         // TODO add cancel vote in future version
-        if (!presenter.checkComponentIsVoted(packageName, name)) {
+        if (!presenter.checkComponentIsUpVoted(packageName, name)) {
             presenter.voteForComponent(packageName, name, type)
         }
     }
@@ -230,7 +234,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         presenter.downVoteForComponent(packageName, name, type)
     }
 
-    override fun showAddComment(component: ComponentInfo) {
+    override fun showAddComment(packageName: String, componentName: String) {
         context?.apply {
             val view = layoutInflater.inflate(R.layout.add_comment, null)
             val commentInput = view.findViewById<EditText>(R.id.add_comment_input)
@@ -239,7 +243,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     .setCancelable(true)
                     .setView(view)
                     .setNegativeButton(R.string.cancel, { dialog, _ -> dialog.dismiss() })
-                    .setPositiveButton(R.string.send, { dialog, which -> componentDetailsPresenter.sendDescription(component, type, commentInput.text.toString()) })
+                    .setPositiveButton(R.string.send, { dialog, which -> componentOnlineDetailsPresenter.sendDescription(packageName, componentName, type, commentInput.text.toString()) })
                     .create()
                     .show()
         }
@@ -254,7 +258,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     }
 
-    override fun getComponentDataPresenter(): ComponentContract.ComponentDataPresenter {
+    override fun getComponentDataPresenter(): ComponentContract.ComponentOnlineDataPresenter {
         TODO("won't implemented")
     }
 
@@ -282,9 +286,9 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
     }
 
-    inner class ComponentsRecyclerViewAdapter(private var components: List<ComponentItemViewModel> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
+    inner class ComponentsRecyclerViewAdapter(private var components: MutableList<ComponentItemViewModel> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
 
-        lateinit var pm: PackageManager
+        private lateinit var pm: PackageManager
         private var listCopy = ArrayList<ComponentItemViewModel>()
         private lateinit var componentData: AppComponentInfo
         private lateinit var listener: ComponentContract.ComponentItemListener
@@ -327,7 +331,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             return this.components.size
         }
 
-        fun addData(components: List<ComponentItemViewModel>) {
+        fun updateData(components: MutableList<ComponentItemViewModel>) {
             this.components = components
             this.listCopy = ArrayList(components)
             notifyDataSetChanged()
@@ -338,7 +342,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             notifyDataSetChanged()
         }
 
-        fun getData(): List<ComponentItemViewModel> {
+        fun getData(): MutableList<ComponentItemViewModel> {
             return components
         }
 
@@ -346,7 +350,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             components = if (keyword.isEmpty()) {
                 listCopy
             } else {
-                listCopy.filter { it.name.contains(keyword, true) }
+                listCopy.filter { it.name.contains(keyword, true) }.toMutableList()
             }
             notifyDataSetChanged()
         }
@@ -358,8 +362,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             fun bindComponent(component: ComponentItemViewModel) {
                 with(itemView) {
-                    component_name.text = component.name
-                    component_package_name.text = component.packageName
+                    component_name.text = component.simpleName
+                    component_package_name.text = component.name
                     component_switch.isChecked = component.state && component.ifwState
                     setOnClickListener {
                         listener.onSwitchClick(component.name, !it.component_switch.isChecked)
@@ -396,7 +400,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     inner class OnComponentDetailsLoadedReceiver : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
-            val details = componentDetailsPresenter.getComponentData()
+            val details = componentOnlineDetailsPresenter.getComponentData()
             componentAdapter.addComponentDetails(details)
         }
     }

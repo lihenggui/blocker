@@ -1,7 +1,5 @@
 package com.merxury.ifw;
 
-import android.content.pm.ComponentInfo;
-
 import com.merxury.ifw.entity.ComponentType;
 
 public interface IntentFirewall {
@@ -11,7 +9,7 @@ public interface IntentFirewall {
 
     boolean remove(String packageName, String componentName, ComponentType type);
 
-    boolean getComponentEnableState(ComponentInfo componentInfo);
+    boolean getComponentEnableState(String packageName, String componentName);
 
     void clear();
 
