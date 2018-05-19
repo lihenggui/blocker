@@ -73,8 +73,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         return root
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onStart() {
+        super.onStart()
         registerReceiver()
         presenter.loadComponents(packageName, type)
     }
@@ -273,6 +273,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
         }
     }
+
 
     companion object {
         const val TAG = "ComponentFragment"

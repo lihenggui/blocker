@@ -102,7 +102,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         context?.run {
             presenter.loadApplicationList(this, isSystem)
         }
-
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
