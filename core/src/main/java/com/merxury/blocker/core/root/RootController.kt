@@ -21,8 +21,8 @@ class RootController(val context: Context) : IController {
 
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
         val comm: String = when (state) {
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> String.format(ENABLE_COMPONENT_TEMPLATE, packageName, componentName)
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> String.format(DISABLE_COMPONENT_TEMPLATE, packageName, componentName)
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> removeEscapeCharacter(String.format(ENABLE_COMPONENT_TEMPLATE, packageName, componentName))
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> removeEscapeCharacter(String.format(DISABLE_COMPONENT_TEMPLATE, packageName, componentName))
             else -> return false
         }
         Log.d(TAG, "command:$comm, componentState is $state")
@@ -41,6 +41,10 @@ class RootController(val context: Context) : IController {
 
     override fun disable(packageName: String, componentName: String): Boolean {
         return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+    }
+
+    private fun removeEscapeCharacter(comm: String): String {
+        return comm.replace("$", "\\$")
     }
 
     override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
