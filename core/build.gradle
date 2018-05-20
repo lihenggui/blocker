@@ -24,6 +24,9 @@ android {
         externalNativeBuild {
         }
     }
+    lintOptions {
+        abortOnError false
+    }
 
 }
 repositories {

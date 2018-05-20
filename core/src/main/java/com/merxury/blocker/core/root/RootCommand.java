@@ -26,7 +26,7 @@ public class RootCommand {
     private static final String TAG = "RootCommand";
 
     @NonNull
-    public static String runBlockingCommand(final String comm) throws RootDeniedException, IOException, TimeoutException {
+    public synchronized static String runBlockingCommand(final String comm) throws RootDeniedException, IOException, TimeoutException {
         final AtomicReference<String> returnItem = new AtomicReference<>();
         final AtomicReference<Throwable> returnException = new AtomicReference<>();
 
@@ -47,7 +47,7 @@ public class RootCommand {
                     public void commandTerminated(int id, String reason) {
                         String msg = "commandTerminated";
                         Log.d(TAG, msg);
-                        emitter.onError(new ProcessUnexpectedTerminateException(msg));
+                        emitter.onError(new ProcessUnexpectedTerminateException(reason));
                         super.commandTerminated(id, reason);
                     }
 
