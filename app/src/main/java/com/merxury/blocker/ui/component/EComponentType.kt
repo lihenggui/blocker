@@ -4,5 +4,6 @@ enum class EComponentType {
     RECEIVER,
     ACTIVITY,
     SERVICE,
-    PROVIDER
+    PROVIDER,
+    UNKNOWN
 }

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/block_by_ifw"
+        android:title="@string/block_by_ifw" />
+    <item
+        android:id="@+id/enable_by_ifw"
+        android:title="@string/enable_by_ifw" />
+    <item
+        android:id="@+id/launch_activity"
+        android:title="@string/launch_activity" />
+    <item
+        android:id="@+id/menu_comments"
+        android:title="@string/comment" />
+
+    <item
+        android:id="@+id/view_component_comments"
+        android:title="@string/view_component_comments" />
+    <item
+        android:id="@+id/menu_upvote_component"
+        android:title="@string/upvote" />
+    <item
+        android:id="@+id/menu_downvote_component"
+        android:title="@string/downvote" />
+</menu>

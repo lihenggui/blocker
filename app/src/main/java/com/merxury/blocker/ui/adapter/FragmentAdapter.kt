@@ -18,6 +18,10 @@ class FragmentAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
         mFragmentTitles.add(title)
     }
 
+    fun getFragments(): List<Fragment> {
+        return mFragments;
+    }
+
     override fun getItem(position: Int): Fragment {
         return mFragments[position]
     }

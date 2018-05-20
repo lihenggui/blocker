@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.util
+package com.merxury.blocker.util
 
 import android.support.annotation.IdRes
 import android.support.v7.app.ActionBar
