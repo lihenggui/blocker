@@ -90,7 +90,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             isSystem = this.getBoolean(IS_SYSTEM)
 
         }
-        presenter = HomePresenter(context!!.packageManager, this)
+        presenter = HomePresenter(this)
         listAdapter = AppListRecyclerViewAdapter(itemListener)
         context?.run {
             presenter.start(this)
@@ -100,6 +100,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     override fun onStart() {
         super.onStart()
         context?.run {
+            presenter.start(this)
             presenter.loadApplicationList(this, isSystem)
         }
     }
@@ -135,6 +136,11 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         }
         setHasOptionsMenu(true)
         return root
+    }
+
+    override fun onDestroy() {
+        presenter.destroy()
+        super.onDestroy()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {

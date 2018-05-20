@@ -23,7 +23,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiConsumer
 import io.reactivex.schedulers.Schedulers
 
-class ComponentPresenter(val context: Context, val view: ComponentContract.View, val packageName: String) : ComponentContract.Presenter, IController {
+class ComponentPresenter(val context: Context, var view: ComponentContract.View?, val packageName: String) : ComponentContract.Presenter, IController {
 
     private val pm: PackageManager
 
@@ -39,14 +39,14 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     init {
-        view.presenter = this
+        view?.presenter = this
         pm = context.packageManager
     }
 
     @SuppressLint("CheckResult")
     override fun loadComponents(packageName: String, type: EComponentType) {
         Log.i(TAG, "Load components for $packageName, type: $type")
-        view.setLoadingIndicator(true)
+        view?.setLoadingIndicator(true)
         Single.create((SingleOnSubscribe<List<ComponentItemViewModel>> { emitter ->
             val componentList = when (type) {
                 EComponentType.RECEIVER -> ApplicationComponents.getReceiverList(pm, packageName)
@@ -61,11 +61,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ components ->
-                    view.setLoadingIndicator(false)
+                    view?.setLoadingIndicator(false)
                     if (components.isEmpty()) {
-                        view.showNoComponent()
+                        view?.showNoComponent()
                     } else {
-                        view.showComponentList(components.toMutableList())
+                        view?.showComponentList(components.toMutableList())
                     }
                 })
     }
@@ -82,11 +82,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentState(componentName)
+                    view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
-                        view.showAlertDialog()
+                        view?.showAlertDialog()
                     }
                 })
         return true
@@ -105,11 +105,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentState(componentName)
+                    view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
-                        view.showAlertDialog()
+                        view?.showAlertDialog()
                     }
                 })
         return true
@@ -128,11 +128,11 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentState(componentName)
+                    view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
-                        view.showAlertDialog()
+                        view?.showAlertDialog()
                     }
                 })
         return true
@@ -177,7 +177,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
                     writeComponentVoteState(packageName, componentName, true)
-                    view.refreshComponentState(componentName)
+                    view?.refreshComponentState(componentName)
                 }, { error ->
 
                 })
@@ -191,7 +191,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
                     writeComponentVoteState(packageName, componentName, false)
-                    view.refreshComponentState(componentName)
+                    view?.refreshComponentState(componentName)
                 }, { error ->
 
                 })
@@ -217,13 +217,13 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _ ->
-                    view.refreshComponentState(componentName)
+                    view?.refreshComponentState(componentName)
                 }, { error ->
                     error?.apply {
                         ifwController.reload()
                         Log.e(TAG, message)
                         printStackTrace()
-                        view.showAlertDialog()
+                        view?.showAlertDialog()
                     }
                 })
     }
@@ -248,13 +248,13 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _ ->
-                    view.refreshComponentState(componentName)
+                    view?.refreshComponentState(componentName)
                 }, { error ->
                     error?.apply {
                         ifwController.reload()
                         Log.e(TAG, message)
                         printStackTrace()
-                        view.showAlertDialog()
+                        view?.showAlertDialog()
                     }
                 })
     }
@@ -276,7 +276,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
-                        view.showAlertDialog()
+                        view?.showAlertDialog()
                     }
                 })
 
@@ -319,7 +319,7 @@ class ComponentPresenter(val context: Context, val view: ComponentContract.View,
     }
 
     override fun destroy() {
-
+        view = null;
     }
 
     override var currentComparator: EComponentComparatorType = EComponentComparatorType.SIMPLE_NAME_ASCENDING
