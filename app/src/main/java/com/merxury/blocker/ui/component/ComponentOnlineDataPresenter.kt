@@ -13,7 +13,7 @@ import io.reactivex.schedulers.Schedulers
  * Created by Mercury on 2018/4/14.
  */
 
-class ComponentOnlineDataPresenter(val view: ComponentContract.ComponentMainView, override val packageName: String) : ComponentContract.ComponentOnlineDataPresenter {
+class ComponentOnlineDataPresenter(var view: ComponentContract.ComponentMainView?, override val packageName: String) : ComponentContract.ComponentOnlineDataPresenter {
 
     private lateinit var componentData: AppComponentInfo
     private val client: IClientServer by lazy {
@@ -21,10 +21,11 @@ class ComponentOnlineDataPresenter(val view: ComponentContract.ComponentMainView
     }
 
     override fun start(context: Context) {
+        componentData = AppComponentInfo()
     }
 
     override fun destroy() {
-
+        view = null
     }
 
     override fun getComponentData(): AppComponentInfo {
@@ -47,7 +48,7 @@ class ComponentOnlineDataPresenter(val view: ComponentContract.ComponentMainView
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
                     componentData = result.data
-                    view.onComponentLoaded(componentData)
+                    view?.onComponentLoaded(componentData)
                     Log.i(TAG, "Get components for $packageName from server successfully.")
                 }, { error ->
                     error.printStackTrace()
