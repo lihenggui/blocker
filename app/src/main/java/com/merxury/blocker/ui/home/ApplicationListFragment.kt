@@ -5,12 +5,11 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
-import android.support.v4.view.MenuItemCompat
 import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
-import android.widget.TextView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.merxury.blocker.R
 import com.merxury.blocker.entity.Application
@@ -19,12 +18,12 @@ import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
+
 class ApplicationListFragment : Fragment(), HomeContract.View {
     override var isActive: Boolean = false
         get() = isAdded
 
     override lateinit var presenter: HomeContract.Presenter
-    private lateinit var sortingFilterView: TextView
 
     private var isSystem: Boolean = false
 
@@ -87,17 +86,22 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val argument = arguments
-        argument?.let {
-            isSystem = it.getBoolean(IS_SYSTEM)
+        argument?.run {
+            isSystem = this.getBoolean(IS_SYSTEM)
+
         }
-        presenter = HomePresenter(context!!.packageManager, this)
+        presenter = HomePresenter(this)
         listAdapter = AppListRecyclerViewAdapter(itemListener)
+        context?.run {
+            presenter.start(this)
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        context?.let {
-            presenter.start(it)
+    override fun onStart() {
+        super.onStart()
+        context?.run {
+            presenter.start(this)
+            presenter.loadApplicationList(this, isSystem)
         }
     }
 
@@ -110,6 +114,15 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                 adapter = listAdapter
                 itemAnimator = DefaultItemAnimator()
                 addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
+                addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                    override fun onScrollStateChanged(recyclerView: RecyclerView?, newState: Int) {
+                        when (newState) {
+                            RecyclerView.SCROLL_STATE_IDLE -> Glide.with(this@ApplicationListFragment).resumeRequests()
+                            RecyclerView.SCROLL_STATE_DRAGGING -> Glide.with(this@ApplicationListFragment).pauseRequests()
+                        }
+                        super.onScrollStateChanged(recyclerView, newState)
+                    }
+                })
             }
             appListSwipeLayout.apply {
                 setColorSchemeColors(
@@ -125,18 +138,15 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         return root
     }
 
-    override fun onStart() {
-        super.onStart()
-        val fragmentContext = context
-        fragmentContext?.let {
-            presenter.loadApplicationList(it, isSystem)
-        }
+    override fun onDestroy() {
+        presenter.destroy()
+        super.onDestroy()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
         inflater.inflate(R.menu.list_fragment_menu, menu)
         val searchItem = menu?.findItem(R.id.menu_search)
-        val searchView = MenuItemCompat.getActionView(searchItem) as SearchView
+        val searchView = searchItem?.actionView as SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String): Boolean {
                 searchForApplication(newText)
@@ -213,11 +223,13 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             fun bindApplication(application: Application) {
                 view?.apply {
                     itemView.app_name.text = application.label
+                    itemView.app_icon.setImageDrawable(application.getApplicationIcon(pm))
                     itemView.setOnClickListener({ listener.onAppClick(application) })
                     val options = RequestOptions()
                             .fitCenter()
                             .placeholder(android.R.drawable.sym_def_app_icon)
                             .error(R.drawable.ic_error_red_24dp)
+                            .diskCacheStrategy(DiskCacheStrategy.NONE)
                     Glide.with(this)
                             .load(application.getApplicationIcon(pm))
                             .apply(options)

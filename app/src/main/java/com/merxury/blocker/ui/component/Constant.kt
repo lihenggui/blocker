@@ -7,5 +7,6 @@ class Constant {
         const val CATEGORY = "category"
         const val PACKAGE_NAME = "package_name"
         const val APPLICATION = Constant.APPLICATION
+        const val DETAIL_LOADED = "component_loaded"
     }
 }

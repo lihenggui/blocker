@@ -1,6 +1,7 @@
 package com.merxury.blocker.ui.component
 
 import android.annotation.SuppressLint
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
@@ -9,44 +10,62 @@ import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
-import com.merxury.blocker.entity.getSimpleName
+import com.merxury.blocker.core.root.RootCommand
+import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
+import com.merxury.blocker.ui.strategy.service.ApiClient
+import com.merxury.blocker.ui.strategy.service.IClientServer
+import com.merxury.ifw.IntentFirewall
+import com.merxury.ifw.IntentFirewallImpl
+import com.merxury.ifw.entity.ComponentType
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.functions.BiConsumer
 import io.reactivex.schedulers.Schedulers
 
-class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.View) : ComponentContract.Presenter, IController {
+class ComponentPresenter(val context: Context, var view: ComponentContract.View?, val packageName: String) : ComponentContract.Presenter, IController {
+
+    private val pm: PackageManager
 
     private val controller: IController by lazy {
-        ComponentControllerProxy.getInstance(EControllerMethod.PM, null)
+        ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+    }
+    private val componentClient: IClientServer by lazy {
+        ApiClient.createClient()
+    }
+
+    private val ifwController: IntentFirewall by lazy {
+        IntentFirewallImpl.getInstance(context, packageName)
     }
 
     init {
-        view.presenter = this
+        view?.presenter = this
+        pm = context.packageManager
     }
 
     @SuppressLint("CheckResult")
     override fun loadComponents(packageName: String, type: EComponentType) {
-        Log.i(TAG, "Trying to load components for $packageName, type: $type")
-        view.setLoadingIndicator(true)
-        Single.create((SingleOnSubscribe<List<ComponentInfo>> { emitter ->
-            var componentList = when (type) {
+        Log.i(TAG, "Load components for $packageName, type: $type")
+        view?.setLoadingIndicator(true)
+        Single.create((SingleOnSubscribe<List<ComponentItemViewModel>> { emitter ->
+            val componentList = when (type) {
                 EComponentType.RECEIVER -> ApplicationComponents.getReceiverList(pm, packageName)
                 EComponentType.ACTIVITY -> ApplicationComponents.getActivityList(pm, packageName)
                 EComponentType.SERVICE -> ApplicationComponents.getServiceList(pm, packageName)
                 EComponentType.PROVIDER -> ApplicationComponents.getProviderList(pm, packageName)
+                else -> ArrayList<ComponentInfo>()
             }
-            componentList = sortComponentList(componentList, currentComparator)
-            emitter.onSuccess(componentList)
+            var viewModels = initViewModel(componentList)
+            viewModels = sortComponentList(viewModels, currentComparator)
+            emitter.onSuccess(viewModels)
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ components ->
-                    view.setLoadingIndicator(false)
+                    view?.setLoadingIndicator(false)
                     if (components.isEmpty()) {
-                        view.showNoComponent()
+                        view?.showNoComponent()
                     } else {
-                        view.showComponentList(components)
+                        view?.showComponentList(components.toMutableList())
                     }
                 })
     }
@@ -63,22 +82,22 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentSwitchState(componentName)
+                    view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
-                        view.showAlertDialog()
+                        view?.showAlertDialog()
                     }
                 })
         return true
     }
 
     @SuppressLint("CheckResult")
-    override fun enableComponent(componentInfo: ComponentInfo): Boolean {
-        Log.i(TAG, "Trying to enable component: ${componentInfo.name}")
+    override fun enable(packageName: String, componentName: String): Boolean {
+        Log.i(TAG, "Enable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
-                val result = controller.enableComponent(componentInfo)
+                val result = controller.enable(packageName, componentName)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -86,22 +105,22 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentSwitchState(componentInfo.name)
+                    view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
-                        view.showAlertDialog()
+                        view?.showAlertDialog()
                     }
                 })
         return true
     }
 
     @SuppressLint("CheckResult")
-    override fun disableComponent(componentInfo: ComponentInfo): Boolean {
-        Log.i(TAG, "Trying to disable component: ${componentInfo.name}")
+    override fun disable(packageName: String, componentName: String): Boolean {
+        Log.i(TAG, "Disable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
-                val result = controller.disableComponent(componentInfo)
+                val result = controller.disable(packageName, componentName)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -109,31 +128,205 @@ class ComponentPresenter(val pm: PackageManager, val view: ComponentContract.Vie
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(BiConsumer { _, error ->
-                    view.refreshComponentSwitchState(componentInfo.name)
+                    view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
-                        view.showAlertDialog()
+                        view?.showAlertDialog()
                     }
                 })
         return true
     }
 
-    override fun sortComponentList(components: List<ComponentInfo>, type: EComponentComparatorType): List<ComponentInfo> {
+    override fun sortComponentList(components: List<ComponentItemViewModel>, type: EComponentComparatorType): List<ComponentItemViewModel> {
         return when (type) {
-            EComponentComparatorType.NAME_ASCENDING -> components.sortedBy { it.getSimpleName() }
-            EComponentComparatorType.NAME_DESCENDING -> components.sortedByDescending { it.getSimpleName() }
-            EComponentComparatorType.PACKAGE_NAME_ASCENDING -> components.sortedBy { it.name }
-            EComponentComparatorType.PACKAGE_NAME_DESCENDING -> components.sortedByDescending { it.name }
+            EComponentComparatorType.SIMPLE_NAME_ASCENDING -> components.sortedBy { it.simpleName }
+            EComponentComparatorType.SIMPLE_NAME_DESCENDING -> components.sortedByDescending { it.simpleName }
+            EComponentComparatorType.NAME_ASCENDING -> components.sortedBy { it.name }
+            EComponentComparatorType.NAME_DESCENDING -> components.sortedByDescending { it.name }
         }
     }
 
-    override fun start(context: Context) {
+    override fun checkComponentIsUpVoted(packageName: String, componentName: String): Boolean {
+        val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean(componentName + UPVOTED, false)
     }
 
-    override var currentComparator: EComponentComparatorType = EComponentComparatorType.NAME_ASCENDING
+    override fun checkComponentIsDownVoted(packageName: String, componentName: String): Boolean {
+        val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
+        return sharedPreferences.getBoolean(componentName + DOWNVOTED, false)
+    }
+
+
+    override fun writeComponentVoteState(packageName: String, componentName: String, like: Boolean) {
+        val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        if (like) {
+            editor.putBoolean(componentName + UPVOTED, like)
+        } else {
+            editor.putBoolean(componentName + DOWNVOTED, like)
+        }
+        editor.apply()
+    }
+
+    @SuppressLint("CheckResult")
+    override fun voteForComponent(packageName: String, componentName: String, type: EComponentType) {
+        componentClient.upVoteForComponent(ComponentBriefInfo(packageName, componentName, type))
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result ->
+                    writeComponentVoteState(packageName, componentName, true)
+                    view?.refreshComponentState(componentName)
+                }, { error ->
+
+                })
+    }
+
+    @SuppressLint("CheckResult")
+    override fun downVoteForComponent(packageName: String, componentName: String, type: EComponentType) {
+        componentClient.downVoteForComponent(ComponentBriefInfo(packageName, componentName, type))
+                .subscribeOn(Schedulers.io())
+                .unsubscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result ->
+                    writeComponentVoteState(packageName, componentName, false)
+                    view?.refreshComponentState(componentName)
+                }, { error ->
+
+                })
+    }
+
+    override fun addToIFW(packageName: String, componentName: String, type: EComponentType) {
+        Log.i(TAG, "Disable component via IFW: $componentName")
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            try {
+                when (type) {
+                    EComponentType.ACTIVITY -> ifwController.add(packageName, componentName, ComponentType.ACTIVITY)
+                    EComponentType.RECEIVER -> ifwController.add(packageName, componentName, ComponentType.BROADCAST)
+                    EComponentType.SERVICE -> ifwController.add(packageName, componentName, ComponentType.SERVICE)
+                    else -> {
+                    }
+                }
+                ifwController.save()
+                emitter.onSuccess(true)
+                //TODO Duplicated code
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ _ ->
+                    view?.refreshComponentState(componentName)
+                }, { error ->
+                    error?.apply {
+                        ifwController.reload()
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view?.showAlertDialog()
+                    }
+                })
+    }
+
+    override fun removeFromIFW(packageName: String, componentName: String, type: EComponentType) {
+        Log.i(TAG, "Disable component via IFW: $componentName")
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            try {
+                when (type) {
+                    EComponentType.ACTIVITY -> ifwController.remove(packageName, componentName, ComponentType.ACTIVITY)
+                    EComponentType.RECEIVER -> ifwController.remove(packageName, componentName, ComponentType.BROADCAST)
+                    EComponentType.SERVICE -> ifwController.remove(packageName, componentName, ComponentType.SERVICE)
+                    else -> {
+                    }
+                }
+                ifwController.save()
+                emitter.onSuccess(true)
+                //TODO Duplicated code
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ _ ->
+                    view?.refreshComponentState(componentName)
+                }, { error ->
+                    error?.apply {
+                        ifwController.reload()
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view?.showAlertDialog()
+                    }
+                })
+    }
+
+    override fun launchActivity(packageName: String, componentName: String) {
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            val command = "am start -n $packageName/$componentName"
+            try {
+                RootCommand.runBlockingCommand(command)
+                emitter.onSuccess(true)
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ _ ->
+
+                }, { error ->
+                    error?.apply {
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view?.showAlertDialog()
+                    }
+                })
+
+    }
+
+    override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
+        return ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(packageName, componentName))
+
+    }
+
+    override fun checkIFWState(packageName: String, componentName: String): Boolean {
+        return ifwController.getComponentEnableState(packageName, componentName)
+    }
+
+    override fun getComponentViewModel(packageName: String, componentName: String): ComponentItemViewModel {
+        val viewModel = ComponentItemViewModel(packageName = packageName, name = componentName)
+        viewModel.simpleName = componentName.split(".").last()
+        updateComponentViewModel(viewModel)
+        return viewModel
+    }
+
+    override fun updateComponentViewModel(viewModel: ComponentItemViewModel) {
+        viewModel.state = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(viewModel.packageName, viewModel.name))
+        viewModel.ifwState = ifwController.getComponentEnableState(viewModel.packageName, viewModel.name)
+        viewModel.upVoted = checkComponentIsUpVoted(viewModel.packageName, viewModel.name)
+        viewModel.downVoted = checkComponentIsDownVoted(viewModel.packageName, viewModel.name)
+    }
+
+
+    private fun initViewModel(componentList: List<ComponentInfo>): List<ComponentItemViewModel> {
+        val viewModels = ArrayList<ComponentItemViewModel>()
+        componentList.forEach {
+            viewModels.add(getComponentViewModel(it.packageName, it.name))
+        }
+        return viewModels
+    }
+
+    override fun start(context: Context) {
+
+    }
+
+    override fun destroy() {
+        view = null;
+    }
+
+    override var currentComparator: EComponentComparatorType = EComponentComparatorType.SIMPLE_NAME_ASCENDING
 
     companion object {
         const val TAG = "ComponentPresenter"
+        const val UPVOTED = "_voted"
+        const val DOWNVOTED = "_downvoted"
     }
 }
