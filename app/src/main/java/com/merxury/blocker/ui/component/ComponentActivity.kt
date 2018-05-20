@@ -48,6 +48,11 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
         componentOnlineDataPresenter.loadComponentData()
     }
 
+    override fun onDestroy() {
+        componentOnlineDataPresenter.destroy()
+        super.onDestroy()
+    }
+
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {

@@ -30,17 +30,11 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     private lateinit var receiver: OnComponentDetailsLoadedReceiver
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        componentOnlineDetailsPresenter = (context as ComponentContract.ComponentMainView).getComponentDataPresenter()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val args = arguments
         type = args?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = args.getString(Constant.PACKAGE_NAME)
-        presenter = ComponentPresenter(context!!, this, packageName)
         registerReceiver()
     }
 
@@ -70,6 +64,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             }
         }
         setHasOptionsMenu(true)
+        presenter = ComponentPresenter(context!!, this, packageName)
+        componentOnlineDetailsPresenter = (context as ComponentContract.ComponentMainView).getComponentDataPresenter()
         return root
     }
 

@@ -25,7 +25,6 @@
         </activity>
         <activity
             android:name=".ui.component.ComponentActivity"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.OverlapSystemBar" />
     </application>
 
