@@ -81,12 +81,12 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onStop() {
         unregisterReceiver()
-        presenter.destroy()
         super.onStop()
     }
 
     override fun onDestroy() {
         unregisterReceiver()
+        presenter.destroy()
         super.onDestroy()
     }
 
