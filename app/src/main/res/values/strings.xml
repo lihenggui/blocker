@@ -16,7 +16,6 @@
     <string name="no_component_message">OOps, I cannot find any component here.</string>
     <string name="application_label">Name: %1$s</string>
     <string name="min_sdk_version">Minimum SDK Version: %1$d</string>
-    <string name="target_sdk_version">Target SDK Version: %1$d</string>
     <string name="package_name">Package name: %1$s</string>
     <string name="menu_filter">Filter</string>
     <string name="refresh">Refresh</string>
@@ -26,8 +25,8 @@
     <string name="copy_command">Copy</string>
     <string name="send_command">Send</string>
     <string name="starting_shell" translatable="false">Starting root shell…</string>
-    <string name="cannot_start_no_root">Can\'t start service because root permission is not granted or this device is not rooted.</string>
-    <string name="cannot_start_shell_failed">There\'s something wrong when running shell command.</string>
+    <string name="cannot_start_no_root" translatable="false">Can\'t start service because root permission is not granted or this device is not rooted.</string>
+    <string name="cannot_start_shell_failed" translatable="false">There\'s something wrong when running shell command.</string>
 
     <!-- content description-->
     <string name="app_icon_description">Application icon</string>
@@ -54,4 +53,5 @@
     <string name="cancel">Cancel</string>
     <string name="send">Send</string>
     <string name="vote_fail">Fail to vote this component.</string>
+    <string name="target_sdk_version">Target SDK Version: %1$d</string>
 </resources>
