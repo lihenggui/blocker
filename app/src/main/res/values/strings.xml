@@ -54,4 +54,6 @@
     <string name="send">Send</string>
     <string name="vote_fail">Fail to vote this component.</string>
     <string name="target_sdk_version">Target SDK Version: %1$d</string>
+    <string name="block_all">Block All</string>
+    <string name="enable_all">Enable All</string>
 </resources>

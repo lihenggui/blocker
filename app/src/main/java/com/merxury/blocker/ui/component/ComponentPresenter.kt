@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.util.Log
+import android.widget.Toast
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.ComponentControllerProxy
@@ -48,13 +49,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         Log.i(TAG, "Load components for $packageName, type: $type")
         view?.setLoadingIndicator(true)
         Single.create((SingleOnSubscribe<List<ComponentItemViewModel>> { emitter ->
-            val componentList = when (type) {
-                EComponentType.RECEIVER -> ApplicationComponents.getReceiverList(pm, packageName)
-                EComponentType.ACTIVITY -> ApplicationComponents.getActivityList(pm, packageName)
-                EComponentType.SERVICE -> ApplicationComponents.getServiceList(pm, packageName)
-                EComponentType.PROVIDER -> ApplicationComponents.getProviderList(pm, packageName)
-                else -> ArrayList<ComponentInfo>()
-            }
+            val componentList = getComponents(packageName, type)
             var viewModels = initViewModel(componentList)
             viewModels = sortComponentList(viewModels, currentComparator)
             emitter.onSuccess(viewModels)
@@ -68,6 +63,16 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         view?.showComponentList(components.toMutableList())
                     }
                 })
+    }
+
+    private fun getComponents(packageName: String, type: EComponentType): MutableList<ComponentInfo> {
+        return when (type) {
+            EComponentType.RECEIVER -> ApplicationComponents.getReceiverList(pm, packageName)
+            EComponentType.ACTIVITY -> ApplicationComponents.getActivityList(pm, packageName)
+            EComponentType.SERVICE -> ApplicationComponents.getServiceList(pm, packageName)
+            EComponentType.PROVIDER -> ApplicationComponents.getProviderList(pm, packageName)
+            else -> ArrayList<ComponentInfo>()
+        }
     }
 
     @SuppressLint("CheckResult")
@@ -303,6 +308,66 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         viewModel.ifwState = ifwController.getComponentEnableState(viewModel.packageName, viewModel.name)
         viewModel.upVoted = checkComponentIsUpVoted(viewModel.packageName, viewModel.name)
         viewModel.downVoted = checkComponentIsDownVoted(viewModel.packageName, viewModel.name)
+    }
+
+    override fun blockAllComponents(packageName: String, type: EComponentType) {
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            val components = getComponents(packageName, type)
+            try {
+                components.forEach {
+                    when(type) {
+                        EComponentType.ACTIVITY -> ifwController.add(it.packageName, it.name, ComponentType.ACTIVITY)
+                        EComponentType.SERVICE -> ifwController.add(it.packageName, it.name, ComponentType.SERVICE)
+                        EComponentType.RECEIVER -> ifwController.add(it.packageName, it.name, ComponentType.BROADCAST)
+                        else -> emitter.onSuccess(true)
+                    }
+                    ifwController.save()
+                }
+                emitter.onSuccess(true)
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ _, error ->
+                    loadComponents(packageName, type)
+                    error?.apply {
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view?.showAlertDialog()
+                    }
+                })
+
+    }
+
+    override fun enableAllComponents(packageName: String, type: EComponentType) {
+        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            val components = getComponents(packageName, type)
+            try {
+                components.forEach {
+                    when(type) {
+                        EComponentType.ACTIVITY -> ifwController.remove(it.packageName, it.name, ComponentType.ACTIVITY)
+                        EComponentType.SERVICE -> ifwController.remove(it.packageName, it.name, ComponentType.SERVICE)
+                        EComponentType.RECEIVER -> ifwController.remove(it.packageName, it.name, ComponentType.BROADCAST)
+                        else -> emitter.onSuccess(true)
+                    }
+                    ifwController.save()
+                }
+                emitter.onSuccess(true)
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        })).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ _, error ->
+                    loadComponents(packageName, type)
+                    error?.apply {
+                        Log.e(TAG, message)
+                        printStackTrace()
+                        view?.showAlertDialog()
+                    }
+                })
+
     }
 
 

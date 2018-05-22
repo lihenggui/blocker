@@ -36,6 +36,8 @@ interface ComponentContract {
         fun checkIFWState(packageName: String, componentName: String): Boolean
         fun getComponentViewModel(packageName: String, componentName: String): ComponentItemViewModel
         fun updateComponentViewModel(viewModel: ComponentItemViewModel)
+        fun blockAllComponents(packageName: String, type: EComponentType)
+        fun enableAllComponents(packageName: String, type: EComponentType)
     }
 
     interface ComponentOnlineDataPresenter : BasePresenter {
