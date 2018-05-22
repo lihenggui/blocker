@@ -107,8 +107,11 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         when (item.itemId) {
             R.id.menu_filter -> showFilteringPopUpMenu()
             R.id.menu_refresh -> presenter.loadComponents(packageName, type)
-            R.id.menu_block_all -> presenter.blockAllComponents(packageName, type)
-            R.id.menu_enable_all -> presenter.enableAllComponents(packageName, type)
+            R.id.menu_block_all -> showDisableAllAlert()
+            R.id.menu_enable_all -> {
+                Toast.makeText(context, R.string.enabling_hint, Toast.LENGTH_SHORT).show()
+                presenter.enableAllComponents(packageName, type)
+            }
         }
         return true
     }
@@ -245,11 +248,30 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     .create()
                     .show()
         }
+    }
 
+    override fun showDisableAllAlert() {
+        context?.let {
+            AlertDialog.Builder(it)
+                    .setTitle(R.string.warning)
+                    .setMessage(R.string.warning_disable_all_component)
+                    .setCancelable(true)
+                    .setNegativeButton(R.string.cancel, { dialog, _ -> dialog.dismiss() })
+                    .setPositiveButton(R.string.ok, { _, _ ->
+                        Toast.makeText(it, R.string.disabling_hint, Toast.LENGTH_SHORT).show()
+                        presenter.disableAllComponents(packageName, type)
+                    })
+                    .create()
+                    .show()
+        }
     }
 
     override fun showVoteFail() {
         Toast.makeText(context, resources.getText(R.string.vote_fail), Toast.LENGTH_SHORT).show()
+    }
+
+    override fun showActionDone() {
+        Toast.makeText(context, R.string.done, Toast.LENGTH_SHORT).show()
     }
 
     override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {

@@ -3,8 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.merxury.ui.MainActivity">
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:id="@+id/menu_search"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:imeOptions="actionSearch"
+        android:inputType="textCapWords"
+        android:title="@string/search"
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_filter"
+        android:icon="@drawable/ic_sort_24dp"
+        android:title="@string/menu_filter"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_refresh"
+        android:title="@string/refresh"
         app:showAsAction="never" />
 </menu>

@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.util.Log
-import android.widget.Toast
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.ComponentControllerProxy
@@ -310,7 +309,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         viewModel.downVoted = checkComponentIsDownVoted(viewModel.packageName, viewModel.name)
     }
 
-    override fun blockAllComponents(packageName: String, type: EComponentType) {
+    override fun disableAllComponents(packageName: String, type: EComponentType) {
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             val components = getComponents(packageName, type)
             try {
@@ -319,10 +318,11 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         EComponentType.ACTIVITY -> ifwController.add(it.packageName, it.name, ComponentType.ACTIVITY)
                         EComponentType.SERVICE -> ifwController.add(it.packageName, it.name, ComponentType.SERVICE)
                         EComponentType.RECEIVER -> ifwController.add(it.packageName, it.name, ComponentType.BROADCAST)
-                        else -> emitter.onSuccess(true)
+                        else -> {
+                        }
                     }
-                    ifwController.save()
                 }
+                ifwController.save()
                 emitter.onSuccess(true)
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -331,6 +331,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _, error ->
                     loadComponents(packageName, type)
+                    view?.showActionDone()
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
@@ -351,8 +352,8 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         EComponentType.RECEIVER -> ifwController.remove(it.packageName, it.name, ComponentType.BROADCAST)
                         else -> emitter.onSuccess(true)
                     }
-                    ifwController.save()
                 }
+                ifwController.save()
                 emitter.onSuccess(true)
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -361,6 +362,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _, error ->
                     loadComponents(packageName, type)
+                    view?.showActionDone()
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()

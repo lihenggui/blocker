@@ -19,6 +19,8 @@ interface ComponentContract {
         fun refreshComponentState(componentName: String)
         fun showAddComment(packageName: String, componentName: String)
         fun showVoteFail()
+        fun showDisableAllAlert()
+        fun showActionDone()
     }
 
     interface Presenter : BasePresenter, IController {
@@ -36,7 +38,7 @@ interface ComponentContract {
         fun checkIFWState(packageName: String, componentName: String): Boolean
         fun getComponentViewModel(packageName: String, componentName: String): ComponentItemViewModel
         fun updateComponentViewModel(viewModel: ComponentItemViewModel)
-        fun blockAllComponents(packageName: String, type: EComponentType)
+        fun disableAllComponents(packageName: String, type: EComponentType)
         fun enableAllComponents(packageName: String, type: EComponentType)
     }
 

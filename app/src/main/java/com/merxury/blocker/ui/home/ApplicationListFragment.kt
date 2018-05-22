@@ -144,7 +144,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
-        inflater.inflate(R.menu.list_fragment_menu, menu)
+        inflater.inflate(R.menu.menu_main, menu)
         val searchItem = menu?.findItem(R.id.menu_search)
         val searchView = searchItem?.actionView as SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
