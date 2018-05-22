@@ -49,4 +49,6 @@
     <string name="cancel">取消</string>
     <string name="send">发送</string>
     <string name="vote_fail">踩失败了 : (</string>
+    <string name="block_all">禁用全部</string>
+    <string name="enable_all">启用全部</string>
 </resources>

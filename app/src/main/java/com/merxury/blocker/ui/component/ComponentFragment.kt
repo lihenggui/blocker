@@ -107,6 +107,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         when (item.itemId) {
             R.id.menu_filter -> showFilteringPopUpMenu()
             R.id.menu_refresh -> presenter.loadComponents(packageName, type)
+            R.id.menu_block_all -> presenter.blockAllComponents(packageName, type)
+            R.id.menu_enable_all -> presenter.enableAllComponents(packageName, type)
         }
         return true
     }
