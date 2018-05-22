@@ -24,8 +24,4 @@
     <item
         android:id="@+id/menu_enable_all"
         android:title="@string/enable_all"/>
-    <item
-        android:id="@+id/menu_settings"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
 </menu>

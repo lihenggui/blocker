@@ -79,6 +79,7 @@
         app:layout_constraintEnd_toStartOf="@+id/component_dislike_button"
         app:layout_constraintStart_toEndOf="@id/button_group_barrier"
         app:layout_constraintTop_toBottomOf="@+id/component_switch"
+        android:visibility="gone"
         app:srcCompat="@drawable/ic_like_unclicked" />
 
     <android.support.constraint.Barrier
@@ -105,6 +106,7 @@
         android:contentDescription="@string/component_dislike_description"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/component_switch"
+        android:visibility="gone"
         app:srcCompat="@drawable/ic_dislike_unclicked" />
 
     <android.support.constraint.Barrier
@@ -125,6 +127,7 @@
         app:layout_constraintEnd_toStartOf="@+id/like_button_end_barrier"
         app:layout_constraintStart_toEndOf="@id/button_group_barrier"
         app:layout_constraintTop_toBottomOf="@+id/component_like_button"
+        android:visibility="gone"
         tools:text="0" />
 
     <TextView

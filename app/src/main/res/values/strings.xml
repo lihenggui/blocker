@@ -56,4 +56,10 @@
     <string name="target_sdk_version">Target SDK Version: %1$d</string>
     <string name="block_all">Block All</string>
     <string name="enable_all">Enable All</string>
+    <string name="warning">Warning</string>
+    <string name="warning_disable_all_component">You will disable all components in current screen, may cause the application unstable. Continue?</string>
+    <string name="disabling_hint">Disabling components…</string>
+    <string name="enabling_hint">Enabling components…</string>
+    <string name="ok" translatable="false">OK</string>
+    <string name="done">Done</string>
 </resources>
