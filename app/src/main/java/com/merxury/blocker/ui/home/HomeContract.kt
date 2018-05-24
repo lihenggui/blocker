@@ -19,6 +19,8 @@ interface HomeContract {
         fun showNoApplication()
         fun showFilteringPopUpMenu()
         fun showApplicationDetailsUi(application: Application)
+        fun showExportAlert()
+        fun showImportAlert()
     }
 
     interface Presenter : BasePresenter {
@@ -27,5 +29,7 @@ interface HomeContract {
         fun openApplicationDetails(application: Application)
         fun result(requestCode: Int, resultCode: Int)
         fun sortApplicationList(applications: List<Application>): List<Application>
+        fun exportIfwRules()
+        fun importIfwRules()
     }
 }

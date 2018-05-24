@@ -3,8 +3,10 @@ package com.merxury.blocker.ui.home
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Environment
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.entity.Application
+import com.merxury.ifw.util.StorageUtils
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -59,9 +61,33 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
             ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.sortedByDescending { it.label }.toMutableList()
             ApplicationComparatorType.BY_INSTALLATION_DATE -> applications.sortedBy { it.packageName }.toMutableList()
         }
-
     }
 
+    override fun exportIfwRules() {
+        Single.create(SingleOnSubscribe<List<Application>> { emitter ->
+
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { applications ->
+                    homeView?.setLoadingIndicator(false)
+                    if (applications == null || applications.isEmpty()) {
+                        homeView?.showNoApplication()
+                    } else {
+                        homeView?.showApplicationList(applications)
+                    }
+                }
+    }
+
+    override fun importIfwRules() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
+
+    companion object {
+        val IFW_FOLDER = StorageUtils.getIfwFolder().absolutePath
+        val BLOCKER_FOLDER = Environment.getExternalStorageDirectory().absolutePath + "/Blocker"
+    }
 
 }

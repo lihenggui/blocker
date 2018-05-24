@@ -20,6 +20,8 @@ import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
 
 class ApplicationListFragment : Fragment(), HomeContract.View {
+
+
     override var isActive: Boolean = false
         get() = isAdded
 
@@ -159,6 +161,14 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             }
         })
 
+    }
+
+    override fun showExportAlert() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun showImportAlert() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

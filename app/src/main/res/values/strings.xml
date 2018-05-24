@@ -62,4 +62,6 @@
     <string name="enabling_hint">Enabling components…</string>
     <string name="ok" translatable="false">OK</string>
     <string name="done">Done</string>
+    <string name="export_ifw_rules">Export IFW Rules</string>
+    <string name="import_ifw_rules">Import IFW Rules</string>
 </resources>
