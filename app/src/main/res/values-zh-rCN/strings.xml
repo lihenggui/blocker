@@ -56,4 +56,6 @@
     <string name="disabling_hint">禁用组件中...</string>
     <string name="enabling_hint">启用组件中…</string>
     <string name="done">完成</string>
+    <string name="export_ifw_rules">导出IFW规则</string>
+    <string name="import_ifw_rules">导入IFW规则</string>
 </resources>

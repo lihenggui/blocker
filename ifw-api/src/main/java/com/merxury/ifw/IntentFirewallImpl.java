@@ -26,7 +26,6 @@ public class IntentFirewallImpl implements IntentFirewall {
 
     private static final String TAG = "IntentFirewallImpl";
     private static final String EXTENSION = ".xml";
-    private static final String IFW_FOLDER = "/ifw/";
     private static final String FILTER_TEMPLATE = "%s/%s";
     private static IntentFirewallImpl instance;
     private String filename;
@@ -39,7 +38,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         this.packageName = packageName;
         this.filename = packageName + EXTENSION;
         tmpPath = context.getFilesDir().toString() + File.separator + filename;
-        destPath = getIfwRulePath();
+        destPath = StorageUtils.getIfwFolder().getAbsolutePath();
         openFile();
     }
 
@@ -177,7 +176,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         if (name == null) {
             return;
         }
-        String rulePath = StorageUtils.getSystemSecureDirectory() + IFW_FOLDER + filename;
+        String rulePath = StorageUtils.getIfwFolder() + filename;
         Log.d(TAG, "delete file: " + rulePath);
         RootTools.deleteFileOrDirectory(rulePath, false);
     }
@@ -220,11 +219,6 @@ public class IntentFirewallImpl implements IntentFirewall {
 
     private String formatName(String packageName, String name) {
         return String.format(FILTER_TEMPLATE, packageName, name);
-    }
-
-    @NonNull
-    private String getIfwRulePath() {
-        return StorageUtils.getSystemSecureDirectory().getPath() + IFW_FOLDER + filename;
     }
 
     private void handleException(Exception e) {

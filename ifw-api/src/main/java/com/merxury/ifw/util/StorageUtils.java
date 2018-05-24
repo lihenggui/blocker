@@ -1,5 +1,6 @@
 package com.merxury.ifw.util;
 
+import android.os.Environment;
 import android.os.SystemProperties;
 
 import java.io.File;
@@ -21,6 +22,7 @@ import java.io.File;
  */
 
 public class StorageUtils {
+    private static final String IFW_FOLDER = "/ifw/";
     private static final File DATA_DIRECTORY
             = getDirectory("ANDROID_DATA", "/data");
     private static final File SECURE_DATA_DIRECTORY
@@ -58,5 +60,13 @@ public class StorageUtils {
      */
     public static boolean isEncryptedFilesystemEnabled() {
         return SystemProperties.getBoolean(SYSTEM_PROPERTY_EFS_ENABLED, false);
+    }
+
+    public static File getIfwFolder() {
+        return new File(StorageUtils.getSystemSecureDirectory().getAbsolutePath() + IFW_FOLDER);
+    }
+
+    public static boolean isExternalStorageAvailable() {
+        return Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
     }
 }
