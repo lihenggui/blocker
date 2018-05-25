@@ -1,6 +1,7 @@
 package com.merxury.blocker.ui.home
 
 import android.content.Context
+import android.support.annotation.StringRes
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.ui.base.BasePresenter
 import com.merxury.blocker.ui.base.BaseView
@@ -19,8 +20,9 @@ interface HomeContract {
         fun showNoApplication()
         fun showFilteringPopUpMenu()
         fun showApplicationDetailsUi(application: Application)
-        fun showExportAlert()
-        fun showImportAlert()
+        fun showAlert(@StringRes alertMessage: Int, confirmAction:() -> Unit)
+        fun showError(@StringRes errorMessage:Int)
+        fun showToastMessage(message: String?, length: Int)
     }
 
     interface Presenter : BasePresenter {

@@ -29,8 +29,8 @@
     <string name="name_asc">应用名称（升序）</string>
     <string name="name_des">应用名称（降序）</string>
     <string name="installation_date">安装日期</string>
-    <string name="alert_dialog_title_error">发生错误</string>
-    <string name="alert_dialog_message_error">控制程序时发生错误。你搞到Root权限了没？</string>
+    <string name="oops">发生错误</string>
+    <string name="no_root_error_message">控制程序时发生错误。你搞到Root权限了没？</string>
     <string name="close">关闭</string>
     <string name="package_name_asc">包名（升序）</string>
     <string name="package_name_des">包名（降序）</string>
@@ -58,4 +58,10 @@
     <string name="done">完成</string>
     <string name="export_ifw_rules">导出IFW规则</string>
     <string name="import_ifw_rules">导入IFW规则</string>
+    <string name="alert">警告</string>
+    <string name="ok" translatable="false">确定</string>
+    <string name="import_alert_message">将从外部存储中导入Intent Firewall规则，继续操作吗？</string>
+    <string name="export_alert_message">Intent Firewall规则将会备份至外置存储中，继续操作吗？</string>
+    <string name="export_rule_succeed">导出完毕，规则存放至外置存储 %1$s 目录中</string>
+    <string name="export_rule_failed">导出规则失败</string>
 </resources>

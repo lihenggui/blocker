@@ -33,8 +33,9 @@
     <string name="name_asc">Name (Ascending)</string>
     <string name="name_des">Name (Descending)</string>
     <string name="installation_date">Installation Date</string>
-    <string name="alert_dialog_title_error">Oops</string>
-    <string name="alert_dialog_message_error">Error occurs while switching the component state. Did you get the root permission?</string>
+    <string name="alert">Alert</string>
+    <string name="oops">Oops</string>
+    <string name="no_root_error_message">Error occurs while switching the component state. Did you get the root permission?</string>
     <string name="close">Close</string>
     <string name="package_name_asc">Package Name (Ascending)</string>
     <string name="package_name_des">Package Name (Descending)</string>
@@ -60,8 +61,12 @@
     <string name="warning_disable_all_component">You will disable all components in current screen, may cause the application unstable. Continue?</string>
     <string name="disabling_hint">Disabling components…</string>
     <string name="enabling_hint">Enabling components…</string>
-    <string name="ok" translatable="false">OK</string>
+    <string name="ok">OK</string>
     <string name="done">Done</string>
     <string name="export_ifw_rules">Export IFW Rules</string>
     <string name="import_ifw_rules">Import IFW Rules</string>
+    <string name="export_alert_message">You are going to export Intent Firewall rules to external storage, proceed?</string>
+    <string name="import_alert_message">You are going to import Intent Firewall rules from external storage, proceed?</string>
+    <string name="export_rule_succeed">Exported to %1$s folder in external storage</string>
+    <string name="export_rule_failed">Failed to export rules to external storage</string>
 </resources>

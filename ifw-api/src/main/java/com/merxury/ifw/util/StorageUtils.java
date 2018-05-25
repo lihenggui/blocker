@@ -2,6 +2,7 @@ package com.merxury.ifw.util;
 
 import android.os.Environment;
 import android.os.SystemProperties;
+import android.support.annotation.NonNull;
 
 import java.io.File;
 
@@ -62,11 +63,18 @@ public class StorageUtils {
         return SystemProperties.getBoolean(SYSTEM_PROPERTY_EFS_ENABLED, false);
     }
 
-    public static File getIfwFolder() {
-        return new File(StorageUtils.getSystemSecureDirectory().getAbsolutePath() + IFW_FOLDER);
+    @NonNull
+    public static String getIfwFolder() {
+        return StorageUtils.getSystemSecureDirectory() + IFW_FOLDER;
     }
 
     public static boolean isExternalStorageAvailable() {
         return Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
+    }
+
+
+    @NonNull
+    public static String getExternalStoragePath() {
+        return Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator;
     }
 }
