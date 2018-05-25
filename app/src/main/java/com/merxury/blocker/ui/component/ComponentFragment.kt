@@ -191,9 +191,9 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun showAlertDialog() {
         context?.apply {
-            val builder = AlertDialog.Builder(this)
-            builder.setTitle(resources.getString(R.string.alert_dialog_title_error))
-                    .setMessage(R.string.alert_dialog_message_error)
+            AlertDialog.Builder(this)
+                    .setTitle(resources.getString(R.string.oops))
+                    .setMessage(R.string.no_root_error_message)
                     .setPositiveButton(R.string.close, { dialog: DialogInterface, _: Int -> dialog.dismiss() })
                     .show()
         }

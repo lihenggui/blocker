@@ -38,7 +38,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         this.packageName = packageName;
         this.filename = packageName + EXTENSION;
         tmpPath = context.getFilesDir().toString() + File.separator + filename;
-        destPath = StorageUtils.getIfwFolder().getAbsolutePath();
+        destPath = StorageUtils.getIfwFolder();
         openFile();
     }
 

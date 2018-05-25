@@ -1,13 +1,17 @@
 package com.merxury.blocker.ui.home
 
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.support.annotation.StringRes
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AlertDialog
 import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
@@ -20,7 +24,6 @@ import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
 
 class ApplicationListFragment : Fragment(), HomeContract.View {
-
 
     override var isActive: Boolean = false
         get() = isAdded
@@ -163,18 +166,38 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     }
 
-    override fun showExportAlert() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun showAlert(alertMessage: Int, confirmAction: () -> Unit) {
+        context?.let {
+            AlertDialog.Builder(it)
+                    .setTitle(R.string.alert)
+                    .setMessage(alertMessage)
+                    .setCancelable(true)
+                    .setNegativeButton(R.string.cancel, {dialog: DialogInterface?, _: Int -> dialog?.dismiss() })
+                    .setPositiveButton(R.string.ok, { _: DialogInterface, _: Int -> confirmAction() })
+                    .show()
+        }
     }
 
-    override fun showImportAlert() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun showError(errorMessage: Int) {
+        context?.let {
+            AlertDialog.Builder(it)
+                    .setTitle(R.string.oops)
+                    .setMessage(errorMessage)
+                    .setPositiveButton(R.string.close, { dialog: DialogInterface, _: Int -> dialog.dismiss() })
+                    .show()
+        }
+    }
+
+    override fun showToastMessage(message: String?, length:Int) {
+        Toast.makeText(context, message, length).show()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_filter -> showFilteringPopUpMenu()
             R.id.menu_refresh -> presenter.loadApplicationList(context!!, isSystem)
+            R.id.menu_export -> showAlert(R.string.export_alert_message, { presenter.exportIfwRules() })
+            R.id.menu_import -> showAlert(R.string.import_alert_message, { presenter.importIfwRules() })
         }
         return true
     }

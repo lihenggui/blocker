@@ -4,8 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Environment
+import android.widget.Toast
+import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.entity.Application
+import com.merxury.blocker.utils.FileUtils
 import com.merxury.ifw.util.StorageUtils
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
@@ -15,6 +18,7 @@ import io.reactivex.schedulers.Schedulers
 class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
 
     private lateinit var pm: PackageManager
+    private var context: Context? = null
 
     @SuppressLint("CheckResult")
     override fun loadApplicationList(context: Context, isSystemApplication: Boolean) {
@@ -47,11 +51,13 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     }
 
     override fun start(context: Context) {
+        this.context = context
         pm = context.packageManager
         homeView?.presenter = this
     }
 
     override fun destroy() {
+        context = null
         homeView = null
     }
 
@@ -64,16 +70,20 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     }
 
     override fun exportIfwRules() {
-        Single.create(SingleOnSubscribe<List<Application>> { emitter ->
-
+        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+            if(!StorageUtils.isExternalStorageAvailable()) {
+                emitter.onSuccess(false)
+            }
+            val ifwFolder = StorageUtils.getIfwFolder();
+            val blockerFolder = StorageUtils.getExternalStoragePath() + BLOCKER_FOLDER;
+            emitter.onSuccess(FileUtils.copy(ifwFolder, blockerFolder))
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { applications ->
-                    homeView?.setLoadingIndicator(false)
-                    if (applications == null || applications.isEmpty()) {
-                        homeView?.showNoApplication()
+                .subscribe { result ->
+                    if(result) {
+                        homeView?.showToastMessage(context?.getString(R.string.export_rule_succeed, BLOCKER_FOLDER), Toast.LENGTH_LONG)
                     } else {
-                        homeView?.showApplicationList(applications)
+                        homeView?.showToastMessage(context?.getString(R.string.export_rule_failed), Toast.LENGTH_LONG)
                     }
                 }
     }
@@ -86,8 +96,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
 
     companion object {
-        val IFW_FOLDER = StorageUtils.getIfwFolder().absolutePath
-        val BLOCKER_FOLDER = Environment.getExternalStorageDirectory().absolutePath + "/Blocker"
+        const val BLOCKER_FOLDER = "Blocker/ifw/"
     }
 
 }
