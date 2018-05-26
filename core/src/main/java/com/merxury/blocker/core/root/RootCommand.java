@@ -29,14 +29,13 @@ public class RootCommand {
     public synchronized static String runBlockingCommand(final String comm) throws RootDeniedException, IOException, TimeoutException {
         final AtomicReference<String> returnItem = new AtomicReference<>();
         final AtomicReference<Throwable> returnException = new AtomicReference<>();
-
+        Log.i(TAG, comm);
         Observable.create(new ObservableOnSubscribe<String>() {
             @Override
             public void subscribe(final ObservableEmitter<String> emitter) throws Exception {
                 Command command = new Command(0, comm) {
                     @Override
                     public void commandOutput(int id, String line) {
-                        //TODO get output
                         Log.d(TAG, "commandOutput");
                         Log.d(TAG, line);
                         emitter.onNext(line);
@@ -45,8 +44,7 @@ public class RootCommand {
 
                     @Override
                     public void commandTerminated(int id, String reason) {
-                        String msg = "commandTerminated";
-                        Log.d(TAG, msg);
+                        Log.d(TAG, reason);
                         emitter.onError(new ProcessUnexpectedTerminateException(reason));
                         super.commandTerminated(id, reason);
                     }

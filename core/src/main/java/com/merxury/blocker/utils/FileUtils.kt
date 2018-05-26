@@ -2,6 +2,7 @@ package com.merxury.blocker.utils
 
 import android.os.Environment
 import android.util.Log
+import com.merxury.blocker.core.root.RootCommand
 import com.stericson.RootTools.RootTools
 import java.io.File
 import java.io.FileInputStream
@@ -31,6 +32,10 @@ object FileUtils {
             return false
         }
         return true
+    }
+
+    fun cat(source: String, dest: String) {
+        RootCommand.runBlockingCommand("cat $source > $dest")
     }
 
     fun copyWithRoot(source: String, dest: String): Boolean {

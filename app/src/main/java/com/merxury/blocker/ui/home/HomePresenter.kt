@@ -88,13 +88,18 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                             }
                             val ifwFolder = StorageUtils.getIfwFolder();
                             val blockerFolder = FileUtils.getExternalStoragePath() + BLOCKER_FOLDER;
+                            val blockerFolderFile = File(blockerFolder)
+                            if(!blockerFolderFile.exists()) {
+                                blockerFolderFile.mkdirs()
+                            }
                             try {
                                 PermissionUtils.setIfwReadable()
                                 val files = File(ifwFolder).listFiles()
                                 if(files == null) emitter.onSuccess(false)
                                 files.forEach {
-                                    FileUtils.copy(it.absolutePath, blockerFolder + it.name)
+                                    FileUtils.cat(it.absolutePath, blockerFolder + it.name)
                                 }
+                                PermissionUtils.resetIfwPermission()
                             }catch (e: IOException) {
                                 e.printStackTrace()
                                 Log.e(TAG, e.message)
