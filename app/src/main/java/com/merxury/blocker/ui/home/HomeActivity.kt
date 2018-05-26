@@ -15,7 +15,6 @@ import com.merxury.blocker.R
 import com.merxury.blocker.ui.adapter.FragmentAdapter
 import com.merxury.blocker.ui.base.IActivityView
 import com.merxury.blocker.util.setupActionBar
-import com.mikepenz.materialdrawer.AccountHeaderBuilder
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
@@ -53,19 +52,11 @@ class HomeActivity : AppCompatActivity(), IActivityView {
     private fun setupDrawerContent(savedInstanceState: Bundle?) {
         val item1 = PrimaryDrawerItem().withIdentifier(1).withName(R.string.app_list_title).withIcon(R.drawable.ic_list)
         val item2 = SecondaryDrawerItem().withIdentifier(2).withName(R.string.action_settings).withIcon(R.drawable.ic_settings)
-        val headerResult = AccountHeaderBuilder()
-                .withActivity(this)
-                .withTranslucentStatusBar(true)
-                .withHeaderBackground(R.color.colorPrimary)
-                .withSavedInstance(savedInstanceState)
-                .build()
-
         drawer = DrawerBuilder()
                 .withActivity(this)
                 .withToolbar(toolbar)
                 .withSavedInstance(savedInstanceState)
                 .withActionBarDrawerToggleAnimated(true)
-                .withAccountHeader(headerResult)
                 .addDrawerItems(
                         item1,
                         DividerDrawerItem(),
