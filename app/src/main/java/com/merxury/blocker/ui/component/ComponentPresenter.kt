@@ -11,12 +11,14 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootCommand
+import com.merxury.blocker.ui.exception.RootUnavailableException
 import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.ui.strategy.service.ApiClient
 import com.merxury.blocker.ui.strategy.service.IClientServer
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
+import com.merxury.ifw.util.PermissionUtils
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -311,10 +313,13 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     override fun disableAllComponents(packageName: String, type: EComponentType) {
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            if (!PermissionUtils.isRootAvailable()) {
+                emitter.onError(RootUnavailableException())
+            }
             val components = getComponents(packageName, type)
             try {
                 components.forEach {
-                    when(type) {
+                    when (type) {
                         EComponentType.ACTIVITY -> ifwController.add(it.packageName, it.name, ComponentType.ACTIVITY)
                         EComponentType.SERVICE -> ifwController.add(it.packageName, it.name, ComponentType.SERVICE)
                         EComponentType.RECEIVER -> ifwController.add(it.packageName, it.name, ComponentType.BROADCAST)
@@ -329,6 +334,13 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnError {
+                    it?.apply {
+                        Log.e(TAG, it.message)
+                        printStackTrace()
+                        view?.showAlertDialog()
+                    }
+                }
                 .subscribe({ _, error ->
                     loadComponents(packageName, type)
                     view?.showActionDone()
@@ -343,10 +355,13 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     override fun enableAllComponents(packageName: String, type: EComponentType) {
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
+            if (!PermissionUtils.isRootAvailable()) {
+                emitter.onError(RootUnavailableException())
+            }
             val components = getComponents(packageName, type)
             try {
                 components.forEach {
-                    when(type) {
+                    when (type) {
                         EComponentType.ACTIVITY -> ifwController.remove(it.packageName, it.name, ComponentType.ACTIVITY)
                         EComponentType.SERVICE -> ifwController.remove(it.packageName, it.name, ComponentType.SERVICE)
                         EComponentType.RECEIVER -> ifwController.remove(it.packageName, it.name, ComponentType.BROADCAST)
@@ -360,14 +375,16 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _, error ->
-                    loadComponents(packageName, type)
-                    view?.showActionDone()
-                    error?.apply {
-                        Log.e(TAG, message)
+                .doOnError {
+                    it?.apply {
+                        Log.e(TAG, it.message)
                         printStackTrace()
                         view?.showAlertDialog()
                     }
+                }
+                .subscribe({ _ ->
+                    loadComponents(packageName, type)
+                    view?.showActionDone()
                 })
 
     }
