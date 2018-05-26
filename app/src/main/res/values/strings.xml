@@ -69,4 +69,16 @@
     <string name="import_alert_message">You are going to import Intent Firewall rules from external storage, proceed?</string>
     <string name="export_rule_succeed">Exported to %1$s folder in external storage</string>
     <string name="export_rule_failed">Failed to export rules to external storage</string>
+    <string name="import_rule_failed_no_permission">Failed to import Intent Firewall rules, storage permission required.</string>
+    <string name="import_rule_failed_exception">Failed to import rules, reason: %1$s</string>
+    <string name="export_rule_failed_no_permission">Failed to export Intent Firewall rules, storage permission required.</string>
+    <string name="export_rule_failed_exception">Failed to export rules, reason: %1$s</string>
+    <plurals name="import_rule_succeed">
+        <item quantity="one">Imported %1$d rule</item>
+        <item quantity="other">Imported %1$d rules</item>
+    </plurals>
+    <plurals name="export_rule_succeed">
+        <item quantity="one">Exported %1$d rule to folder %2$s</item>
+        <item quantity="other">Exported %1$d rules to folder %2$s</item>
+    </plurals>
 </resources>

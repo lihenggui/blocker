@@ -53,8 +53,8 @@
     <string name="enable_all">啟用全部</string>
     <string name="warning">警告</string>
     <string name="warning_disable_all_component">本頁面上的所有組件將會被禁用，繼續進行操作嗎？</string>
-    <string name="disabling_hint">禁用組件中...</string>
-    <string name="enabling_hint">啟用組件中...</string>
+    <string name="disabling_hint">禁用組件中…</string>
+    <string name="enabling_hint">啟用組件中…</string>
     <string name="done">完成</string>
     <string name="export_ifw_rules">導出IFW規則</string>
     <string name="import_ifw_rules">導入IFW規則</string>
@@ -64,4 +64,14 @@
     <string name="import_alert_message">將從外部存儲中導入Intent Firewall規則，繼續操作嗎？</string>
     <string name="export_rule_succeed">導出完畢，規則存放至外置存儲 %1$s 目錄中</string>
     <string name="export_rule_failed">導出規則失敗</string>
+    <string name="import_rule_failed_no_permission">導入規則失敗，需要存儲權限以獲取規則</string>
+    <string name="import_rule_failed_exception">導入規則失敗，錯誤原因: %1$s</string>
+    <string name="export_rule_failed_no_permission">導出規則失敗，需要存儲權限以寫入規則</string>
+    <string name="export_rule_failed_exception">導出規則失敗，錯誤原因: %1$s</string>
+    <plurals name="import_rule_succeed">
+        <item quantity="other">導入 %1$d 條規則</item>
+    </plurals>
+    <plurals name="export_rule_succeed">
+        <item quantity="other">導出 %1$d 條規則，存儲至 %2$s</item>
+    </plurals>
 </resources>

@@ -9,8 +9,8 @@ import android.util.Log
 import android.widget.Toast
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
-import com.merxury.blocker.core.root.RootCommand
 import com.merxury.blocker.entity.Application
+import com.merxury.blocker.ui.exception.StorageNotAvailableException
 import com.merxury.blocker.utils.FileUtils
 import com.merxury.ifw.util.PermissionUtils
 import com.merxury.ifw.util.StorageUtils
@@ -77,91 +77,97 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     }
 
     override fun exportIfwRules() {
-        //TODO dirty code, refine later
         RxPermissions(context as Activity)
                 .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .subscribe { granted ->
                     if (granted) {
-                        Single.create(SingleOnSubscribe<Boolean> { emitter ->
-                            if (!FileUtils.isExternalStorageWritable()) {
-                                emitter.onSuccess(false)
-                            }
-                            val ifwFolder = StorageUtils.getIfwFolder();
-                            val blockerFolder = FileUtils.getExternalStoragePath() + BLOCKER_FOLDER;
-                            val blockerFolderFile = File(blockerFolder)
-                            if(!blockerFolderFile.exists()) {
-                                blockerFolderFile.mkdirs()
-                            }
-                            try {
-                                PermissionUtils.setIfwReadable()
-                                val files = File(ifwFolder).listFiles()
-                                if(files == null) emitter.onSuccess(false)
-                                files.forEach {
-                                    FileUtils.cat(it.absolutePath, blockerFolder + it.name)
-                                }
-                                PermissionUtils.resetIfwPermission()
-                            }catch (e: IOException) {
-                                e.printStackTrace()
-                                Log.e(TAG, e.message)
-                                emitter.onSuccess(false)
-                            }
-                            emitter.onSuccess(true)
-                        }).subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe { result ->
-                                    if (result) {
-                                        homeView?.showToastMessage(context?.getString(R.string.export_rule_succeed, BLOCKER_FOLDER), Toast.LENGTH_LONG)
-                                    } else {
-                                        homeView?.showToastMessage(context?.getString(R.string.export_rule_failed), Toast.LENGTH_LONG)
-                                    }
-                                }
+                        exportRule()
                     } else {
-                        homeView?.showToastMessage(context?.getString(R.string.export_rule_failed), Toast.LENGTH_LONG)
+                        homeView?.showToastMessage(context?.getString(R.string.export_rule_failed_no_permission), Toast.LENGTH_LONG)
                     }
                 }
-
     }
 
     override fun importIfwRules() {
-        //TODO dirty code, refine later
         RxPermissions(context as Activity)
-                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .request(Manifest.permission.READ_EXTERNAL_STORAGE)
                 .subscribe { granted ->
                     if (granted) {
-                        Single.create(SingleOnSubscribe<Boolean> { emitter ->
-                            if (!FileUtils.isExternalStorageWritable()) {
-                                emitter.onSuccess(false)
-                            }
-                            val ifwFolder = StorageUtils.getIfwFolder();
-                            val blockerFolder = FileUtils.getExternalStoragePath() + BLOCKER_FOLDER;
-                            try {
-                                PermissionUtils.setIfwReadable()
-                                val files = File(ifwFolder).listFiles()
-                                if(files == null) emitter.onSuccess(false)
-                                files.forEach {
-                                    FileUtils.copy(it.absolutePath, blockerFolder + it.name)
-                                }
-                                PermissionUtils.resetIfwPermission()
-                            }catch (e: IOException) {
-                                e.printStackTrace()
-                                Log.e(TAG, e.message)
-                                emitter.onSuccess(false)
-                            }
-                            emitter.onSuccess(true)
-                        }).subscribeOn(Schedulers.io())
-                                .observeOn(AndroidSchedulers.mainThread())
-                                .subscribe { result ->
-                                    if (result) {
-                                        homeView?.showToastMessage(context?.getString(R.string.export_rule_succeed, BLOCKER_FOLDER), Toast.LENGTH_LONG)
-                                    } else {
-                                        homeView?.showToastMessage(context?.getString(R.string.export_rule_failed), Toast.LENGTH_LONG)
-                                    }
-                                }
+                        importRule()
                     } else {
-                        homeView?.showToastMessage(context?.getString(R.string.export_rule_failed), Toast.LENGTH_LONG)
+                        homeView?.showToastMessage(context?.getString(R.string.import_rule_failed_no_permission), Toast.LENGTH_LONG)
                     }
                 }
+    }
 
+    private fun exportRule() {
+        //TODO dirty code, refine later
+        Single.create(SingleOnSubscribe<Int> { emitter ->
+            if (!FileUtils.isExternalStorageWritable()) {
+                emitter.onError(StorageNotAvailableException())
+            }
+            val ifwFolder = StorageUtils.getIfwFolder();
+            val blockerFolder = FileUtils.getExternalStoragePath() + BLOCKER_FOLDER;
+            val blockerFolderFile = File(blockerFolder)
+            if (!blockerFolderFile.exists()) {
+                blockerFolderFile.mkdirs()
+            }
+            try {
+                PermissionUtils.setIfwReadable()
+                val files = File(ifwFolder).listFiles()
+                if (files == null) emitter.onSuccess(0)
+                files.forEach {
+                    FileUtils.cat(it.absolutePath, blockerFolder + it.name)
+                }
+                PermissionUtils.resetIfwPermission()
+                emitter.onSuccess(files.count())
+            } catch (e: IOException) {
+                e.printStackTrace()
+                Log.e(TAG, e.message)
+                emitter.onError(e)
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result ->
+                    homeView?.showToastMessage(context?.resources?.getQuantityString(R.plurals.export_rule_succeed, result, BLOCKER_FOLDER), Toast.LENGTH_LONG)
+                }, { error ->
+                    homeView?.showToastMessage(context?.getString(R.string.export_rule_failed_exception, error.message), Toast.LENGTH_LONG)
+                })
+    }
+
+    private fun importRule() {
+        //TODO dirty code, refine later
+        Single.create(SingleOnSubscribe<Int> { emitter ->
+            if (!FileUtils.isExternalStorageWritable()) {
+                emitter.onError(StorageNotAvailableException())
+            }
+            val ifwFolder = StorageUtils.getIfwFolder();
+            val blockerFolder = FileUtils.getExternalStoragePath() + BLOCKER_FOLDER;
+            val blockerFolderFile = File(blockerFolder)
+            if (!blockerFolderFile.exists()) {
+                blockerFolderFile.mkdirs()
+            }
+            try {
+                PermissionUtils.setIfwReadable()
+                val files = File(blockerFolder).listFiles()
+                if (files == null) emitter.onSuccess(0)
+                files.forEach {
+                    FileUtils.cat(it.absolutePath, ifwFolder + it.name)
+                }
+                PermissionUtils.resetIfwPermission()
+                emitter.onSuccess(files.count())
+            } catch (e: IOException) {
+                e.printStackTrace()
+                Log.e(TAG, e.message)
+                emitter.onError(e)
+            }
+        }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result ->
+                    homeView?.showToastMessage(context?.resources?.getQuantityString(R.plurals.import_rule_succeed, result), Toast.LENGTH_LONG)
+                }, { error ->
+                    homeView?.showToastMessage(context?.getString(R.string.import_rule_failed_exception, error.message), Toast.LENGTH_LONG)
+                })
     }
 
 
