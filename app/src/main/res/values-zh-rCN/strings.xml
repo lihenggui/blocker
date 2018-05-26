@@ -53,7 +53,7 @@
     <string name="enable_all">启用全部</string>
     <string name="warning">警告</string>
     <string name="warning_disable_all_component">本页面上的所有组件将会被禁用，继续进行操作吗？</string>
-    <string name="disabling_hint">禁用组件中...</string>
+    <string name="disabling_hint">禁用组件中…</string>
     <string name="enabling_hint">启用组件中…</string>
     <string name="done">完成</string>
     <string name="export_ifw_rules">导出IFW规则</string>
@@ -64,4 +64,14 @@
     <string name="export_alert_message">Intent Firewall规则将会备份至外置存储中，继续操作吗？</string>
     <string name="export_rule_succeed">导出完毕，规则存放至外置存储 %1$s 目录中</string>
     <string name="export_rule_failed">导出规则失败</string>
+    <string name="import_rule_failed_no_permission">导入规则失败，需要存储权限以获取规则</string>
+    <string name="import_rule_failed_exception">导入规则失败，错误原因: %1$s</string>
+    <string name="export_rule_failed_no_permission">导出规则失败，需要存储权限以写入规则</string>
+    <string name="export_rule_failed_exception">导出规则失败，错误原因: %1$s</string>
+    <plurals name="import_rule_succeed">
+        <item quantity="other">导入 %1$d 条规则</item>
+    </plurals>
+    <plurals name="export_rule_succeed">
+        <item quantity="other">导出 %1$d 条规则，存储至 %2$s</item>
+    </plurals>
 </resources>
