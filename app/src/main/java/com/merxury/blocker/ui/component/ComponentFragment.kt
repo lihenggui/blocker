@@ -20,7 +20,7 @@ import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
 
-class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentMainView, ComponentContract.ComponentItemListener {
+class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
 
     override lateinit var presenter: ComponentContract.Presenter
     private lateinit var componentOnlineDetailsPresenter: ComponentContract.ComponentOnlineDataPresenter
@@ -65,7 +65,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
         setHasOptionsMenu(true)
         presenter = ComponentPresenter(context!!, this, packageName)
-        componentOnlineDetailsPresenter = (context as ComponentContract.ComponentMainView).getComponentDataPresenter()
         return root
     }
 
@@ -272,14 +271,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun showActionDone() {
         Toast.makeText(context, R.string.done, Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {
-
-    }
-
-    override fun getComponentDataPresenter(): ComponentContract.ComponentOnlineDataPresenter {
-        TODO("won't implemented")
     }
 
     private fun registerReceiver() {
