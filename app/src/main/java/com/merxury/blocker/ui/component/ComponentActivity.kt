@@ -3,12 +3,10 @@ package com.merxury.blocker.ui.component
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.app.ActivityManager
-import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
-import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import com.bumptech.glide.Glide
@@ -17,15 +15,12 @@ import com.merxury.blocker.R
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.ui.adapter.FragmentAdapter
 import com.merxury.blocker.ui.base.IActivityView
-import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
 import com.merxury.blocker.util.setupActionBar
 import com.merxury.blocker.utils.ApplicationUtils
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
 
-class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.ComponentMainView {
-
-    private lateinit var componentOnlineDataPresenter: ComponentContract.ComponentOnlineDataPresenter
+class ComponentActivity : AppCompatActivity(), IActivityView {
 
     private lateinit var application: Application
 
@@ -41,18 +36,10 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
             setDisplayShowTitleEnabled(false)
         }
         getDataFromIntent()
-        setupPresenter()
         setupViewPager()
         setupTab()
         showApplicationBriefInfo(application)
-        componentOnlineDataPresenter.loadComponentData()
     }
-
-    override fun onDestroy() {
-        componentOnlineDataPresenter.destroy()
-        super.onDestroy()
-    }
-
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
@@ -141,19 +128,6 @@ class ComponentActivity : AppCompatActivity(), IActivityView, ComponentContract.
             3 -> ContextCompat.getColor(this, R.color.md_red_700)
             else -> ContextCompat.getColor(this, R.color.md_grey_700)
         }
-    }
-
-    override fun onComponentLoaded(appComponentInfo: AppComponentInfo) {
-        val intent = Intent(Constant.DETAIL_LOADED)
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
-    }
-
-    override fun getComponentDataPresenter(): ComponentContract.ComponentOnlineDataPresenter {
-        return componentOnlineDataPresenter
-    }
-
-    private fun setupPresenter() {
-        componentOnlineDataPresenter = ComponentOnlineDataPresenter(this, application.packageName)
     }
 
 }
