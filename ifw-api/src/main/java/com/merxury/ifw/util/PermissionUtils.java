@@ -31,4 +31,8 @@ public class PermissionUtils {
         String ifwFolder = StorageUtils.getIfwFolder();
         setPermissionRecursively(ifwFolder, 644);
     }
+
+    public static boolean isRootAvailable() {
+        return RootTools.isRootAvailable();
+    }
 }
