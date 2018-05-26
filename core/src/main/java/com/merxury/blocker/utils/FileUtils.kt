@@ -1,16 +1,53 @@
 package com.merxury.blocker.utils
 
-import com.merxury.blocker.core.root.RootCommand
+import android.os.Environment
+import android.util.Log
 import com.stericson.RootTools.RootTools
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
+
 
 object FileUtils {
-    fun copy(source: String, dest: String): Boolean{
-        // TODO use Android default implementation in future version
-        if(!RootTools.exists(dest, true)) {
-            RootCommand.runBlockingCommand("mkdir -m 777 $dest")
+    const val TAG = "FileUtils"
+
+    fun copy(source: String, dest: String): Boolean {
+        Log.i(TAG, "Copy $source to $dest")
+        try {
+            FileInputStream(source).use({ input ->
+                FileOutputStream(dest).use({ output ->
+                    val buf = ByteArray(1024)
+                    var length = input.read(buf)
+                    while (length > 0) {
+                        output.write(buf, 0, length)
+                        length = input.read(buf)
+                    }
+                })
+            })
+        } catch (e: IOException) {
+            e.printStackTrace()
+            Log.e(TAG, e.message)
+            return false
         }
-        RootCommand.runBlockingCommand("dd if=$source of=$dest")
+        return true
+    }
+
+    fun copyWithRoot(source: String, dest: String): Boolean {
+        Log.i(TAG, "Copy $source to $dest with root permission")
         return RootTools.copyFile(source, dest, false, true)
+    }
+
+    fun isExternalStorageWritable(): Boolean {
+        return Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED
+    }
+
+    fun isExternalStorageReadable(): Boolean {
+        return Environment.getExternalStorageState() in
+                setOf(Environment.MEDIA_MOUNTED, Environment.MEDIA_MOUNTED_READ_ONLY)
+    }
+
+    fun getExternalStoragePath(): String {
+        return Environment.getExternalStorageDirectory().absolutePath + File.separator
     }
 }

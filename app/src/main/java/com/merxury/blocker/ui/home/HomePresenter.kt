@@ -1,19 +1,26 @@
 package com.merxury.blocker.ui.home
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Environment
+import android.util.Log
 import android.widget.Toast
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
+import com.merxury.blocker.core.root.RootCommand
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.utils.FileUtils
+import com.merxury.ifw.util.PermissionUtils
 import com.merxury.ifw.util.StorageUtils
+import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import java.io.File
+import java.io.IOException
 
 class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
 
@@ -70,32 +77,93 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     }
 
     override fun exportIfwRules() {
-        Single.create(SingleOnSubscribe<Boolean> { emitter ->
-            if(!StorageUtils.isExternalStorageAvailable()) {
-                emitter.onSuccess(false)
-            }
-            val ifwFolder = StorageUtils.getIfwFolder();
-            val blockerFolder = StorageUtils.getExternalStoragePath() + BLOCKER_FOLDER;
-            emitter.onSuccess(FileUtils.copy(ifwFolder, blockerFolder))
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { result ->
-                    if(result) {
-                        homeView?.showToastMessage(context?.getString(R.string.export_rule_succeed, BLOCKER_FOLDER), Toast.LENGTH_LONG)
+        //TODO dirty code, refine later
+        RxPermissions(context as Activity)
+                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe { granted ->
+                    if (granted) {
+                        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+                            if (!FileUtils.isExternalStorageWritable()) {
+                                emitter.onSuccess(false)
+                            }
+                            val ifwFolder = StorageUtils.getIfwFolder();
+                            val blockerFolder = FileUtils.getExternalStoragePath() + BLOCKER_FOLDER;
+                            try {
+                                PermissionUtils.setIfwReadable()
+                                val files = File(ifwFolder).listFiles()
+                                if(files == null) emitter.onSuccess(false)
+                                files.forEach {
+                                    FileUtils.copy(it.absolutePath, blockerFolder + it.name)
+                                }
+                            }catch (e: IOException) {
+                                e.printStackTrace()
+                                Log.e(TAG, e.message)
+                                emitter.onSuccess(false)
+                            }
+                            emitter.onSuccess(true)
+                        }).subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe { result ->
+                                    if (result) {
+                                        homeView?.showToastMessage(context?.getString(R.string.export_rule_succeed, BLOCKER_FOLDER), Toast.LENGTH_LONG)
+                                    } else {
+                                        homeView?.showToastMessage(context?.getString(R.string.export_rule_failed), Toast.LENGTH_LONG)
+                                    }
+                                }
                     } else {
                         homeView?.showToastMessage(context?.getString(R.string.export_rule_failed), Toast.LENGTH_LONG)
                     }
                 }
+
     }
 
     override fun importIfwRules() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        //TODO dirty code, refine later
+        RxPermissions(context as Activity)
+                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe { granted ->
+                    if (granted) {
+                        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+                            if (!FileUtils.isExternalStorageWritable()) {
+                                emitter.onSuccess(false)
+                            }
+                            val ifwFolder = StorageUtils.getIfwFolder();
+                            val blockerFolder = FileUtils.getExternalStoragePath() + BLOCKER_FOLDER;
+                            try {
+                                PermissionUtils.setIfwReadable()
+                                val files = File(ifwFolder).listFiles()
+                                if(files == null) emitter.onSuccess(false)
+                                files.forEach {
+                                    FileUtils.copy(it.absolutePath, blockerFolder + it.name)
+                                }
+                                PermissionUtils.resetIfwPermission()
+                            }catch (e: IOException) {
+                                e.printStackTrace()
+                                Log.e(TAG, e.message)
+                                emitter.onSuccess(false)
+                            }
+                            emitter.onSuccess(true)
+                        }).subscribeOn(Schedulers.io())
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe { result ->
+                                    if (result) {
+                                        homeView?.showToastMessage(context?.getString(R.string.export_rule_succeed, BLOCKER_FOLDER), Toast.LENGTH_LONG)
+                                    } else {
+                                        homeView?.showToastMessage(context?.getString(R.string.export_rule_failed), Toast.LENGTH_LONG)
+                                    }
+                                }
+                    } else {
+                        homeView?.showToastMessage(context?.getString(R.string.export_rule_failed), Toast.LENGTH_LONG)
+                    }
+                }
+
     }
 
 
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
 
     companion object {
+        const val TAG = "HomePresenter"
         const val BLOCKER_FOLDER = "Blocker/ifw/"
     }
 

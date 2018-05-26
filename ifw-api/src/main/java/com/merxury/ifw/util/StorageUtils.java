@@ -23,7 +23,7 @@ import java.io.File;
  */
 
 public class StorageUtils {
-    private static final String IFW_FOLDER = "/ifw/";
+    private static final String IFW_FOLDER = "/ifw";
     private static final File DATA_DIRECTORY
             = getDirectory("ANDROID_DATA", "/data");
     private static final File SECURE_DATA_DIRECTORY
@@ -65,16 +65,6 @@ public class StorageUtils {
 
     @NonNull
     public static String getIfwFolder() {
-        return StorageUtils.getSystemSecureDirectory() + IFW_FOLDER;
-    }
-
-    public static boolean isExternalStorageAvailable() {
-        return Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED);
-    }
-
-
-    @NonNull
-    public static String getExternalStoragePath() {
-        return Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator;
+        return StorageUtils.getSystemSecureDirectory() + IFW_FOLDER + File.separator;
     }
 }
