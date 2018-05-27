@@ -38,6 +38,15 @@ object FileUtils {
         RootCommand.runBlockingCommand("cat $source > $dest")
     }
 
+    fun listFiles(path: String): List<String> {
+        val output = RootCommand.runBlockingCommand("find $path")
+        if (output.contains("No such file or directory")) {
+            return ArrayList()
+        }
+        val files = output.split("\n")
+        return files.filterNot { it.isEmpty() || it == path }
+    }
+
     fun copyWithRoot(source: String, dest: String): Boolean {
         Log.i(TAG, "Copy $source to $dest with root permission")
         return RootTools.copyFile(source, dest, false, true)

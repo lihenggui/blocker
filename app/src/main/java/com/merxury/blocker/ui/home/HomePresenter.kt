@@ -12,7 +12,6 @@ import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.ui.exception.StorageNotAvailableException
 import com.merxury.blocker.utils.FileUtils
-import com.merxury.ifw.util.PermissionUtils
 import com.merxury.ifw.util.StorageUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Single
@@ -113,16 +112,10 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 blockerFolderFile.mkdirs()
             }
             try {
-                PermissionUtils.setIfwReadable()
-                val files = File(ifwFolder).listFiles()
-                if (files == null) {
-                    emitter.onSuccess(0)
-                    return@SingleOnSubscribe
-                }
+                val files = FileUtils.listFiles(ifwFolder)
                 files.forEach {
-                    FileUtils.cat(it.absolutePath, blockerFolder + it.name)
+                    FileUtils.cat(it, blockerFolder + it.split(File.separator).last())
                 }
-                PermissionUtils.resetIfwPermission()
                 emitter.onSuccess(files.count())
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -132,7 +125,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
-                    homeView?.showToastMessage(context?.resources?.getQuantityString(R.plurals.export_rule_succeed, result, BLOCKER_FOLDER), Toast.LENGTH_LONG)
+                    homeView?.showToastMessage(context?.resources?.getQuantityString(R.plurals.export_rule_succeed, result, result, BLOCKER_FOLDER), Toast.LENGTH_LONG)
                 }, { error ->
                     homeView?.showToastMessage(context?.getString(R.string.export_rule_failed_exception, error.message), Toast.LENGTH_LONG)
                 })
@@ -151,13 +144,10 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 blockerFolderFile.mkdirs()
             }
             try {
-                PermissionUtils.setIfwReadable()
-                val files = File(blockerFolder).listFiles()
-                if (files == null) emitter.onSuccess(0)
+                val files = FileUtils.listFiles(blockerFolder)
                 files.forEach {
-                    FileUtils.cat(it.absolutePath, ifwFolder + it.name)
+                    FileUtils.cat(it, ifwFolder + it.split(File.separator).last())
                 }
-                PermissionUtils.resetIfwPermission()
                 emitter.onSuccess(files.count())
             } catch (e: IOException) {
                 e.printStackTrace()
@@ -167,7 +157,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
         }).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
-                    homeView?.showToastMessage(context?.resources?.getQuantityString(R.plurals.import_rule_succeed, result), Toast.LENGTH_LONG)
+                    homeView?.showToastMessage(context?.resources?.getQuantityString(R.plurals.import_rule_succeed, result, result), Toast.LENGTH_LONG)
                 }, { error ->
                     homeView?.showToastMessage(context?.getString(R.string.import_rule_failed_exception, error.message), Toast.LENGTH_LONG)
                 })
