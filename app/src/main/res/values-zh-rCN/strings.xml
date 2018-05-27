@@ -68,6 +68,9 @@
     <string name="import_rule_failed_exception">导入规则失败，错误原因: %1$s</string>
     <string name="export_rule_failed_no_permission">导出规则失败，需要存储权限以写入规则</string>
     <string name="export_rule_failed_exception">导出规则失败，错误原因: %1$s</string>
+    <string name="pref_controller_settings">Controller Settings</string>
+    <string name="pref_controller_chooser_title">Choose Controller</string>
+    <string name="pref_controller_type">Controller Type</string>
     <plurals name="import_rule_succeed">
         <item quantity="other">导入 %1$d 条规则</item>
     </plurals>
