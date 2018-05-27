@@ -3,6 +3,7 @@ package com.merxury.blocker.ui.home
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.app.ActivityManager
+import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.support.design.widget.TabLayout
@@ -14,6 +15,7 @@ import android.view.MenuItem
 import com.merxury.blocker.R
 import com.merxury.blocker.ui.adapter.FragmentAdapter
 import com.merxury.blocker.ui.base.IActivityView
+import com.merxury.blocker.ui.settings.SettingsActivity
 import com.merxury.blocker.util.setupActionBar
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
@@ -63,7 +65,9 @@ class HomeActivity : AppCompatActivity(), IActivityView {
                         item2
                 )
                 .withOnDrawerItemClickListener { view, position, drawerItem ->
-                    // do something with the clicked item :D
+                    when (drawerItem?.identifier) {
+                        2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
+                    }
                     true
                 }
                 .build()

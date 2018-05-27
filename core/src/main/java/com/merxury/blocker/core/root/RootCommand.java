@@ -27,7 +27,7 @@ public class RootCommand {
 
     @NonNull
     public synchronized static String runBlockingCommand(final String comm) throws RootDeniedException, IOException, TimeoutException {
-        final AtomicReference<String> returnItem = new AtomicReference<>();
+        final StringBuilder commandOutput = new StringBuilder("");
         final AtomicReference<Throwable> returnException = new AtomicReference<>();
         Log.i(TAG, comm);
         Observable.create(new ObservableOnSubscribe<String>() {
@@ -66,7 +66,7 @@ public class RootCommand {
 
             @Override
             public void onNext(String s) {
-                returnItem.set(s);
+                commandOutput.append(s).append("\n");
             }
 
             @Override
@@ -91,7 +91,6 @@ public class RootCommand {
                 throw new RuntimeException(exception);
             }
         }
-        return returnItem.get();
+        return commandOutput.toString();
     }
-
 }

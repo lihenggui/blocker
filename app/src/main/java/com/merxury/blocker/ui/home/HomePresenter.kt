@@ -115,7 +115,10 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
             try {
                 PermissionUtils.setIfwReadable()
                 val files = File(ifwFolder).listFiles()
-                if (files == null) emitter.onSuccess(0)
+                if (files == null) {
+                    emitter.onSuccess(0)
+                    return@SingleOnSubscribe
+                }
                 files.forEach {
                     FileUtils.cat(it.absolutePath, blockerFolder + it.name)
                 }
