@@ -315,6 +315,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             if (!PermissionUtils.isRootAvailable()) {
                 emitter.onError(RootUnavailableException())
+                return@SingleOnSubscribe
             }
             val components = getComponents(packageName, type)
             try {
@@ -334,16 +335,13 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnError {
-                    it?.apply {
-                        Log.e(TAG, it.message)
-                        printStackTrace()
-                        view?.showAlertDialog()
-                    }
-                }
-                .subscribe({ _, error ->
+                .subscribe({ result, error ->
                     loadComponents(packageName, type)
-                    view?.showActionDone()
+                    if (result) {
+                        view?.showActionDone()
+                    } else {
+                        view?.showActionFail()
+                    }
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
@@ -357,6 +355,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             if (!PermissionUtils.isRootAvailable()) {
                 emitter.onError(RootUnavailableException())
+                return@SingleOnSubscribe
             }
             val components = getComponents(packageName, type)
             try {
@@ -375,16 +374,19 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnError {
-                    it?.apply {
-                        Log.e(TAG, it.message)
+                .onErrorReturn { false }
+                .subscribe({ result, error ->
+                    if (result) {
+                        view?.showActionDone()
+                    } else {
+                        view?.showActionFail()
+                    }
+                    loadComponents(packageName, type)
+                    error?.apply {
+                        Log.e(TAG, message)
                         printStackTrace()
                         view?.showAlertDialog()
                     }
-                }
-                .subscribe({ _ ->
-                    loadComponents(packageName, type)
-                    view?.showActionDone()
                 })
 
     }

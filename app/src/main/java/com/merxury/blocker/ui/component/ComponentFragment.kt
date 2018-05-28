@@ -273,6 +273,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         Toast.makeText(context, R.string.done, Toast.LENGTH_SHORT).show()
     }
 
+    override fun showActionFail() {
+        Toast.makeText(context, R.string.fail, Toast.LENGTH_SHORT).show()
+    }
+
     private fun registerReceiver() {
         val intentFilter = IntentFilter(Constant.DETAIL_LOADED)
         receiver = OnComponentDetailsLoadedReceiver()

@@ -21,6 +21,7 @@ interface ComponentContract {
         fun showVoteFail()
         fun showDisableAllAlert()
         fun showActionDone()
+        fun showActionFail()
     }
 
     interface Presenter : BasePresenter, IController {
