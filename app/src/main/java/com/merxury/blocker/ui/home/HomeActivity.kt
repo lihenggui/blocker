@@ -66,10 +66,13 @@ class HomeActivity : AppCompatActivity(), IActivityView {
                 )
                 .withOnDrawerItemClickListener { view, position, drawerItem ->
                     when (drawerItem?.identifier) {
+                        1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
                         2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
                     }
-                    true
+                    false
                 }
+                .withSelectedItem(1L)
+                .withCloseOnClick(true)
                 .build()
 
     }
