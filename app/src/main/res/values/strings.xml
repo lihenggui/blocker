@@ -15,7 +15,7 @@
     <string name="no_app_message">OOps, I cannot find any application.</string>
     <string name="no_component_message">OOps, I cannot find any component here.</string>
     <string name="application_label">Name: %1$s</string>
-    <string name="min_sdk_version">Minimum SDK Version: %1$d</string>
+    <string name="min_sdk_version">Minimum SDK Version: %1$s</string>
     <string name="package_name">Package name: %1$s</string>
     <string name="menu_filter">Filter</string>
     <string name="refresh">Refresh</string>
@@ -54,7 +54,7 @@
     <string name="cancel">Cancel</string>
     <string name="send">Send</string>
     <string name="vote_fail">Fail to vote this component.</string>
-    <string name="target_sdk_version">Target SDK Version: %1$d</string>
+    <string name="target_sdk_version">Target SDK Version: %1$s</string>
     <string name="block_all">Block All</string>
     <string name="enable_all">Enable All</string>
     <string name="warning">Warning</string>

@@ -16,8 +16,8 @@
     <string name="no_app_message">嗷呜～没有应用程序哦</string>
     <string name="no_component_message">嗷呜～没有应用程序组件哦</string>
     <string name="application_label">名称: %1$s</string>
-    <string name="min_sdk_version">最低支持系统版本: %1$d</string>
-    <string name="target_sdk_version">开发SDK版本: %1$d</string>
+    <string name="min_sdk_version">最低支持系统版本: %1$s</string>
+    <string name="target_sdk_version">开发SDK版本: %1$s</string>
     <string name="package_name">应用包名: %1$s</string>
     <string name="menu_filter">过滤条件</string>
     <string name="refresh">刷新</string>
