@@ -1,11 +1,10 @@
 package com.merxury.blocker.ui.component
 
-import android.content.*
+import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
-import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.*
 import android.view.*
@@ -23,19 +22,16 @@ import kotlinx.android.synthetic.main.fragment_component.view.*
 class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
 
     override lateinit var presenter: ComponentContract.Presenter
-    private lateinit var componentOnlineDetailsPresenter: ComponentContract.ComponentOnlineDataPresenter
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
     private lateinit var packageName: String
     private lateinit var type: EComponentType
 
-    private lateinit var receiver: OnComponentDetailsLoadedReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val args = arguments
         type = args?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = args.getString(Constant.PACKAGE_NAME)
-        registerReceiver()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -70,17 +66,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onStart() {
         super.onStart()
-        registerReceiver()
         presenter.loadComponents(packageName, type)
     }
 
-    override fun onStop() {
-        unregisterReceiver()
-        super.onStop()
-    }
-
     override fun onDestroy() {
-        unregisterReceiver()
         presenter.destroy()
         super.onDestroy()
     }
@@ -243,7 +232,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     .setCancelable(true)
                     .setView(view)
                     .setNegativeButton(R.string.cancel, { dialog, _ -> dialog.dismiss() })
-                    .setPositiveButton(R.string.send, { dialog, which -> componentOnlineDetailsPresenter.sendDescription(packageName, componentName, type, commentInput.text.toString()) })
+                    .setPositiveButton(R.string.send, { dialog, which -> })//componentOnlineDetailsPresenter.sendDescription(packageName, componentName, type, commentInput.text.toString()) })
                     .create()
                     .show()
         }
@@ -276,19 +265,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     override fun showActionFail() {
         Toast.makeText(context, R.string.fail, Toast.LENGTH_SHORT).show()
     }
-
-    private fun registerReceiver() {
-        val intentFilter = IntentFilter(Constant.DETAIL_LOADED)
-        receiver = OnComponentDetailsLoadedReceiver()
-        LocalBroadcastManager.getInstance(context!!).registerReceiver(receiver, intentFilter)
-    }
-
-    private fun unregisterReceiver() {
-        context?.run {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
-        }
-    }
-
 
     companion object {
         const val TAG = "ComponentFragment"
@@ -411,13 +387,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 }
             }
 
-        }
-    }
-
-    inner class OnComponentDetailsLoadedReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            val details = componentOnlineDetailsPresenter.getComponentData()
-            componentAdapter.addComponentDetails(details)
         }
     }
 }
