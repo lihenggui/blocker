@@ -335,6 +335,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .onErrorReturn { false }
                 .subscribe({ result, error ->
                     loadComponents(packageName, type)
                     if (result) {
