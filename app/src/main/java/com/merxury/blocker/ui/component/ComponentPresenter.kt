@@ -8,7 +8,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.root.ComponentControllerProxy
+import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootCommand
 import com.merxury.blocker.ui.exception.RootUnavailableException

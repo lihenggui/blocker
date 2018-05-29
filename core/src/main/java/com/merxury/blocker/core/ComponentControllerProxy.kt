@@ -1,7 +1,9 @@
-package com.merxury.blocker.core.root
+package com.merxury.blocker.core
 
 import android.content.Context
-import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.root.RootController
+import com.merxury.blocker.core.shizuku.ShizukuController
 
 /**
  * Created by Mercury on 2018/3/10.
@@ -15,6 +17,7 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
     init {
         when (method) {
             EControllerMethod.PM -> controller = RootController(context)
+            EControllerMethod.SHIZUKU -> controller = ShizukuController(context)
         }
     }
 
@@ -41,7 +44,8 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
 
         fun getInstance(method: EControllerMethod, context: Context): IController =
                 instance ?: synchronized(this) {
-                    instance ?: ComponentControllerProxy(method, context).also {
+                    instance
+                            ?: ComponentControllerProxy(method, context).also {
                         it.controllerMethod = method
                         instance = it
                     }
