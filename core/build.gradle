@@ -49,5 +49,7 @@ dependencies {
     //RootTools and RootShell support
     implementation(name: 'RootTools', ext: 'aar')
     implementation(name: 'RootShell', ext: 'aar')
-
+    // Shizuku dependency
+    implementation 'moe.shizuku.privilege:api-base:9'
+    implementation 'moe.shizuku.privilege:api-26:4'
 }
