@@ -13,7 +13,6 @@ import com.merxury.blocker.core.shizuku.ShizukuController
 class ComponentControllerProxy private constructor(method: EControllerMethod, context: Context) : IController {
 
     private lateinit var controller: IController
-    private lateinit var controllerMethod: EControllerMethod
 
     init {
         when (method) {
@@ -41,15 +40,20 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
 
     companion object {
         @Volatile
-        var instance: ComponentControllerProxy? = null
+        var instance: IController? = null
+        var controllerMethod: EControllerMethod? = null
 
         fun getInstance(method: EControllerMethod, context: Context): IController =
-                instance ?: synchronized(this) {
-                    instance
-                            ?: ComponentControllerProxy(method, context).also {
-                        it.controllerMethod = method
-                        instance = it
+                if (method != controllerMethod) {
+                    instance ?: synchronized(this) {
+                        instance
+                                ?: ComponentControllerProxy(method, context).also {
+                                    controllerMethod = method
+                                    instance = it
+                                }
                     }
+                } else {
+                    instance!!
                 }
 
     }
