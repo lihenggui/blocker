@@ -7,8 +7,8 @@ import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
-import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.ComponentControllerProxy
+import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootCommand
 import com.merxury.blocker.ui.exception.RootUnavailableException
@@ -30,7 +30,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     private val pm: PackageManager
 
     private val controller: IController by lazy {
-        ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+        ComponentControllerProxy.getInstance(EControllerMethod.SHIZUKU, context)
     }
     private val componentClient: IClientServer by lazy {
         ApiClient.createClient()
