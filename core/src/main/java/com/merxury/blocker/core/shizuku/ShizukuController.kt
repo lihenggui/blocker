@@ -3,23 +3,34 @@ package com.merxury.blocker.core.shizuku
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
+import moe.shizuku.api.ShizukuClient
 import moe.shizuku.api.ShizukuPackageManagerV26
 
-class ShizukuController(val context: Context): IController {
+class ShizukuController(val context: Context) : IController {
+    init {
+        ShizukuClient.initialize(context)
+    }
 
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
-        ShizukuPackageManagerV26.setComponentEnabledSetting(ComponentName(packageName, componentName), state, PackageManager.DONT_KILL_APP, 2000)
+        try {
+            ShizukuPackageManagerV26.setComponentEnabledSetting(ComponentName(packageName, componentName), state, PackageManager.DONT_KILL_APP, 0)
+        } catch (e: Exception) {
+            Log.e(TAG, e.message)
+            e.printStackTrace()
+            return false
+        }
         return true
     }
 
     override fun enable(packageName: String, componentName: String): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
     }
 
     override fun disable(packageName: String, componentName: String): Boolean {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
     }
 
     override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
