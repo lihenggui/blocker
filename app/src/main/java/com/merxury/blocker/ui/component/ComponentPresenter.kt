@@ -33,6 +33,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     private val controller: IController by lazy {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        // Magic value, but still use it.
         val controllerType = when (pref.getString(SettingsActivity.KEY_PREF_CONTROLLER_TYPE, SettingsActivity.KEY_PREF_CONTROLLER_TYPE_DEFAULT)) {
             "shizuku" -> EControllerMethod.SHIZUKU
             else -> EControllerMethod.PM
