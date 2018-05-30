@@ -16,7 +16,7 @@ class ShizukuController(val context: Context) : IController {
 
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
         try {
-            ShizukuPackageManagerV26.setComponentEnabledSetting(ComponentName(packageName, componentName), state, PackageManager.DONT_KILL_APP, 0)
+            ShizukuPackageManagerV26.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
         } catch (e: Exception) {
             Log.e(TAG, e.message)
             e.printStackTrace()

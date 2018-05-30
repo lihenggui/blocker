@@ -57,7 +57,9 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-            bindPreferenceSummaryToValue(findPreference("pref_controllerType"))
+            val preference = findPreference(KEY_PREF_CONTROLLER_TYPE)
+            preference.setDefaultValue(KEY_PREF_CONTROLLER_TYPE_DEFAULT)
+            bindPreferenceSummaryToValue(preference)
         }
 
         override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -93,6 +95,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
     }
 
     companion object {
+        const val KEY_PREF_CONTROLLER_TYPE = "pref_controllerType"
+        const val KEY_PREF_CONTROLLER_TYPE_DEFAULT = "root"
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             val stringValue = value.toString()
 

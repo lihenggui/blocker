@@ -74,14 +74,15 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         presenter.loadComponents(packageName, type)
     }
 
-    override fun onStop() {
+    override fun onPause() {
         unregisterReceiver()
-        super.onStop()
+        super.onPause()
     }
 
     override fun onDestroy() {
-        unregisterReceiver()
-        presenter.destroy()
+        if (::presenter.isInitialized) {
+            presenter.destroy()
+        }
         super.onDestroy()
     }
 
