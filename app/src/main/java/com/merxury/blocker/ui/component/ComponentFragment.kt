@@ -411,7 +411,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     itemView.component_dislike_count.text = component.downVoteCount.toString()
                 }
             }
-
         }
     }
 
