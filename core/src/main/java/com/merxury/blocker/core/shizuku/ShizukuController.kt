@@ -6,14 +6,9 @@ import android.content.pm.PackageManager
 import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
-import moe.shizuku.api.ShizukuClient
 import moe.shizuku.api.ShizukuPackageManagerV26
 
 class ShizukuController(val context: Context) : IController {
-    init {
-        ShizukuClient.initialize(context)
-    }
-
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
         try {
             ShizukuPackageManagerV26.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
