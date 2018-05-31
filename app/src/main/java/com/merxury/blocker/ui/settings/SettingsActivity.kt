@@ -3,6 +3,7 @@ package com.merxury.blocker.ui.settings
 import android.annotation.TargetApi
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -48,18 +49,33 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     class GeneralPreferenceFragment : PreferenceFragment() {
+
+        private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
+        private lateinit var prefs: SharedPreferences
+
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(R.xml.pref_general)
             setHasOptionsMenu(true)
+            prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+            val preference = initPrefDefaultValue()
+            bindPreferenceSummaryToValue(preference)
+            initListener()
+        }
 
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
+        private fun initPrefDefaultValue(): Preference {
             val preference = findPreference(KEY_PREF_CONTROLLER_TYPE)
             preference.setDefaultValue(KEY_PREF_CONTROLLER_TYPE_DEFAULT)
-            bindPreferenceSummaryToValue(preference)
+            return preference
+        }
+
+        private fun initListener() {
+            listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+                when (key) {
+
+                }
+            }
+            prefs.registerOnSharedPreferenceChangeListener(listener)
         }
 
         override fun onOptionsItemSelected(item: MenuItem): Boolean {

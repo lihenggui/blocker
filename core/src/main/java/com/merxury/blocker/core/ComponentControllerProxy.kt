@@ -40,21 +40,23 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
 
     companion object {
         @Volatile
-        var instance: IController? = null
-        var controllerMethod: EControllerMethod? = null
+        private var instance: IController? = null
+        private var controllerMethod: EControllerMethod? = null
 
         fun getInstance(method: EControllerMethod, context: Context): IController =
-                if (method != controllerMethod) {
-                    instance ?: synchronized(this) {
-                        instance
-                                ?: ComponentControllerProxy(method, context).also {
-                                    controllerMethod = method
-                                    instance = it
-                                }
+                synchronized(this) {
+                    if (method != controllerMethod) {
+                        getComponentControllerProxy(method, context)
+                    } else {
+                        instance ?: getComponentControllerProxy(method, context)
                     }
-                } else {
-                    instance!!
                 }
 
+        private fun getComponentControllerProxy(method: EControllerMethod, context: Context): ComponentControllerProxy {
+            return ComponentControllerProxy(method, context).also {
+                controllerMethod = method
+                instance = it
+            }
+        }
     }
 }

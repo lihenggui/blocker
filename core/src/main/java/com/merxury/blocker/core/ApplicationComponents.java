@@ -251,4 +251,20 @@ public class ApplicationComponents {
         return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT;
     }
 
+    /**
+     * check an application is installed or not
+     *
+     * @param pm PackageManager
+     * @return true : component is enabled , false: component is disabled
+     */
+    public static boolean isAppInstalled(@NonNull PackageManager pm, @NonNull String packageName) {
+        boolean installed;
+        try {
+            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            installed = true;
+        } catch (PackageManager.NameNotFoundException e) {
+            installed = false;
+        }
+        return installed;
+    }
 }
