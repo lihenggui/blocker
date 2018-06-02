@@ -38,6 +38,8 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         val controllerType = getControllerType(context)
         ComponentControllerProxy.getInstance(controllerType, context)
     }
+
+
     private val componentClient: IClientServer by lazy {
         ApiClient.createClient()
     }
