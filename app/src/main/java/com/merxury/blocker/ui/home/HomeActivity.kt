@@ -5,6 +5,7 @@ import android.animation.ValueAnimator
 import android.app.ActivityManager
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
@@ -106,8 +107,10 @@ class HomeActivity : AppCompatActivity(), IActivityView {
     private fun changeColor(color: Int) {
         toolbar.setBackgroundColor(color)
         app_kind_tabs.setBackgroundColor(color)
-        window.statusBarColor = color
-        setTaskDescription(ActivityManager.TaskDescription(null, null, color))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.statusBarColor = color
+            setTaskDescription(ActivityManager.TaskDescription(null, null, color))
+        }
     }
 
 

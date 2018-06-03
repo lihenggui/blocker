@@ -412,11 +412,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         RxPermissions(context as Activity)
                 .request(ShizukuClientWrapper.PERMISSION_V23)
                 .subscribe { granted ->
-                    if (granted) {
-                        view?.showActionDone()
-                    } else {
-                        view?.showActionFail()
-                    }
+
                 }
     }
 
