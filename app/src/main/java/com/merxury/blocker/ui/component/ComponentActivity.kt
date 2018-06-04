@@ -127,10 +127,10 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
 
     override fun getBackgroundColor(tabPosition: Int): Int {
         return when (tabPosition) {
-            0 -> ContextCompat.getColor(this, R.color.md_blue_700)
-            1 -> ContextCompat.getColor(this, R.color.md_light_green_700)
-            2 -> ContextCompat.getColor(this, R.color.md_orange_700)
-            3 -> ContextCompat.getColor(this, R.color.md_red_700)
+            0 -> ContextCompat.getColor(this, R.color.google_blue)
+            1 -> ContextCompat.getColor(this, R.color.google_green)
+            2 -> ContextCompat.getColor(this, R.color.google_red)
+            3 -> ContextCompat.getColor(this, R.color.google_yellow)
             else -> ContextCompat.getColor(this, R.color.md_grey_700)
         }
     }

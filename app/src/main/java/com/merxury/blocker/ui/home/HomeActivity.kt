@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
-import android.support.v4.view.GravityCompat
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
@@ -100,7 +99,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == android.R.id.home) {
-            drawer_layout.openDrawer(GravityCompat.START)
+            drawer.openDrawer()
             return true
         }
         return super.onOptionsItemSelected(item)
@@ -135,8 +134,8 @@ class HomeActivity : AppCompatActivity(), IActivityView {
 
     override fun getBackgroundColor(tabPosition: Int): Int {
         return when (tabPosition) {
-            0 -> ContextCompat.getColor(this, R.color.md_blue_700)
-            1 -> ContextCompat.getColor(this, R.color.md_red_700)
+            0 -> ContextCompat.getColor(this, R.color.colorPrimary)
+            1 -> ContextCompat.getColor(this, R.color.md_red_500)
             else -> ContextCompat.getColor(this, R.color.md_grey_700)
         }
     }

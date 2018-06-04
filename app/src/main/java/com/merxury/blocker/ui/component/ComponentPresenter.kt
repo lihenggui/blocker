@@ -18,7 +18,8 @@ import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.strategy.service.ApiClient
 import com.merxury.blocker.strategy.service.IClientServer
-import com.merxury.blocker.ui.settings.SettingsActivity
+import com.merxury.blocker.ui.settings.general.GeneralPreferenceFragment.Companion.KEY_PREF_CONTROLLER_TYPE
+import com.merxury.blocker.ui.settings.general.GeneralPreferenceFragment.Companion.KEY_PREF_CONTROLLER_TYPE_DEFAULT
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
@@ -420,7 +421,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     private fun getControllerType(context: Context): EControllerMethod {
         // Magic value, but still use it.
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        return when (pref.getString(SettingsActivity.KEY_PREF_CONTROLLER_TYPE, SettingsActivity.KEY_PREF_CONTROLLER_TYPE_DEFAULT)) {
+        return when (pref.getString(KEY_PREF_CONTROLLER_TYPE, KEY_PREF_CONTROLLER_TYPE_DEFAULT)) {
             "shizuku" -> EControllerMethod.SHIZUKU
             else -> EControllerMethod.PM
         }

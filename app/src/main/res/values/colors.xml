@@ -8,4 +8,8 @@
     <color name="secondary_text">#757575</color>
     <color name="icons">#FFFFFF</color>
     <color name="divider">#BDBDBD</color>
+    <color name="google_red">#DB3236</color>
+    <color name="google_green">#3cba54</color>
+    <color name="google_yellow">#f4c20d</color>
+    <color name="google_blue">#4885ed</color>
 </resources>

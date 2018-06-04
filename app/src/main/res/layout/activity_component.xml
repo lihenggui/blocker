@@ -5,7 +5,7 @@
     android:id="@+id/component_main_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.merxury.ui.ComponentActivity">
+    tools:context="com.merxury.blocker.ui.component.ComponentActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/component_appbar"
@@ -53,18 +53,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
-
-    <!--<android.support.design.widget.FloatingActionButton-->
-        <!--android:id="@+id/fab"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_gravity="end|bottom"-->
-        <!--android:layout_margin="8dp"-->
-        <!--android:src="@drawable/ic_done"-->
-        <!--app:layout_anchor="@id/tabs"-->
-        <!--app:layout_anchorGravity="center|left|start"-->
-        <!--app:fabSize="mini"-->
-        <!--app:layout_behavior="com.support.android.designlibdemo.ScrollAwareFABBehavior"-->
-        <!--app:borderWidth="0dp" />-->
 
 </android.support.design.widget.CoordinatorLayout>
