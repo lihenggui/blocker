@@ -2,10 +2,10 @@ package com.merxury.blocker.ui.component
 
 import android.content.Context
 import android.util.Log
-import com.merxury.blocker.ui.strategy.entity.ComponentDescription
-import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
-import com.merxury.blocker.ui.strategy.service.ApiClient
-import com.merxury.blocker.ui.strategy.service.IClientServer
+import com.merxury.blocker.strategy.entity.ComponentDescription
+import com.merxury.blocker.strategy.entity.view.AppComponentInfo
+import com.merxury.blocker.strategy.service.ApiClient
+import com.merxury.blocker.strategy.service.IClientServer
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 

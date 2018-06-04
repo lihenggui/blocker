@@ -1,9 +1,9 @@
 package com.merxury.blocker.ui.component
 
+import com.merxury.blocker.base.BasePresenter
+import com.merxury.blocker.base.BaseView
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.ui.base.BasePresenter
-import com.merxury.blocker.ui.base.BaseView
-import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
+import com.merxury.blocker.strategy.entity.view.AppComponentInfo
 
 /**
  * Created by Mercury on 2018/3/18.

@@ -68,6 +68,8 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
     // Gson
     implementation 'com.google.code.gson:gson:2.8.2'
+    // Status Bar color
+    implementation 'com.jaeger.statusbarutil:library:1.5.1'
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')

@@ -14,11 +14,11 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootCommand
 import com.merxury.blocker.core.shizuku.ShizukuClientWrapper
-import com.merxury.blocker.ui.exception.RootUnavailableException
+import com.merxury.blocker.exception.RootUnavailableException
+import com.merxury.blocker.strategy.entity.view.ComponentBriefInfo
+import com.merxury.blocker.strategy.service.ApiClient
+import com.merxury.blocker.strategy.service.IClientServer
 import com.merxury.blocker.ui.settings.SettingsActivity
-import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
-import com.merxury.blocker.ui.strategy.service.ApiClient
-import com.merxury.blocker.ui.strategy.service.IClientServer
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType

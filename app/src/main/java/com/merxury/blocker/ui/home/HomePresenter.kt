@@ -10,7 +10,7 @@ import android.widget.Toast
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.entity.Application
-import com.merxury.blocker.ui.exception.StorageNotAvailableException
+import com.merxury.blocker.exception.StorageNotAvailableException
 import com.merxury.blocker.utils.FileUtils
 import com.merxury.ifw.util.StorageUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
