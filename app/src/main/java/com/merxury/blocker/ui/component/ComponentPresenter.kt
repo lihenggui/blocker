@@ -1,17 +1,21 @@
 package com.merxury.blocker.ui.component
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
+import android.preference.PreferenceManager
 import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
+import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.root.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootCommand
+import com.merxury.blocker.core.shizuku.ShizukuClientWrapper
 import com.merxury.blocker.ui.exception.RootUnavailableException
+import com.merxury.blocker.ui.settings.SettingsActivity
 import com.merxury.blocker.ui.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.ui.strategy.service.ApiClient
 import com.merxury.blocker.ui.strategy.service.IClientServer
@@ -19,6 +23,7 @@ import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import com.merxury.ifw.util.PermissionUtils
+import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -30,8 +35,11 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     private val pm: PackageManager
 
     private val controller: IController by lazy {
-        ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+        val controllerType = getControllerType(context)
+        ComponentControllerProxy.getInstance(controllerType, context)
     }
+
+
     private val componentClient: IClientServer by lazy {
         ApiClient.createClient()
     }
@@ -72,7 +80,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             EComponentType.ACTIVITY -> ApplicationComponents.getActivityList(pm, packageName)
             EComponentType.SERVICE -> ApplicationComponents.getServiceList(pm, packageName)
             EComponentType.PROVIDER -> ApplicationComponents.getProviderList(pm, packageName)
-            else -> ArrayList<ComponentInfo>()
+            else -> ArrayList()
         }
     }
 
@@ -401,8 +409,28 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return viewModels
     }
 
-    override fun start(context: Context) {
+    private fun requestShizukuPermission() {
+        RxPermissions(context as Activity)
+                .request(ShizukuClientWrapper.PERMISSION_V23)
+                .subscribe { granted ->
 
+                }
+    }
+
+    private fun getControllerType(context: Context): EControllerMethod {
+        // Magic value, but still use it.
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        return when (pref.getString(SettingsActivity.KEY_PREF_CONTROLLER_TYPE, SettingsActivity.KEY_PREF_CONTROLLER_TYPE_DEFAULT)) {
+            "shizuku" -> EControllerMethod.SHIZUKU
+            else -> EControllerMethod.PM
+        }
+    }
+
+
+    override fun start(context: Context) {
+        if (getControllerType(context) == EControllerMethod.SHIZUKU) {
+            requestShizukuPermission()
+        }
     }
 
     override fun destroy() {

@@ -4,7 +4,7 @@ apply plugin: 'kotlin-android'
 android {
     compileSdkVersion 27
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -49,5 +49,7 @@ dependencies {
     //RootTools and RootShell support
     implementation(name: 'RootTools', ext: 'aar')
     implementation(name: 'RootShell', ext: 'aar')
-
+    // Shizuku dependency
+    implementation 'moe.shizuku.privilege:api-base:9'
+    implementation 'moe.shizuku.privilege:api-26:4'
 }

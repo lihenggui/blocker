@@ -10,10 +10,10 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.merxury.blocker"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 27
-        versionCode 9
-        versionName "0.0.9-internal-test"
+        versionCode 11
+        versionName "0.0.11-internal-test"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

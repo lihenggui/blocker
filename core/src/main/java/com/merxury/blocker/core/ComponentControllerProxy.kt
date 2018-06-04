@@ -1,7 +1,10 @@
-package com.merxury.blocker.core.root
+package com.merxury.blocker.core
 
 import android.content.Context
-import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.root.RootController
+import com.merxury.blocker.core.shizuku.ShizukuController
+
 
 /**
  * Created by Mercury on 2018/3/10.
@@ -10,11 +13,11 @@ import com.merxury.blocker.core.IController
 class ComponentControllerProxy private constructor(method: EControllerMethod, context: Context) : IController {
 
     private lateinit var controller: IController
-    private lateinit var controllerMethod: EControllerMethod
 
     init {
         when (method) {
             EControllerMethod.PM -> controller = RootController(context)
+            EControllerMethod.SHIZUKU -> controller = ShizukuController(context)
         }
     }
 
@@ -37,15 +40,23 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
 
     companion object {
         @Volatile
-        var instance: ComponentControllerProxy? = null
+        private var instance: IController? = null
+        var controllerMethod: EControllerMethod? = null
 
         fun getInstance(method: EControllerMethod, context: Context): IController =
-                instance ?: synchronized(this) {
-                    instance ?: ComponentControllerProxy(method, context).also {
-                        it.controllerMethod = method
-                        instance = it
+                synchronized(this) {
+                    if (method != controllerMethod) {
+                        getComponentControllerProxy(method, context)
+                    } else {
+                        instance ?: getComponentControllerProxy(method, context)
                     }
                 }
 
+        private fun getComponentControllerProxy(method: EControllerMethod, context: Context): ComponentControllerProxy {
+            return ComponentControllerProxy(method, context).also {
+                controllerMethod = method
+                instance = it
+            }
+        }
     }
 }

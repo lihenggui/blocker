@@ -3,6 +3,7 @@ package com.merxury.blocker.ui.settings
 import android.annotation.TargetApi
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
@@ -10,16 +11,6 @@ import android.preference.*
 import android.view.MenuItem
 import com.merxury.blocker.R
 
-/**
- * A [PreferenceActivity] that presents a set of application settings. On
- * handset devices, settings are presented as a single list. On tablets,
- * settings are split by category, with category headers shown to the left of
- * the list of settings.
- *
- * See [Android Design: Settings](http://developer.android.com/design/patterns/settings.html)
- * for design guidelines and the [Settings API Guide](http://developer.android.com/guide/topics/ui/settings.html)
- * for more information on developing a Settings UI.
- */
 class SettingsActivity : AppCompatPreferenceActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,16 +39,33 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     class GeneralPreferenceFragment : PreferenceFragment() {
+
+        private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
+        private lateinit var prefs: SharedPreferences
+
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(R.xml.pref_general)
             setHasOptionsMenu(true)
+            prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+            val preference = initPrefDefaultValue()
+            bindPreferenceSummaryToValue(preference)
+            initListener()
+        }
 
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-            bindPreferenceSummaryToValue(findPreference("pref_controllerType"))
+        private fun initPrefDefaultValue(): Preference {
+            val preference = findPreference(KEY_PREF_CONTROLLER_TYPE)
+            preference.setDefaultValue(KEY_PREF_CONTROLLER_TYPE_DEFAULT)
+            return preference
+        }
+
+        private fun initListener() {
+            listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
+                when (key) {
+
+                }
+            }
+            prefs.registerOnSharedPreferenceChangeListener(listener)
         }
 
         override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -93,6 +101,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
     }
 
     companion object {
+        const val KEY_PREF_CONTROLLER_TYPE = "pref_controllerType"
+        const val KEY_PREF_CONTROLLER_TYPE_DEFAULT = "root"
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             val stringValue = value.toString()
 
