@@ -366,26 +366,12 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     component_switch.setOnClickListener {
                         listener.onSwitchClick(component.name, it.component_switch.isChecked)
                     }
-                    component_like_button.setOnClickListener {
-                        listener.onUpVoteClick(component.name)
-                    }
-                    component_like_count.setOnClickListener {
-                        listener.onUpVoteClick(component.name)
-                    }
-                    component_dislike_button.setOnClickListener {
-                        listener.onDownVoteClick(component.name)
-                    }
-                    component_dislike_count.setOnClickListener {
-                        listener.onDownVoteClick(component.name)
-                    }
                 }
             }
 
             fun updateComponentDetails(component: Component) {
                 with(component) {
                     itemView.component_description.text = component.bestComment?.description
-                    itemView.component_like_count.text = component.upVoteCount.toString()
-                    itemView.component_dislike_count.text = component.downVoteCount.toString()
                 }
             }
         }
