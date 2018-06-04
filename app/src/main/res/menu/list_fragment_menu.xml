@@ -8,12 +8,12 @@
         android:inputType="textCapWords"
         android:title="@string/search"
         app:actionViewClass="android.support.v7.widget.SearchView"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/menu_filter"
         android:icon="@drawable/ic_sort_24dp"
         android:title="@string/menu_filter"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
     <item
         android:id="@+id/menu_refresh"
         android:title="@string/refresh"

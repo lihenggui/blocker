@@ -5,6 +5,7 @@ import android.animation.ValueAnimator
 import android.app.ActivityManager
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
@@ -15,11 +16,13 @@ import android.view.MenuItem
 import com.merxury.blocker.R
 import com.merxury.blocker.ui.adapter.FragmentAdapter
 import com.merxury.blocker.ui.base.IActivityView
+import com.merxury.blocker.ui.settings.SettingsActivity
 import com.merxury.blocker.util.setupActionBar
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
+import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
 import kotlinx.android.synthetic.main.activity_home.*
 
 
@@ -51,7 +54,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
 
     private fun setupDrawerContent(savedInstanceState: Bundle?) {
         val item1 = PrimaryDrawerItem().withIdentifier(1).withName(R.string.app_list_title).withIcon(R.drawable.ic_list)
-//        val item2 = SecondaryDrawerItem().withIdentifier(2).withName(R.string.action_settings).withIcon(R.drawable.ic_settings)
+        val item2 = SecondaryDrawerItem().withIdentifier(2).withName(R.string.action_settings).withIcon(R.drawable.ic_settings)
         drawer = DrawerBuilder()
                 .withActivity(this)
                 .withToolbar(toolbar)
@@ -59,13 +62,13 @@ class HomeActivity : AppCompatActivity(), IActivityView {
                 .withActionBarDrawerToggleAnimated(true)
                 .addDrawerItems(
                         item1,
-                        DividerDrawerItem()
-//                        item2
+                        DividerDrawerItem(),
+                        item2
                 )
                 .withOnDrawerItemClickListener { view, position, drawerItem ->
                     when (drawerItem?.identifier) {
                         1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
-//                        2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
+                        2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
                     }
                     false
                 }
@@ -104,8 +107,10 @@ class HomeActivity : AppCompatActivity(), IActivityView {
     private fun changeColor(color: Int) {
         toolbar.setBackgroundColor(color)
         app_kind_tabs.setBackgroundColor(color)
-        window.statusBarColor = color
-        setTaskDescription(ActivityManager.TaskDescription(null, null, color))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.statusBarColor = color
+            setTaskDescription(ActivityManager.TaskDescription(null, null, color))
+        }
     }
 
 

@@ -117,7 +117,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                     FileUtils.cat(it, blockerFolder + it.split(File.separator).last())
                 }
                 emitter.onSuccess(files.count())
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 e.printStackTrace()
                 Log.e(TAG, e.message)
                 emitter.onError(e)

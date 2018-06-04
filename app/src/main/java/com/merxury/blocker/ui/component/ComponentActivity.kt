@@ -4,6 +4,7 @@ import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.app.ActivityManager
 import android.graphics.drawable.ColorDrawable
+import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
@@ -101,8 +102,10 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         component_toolbar.setBackgroundColor(color)
         component_tabs.setBackgroundColor(color)
         component_collapsing_toolbar.setBackgroundColor(color)
-        window.statusBarColor = color
-        setTaskDescription(ActivityManager.TaskDescription(null, null, color))
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.statusBarColor = color
+            setTaskDescription(ActivityManager.TaskDescription(null, null, color))
+        }
     }
 
     private fun changeBackgroundColor(tab: TabLayout.Tab) {

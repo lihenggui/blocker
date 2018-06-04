@@ -2,10 +2,10 @@
 <resources>
     <string-array name="pref_controllerType_entries">
         <item>Root</item>
-        <item>Shizuku</item>
+        <!--<item>Shizuku</item>-->
     </string-array>
     <string-array name="pref_controllerType_value">
         <item>root</item>
-        <item>shizuku</item>
+        <!--<item>shizuku</item>-->
     </string-array>
 </resources>

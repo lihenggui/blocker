@@ -69,8 +69,15 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         presenter.loadComponents(packageName, type)
     }
 
+    override fun onPause() {
+        unregisterReceiver()
+        super.onPause()
+    }
+
     override fun onDestroy() {
-        presenter.destroy()
+        if (::presenter.isInitialized) {
+            presenter.destroy()
+        }
         super.onDestroy()
     }
 
@@ -386,7 +393,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     itemView.component_dislike_count.text = component.downVoteCount.toString()
                 }
             }
-
         }
     }
 }
