@@ -12,7 +12,7 @@
         android:clickable="true"
         android:focusable="true">
 
-        <com.merxury.blocker.ui.baseview.ContextMenuRecyclerView
+        <com.merxury.blocker.baseview.ContextMenuRecyclerView
             android:id="@+id/appListFragmentRecyclerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

@@ -2,9 +2,9 @@ package com.merxury.blocker.ui.home
 
 import android.content.Context
 import android.support.annotation.StringRes
+import com.merxury.blocker.base.BasePresenter
+import com.merxury.blocker.base.BaseView
 import com.merxury.blocker.entity.Application
-import com.merxury.blocker.ui.base.BasePresenter
-import com.merxury.blocker.ui.base.BaseView
 
 /**
  * @author Mercury

@@ -12,9 +12,9 @@ import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.Toast
 import com.merxury.blocker.R
-import com.merxury.blocker.ui.baseview.ContextMenuRecyclerView
-import com.merxury.blocker.ui.strategy.entity.Component
-import com.merxury.blocker.ui.strategy.entity.view.AppComponentInfo
+import com.merxury.blocker.baseview.ContextMenuRecyclerView
+import com.merxury.blocker.strategy.entity.Component
+import com.merxury.blocker.strategy.entity.view.AppComponentInfo
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
@@ -67,11 +67,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     override fun onStart() {
         super.onStart()
         presenter.loadComponents(packageName, type)
-    }
-
-    override fun onPause() {
-        unregisterReceiver()
-        super.onPause()
     }
 
     override fun onDestroy() {

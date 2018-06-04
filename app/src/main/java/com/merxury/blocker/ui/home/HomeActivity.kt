@@ -13,9 +13,10 @@ import android.support.v4.view.GravityCompat
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import com.jaeger.library.StatusBarUtil
 import com.merxury.blocker.R
-import com.merxury.blocker.ui.adapter.FragmentAdapter
-import com.merxury.blocker.ui.base.IActivityView
+import com.merxury.blocker.adapter.FragmentAdapter
+import com.merxury.blocker.base.IActivityView
 import com.merxury.blocker.ui.settings.SettingsActivity
 import com.merxury.blocker.util.setupActionBar
 import com.mikepenz.materialdrawer.Drawer
@@ -57,6 +58,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
         val item2 = SecondaryDrawerItem().withIdentifier(2).withName(R.string.action_settings).withIcon(R.drawable.ic_settings)
         drawer = DrawerBuilder()
                 .withActivity(this)
+                .withTranslucentStatusBar(true)
                 .withToolbar(toolbar)
                 .withSavedInstance(savedInstanceState)
                 .withActionBarDrawerToggleAnimated(true)
@@ -107,8 +109,8 @@ class HomeActivity : AppCompatActivity(), IActivityView {
     private fun changeColor(color: Int) {
         toolbar.setBackgroundColor(color)
         app_kind_tabs.setBackgroundColor(color)
+        StatusBarUtil.setColor(this, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.statusBarColor = color
             setTaskDescription(ActivityManager.TaskDescription(null, null, color))
         }
     }
