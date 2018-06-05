@@ -28,7 +28,6 @@ import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.BiConsumer
 import io.reactivex.schedulers.Schedulers
 
 class ComponentPresenter(val context: Context, var view: ComponentContract.View?, val packageName: String) : ComponentContract.Presenter, IController {
@@ -96,7 +95,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(BiConsumer { _, error ->
+                .subscribe({ _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
@@ -119,7 +118,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(BiConsumer { _, error ->
+                .subscribe({ _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
@@ -142,7 +141,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(BiConsumer { _, error ->
+                .subscribe({ _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
@@ -435,7 +434,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun destroy() {
-        view = null;
+        view = null
     }
 
     override var currentComparator: EComponentComparatorType = EComponentComparatorType.SIMPLE_NAME_ASCENDING

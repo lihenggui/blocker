@@ -81,4 +81,7 @@
     </plurals>
     <string name="title_activity_settings">設置</string>
     <string name="pref_header_general">通用</string>
+    <string name="pref_rule_settings">Rules</string>
+    <string name="pref_rule_path_summary">Rules will be saved to this folder</string>
+    <string name="pref_rule_path_title">Set a Path</string>
 </resources>

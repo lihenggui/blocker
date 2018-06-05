@@ -58,34 +58,22 @@ class GeneralPreferenceFragment : PreferenceFragment() {
         const val KEY_PREF_CONTROLLER_TYPE_DEFAULT = "root"
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             val stringValue = value.toString()
-
             if (preference is ListPreference) {
-                // For list preferences, look up the correct display value in
-                // the preference's 'entries' list.
-                val listPreference = preference
-                val index = listPreference.findIndexOfValue(stringValue)
-
-                // Set the summary to reflect the new value.
+                val index = preference.findIndexOfValue(stringValue)
                 preference.setSummary(
                         if (index >= 0)
-                            listPreference.entries[index]
+                            preference.entries[index]
                         else
                             null)
 
             } else {
-                // For all other preferences, set the summary to the value's
-                // simple string representation.
                 preference.summary = stringValue
             }
             true
         }
 
         private fun bindPreferenceSummaryToValue(preference: Preference) {
-            // Set the listener to watch for value changes.
             preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
-
-            // Trigger the listener immediately with the preference's
-            // current value.
             sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
                     PreferenceManager
                             .getDefaultSharedPreferences(preference.context)

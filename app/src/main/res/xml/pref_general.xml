@@ -10,4 +10,14 @@
             android:defaultValue="root"
             android:title="@string/pref_controller_type" />
     </PreferenceCategory>
+    <PreferenceCategory
+        android:key="pref_key_rules"
+        android:title="@string/pref_rule_settings">
+        <EditTextPreference
+            android:defaultValue="/Blocker/rules/"
+            android:inputType="text"
+            android:key="pref_rule_path"
+            android:summary="@string/pref_rule_path_summary"
+            android:title="@string/pref_rule_path_title"></EditTextPreference>
+    </PreferenceCategory>
 </PreferenceScreen>
