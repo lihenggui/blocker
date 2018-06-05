@@ -4,7 +4,6 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.support.annotation.StringRes
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
@@ -44,7 +43,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     private lateinit var listAdapter: AppListRecyclerViewAdapter
 
     override fun setLoadingIndicator(active: Boolean) {
-        with(appListSwipeLayout) {
+        appListSwipeLayout?.run {
             post { isRefreshing = active }
         }
     }
@@ -97,13 +96,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         }
         presenter = HomePresenter(this)
         listAdapter = AppListRecyclerViewAdapter(itemListener)
-        context?.run {
-            presenter.start(this)
-        }
-    }
-
-    override fun onStart() {
-        super.onStart()
         context?.run {
             presenter.start(this)
             presenter.loadApplicationList(this, isSystem)
