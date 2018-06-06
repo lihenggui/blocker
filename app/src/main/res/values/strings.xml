@@ -92,4 +92,8 @@
     <string name="pref_rule_settings">Rules</string>
     <string name="pref_rule_path_summary">Rules will be saved to this folder</string>
     <string name="pref_rule_path_title">Set a Path</string>
+    <string name="export_rules">Export Rules</string>
+    <string name="import_rules">Import Rules</string>
+    <string name="pref_ifw_settings">IFW Settings</string>
+    <string name="about">About</string>
 </resources>
