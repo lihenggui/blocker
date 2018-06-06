@@ -130,7 +130,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
             0 -> ContextCompat.getColor(this, R.color.google_blue)
             1 -> ContextCompat.getColor(this, R.color.google_green)
             2 -> ContextCompat.getColor(this, R.color.google_red)
-            3 -> ContextCompat.getColor(this, R.color.google_yellow)
+            3 -> ContextCompat.getColor(this, R.color.md_yellow_800)
             else -> ContextCompat.getColor(this, R.color.md_grey_700)
         }
     }
