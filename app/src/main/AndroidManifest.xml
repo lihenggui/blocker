@@ -28,6 +28,7 @@
             android:name=".ui.component.ComponentActivity"
             android:theme="@style/AppTheme.OverlapSystemBar" />
         <activity
+            android:theme="@style/AppTheme.PlayStoreStyle"
             android:name=".ui.settings.SettingsActivity"
             android:launchMode="singleTask"
             android:label="@string/title_activity_settings" />
