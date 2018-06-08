@@ -18,8 +18,8 @@ import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.strategy.service.ApiClient
 import com.merxury.blocker.strategy.service.IClientServer
-import com.merxury.blocker.ui.settings.general.GeneralPreferenceFragment.Companion.KEY_PREF_CONTROLLER_TYPE
-import com.merxury.blocker.ui.settings.general.GeneralPreferenceFragment.Companion.KEY_PREF_CONTROLLER_TYPE_DEFAULT
+import com.merxury.blocker.ui.settings.PreferenceFragment.Companion.KEY_PREF_CONTROLLER_TYPE
+import com.merxury.blocker.ui.settings.PreferenceFragment.Companion.KEY_PREF_CONTROLLER_TYPE_DEFAULT
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
