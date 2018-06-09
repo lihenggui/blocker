@@ -7,11 +7,9 @@ import android.support.annotation.LayoutRes
 import android.support.v7.app.ActionBar
 import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.Toolbar
-import android.util.TypedValue
 import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import com.merxury.blocker.R
 
 
@@ -25,14 +23,7 @@ abstract class AppCompatPreferenceActivity : PreferenceActivity() {
         delegate.installViewFactory()
         delegate.onCreate(savedInstanceState)
         super.onCreate(savedInstanceState)
-        layoutInflater.inflate(R.layout.toolbar, findViewById(android.R.id.content))
-        val toolbar = findViewById<Toolbar>(R.id.toolbar)
-        setSupportActionBar(toolbar)
-        val horizontalMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2F, resources.displayMetrics).toInt()
-        val verticalMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2F, resources.displayMetrics).toInt()
-        val topMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, resources.getDimension(R.dimen.activity_vertical_margin).toInt() + 30F, resources.displayMetrics).toInt()
-        val layout = listView.parent.parent as LinearLayout
-        layout.setPadding(horizontalMargin, topMargin, horizontalMargin, verticalMargin)
+        setupActionBar()
     }
 
     override fun onPostCreate(savedInstanceState: Bundle?) {
@@ -94,6 +85,21 @@ abstract class AppCompatPreferenceActivity : PreferenceActivity() {
 
     override fun invalidateOptionsMenu() {
         delegate.invalidateOptionsMenu()
+    }
+
+
+    private fun setupActionBar() {
+        val rootView = findViewById<ViewGroup>(R.id.action_bar_root)
+        if (rootView != null) {
+            val view = layoutInflater.inflate(R.layout.app_bar_layout, rootView, false)
+            rootView.addView(view, 0)
+            val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
+            setSupportActionBar(toolbar)
+        }
+        val actionBar = supportActionBar
+        if (actionBar != null) {
+            actionBar.setDisplayHomeAsUpEnabled(true)
+        }
     }
 
     private val delegate: AppCompatDelegate by lazy {
