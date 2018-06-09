@@ -38,7 +38,7 @@ object FileUtils {
         RootCommand.runBlockingCommand("cat $source > $dest")
     }
 
-    fun test(path: String): Boolean {
+    fun isExist(path: String): Boolean {
         val output = RootCommand.runBlockingCommand("[ -f $path ] && echo \"yes\" || echo \"no\"")
         return when (output.trim()) {
             "yes" -> true
