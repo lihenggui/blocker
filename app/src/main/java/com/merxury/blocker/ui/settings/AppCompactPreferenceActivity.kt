@@ -8,6 +8,7 @@ import android.support.v7.app.ActionBar
 import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.Toolbar
 import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import com.merxury.blocker.R
@@ -96,10 +97,17 @@ abstract class AppCompatPreferenceActivity : PreferenceActivity() {
             val toolbar = findViewById<View>(R.id.toolbar) as Toolbar
             setSupportActionBar(toolbar)
         }
-        val actionBar = supportActionBar
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            android.R.id.home -> {
+                finish()
+                return true
+            }
         }
+        return super.onOptionsItemSelected(item)
     }
 
     private val delegate: AppCompatDelegate by lazy {

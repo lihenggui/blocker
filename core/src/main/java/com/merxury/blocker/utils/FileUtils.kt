@@ -38,6 +38,14 @@ object FileUtils {
         RootCommand.runBlockingCommand("cat $source > $dest")
     }
 
+    fun test(path: String): Boolean {
+        val output = RootCommand.runBlockingCommand("[ -f $path ] && echo \"yes\" || echo \"no\"")
+        return when (output.trim()) {
+            "yes" -> true
+            else -> false
+        }
+    }
+
     fun listFiles(path: String): List<String> {
         val output = RootCommand.runBlockingCommand("find $path")
         if (output.contains("No such file or directory")) {
