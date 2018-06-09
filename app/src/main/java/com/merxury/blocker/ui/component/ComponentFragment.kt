@@ -61,12 +61,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
         setHasOptionsMenu(true)
         presenter = ComponentPresenter(context!!, this, packageName)
-        return root
-    }
-
-    override fun onStart() {
-        super.onStart()
         presenter.loadComponents(packageName, type)
+        return root
     }
 
     override fun onDestroy() {

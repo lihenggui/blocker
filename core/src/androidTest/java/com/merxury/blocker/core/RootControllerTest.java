@@ -24,7 +24,7 @@ public class RootControllerTest {
     @Before
     public void setUp() {
         context = InstrumentationRegistry.getContext();
-        controller = new RootController();
+        controller = new RootController(context);
     }
 
     @After
