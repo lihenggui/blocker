@@ -8,7 +8,7 @@ class FileUtilsTest {
 
     @Test
     fun test1() {
-        assertTrue(FileUtils.test("/data/system/ifw/gib.xml"))
-        assertFalse(FileUtils.test("/data/ifw/gib1.xml"))
+        assertTrue(FileUtils.isExist("/data/system/ifw/gib.xml"))
+        assertFalse(FileUtils.isExist("/data/ifw/gib1.xml"))
     }
 }
