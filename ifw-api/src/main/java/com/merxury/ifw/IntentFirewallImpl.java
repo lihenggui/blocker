@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.merxury.blocker.utils.FileUtils;
 import com.merxury.ifw.entity.Activity;
 import com.merxury.ifw.entity.Broadcast;
 import com.merxury.ifw.entity.Component;
@@ -11,7 +12,6 @@ import com.merxury.ifw.entity.ComponentFilter;
 import com.merxury.ifw.entity.ComponentType;
 import com.merxury.ifw.entity.Rules;
 import com.merxury.ifw.entity.Service;
-import com.merxury.ifw.util.PermissionUtils;
 import com.merxury.ifw.util.StorageUtils;
 import com.stericson.RootTools.RootTools;
 
@@ -19,6 +19,8 @@ import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,12 +35,14 @@ public class IntentFirewallImpl implements IntentFirewall {
     private String tmpPath;
     private String destPath;
     private String packageName;
+    private String cacheDir;
 
     public IntentFirewallImpl(Context context, String packageName) {
         this.packageName = packageName;
         this.filename = packageName + EXTENSION;
-        tmpPath = context.getFilesDir().toString() + File.separator + filename;
-        destPath = StorageUtils.getIfwFolder();
+        cacheDir = context.getCacheDir().toString() + File.separator;
+        tmpPath = cacheDir + filename;
+        destPath = StorageUtils.getIfwFolder() + filename;
         openFile();
     }
 
@@ -60,11 +64,12 @@ public class IntentFirewallImpl implements IntentFirewall {
         Serializer serializer = new Persister();
         File file = new File(tmpPath);
         if (file.exists()) {
-            RootTools.deleteFileOrDirectory(file.getAbsolutePath(), false);
+            if (!file.delete()) {
+                throw new IOException("Cannot delete file: " + tmpPath);
+            }
         }
         serializer.write(rules, file);
-        PermissionUtils.setPermission(tmpPath, 777);
-        RootTools.copyFile(tmpPath, destPath, false, true);
+        FileUtils.cat(tmpPath, destPath);
     }
 
     @Override
@@ -200,14 +205,15 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     private void openFile() {
-        File destFile = new File(destPath);
-        if (destFile.exists()) {
-            RootTools.copyFile(destPath, tmpPath, false, false);
-            File tmpFile = new File(tmpPath);
-
+        if (FileUtils.isExist(destPath)) {
+            String ruleContent = FileUtils.read(destPath);
             Serializer serializer = new Persister();
             try {
-                rules = serializer.read(Rules.class, tmpFile);
+                File file = new File(cacheDir, filename);
+                FileWriter writer = new FileWriter(file);
+                writer.write(ruleContent);
+                writer.close();
+                rules = serializer.read(Rules.class, file);
             } catch (Exception e) {
                 handleException(e);
                 rules = new Rules();
