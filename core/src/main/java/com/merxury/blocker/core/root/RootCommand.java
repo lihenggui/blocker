@@ -29,7 +29,6 @@ public class RootCommand {
     public synchronized static String runBlockingCommand(final String comm) throws RootDeniedException, IOException, TimeoutException {
         final StringBuilder commandOutput = new StringBuilder("");
         final AtomicReference<Throwable> returnException = new AtomicReference<>();
-        Log.i(TAG, comm);
         Observable.create(new ObservableOnSubscribe<String>() {
             @Override
             public void subscribe(final ObservableEmitter<String> emitter) throws Exception {
