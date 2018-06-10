@@ -36,8 +36,6 @@ public class RootCommand {
                 Command command = new Command(0, comm) {
                     @Override
                     public void commandOutput(int id, String line) {
-                        Log.d(TAG, "commandOutput");
-                        Log.d(TAG, line);
                         emitter.onNext(line);
                         super.commandOutput(id, line);
                     }
@@ -51,7 +49,6 @@ public class RootCommand {
 
                     @Override
                     public void commandCompleted(int id, int exitcode) {
-                        Log.d(TAG, "commandCompleted");
                         emitter.onComplete();
                         super.commandCompleted(id, exitcode);
                     }
