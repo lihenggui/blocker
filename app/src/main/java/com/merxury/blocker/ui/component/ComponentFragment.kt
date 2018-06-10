@@ -32,6 +32,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         val args = arguments
         type = args?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = args.getString(Constant.PACKAGE_NAME)
+        presenter = ComponentPresenter(context!!, this, packageName)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -60,9 +61,12 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             }
         }
         setHasOptionsMenu(true)
-        presenter = ComponentPresenter(context!!, this, packageName)
-        presenter.loadComponents(packageName, type)
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        presenter.loadComponents(packageName, type)
     }
 
     override fun onDestroy() {
