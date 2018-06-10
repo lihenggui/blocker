@@ -95,11 +95,8 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
         }
         presenter = HomePresenter(this)
+        presenter.start(context!!)
         listAdapter = AppListRecyclerViewAdapter(itemListener)
-        context?.run {
-            presenter.start(this)
-            presenter.loadApplicationList(this, isSystem)
-        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -129,10 +126,14 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                 )
                 setOnRefreshListener { presenter.loadApplicationList(context, isSystem) }
             }
-
         }
         setHasOptionsMenu(true)
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        presenter.loadApplicationList(context!!, isSystem)
     }
 
     override fun onDestroy() {
