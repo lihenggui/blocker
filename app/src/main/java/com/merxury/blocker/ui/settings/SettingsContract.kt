@@ -13,5 +13,6 @@ interface SettingsContract : BaseView<SettingsContract.SettingsPresenter> {
         fun importAllRules(folder: String)
         fun exportAllIFWRules(folder: String)
         fun importAllIFWRules(folder: String)
+        fun resetIFW()
     }
 }
