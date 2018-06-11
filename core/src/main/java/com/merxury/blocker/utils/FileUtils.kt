@@ -42,10 +42,15 @@ object FileUtils {
 
     @JvmStatic
     fun isExist(path: String): Boolean {
-        val output = RootCommand.runBlockingCommand("[ -f $path ] && echo \"yes\" || echo \"no\"")
-        return when (output.trim()) {
-            "yes" -> true
-            else -> false
+        return try {
+            val output = RootCommand.runBlockingCommand("[ -f $path ] && echo \"yes\" || echo \"no\"")
+            when (output.trim()) {
+                "yes" -> true
+                else -> false
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, e.message)
+            false
         }
     }
 
