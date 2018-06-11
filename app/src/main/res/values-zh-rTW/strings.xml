@@ -26,8 +26,8 @@
     <string name="copy_command">複製</string>
     <string name="send_command">發送</string>
     <string name="app_icon_description">應用程序圖標</string>
-    <string name="name_asc">應用名稱（升序）</string>
-    <string name="name_des">應用名稱（降序）</string>
+    <string name="name_asc">組件名稱（升序）</string>
+    <string name="name_des">組件名稱（降序）</string>
     <string name="installation_date">安裝日期</string>
     <string name="oops">發生錯誤</string>
     <string name="no_root_error_message">控製程序時發生錯誤。你搞到Root權限了沒？ </string>
@@ -87,4 +87,5 @@
     <string name="import_rules">Import Rules</string>
     <string name="pref_ifw_settings">IFW Settings</string>
     <string name="about">About</string>
+    <string name="group_by">Group by</string>
 </resources>

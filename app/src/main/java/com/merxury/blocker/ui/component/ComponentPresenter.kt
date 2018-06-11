@@ -153,12 +153,13 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun sortComponentList(components: List<ComponentItemViewModel>, type: EComponentComparatorType): List<ComponentItemViewModel> {
-        return when (type) {
+        val sortedComponents = when (type) {
             EComponentComparatorType.SIMPLE_NAME_ASCENDING -> components.sortedBy { it.simpleName }
             EComponentComparatorType.SIMPLE_NAME_DESCENDING -> components.sortedByDescending { it.simpleName }
             EComponentComparatorType.NAME_ASCENDING -> components.sortedBy { it.name }
             EComponentComparatorType.NAME_DESCENDING -> components.sortedByDescending { it.name }
         }
+        return sortedComponents.sortedWith(compareBy({ !it.state }, { !it.ifwState }))
     }
 
     override fun checkComponentIsUpVoted(packageName: String, componentName: String): Boolean {
