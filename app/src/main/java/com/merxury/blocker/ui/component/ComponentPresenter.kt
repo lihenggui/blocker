@@ -6,9 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
-import android.preference.PreferenceManager
 import android.util.Log
-import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
@@ -19,6 +17,7 @@ import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.strategy.service.ApiClient
 import com.merxury.blocker.strategy.service.IClientServer
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
@@ -34,7 +33,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     private val pm: PackageManager
 
     private val controller: IController by lazy {
-        val controllerType = getControllerType(context)
+        val controllerType = PreferenceUtil.getControllerType(context)
         ComponentControllerProxy.getInstance(controllerType, context)
     }
 
@@ -417,18 +416,8 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 }
     }
 
-    private fun getControllerType(context: Context): EControllerMethod {
-        // Magic value, but still use it.
-        val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        return when (pref.getString(context.getString(R.string.key_pref_controller_type), context.getString(R.string.key_pref_controller_type_default_value))) {
-            "shizuku" -> EControllerMethod.SHIZUKU
-            else -> EControllerMethod.PM
-        }
-    }
-
-
     override fun start(context: Context) {
-        if (getControllerType(context) == EControllerMethod.SHIZUKU) {
+        if (PreferenceUtil.getControllerType(context) == EControllerMethod.SHIZUKU) {
             requestShizukuPermission()
         }
     }

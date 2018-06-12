@@ -1,10 +1,18 @@
 package com.merxury.blocker.ui.settings
 
 import android.content.Context
+import com.merxury.blocker.core.ComponentControllerProxy
+import com.merxury.blocker.core.IController
+import com.merxury.blocker.util.PreferenceUtil
 
 class SettingsPresenter : SettingsContract.SettingsPresenter {
 
     private var context: Context? = null
+
+    private val controller: IController by lazy {
+        val controllerType = PreferenceUtil.getControllerType(context!!)
+        ComponentControllerProxy.getInstance(controllerType, context!!)
+    }
 
     override fun exportAllRules(folder: String) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
