@@ -13,7 +13,7 @@ import android.view.MenuItem
 import com.merxury.blocker.R
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-class PreferenceFragment : PreferenceFragment() {
+class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView {
 
     private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
     private lateinit var prefs: SharedPreferences
@@ -28,14 +28,14 @@ class PreferenceFragment : PreferenceFragment() {
     }
 
     private fun initPreference() {
-        val controllerPref = findPreference(KEY_PREF_CONTROLLER_TYPE)
-        controllerPref.setDefaultValue(KEY_PREF_CONTROLLER_TYPE_DEFAULT)
+        val controllerPref = findPreference(getString(R.string.key_pref_controller_type))
+        controllerPref.setDefaultValue(getString(R.string.key_pref_controller_type_default_value))
         bindPreferenceSummaryToValue(controllerPref)
-        val ruleFolderPref = findPreference(KEY_PREF_RULE_PATH)
-        ruleFolderPref.setDefaultValue(KEY_PREF_RULE_PATH_DEFAULT)
+        val ruleFolderPref = findPreference(getString(R.string.key_pref_rule_path))
+        ruleFolderPref.setDefaultValue(getString(R.string.key_pref_rule_path_default_value))
         bindPreferenceSummaryToValue(ruleFolderPref)
-        val ifwFolderPref = findPreference(KEY_PREF_IFW_RULE_PATH)
-        ifwFolderPref.setDefaultValue(KEY_PREF_IFW_RULE_PATH_DEFAULT)
+        val ifwFolderPref = findPreference(getString(R.string.key_pref_ifw_rule_path))
+        ifwFolderPref.setDefaultValue(getString(R.string.key_pref_ifw_rule_path_default_value))
         bindPreferenceSummaryToValue(ifwFolderPref)
     }
 
@@ -57,14 +57,15 @@ class PreferenceFragment : PreferenceFragment() {
         return super.onOptionsItemSelected(item)
     }
 
+    override fun showExportResult(isSucceed: Boolean, successfulCount: Int, failedCount: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun showImportResult(isSucceed: Boolean, successfulCount: Int, failedCount: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     companion object {
-        // TODO put in strings.xml later
-        const val KEY_PREF_CONTROLLER_TYPE = "pref_controllerType"
-        const val KEY_PREF_CONTROLLER_TYPE_DEFAULT = "root"
-        const val KEY_PREF_RULE_PATH = "pref_key_rule_path"
-        const val KEY_PREF_RULE_PATH_DEFAULT = "/Blocker/rules/"
-        const val KEY_PREF_IFW_RULE_PATH = "pref_key_ifw_rule_path"
-        const val KEY_PREF_IFW_RULE_PATH_DEFAULT = "/Blocker/ifw/"
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             val stringValue = value.toString()
             if (preference is ListPreference) {

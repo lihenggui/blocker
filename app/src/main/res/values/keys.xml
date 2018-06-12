@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+    <string name="key_pref_controller_type">pref_controllerType</string>
+    <string name="key_pref_controller_type_default_value">root</string>
+    <string name="key_pref_rule_path">pref_key_rule_path</string>
+    <string name="key_pref_rule_path_default_value">/Blocker/rules/</string>
+    <string name="key_pref_ifw_rule_path">pref_key_ifw_rule_path</string>
+    <string name="key_pref_ifw_rule_path_default_value">/Blocker/ifw/</string>
+</resources>
