@@ -17,6 +17,8 @@ import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileReader
@@ -81,6 +83,15 @@ class SettingsPresenter(private val settingsView: SettingsContract.SettingsView)
                 }
             }
         })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    successCount++
+                }, {
+                    failCount++
+                }, {
+                    // show done
+                })
     }
 
     override fun exportAllIFWRules(folder: String) {
