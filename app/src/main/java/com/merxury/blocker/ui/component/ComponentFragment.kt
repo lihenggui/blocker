@@ -14,6 +14,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.strategy.entity.Component
 import com.merxury.blocker.strategy.entity.view.AppComponentInfo
+import com.merxury.blocker.util.ToastUtil
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
@@ -235,12 +236,34 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         Toast.makeText(context, R.string.fail, Toast.LENGTH_SHORT).show()
     }
 
-    override fun showProcessingToast() {
-        Toast.makeText(context, R.string.processing, Toast.LENGTH_SHORT).show()
-    }
-
     override fun showImportFail() {
         Toast.makeText(context, R.string.import_fail_message, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun showError(errorMessage: Int) {
+        context?.let {
+            AlertDialog.Builder(it)
+                    .setTitle(R.string.oops)
+                    .setMessage(errorMessage)
+                    .setPositiveButton(R.string.close, { dialog: DialogInterface, _: Int -> dialog.dismiss() })
+                    .show()
+        }
+    }
+
+    override fun showAlert(alertMessage: Int, confirmAction: () -> Unit) {
+        context?.let {
+            AlertDialog.Builder(it)
+                    .setTitle(R.string.alert)
+                    .setMessage(alertMessage)
+                    .setCancelable(true)
+                    .setNegativeButton(R.string.cancel, { dialog: DialogInterface?, _: Int -> dialog?.dismiss() })
+                    .setPositiveButton(R.string.ok, { _: DialogInterface, _: Int -> confirmAction() })
+                    .show()
+        }
+    }
+
+    override fun showToastMessage(message: String?, length: Int) {
+        ToastUtil.showToast(message ?: "null", length)
     }
 
     companion object {
