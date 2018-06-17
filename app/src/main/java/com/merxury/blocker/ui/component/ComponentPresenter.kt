@@ -399,6 +399,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun importRule(packageName: String) {
+        view?.showProcessingToast()
         Single.create(SingleOnSubscribe<RulesResult> { emitter ->
             val blockerFolder = Rule.getBlockerFolder(context)
             val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
@@ -414,7 +415,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                     if (it.isSucceed) {
                         view?.showActionDone()
                     } else {
-                        view?.showActionFail()
+                        view?.showImportFail()
                     }
                 }, {
                     it.printStackTrace()

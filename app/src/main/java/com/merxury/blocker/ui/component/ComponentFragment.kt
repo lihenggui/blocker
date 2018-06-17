@@ -235,6 +235,14 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         Toast.makeText(context, R.string.fail, Toast.LENGTH_SHORT).show()
     }
 
+    override fun showProcessingToast() {
+        Toast.makeText(context, R.string.processing, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun showImportFail() {
+        Toast.makeText(context, R.string.import_fail_message, Toast.LENGTH_SHORT).show()
+    }
+
     companion object {
         const val TAG = "ComponentFragment"
         fun newInstance(packageName: String, type: EComponentType): Fragment {
