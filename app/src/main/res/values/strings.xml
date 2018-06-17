@@ -96,9 +96,8 @@
     <string name="import_rules">Import Rules</string>
     <string name="pref_ifw_settings">IFW Settings</string>
     <string name="about">About</string>
-    <string name="group_by">Group by</string>
     <string name="import_rule">Import Rule</string>
     <string name="export_rule">Export Rule</string>
-    <string name="processing">Processing...</string>
+    <string name="processing">Processing…</string>
     <string name="import_fail_message">Import fail, rule does not exist.</string>
 </resources>

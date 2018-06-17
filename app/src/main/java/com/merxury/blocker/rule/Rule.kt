@@ -49,7 +49,7 @@ object Rule {
         }
         applicationInfo.services?.forEach {
             if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
+                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE, EControllerMethod.IFW))
                 disabledComponentsCount++
             }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
@@ -59,7 +59,7 @@ object Rule {
         }
         applicationInfo.activities?.forEach {
             if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
+                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY, EControllerMethod.IFW))
                 disabledComponentsCount++
             }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
@@ -68,10 +68,6 @@ object Rule {
             }
         }
         applicationInfo.providers?.forEach {
-            if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
-                disabledComponentsCount++
-            }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
                 disabledComponentsCount++
@@ -117,6 +113,7 @@ object Rule {
                     }
                     else -> controller.disable(it.packageName, it.name)
                 }
+                ifwController?.save()
                 if (controllerResult) {
                     succeedCount++
                 } else {
