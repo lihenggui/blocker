@@ -51,29 +51,39 @@ class SettingsPresenter(private val settingsView: SettingsContract.SettingsView)
                 components.receivers?.forEach {
                     if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                         rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
+                        emitter.onNext(Unit)
                     }
                 }
                 components.services?.forEach {
                     if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                         rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE))
+                        emitter.onNext(Unit)
                     }
                 }
                 components.activities?.forEach {
                     if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                         rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY))
+                        emitter.onNext(Unit)
                     }
                 }
                 components.providers?.forEach {
                     if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                         rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
+                        emitter.onNext(Unit)
                     }
                 }
-                saveRuleToStorage(rule, File(destFolder, it.packageName + EXTENSION))
+                if (rule.components.isNotEmpty()) {
+                    saveRuleToStorage(rule, File(destFolder, it.packageName + EXTENSION))
+                }
             }
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({}, {}, {})
+                .subscribe({
+                    successCount++
+                }, {
+                    failCount++
+                }, {})
     }
 
     override fun importAllRules(folder: String) {

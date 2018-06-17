@@ -9,17 +9,4 @@
     <item
         android:id="@+id/launch_activity"
         android:title="@string/launch_activity" />
-    <item
-        android:id="@+id/menu_comments"
-        android:title="@string/comment" />
-
-    <item
-        android:id="@+id/view_component_comments"
-        android:title="@string/view_component_comments" />
-    <item
-        android:id="@+id/menu_upvote_component"
-        android:title="@string/upvote" />
-    <item
-        android:id="@+id/menu_downvote_component"
-        android:title="@string/downvote" />
 </menu>
