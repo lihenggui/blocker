@@ -131,6 +131,7 @@ object Rule {
                 if (result) {
                     succeedCount++
                 } else {
+                    Log.d(TAG, "Failed to change component state for : $it")
                     failedCount++
                 }
             }

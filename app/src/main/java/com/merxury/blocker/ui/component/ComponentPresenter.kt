@@ -14,7 +14,6 @@ import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootCommand
 import com.merxury.blocker.core.shizuku.ShizukuClientWrapper
 import com.merxury.blocker.exception.RootUnavailableException
-import com.merxury.blocker.strategy.entity.view.ComponentBriefInfo
 import com.merxury.blocker.strategy.service.ApiClient
 import com.merxury.blocker.strategy.service.IClientServer
 import com.merxury.blocker.util.PreferenceUtil
@@ -62,14 +61,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             emitter.onSuccess(viewModels)
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ components ->
+                .subscribe { components ->
                     view?.setLoadingIndicator(false)
                     if (components.isEmpty()) {
                         view?.showNoComponent()
                     } else {
                         view?.showComponentList(components.toMutableList())
                     }
-                })
+                }
     }
 
     private fun getComponents(packageName: String, type: EComponentType): MutableList<ComponentInfo> {
@@ -93,14 +92,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _, error ->
+                .subscribe { _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
                         view?.showAlertDialog()
                     }
-                })
+                }
         return true
     }
 
@@ -116,14 +115,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _, error ->
+                .subscribe { _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
                         view?.showAlertDialog()
                     }
-                })
+                }
         return true
     }
 
@@ -139,14 +138,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _, error ->
+                .subscribe { _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
                         Log.e(TAG, message)
                         printStackTrace()
                         view?.showAlertDialog()
                     }
-                })
+                }
         return true
     }
 
@@ -168,46 +167,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     override fun checkComponentIsDownVoted(packageName: String, componentName: String): Boolean {
         val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
         return sharedPreferences.getBoolean(componentName + DOWNVOTED, false)
-    }
-
-
-    override fun writeComponentVoteState(packageName: String, componentName: String, like: Boolean) {
-        val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
-        val editor = sharedPreferences.edit()
-        if (like) {
-            editor.putBoolean(componentName + UPVOTED, like)
-        } else {
-            editor.putBoolean(componentName + DOWNVOTED, like)
-        }
-        editor.apply()
-    }
-
-    @SuppressLint("CheckResult")
-    override fun voteForComponent(packageName: String, componentName: String, type: EComponentType) {
-        componentClient.upVoteForComponent(ComponentBriefInfo(packageName, componentName, type))
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ result ->
-                    writeComponentVoteState(packageName, componentName, true)
-                    view?.refreshComponentState(componentName)
-                }, { error ->
-
-                })
-    }
-
-    @SuppressLint("CheckResult")
-    override fun downVoteForComponent(packageName: String, componentName: String, type: EComponentType) {
-        componentClient.downVoteForComponent(ComponentBriefInfo(packageName, componentName, type))
-                .subscribeOn(Schedulers.io())
-                .unsubscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ result ->
-                    writeComponentVoteState(packageName, componentName, false)
-                    view?.refreshComponentState(componentName)
-                }, { error ->
-
-                })
     }
 
     override fun addToIFW(packageName: String, componentName: String, type: EComponentType) {
@@ -343,7 +302,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .onErrorReturn { false }
-                .subscribe({ result, error ->
+                .subscribe { result, error ->
                     loadComponents(packageName, type)
                     if (result) {
                         view?.showActionDone()
@@ -355,7 +314,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         printStackTrace()
                         view?.showAlertDialog()
                     }
-                })
+                }
 
     }
 
@@ -383,7 +342,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .onErrorReturn { false }
-                .subscribe({ result, error ->
+                .subscribe { result, error ->
                     if (result) {
                         view?.showActionDone()
                     } else {
@@ -395,7 +354,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         printStackTrace()
                         view?.showAlertDialog()
                     }
-                })
+                }
 
     }
 

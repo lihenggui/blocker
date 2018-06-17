@@ -8,7 +8,6 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.*
 import android.view.*
-import android.widget.EditText
 import android.widget.PopupMenu
 import android.widget.Toast
 import com.merxury.blocker.R
@@ -124,11 +123,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             R.id.block_by_ifw -> presenter.addToIFW(component.packageName, component.name, type)
             R.id.enable_by_ifw -> presenter.removeFromIFW(component.packageName, component.name, type)
             R.id.launch_activity -> presenter.launchActivity(component.packageName, component.name)
-            R.id.menu_comments -> showAddComment(component.packageName, component.name)
-            R.id.view_component_comments -> {
-            }
-            R.id.menu_upvote_component -> presenter.voteForComponent(component.packageName, component.name, type)
-            R.id.menu_downvote_component -> presenter.downVoteForComponent(component.packageName, component.name, type)
         }
         return true
     }
@@ -184,7 +178,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             AlertDialog.Builder(this)
                     .setTitle(resources.getString(R.string.oops))
                     .setMessage(R.string.no_root_error_message)
-                    .setPositiveButton(R.string.close, { dialog: DialogInterface, _: Int -> dialog.dismiss() })
+                    .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
                     .show()
         }
     }
@@ -213,33 +207,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
     }
 
-    override fun onUpVoteClick(name: String) {
-        // TODO add cancel vote in future version
-        if (!presenter.checkComponentIsUpVoted(packageName, name)) {
-            presenter.voteForComponent(packageName, name, type)
-        }
-    }
-
-    override fun onDownVoteClick(name: String) {
-        // TODO add cancel vote in future version
-        presenter.downVoteForComponent(packageName, name, type)
-    }
-
-    override fun showAddComment(packageName: String, componentName: String) {
-        context?.apply {
-            val view = layoutInflater.inflate(R.layout.add_comment, null)
-            val commentInput = view.findViewById<EditText>(R.id.add_comment_input)
-            AlertDialog.Builder(this)
-                    .setTitle(R.string.add_comment)
-                    .setCancelable(true)
-                    .setView(view)
-                    .setNegativeButton(R.string.cancel, { dialog, _ -> dialog.dismiss() })
-                    .setPositiveButton(R.string.send, { dialog, which -> })//componentOnlineDetailsPresenter.sendDescription(packageName, componentName, type, commentInput.text.toString()) })
-                    .create()
-                    .show()
-        }
-    }
-
     override fun showDisableAllAlert() {
         context?.let {
             AlertDialog.Builder(it)
@@ -247,17 +214,13 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     .setMessage(R.string.warning_disable_all_component)
                     .setCancelable(true)
                     .setNegativeButton(R.string.cancel, { dialog, _ -> dialog.dismiss() })
-                    .setPositiveButton(R.string.ok, { _, _ ->
+                    .setPositiveButton(R.string.ok) { _, _ ->
                         Toast.makeText(it, R.string.disabling_hint, Toast.LENGTH_SHORT).show()
                         presenter.disableAllComponents(packageName, type)
-                    })
+                    }
                     .create()
                     .show()
         }
-    }
-
-    override fun showVoteFail() {
-        Toast.makeText(context, resources.getText(R.string.vote_fail), Toast.LENGTH_SHORT).show()
     }
 
     override fun showActionDone() {

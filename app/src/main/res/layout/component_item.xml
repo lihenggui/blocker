@@ -57,7 +57,7 @@
         app:barrierDirection="start"
         app:constraint_referenced_ids="component_switch" />
 
-    <Switch
+    <android.support.v7.widget.SwitchCompat
         android:id="@+id/component_switch"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
