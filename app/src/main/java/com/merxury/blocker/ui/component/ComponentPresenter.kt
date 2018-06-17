@@ -14,6 +14,8 @@ import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootCommand
 import com.merxury.blocker.core.shizuku.ShizukuClientWrapper
 import com.merxury.blocker.exception.RootUnavailableException
+import com.merxury.blocker.rule.Rule
+import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.strategy.service.ApiClient
 import com.merxury.blocker.strategy.service.IClientServer
 import com.merxury.blocker.util.PreferenceUtil
@@ -26,6 +28,7 @@ import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
+import java.io.File
 
 class ComponentPresenter(val context: Context, var view: ComponentContract.View?, val packageName: String) : ComponentContract.Presenter, IController {
 
@@ -339,7 +342,8 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             } catch (e: Exception) {
                 emitter.onError(e)
             }
-        })).subscribeOn(Schedulers.io())
+        }))
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .onErrorReturn { false }
                 .subscribe { result, error ->
@@ -356,6 +360,67 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                     }
                 }
 
+    }
+
+    override fun exportRule(packageName: String) {
+        RxPermissions(context as Activity)
+                .request(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe {
+                    if (it) {
+                        exportBlockerRule(packageName)
+                    } else {
+                        view?.showActionFail()
+                    }
+                }
+    }
+
+    private fun exportBlockerRule(packageName: String) {
+        Single.create(SingleOnSubscribe<RulesResult> { emitter ->
+            try {
+                val result = Rule.export(context, packageName)
+                emitter.onSuccess(result)
+            } catch (e: Exception) {
+                emitter.onError(e)
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    if (it.isSucceed) {
+                        view?.showActionDone()
+                    } else {
+                        view?.showActionFail()
+                    }
+                }, {
+                    it.printStackTrace()
+                    Log.e(TAG, it.message)
+                    view?.showAlertDialog()
+                })
+    }
+
+    override fun importRule(packageName: String) {
+        Single.create(SingleOnSubscribe<RulesResult> { emitter ->
+            val blockerFolder = Rule.getBlockerFolder(context)
+            val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
+            if (!destFile.exists()) {
+                emitter.onSuccess(RulesResult(false, 0, 0))
+                return@SingleOnSubscribe
+            }
+            emitter.onSuccess(Rule.import(context, destFile))
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    if (it.isSucceed) {
+                        view?.showActionDone()
+                    } else {
+                        view?.showActionFail()
+                    }
+                }, {
+                    it.printStackTrace()
+                    Log.e(TAG, it.message)
+                    view?.showAlertDialog()
+                })
     }
 
 

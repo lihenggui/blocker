@@ -101,6 +101,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 Toast.makeText(context, R.string.enabling_hint, Toast.LENGTH_SHORT).show()
                 presenter.enableAllComponents(packageName, type)
             }
+            R.id.menu_export_rule -> presenter.exportRule(packageName)
+            R.id.menu_import_rule -> {
+                presenter.importRule(packageName)
+            }
         }
         return true
     }

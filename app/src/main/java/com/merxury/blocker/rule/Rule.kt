@@ -5,6 +5,7 @@ import android.content.Context
 import android.preference.PreferenceManager
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.stream.JsonReader
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
@@ -28,38 +29,57 @@ object Rule {
     const val EXTENSION = ".json"
     private const val TAG = "Rule"
 
+    // TODO remove template code
     fun export(context: Context, packageName: String): RulesResult {
         Log.i(SettingsPresenter.TAG, "Backup rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationComponents.getApplicationComponents(pm, packageName)
         val rule = BlockerRule(packageName = applicationInfo.packageName, versionName = applicationInfo.versionName, versionCode = applicationInfo.versionCode)
-        var disabledComponentsCount = 0;
+        var disabledComponentsCount = 0
+        val ifwController = IntentFirewallImpl.getInstance(context, packageName)
         applicationInfo.receivers?.forEach {
+            if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
+                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
+                disabledComponentsCount++
+            }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
                 disabledComponentsCount++
             }
         }
         applicationInfo.services?.forEach {
+            if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
+                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
+                disabledComponentsCount++
+            }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE))
                 disabledComponentsCount++
             }
         }
         applicationInfo.activities?.forEach {
+            if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
+                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
+                disabledComponentsCount++
+            }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY))
                 disabledComponentsCount++
             }
         }
         applicationInfo.providers?.forEach {
+            if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
+                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
+                disabledComponentsCount++
+            }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
                 disabledComponentsCount++
             }
         }
         return if (rule.components.isNotEmpty()) {
-            saveRuleToStorage(rule, File(getBlockerFolder(context), packageName + EXTENSION))
+            val ruleFile = File(getBlockerFolder(context), packageName + EXTENSION)
+            saveRuleToStorage(rule, ruleFile)
             RulesResult(true, disabledComponentsCount, 0)
         } else {
             RulesResult(false, 0, 0)
@@ -144,13 +164,16 @@ object Rule {
     }
 
     private fun saveRuleToStorage(rule: BlockerRule, dest: File) {
+        if (!dest.parentFile.exists()) {
+            dest.parentFile.mkdirs()
+        }
         if (dest.exists()) {
             dest.delete()
         }
-        dest.writeText(Gson().toJson(rule))
+        dest.writeText(GsonBuilder().setPrettyPrinting().create().toJson(rule))
     }
 
-    private fun getBlockerFolder(context: Context): File {
+    fun getBlockerFolder(context: Context): File {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val path = pref.getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
         val storagePath = FileUtils.getExternalStoragePath();

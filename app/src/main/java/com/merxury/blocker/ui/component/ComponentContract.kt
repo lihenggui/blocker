@@ -35,6 +35,8 @@ interface ComponentContract {
         fun updateComponentViewModel(viewModel: ComponentItemViewModel)
         fun disableAllComponents(packageName: String, type: EComponentType)
         fun enableAllComponents(packageName: String, type: EComponentType)
+        fun exportRule(packageName: String)
+        fun importRule(packageName: String)
     }
 
     interface ComponentItemListener {
