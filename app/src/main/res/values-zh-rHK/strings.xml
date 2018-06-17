@@ -68,9 +68,9 @@
     <string name="import_rule_failed_exception">導入規則失敗，錯誤原因: %1$s</string>
     <string name="export_rule_failed_no_permission">導出規則失敗，需要存儲權限以寫入規則</string>
     <string name="export_rule_failed_exception">導出規則失敗，錯誤原因: %1$s</string>
-    <string name="pref_controller_settings">Controller Settings</string>
-    <string name="pref_controller_chooser_title">Choose Controller</string>
-    <string name="pref_controller_type">Controller Type</string>
+    <string name="pref_controller_settings">控制器設置</string>
+    <string name="pref_controller_chooser_title">選擇控制器</string>
+    <string name="pref_controller_type">控制器種類</string>
     <string name="pref_header_about">關於</string>
     <string name="fail">失敗</string>
     <plurals name="import_rule_succeed">
@@ -81,15 +81,15 @@
     </plurals>
     <string name="title_activity_settings">設置</string>
     <string name="pref_header_general">通用</string>
-    <string name="pref_rule_settings">Rules</string>
-    <string name="pref_rule_path_summary">Rules will be saved to this folder</string>
-    <string name="pref_rule_path_title">Set a Path</string>
-    <string name="import_rules">Import Rules</string>
-    <string name="pref_ifw_settings">IFW Settings</string>
-    <string name="about">About</string>
-    <string name="group_by">Group by</string>
-    <string name="import_rule">Import Rule</string>
-    <string name="export_rule">Export Rule</string>
-    <string name="processing">Processing...</string>
-    <string name="import_fail_message">Import fail, rule does not exist.</string>
+    <string name="pref_rule_settings">規則</string>
+    <string name="pref_rule_path_summary">規則將會保存至此文件夾</string>
+    <string name="pref_rule_path_title">選擇路徑</string>
+    <string name="import_rules">導入規則</string>
+    <string name="pref_ifw_settings">IFW 設置</string>
+    <string name="about">關於</string>
+    <string name="import_rule">導入規則</string>
+    <string name="export_rule">導出規則</string>
+    <string name="processing">處理中...</string>
+    <string name="import_fail_message">導入失敗，規則文件不存在。</string>
+    <string name="export_rules">導出規則</string>
 </resources>
