@@ -26,10 +26,10 @@ import java.io.FileReader
 
 object Rule {
     const val EXTENSION = ".json"
-    const val TAG = "Rule"
+    private const val TAG = "Rule"
 
     fun export(context: Context, packageName: String): RulesResult {
-        Log.i(SettingsPresenter.TAG, "Backup rules for ${packageName}")
+        Log.i(SettingsPresenter.TAG, "Backup rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationComponents.getApplicationComponents(pm, packageName)
         val rule = BlockerRule(packageName = applicationInfo.packageName, versionName = applicationInfo.versionName, versionCode = applicationInfo.versionCode)
@@ -74,7 +74,7 @@ object Rule {
                 ?: return RulesResult(false, 0, 0)
         val controller = getController(context)
         var ifwController: IntentFirewall? = null
-        // Detects if contains IFW rules, if exists, create a new one.
+        // Detects if contains IFW rules, if exists, create a new controller.
         appRule.components.forEach ifwDetection@{
             if (it.method == EControllerMethod.IFW) {
                 ifwController = IntentFirewallImpl.getInstance(context, appRule.packageName)
@@ -98,6 +98,37 @@ object Rule {
                     else -> controller.disable(it.packageName, it.name)
                 }
                 if (controllerResult) {
+                    succeedCount++
+                } else {
+                    failedCount++
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, e.message)
+            return RulesResult(false, succeedCount, failedCount)
+        }
+        return RulesResult(true, succeedCount, failedCount)
+    }
+
+    fun importMATRules(context: Context, file: File): RulesResult {
+        var succeedCount = 0
+        var failedCount = 0
+        val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+        try {
+            file.forEachLine {
+                if (it.trim().isEmpty() || !it.contains("\\")) {
+                    return@forEachLine
+                }
+                val splitResult = it.split("\\")
+                if (splitResult.size != 2) {
+                    failedCount++
+                    return@forEachLine
+                }
+                val packageName = splitResult[0]
+                val name = splitResult[1]
+                val result = controller.disable(packageName, name)
+                if (result) {
                     succeedCount++
                 } else {
                     failedCount++
