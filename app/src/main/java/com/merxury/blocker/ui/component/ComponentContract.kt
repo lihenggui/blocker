@@ -1,5 +1,6 @@
 package com.merxury.blocker.ui.component
 
+import android.support.annotation.StringRes
 import com.merxury.blocker.base.BasePresenter
 import com.merxury.blocker.base.BaseView
 import com.merxury.blocker.core.IController
@@ -19,8 +20,10 @@ interface ComponentContract {
         fun showDisableAllAlert()
         fun showActionDone()
         fun showActionFail()
-        fun showProcessingToast()
         fun showImportFail()
+        fun showAlert(@StringRes alertMessage: Int, confirmAction: () -> Unit)
+        fun showError(@StringRes errorMessage: Int)
+        fun showToastMessage(message: String?, length: Int)
     }
 
     interface Presenter : BasePresenter, IController {

@@ -10,13 +10,13 @@ import android.support.v7.app.AlertDialog
 import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
-import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.merxury.blocker.R
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.ui.component.ComponentActivity
+import com.merxury.blocker.util.ToastUtil
 import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.android.synthetic.main.fragment_app_list.view.*
@@ -165,7 +165,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                     .setTitle(R.string.alert)
                     .setMessage(alertMessage)
                     .setCancelable(true)
-                    .setNegativeButton(R.string.cancel, {dialog: DialogInterface?, _: Int -> dialog?.dismiss() })
+                    .setNegativeButton(R.string.cancel, { dialog: DialogInterface?, _: Int -> dialog?.dismiss() })
                     .setPositiveButton(R.string.ok, { _: DialogInterface, _: Int -> confirmAction() })
                     .show()
         }
@@ -181,8 +181,8 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         }
     }
 
-    override fun showToastMessage(message: String?, length:Int) {
-        Toast.makeText(context, message, length).show()
+    override fun showToastMessage(message: String?, length: Int) {
+        ToastUtil.showToast(message ?: "", length)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

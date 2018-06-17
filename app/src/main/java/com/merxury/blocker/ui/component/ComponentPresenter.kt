@@ -7,6 +7,8 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.util.Log
+import android.widget.Toast
+import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
@@ -19,6 +21,7 @@ import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.strategy.service.ApiClient
 import com.merxury.blocker.strategy.service.IClientServer
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.ToastUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
@@ -411,7 +414,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     private fun importBlockerRule(packageName: String) {
-        view?.showProcessingToast()
+        view?.showToastMessage(context.getString(R.string.processing), Toast.LENGTH_SHORT)
         Single.create(SingleOnSubscribe<RulesResult> { emitter ->
             val blockerFolder = Rule.getBlockerFolder(context)
             val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
@@ -425,9 +428,9 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     if (it.isSucceed) {
-                        view?.showActionDone()
+                        ToastUtil.showToast(context.getString(R.string.done))
                     } else {
-                        view?.showImportFail()
+                        ToastUtil.showToast(context.getString(R.string.import_fail_message))
                     }
                 }, {
                     it.printStackTrace()
