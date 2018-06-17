@@ -11,9 +11,9 @@ import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.rule.entity.BlockerRule
+import com.merxury.blocker.rule.entity.ComponentRule
 import com.merxury.blocker.ui.component.EComponentType
-import com.merxury.blocker.ui.settings.entity.BlockerRule
-import com.merxury.blocker.ui.settings.entity.ComponentRule
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl

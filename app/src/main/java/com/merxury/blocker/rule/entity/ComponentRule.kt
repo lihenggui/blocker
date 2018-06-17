@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.settings.entity
+package com.merxury.blocker.rule.entity
 
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.ui.component.EComponentType
