@@ -117,6 +117,7 @@ public class IntentFirewallImpl implements IntentFirewall {
             }
         }
         filters.add(new ComponentFilter(filterRule));
+        Log.i(TAG, "Added component:" + packageName + "/" + componentName);
         return true;
     }
 
