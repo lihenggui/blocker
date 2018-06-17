@@ -399,6 +399,18 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun importRule(packageName: String) {
+        RxPermissions(context as Activity)
+                .request(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe {
+                    if (it) {
+                        importBlockerRule(packageName)
+                    } else {
+                        view?.showActionFail()
+                    }
+                }
+    }
+
+    private fun importBlockerRule(packageName: String) {
         view?.showProcessingToast()
         Single.create(SingleOnSubscribe<RulesResult> { emitter ->
             val blockerFolder = Rule.getBlockerFolder(context)
