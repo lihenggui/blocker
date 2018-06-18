@@ -70,6 +70,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         }
         serializer.write(rules, file);
         FileUtils.cat(tmpPath, destPath);
+        FileUtils.chmod(destPath, 644, false);
     }
 
     @Override
