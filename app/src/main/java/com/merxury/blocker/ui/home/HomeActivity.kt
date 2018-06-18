@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.ViewPager
+import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import com.jaeger.library.StatusBarUtil
@@ -29,6 +30,7 @@ import kotlinx.android.synthetic.main.activity_home.*
 class HomeActivity : AppCompatActivity(), IActivityView {
 
     private lateinit var drawer: Drawer
+    private lateinit var drawerLayout: DrawerLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +46,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
             setupWithViewPager(app_viewpager)
             setupTab(this)
         }
+
     }
 
     private fun setupViewPager(viewPager: ViewPager) {
@@ -77,6 +80,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
                 .withSelectedItem(1L)
                 .withCloseOnClick(true)
                 .build()
+        drawerLayout = drawer.drawerLayout
 
     }
 
@@ -109,7 +113,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
     private fun changeColor(color: Int) {
         toolbar.setBackgroundColor(color)
         app_kind_tabs.setBackgroundColor(color)
-        StatusBarUtil.setColor(this, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
+        StatusBarUtil.setColorForDrawerLayout(this, drawerLayout, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             setTaskDescription(ActivityManager.TaskDescription(null, null, color))
         }

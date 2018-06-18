@@ -100,4 +100,7 @@
     <string name="export_rule">Export Rule</string>
     <string name="processing">Processing…</string>
     <string name="import_fail_message">Import fail, rule does not exist.</string>
+    <string name="reset_ifw">Reset IFW</string>
+    <string name="import_mat_rules">Import MyAndroidTools Rules</string>
+    <string name="others">Others</string>
 </resources>
