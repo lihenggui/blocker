@@ -103,4 +103,5 @@
     <string name="reset_ifw">Reset IFW</string>
     <string name="import_mat_rules">Import MyAndroidTools Rules</string>
     <string name="others">Others</string>
+    <string name="processing_progress_indicator">Processing Progress Indicator</string>
 </resources>
