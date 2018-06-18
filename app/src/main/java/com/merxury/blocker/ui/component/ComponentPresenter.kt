@@ -416,7 +416,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     private fun importBlockerRule(packageName: String) {
         view?.showToastMessage(context.getString(R.string.processing), Toast.LENGTH_SHORT)
         Single.create(SingleOnSubscribe<RulesResult> { emitter ->
-            val blockerFolder = Rule.getBlockerFolder(context)
+            val blockerFolder = Rule.getBlockerRuleFolder(context)
             val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
             if (!destFile.exists()) {
                 emitter.onSuccess(RulesResult(false, 0, 0))

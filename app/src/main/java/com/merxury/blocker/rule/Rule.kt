@@ -22,8 +22,10 @@ import com.merxury.blocker.utils.FileUtils
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
+import com.merxury.ifw.util.StorageUtils
 import java.io.File
 import java.io.FileReader
+import java.io.FileWriter
 
 object Rule {
     const val EXTENSION = ".json"
@@ -74,7 +76,7 @@ object Rule {
             }
         }
         return if (rule.components.isNotEmpty()) {
-            val ruleFile = File(getBlockerFolder(context), packageName + EXTENSION)
+            val ruleFile = File(getBlockerRuleFolder(context), packageName + EXTENSION)
             saveRuleToStorage(rule, ruleFile)
             RulesResult(true, disabledComponentsCount, 0)
         } else {
@@ -128,6 +130,26 @@ object Rule {
         return RulesResult(true, succeedCount, failedCount)
     }
 
+    fun exportAll(context: Context) {
+        val appList = ApplicationComponents.getThirdPartyApplicationList(context.packageManager)
+        appList.forEach {
+            val packageName = it.packageName
+            export(context, packageName)
+        }
+    }
+
+    fun importAll(context: Context) {
+        val appList = ApplicationComponents.getThirdPartyApplicationList(context.packageManager)
+        appList.forEach {
+            val packageName = it.packageName
+            val file = File(getBlockerRuleFolder(context), packageName + EXTENSION)
+            if (file.exists()) {
+                file.delete()
+            }
+            import(context, file)
+        }
+    }
+
     fun importMATRules(context: Context, file: File): RulesResult {
         var succeedCount = 0
         var failedCount = 0
@@ -160,6 +182,40 @@ object Rule {
         return RulesResult(true, succeedCount, failedCount)
     }
 
+    fun exportIFWRules(context: Context): Int {
+        val ifwFolder = StorageUtils.getIfwFolder()
+        val ifwBackupFolder = getBlockerIFWFolder(context)
+        if (!ifwBackupFolder.exists()) {
+            ifwBackupFolder.mkdirs()
+        }
+        val files = FileUtils.listFiles(ifwFolder)
+        files.forEach {
+            val filename = it.split(File.separator).last()
+            val content = FileUtils.read(it)
+            val file = File(getBlockerIFWFolder(context), filename)
+            val fileWriter = FileWriter(file)
+            fileWriter.write(content)
+            fileWriter.close()
+        }
+        return files.count()
+    }
+
+    fun importIFWRules(context: Context): Int {
+        val ifwFolder = StorageUtils.getIfwFolder()
+        val ifwBackupFolder = getBlockerIFWFolder(context)
+        if (!ifwBackupFolder.exists()) {
+            return 0
+        }
+        val files = FileUtils.listFiles(ifwBackupFolder.absolutePath)
+        files.forEach {
+            val filename = it.split(File.separator).last()
+            val filePath = ifwFolder + filename
+            FileUtils.cat(it, filePath)
+            FileUtils.chmod(filePath, 644, false)
+        }
+        return files.count()
+    }
+
     private fun saveRuleToStorage(rule: BlockerRule, dest: File) {
         if (!dest.parentFile.exists()) {
             dest.parentFile.mkdirs()
@@ -170,9 +226,16 @@ object Rule {
         dest.writeText(GsonBuilder().setPrettyPrinting().create().toJson(rule))
     }
 
-    fun getBlockerFolder(context: Context): File {
+    fun getBlockerRuleFolder(context: Context): File {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val path = pref.getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
+        val storagePath = FileUtils.getExternalStoragePath();
+        return File(storagePath, path)
+    }
+
+    fun getBlockerIFWFolder(context: Context): File {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val path = pref.getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
         val storagePath = FileUtils.getExternalStoragePath();
         return File(storagePath, path)
     }
