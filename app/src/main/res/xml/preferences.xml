@@ -35,7 +35,7 @@
         android:key="pref_key_ifw"
         android:title="@string/pref_ifw_settings">
         <EditTextPreference
-            android:defaultValue="@string/key_pref_ifw_rule_path_default_value"
+            android:defaultValue="@string/key_pref_rule_path_default_value"
             android:inputType="text"
             android:key="pref_key_ifw_rule_path"
             android:summary="@string/pref_rule_path_summary"
