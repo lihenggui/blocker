@@ -95,7 +95,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
                 .load(application.getApplicationIcon(packageManager))
                 .transition(DrawableTransitionOptions().crossFade())
                 .into(app_info_icon)
-        app_info_icon.setOnClickListener({ ApplicationUtils.startApplication(this, application.packageName) })
+        app_info_icon.setOnClickListener { ApplicationUtils.startApplication(this, application.packageName) }
     }
 
 

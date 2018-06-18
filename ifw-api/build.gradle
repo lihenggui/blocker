@@ -39,7 +39,7 @@ dependencies {
     implementation(name: 'RootTools', ext: 'aar')
     implementation(name: 'RootShell', ext: 'aar')
     // Simple Xml
-    implementation ('org.simpleframework:simple-xml:2.7.+') {
+    implementation ('org.simpleframework:simple-xml:2.7.1') {
         exclude module: 'stax'
         exclude module: 'stax-api'
         exclude module: 'xpp3'

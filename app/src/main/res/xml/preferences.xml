@@ -16,7 +16,7 @@
         android:key="pref_key_rules"
         android:title="@string/pref_rule_settings">
         <EditTextPreference
-            android:defaultValue="/Blocker/rules/"
+            android:defaultValue="@string/key_pref_rule_path_default_value"
             android:inputType="text"
             android:key="pref_key_rule_path"
             android:summary="@string/pref_rule_path_summary"
@@ -35,7 +35,7 @@
         android:key="pref_key_ifw"
         android:title="@string/pref_ifw_settings">
         <EditTextPreference
-            android:defaultValue="/Blocker/ifw/"
+            android:defaultValue="@string/key_pref_ifw_rule_path_default_value"
             android:inputType="text"
             android:key="pref_key_ifw_rule_path"
             android:summary="@string/pref_rule_path_summary"
@@ -50,6 +50,35 @@
             android:title="@string/import_ifw_rules" />
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:key="pref_key_ifw"
+        android:title="@string/pref_ifw_settings">
+        <EditTextPreference
+            android:defaultValue="@string/key_pref_ifw_rule_path_default_value"
+            android:inputType="text"
+            android:key="pref_key_ifw_rule_path"
+            android:summary="@string/pref_rule_path_summary"
+            android:title="@string/pref_rule_path_title" />
+        <Preference
+            android:dependency="pref_key_ifw_rule_path"
+            android:key="pref_key_export_ifw_rules"
+            android:title="@string/export_ifw_rules" />
+        <Preference
+            android:dependency="pref_key_ifw_rule_path"
+            android:key="pref_key_import_ifw_rules"
+            android:title="@string/import_ifw_rules" />
+        <Preference
+            android:key="pref_key_import_ifw_rules"
+            android:title="@string/reset_ifw" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:key="pref_key_other"
+        android:title="@string/others">
+        <Preference
+            android:key="pref_key_import_mat_rules"
+            android:title="@string/import_mat_rules" />
+    </PreferenceCategory>
     <PreferenceCategory
         android:key="pref_key_about"
         android:title="@string/about">
