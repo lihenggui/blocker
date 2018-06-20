@@ -32,7 +32,7 @@ object Rule {
     private const val TAG = "Rule"
 
     // TODO remove template code
-    fun export(context: Context, packageName: String): RulesResult {
+    fun export(context: Context, packageName: String, callback: (finished: Boolean, succeedCount: Int, failedCount: Int) -> Unit): RulesResult {
         Log.i(SettingsPresenter.TAG, "Backup rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationComponents.getApplicationComponents(pm, packageName)
@@ -43,38 +43,46 @@ object Rule {
             if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
                 disabledComponentsCount++
+                callback(false, disabledComponentsCount, 0)
             }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
                 disabledComponentsCount++
+                callback(false, disabledComponentsCount, 0)
             }
         }
         applicationInfo.services?.forEach {
             if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE, EControllerMethod.IFW))
                 disabledComponentsCount++
+                callback(false, disabledComponentsCount, 0)
             }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE))
                 disabledComponentsCount++
+                callback(false, disabledComponentsCount, 0)
             }
         }
         applicationInfo.activities?.forEach {
             if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY, EControllerMethod.IFW))
                 disabledComponentsCount++
+                callback(false, disabledComponentsCount, 0)
             }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY))
                 disabledComponentsCount++
+                callback(false, disabledComponentsCount, 0)
             }
         }
         applicationInfo.providers?.forEach {
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
                 disabledComponentsCount++
+                callback(false, disabledComponentsCount, 0)
             }
         }
+        callback(true, disabledComponentsCount, 0)
         return if (rule.components.isNotEmpty()) {
             val ruleFile = File(getBlockerRuleFolder(context), packageName + EXTENSION)
             saveRuleToStorage(rule, ruleFile)
@@ -134,7 +142,7 @@ object Rule {
         val appList = ApplicationComponents.getThirdPartyApplicationList(context.packageManager)
         appList.forEach {
             val packageName = it.packageName
-            export(context, packageName)
+            export(context, packageName) { a, b, c -> }
         }
     }
 

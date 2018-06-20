@@ -380,7 +380,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     private fun exportBlockerRule(packageName: String) {
         Single.create(SingleOnSubscribe<RulesResult> { emitter ->
             try {
-                val result = Rule.export(context, packageName)
+                val result = Rule.export(context, packageName) { a, b, c -> }
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 emitter.onError(e)

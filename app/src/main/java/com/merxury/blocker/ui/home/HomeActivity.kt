@@ -65,6 +65,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
                 .withToolbar(toolbar)
                 .withSavedInstance(savedInstanceState)
                 .withActionBarDrawerToggleAnimated(true)
+
                 .addDrawerItems(
                         item1,
                         DividerDrawerItem(),
