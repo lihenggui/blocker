@@ -17,16 +17,16 @@ object FileUtils {
     fun copy(source: String, dest: String): Boolean {
         Log.i(TAG, "Copy $source to $dest")
         try {
-            FileInputStream(source).use({ input ->
-                FileOutputStream(dest).use({ output ->
+            FileInputStream(source).use { input ->
+                FileOutputStream(dest).use { output ->
                     val buf = ByteArray(1024)
                     var length = input.read(buf)
                     while (length > 0) {
                         output.write(buf, 0, length)
                         length = input.read(buf)
                     }
-                })
-            })
+                }
+            }
         } catch (e: IOException) {
             e.printStackTrace()
             Log.e(TAG, e.message)
@@ -102,5 +102,10 @@ object FileUtils {
     @JvmStatic
     fun getExternalStoragePath(): String {
         return Environment.getExternalStorageDirectory().absolutePath + File.separator
+    }
+
+    @JvmStatic
+    fun delete(file: String): Boolean {
+        return RootTools.deleteFileOrDirectory(file, false)
     }
 }
