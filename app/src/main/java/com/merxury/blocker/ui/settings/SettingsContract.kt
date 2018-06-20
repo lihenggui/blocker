@@ -10,10 +10,11 @@ interface SettingsContract : BaseView<SettingsContract.SettingsPresenter> {
     }
 
     interface SettingsPresenter : BasePresenter {
-        fun exportAllRules(folder: String)
-        fun importAllRules(folder: String)
-        fun exportAllIFWRules(folder: String)
-        fun importAllIFWRules(folder: String)
+        fun exportAllRules()
+        fun importAllRules()
+        fun exportAllIfwRules(folder: String)
+        fun importAllIfwRules(folder: String)
+        fun importMatRules()
         fun resetIFW()
     }
 }

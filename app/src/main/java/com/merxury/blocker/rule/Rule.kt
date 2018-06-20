@@ -32,7 +32,7 @@ object Rule {
     private const val TAG = "Rule"
 
     // TODO remove template code
-    fun export(context: Context, packageName: String, callback: (finished: Boolean, succeedCount: Int, failedCount: Int) -> Unit): RulesResult {
+    fun export(context: Context, packageName: String): RulesResult {
         Log.i(SettingsPresenter.TAG, "Backup rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationComponents.getApplicationComponents(pm, packageName)
@@ -43,46 +43,38 @@ object Rule {
             if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
                 disabledComponentsCount++
-                callback(false, disabledComponentsCount, 0)
             }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
                 disabledComponentsCount++
-                callback(false, disabledComponentsCount, 0)
             }
         }
         applicationInfo.services?.forEach {
             if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE, EControllerMethod.IFW))
                 disabledComponentsCount++
-                callback(false, disabledComponentsCount, 0)
             }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE))
                 disabledComponentsCount++
-                callback(false, disabledComponentsCount, 0)
             }
         }
         applicationInfo.activities?.forEach {
             if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY, EControllerMethod.IFW))
                 disabledComponentsCount++
-                callback(false, disabledComponentsCount, 0)
             }
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY))
                 disabledComponentsCount++
-                callback(false, disabledComponentsCount, 0)
             }
         }
         applicationInfo.providers?.forEach {
             if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
                 disabledComponentsCount++
-                callback(false, disabledComponentsCount, 0)
             }
         }
-        callback(true, disabledComponentsCount, 0)
         return if (rule.components.isNotEmpty()) {
             val ruleFile = File(getBlockerRuleFolder(context), packageName + EXTENSION)
             saveRuleToStorage(rule, ruleFile)
@@ -92,12 +84,13 @@ object Rule {
         }
     }
 
-    fun import(context: Context, file: File): RulesResult {
-        var succeedCount = 0
-        var failedCount = 0
+    fun import(context: Context, file: File, callback: (finished: Boolean, succeedCount: Int, failedCount: Int, total: Int) -> Unit): RulesResult {
         val jsonReader = JsonReader(FileReader(file))
         val appRule = Gson().fromJson<BlockerRule>(jsonReader, BlockerRule::class.java)
                 ?: return RulesResult(false, 0, 0)
+        var succeedCount = 0
+        var failedCount = 0
+        val total = appRule.components.size
         val controller = getController(context)
         var ifwController: IntentFirewall? = null
         // Detects if contains IFW rules, if exists, create a new controller.
@@ -123,18 +116,21 @@ object Rule {
                     }
                     else -> controller.disable(it.packageName, it.name)
                 }
-                ifwController?.save()
                 if (controllerResult) {
                     succeedCount++
                 } else {
                     failedCount++
                 }
+                callback(false, succeedCount, failedCount, total)
             }
+            ifwController?.save()
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, e.message)
+            callback(true, succeedCount, failedCount, total)
             return RulesResult(false, succeedCount, failedCount)
         }
+        callback(true, succeedCount, failedCount, total)
         return RulesResult(true, succeedCount, failedCount)
     }
 
@@ -142,7 +138,7 @@ object Rule {
         val appList = ApplicationComponents.getThirdPartyApplicationList(context.packageManager)
         appList.forEach {
             val packageName = it.packageName
-            export(context, packageName) { a, b, c -> }
+            export(context, packageName)
         }
     }
 
@@ -154,11 +150,11 @@ object Rule {
             if (file.exists()) {
                 file.delete()
             }
-            import(context, file)
+            import(context, file) { _, _, _, _ -> }
         }
     }
 
-    fun importMATRules(context: Context, file: File): RulesResult {
+    fun importMatRules(context: Context, file: File): RulesResult {
         var succeedCount = 0
         var failedCount = 0
         val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
@@ -190,7 +186,7 @@ object Rule {
         return RulesResult(true, succeedCount, failedCount)
     }
 
-    fun exportIFWRules(context: Context): Int {
+    fun exportIfwRules(context: Context): Int {
         val ifwFolder = StorageUtils.getIfwFolder()
         val ifwBackupFolder = getBlockerIFWFolder(context)
         if (!ifwBackupFolder.exists()) {
@@ -208,7 +204,7 @@ object Rule {
         return files.count()
     }
 
-    fun importIFWRules(context: Context): Int {
+    fun importIfwRules(context: Context): Int {
         val ifwFolder = StorageUtils.getIfwFolder()
         val ifwBackupFolder = getBlockerIFWFolder(context)
         if (!ifwBackupFolder.exists()) {
@@ -222,6 +218,24 @@ object Rule {
             FileUtils.chmod(filePath, 644, false)
         }
         return files.count()
+    }
+
+    fun resetIfw(): Boolean {
+        var result = true
+        try {
+            val ifwFolder = StorageUtils.getIfwFolder()
+            val files = FileUtils.listFiles(ifwFolder)
+            files.forEach {
+                if (!FileUtils.delete(it)) {
+                    result = false
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.e(TAG, e.message)
+            return false
+        }
+        return result
     }
 
     private fun saveRuleToStorage(rule: BlockerRule, dest: File) {
