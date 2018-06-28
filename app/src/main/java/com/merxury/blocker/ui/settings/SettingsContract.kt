@@ -7,13 +7,14 @@ interface SettingsContract : BaseView<SettingsContract.SettingsPresenter> {
     interface SettingsView {
         fun showExportResult(isSucceed: Boolean, successfulCount: Int, failedCount: Int)
         fun showImportResult(isSucceed: Boolean, successfulCount: Int, failedCount: Int)
+        fun showResetResult(isSucceed: Boolean)
     }
 
     interface SettingsPresenter : BasePresenter {
         fun exportAllRules()
         fun importAllRules()
-        fun exportAllIfwRules(folder: String)
-        fun importAllIfwRules(folder: String)
+        fun exportAllIfwRules()
+        fun importAllIfwRules()
         fun importMatRules()
         fun resetIFW()
     }

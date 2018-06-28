@@ -65,6 +65,10 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
+    override fun showResetResult(isSucceed: Boolean) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     companion object {
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             val stringValue = value.toString()
