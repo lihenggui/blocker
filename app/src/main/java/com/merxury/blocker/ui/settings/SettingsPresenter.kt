@@ -3,10 +3,7 @@ package com.merxury.blocker.ui.settings
 import android.content.Context
 import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
-import com.merxury.blocker.core.ComponentControllerProxy
-import com.merxury.blocker.core.IController
 import com.merxury.blocker.rule.Rule
-import com.merxury.blocker.util.PreferenceUtil
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -16,12 +13,9 @@ import java.io.File
 // TODO Clean Code
 class SettingsPresenter(private val context: Context, private val settingsView: SettingsContract.SettingsView) : SettingsContract.SettingsPresenter {
 
-    private val controller: IController by lazy {
-        val controllerType = PreferenceUtil.getControllerType(context)
-        ComponentControllerProxy.getInstance(controllerType, context)
-    }
-
     override fun exportAllRules() {
+        var succeedCount = 0
+        var failedCount = 0
         Observable.create(ObservableOnSubscribe<Int> { emitter ->
             try {
                 val applicationList = ApplicationComponents.getApplicationList(context.packageManager)
@@ -40,11 +34,12 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ count ->
-                    //onNext
+                    succeedCount = count
+                    // onNext
                 }, { error ->
-                    //onError
+                    // onError
                 }, {
-                    //onComplete
+                    settingsView.showExportResult(true, succeedCount, failedCount)
                 })
     }
 
@@ -60,18 +55,76 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 Rule.import(context, file) { _, _, _, _ -> }
             }
         })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ count ->
+                    //onNext
+                }, { error ->
+                    //onError
+                }, {
+                    //onComplete
+                })
     }
 
-    override fun exportAllIfwRules(folder: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun exportAllIfwRules() {
+        Observable.create(ObservableOnSubscribe<Int> { emitter ->
+            val appList = ApplicationComponents.getApplicationList(context.packageManager)
+            appList.forEach {
+                val packageName = it.packageName
+                val file = File(Rule.getBlockerRuleFolder(context), packageName + Rule.EXTENSION)
+                if (!file.exists()) {
+                    return@forEach
+                }
+                Rule.import(context, file) { _, _, _, _ -> }
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ count ->
+                    //onNext
+                }, { error ->
+                    //onError
+                }, {
+                    //onComplete
+                })
     }
 
-    override fun importAllIfwRules(folder: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    override fun importAllIfwRules() {
+        var count = 0
+        Observable.create(ObservableOnSubscribe<Int> { emitter ->
+            try {
+                count = Rule.exportIfwRules(context)
+                emitter.onComplete()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e(TAG, e.message)
+                emitter.onError(e)
+            }
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ _ ->
+                    //onNext
+                }, { error ->
+                    //onError
+                }, {
+                    settingsView.showExportResult(true, count, 0)
+                })
     }
 
     override fun resetIFW() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Observable.create(ObservableOnSubscribe<Boolean> { emitter ->
+            val result = Rule.resetIfw()
+            emitter.onNext(result)
+            emitter.onComplete()
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result ->
+                    settingsView.showResetResult(result)
+                }, { error ->
+                    //onError
+                })
     }
 
     override fun importMatRules() {
