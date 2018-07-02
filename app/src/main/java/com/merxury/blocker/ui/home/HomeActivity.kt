@@ -13,6 +13,7 @@ import android.support.v4.view.ViewPager
 import android.support.v4.widget.DrawerLayout
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import android.view.View
 import com.jaeger.library.StatusBarUtil
 import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
@@ -115,6 +116,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
         toolbar.setBackgroundColor(color)
         app_kind_tabs.setBackgroundColor(color)
         StatusBarUtil.setColorForDrawerLayout(this, drawerLayout, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
+        findViewById<View>(com.jaeger.library.R.id.statusbarutil_translucent_view).setBackgroundColor(color)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             setTaskDescription(ActivityManager.TaskDescription(null, null, color))
         }

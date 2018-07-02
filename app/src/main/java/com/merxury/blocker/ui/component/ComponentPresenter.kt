@@ -380,7 +380,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     private fun exportBlockerRule(packageName: String) {
         Single.create(SingleOnSubscribe<RulesResult> { emitter ->
             try {
-                val result = Rule.export(context, packageName) { a, b, c -> }
+                val result = Rule.export(context, packageName)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -422,7 +422,8 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 emitter.onSuccess(RulesResult(false, 0, 0))
                 return@SingleOnSubscribe
             }
-            emitter.onSuccess(Rule.import(context, destFile))
+            val result = Rule.import(context, destFile) { a, b, c, d -> }
+            emitter.onSuccess(result)
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
