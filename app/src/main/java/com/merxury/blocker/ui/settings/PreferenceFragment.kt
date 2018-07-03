@@ -7,13 +7,14 @@ import android.os.Build
 import android.os.Bundle
 import android.preference.ListPreference
 import android.preference.Preference
+import android.preference.Preference.OnPreferenceClickListener
 import android.preference.PreferenceFragment
 import android.preference.PreferenceManager
 import android.view.MenuItem
 import com.merxury.blocker.R
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView {
+class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, OnPreferenceClickListener {
 
     private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
     private lateinit var prefs: SharedPreferences
@@ -67,6 +68,17 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView {
 
     override fun showResetResult(isSucceed: Boolean) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onPreferenceClick(preference: Preference?): Boolean {
+        if (preference == null) {
+            return false
+        }
+        when (preference.key) {
+
+        }
+        return true
+
     }
 
     companion object {

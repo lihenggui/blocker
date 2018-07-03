@@ -6,4 +6,11 @@
     <string name="key_pref_rule_path_default_value">/Blocker/rules/</string>
     <string name="key_pref_ifw_rule_path">pref_key_ifw_rule_path</string>
     <string name="key_pref_ifw_rule_path_default_value">/Blocker/ifw/</string>
+    <string name="key_pref_export_rules">pref_key_export_rules</string>
+    <string name="key_pref_import_rules">pref_key_import_rules</string>
+    <string name="key_pref_export_ifw_rules">pref_key_export_ifw_rules</string>
+    <string name="key_pref_import_ifw_rules">pref_key_import_ifw_rules</string>
+    <string name="key_pref_reset_ifw_rules">pref_key_reset_ifw_rules</string>
+    <string name="key_pref_import_mat_rules">pref_key_import_mat_rules</string>
+    <string name="key_pref_about">pref_key_about</string>
 </resources>
