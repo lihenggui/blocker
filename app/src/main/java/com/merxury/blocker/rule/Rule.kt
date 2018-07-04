@@ -16,7 +16,6 @@ import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.ComponentRule
 import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.ui.component.EComponentType
-import com.merxury.blocker.ui.settings.SettingsPresenter
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.utils.FileUtils
 import com.merxury.ifw.IntentFirewall
@@ -33,7 +32,7 @@ object Rule {
 
     // TODO remove template code
     fun export(context: Context, packageName: String): RulesResult {
-        Log.i(SettingsPresenter.TAG, "Backup rules for $packageName")
+        Log.i(TAG, "Backup rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationComponents.getApplicationComponents(pm, packageName)
         val rule = BlockerRule(packageName = applicationInfo.packageName, versionName = applicationInfo.versionName, versionCode = applicationInfo.versionCode)
