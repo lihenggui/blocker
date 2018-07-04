@@ -22,11 +22,11 @@
             android:summary="@string/pref_rule_path_summary"
             android:title="@string/pref_rule_path_title" />
         <Preference
-            android:dependency="pref_key_rule_path"
+            android:dependency="@string/key_pref_rule_path"
             android:key="@string/key_pref_export_rules"
             android:title="@string/export_rules" />
         <Preference
-            android:dependency="pref_key_rule_path"
+            android:dependency="@string/key_pref_rule_path"
             android:key="@string/key_pref_import_rules"
             android:title="@string/import_rules" />
     </PreferenceCategory>
@@ -41,11 +41,11 @@
             android:summary="@string/pref_rule_path_summary"
             android:title="@string/pref_rule_path_title" />
         <Preference
-            android:dependency="pref_key_ifw_rule_path"
+            android:dependency="@string/key_pref_ifw_rule_path"
             android:key="@string/key_pref_export_ifw_rules"
             android:title="@string/export_ifw_rules" />
         <Preference
-            android:dependency="pref_key_ifw_rule_path"
+            android:dependency="@string/key_pref_ifw_rule_path"
             android:key="@string/key_pref_import_ifw_rules"
             android:title="@string/import_ifw_rules" />
         <Preference
@@ -60,6 +60,7 @@
             android:key="@string/key_pref_import_mat_rules"
             android:title="@string/import_mat_rules" />
     </PreferenceCategory>
+
     <PreferenceCategory
         android:key="pref_about"
         android:title="@string/about">

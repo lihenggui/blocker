@@ -1,14 +1,20 @@
 package com.merxury.blocker.ui.settings
 
+import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.rule.Rule
+import com.merxury.blocker.rule.entity.RulesResult
+import com.merxury.blocker.utils.FileUtils
+import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.io.File
+import java.io.FileNotFoundException
 
 // TODO Clean Code
 class SettingsPresenter(private val context: Context, private val settingsView: SettingsContract.SettingsView) : SettingsContract.SettingsPresenter {
@@ -128,7 +134,31 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     }
 
     override fun importMatRules() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Observable.create(ObservableOnSubscribe<RulesResult> { emitter ->
+            val file = File(FileUtils.getExternalStoragePath(), MAT_FILE_NAME)
+            if (!file.exists()) {
+                emitter.onError(FileNotFoundException("Cannot find MyAndroidTools Rule File: $MAT_FILE_NAME"))
+                return@ObservableOnSubscribe
+            }
+            val result = Rule.importMatRules(context, file)
+            emitter.onNext(result)
+            emitter.onComplete()
+        })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({ result ->
+                    // onNext
+                }, { error ->
+                    //onError
+                })
+    }
+
+    fun requestStoragePermission() {
+        RxPermissions(context as Activity)
+                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .subscribe { result ->
+
+                }
     }
 
     override fun start(context: Context) {
@@ -140,6 +170,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     }
 
     companion object {
-        const val TAG = "SettingsPresenter"
+        private const val TAG = "SettingsPresenter"
+        private const val MAT_FILE_NAME = "myandroidtools.txt"
     }
 }
