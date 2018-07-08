@@ -1,5 +1,6 @@
 package com.merxury.blocker.ui.home
 
+import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -23,7 +24,6 @@ import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
 
 class ApplicationListFragment : Fragment(), HomeContract.View {
-
     override var isActive: Boolean = false
         get() = isAdded
 
@@ -139,6 +139,10 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     override fun onDestroy() {
         presenter.destroy()
         super.onDestroy()
+    }
+
+    override fun getViewActivity(): Activity {
+        return activity as Activity
     }
 
     override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {

@@ -73,4 +73,5 @@ dependencies {
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')
+    implementation project(':libkit')
 }

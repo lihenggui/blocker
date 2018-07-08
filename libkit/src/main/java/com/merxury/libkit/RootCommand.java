@@ -1,9 +1,9 @@
-package com.merxury.blocker.core.root;
+package com.merxury.libkit;
 
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.merxury.blocker.core.exception.ProcessUnexpectedTerminateException;
+import com.merxury.libkit.exception.ProcessUnexpectedTerminateException;
 import com.stericson.RootShell.exceptions.RootDeniedException;
 import com.stericson.RootShell.execution.Command;
 import com.stericson.RootTools.RootTools;

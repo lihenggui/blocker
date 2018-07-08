@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.merxury.blocker.utils.FileUtils;
 import com.merxury.ifw.entity.Activity;
 import com.merxury.ifw.entity.Broadcast;
 import com.merxury.ifw.entity.Component;
@@ -12,7 +11,8 @@ import com.merxury.ifw.entity.ComponentFilter;
 import com.merxury.ifw.entity.ComponentType;
 import com.merxury.ifw.entity.Rules;
 import com.merxury.ifw.entity.Service;
-import com.merxury.ifw.util.StorageUtils;
+import com.merxury.libkit.utils.FileUtils;
+import com.merxury.libkit.utils.StorageUtils;
 import com.stericson.RootTools.RootTools;
 
 import org.simpleframework.xml.Serializer;
@@ -231,9 +231,7 @@ public class IntentFirewallImpl implements IntentFirewall {
 
     private void handleException(Exception e) {
         Log.e(TAG, e.getMessage());
-        if (BuildConfig.DEBUG) {
-            e.printStackTrace();
-        }
+        e.printStackTrace();
     }
 
     public String getPackageName() {

@@ -1,5 +1,6 @@
 package com.merxury.blocker.ui.component
 
+import android.app.Activity
 import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -146,6 +147,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun searchForComponent(name: String) {
         componentAdapter.filter(name)
+    }
+
+    override fun getViewActivity(): Activity {
+        return activity as Activity
     }
 
     override fun showFilteringPopUpMenu() {

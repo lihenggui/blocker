@@ -17,11 +17,11 @@ import com.merxury.blocker.rule.entity.ComponentRule
 import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.ui.component.EComponentType
 import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.blocker.utils.FileUtils
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
-import com.merxury.ifw.util.StorageUtils
+import com.merxury.libkit.utils.FileUtils
+import com.merxury.libkit.utils.StorageUtils
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter

@@ -1,6 +1,5 @@
-package com.merxury.ifw.util;
+package com.merxury.libkit.utils;
 
-import android.os.Environment;
 import android.os.SystemProperties;
 import android.support.annotation.NonNull;
 

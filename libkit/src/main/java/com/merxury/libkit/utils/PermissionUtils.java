@@ -1,4 +1,4 @@
-package com.merxury.ifw.util;
+package com.merxury.libkit.utils;
 
 import com.stericson.RootShell.exceptions.RootDeniedException;
 import com.stericson.RootShell.execution.Command;
@@ -22,12 +22,12 @@ public class PermissionUtils {
         RootTools.getShell(true).add(new Command(0, comm));
     }
 
-    public static void setIfwReadable() throws IOException, TimeoutException, RootDeniedException{
+    public static void setIfwReadable() throws IOException, TimeoutException, RootDeniedException {
         String ifwFolder = StorageUtils.getIfwFolder();
         setPermissionRecursively(ifwFolder, 777);
     }
 
-    public static void resetIfwPermission() throws IOException, TimeoutException, RootDeniedException{
+    public static void resetIfwPermission() throws IOException, TimeoutException, RootDeniedException {
         String ifwFolder = StorageUtils.getIfwFolder();
         setPermissionRecursively(ifwFolder, 644);
     }

@@ -30,8 +30,6 @@ interface ComponentContract {
         var currentComparator: EComponentComparatorType
         fun loadComponents(packageName: String, type: EComponentType)
         fun sortComponentList(components: List<ComponentItemViewModel>, type: EComponentComparatorType): List<ComponentItemViewModel>
-        fun checkComponentIsUpVoted(packageName: String, componentName: String): Boolean
-        fun checkComponentIsDownVoted(packageName: String, componentName: String): Boolean
         fun addToIFW(packageName: String, componentName: String, type: EComponentType)
         fun removeFromIFW(packageName: String, componentName: String, type: EComponentType)
         fun launchActivity(packageName: String, componentName: String)

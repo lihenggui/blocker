@@ -21,8 +21,6 @@ android {
                 proguardFile 'proguard-rules.pro'
             }
         }
-        externalNativeBuild {
-        }
     }
     lintOptions {
         abortOnError false
@@ -52,4 +50,5 @@ dependencies {
     // Shizuku dependency
     implementation 'moe.shizuku.privilege:api-base:9'
     implementation 'moe.shizuku.privilege:api-26:4'
+    implementation project(':libkit')
 }

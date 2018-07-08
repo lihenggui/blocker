@@ -13,7 +13,6 @@ import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
-import com.merxury.blocker.core.root.RootCommand
 import com.merxury.blocker.core.shizuku.ShizukuClientWrapper
 import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
@@ -25,7 +24,8 @@ import com.merxury.blocker.util.ToastUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
-import com.merxury.ifw.util.PermissionUtils
+import com.merxury.libkit.RootCommand
+import com.merxury.libkit.utils.PermissionUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
@@ -165,16 +165,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return sortedComponents.sortedWith(compareBy({ !it.state }, { !it.ifwState }))
     }
 
-    override fun checkComponentIsUpVoted(packageName: String, componentName: String): Boolean {
-        val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
-        return sharedPreferences.getBoolean(componentName + UPVOTED, false)
-    }
-
-    override fun checkComponentIsDownVoted(packageName: String, componentName: String): Boolean {
-        val sharedPreferences = context.getSharedPreferences(packageName, Context.MODE_PRIVATE)
-        return sharedPreferences.getBoolean(componentName + DOWNVOTED, false)
-    }
-
     override fun addToIFW(packageName: String, componentName: String, type: EComponentType) {
         Log.i(TAG, "Disable component via IFW: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
@@ -265,6 +255,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     }
 
+    override fun batchEnable(componentList: List<ComponentName>): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun batchDisable(componentList: List<ComponentName>): Int {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override fun checkIFWState(packageName: String, componentName: String): Boolean {
         return ifwController.getComponentEnableState(packageName, componentName)
     }
@@ -279,8 +277,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     override fun updateComponentViewModel(viewModel: ComponentItemViewModel) {
         viewModel.state = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(viewModel.packageName, viewModel.name))
         viewModel.ifwState = ifwController.getComponentEnableState(viewModel.packageName, viewModel.name)
-        viewModel.upVoted = checkComponentIsUpVoted(viewModel.packageName, viewModel.name)
-        viewModel.downVoted = checkComponentIsDownVoted(viewModel.packageName, viewModel.name)
     }
 
     override fun disableAllComponents(packageName: String, type: EComponentType) {
