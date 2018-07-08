@@ -1,4 +1,4 @@
-package com.merxury.blocker.core.exception;
+package com.merxury.libkit.exception;
 
 /**
  * Created by Mercury on 2018/1/1.

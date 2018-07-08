@@ -7,14 +7,12 @@ import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.RulesResult
-import com.merxury.blocker.utils.FileUtils
+import com.merxury.libkit.utils.FileUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
-import org.reactivestreams.Subscriber
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -41,10 +39,6 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-
-        val subscriber = object :Subscriber<Int> {
-
-        }
         RxPermissions(context as Activity)
                 .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .map { granted ->
@@ -61,9 +55,6 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
 
                     }
                 }
-
-
-
     }
 
     override fun importAllRules() {

@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
+import com.merxury.libkit.RootCommand
 import com.stericson.RootTools.RootTools
 
 /**
@@ -41,6 +42,26 @@ class RootController(val context: Context) : IController {
 
     override fun disable(packageName: String, componentName: String): Boolean {
         return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+    }
+
+    override fun batchEnable(componentList: List<ComponentName>): Int {
+        var succeededCount = 0
+        componentList.forEach {
+            if (enable(it.packageName, it.className)) {
+                succeededCount++
+            }
+        }
+        return succeededCount
+    }
+
+    override fun batchDisable(componentList: List<ComponentName>): Int {
+        var succeededCount = 0
+        componentList.forEach {
+            if (disable(it.packageName, it.className)) {
+                succeededCount++
+            }
+        }
+        return succeededCount
     }
 
     private fun removeEscapeCharacter(comm: String): String {
