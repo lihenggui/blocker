@@ -12,7 +12,9 @@ import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.functions.Function
 import io.reactivex.schedulers.Schedulers
+import org.reactivestreams.Subscriber
 import java.io.File
 import java.io.FileNotFoundException
 
@@ -22,7 +24,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     override fun exportAllRules() {
         var succeedCount = 0
         var failedCount = 0
-        Observable.create(ObservableOnSubscribe<Int> { emitter ->
+        val exportObservable = Observable.create(ObservableOnSubscribe<Int> { emitter ->
             try {
                 val applicationList = ApplicationComponents.getApplicationList(context.packageManager)
                 var count = 0
@@ -39,14 +41,29 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ count ->
-                    succeedCount = count
-                    // onNext
-                }, { error ->
-                    // onError
-                }, {
-                    settingsView.showExportResult(true, succeedCount, failedCount)
-                })
+
+        val subscriber = object :Subscriber<Int> {
+
+        }
+        RxPermissions(context as Activity)
+                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .map { granted ->
+                    if(granted) {
+                        exportObservable.subscribe({ count ->
+                            succeedCount = count
+                            // onNext
+                        }, { error ->
+                            // onError
+                        }, {
+                            settingsView.showExportResult(true, succeedCount, failedCount)
+                        })
+                    } else {
+
+                    }
+                }
+
+
+
     }
 
     override fun importAllRules() {
@@ -167,6 +184,14 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
 
     override fun destroy() {
 
+    }
+
+    override fun requestPermissions() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onPermissionsResult() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     companion object {

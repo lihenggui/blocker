@@ -163,6 +163,14 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 })
     }
 
+    override fun requestPermissions() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onPermissionsResult() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
 
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
 

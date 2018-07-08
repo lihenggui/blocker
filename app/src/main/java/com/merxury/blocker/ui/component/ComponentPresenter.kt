@@ -467,6 +467,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         view = null
     }
 
+    override fun requestPermissions() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun onPermissionsResult() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
     override var currentComparator: EComponentComparatorType = EComponentComparatorType.SIMPLE_NAME_ASCENDING
 
     companion object {
