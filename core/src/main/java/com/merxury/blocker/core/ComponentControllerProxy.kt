@@ -2,6 +2,7 @@ package com.merxury.blocker.core
 
 import android.content.ComponentName
 import android.content.Context
+import com.merxury.blocker.core.ifw.IfwController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootController
 import com.merxury.blocker.core.shizuku.ShizukuController
@@ -13,15 +14,11 @@ import com.merxury.blocker.core.shizuku.ShizukuController
 
 class ComponentControllerProxy private constructor(method: EControllerMethod, context: Context) : IController {
 
-    private lateinit var controller: IController
-
-    init {
-        when (method) {
-            EControllerMethod.PM -> controller = RootController(context)
-            EControllerMethod.SHIZUKU -> controller = ShizukuController(context)
-        }
+    private var controller: IController = when (method) {
+        EControllerMethod.PM -> RootController(context)
+        EControllerMethod.SHIZUKU -> ShizukuController(context)
+        EControllerMethod.IFW -> IfwController(context)
     }
-
 
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
         return controller.switchComponent(packageName, componentName, state)
