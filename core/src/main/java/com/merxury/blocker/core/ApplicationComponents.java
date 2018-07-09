@@ -228,7 +228,9 @@ public class ApplicationComponents {
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-
+        if (info == null) {
+            return new PackageInfo();
+        }
         return info;
     }
 
