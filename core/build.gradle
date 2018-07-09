@@ -50,5 +50,6 @@ dependencies {
     // Shizuku dependency
     implementation 'moe.shizuku.privilege:api-base:9'
     implementation 'moe.shizuku.privilege:api-26:4'
+    implementation project(':ifw-api')
     implementation project(':libkit')
 }
