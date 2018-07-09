@@ -2,12 +2,17 @@ package com.merxury.blocker.core.ifw
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
+import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
+import com.merxury.ifw.entity.ComponentType
 
 class IfwController(val context: Context) : IController {
     private lateinit var controller: IntentFirewall
+    private lateinit var packageInfo: PackageInfo
 
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
         initController(packageName)
@@ -45,5 +50,16 @@ class IfwController(val context: Context) : IController {
             }
         }
     }
+
+    private fun initPackageInfo(packageName: String) {
+        if (!::packageInfo.isInitialized) {
+            packageInfo = ApplicationComponents.getApplicationComponents(context.packageManager, packageName)
+        }
+    }
+
+    private fun matchComponentType(packageName: String, componentName: String): ComponentType {
+
+    }
+
 
 }
