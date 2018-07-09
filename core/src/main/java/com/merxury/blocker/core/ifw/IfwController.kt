@@ -2,8 +2,8 @@ package com.merxury.blocker.core.ifw
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
 import com.merxury.ifw.IntentFirewall
@@ -15,39 +15,66 @@ class IfwController(val context: Context) : IController {
     private lateinit var packageInfo: PackageInfo
 
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
-        initController(packageName)
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        init(packageName)
+        val type = getComponentType(packageName, componentName)
+        val result = when (state) {
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> controller.add(packageName, componentName, type)
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> controller.remove(packageName, componentName, type)
+            else -> false
+        }
+        if (result) {
+            controller.save()
+        }
+        return result;
     }
 
     override fun enable(packageName: String, componentName: String): Boolean {
-        initController(packageName)
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
     }
 
     override fun disable(packageName: String, componentName: String): Boolean {
-        initController(packageName)
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
     }
 
     override fun batchEnable(componentList: List<ComponentName>): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        var succeededCount = 0
+        componentList.forEach {
+            init(it.packageName)
+            val type = getComponentType(it.packageName, it.className)
+            if (controller.add(it.packageName, it.className, type)) {
+                succeededCount++
+            }
+        }
+        controller.save()
+        return succeededCount
     }
 
     override fun batchDisable(componentList: List<ComponentName>): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        var succeededCount = 0
+        componentList.forEach {
+            init(it.packageName)
+            val type = getComponentType(it.packageName, it.className)
+            if (controller.remove(it.packageName, it.className, type)) {
+                succeededCount++
+            }
+        }
+        controller.save()
+        return succeededCount
     }
 
     override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
+        return controller.getComponentEnableState(packageName, componentName)
+    }
+
+    private fun init(packageName: String) {
         initController(packageName)
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        initPackageInfo(packageName)
     }
 
     private fun initController(packageName: String) {
-        synchronized(controller) {
-            if (!::controller.isInitialized || controller.packageName != packageName) {
-                controller = IntentFirewallImpl.getInstance(context, packageName)
-                return
-            }
+        if (!::controller.isInitialized || controller.packageName != packageName) {
+            controller = IntentFirewallImpl.getInstance(context, packageName)
+            return
         }
     }
 
@@ -57,9 +84,27 @@ class IfwController(val context: Context) : IController {
         }
     }
 
-    private fun matchComponentType(packageName: String, componentName: String): ComponentType {
-
+    private fun getComponentType(packageName: String, componentName: String): ComponentType {
+        packageInfo.receivers?.forEach {
+            if (it.name == componentName) {
+                return ComponentType.BROADCAST
+            }
+        }
+        packageInfo.services?.forEach {
+            if (it.name == componentName) {
+                return ComponentType.SERVICE
+            }
+        }
+        packageInfo.activities?.forEach {
+            if (it.name == componentName) {
+                return ComponentType.ACTIVITY
+            }
+        }
+        packageInfo.providers?.forEach {
+            if (it.name == componentName) {
+                return ComponentType.PROVIDER
+            }
+        }
+        return ComponentType.UNKNOWN
     }
-
-
 }
