@@ -234,6 +234,7 @@ public class IntentFirewallImpl implements IntentFirewall {
         e.printStackTrace();
     }
 
+    @Override
     public String getPackageName() {
         return packageName;
     }

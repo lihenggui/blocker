@@ -16,4 +16,6 @@ public interface IntentFirewall {
     void clear(String name);
 
     void reload();
+
+    String getPackageName();
 }
