@@ -1,6 +1,6 @@
 package com.merxury.blocker.utils
 
-import com.merxury.blocker.core.root.RootCommand
+import com.merxury.libkit.RootCommand
 
 object ServiceUtil {
     fun isServiceRunning(packageName: String, serviceName: String): Boolean {
