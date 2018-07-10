@@ -97,4 +97,5 @@
     <string name="others">Others</string>
     <string name="processing_progress_indicator">Processing Progress Indicator</string>
     <string name="import_finished">%1$s imported</string>
+    <string name="last_update_date">最後更新時間</string>
 </resources>
