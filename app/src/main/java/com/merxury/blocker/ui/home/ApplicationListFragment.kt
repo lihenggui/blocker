@@ -70,8 +70,8 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                 when (item.itemId) {
                     R.id.name_asc -> presenter.currentComparator = ApplicationComparatorType.ASCENDING_BY_LABEL
                     R.id.name_des -> presenter.currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
-                    R.id.installation_date -> presenter.currentComparator = ApplicationComparatorType.BY_INSTALLATION_DATE
-                    else -> presenter.currentComparator = ApplicationComparatorType.BY_INSTALLATION_DATE
+                    R.id.installation_time -> presenter.currentComparator = ApplicationComparatorType.INSTALLATION_TIME
+                    else -> presenter.currentComparator = ApplicationComparatorType.INSTALLATION_TIME
                 }
                 presenter.loadApplicationList(context!!, isSystem)
                 true

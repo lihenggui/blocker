@@ -92,9 +92,10 @@
     <string name="processing">處理中...</string>
     <string name="import_fail_message">導入失敗，規則文件不存在。</string>
     <string name="export_rules">導出規則</string>
-    <string name="reset_ifw">Reset IFW</string>
-    <string name="import_mat_rules">Import MyAndroidTools Rules</string>
-    <string name="others">Others</string>
+    <string name="reset_ifw">重置 IFW</string>
+    <string name="import_mat_rules">导入MyAndroidTools规则</string>
+    <string name="others">其他</string>
     <string name="processing_progress_indicator">Processing Progress Indicator</string>
     <string name="import_finished">%1$s imported</string>
+    <string name="last_update_date">最後更新時間</string>
 </resources>

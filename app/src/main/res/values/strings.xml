@@ -32,7 +32,7 @@
     <string name="app_icon_description">Application icon</string>
     <string name="name_asc">Name (Ascending)</string>
     <string name="name_des">Name (Descending)</string>
-    <string name="installation_date">Installation Date</string>
+    <string name="installation_date">First Install Date</string>
     <string name="alert">Alert</string>
     <string name="oops">Oops</string>
     <string name="no_root_error_message">Error occurs while switching the component state. Did you get the root permission?</string>
@@ -105,4 +105,5 @@
     <string name="others">Others</string>
     <string name="processing_progress_indicator">Processing Progress Indicator</string>
     <string name="import_finished">%1$s imported</string>
+    <string name="last_update_date">Last Update Time</string>
 </resources>
