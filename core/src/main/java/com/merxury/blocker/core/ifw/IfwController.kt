@@ -18,8 +18,8 @@ class IfwController(val context: Context) : IController {
         init(packageName)
         val type = getComponentType(packageName, componentName)
         val result = when (state) {
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> controller.add(packageName, componentName, type)
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> controller.remove(packageName, componentName, type)
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> controller.add(packageName, componentName, type)
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> controller.remove(packageName, componentName, type)
             else -> false
         }
         if (result) {
