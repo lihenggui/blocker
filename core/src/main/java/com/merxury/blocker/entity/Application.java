@@ -48,7 +48,8 @@ public class Application implements Parcelable {
     private String[] splitNames;
     private String dataDir;
     private String label;
-    private Date installationDate;
+    private Date firstInstallTime;
+    private Date lastUpdateTime;
 
     private Application() {
     }
@@ -80,7 +81,8 @@ public class Application implements Parcelable {
             minSdkVersion = ApkUtils.getMinSdkVersion(baseApkPath);
         }
         this.splitNames = this.packageName.split("\\.");
-        this.installationDate = new Date();
+        this.firstInstallTime = new Date(info.firstInstallTime);
+        this.lastUpdateTime = new Date(info.lastUpdateTime);
     }
 
     protected Application(Parcel in) {
@@ -96,7 +98,8 @@ public class Application implements Parcelable {
         this.publicSourceDir = in.readString();
         this.splitNames = in.createStringArray();
         this.dataDir = in.readString();
-        this.installationDate = new Date(in.readLong());
+        this.firstInstallTime = new Date(in.readLong());
+        this.lastUpdateTime = new Date(in.readLong());
     }
 
     public String getPackageName() {
@@ -195,12 +198,20 @@ public class Application implements Parcelable {
         this.dataDir = dataDir;
     }
 
-    public Date getInstallationDate() {
-        return installationDate;
+    public Date getFirstInstallTime() {
+        return firstInstallTime;
     }
 
-    public void setInstallationDate(Date installationDate) {
-        this.installationDate = installationDate;
+    public void setFirstInstallTime(Date firstInstallTime) {
+        this.firstInstallTime = firstInstallTime;
+    }
+
+    public Date getLastUpdateTime() {
+        return lastUpdateTime;
+    }
+
+    public void setLastUpdateTime(Date lastUpdateTime) {
+        this.lastUpdateTime = lastUpdateTime;
     }
 
     @Override
@@ -250,6 +261,7 @@ public class Application implements Parcelable {
         dest.writeString(this.publicSourceDir);
         dest.writeStringArray(this.splitNames);
         dest.writeString(this.dataDir);
-        dest.writeLong(this.installationDate.getTime());
+        dest.writeLong(this.firstInstallTime.getTime());
+        dest.writeLong(this.lastUpdateTime.getTime());
     }
 }
