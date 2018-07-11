@@ -32,7 +32,7 @@ public class RootCommand {
         Observable.create(new ObservableOnSubscribe<String>() {
             @Override
             public void subscribe(final ObservableEmitter<String> emitter) throws Exception {
-                Command command = new Command(0, comm) {
+                Command command = new Command(0, 0, comm) {
                     @Override
                     public void commandOutput(int id, String line) {
                         emitter.onNext(line);
