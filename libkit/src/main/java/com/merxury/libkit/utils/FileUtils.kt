@@ -37,13 +37,13 @@ object FileUtils {
 
     @JvmStatic
     fun cat(source: String, dest: String) {
-        RootCommand.runBlockingCommand("cat $source > $dest")
+        RootCommand.runBlockingCommand("cat '$source' > '$dest'")
     }
 
     @JvmStatic
     fun isExist(path: String): Boolean {
         return try {
-            val output = RootCommand.runBlockingCommand("[ -f $path ] && echo \"yes\" || echo \"no\"")
+            val output = RootCommand.runBlockingCommand("[ -f '$path' ] && echo \"yes\" || echo \"no\"")
             when (output.trim()) {
                 "yes" -> true
                 else -> false
@@ -56,7 +56,7 @@ object FileUtils {
 
     @JvmStatic
     fun listFiles(path: String): List<String> {
-        val output = RootCommand.runBlockingCommand("find $path")
+        val output = RootCommand.runBlockingCommand("find '$path'")
         if (output.contains("No such file or directory")) {
             return ArrayList()
         }
@@ -67,8 +67,8 @@ object FileUtils {
     @JvmStatic
     fun chmod(path: String, permission: Int, recursively: Boolean) {
         val comm = when (recursively) {
-            true -> "chmod $permission $path"
-            false -> "chmod -R $permission $path"
+            true -> "chmod $permission \'$path\'"
+            false -> "chmod -R $permission \'$path\'"
         }
         RootCommand.runBlockingCommand(comm)
     }
