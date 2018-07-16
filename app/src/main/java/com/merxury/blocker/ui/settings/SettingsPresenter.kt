@@ -7,6 +7,7 @@ import android.util.Log
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.RulesResult
+import com.merxury.blocker.util.NotificationUtil
 import com.merxury.libkit.utils.FileUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
@@ -34,6 +35,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
             } catch (e: Exception) {
                 e.printStackTrace()
                 Log.e(TAG, e.message)
+                failedCount++
                 emitter.onError(e)
             }
         })
@@ -43,7 +45,10 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .map { granted ->
                     if(granted) {
-                        exportObservable.subscribe({ count ->
+                        exportObservable.doOnSubscribe {
+                            NotificationUtil.createProcessingNotification(context)
+                        }
+                                .subscribe({ count ->
                             succeedCount = count
                             // onNext
                         }, { error ->

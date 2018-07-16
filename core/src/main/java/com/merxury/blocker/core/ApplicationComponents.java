@@ -67,10 +67,6 @@ public class ApplicationComponents {
                 //System App
                 sysAppList.add(new Application(pm, info));
             }
-//            if ((info.applicationInfo.flags & ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0) {
-//                //app was installed as an update to a built-in system app
-//                sysAppList.add(new Application(pm, info));
-//            }
         }
         return sysAppList;
     }

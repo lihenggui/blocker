@@ -10,11 +10,10 @@ object NotificationUtil {
     const val PROCESSING_INDICATOR_CHANNEL_ID = "processing_progress_indicator"
     const val PROCESSING_NOTIFICATION_ID = 1
     private lateinit var builder: NotificationCompat.Builder
-    fun createProcessingNotification(context: Context, applicationLabel: String, total: Int) {
+    fun createProcessingNotification(context: Context, total: Int) {
         builder = NotificationCompat.Builder(context, PROCESSING_INDICATOR_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(context.getString(R.string.processing))
-                .setContentText(applicationLabel)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                 .setProgress(total, 0, false)
                 .setAutoCancel(true)
