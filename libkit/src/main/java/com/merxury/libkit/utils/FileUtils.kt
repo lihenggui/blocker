@@ -67,15 +67,15 @@ object FileUtils {
     @JvmStatic
     fun chmod(path: String, permission: Int, recursively: Boolean) {
         val comm = when (recursively) {
-            true -> "chmod $permission \'$path\'"
-            false -> "chmod -R $permission \'$path\'"
+            true -> "chmod $permission '$path'"
+            false -> "chmod -R $permission '$path'"
         }
         RootCommand.runBlockingCommand(comm)
     }
 
     @JvmStatic
     fun read(path: String): String {
-        val comm = "cat $path"
+        val comm = "cat '$path'"
         if (!isExist(path)) {
             return ""
         }

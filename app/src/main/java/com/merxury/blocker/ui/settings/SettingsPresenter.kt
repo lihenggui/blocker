@@ -4,7 +4,9 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
+import com.merxury.blocker.entity.Application
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.util.NotificationUtil
@@ -23,13 +25,14 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     override fun exportAllRules() {
         var succeedCount = 0
         var failedCount = 0
-        val exportObservable = Observable.create(ObservableOnSubscribe<Int> { emitter ->
+        var appCount = -1
+        val exportObservable = Observable.create(ObservableOnSubscribe<Application> { emitter ->
             try {
                 val applicationList = ApplicationComponents.getApplicationList(context.packageManager)
-                var count = 0
                 applicationList.forEach {
                     Rule.export(context, it.packageName)
-                    emitter.onNext(count++)
+                    succeedCount++
+                    emitter.onNext(it)
                 }
                 emitter.onComplete()
             } catch (e: Exception) {
@@ -44,20 +47,19 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         RxPermissions(context as Activity)
                 .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .map { granted ->
-                    if(granted) {
+                    if (granted) {
                         exportObservable.doOnSubscribe {
-                            NotificationUtil.createProcessingNotification(context)
-                        }
-                                .subscribe({ count ->
-                            succeedCount = count
-                            // onNext
+                            appCount = ApplicationComponents.getApplicationList(context.packageManager).size
+                            NotificationUtil.createProcessingNotification(context, appCount)
+                        }.subscribe({ info ->
+                            NotificationUtil.updateProcessingNotification(context, info.label, (succeedCount + failedCount), appCount)
                         }, { error ->
                             // onError
                         }, {
                             settingsView.showExportResult(true, succeedCount, failedCount)
                         })
                     } else {
-
+                        settingsView.showMessage(R.string.need_storage_permission)
                     }
                 }
     }
@@ -86,7 +88,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     }
 
     override fun exportAllIfwRules() {
-        Observable.create(ObservableOnSubscribe<Int> { emitter ->
+        val observable = Observable.create(ObservableOnSubscribe<Int> { emitter ->
             val appList = ApplicationComponents.getApplicationList(context.packageManager)
             appList.forEach {
                 val packageName = it.packageName
@@ -99,13 +101,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ count ->
-                    //onNext
-                }, { error ->
-                    //onError
-                }, {
-                    //onComplete
-                })
+
     }
 
     override fun importAllIfwRules() {

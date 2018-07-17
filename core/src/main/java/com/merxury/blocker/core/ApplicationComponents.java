@@ -27,10 +27,15 @@ public class ApplicationComponents {
      * Get a list of installed applications on device
      *
      * @param pm PackageManager
-     * @return list of package info
+     * @return list of application info
      */
-    public static List<PackageInfo> getApplicationList(@NonNull PackageManager pm) {
-        return pm.getInstalledPackages(0);
+    public static List<Application> getApplicationList(@NonNull PackageManager pm) {
+        List<PackageInfo> installedApplications = pm.getInstalledPackages(0);
+        List<Application> appList = new ArrayList<>(installedApplications.size());
+        for (PackageInfo info : installedApplications) {
+            appList.add(new Application(pm, info));
+        }
+        return appList;
     }
 
     /**
