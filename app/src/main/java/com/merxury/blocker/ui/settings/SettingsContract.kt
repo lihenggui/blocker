@@ -1,5 +1,6 @@
 package com.merxury.blocker.ui.settings
 
+import android.support.annotation.StringRes
 import com.merxury.blocker.base.BasePresenter
 import com.merxury.blocker.base.BaseView
 
@@ -8,6 +9,7 @@ interface SettingsContract : BaseView<SettingsContract.SettingsPresenter> {
         fun showExportResult(isSucceed: Boolean, successfulCount: Int, failedCount: Int)
         fun showImportResult(isSucceed: Boolean, successfulCount: Int, failedCount: Int)
         fun showResetResult(isSucceed: Boolean)
+        fun showMessage(@StringRes res: Int)
     }
 
     interface SettingsPresenter : BasePresenter {

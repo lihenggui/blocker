@@ -28,8 +28,9 @@ object NotificationUtil {
         notificationManager.notify(PROCESSING_NOTIFICATION_ID, builder.build())
     }
 
-    fun updateProcessingNotification(context: Context, current: Int, total: Int) {
+    fun updateProcessingNotification(context: Context, appLabel: String, current: Int, total: Int) {
         builder.setProgress(total, current, false)
+                .setSubText(appLabel)
         val notificationManager = NotificationManagerCompat.from(context)
         notificationManager.notify(PROCESSING_NOTIFICATION_ID, builder.build())
     }

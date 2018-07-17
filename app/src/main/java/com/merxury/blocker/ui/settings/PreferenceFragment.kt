@@ -109,6 +109,10 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
 
     }
 
+    override fun showMessage(res: Int) {
+
+    }
+
     override fun onPreferenceClick(preference: Preference?): Boolean {
         if (preference == null) {
             return false
