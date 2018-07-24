@@ -11,6 +11,7 @@ import android.preference.Preference
 import android.preference.Preference.OnPreferenceClickListener
 import android.preference.PreferenceFragment
 import android.preference.PreferenceManager
+import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.MenuItem
 import com.merxury.blocker.R
@@ -113,18 +114,31 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
 
     }
 
+    override fun showDialog(title: String, message: String, action: () -> Unit) {
+        activity?.let {
+            AlertDialog.Builder(it)
+                    .setTitle(title)
+                    .setMessage(message)
+                    .setCancelable(true)
+                    .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+                    .setPositiveButton(R.string.ok) { _, _ -> action() }
+                    .create()
+                    .show()
+        }
+    }
+
     override fun onPreferenceClick(preference: Preference?): Boolean {
         if (preference == null) {
             return false
         }
         Log.d(TAG, "onPreferenceClick: ${preference.key}")
         when (preference) {
-            exportRulePreference -> presenter.exportAllRules()
-            importRulePreference -> presenter.importAllRules()
-            exportIfwRulePreference -> presenter.exportAllIfwRules()
-            importIfwRulePreference -> presenter.importAllIfwRules()
-            importMatRulesPreference -> presenter.importMatRules()
-            resetIfwPreference -> presenter.resetIFW()
+            exportRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_rules_warning_message), presenter::importAllRules)
+            importRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::exportAllRules)
+            exportIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_ifw_rules_warning_message), presenter::exportAllIfwRules)
+            importIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_ifw_rules_warning_message), presenter::exportAllIfwRules)
+            importMatRulesPreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::importMatRules)
+            resetIfwPreference -> showDialog(getString(R.string.warning), getString(R.string.reset_ifw_warning_message), presenter::resetIFW)
             aboutPreference -> {
                 // TODO add about action
             }

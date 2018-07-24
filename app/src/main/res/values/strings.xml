@@ -107,4 +107,9 @@
     <string name="import_finished">%1$s imported</string>
     <string name="last_update_date">Last Update Time</string>
     <string name="need_storage_permission">Need storage permission to operate</string>
+    <string name="export_all_rules_warning_message">You are going to export all rules to the external storage, which will override your existing rule files, proceed?</string>
+    <string name="import_all_rules_warning_message">You are going to import all rules in the external storage, which will override your current settings for apps, proceeded?\n(Note: This will take a long time.)</string>
+    <string name="export_all_ifw_rules_warning_message">You are going to export all Intent Firewall rules to the external storage, which will override your existing rule files, proceed?</string>
+    <string name="import_all_ifw_rules_warning_message">You are going to import all Intent Firewall rules in the external storage, which will override your current settings for apps, proceeded?</string>
+    <string name="reset_ifw_warning_message">You are going to delete all Intent Firewall rules, proceed?</string>
 </resources>
