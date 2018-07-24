@@ -133,8 +133,8 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
         }
         Log.d(TAG, "onPreferenceClick: ${preference.key}")
         when (preference) {
-            exportRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_rules_warning_message), presenter::importAllRules)
-            importRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::exportAllRules)
+            exportRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_rules_warning_message), presenter::exportAllRules)
+            importRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::importAllRules)
             exportIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_ifw_rules_warning_message), presenter::exportAllIfwRules)
             importIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_ifw_rules_warning_message), presenter::exportAllIfwRules)
             importMatRulesPreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::importMatRules)
