@@ -96,7 +96,7 @@
     <string name="import_mat_rules">导入MyAndroidTools规则</string>
     <string name="others">其他</string>
     <string name="processing_progress_indicator">Processing Progress Indicator</string>
-    <string name="import_finished">%1$s imported</string>
+    <string name="import_finished">%1$d imported</string>
     <string name="last_update_date">最後更新時間</string>
     <string name="need_storage_permission">Need storage permission to operate</string>
     <string name="export_all_rules_warning_message">You are going to import all rules in the external storage, proceed?</string>
