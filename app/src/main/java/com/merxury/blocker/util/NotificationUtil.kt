@@ -14,15 +14,15 @@ object NotificationUtil {
         builder = NotificationCompat.Builder(context, PROCESSING_INDICATOR_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
                 .setContentTitle(context.getString(R.string.processing))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setProgress(total, 0, false)
                 .setAutoCancel(true)
         val notificationManager = NotificationManagerCompat.from(context)
         notificationManager.notify(PROCESSING_NOTIFICATION_ID, builder.build())
     }
 
-    fun finishProcessingNotification(context: Context, applicationLabel: String) {
-        builder.setContentText(context.getString(R.string.import_finished, applicationLabel))
+    fun finishProcessingNotification(context: Context, count: Int) {
+        builder.setContentText(context.getString(R.string.import_finished, count))
                 .setProgress(0, 0, false)
         val notificationManager = NotificationManagerCompat.from(context)
         notificationManager.notify(PROCESSING_NOTIFICATION_ID, builder.build())

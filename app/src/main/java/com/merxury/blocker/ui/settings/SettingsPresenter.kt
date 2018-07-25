@@ -44,20 +44,21 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe {
+                    appCount = ApplicationComponents.getApplicationList(context.packageManager).size
+                    NotificationUtil.createProcessingNotification(context, appCount)
+                }.subscribe({ info ->
+                    NotificationUtil.updateProcessingNotification(context, info.label, (succeedCount + failedCount), appCount)
+                }, { error ->
+                    // onError
+                }, {
+                    NotificationUtil.finishProcessingNotification(context, succeedCount)
+                    settingsView.showExportResult(true, succeedCount, failedCount)
+                })
         RxPermissions(context as Activity)
                 .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .map { granted ->
                     if (granted) {
-                        exportObservable.doOnSubscribe {
-                            appCount = ApplicationComponents.getApplicationList(context.packageManager).size
-                            NotificationUtil.createProcessingNotification(context, appCount)
-                        }.subscribe({ info ->
-                            NotificationUtil.updateProcessingNotification(context, info.label, (succeedCount + failedCount), appCount)
-                        }, { error ->
-                            // onError
-                        }, {
-                            settingsView.showExportResult(true, succeedCount, failedCount)
-                        })
                     } else {
                         settingsView.showMessage(R.string.need_storage_permission)
                     }

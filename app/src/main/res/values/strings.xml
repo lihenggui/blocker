@@ -104,7 +104,7 @@
     <string name="import_mat_rules">Import MyAndroidTools Rules</string>
     <string name="others">Others</string>
     <string name="processing_progress_indicator">Processing Progress Indicator</string>
-    <string name="import_finished">%1$s imported</string>
+    <string name="import_finished">%1$d imported</string>
     <string name="last_update_date">Last Update Time</string>
     <string name="need_storage_permission">Need storage permission to operate</string>
     <string name="export_all_rules_warning_message">You are going to export all rules to the external storage, which will override your existing rule files, proceed?</string>
