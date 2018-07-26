@@ -105,7 +105,15 @@ object FileUtils {
     }
 
     @JvmStatic
-    fun delete(file: String): Boolean {
-        return RootTools.deleteFileOrDirectory(file, false)
+    fun delete(file: String, recursively: Boolean): Boolean {
+        val comm = if (recursively) {
+            "rm -rf '$file'"
+        } else {
+            "rm -f '$file'"
+        }
+        val output = RootCommand.runBlockingCommand(comm)
+        val result = output.trim().isEmpty();
+        Log.d(TAG, "Delete file $file, result = $result")
+        return result
     }
 }

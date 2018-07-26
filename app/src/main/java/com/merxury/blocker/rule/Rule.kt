@@ -225,7 +225,7 @@ object Rule {
             val ifwFolder = StorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
             files.forEach {
-                if (!FileUtils.delete(it)) {
+                if (!FileUtils.delete(it, false)) {
                     result = false
                 }
             }

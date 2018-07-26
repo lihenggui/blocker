@@ -22,7 +22,9 @@ object NotificationUtil {
     }
 
     fun finishProcessingNotification(context: Context, count: Int) {
-        builder.setContentText(context.getString(R.string.import_finished, count))
+        builder.setContentTitle(context.getString(R.string.done))
+                .setContentText(context.getString(R.string.import_finished, count))
+                .setSubText("Blocker")
                 .setProgress(0, 0, false)
         val notificationManager = NotificationManagerCompat.from(context)
         notificationManager.notify(PROCESSING_NOTIFICATION_ID, builder.build())
