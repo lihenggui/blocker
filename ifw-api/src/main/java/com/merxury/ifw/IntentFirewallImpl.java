@@ -61,6 +61,7 @@ public class IntentFirewallImpl implements IntentFirewall {
 
     @Override
     public void save() throws Exception {
+        ensureNoEmptyTag();
         Serializer serializer = new Persister();
         File file = new File(tmpPath);
         if (file.exists()) {
@@ -222,6 +223,24 @@ public class IntentFirewallImpl implements IntentFirewall {
             }
         } else {
             rules = new Rules();
+        }
+    }
+
+    private void ensureNoEmptyTag() {
+        if (rules.getActivity() != null && rules.getActivity().getComponentFilters() != null) {
+            if (rules.getActivity().getComponentFilters().size() == 0) {
+                rules.setActivity(null);
+            }
+        }
+        if (rules.getBroadcast() != null && rules.getBroadcast().getComponentFilters() != null) {
+            if (rules.getBroadcast().getComponentFilters().size() == 0) {
+                rules.setBroadcast(null);
+            }
+        }
+        if (rules.getService() != null && rules.getService().getComponentFilters() != null) {
+            if (rules.getService().getComponentFilters().size() == 0) {
+                rules.setService(null);
+            }
         }
     }
 
