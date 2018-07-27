@@ -108,19 +108,26 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     }
 
     override fun exportAllIfwRules() {
-        val observable = Observable.create(ObservableOnSubscribe<Int> { emitter ->
-            val appList = ApplicationComponents.getApplicationList(context.packageManager)
-            appList.forEach {
-                val packageName = it.packageName
-                val file = File(Rule.getBlockerRuleFolder(context), packageName + Rule.EXTENSION)
-                if (!file.exists()) {
-                    return@forEach
-                }
-                Rule.import(context, file)
+        var exportedCount = 0;
+        Observable.create(ObservableOnSubscribe<Int> { emitter ->
+            try {
+                exportedCount = Rule.exportIfwRules(context)
+            } catch (e: Exception) {
+                Log.e(TAG, e.message)
+                e.printStackTrace()
             }
+            emitter.onComplete()
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
+                .subscribe({ _ ->
+
+                }, { error ->
+                    //onError
+                }, {
+                    NotificationUtil.finishProcessingNotification(context, exportedCount)
+                })
 
     }
 
@@ -128,7 +135,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         var count = 0
         Observable.create(ObservableOnSubscribe<Int> { emitter ->
             try {
-                count = Rule.exportIfwRules(context)
+                count = Rule.importIfwRules(context)
                 emitter.onComplete()
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -138,11 +145,13 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
                 .subscribe({ _ ->
                     //onNext
                 }, { error ->
                     //onError
                 }, {
+                    NotificationUtil.finishProcessingNotification(context, count)
                     settingsView.showExportResult(true, count, 0)
                 })
     }
@@ -156,9 +165,14 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ result ->
-                    settingsView.showResetResult(result)
+                    if (result) {
+                        settingsView.showMessage(R.string.done)
+                    } else {
+                        settingsView.showMessage(R.string.ifw_reset_error)
+                    }
+
                 }, { error ->
-                    //onError
+                    settingsView.showMessage(R.string.ifw_reset_error)
                 })
     }
 

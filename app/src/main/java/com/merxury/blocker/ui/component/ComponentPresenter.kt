@@ -418,7 +418,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 emitter.onSuccess(RulesResult(false, 0, 0))
                 return@SingleOnSubscribe
             }
-            val result = Rule.import(context, destFile) { a, b, c, d -> }
+            val result = Rule.import(context, destFile)
             emitter.onSuccess(result)
         })
                 .subscribeOn(Schedulers.io())
