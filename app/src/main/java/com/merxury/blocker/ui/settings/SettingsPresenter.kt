@@ -4,10 +4,12 @@ import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.util.Log
+import com.google.gson.Gson
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.rule.Rule
+import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.libkit.utils.FileUtils
@@ -18,6 +20,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.FileReader
 
 // TODO Clean Code
 class SettingsPresenter(private val context: Context, private val settingsView: SettingsContract.SettingsView) : SettingsContract.SettingsPresenter {
@@ -26,7 +29,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         var succeedCount = 0
         var failedCount = 0
         var appCount = -1
-        val exportObservable = Observable.create(ObservableOnSubscribe<Application> { emitter ->
+        Observable.create(ObservableOnSubscribe<Application> { emitter ->
             try {
                 val applicationList = ApplicationComponents.getApplicationList(context.packageManager)
                 applicationList.forEach {
@@ -66,25 +69,41 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     }
 
     override fun importAllRules() {
-        Observable.create(ObservableOnSubscribe<Int> { emitter ->
-            val appList = ApplicationComponents.getApplicationList(context.packageManager)
-            appList.forEach {
-                val packageName = it.packageName
-                val file = File(Rule.getBlockerRuleFolder(context), packageName + Rule.EXTENSION)
-                if (!file.exists()) {
-                    return@forEach
+        var restoredCount = 0;
+        Observable.create(ObservableOnSubscribe<String> { emitter ->
+            try {
+                val files = FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath)
+                if (files.isEmpty()) {
+                    emitter.onComplete()
+                    return@ObservableOnSubscribe
                 }
-                Rule.import(context, file) { _, _, _, _ -> }
+                files.filter {
+                    it.endsWith(Rule.EXTENSION)
+                }.forEach {
+                    val rule = Gson().fromJson(FileReader(it), BlockerRule::class.java)
+                    if (!ApplicationComponents.isAppInstalled(context.packageManager, rule.packageName)) {
+                        return@ObservableOnSubscribe
+                    }
+                    Rule.import(context, File(it))
+                    emitter.onNext(rule.packageName!!)
+                }
+                emitter.onComplete()
+            } catch (e: Exception) {
+                Log.e(TAG, e.message)
+                e.printStackTrace()
+                emitter.onError(e)
             }
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ count ->
-                    //onNext
+                .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
+                .subscribe({ packageName ->
+                    restoredCount++
+                    NotificationUtil.updateProcessingNotification(context, packageName, 0, 0)
                 }, { error ->
                     //onError
                 }, {
-                    //onComplete
+                    NotificationUtil.finishProcessingNotification(context, restoredCount)
                 })
     }
 
@@ -97,7 +116,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 if (!file.exists()) {
                     return@forEach
                 }
-                Rule.import(context, file) { _, _, _, _ -> }
+                Rule.import(context, file)
             }
         })
                 .subscribeOn(Schedulers.io())

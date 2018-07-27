@@ -1,14 +1,14 @@
 package com.merxury.blocker.utils
 
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
+import com.merxury.libkit.utils.FileUtils
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class FileUtilsTest {
 
     @Test
-    fun test1() {
-        assertTrue(FileUtils.isExist("/data/system/ifw/gib.xml"))
-        assertFalse(FileUtils.isExist("/data/ifw/gib1.xml"))
+    fun testGetFileName() {
+        val path = "/emulated/0/Blocker/rules/com.merxury.blocker.json"
+        assertEquals("com.merxury.blocker", FileUtils.getFileName(path))
     }
 }
