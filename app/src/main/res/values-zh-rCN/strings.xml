@@ -103,4 +103,5 @@
     <string name="export_all_ifw_rules_warning_message">You are going to export all Intent Firewall rules to the external storage, which will override your existing rule files, proceed?</string>
     <string name="import_all_ifw_rules_warning_message">You are going to import all Intent Firewall rules in the external storage, which will override your current settings for apps, proceeded?</string>
     <string name="reset_ifw_warning_message">You are going to delete all Intent Firewall rules, proceed?</string>
+    <string name="ifw_reset_error">Error occurs while reseting your intent firewall rules %1$s.</string>
 </resources>
