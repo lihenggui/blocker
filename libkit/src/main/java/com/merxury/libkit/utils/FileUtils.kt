@@ -116,4 +116,19 @@ object FileUtils {
         Log.d(TAG, "Delete file $file, result = $result")
         return result
     }
+
+    @JvmStatic
+    fun getFileName(path: String): String {
+        val trimmedPath = path.trim()
+        if (trimmedPath.isEmpty()) {
+            return ""
+        }
+        val filename = trimmedPath.split("/").last()
+        val extensionDotPosition = filename.lastIndexOf(".")
+        return if (extensionDotPosition <= 0) {
+            ""
+        } else {
+            filename.substring(0, extensionDotPosition)
+        }
+    }
 }

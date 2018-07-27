@@ -83,7 +83,7 @@ object Rule {
         }
     }
 
-    fun import(context: Context, file: File, callback: (finished: Boolean, succeedCount: Int, failedCount: Int, total: Int) -> Unit): RulesResult {
+    fun import(context: Context, file: File): RulesResult {
         val jsonReader = JsonReader(FileReader(file))
         val appRule = Gson().fromJson<BlockerRule>(jsonReader, BlockerRule::class.java)
                 ?: return RulesResult(false, 0, 0)
@@ -120,16 +120,13 @@ object Rule {
                 } else {
                     failedCount++
                 }
-                callback(false, succeedCount, failedCount, total)
             }
             ifwController?.save()
         } catch (e: Exception) {
             e.printStackTrace()
             Log.e(TAG, e.message)
-            callback(true, succeedCount, failedCount, total)
             return RulesResult(false, succeedCount, failedCount)
         }
-        callback(true, succeedCount, failedCount, total)
         return RulesResult(true, succeedCount, failedCount)
     }
 
@@ -149,7 +146,7 @@ object Rule {
             if (file.exists()) {
                 file.delete()
             }
-            import(context, file) { _, _, _, _ -> }
+            import(context, file)
         }
     }
 

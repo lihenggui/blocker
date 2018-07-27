@@ -1,12 +1,12 @@
 package com.merxury.blocker.core;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
 import com.merxury.blocker.core.root.RootController;
+import com.merxury.blocker.entity.Application;
 
 import org.junit.After;
 import org.junit.Before;
@@ -46,7 +46,7 @@ public class RootControllerTest {
         long time1, time2;
         time1 = System.currentTimeMillis();
         PackageManager pm = context.getPackageManager();
-        List<PackageInfo> info = ApplicationComponents.getApplicationList(pm);
+        List<Application> info = ApplicationComponents.getApplicationList(pm);
         time2 = System.currentTimeMillis();
         Log.d(TAG, "get applitation list takes " + (time2 - time1) + "milliseconds");
 

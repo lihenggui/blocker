@@ -260,7 +260,10 @@ public class ApplicationComponents {
      * @param pm PackageManager
      * @return true : component is enabled , false: component is disabled
      */
-    public static boolean isAppInstalled(@NonNull PackageManager pm, @NonNull String packageName) {
+    public static boolean isAppInstalled(@NonNull PackageManager pm, String packageName) {
+        if (packageName == null || packageName.trim().isEmpty()) {
+            return false;
+        }
         boolean installed;
         try {
             pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
