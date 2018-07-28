@@ -12,10 +12,13 @@ import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.util.NotificationUtil
+import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.utils.FileUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
+import io.reactivex.Single
+import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import java.io.File
@@ -177,24 +180,31 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     }
 
     override fun importMatRules() {
-        Observable.create(ObservableOnSubscribe<RulesResult> { emitter ->
-            val file = File(FileUtils.getExternalStoragePath(), MAT_FILE_NAME)
-            if (!file.exists()) {
-                emitter.onError(FileNotFoundException("Cannot find MyAndroidTools Rule File: $MAT_FILE_NAME"))
-                return@ObservableOnSubscribe
+        Single.create(SingleOnSubscribe<RulesResult> { emitter ->
+            try {
+                val file = File(FileUtils.getExternalStoragePath(), MAT_FILE_NAME)
+                if (!file.exists()) {
+                    emitter.onError(FileNotFoundException("Cannot find MyAndroidTools Rule File: $MAT_FILE_NAME"))
+                    return@SingleOnSubscribe
+                }
+                val result = Rule.importMatRules(context, file) { context, name, current, total ->
+                    NotificationUtil.updateProcessingNotification(context, name, current, total)
+                }
+                emitter.onSuccess(result)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Log.e(TAG, e.message)
+                emitter.onError(e)
             }
-            val result = Rule.importMatRules(context, file) { _, _, _, _ ->
-
-            }
-            emitter.onNext(result)
-            emitter.onComplete()
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
                 .subscribe({ result ->
-                    // onNext
+                    NotificationUtil.finishProcessingNotification(context, result.failedCount + result.succeedCount)
                 }, { error ->
-                    //onError
+                    NotificationUtil.finishProcessingNotification(context, 0)
+                    ToastUtil.showToast(context.getString(R.string.cannot_find_file, MAT_FILE_NAME))
                 })
     }
 
@@ -224,6 +234,6 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
 
     companion object {
         private const val TAG = "SettingsPresenter"
-        private const val MAT_FILE_NAME = "myandroidtools.txt"
+        private const val MAT_FILE_NAME = "myandroidtools_backup.txt"
     }
 }
