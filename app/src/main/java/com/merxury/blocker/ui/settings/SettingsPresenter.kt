@@ -183,7 +183,9 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 emitter.onError(FileNotFoundException("Cannot find MyAndroidTools Rule File: $MAT_FILE_NAME"))
                 return@ObservableOnSubscribe
             }
-            val result = Rule.importMatRules(context, file)
+            val result = Rule.importMatRules(context, file) { _, _, _, _ ->
+
+            }
             emitter.onNext(result)
             emitter.onComplete()
         })
