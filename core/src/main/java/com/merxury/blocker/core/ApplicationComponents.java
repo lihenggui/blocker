@@ -264,13 +264,12 @@ public class ApplicationComponents {
         if (packageName == null || packageName.trim().isEmpty()) {
             return false;
         }
-        boolean installed;
         try {
-            pm.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
-            installed = true;
+            pm.getApplicationInfo(packageName, 0);
+            return true;
         } catch (PackageManager.NameNotFoundException e) {
-            installed = false;
+            Log.d(TAG, packageName + "is not installed.");
         }
-        return installed;
+        return false;
     }
 }
