@@ -153,15 +153,14 @@ object Rule {
     fun importMatRules(context: Context, file: File, action: (context: Context, name: String, current: Int, total: Int) -> Unit): RulesResult {
         var succeedCount = 0
         var failedCount = 0
-        var total = 0
+        val total = countLines(file)
         val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
         try {
-
             file.forEachLine {
-                if (it.trim().isEmpty() || !it.contains("\\")) {
+                if (it.trim().isEmpty() || !it.contains("/")) {
                     return@forEachLine
                 }
-                val splitResult = it.split("\\")
+                val splitResult = it.split("/")
                 if (splitResult.size != 2) {
                     failedCount++
                     return@forEachLine
@@ -175,6 +174,7 @@ object Rule {
                     Log.d(TAG, "Failed to change component state for : $it")
                     failedCount++
                 }
+                action(context, name, (succeedCount + failedCount), total)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -234,6 +234,20 @@ object Rule {
             return false
         }
         return result
+    }
+
+    private fun countLines(file: File): Int {
+        var lines = 0
+        if (!file.exists()) {
+            return lines
+        }
+        file.forEachLine {
+            if (it.trim().isEmpty()) {
+                return@forEachLine
+            }
+            lines++
+        }
+        return lines
     }
 
     private fun saveRuleToStorage(rule: BlockerRule, dest: File) {

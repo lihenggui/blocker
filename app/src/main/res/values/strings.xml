@@ -113,4 +113,5 @@
     <string name="import_all_ifw_rules_warning_message">You are going to import all Intent Firewall rules in the external storage, which will override your current settings for apps, proceeded?</string>
     <string name="reset_ifw_warning_message">You are going to delete all Intent Firewall rules, proceed?</string>
     <string name="ifw_reset_error">Error occurs while resetting your intent firewall rules.</string>
+    <string name="cannot_find_file">Cannot find file: %1$s</string>
 </resources>
