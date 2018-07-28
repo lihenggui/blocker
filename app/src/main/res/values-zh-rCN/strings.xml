@@ -97,12 +97,12 @@
     <string name="others">其他</string>
     <string name="notification_done">%1$d 已导入</string>
     <string name="last_update_date">最后更新时间</string>
-    <string name="need_storage_permission">Need storage permission to operate</string>
-    <string name="export_all_rules_warning_message">You are going to import all rules in the external storage, proceed?</string>
-    <string name="import_all_rules_warning_message">You are going to import all rules in the external storage, which will override your current settings for apps, proceeded?\\n(Note: This will take a long time.)</string>
-    <string name="export_all_ifw_rules_warning_message">You are going to export all Intent Firewall rules to the external storage, which will override your existing rule files, proceed?</string>
-    <string name="import_all_ifw_rules_warning_message">You are going to import all Intent Firewall rules in the external storage, which will override your current settings for apps, proceeded?</string>
-    <string name="reset_ifw_warning_message">You are going to delete all Intent Firewall rules, proceed?</string>
-    <string name="ifw_reset_error">Error occurs while reseting your intent firewall rules %1$s.</string>
-    <string name="cannot_find_file">Cannot find file: %1$s</string>
+    <string name="import_all_rules_warning_message">外置存储中的规则将会被导入, 现有软件的规则将会被更新，继续操作吗？\\n(提示：若是使用PM控制器，将会需要很长的操作时间。)</string>
+    <string name="export_all_ifw_rules_warning_message">已生效的Intent Firewall规则将会导出，您现存的规则将会被覆盖（若是存在），继续操作吗？</string>
+    <string name="ifw_reset_error">删除Intent Firewall规则时发生错误</string>
+    <string name="cannot_find_file">找不到文件: %1$s</string>
+    <string name="need_storage_permission">需要存储权限</string>
+    <string name="export_all_rules_warning_message">所有已安装软件的规则将会导出，您现存的规则将会被覆盖（若是存在），继续操作吗？</string>
+    <string name="import_all_ifw_rules_warning_message">外置存储中的</string>
+    <string name="reset_ifw_warning_message">所有应用的Intent Firewall规则将会被删除，继续操作吗？</string>
 </resources>
