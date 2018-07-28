@@ -150,11 +150,13 @@ object Rule {
         }
     }
 
-    fun importMatRules(context: Context, file: File): RulesResult {
+    fun importMatRules(context: Context, file: File, action: (context: Context, name: String, current: Int, total: Int) -> Unit): RulesResult {
         var succeedCount = 0
         var failedCount = 0
+        var total = 0
         val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
         try {
+
             file.forEachLine {
                 if (it.trim().isEmpty() || !it.contains("\\")) {
                     return@forEachLine
