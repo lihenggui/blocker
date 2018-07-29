@@ -8,7 +8,6 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.stream.JsonReader
 import com.merxury.blocker.R
-import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
@@ -17,6 +16,7 @@ import com.merxury.blocker.rule.entity.ComponentRule
 import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.ui.component.EComponentType
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
@@ -34,7 +34,7 @@ object Rule {
     fun export(context: Context, packageName: String): RulesResult {
         Log.i(TAG, "Backup rules for $packageName")
         val pm = context.packageManager
-        val applicationInfo = ApplicationComponents.getApplicationComponents(pm, packageName)
+        val applicationInfo = ApplicationUtil.getApplicationComponents(pm, packageName)
         val rule = BlockerRule(packageName = applicationInfo.packageName, versionName = applicationInfo.versionName, versionCode = applicationInfo.versionCode)
         var disabledComponentsCount = 0
         val ifwController = IntentFirewallImpl.getInstance(context, packageName)
@@ -43,7 +43,7 @@ object Rule {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
                 disabledComponentsCount++
             }
-            if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
+            if (!ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
                 disabledComponentsCount++
             }
@@ -53,7 +53,7 @@ object Rule {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE, EControllerMethod.IFW))
                 disabledComponentsCount++
             }
-            if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
+            if (!ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE))
                 disabledComponentsCount++
             }
@@ -63,13 +63,13 @@ object Rule {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY, EControllerMethod.IFW))
                 disabledComponentsCount++
             }
-            if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
+            if (!ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY))
                 disabledComponentsCount++
             }
         }
         applicationInfo.providers?.forEach {
-            if (!ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
+            if (!ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
                 rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
                 disabledComponentsCount++
             }
@@ -131,7 +131,7 @@ object Rule {
     }
 
     fun exportAll(context: Context) {
-        val appList = ApplicationComponents.getThirdPartyApplicationList(context.packageManager)
+        val appList = ApplicationUtil.getThirdPartyApplicationList(context.packageManager)
         appList.forEach {
             val packageName = it.packageName
             export(context, packageName)
@@ -139,7 +139,7 @@ object Rule {
     }
 
     fun importAll(context: Context) {
-        val appList = ApplicationComponents.getThirdPartyApplicationList(context.packageManager)
+        val appList = ApplicationUtil.getThirdPartyApplicationList(context.packageManager)
         appList.forEach {
             val packageName = it.packageName
             val file = File(getBlockerRuleFolder(context), packageName + EXTENSION)

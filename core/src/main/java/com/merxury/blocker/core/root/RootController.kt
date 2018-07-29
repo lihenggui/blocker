@@ -4,8 +4,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
-import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
+import com.merxury.blocker.utils.ApplicationUtil
 import com.merxury.libkit.RootCommand
 import com.stericson.RootTools.RootTools
 
@@ -69,7 +69,7 @@ class RootController(val context: Context) : IController {
     }
 
     override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
-        return ApplicationComponents.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))
+        return ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))
     }
 
     companion object {

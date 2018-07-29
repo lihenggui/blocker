@@ -1,6 +1,8 @@
-package com.merxury.blocker.core;
+package com.merxury.blocker.utils;
 
 import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
@@ -8,7 +10,9 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
+import com.merxury.blocker.core.R;
 import com.merxury.blocker.entity.Application;
 
 import java.util.ArrayList;
@@ -20,8 +24,9 @@ import java.util.List;
  * A class that gets activities, broadcasts, content providers, and services
  */
 
-public class ApplicationComponents {
-    private static final String TAG = "ApplicationComponents";
+public class ApplicationUtil {
+    private static final String TAG = "ApplicationUtil";
+    private static final String MARKET_URL = "market://details?id=";
 
     /**
      * Get a list of installed applications on device
@@ -271,5 +276,15 @@ public class ApplicationComponents {
             Log.d(TAG, packageName + "is not installed.");
         }
         return false;
+    }
+
+    public static void startApplication(@NonNull Context context, String packageName) {
+        Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
+        if (intent == null) {
+            Toast.makeText(context, context.getString(R.string.app_cannot_start), Toast.LENGTH_SHORT).show();
+            return;
+        }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
     }
 }

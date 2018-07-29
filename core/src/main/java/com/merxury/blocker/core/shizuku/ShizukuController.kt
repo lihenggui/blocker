@@ -4,8 +4,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
-import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
+import com.merxury.blocker.utils.ApplicationUtil
 import moe.shizuku.api.ShizukuPackageManagerV26
 
 class ShizukuController(val context: Context) : IController {
@@ -38,7 +38,7 @@ class ShizukuController(val context: Context) : IController {
     }
 
     override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
-        return ApplicationComponents.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))
+        return ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))
     }
 
     companion object {

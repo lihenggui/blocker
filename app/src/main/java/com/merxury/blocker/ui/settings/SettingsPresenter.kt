@@ -6,13 +6,13 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.merxury.blocker.R
-import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.blocker.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
@@ -34,7 +34,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         var appCount = -1
         Observable.create(ObservableOnSubscribe<Application> { emitter ->
             try {
-                val applicationList = ApplicationComponents.getApplicationList(context.packageManager)
+                val applicationList = ApplicationUtil.getApplicationList(context.packageManager)
                 applicationList.forEach {
                     Rule.export(context, it.packageName)
                     succeedCount++
@@ -51,7 +51,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe {
-                    appCount = ApplicationComponents.getApplicationList(context.packageManager).size
+                    appCount = ApplicationUtil.getApplicationList(context.packageManager).size
                     NotificationUtil.createProcessingNotification(context, appCount)
                 }.subscribe({ info ->
                     NotificationUtil.updateProcessingNotification(context, info.label, (succeedCount + failedCount), appCount)
@@ -84,7 +84,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                     it.endsWith(Rule.EXTENSION)
                 }.forEach {
                     val rule = Gson().fromJson(FileReader(it), BlockerRule::class.java)
-                    if (!ApplicationComponents.isAppInstalled(context.packageManager, rule.packageName)) {
+                    if (!ApplicationUtil.isAppInstalled(context.packageManager, rule.packageName)) {
                         return@ObservableOnSubscribe
                     }
                     Rule.import(context, File(it))
