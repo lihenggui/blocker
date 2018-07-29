@@ -154,10 +154,12 @@ object Rule {
         var succeedCount = 0
         var failedCount = 0
         val total = countLines(file)
-        val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+        val controller = getController(context)
+        val uninstalledAppList = mutableListOf<String>()
         try {
             file.forEachLine {
                 if (it.trim().isEmpty() || !it.contains("/")) {
+                    failedCount++
                     return@forEachLine
                 }
                 val splitResult = it.split("/")
@@ -167,6 +169,10 @@ object Rule {
                 }
                 val packageName = splitResult[0]
                 val name = splitResult[1]
+                if (isApplicationUninstalled(context, uninstalledAppList, packageName)) {
+                    failedCount++
+                    return@forEachLine
+                }
                 val result = controller.disable(packageName, name)
                 if (result) {
                     succeedCount++
@@ -258,6 +264,20 @@ object Rule {
             dest.delete()
         }
         dest.writeText(GsonBuilder().setPrettyPrinting().create().toJson(rule))
+    }
+
+    private fun isApplicationUninstalled(context: Context, savedList: MutableList<String>, packageName: String): Boolean {
+        if (packageName.trim().isEmpty()) {
+            return true
+        }
+        if (savedList.contains(packageName)) {
+            return true
+        }
+        if (!ApplicationUtil.isAppInstalled(context.packageManager, packageName)) {
+            savedList.add(packageName)
+            return true
+        }
+        return false
     }
 
     fun getBlockerRuleFolder(context: Context): File {

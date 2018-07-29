@@ -105,4 +105,5 @@
     <string name="export_all_rules_warning_message">所有已安装软件的规则将会导出，您现存的规则将会被覆盖（若是存在），继续操作吗？</string>
     <string name="import_all_ifw_rules_warning_message">外置存储中的</string>
     <string name="reset_ifw_warning_message">所有应用的Intent Firewall规则将会被删除，继续操作吗？</string>
+    <string name="processing_indicator">(%1$d/%2$d)</string>
 </resources>
