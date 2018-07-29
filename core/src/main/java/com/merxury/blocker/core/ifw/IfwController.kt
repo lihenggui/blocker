@@ -4,8 +4,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.IController
+import com.merxury.blocker.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
@@ -80,7 +80,7 @@ class IfwController(val context: Context) : IController {
 
     private fun initPackageInfo(packageName: String) {
         if (!::packageInfo.isInitialized) {
-            packageInfo = ApplicationComponents.getApplicationComponents(context.packageManager, packageName)
+            packageInfo = ApplicationUtil.getApplicationComponents(context.packageManager, packageName)
         }
     }
 

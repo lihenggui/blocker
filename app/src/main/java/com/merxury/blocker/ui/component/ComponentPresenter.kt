@@ -9,10 +9,8 @@ import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
 import com.merxury.blocker.R
-import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.shizuku.ShizukuClientWrapper
 import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
@@ -21,6 +19,7 @@ import com.merxury.blocker.strategy.service.ApiClient
 import com.merxury.blocker.strategy.service.IClientServer
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.blocker.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
@@ -79,10 +78,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     private fun getComponents(packageName: String, type: EComponentType): MutableList<ComponentInfo> {
         return when (type) {
-            EComponentType.RECEIVER -> ApplicationComponents.getReceiverList(pm, packageName)
-            EComponentType.ACTIVITY -> ApplicationComponents.getActivityList(pm, packageName)
-            EComponentType.SERVICE -> ApplicationComponents.getServiceList(pm, packageName)
-            EComponentType.PROVIDER -> ApplicationComponents.getProviderList(pm, packageName)
+            EComponentType.RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
+            EComponentType.ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)
+            EComponentType.SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
+            EComponentType.PROVIDER -> ApplicationUtil.getProviderList(pm, packageName)
             else -> ArrayList()
         }
     }
@@ -251,7 +250,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
-        return ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(packageName, componentName))
+        return ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(packageName, componentName))
 
     }
 
@@ -275,7 +274,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun updateComponentViewModel(viewModel: ComponentItemViewModel) {
-        viewModel.state = ApplicationComponents.checkComponentIsEnabled(pm, ComponentName(viewModel.packageName, viewModel.name))
+        viewModel.state = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(viewModel.packageName, viewModel.name))
         viewModel.ifwState = ifwController.getComponentEnableState(viewModel.packageName, viewModel.name)
     }
 
@@ -454,9 +453,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun start(context: Context) {
-        if (PreferenceUtil.getControllerType(context) == EControllerMethod.SHIZUKU) {
-            requestShizukuPermission()
-        }
+
     }
 
     override fun destroy() {

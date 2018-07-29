@@ -8,9 +8,9 @@ import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
 import com.merxury.blocker.R
-import com.merxury.blocker.core.ApplicationComponents
 import com.merxury.blocker.entity.Application
 import com.merxury.blocker.exception.StorageNotAvailableException
+import com.merxury.blocker.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
 import com.merxury.libkit.utils.StorageUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
@@ -31,8 +31,8 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
         homeView?.setLoadingIndicator(true)
         Single.create(SingleOnSubscribe<List<Application>> { emitter ->
             val applications: List<Application> = when (isSystemApplication) {
-                false -> ApplicationComponents.getThirdPartyApplicationList(pm)
-                true -> ApplicationComponents.getSystemApplicationList(pm)
+                false -> ApplicationUtil.getThirdPartyApplicationList(pm)
+                true -> ApplicationUtil.getSystemApplicationList(pm)
             }
             val sortedList = sortApplicationList(applications)
             emitter.onSuccess(sortedList)
