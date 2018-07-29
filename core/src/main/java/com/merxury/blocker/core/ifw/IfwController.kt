@@ -79,7 +79,7 @@ class IfwController(val context: Context) : IController {
     }
 
     private fun initPackageInfo(packageName: String) {
-        if (!::packageInfo.isInitialized) {
+        if (!::packageInfo.isInitialized || packageInfo.packageName != packageName) {
             packageInfo = ApplicationUtil.getApplicationComponents(context.packageManager, packageName)
         }
     }

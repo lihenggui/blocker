@@ -106,4 +106,5 @@
     <string name="reset_ifw_warning_message">You are going to delete all Intent Firewall rules, proceed?</string>
     <string name="ifw_reset_error">Error occurs while reseting your intent firewall rules %1$s.</string>
     <string name="cannot_find_file">Cannot find file: %1$s</string>
+    <string name="processing_indicator">(%1$d/%2$d)</string>
 </resources>
