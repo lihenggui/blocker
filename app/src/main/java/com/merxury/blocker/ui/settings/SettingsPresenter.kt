@@ -32,7 +32,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         var succeedCount = 0
         var failedCount = 0
         var appCount = -1
-        Observable.create(ObservableOnSubscribe<Application> { emitter ->
+        val exportObservable = Observable.create(ObservableOnSubscribe<Application> { emitter ->
             try {
                 val applicationList = ApplicationUtil.getApplicationList(context.packageManager)
                 applicationList.forEach {
@@ -53,27 +53,30 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .doOnSubscribe {
                     appCount = ApplicationUtil.getApplicationList(context.packageManager).size
                     NotificationUtil.createProcessingNotification(context, appCount)
-                }.subscribe({ info ->
-                    NotificationUtil.updateProcessingNotification(context, info.label, (succeedCount + failedCount), appCount)
-                }, { error ->
-                    // onError
-                }, {
-                    NotificationUtil.finishProcessingNotification(context, succeedCount)
-                    settingsView.showExportResult(true, succeedCount, failedCount)
-                })
+                }
         RxPermissions(context as Activity)
                 .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 .map { granted ->
                     if (granted) {
+                        exportObservable.subscribe({ info ->
+                            NotificationUtil.updateProcessingNotification(context, info.label, (succeedCount + failedCount), appCount)
+                        }, { error ->
+                            // onError
+                        }, {
+                            NotificationUtil.finishProcessingNotification(context, succeedCount)
+                            settingsView.showExportResult(true, succeedCount, failedCount)
+                        })
                     } else {
                         settingsView.showMessage(R.string.need_storage_permission)
                     }
                 }
+                .subscribe()
     }
 
     override fun importAllRules() {
-        var restoredCount = 0;
-        Observable.create(ObservableOnSubscribe<String> { emitter ->
+        var restoredCount = 0
+        var rulesCount = 0
+        val importObservable = Observable.create(ObservableOnSubscribe<String> { emitter ->
             try {
                 val files = FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath)
                 if (files.isEmpty()) {
@@ -99,20 +102,32 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
-                .subscribe({ packageName ->
-                    restoredCount++
-                    NotificationUtil.updateProcessingNotification(context, packageName, 0, 0)
-                }, { error ->
-                    //onError
-                }, {
-                    NotificationUtil.finishProcessingNotification(context, restoredCount)
-                })
+                .doOnSubscribe {
+                    rulesCount = FileUtils.getFileCounts(Rule.getBlockerRuleFolder(context).absolutePath, Rule.EXTENSION)
+                    NotificationUtil.createProcessingNotification(context, rulesCount)
+                }
+        RxPermissions(context as Activity)
+                .request(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .map { granted ->
+                    if (granted) {
+                        importObservable.subscribe({ packageName ->
+                            restoredCount++
+                            NotificationUtil.updateProcessingNotification(context, packageName, restoredCount, rulesCount)
+                        }, { error ->
+                            //onError
+                        }, {
+                            NotificationUtil.finishProcessingNotification(context, restoredCount)
+                        })
+                    } else {
+                        settingsView.showMessage(R.string.need_storage_permission)
+                    }
+                }
+                .subscribe()
     }
 
     override fun exportAllIfwRules() {
         var exportedCount = 0;
-        Observable.create(ObservableOnSubscribe<Int> { emitter ->
+        val exportIfwObservable = Observable.create(ObservableOnSubscribe<Int> { emitter ->
             try {
                 exportedCount = Rule.exportIfwRules(context)
             } catch (e: Exception) {
@@ -124,19 +139,27 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
-                .subscribe({ _ ->
+        RxPermissions(context as Activity)
+                .request(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .map { granted ->
+                    if (granted) {
+                        exportIfwObservable.subscribe({ _ ->
 
-                }, { error ->
-                    //onError
-                }, {
-                    NotificationUtil.finishProcessingNotification(context, exportedCount)
-                })
-
+                        }, { error ->
+                            //onError
+                        }, {
+                            NotificationUtil.finishProcessingNotification(context, exportedCount)
+                        })
+                    } else {
+                        settingsView.showMessage(R.string.need_storage_permission)
+                    }
+                }
+                .subscribe()
     }
 
     override fun importAllIfwRules() {
         var count = 0
-        Observable.create(ObservableOnSubscribe<Int> { emitter ->
+        val importIfwObservable = Observable.create(ObservableOnSubscribe<Int> { emitter ->
             try {
                 count = Rule.importIfwRules(context)
                 emitter.onComplete()
@@ -149,14 +172,22 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
-                .subscribe({ _ ->
-                    //onNext
-                }, { error ->
-                    //onError
-                }, {
-                    NotificationUtil.finishProcessingNotification(context, count)
-                    settingsView.showExportResult(true, count, 0)
-                })
+
+        RxPermissions(context as Activity)
+                .request(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .map { granted ->
+                    if (granted) {
+                        importIfwObservable.subscribe({ _ ->
+                            //onNext
+                        }, { error ->
+                            //onError
+                        }, {
+                            NotificationUtil.finishProcessingNotification(context, count)
+                            settingsView.showExportResult(true, count, 0)
+                        })
+                    }
+                }
+                .subscribe()
     }
 
     override fun resetIFW() {
@@ -180,11 +211,11 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     }
 
     override fun importMatRules() {
-        Single.create(SingleOnSubscribe<RulesResult> { emitter ->
+        val importMatSingle = Single.create(SingleOnSubscribe<RulesResult> { emitter ->
             try {
                 val file = File(FileUtils.getExternalStoragePath(), MAT_FILE_NAME)
                 if (!file.exists()) {
-                    emitter.onError(FileNotFoundException("Cannot find MyAndroidTools Rule File: $MAT_FILE_NAME"))
+                    emitter.onError(FileNotFoundException("Cannot find MyAndroidTools Rule File: ${file.path}"))
                     return@SingleOnSubscribe
                 }
                 val result = Rule.importMatRules(context, file) { context, name, current, total ->
@@ -200,12 +231,19 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
-                .subscribe({ result ->
-                    NotificationUtil.finishProcessingNotification(context, result.failedCount + result.succeedCount)
-                }, { error ->
-                    NotificationUtil.finishProcessingNotification(context, 0)
-                    ToastUtil.showToast(context.getString(R.string.cannot_find_file, MAT_FILE_NAME))
-                })
+        RxPermissions(context as Activity)
+                .request(Manifest.permission.READ_EXTERNAL_STORAGE)
+                .map { granted ->
+                    if (granted) {
+                        importMatSingle.subscribe({ result ->
+                            NotificationUtil.finishProcessingNotification(context, result.failedCount + result.succeedCount)
+                        }, { error ->
+                            NotificationUtil.finishProcessingNotification(context, 0)
+                            ToastUtil.showToast(error.message ?: error.toString())
+                        })
+                    }
+                }
+                .subscribe()
     }
 
     fun requestStoragePermission() {
