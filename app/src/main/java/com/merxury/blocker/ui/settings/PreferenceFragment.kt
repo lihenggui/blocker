@@ -14,7 +14,9 @@ import android.preference.PreferenceManager
 import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.MenuItem
+import android.widget.Toast
 import com.merxury.blocker.R
+import com.merxury.blocker.util.ToastUtil
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, OnPreferenceClickListener {
@@ -55,8 +57,8 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
         exportRulePreference = findPreference(getString(R.string.key_pref_export_rules))
         importRulePreference = findPreference(getString(R.string.key_pref_import_rules))
         ifwRulePathPreference = findPreference(getString(R.string.key_pref_ifw_rule_path))
-        importIfwRulePreference = findPreference(getString(R.string.key_pref_export_ifw_rules))
-        exportIfwRulePreference = findPreference(getString(R.string.key_pref_import_ifw_rules))
+        importIfwRulePreference = findPreference(getString(R.string.key_pref_import_ifw_rules))
+        exportIfwRulePreference = findPreference(getString(R.string.key_pref_export_ifw_rules))
         resetIfwPreference = findPreference(getString(R.string.key_pref_reset_ifw_rules))
         importMatRulesPreference = findPreference(getString(R.string.key_pref_import_mat_rules))
         aboutPreference = findPreference(getString(R.string.key_pref_about))
@@ -111,7 +113,7 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
     }
 
     override fun showMessage(res: Int) {
-
+        ToastUtil.showToast(getString(res), Toast.LENGTH_SHORT)
     }
 
     override fun showDialog(title: String, message: String, action: () -> Unit) {

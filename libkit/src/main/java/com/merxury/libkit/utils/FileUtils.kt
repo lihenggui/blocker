@@ -131,4 +131,16 @@ object FileUtils {
             filename.substring(0, extensionDotPosition)
         }
     }
+
+    @JvmStatic
+    fun getFileCounts(pathString: String, filter: String): Int {
+        val path = File(pathString)
+        if (!path.exists()) {
+            return 0
+        }
+        if (path.isFile) {
+            return 1
+        }
+        return path.walkTopDown().filter { it.name.contains(filter) }.count()
+    }
 }
