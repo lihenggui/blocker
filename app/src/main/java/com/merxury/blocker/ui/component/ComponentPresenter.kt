@@ -11,6 +11,7 @@ import android.widget.Toast
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.shizuku.ShizukuClientWrapper
 import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
@@ -113,7 +114,18 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         Log.i(TAG, "Enable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
-                val result = controller.enable(packageName, componentName)
+                var result = true
+                val controllerType = PreferenceUtil.getControllerType(context)
+                if (controllerType == EControllerMethod.PM) {
+                    if (!checkIFWState(packageName, componentName)) {
+                        result = result && ComponentControllerProxy.getInstance(EControllerMethod.IFW, context).enable(packageName, componentName)
+                    }
+                } else if (controllerType == EControllerMethod.IFW) {
+                    if (!ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))) {
+                        result = result && ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(packageName, componentName)
+                    }
+                }
+                result = result && controller.enable(packageName, componentName)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 emitter.onError(e)
