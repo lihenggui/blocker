@@ -209,9 +209,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     override fun onSwitchClick(name: String, isChecked: Boolean) {
         if (isChecked) {
             presenter.enable(packageName, name)
-            if (!presenter.checkIFWState(packageName, name)) {
-                presenter.removeFromIFW(packageName, name, type)
-            }
         } else {
             presenter.disable(packageName, name)
         }

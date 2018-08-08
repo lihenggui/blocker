@@ -22,10 +22,12 @@ class ContextMenuRecyclerView : RecyclerView {
 
     override fun showContextMenuForChild(originalView: View): Boolean {
         val longPressPosition = getChildAdapterPosition(originalView)
-        if (longPressPosition >= 0) {
-            val longPressId = adapter.getItemId(longPressPosition)
-            mContextMenuInfo = RecyclerContextMenuInfo(longPressPosition, longPressId)
-            return super.showContextMenuForChild(originalView)
+        adapter?.let {
+            if (longPressPosition >= 0) {
+                val longPressId = it.getItemId(longPressPosition)
+                mContextMenuInfo = RecyclerContextMenuInfo(longPressPosition, longPressId)
+                return super.showContextMenuForChild(originalView)
+            }
         }
         return false
     }
