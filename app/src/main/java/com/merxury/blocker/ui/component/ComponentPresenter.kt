@@ -27,6 +27,8 @@ import com.merxury.ifw.entity.ComponentType
 import com.merxury.libkit.RootCommand
 import com.merxury.libkit.utils.PermissionUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
+import io.reactivex.Observable
+import io.reactivex.ObservableOnSubscribe
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -332,44 +334,46 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun enableAllComponents(packageName: String, type: EComponentType) {
-        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+        Observable.create((ObservableOnSubscribe<ComponentInfo> { emitter ->
             if (!PermissionUtils.isRootAvailable()) {
                 emitter.onError(RootUnavailableException())
-                return@SingleOnSubscribe
+                return@ObservableOnSubscribe
             }
             val components = getComponents(packageName, type)
             try {
                 components.forEach {
+                    if (!ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(it.packageName, it.name))) {
+                        ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(it.packageName, it.name)
+                    }
                     when (type) {
                         EComponentType.ACTIVITY -> ifwController.remove(it.packageName, it.name, ComponentType.ACTIVITY)
                         EComponentType.SERVICE -> ifwController.remove(it.packageName, it.name, ComponentType.SERVICE)
                         EComponentType.RECEIVER -> ifwController.remove(it.packageName, it.name, ComponentType.BROADCAST)
-                        else -> emitter.onSuccess(true)
+                        else -> {
+                        }
                     }
+                    emitter.onNext(it)
                 }
                 ifwController.save()
-                emitter.onSuccess(true)
+                emitter.onComplete()
             } catch (e: Exception) {
                 emitter.onError(e)
             }
         }))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorReturn { false }
-                .subscribe { result, error ->
-                    if (result) {
-                        view?.showActionDone()
-                    } else {
-                        view?.showActionFail()
-                    }
-                    loadComponents(packageName, type)
-                    error?.apply {
-                        Log.e(TAG, message)
-                        printStackTrace()
-                        view?.showAlertDialog()
-                    }
-                }
+                .subscribe({
+                    view?.refreshComponentState(it.name)
+                }, { error ->
+                    Log.e(TAG, error.message)
+                    error.printStackTrace()
+                    view?.showAlertDialog()
+                    view?.showActionFail()
 
+                }, {
+                    view?.showActionDone()
+                    loadComponents(packageName, type)
+                })
     }
 
     override fun exportRule(packageName: String) {
