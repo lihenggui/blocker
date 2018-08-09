@@ -104,6 +104,8 @@ public class ApplicationUtil {
             }
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
+        } catch (RuntimeException e) {
+            Log.e(TAG, e.getMessage());
         }
         return activities;
     }
