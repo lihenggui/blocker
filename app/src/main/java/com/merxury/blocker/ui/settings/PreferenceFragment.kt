@@ -1,7 +1,6 @@
 package com.merxury.blocker.ui.settings
 
 import android.annotation.TargetApi
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
@@ -36,11 +35,6 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
     private lateinit var importMatRulesPreference: Preference
     private lateinit var aboutPreference: Preference
 
-    override fun onAttach(context: Context?) {
-        super.onAttach(context)
-        initPresenter(context!!)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         addPreferencesFromResource(R.xml.preferences)
@@ -49,6 +43,7 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
         findPreference()
         initPreference()
         initListener()
+        initPresenter()
     }
 
     private fun findPreference() {
@@ -73,8 +68,8 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
         bindPreferenceSummaryToValue(ifwRulePathPreference)
     }
 
-    private fun initPresenter(context: Context) {
-        presenter = SettingsPresenter(context, this)
+    private fun initPresenter() {
+        presenter = SettingsPresenter(activity, this)
     }
 
     private fun initListener() {
