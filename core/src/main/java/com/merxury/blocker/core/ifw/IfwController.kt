@@ -5,10 +5,10 @@ import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
+import com.merxury.libkit.utils.ApplicationUtil
 
 class IfwController(val context: Context) : IController {
     private lateinit var controller: IntentFirewall

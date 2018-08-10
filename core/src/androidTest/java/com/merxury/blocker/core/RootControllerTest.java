@@ -6,8 +6,8 @@ import android.support.test.InstrumentationRegistry;
 import android.util.Log;
 
 import com.merxury.blocker.core.root.RootController;
-import com.merxury.blocker.entity.Application;
-import com.merxury.blocker.utils.ApplicationUtil;
+import com.merxury.libkit.entity.Application;
+import com.merxury.libkit.utils.ApplicationUtil;
 
 import org.junit.After;
 import org.junit.Before;

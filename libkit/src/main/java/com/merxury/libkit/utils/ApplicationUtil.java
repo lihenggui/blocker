@@ -1,8 +1,6 @@
-package com.merxury.blocker.utils;
+package com.merxury.libkit.utils;
 
 import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ComponentInfo;
 import android.content.pm.PackageInfo;
@@ -10,10 +8,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.merxury.blocker.core.R;
-import com.merxury.blocker.entity.Application;
+import com.merxury.libkit.entity.Application;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -106,6 +102,7 @@ public class ApplicationUtil {
             Log.e(TAG, "Cannot find specified package.");
         } catch (RuntimeException e) {
             Log.e(TAG, e.getMessage());
+            return ApkUtils.INSTANCE.getActivities(pm, packageName);
         }
         return activities;
     }
@@ -278,15 +275,5 @@ public class ApplicationUtil {
             Log.d(TAG, packageName + "is not installed.");
         }
         return false;
-    }
-
-    public static void startApplication(@NonNull Context context, String packageName) {
-        Intent intent = context.getPackageManager().getLaunchIntentForPackage(packageName);
-        if (intent == null) {
-            Toast.makeText(context, context.getString(R.string.app_cannot_start), Toast.LENGTH_SHORT).show();
-            return;
-        }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        context.startActivity(intent);
     }
 }

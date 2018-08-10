@@ -15,9 +15,9 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.RequestOptions
 import com.merxury.blocker.R
-import com.merxury.blocker.entity.Application
 import com.merxury.blocker.ui.component.ComponentActivity
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.libkit.entity.Application
 import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.android.synthetic.main.fragment_app_list.view.*

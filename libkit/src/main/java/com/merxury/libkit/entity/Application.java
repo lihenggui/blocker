@@ -1,4 +1,4 @@
-package com.merxury.blocker.entity;
+package com.merxury.libkit.entity;
 
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -78,7 +78,7 @@ public class Application implements Parcelable {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             minSdkVersion = appDetail.minSdkVersion;
         } else {
-            minSdkVersion = ApkUtils.getMinSdkVersion(baseApkPath);
+            minSdkVersion = ApkUtils.INSTANCE.getMinSdkVersion(baseApkPath);
         }
         this.splitNames = this.packageName.split("\\.");
         this.firstInstallTime = new Date(info.firstInstallTime);
