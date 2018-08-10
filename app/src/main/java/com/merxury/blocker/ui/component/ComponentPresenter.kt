@@ -20,11 +20,11 @@ import com.merxury.blocker.strategy.service.ApiClient
 import com.merxury.blocker.strategy.service.IClientServer
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import com.merxury.libkit.RootCommand
+import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.PermissionUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable

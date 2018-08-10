@@ -5,8 +5,8 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.utils.ApplicationUtil
 import com.merxury.libkit.RootCommand
+import com.merxury.libkit.utils.ApplicationUtil
 import com.stericson.RootTools.RootTools
 
 /**

@@ -17,9 +17,9 @@ import com.jaeger.library.StatusBarUtil
 import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
 import com.merxury.blocker.base.IActivityView
-import com.merxury.blocker.entity.Application
+import com.merxury.blocker.util.AppLauncher
 import com.merxury.blocker.util.setupActionBar
-import com.merxury.blocker.utils.ApplicationUtil
+import com.merxury.libkit.entity.Application
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
 
@@ -95,7 +95,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
                 .load(application.getApplicationIcon(packageManager))
                 .transition(DrawableTransitionOptions().crossFade())
                 .into(app_info_icon)
-        app_info_icon.setOnClickListener { ApplicationUtil.startApplication(this, application.packageName) }
+        app_info_icon.setOnClickListener { AppLauncher.startApplication(this, application.packageName) }
     }
 
 

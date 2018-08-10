@@ -6,13 +6,13 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.merxury.blocker.R
-import com.merxury.blocker.entity.Application
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.utils.ApplicationUtil
+import com.merxury.libkit.entity.Application
+import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable

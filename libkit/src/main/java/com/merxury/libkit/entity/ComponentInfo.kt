@@ -1,4 +1,4 @@
-package com.merxury.blocker.entity
+package com.merxury.libkit.entity
 
 import android.content.pm.ComponentInfo
 
