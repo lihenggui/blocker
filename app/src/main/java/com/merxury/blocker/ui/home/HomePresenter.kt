@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.preference.PreferenceManager
 import android.util.Log
 import android.widget.Toast
 import com.merxury.blocker.R
@@ -174,6 +175,22 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
 
 
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
+        set(comparator) {
+            field = comparator
+            context?.let {
+                val editor = PreferenceManager.getDefaultSharedPreferences(context).edit()
+                editor.putInt(it.getString(R.string.key_pref_comparator_type), comparator.value)
+                editor.apply()
+            }
+        }
+        get() {
+            context?.let {
+                val pref = PreferenceManager.getDefaultSharedPreferences(context)
+                val comparatorType = pref.getInt(it.getString(R.string.key_pref_comparator_type), 0)
+                return ApplicationComparatorType.from(comparatorType)
+            }
+            return ApplicationComparatorType.DESCENDING_BY_LABEL
+        }
 
     companion object {
         const val TAG = "HomePresenter"
