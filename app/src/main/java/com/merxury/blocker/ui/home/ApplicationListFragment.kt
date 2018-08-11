@@ -13,7 +13,9 @@ import android.view.*
 import android.widget.PopupMenu
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.merxury.blocker.R
 import com.merxury.blocker.ui.component.ComponentActivity
 import com.merxury.blocker.util.ToastUtil
@@ -161,8 +163,8 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                     .setTitle(R.string.alert)
                     .setMessage(alertMessage)
                     .setCancelable(true)
-                    .setNegativeButton(R.string.cancel, { dialog: DialogInterface?, _: Int -> dialog?.dismiss() })
-                    .setPositiveButton(R.string.ok, { _: DialogInterface, _: Int -> confirmAction() })
+                    .setNegativeButton(R.string.cancel) { dialog: DialogInterface?, _: Int -> dialog?.dismiss() }
+                    .setPositiveButton(R.string.ok) { _: DialogInterface, _: Int -> confirmAction() }
                     .show()
         }
     }
@@ -172,7 +174,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             AlertDialog.Builder(it)
                     .setTitle(R.string.oops)
                     .setMessage(errorMessage)
-                    .setPositiveButton(R.string.close, { dialog: DialogInterface, _: Int -> dialog.dismiss() })
+                    .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
                     .show()
         }
     }
@@ -246,15 +248,15 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                 view?.apply {
                     itemView.app_name.text = application.label
                     itemView.app_icon.setImageDrawable(application.getApplicationIcon(pm))
-                    itemView.setOnClickListener({ listener.onAppClick(application) })
+                    itemView.setOnClickListener { listener.onAppClick(application) }
                     val options = RequestOptions()
                             .fitCenter()
-                            .placeholder(android.R.drawable.sym_def_app_icon)
                             .error(R.drawable.ic_error_red_24dp)
-                            .diskCacheStrategy(DiskCacheStrategy.NONE)
+                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                     Glide.with(this)
                             .load(application.getApplicationIcon(pm))
                             .apply(options)
+                            .transition(withCrossFade(DrawableCrossFadeFactory.Builder(100).setCrossFadeEnabled(true).build()))
                             .into(itemView.app_icon)
                 }
             }
