@@ -13,6 +13,7 @@ import android.util.SparseArray
 import android.view.MenuItem
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.jaeger.library.StatusBarUtil
 import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
@@ -93,7 +94,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         app_info_min_sdk_version.text = getString(R.string.min_sdk_version, CODENAME.get(application.minSdkVersion, UNKNOWN))
         Glide.with(this)
                 .load(application.getApplicationIcon(packageManager))
-                .transition(DrawableTransitionOptions().crossFade())
+                .transition(DrawableTransitionOptions.withCrossFade(DrawableCrossFadeFactory.Builder(100).setCrossFadeEnabled(true).build()))
                 .into(app_info_icon)
         app_info_icon.setOnClickListener { AppLauncher.startApplication(this, application.packageName) }
     }
