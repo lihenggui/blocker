@@ -1,8 +1,12 @@
 package com.merxury.blocker.ui.home
 
-enum class ApplicationComparatorType {
-    ASCENDING_BY_LABEL,
-    DESCENDING_BY_LABEL,
-    INSTALLATION_TIME,
-    LAST_UPDATE_TIME
+enum class ApplicationComparatorType(val value: Int) {
+    ASCENDING_BY_LABEL(0),
+    DESCENDING_BY_LABEL(1),
+    INSTALLATION_TIME(2),
+    LAST_UPDATE_TIME(3);
+
+    companion object {
+        fun from(findValue: Int): ApplicationComparatorType = ApplicationComparatorType.values().first { it.value == findValue }
+    }
 }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
+<resources xmlns:tools="http://schemas.android.com/tools" translatable="false" tools:ignore="MissingTranslation">
     <string name="key_pref_controller_type">pref_controllerType</string>
     <string name="key_pref_controller_type_default_value">root</string>
     <string name="key_pref_rule_path">pref_key_rule_path</string>
@@ -13,4 +13,5 @@
     <string name="key_pref_reset_ifw_rules">pref_key_reset_ifw_rules</string>
     <string name="key_pref_import_mat_rules">pref_key_import_mat_rules</string>
     <string name="key_pref_about">pref_key_about</string>
+    <string name="key_pref_comparator_type">pref_key_comparator_type</string>
 </resources>
