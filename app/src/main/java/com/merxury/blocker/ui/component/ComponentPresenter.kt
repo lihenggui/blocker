@@ -19,6 +19,7 @@ import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.strategy.service.ApiClient
 import com.merxury.blocker.strategy.service.IClientServer
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.StringUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
@@ -103,9 +104,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe { _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
-                        Log.e(TAG, message)
+                        val errorMessage = StringUtil.getStackTrace(error)
+                        Log.e(TAG, errorMessage)
                         printStackTrace()
-                        view?.showAlertDialog()
+                        view?.showAlertDialog(errorMessage)
                     }
                 }
         return true
@@ -137,9 +139,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe { _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
-                        Log.e(TAG, message)
+                        val errorMessage = StringUtil.getStackTrace(this)
+                        Log.e(TAG, errorMessage)
                         printStackTrace()
-                        view?.showAlertDialog()
+                        view?.showAlertDialog(errorMessage)
                     }
                 }
         return true
@@ -160,9 +163,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe { _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
-                        Log.e(TAG, message)
+                        val errorMessage = StringUtil.getStackTrace(error)
+                        Log.e(TAG, errorMessage)
                         printStackTrace()
-                        view?.showAlertDialog()
+                        view?.showAlertDialog(errorMessage)
                     }
                 }
         return true
@@ -202,9 +206,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 }, { error ->
                     error?.apply {
                         ifwController.reload()
-                        Log.e(TAG, message)
+                        val errorMessage = StringUtil.getStackTrace(this)
+                        Log.e(TAG, errorMessage)
                         printStackTrace()
-                        view?.showAlertDialog()
+                        view?.showAlertDialog(errorMessage)
                     }
                 })
     }
@@ -233,9 +238,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 }, { error ->
                     error?.apply {
                         ifwController.reload()
-                        Log.e(TAG, message)
+                        val errorMessage = StringUtil.getStackTrace(error)
+                        Log.e(TAG, errorMessage)
                         printStackTrace()
-                        view?.showAlertDialog()
+                        view?.showAlertDialog(errorMessage)
                     }
                 })
     }
@@ -255,9 +261,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
                 }, { error ->
                     error?.apply {
-                        Log.e(TAG, message)
+                        val errorMessage = StringUtil.getStackTrace(this)
+                        Log.e(TAG, errorMessage)
                         printStackTrace()
-                        view?.showAlertDialog()
+                        view?.showAlertDialog(errorMessage)
                     }
                 })
 
@@ -325,9 +332,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         view?.showActionFail()
                     }
                     error?.apply {
-                        Log.e(TAG, message)
+                        val errorMessage = StringUtil.getStackTrace(error)
+                        Log.e(TAG, errorMessage)
                         printStackTrace()
-                        view?.showAlertDialog()
+                        view?.showAlertDialog(errorMessage)
                     }
                 }
 
@@ -365,9 +373,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe({
                     view?.refreshComponentState(it.name)
                 }, { error ->
-                    Log.e(TAG, error.message)
+                    val errorMessage = StringUtil.getStackTrace(error)
+                    Log.e(TAG, errorMessage)
                     error.printStackTrace()
-                    view?.showAlertDialog()
+                    view?.showAlertDialog(errorMessage)
                     view?.showActionFail()
 
                 }, {
@@ -406,9 +415,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         view?.showActionFail()
                     }
                 }, {
+                    val errorMessage = StringUtil.getStackTrace(it)
+                    Log.e(TAG, errorMessage)
                     it.printStackTrace()
-                    Log.e(TAG, it.message)
-                    view?.showAlertDialog()
+                    view?.showAlertDialog(errorMessage)
                 })
     }
 
@@ -445,9 +455,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         ToastUtil.showToast(context.getString(R.string.import_fail_message))
                     }
                 }, {
-                    it.printStackTrace()
-                    Log.e(TAG, it.message)
-                    view?.showAlertDialog()
+                    val errorMessage = StringUtil.getStackTrace(it)
+                    Log.e(TAG, errorMessage)
+                    it?.printStackTrace()
+                    view?.showAlertDialog(errorMessage)
                 })
     }
 

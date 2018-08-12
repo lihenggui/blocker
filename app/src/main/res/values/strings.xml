@@ -35,7 +35,7 @@
     <string name="installation_date">First Install Date</string>
     <string name="alert">Alert</string>
     <string name="oops">Oops</string>
-    <string name="no_root_error_message">Error occurs while switching the component state. Did you get the root permission?</string>
+    <string name="no_root_error_message">Error occurs while switching the component state. \n Stacktrace:\n %1$s</string>
     <string name="close">Close</string>
     <string name="package_name_asc">Package Name (Ascending)</string>
     <string name="package_name_des">Package Name (Descending)</string>
