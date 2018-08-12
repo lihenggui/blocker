@@ -1,6 +1,7 @@
 package com.merxury.blocker.ui.settings
 
 import android.annotation.TargetApi
+import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
@@ -34,6 +35,8 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
     private lateinit var resetIfwPreference: Preference
     private lateinit var importMatRulesPreference: Preference
     private lateinit var aboutPreference: Preference
+
+    private val matRulePathRequestCode = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -124,6 +127,19 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
         }
     }
 
+    override fun showDialog(title: String, message: String, file: String, action: (file: String) -> Unit) {
+        activity?.let {
+            AlertDialog.Builder(it)
+                    .setTitle(title)
+                    .setMessage(message)
+                    .setCancelable(true)
+                    .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+                    .setPositiveButton(R.string.ok) { _, _ -> action(file) }
+                    .create()
+                    .show()
+        }
+    }
+
     override fun onPreferenceClick(preference: Preference?): Boolean {
         if (preference == null) {
             return false
@@ -134,7 +150,17 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
             importRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::importAllRules)
             exportIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_ifw_rules_warning_message), presenter::exportAllIfwRules)
             importIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_ifw_rules_warning_message), presenter::importAllIfwRules)
-            importMatRulesPreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::importMatRules)
+            importMatRulesPreference -> {
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                intent.addCategory(Intent.CATEGORY_OPENABLE)
+                intent.type = "text/plain"
+                if (intent.resolveActivity(activity.packageManager) != null) {
+                    startActivityForResult(intent, matRulePathRequestCode)
+                } else {
+                    ToastUtil.showToast(getString(R.string.file_manager_required))
+                }
+
+            }
             resetIfwPreference -> showDialog(getString(R.string.warning), getString(R.string.reset_ifw_warning_message), presenter::resetIFW)
             aboutPreference -> {
                 // TODO add about action
@@ -142,7 +168,17 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
             else -> return false
         }
         return true
+    }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            matRulePathRequestCode -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    val filePath = data?.data?.path ?: "Invalid Path"
+                    showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), filePath, presenter::importMatRules)
+                }
+            }
+        }
     }
 
     companion object {

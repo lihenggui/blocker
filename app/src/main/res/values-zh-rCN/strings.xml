@@ -89,7 +89,7 @@
     <string name="about">关于</string>
     <string name="import_rule">导入规则</string>
     <string name="export_rule">导出规则</string>
-    <string name="processing">处理中...</string>
+    <string name="processing">处理中…</string>
     <string name="import_fail_message">导入失败，规则文件不存在。</string>
     <string name="export_rules">导出规则</string>
     <string name="reset_ifw">重置IFW</string>
@@ -106,4 +106,5 @@
     <string name="import_all_ifw_rules_warning_message">外置存储中的IFW规则将会被导入, 现有软件的规则将会被更新，继续操作吗？</string>
     <string name="reset_ifw_warning_message">所有应用的Intent Firewall规则将会被删除，继续操作吗？</string>
     <string name="processing_indicator">(%1$d/%2$d)</string>
+    <string name="file_manager_required">未找到文件管理器，请先从商店下载。</string>
 </resources>
