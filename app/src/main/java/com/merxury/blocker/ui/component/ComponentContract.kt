@@ -15,7 +15,7 @@ interface ComponentContract {
         fun showNoComponent()
         fun searchForComponent(name: String)
         fun showFilteringPopUpMenu()
-        fun showAlertDialog()
+        fun showAlertDialog(message: String?)
         fun refreshComponentState(componentName: String)
         fun showDisableAllAlert()
         fun showActionDone()
