@@ -4,7 +4,9 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
@@ -17,6 +19,13 @@ class IfwController(val context: Context) : IController {
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
         init(packageName)
         val type = getComponentType(packageName, componentName)
+        if (type == ComponentType.PROVIDER) {
+            return when (state) {
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> ComponentControllerProxy.getInstance(EControllerMethod.PM, context).disable(packageName, componentName)
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(packageName, componentName)
+                else -> false
+            }
+        }
         val result = when (state) {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> controller.add(packageName, componentName, type)
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> controller.remove(packageName, componentName, type)
