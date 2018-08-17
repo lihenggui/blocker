@@ -80,7 +80,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 }
     }
 
-    private fun getComponents(packageName: String, type: EComponentType): MutableList<ComponentInfo> {
+    private fun getComponents(packageName: String, type: EComponentType): MutableList<out ComponentInfo> {
         return when (type) {
             EComponentType.RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
             EComponentType.ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)
