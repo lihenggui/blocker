@@ -150,17 +150,7 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
             importRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::importAllRules)
             exportIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_ifw_rules_warning_message), presenter::exportAllIfwRules)
             importIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_ifw_rules_warning_message), presenter::importAllIfwRules)
-            importMatRulesPreference -> {
-                val intent = Intent(Intent.ACTION_GET_CONTENT)
-                intent.addCategory(Intent.CATEGORY_OPENABLE)
-                intent.type = "text/plain"
-                if (intent.resolveActivity(activity.packageManager) != null) {
-                    startActivityForResult(intent, matRulePathRequestCode)
-                } else {
-                    ToastUtil.showToast(getString(R.string.file_manager_required))
-                }
-
-            }
+            importMatRulesPreference -> selectMatFile()
             resetIfwPreference -> showDialog(getString(R.string.warning), getString(R.string.reset_ifw_warning_message), presenter::resetIFW)
             aboutPreference -> {
                 // TODO add about action
@@ -168,6 +158,17 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
             else -> return false
         }
         return true
+    }
+
+    private fun selectMatFile() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = "text/plain"
+        if (intent.resolveActivity(activity.packageManager) != null) {
+            startActivityForResult(intent, matRulePathRequestCode)
+        } else {
+            ToastUtil.showToast(getString(R.string.file_manager_required))
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
