@@ -1,7 +1,7 @@
 package com.merxury.libkit.utils
 
 import android.content.ComponentName
-import android.content.pm.ComponentInfo
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
@@ -69,8 +69,8 @@ object ApkUtils {
         return -1
     }
 
-    fun getActivities(pm: PackageManager, packageName: String): List<ComponentInfo> {
-        val activities = mutableListOf<ComponentInfo>()
+    fun getActivities(pm: PackageManager, packageName: String): List<ActivityInfo> {
+        val activities = mutableListOf<ActivityInfo>()
         try {
             val packageInfo = pm.getPackageInfo(packageName, 0)
             val parser = getParserForManifest(File(packageInfo.applicationInfo.sourceDir))
@@ -78,7 +78,7 @@ object ApkUtils {
                 if (parser.eventType == XmlPullParser.START_TAG && parser.name == "activity") {
                     for (i in 0 until parser.attributeCount) {
                         if (parser.getAttributeName(i) == "name") {
-                            val componentInfo = ComponentInfo()
+                            val componentInfo = ActivityInfo()
                             componentInfo.packageName = packageName
                             componentInfo.name = parser.getAttributeValue(i)
                             componentInfo.enabled = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(componentInfo.packageName, componentInfo.name))
