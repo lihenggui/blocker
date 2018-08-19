@@ -12,7 +12,7 @@
     <string name="activity">活动</string>
     <string name="service">服务</string>
     <string name="loading_text">加载中…</string>
-    <string name="app_cannot_start">这个应用程序无界面，无法直接直接启动 : (</string>
+    <string name="app_cannot_start">这个应用程序无界面，无法直接直接启动</string>
     <string name="no_app_message">嗷呜～没有应用程序哦</string>
     <string name="no_component_message">嗷呜～没有应用程序组件哦</string>
     <string name="application_label">名称: %1$s</string>

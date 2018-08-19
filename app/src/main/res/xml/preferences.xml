@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
     <PreferenceCategory
-        android:key="pref_key_controller_settings"
+        android:key="@string/key_pref_controller_settings"
         android:title="@string/pref_controller_settings">
         <ListPreference
-            android:defaultValue="root"
+            android:defaultValue="@string/key_pref_controller_type_default_value"
             android:dialogTitle="@string/pref_controller_chooser_title"
             android:entries="@array/pref_controllerType_entries"
             android:entryValues="@array/pref_controllerType_value"
-            android:key="pref_controllerType"
+            android:key="@string/key_pref_controller_type"
             android:title="@string/pref_controller_type" />
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:key="pref_key_rules"
+        android:key="@string/key_pref_rules"
         android:title="@string/pref_rule_settings">
         <EditTextPreference
             android:defaultValue="@string/key_pref_rule_path_default_value"
@@ -32,7 +32,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:key="pref_key_ifw"
+        android:key="@string/key_pref_ifw"
         android:title="@string/pref_ifw_settings">
         <EditTextPreference
             android:defaultValue="@string/key_pref_ifw_rule_path_default_value"
@@ -54,7 +54,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:key="pref_key_other"
+        android:key="@string/key_pref_other"
         android:title="@string/others">
         <Preference
             android:key="@string/key_pref_import_mat_rules"
@@ -62,7 +62,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:key="pref_about"
+        android:key="@string/key_pref_about_category"
         android:title="@string/about">
         <Preference
             android:key="@string/key_pref_about"
