@@ -210,9 +210,12 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 })
     }
 
-    override fun importMatRules(filePath: String) {
+    override fun importMatRules(filePath: String?) {
         val importMatSingle = Single.create(SingleOnSubscribe<RulesResult> { emitter ->
             try {
+                if (filePath == null) {
+                    emitter.onError(NullPointerException("File path cannot be null"))
+                }
                 val file = File(filePath)
                 if (!file.exists()) {
                     emitter.onError(FileNotFoundException("Cannot find MyAndroidTools Rule File: ${file.path}"))
