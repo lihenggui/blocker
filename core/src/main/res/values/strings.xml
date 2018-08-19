@@ -1,4 +1,3 @@
 <resources>
     <string name="app_name">core-server</string>
-    <string name="app_cannot_start">This application cannot be started directly</string>
 </resources>

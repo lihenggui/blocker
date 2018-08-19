@@ -3,7 +3,7 @@ package com.merxury.blocker.util
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import com.merxury.blocker.core.R
+import com.merxury.blocker.R
 
 object AppLauncher {
     fun startApplication(context: Context, packageName: String) {
