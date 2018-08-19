@@ -229,32 +229,26 @@ public class ApplicationUtil {
         } else {
             flags = flags | PackageManager.MATCH_DISABLED_COMPONENTS;
         }
-        PackageInfo info = null;
+        PackageInfo info = new PackageInfo();
         try {
             info = pm.getPackageInfo(packageName, flags);
         } catch (RuntimeException e) {
             //TODO Dirty code, refactor later
             Log.e(TAG, e.getMessage());
-            info = new PackageInfo();
-            info.packageName = packageName;
-            List<ActivityInfo> activityList = getActivityList(pm, packageName);
-            info.activities = new ActivityInfo[activityList.size()];
-            info.activities = activityList.toArray(info.activities);
-            List<ServiceInfo> serviceList = getServiceList(pm, packageName);
-            info.services = new ServiceInfo[serviceList.size()];
-            info.services = serviceList.toArray(info.services);
-            List<ActivityInfo> receiverList = getReceiverList(pm, packageName);
-            info.receivers = new ActivityInfo[receiverList.size()];
-            info.receivers = receiverList.toArray(info.receivers);
-            List<ProviderInfo> providerList = getProviderList(pm, packageName);
-            info.providers = new ProviderInfo[providerList.size()];
-            info.providers = providerList.toArray(info.providers);
+            info = getPackageInfoFromManifest(pm, packageName);
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Cannot find specified package.");
         }
-        if (info == null) {
-            return new PackageInfo();
-        }
+        return info;
+    }
+
+    private static PackageInfo getPackageInfoFromManifest(@NonNull PackageManager pm, @NonNull String packageName) {
+        PackageInfo info = new PackageInfo();
+        info.packageName = packageName;
+        info.activities = getActivityList(pm, packageName).toArray(new ActivityInfo[0]);
+        info.services = getServiceList(pm, packageName).toArray(new ServiceInfo[0]);
+        info.receivers = getReceiverList(pm, packageName).toArray(new ActivityInfo[0]);
+        info.providers = getProviderList(pm, packageName).toArray(new ProviderInfo[0]);
         return info;
     }
 
