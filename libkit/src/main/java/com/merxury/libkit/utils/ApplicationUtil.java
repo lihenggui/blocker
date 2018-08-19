@@ -233,7 +233,6 @@ public class ApplicationUtil {
         try {
             info = pm.getPackageInfo(packageName, flags);
         } catch (RuntimeException e) {
-            //TODO Dirty code, refactor later
             Log.e(TAG, e.getMessage());
             info = getPackageInfoFromManifest(pm, packageName);
         } catch (PackageManager.NameNotFoundException e) {
