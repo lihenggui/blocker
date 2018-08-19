@@ -11,7 +11,7 @@ interface SettingsContract : BaseView<SettingsContract.SettingsPresenter> {
         fun showResetResult(isSucceed: Boolean)
         fun showMessage(@StringRes res: Int)
         fun showDialog(@StringRes title: String, @StringRes message: String, action: () -> Unit)
-        fun showDialog(title: String, message: String, file: String, action: (file: String) -> Unit)
+        fun showDialog(title: String, message: String, file: String?, action: (file: String?) -> Unit)
     }
 
     interface SettingsPresenter : BasePresenter {
@@ -19,7 +19,7 @@ interface SettingsContract : BaseView<SettingsContract.SettingsPresenter> {
         fun importAllRules()
         fun exportAllIfwRules()
         fun importAllIfwRules()
-        fun importMatRules(filePath: String)
+        fun importMatRules(filePath: String?)
         fun resetIFW()
     }
 }

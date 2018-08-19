@@ -17,6 +17,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import com.merxury.blocker.R
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.libkit.utils.FileUtils
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, OnPreferenceClickListener {
@@ -127,7 +128,7 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
         }
     }
 
-    override fun showDialog(title: String, message: String, file: String, action: (file: String) -> Unit) {
+    override fun showDialog(title: String, message: String, file: String?, action: (file: String?) -> Unit) {
         activity?.let {
             AlertDialog.Builder(it)
                     .setTitle(title)
@@ -163,7 +164,7 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
     private fun selectMatFile() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.type = "text/plain"
+        intent.type = "*/*"
         if (intent.resolveActivity(activity.packageManager) != null) {
             startActivityForResult(intent, matRulePathRequestCode)
         } else {
@@ -175,7 +176,7 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
         when (requestCode) {
             matRulePathRequestCode -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    val filePath = data?.data?.path ?: "Invalid Path"
+                    val filePath = FileUtils.getUriPath(activity, data?.data)
                     showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), filePath, presenter::importMatRules)
                 }
             }
