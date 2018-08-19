@@ -12,8 +12,8 @@ android {
         applicationId "com.merxury.blocker"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 26
-        versionName "0.1.26-alpha"
+        versionCode 27
+        versionName "0.1.27-alpha"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
