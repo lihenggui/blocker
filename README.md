@@ -1,3 +1,4 @@
+[中文说明](https://github.com/lihenggui/blocker/blob/master/README.zh-CN.md)
 # Blocker
 An useful tool that can controls activities,  broadcasts, services and providers using different controlling methods. 
 
