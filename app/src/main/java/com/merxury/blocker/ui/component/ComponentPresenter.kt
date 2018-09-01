@@ -12,12 +12,9 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
-import com.merxury.blocker.core.shizuku.ShizukuClientWrapper
 import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.RulesResult
-import com.merxury.blocker.strategy.service.ApiClient
-import com.merxury.blocker.strategy.service.IClientServer
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StringUtil
 import com.merxury.blocker.util.ToastUtil
@@ -45,11 +42,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         ComponentControllerProxy.getInstance(controllerType, context)
     }
 
-
-    private val componentClient: IClientServer by lazy {
-        ApiClient.createClient()
-    }
-
     private val ifwController: IntentFirewall by lazy {
         IntentFirewallImpl.getInstance(context, packageName)
     }
@@ -57,6 +49,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     init {
         view?.presenter = this
         pm = context.packageManager
+    }
+
+    override fun start(context: Context) {
+
+    }
+
+    override fun destroy() {
+        view = null
     }
 
     @SuppressLint("CheckResult")
@@ -113,7 +113,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return true
     }
 
-    @SuppressLint("CheckResult")
     override fun enable(packageName: String, componentName: String): Boolean {
         Log.i(TAG, "Enable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
@@ -148,7 +147,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return true
     }
 
-    @SuppressLint("CheckResult")
     override fun disable(packageName: String, componentName: String): Boolean {
         Log.i(TAG, "Disable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
@@ -471,35 +469,9 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return viewModels
     }
 
-    private fun requestShizukuPermission() {
-        RxPermissions(context as Activity)
-                .request(ShizukuClientWrapper.PERMISSION_V23)
-                .subscribe { granted ->
-
-                }
-    }
-
-    override fun start(context: Context) {
-
-    }
-
-    override fun destroy() {
-        view = null
-    }
-
-    override fun requestPermissions() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun onPermissionsResult() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     override var currentComparator: EComponentComparatorType = EComponentComparatorType.SIMPLE_NAME_ASCENDING
 
     companion object {
         const val TAG = "ComponentPresenter"
-        const val UPVOTED = "_voted"
-        const val DOWNVOTED = "_downvoted"
     }
 }

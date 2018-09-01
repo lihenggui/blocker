@@ -19,12 +19,4 @@
         android:id="@+id/menu_refresh"
         android:title="@string/refresh"
         app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_export"
-        android:title="@string/export_ifw_rules"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/menu_import"
-        android:title="@string/import_ifw_rules"
-        app:showAsAction="never" />
 </menu>
