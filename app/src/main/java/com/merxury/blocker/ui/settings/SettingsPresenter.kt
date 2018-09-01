@@ -249,14 +249,6 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .subscribe()
     }
 
-    fun requestStoragePermission() {
-        RxPermissions(context as Activity)
-                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .subscribe { result ->
-
-                }
-    }
-
     override fun start(context: Context) {
 
     }
@@ -265,16 +257,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
 
     }
 
-    override fun requestPermissions() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
-    override fun onPermissionsResult() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
-
     companion object {
         private const val TAG = "SettingsPresenter"
-        private const val MAT_FILE_NAME = "myandroidtools_backup.txt"
     }
 }

@@ -26,9 +26,6 @@ import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
 
 class ApplicationListFragment : Fragment(), HomeContract.View {
-    override var isActive: Boolean = false
-        get() = isAdded
-
     override lateinit var presenter: HomeContract.Presenter
 
     private var isSystem: Boolean = false
@@ -187,8 +184,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         when (item.itemId) {
             R.id.menu_filter -> showFilteringPopUpMenu()
             R.id.menu_refresh -> presenter.loadApplicationList(context!!, isSystem)
-            R.id.menu_export -> showAlert(R.string.export_alert_message, { presenter.exportIfwRules() })
-            R.id.menu_import -> showAlert(R.string.import_alert_message, { presenter.importIfwRules() })
         }
         return true
     }

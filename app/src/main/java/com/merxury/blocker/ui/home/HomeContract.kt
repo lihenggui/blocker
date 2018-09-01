@@ -13,7 +13,6 @@ import com.merxury.libkit.entity.Application
 
 interface HomeContract {
     interface View : BaseView<Presenter> {
-        var isActive: Boolean
         fun setLoadingIndicator(active: Boolean)
         fun searchForApplication(name: String)
         fun showApplicationList(applications: List<Application>)
@@ -29,9 +28,6 @@ interface HomeContract {
         var currentComparator: ApplicationComparatorType
         fun loadApplicationList(context: Context, isSystemApplication: Boolean)
         fun openApplicationDetails(application: Application)
-        fun result(requestCode: Int, resultCode: Int)
         fun sortApplicationList(applications: List<Application>): List<Application>
-        fun exportIfwRules()
-        fun importIfwRules()
     }
 }
