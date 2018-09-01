@@ -1,5 +1,5 @@
 # Blocker
-An useful tool that can controls activities,  broadcasts, services and providers.
+An useful tool that can controls activities,  broadcasts, services and providers using different controlling methods. 
 
 ## Advantage
 1. Open source
@@ -8,11 +8,7 @@ An useful tool that can controls activities,  broadcasts, services and providers
 4. Smart (WIP)
 
 ## Plan
-1. Set IFW controller as default
-2. Add online strategy support (80%)
-3. Description for components (50%)
-4. Redesign user interface
-5. Show component info after user installed an application
+1. Rearrange existing code.
+2. Redesign user interface
+3. Show component info after user installed an application
 
-## Known Bugs
-1. The application list cannot be sorted correctly while typing.
