@@ -5,7 +5,6 @@ import android.content.Context
 import com.merxury.blocker.core.ifw.IfwController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootController
-import com.merxury.blocker.core.shizuku.ShizukuController
 
 
 /**
@@ -16,7 +15,6 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
 
     private var controller: IController = when (method) {
         EControllerMethod.PM -> RootController(context)
-        EControllerMethod.SHIZUKU -> ShizukuController(context)
         EControllerMethod.IFW -> IfwController(context)
     }
 
