@@ -7,14 +7,12 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import com.merxury.blocker.core.shizuku.ShizukuClientWrapper
 import com.merxury.blocker.util.NotificationUtil
 
 class BlockerApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         context = this
-        ShizukuClientWrapper.initialize(this)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channelId = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
             val channelName = context.getString(R.string.processing_progress_indicator)
