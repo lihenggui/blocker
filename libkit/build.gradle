@@ -9,7 +9,6 @@ android {
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -32,15 +31,15 @@ repositories {
 dependencies {
     compileOnly files(rootProject.rootDir.absolutePath + '/android-27/android.jar')
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:28.0.0-rc01'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "com.android.support:appcompat-v7:$support_lib_version"
+    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     //rxjava and rxandroid
-    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
-    implementation 'io.reactivex.rxjava2:rxjava:2.1.11'
+    api "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
+    api "io.reactivex.rxjava2:rxjava:$rxjava_version"
     //RootTools and RootShell support
-    implementation(name: 'RootTools', ext: 'aar')
-    implementation(name: 'RootShell', ext: 'aar')
+    api(name: 'RootTools', ext: 'aar')
+    api(name: 'RootShell', ext: 'aar')
 }
