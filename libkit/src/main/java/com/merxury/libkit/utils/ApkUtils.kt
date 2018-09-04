@@ -69,7 +69,7 @@ object ApkUtils {
         return -1
     }
 
-    fun getActivities(pm: PackageManager, packageName: String): List<ActivityInfo> {
+    fun getActivities(pm: PackageManager, packageName: String): MutableList<ActivityInfo> {
         val activities = mutableListOf<ActivityInfo>()
         try {
             val packageInfo = pm.getPackageInfo(packageName, 0)

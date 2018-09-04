@@ -47,7 +47,7 @@ public class RootControllerTest {
         long time1, time2;
         time1 = System.currentTimeMillis();
         PackageManager pm = context.getPackageManager();
-        List<Application> info = ApplicationUtil.getApplicationList(pm);
+        List<Application> info = ApplicationUtil.INSTANCE.getApplicationList(pm);
         time2 = System.currentTimeMillis();
         Log.d(TAG, "get applitation list takes " + (time2 - time1) + "milliseconds");
 

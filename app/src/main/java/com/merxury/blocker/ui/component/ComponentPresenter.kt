@@ -299,7 +299,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     override fun disableAllComponents(packageName: String, type: EComponentType) {
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
-            if (!PermissionUtils.isRootAvailable()) {
+            if (!PermissionUtils.isRootAvailable) {
                 emitter.onError(RootUnavailableException())
                 return@SingleOnSubscribe
             }
@@ -341,7 +341,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     override fun enableAllComponents(packageName: String, type: EComponentType) {
         Observable.create((ObservableOnSubscribe<ComponentInfo> { emitter ->
-            if (!PermissionUtils.isRootAvailable()) {
+            if (!PermissionUtils.isRootAvailable) {
                 emitter.onError(RootUnavailableException())
                 return@ObservableOnSubscribe
             }

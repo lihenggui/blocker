@@ -1,5 +1,7 @@
 package com.merxury.libkit.utils
 
+import android.annotation.TargetApi
+import android.os.Build
 import com.merxury.libkit.RootCommand
 import com.merxury.libkit.entity.ETrimMemoryLevel
 
@@ -36,6 +38,7 @@ object AmPmUtils {
         RootCommand.runBlockingCommand("pm clear $packageName")
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     fun trimMemory(packageName: String, level: ETrimMemoryLevel) {
         RootCommand.runBlockingCommand("am send-trim-memory $packageName ${level.name}")
     }
