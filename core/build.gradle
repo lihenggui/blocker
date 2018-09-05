@@ -13,25 +13,18 @@ android {
     }
     buildTypes {
         release {
-            postprocessing {
-                removeUnusedCode true
-                removeUnusedResources false
-                obfuscate false
-                optimizeCode true
-                proguardFile 'proguard-rules.pro'
-            }
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     lintOptions {
         abortOnError false
     }
-
 }
 repositories {
     flatDir {
         dirs 'libs'
     }
-    mavenCentral()
 }
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')

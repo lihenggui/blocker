@@ -22,7 +22,6 @@ android {
     lintOptions {
         abortOnError false
     }
-
 }
 repositories {
     flatDir {
