@@ -27,7 +27,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     private lateinit var packageName: String
     private lateinit var type: EComponentType
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val args = arguments
