@@ -17,6 +17,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withC
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.merxury.blocker.R
+import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.component.ComponentActivity
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.entity.Application
@@ -33,9 +34,13 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     /**
      * listener for clicks on items in the RecyclerView
      */
-    internal var itemListener: AppItemListener = object : AppItemListener {
+    private var itemListener: AppItemListener = object : AppItemListener {
         override fun onAppClick(application: Application) {
             presenter.openApplicationDetails(application)
+        }
+
+        override fun onAppLongClick(application: Application) {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         }
     }
 
@@ -108,6 +113,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                 adapter = listAdapter
                 itemAnimator = DefaultItemAnimator()
                 addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
+                registerForContextMenu(this)
             }
             appListSwipeLayout.apply {
                 setColorSchemeColors(
@@ -154,6 +160,38 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     }
 
+    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        activity?.menuInflater?.inflate(R.menu.app_list_long_click_menu, menu)
+    }
+
+    override fun onContextItemSelected(item: MenuItem?): Boolean {
+        if (!userVisibleHint || item == null) {
+            return false
+        }
+        val position = (item.menuInfo as ContextMenuRecyclerView.RecyclerContextMenuInfo).position
+        val application = listAdapter.getDataAt(position)
+        when (item.itemId) {
+            R.id.launch_application -> {
+            }
+            R.id.force_stop -> {
+            }
+            R.id.enable_application -> {
+            }
+            R.id.disable_application -> {
+            }
+            R.id.clear_data -> {
+            }
+            R.id.trim_memory -> {
+            }
+            R.id.disable_trim_memory -> {
+            }
+            R.id.details -> {
+            }
+        }
+        return true
+    }
+
     override fun showAlert(alertMessage: Int, confirmAction: () -> Unit) {
         context?.let {
             AlertDialog.Builder(it)
@@ -190,6 +228,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     interface AppItemListener {
         fun onAppClick(application: Application)
+        fun onAppLongClick(application: Application)
     }
 
     companion object {
@@ -229,6 +268,10 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             notifyDataSetChanged()
         }
 
+        fun getDataAt(position: Int): Application {
+            return applications[position]
+        }
+
         fun filter(keyword: String) {
             applications = if (keyword.isEmpty()) {
                 listCopy
@@ -243,6 +286,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                 view?.apply {
                     itemView.app_name.text = application.label
                     itemView.app_icon.setImageDrawable(application.getApplicationIcon(pm))
+                    itemView.isLongClickable = true
                     itemView.setOnClickListener { listener.onAppClick(application) }
                     val options = RequestOptions()
                             .fitCenter()

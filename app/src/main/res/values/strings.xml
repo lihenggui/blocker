@@ -116,4 +116,13 @@
     <string name="cannot_find_file">Cannot find file: %1$s</string>
     <string name="processing_indicator">(%1$d/%2$d)</string>
     <string name="file_manager_required">You need to install a file manager from store first.</string>
+    <string name="force_stop">Force Stop</string>
+    <string name="launch_application">Launch Application</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="disable">Disable</string>
+    <string name="enable">Enable</string>
+    <string name="clear_data">Clear Data</string>
+    <string name="trim_memory">Trim Memory</string>
+    <string name="disable_trim_memory">Disable Memory Trim</string>
+    <string name="details">Details</string>
 </resources>
