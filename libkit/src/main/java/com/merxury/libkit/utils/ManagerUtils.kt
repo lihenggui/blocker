@@ -5,7 +5,7 @@ import android.os.Build
 import com.merxury.libkit.RootCommand
 import com.merxury.libkit.entity.ETrimMemoryLevel
 
-object AmPmUtils {
+object ManagerUtils {
     fun launchApplication(packageName: String) {
         RootCommand.runBlockingCommand("monkey -p $packageName -c android.intent.category.LAUNCHER 1")
     }
