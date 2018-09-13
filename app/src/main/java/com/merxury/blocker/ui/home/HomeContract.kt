@@ -5,6 +5,7 @@ import android.support.annotation.StringRes
 import com.merxury.blocker.base.BasePresenter
 import com.merxury.blocker.base.BaseView
 import com.merxury.libkit.entity.Application
+import com.merxury.libkit.entity.ETrimMemoryLevel
 
 /**
  * @author Mercury
@@ -29,5 +30,12 @@ interface HomeContract {
         fun loadApplicationList(context: Context, isSystemApplication: Boolean)
         fun openApplicationDetails(application: Application)
         fun sortApplicationList(applications: List<Application>): List<Application>
+        fun launchApplication(packageName: String)
+        fun forceStop(packageName: String)
+        fun enableApplication(packageName: String)
+        fun disableApplication(packageName: String)
+        fun clearData(packageName: String)
+        fun trimMemory(packageName: String, level: ETrimMemoryLevel)
+        fun showDetails(packageName: String)
     }
 }
