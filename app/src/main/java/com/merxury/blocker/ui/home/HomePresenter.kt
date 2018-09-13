@@ -6,7 +6,9 @@ import android.content.pm.PackageManager
 import android.preference.PreferenceManager
 import com.merxury.blocker.R
 import com.merxury.libkit.entity.Application
+import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
+import com.merxury.libkit.utils.ManagerUtils
 import io.reactivex.Single
 import io.reactivex.SingleOnSubscribe
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -61,6 +63,102 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
             ApplicationComparatorType.INSTALLATION_TIME -> applications.sortedByDescending { it.firstInstallTime }.toMutableList()
             ApplicationComparatorType.LAST_UPDATE_TIME -> applications.sortedByDescending { it.lastUpdateTime }.toMutableList()
         }
+    }
+
+    override fun launchApplication(packageName: String) {
+        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+            ManagerUtils.launchApplication(packageName)
+            emitter.onSuccess(true)
+        })
+                .onErrorReturn { false }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+
+                }, {
+
+                })
+
+
+    }
+
+    override fun forceStop(packageName: String) {
+        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+            ManagerUtils.forceStop(packageName)
+            emitter.onSuccess(true)
+        })
+                .onErrorReturn { false }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+
+                }, {
+
+                })
+    }
+
+    override fun enableApplication(packageName: String) {
+        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+            ManagerUtils.enableApplication(packageName)
+            emitter.onSuccess(true)
+        })
+                .onErrorReturn { false }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+
+                }, {
+
+                })
+    }
+
+    override fun disableApplication(packageName: String) {
+        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+            ManagerUtils.disableApplication(packageName)
+            emitter.onSuccess(true)
+        })
+                .onErrorReturn { false }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+
+                }, {
+
+                })
+    }
+
+    override fun clearData(packageName: String) {
+        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+            ManagerUtils.clearData(packageName)
+            emitter.onSuccess(true)
+        })
+                .onErrorReturn { false }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+
+                }, {
+
+                })
+    }
+
+    override fun trimMemory(packageName: String, level: ETrimMemoryLevel) {
+        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+            ManagerUtils.trimMemory(packageName, level)
+            emitter.onSuccess(true)
+        })
+                .onErrorReturn { false }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+
+                }, {
+
+                })
+    }
+
+    override fun showDetails(packageName: String) {
+
     }
 
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL

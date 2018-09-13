@@ -21,6 +21,7 @@ import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.component.ComponentActivity
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.entity.Application
+import com.merxury.libkit.entity.ETrimMemoryLevel
 import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.android.synthetic.main.fragment_app_list.view.*
@@ -172,22 +173,14 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         val position = (item.menuInfo as ContextMenuRecyclerView.RecyclerContextMenuInfo).position
         val application = listAdapter.getDataAt(position)
         when (item.itemId) {
-            R.id.launch_application -> {
-            }
-            R.id.force_stop -> {
-            }
-            R.id.enable_application -> {
-            }
-            R.id.disable_application -> {
-            }
-            R.id.clear_data -> {
-            }
-            R.id.trim_memory -> {
-            }
-            R.id.disable_trim_memory -> {
-            }
-            R.id.details -> {
-            }
+            R.id.launch_application -> presenter.launchApplication(application.packageName)
+            R.id.force_stop -> presenter.forceStop(application.packageName)
+            R.id.enable_application -> presenter.enableApplication(application.packageName)
+            R.id.disable_application -> presenter.disableApplication(application.packageName)
+            R.id.clear_data -> presenter.clearData(application.packageName)
+            R.id.trim_memory -> presenter.trimMemory(application.packageName, ETrimMemoryLevel.RUNNING_CRITICAL)
+            R.id.disable_trim_memory -> presenter.trimMemory(application.packageName, ETrimMemoryLevel.HIDDEN)
+            R.id.details -> presenter.showDetails(application.packageName)
         }
         return true
     }
