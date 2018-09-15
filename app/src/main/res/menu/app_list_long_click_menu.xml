@@ -19,9 +19,6 @@
         android:id="@+id/trim_memory"
         android:title="@string/trim_memory" />
     <item
-        android:id="@+id/disable_trim_memory"
-        android:title="@string/disable_trim_memory" />
-    <item
         android:id="@+id/details"
         android:title="@string/details" />
 </menu>

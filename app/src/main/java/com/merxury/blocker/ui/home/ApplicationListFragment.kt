@@ -178,8 +178,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             R.id.enable_application -> presenter.enableApplication(application.packageName)
             R.id.disable_application -> presenter.disableApplication(application.packageName)
             R.id.clear_data -> presenter.clearData(application.packageName)
-            R.id.trim_memory -> presenter.trimMemory(application.packageName, ETrimMemoryLevel.RUNNING_CRITICAL)
-            R.id.disable_trim_memory -> presenter.trimMemory(application.packageName, ETrimMemoryLevel.HIDDEN)
+            R.id.trim_memory -> presenter.trimMemory(application.packageName, ETrimMemoryLevel.COMPLETE)
             R.id.details -> presenter.showDetails(application.packageName)
         }
         return true

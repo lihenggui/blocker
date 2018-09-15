@@ -107,4 +107,12 @@
     <string name="reset_ifw_warning_message">所有套用的Intent Firewall規則將會被刪除，繼續操作嗎？</string>
     <string name="processing_indicator">(%1$d/%2$d)</string>
     <string name="file_manager_required">未找到檔案管理器，請先從商店下載。</string>
+    <string name="force_stop">強制停止</string>
+    <string name="launch_application">啟動應用程序</string>
+    <string name="stop_service">停止服務</string>
+    <string name="enable">啟用</string>
+    <string name="clear_data">清除數據</string>
+    <string name="trim_memory">內存壓縮（實驗性）</string>
+    <string name="details">應用詳情</string>
+    <string name="starting_application">啟動應用中，請稍後</string>
 </resources>

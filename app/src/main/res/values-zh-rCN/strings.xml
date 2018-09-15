@@ -107,12 +107,12 @@
     <string name="reset_ifw_warning_message">所有应用的Intent Firewall规则将会被删除，继续操作吗？</string>
     <string name="processing_indicator">(%1$d/%2$d)</string>
     <string name="file_manager_required">未找到文件管理器，请先从商店下载。</string>
-    <string name="force_stop">Force Stop</string>
-    <string name="launch_application">Launch Application</string>
-    <string name="stop_service">Stop Service</string>
-    <string name="enable">Enable</string>
-    <string name="clear_data">Clear Data</string>
-    <string name="trim_memory">Trim Memory</string>
-    <string name="disable_trim_memory">Disable Memory Trim</string>
-    <string name="details">Details</string>
+    <string name="force_stop">强制停止</string>
+    <string name="launch_application">启动应用程序</string>
+    <string name="stop_service">停止服务</string>
+    <string name="enable">启用</string>
+    <string name="clear_data">清除数据</string>
+    <string name="trim_memory">内存压缩（实验性）</string>
+    <string name="details">应用详情</string>
+    <string name="starting_application">启动应用中，请稍后</string>
 </resources>

@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.preference.PreferenceManager
 import com.merxury.blocker.R
+import com.merxury.blocker.util.AppLauncher
 import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
@@ -66,20 +67,9 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     }
 
     override fun launchApplication(packageName: String) {
-        Single.create(SingleOnSubscribe<Boolean> { emitter ->
-            ManagerUtils.launchApplication(packageName)
-            emitter.onSuccess(true)
-        })
-                .onErrorReturn { false }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-
-                }, {
-
-                })
-
-
+        context?.let {
+            AppLauncher.startApplication(it, packageName)
+        }
     }
 
     override fun forceStop(packageName: String) {
@@ -158,7 +148,9 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     }
 
     override fun showDetails(packageName: String) {
-
+        context?.let {
+            AppLauncher.showApplicationDetails(it, packageName)
+        }
     }
 
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL

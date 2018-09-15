@@ -123,6 +123,6 @@
     <string name="enable">Enable</string>
     <string name="clear_data">Clear Data</string>
     <string name="trim_memory">Trim Memory</string>
-    <string name="disable_trim_memory">Disable Memory Trim</string>
     <string name="details">Details</string>
+    <string name="starting_application">Starting application, please wait</string>
 </resources>
