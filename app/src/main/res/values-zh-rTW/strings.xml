@@ -85,7 +85,7 @@
     <string name="pref_rule_path_summary">規則將會儲存至此資料夾</string>
     <string name="pref_rule_path_title">選擇路徑</string>
     <string name="import_rules">匯入規則</string>
-    <string name="pref_ifw_settings">IFW 設定</string>
+    <string name="pref_ifw_settings">IFW 規則</string>
     <string name="about">關於</string>
     <string name="import_rule">匯入規則</string>
     <string name="export_rule">匯出規則</string>
