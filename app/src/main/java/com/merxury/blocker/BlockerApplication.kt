@@ -8,6 +8,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import com.merxury.blocker.util.NotificationUtil
+import moe.shizuku.api.ShizukuClient
 
 class BlockerApplication : Application() {
     override fun onCreate() {
@@ -18,6 +19,7 @@ class BlockerApplication : Application() {
             val channelName = context.getString(R.string.processing_progress_indicator)
             createNotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
         }
+        ShizukuClient.initialize(this)
     }
 
     @TargetApi(Build.VERSION_CODES.O)
