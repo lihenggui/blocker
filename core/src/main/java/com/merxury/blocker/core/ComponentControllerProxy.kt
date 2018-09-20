@@ -1,7 +1,7 @@
 package com.merxury.blocker.core
 
-import android.content.ComponentName
 import android.content.Context
+import android.content.pm.ComponentInfo
 import com.merxury.blocker.core.ifw.IfwController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.root.RootController
@@ -35,11 +35,11 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
         return controller.checkComponentEnableState(packageName, componentName)
     }
 
-    override fun batchEnable(componentList: List<ComponentName>): Int {
+    override fun batchEnable(componentList: List<ComponentInfo>): Int {
         return controller.batchEnable(componentList)
     }
 
-    override fun batchDisable(componentList: List<ComponentName>): Int {
+    override fun batchDisable(componentList: List<ComponentInfo>): Int {
         return controller.batchDisable(componentList)
     }
 

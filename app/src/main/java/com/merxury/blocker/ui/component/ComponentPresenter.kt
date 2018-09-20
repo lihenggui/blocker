@@ -18,9 +18,6 @@ import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StringUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.ifw.IntentFirewall
-import com.merxury.ifw.IntentFirewallImpl
-import com.merxury.ifw.entity.ComponentType
 import com.merxury.libkit.RootCommand
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.PermissionUtils
@@ -42,9 +39,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         ComponentControllerProxy.getInstance(controllerType, context)
     }
 
-    private val ifwController: IntentFirewall by lazy {
-        IntentFirewallImpl.getInstance(context, packageName)
-    }
+    private val ifwController by lazy { ComponentControllerProxy.getInstance(EControllerMethod.IFW, context) }
 
     init {
         view?.presenter = this
@@ -184,16 +179,8 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         Log.i(TAG, "Disable component via IFW: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
-                when (type) {
-                    EComponentType.ACTIVITY -> ifwController.add(packageName, componentName, ComponentType.ACTIVITY)
-                    EComponentType.RECEIVER -> ifwController.add(packageName, componentName, ComponentType.BROADCAST)
-                    EComponentType.SERVICE -> ifwController.add(packageName, componentName, ComponentType.SERVICE)
-                    else -> {
-                    }
-                }
-                ifwController.save()
+                ifwController.disable(packageName, componentName)
                 emitter.onSuccess(true)
-                //TODO Duplicated code
             } catch (e: Exception) {
                 emitter.onError(e)
             }
@@ -203,10 +190,8 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                     view?.refreshComponentState(componentName)
                 }, { error ->
                     error?.apply {
-                        ifwController.reload()
                         val errorMessage = StringUtil.getStackTrace(this)
-                        Log.e(TAG, errorMessage)
-                        printStackTrace()
+                        Log.e(TAG, "Error while disabling component:\n", error)
                         view?.showAlertDialog(errorMessage)
                     }
                 })
@@ -216,14 +201,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         Log.i(TAG, "Disable component via IFW: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
-                when (type) {
-                    EComponentType.ACTIVITY -> ifwController.remove(packageName, componentName, ComponentType.ACTIVITY)
-                    EComponentType.RECEIVER -> ifwController.remove(packageName, componentName, ComponentType.BROADCAST)
-                    EComponentType.SERVICE -> ifwController.remove(packageName, componentName, ComponentType.SERVICE)
-                    else -> {
-                    }
-                }
-                ifwController.save()
+                ifwController.enable(packageName, componentName)
                 emitter.onSuccess(true)
                 //TODO Duplicated code
             } catch (e: Exception) {
@@ -235,10 +213,8 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                     view?.refreshComponentState(componentName)
                 }, { error ->
                     error?.apply {
-                        ifwController.reload()
                         val errorMessage = StringUtil.getStackTrace(error)
-                        Log.e(TAG, errorMessage)
-                        printStackTrace()
+                        Log.e(TAG, "Error while enable component:\n", error)
                         view?.showAlertDialog(errorMessage)
                     }
                 })
@@ -273,16 +249,16 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     }
 
-    override fun batchEnable(componentList: List<ComponentName>): Int {
+    override fun batchEnable(componentList: List<ComponentInfo>): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun batchDisable(componentList: List<ComponentName>): Int {
+    override fun batchDisable(componentList: List<ComponentInfo>): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
     override fun checkIFWState(packageName: String, componentName: String): Boolean {
-        return ifwController.getComponentEnableState(packageName, componentName)
+        return ifwController.checkComponentEnableState(packageName, componentName)
     }
 
     override fun getComponentViewModel(packageName: String, componentName: String): ComponentItemViewModel {
@@ -294,27 +270,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     override fun updateComponentViewModel(viewModel: ComponentItemViewModel) {
         viewModel.state = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(viewModel.packageName, viewModel.name))
-        viewModel.ifwState = ifwController.getComponentEnableState(viewModel.packageName, viewModel.name)
+        viewModel.ifwState = ifwController.checkComponentEnableState(viewModel.packageName, viewModel.name)
     }
 
     override fun disableAllComponents(packageName: String, type: EComponentType) {
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
-            if (!PermissionUtils.isRootAvailable) {
-                emitter.onError(RootUnavailableException())
-                return@SingleOnSubscribe
-            }
-            val components = getComponents(packageName, type)
             try {
-                components.forEach {
-                    when (type) {
-                        EComponentType.ACTIVITY -> ifwController.add(it.packageName, it.name, ComponentType.ACTIVITY)
-                        EComponentType.SERVICE -> ifwController.add(it.packageName, it.name, ComponentType.SERVICE)
-                        EComponentType.RECEIVER -> ifwController.add(it.packageName, it.name, ComponentType.BROADCAST)
-                        else -> {
-                        }
-                    }
-                }
-                ifwController.save()
+                val components = getComponents(packageName, type)
+                ifwController.batchDisable(components)
                 emitter.onSuccess(true)
             } catch (e: Exception) {
                 emitter.onError(e)
@@ -351,16 +314,9 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                     if (!ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(it.packageName, it.name))) {
                         ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(it.packageName, it.name)
                     }
-                    when (type) {
-                        EComponentType.ACTIVITY -> ifwController.remove(it.packageName, it.name, ComponentType.ACTIVITY)
-                        EComponentType.SERVICE -> ifwController.remove(it.packageName, it.name, ComponentType.SERVICE)
-                        EComponentType.RECEIVER -> ifwController.remove(it.packageName, it.name, ComponentType.BROADCAST)
-                        else -> {
-                        }
-                    }
+                    ifwController.enable(it.packageName, it.name)
                     emitter.onNext(it)
                 }
-                ifwController.save()
                 emitter.onComplete()
             } catch (e: Exception) {
                 emitter.onError(e)

@@ -2,6 +2,7 @@ package com.merxury.blocker.core.root
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import com.merxury.blocker.core.IController
@@ -44,20 +45,20 @@ class RootController(val context: Context) : IController {
         return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
     }
 
-    override fun batchEnable(componentList: List<ComponentName>): Int {
+    override fun batchEnable(componentList: List<ComponentInfo>): Int {
         var succeededCount = 0
         componentList.forEach {
-            if (enable(it.packageName, it.className)) {
+            if (enable(it.packageName, it.name)) {
                 succeededCount++
             }
         }
         return succeededCount
     }
 
-    override fun batchDisable(componentList: List<ComponentName>): Int {
+    override fun batchDisable(componentList: List<ComponentInfo>): Int {
         var succeededCount = 0
         componentList.forEach {
-            if (disable(it.packageName, it.className)) {
+            if (disable(it.packageName, it.name)) {
                 succeededCount++
             }
         }
