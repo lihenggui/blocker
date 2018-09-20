@@ -1,6 +1,6 @@
 package com.merxury.blocker.core
 
-import android.content.ComponentName
+import android.content.pm.ComponentInfo
 
 /**
  * Created by Mercury on 2018/1/13.
@@ -25,9 +25,9 @@ interface IController {
 
     fun disable(packageName: String, componentName: String): Boolean
 
-    fun batchEnable(componentList: List<ComponentName>): Int
+    fun batchEnable(componentList: List<ComponentInfo>): Int
 
-    fun batchDisable(componentList: List<ComponentName>): Int
+    fun batchDisable(componentList: List<ComponentInfo>): Int
 
     fun checkComponentEnableState(packageName: String, componentName: String): Boolean
 }

@@ -1,7 +1,7 @@
 package com.merxury.blocker.core.ifw
 
-import android.content.ComponentName
 import android.content.Context
+import android.content.pm.ComponentInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.ComponentControllerProxy
@@ -45,12 +45,12 @@ class IfwController(val context: Context) : IController {
         return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
     }
 
-    override fun batchEnable(componentList: List<ComponentName>): Int {
+    override fun batchEnable(componentList: List<ComponentInfo>): Int {
         var succeededCount = 0
         componentList.forEach {
             init(it.packageName)
-            val type = getComponentType(it.packageName, it.className)
-            if (controller.add(it.packageName, it.className, type)) {
+            val type = getComponentType(it.packageName, it.name)
+            if (controller.add(it.packageName, it.name, type)) {
                 succeededCount++
             }
         }
@@ -58,12 +58,12 @@ class IfwController(val context: Context) : IController {
         return succeededCount
     }
 
-    override fun batchDisable(componentList: List<ComponentName>): Int {
+    override fun batchDisable(componentList: List<ComponentInfo>): Int {
         var succeededCount = 0
         componentList.forEach {
             init(it.packageName)
-            val type = getComponentType(it.packageName, it.className)
-            if (controller.remove(it.packageName, it.className, type)) {
+            val type = getComponentType(it.packageName, it.name)
+            if (controller.remove(it.packageName, it.name, type)) {
                 succeededCount++
             }
         }
