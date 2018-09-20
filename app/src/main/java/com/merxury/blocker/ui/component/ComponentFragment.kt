@@ -2,12 +2,15 @@ package com.merxury.blocker.ui.component
 
 import android.app.Activity
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.*
+import android.util.Log
 import android.view.*
 import android.widget.PopupMenu
 import android.widget.Toast
@@ -21,6 +24,8 @@ import com.merxury.blocker.util.ToastUtil
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
+import moe.shizuku.api.ShizukuClient
+import moe.shizuku.api.ShizukuClient.REQUEST_CODE_PERMISSION
 
 class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
 
@@ -34,6 +39,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         type = arguments?.getSerializable(Constant.CATEGORY) as EComponentType
         packageName = arguments?.getString(Constant.PACKAGE_NAME) ?: ""
         presenter = ComponentPresenter(context!!, this, packageName)
+        initShizuku()
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -121,7 +127,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 menu?.removeItem(R.id.enable_by_ifw)
             }
         }
-
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -138,6 +143,20 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         return true
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            ShizukuClient.REQUEST_CODE_AUTHORIZATION -> {
+                if (resultCode == ShizukuClient.AUTH_RESULT_OK) {
+                    ShizukuClient.setToken(data)
+                } else {
+                    Log.d(TAG, "User denied Shizuku permission")
+                    // user denied
+                }
+                return
+            }
+            else -> super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
 
     override fun setLoadingIndicator(active: Boolean) {
         componentListSwipeLayout?.run {
@@ -173,7 +192,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             }
             show()
         }
-
     }
 
     override fun refreshComponentState(componentName: String) {
@@ -225,7 +243,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     .setTitle(R.string.warning)
                     .setMessage(R.string.warning_disable_all_component)
                     .setCancelable(true)
-                    .setNegativeButton(R.string.cancel, { dialog, _ -> dialog.dismiss() })
+                    .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
                     .setPositiveButton(R.string.ok) { _, _ ->
                         Toast.makeText(it, R.string.disabling_hint, Toast.LENGTH_SHORT).show()
                         presenter.disableAllComponents(packageName, type)
@@ -252,7 +270,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             AlertDialog.Builder(it)
                     .setTitle(R.string.oops)
                     .setMessage(errorMessage)
-                    .setPositiveButton(R.string.close, { dialog: DialogInterface, _: Int -> dialog.dismiss() })
+                    .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
                     .show()
         }
     }
@@ -263,14 +281,33 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     .setTitle(R.string.alert)
                     .setMessage(alertMessage)
                     .setCancelable(true)
-                    .setNegativeButton(R.string.cancel, { dialog: DialogInterface?, _: Int -> dialog?.dismiss() })
-                    .setPositiveButton(R.string.ok, { _: DialogInterface, _: Int -> confirmAction() })
+                    .setNegativeButton(R.string.cancel) { dialog: DialogInterface?, _: Int -> dialog?.dismiss() }
+                    .setPositiveButton(R.string.ok) { _: DialogInterface, _: Int -> confirmAction() }
                     .show()
         }
     }
 
     override fun showToastMessage(message: String?, length: Int) {
         ToastUtil.showToast(message ?: "null", length)
+    }
+
+    private fun initShizuku() {
+        context?.let {
+            if (PreferenceUtil.getControllerType(it) != EControllerMethod.SHIZUKU) {
+                return
+            }
+            if (!ShizukuClient.isManagerInstalled(it)) {
+                Log.e(TAG, "Shizuku is not installed!")
+                return
+            }
+            if (!ShizukuClient.getState().isAuthorized) {
+                if (ShizukuClient.checkSelfPermission(it)) {
+                    ShizukuClient.requestAuthorization(this)
+                } else {
+                    ActivityCompat.requestPermissions(activity as Activity, arrayOf(ShizukuClient.PERMISSION_V23), REQUEST_CODE_PERMISSION)
+                }
+            }
+        }
     }
 
     companion object {
@@ -336,11 +373,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             notifyDataSetChanged()
         }
 
-        fun addComponentDetails(componentData: AppComponentInfo) {
-            this.componentData = componentData
-            notifyDataSetChanged()
-        }
-
         fun getData(): MutableList<ComponentItemViewModel> {
             return components
         }
@@ -349,7 +381,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             components = if (keyword.isEmpty()) {
                 listCopy
             } else {
-                listCopy.filter { it.name.contains(keyword, true) }.toMutableList()
+                listCopy.asSequence().filter { it.name.contains(keyword, true) }.toMutableList()
             }
             notifyDataSetChanged()
         }
@@ -375,9 +407,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             }
 
             fun updateComponentDetails(component: Component) {
-                with(component) {
-                    itemView.component_description.text = component.bestComment?.description
-                }
+                itemView.component_description.text = component.bestComment?.description
             }
         }
     }
