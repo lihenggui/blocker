@@ -13,8 +13,10 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
+import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.strategy.entity.Component
 import com.merxury.blocker.strategy.entity.view.AppComponentInfo
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
@@ -29,9 +31,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val args = arguments
-        type = args?.getSerializable(Constant.CATEGORY) as EComponentType
-        packageName = args.getString(Constant.PACKAGE_NAME)
+        type = arguments?.getSerializable(Constant.CATEGORY) as EComponentType
+        packageName = arguments?.getString(Constant.PACKAGE_NAME) ?: ""
         presenter = ComponentPresenter(context!!, this, packageName)
     }
 
@@ -70,9 +71,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun onDestroy() {
-        if (::presenter.isInitialized) {
-            presenter.destroy()
-        }
+        presenter.destroy()
         super.onDestroy()
     }
 
@@ -116,6 +115,13 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         if (type != EComponentType.ACTIVITY) {
             menu?.removeItem(R.id.launch_activity)
         }
+        context?.let {
+            if (PreferenceUtil.getControllerType(it) == EControllerMethod.IFW) {
+                menu?.removeItem(R.id.block_by_ifw)
+                menu?.removeItem(R.id.enable_by_ifw)
+            }
+        }
+
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
