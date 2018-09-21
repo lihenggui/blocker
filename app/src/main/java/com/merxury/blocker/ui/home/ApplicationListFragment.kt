@@ -12,7 +12,6 @@ import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
@@ -283,7 +282,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                     val options = RequestOptions()
                             .fitCenter()
                             .error(R.drawable.ic_error_red_24dp)
-                            .diskCacheStrategy(DiskCacheStrategy.ALL)
                     Glide.with(this)
                             .load(application.getApplicationIcon(pm))
                             .apply(options)
