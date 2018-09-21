@@ -19,6 +19,7 @@ import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.strategy.entity.Component
 import com.merxury.blocker.strategy.entity.view.AppComponentInfo
+import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import kotlinx.android.synthetic.main.component_item.view.*
@@ -36,8 +37,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        type = arguments?.getSerializable(Constant.CATEGORY) as EComponentType
-        packageName = arguments?.getString(Constant.PACKAGE_NAME) ?: ""
+        type = arguments?.getSerializable(Constants.CATEGORY) as EComponentType
+        packageName = arguments?.getString(Constants.PACKAGE_NAME) ?: ""
         presenter = ComponentPresenter(context!!, this, packageName)
         initShizuku()
     }
@@ -315,8 +316,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         fun newInstance(packageName: String, type: EComponentType): Fragment {
             val fragment = ComponentFragment()
             val bundle = Bundle()
-            bundle.putSerializable(Constant.CATEGORY, type)
-            bundle.putString(Constant.PACKAGE_NAME, packageName)
+            bundle.putSerializable(Constants.CATEGORY, type)
+            bundle.putString(Constants.PACKAGE_NAME, packageName)
             fragment.arguments = bundle
             return fragment
         }

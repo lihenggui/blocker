@@ -18,6 +18,7 @@ import com.jaeger.library.StatusBarUtil
 import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
 import com.merxury.blocker.base.IActivityView
+import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.util.AppLauncher
 import com.merxury.blocker.util.setupActionBar
 import com.merxury.libkit.entity.Application
@@ -65,7 +66,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         if (intent == null) {
             finish()
         }
-        application = intent.getParcelableExtra(Constant.APPLICATION)
+        application = intent.getParcelableExtra(Constants.APPLICATION)
     }
 
     private fun setupTab() {
