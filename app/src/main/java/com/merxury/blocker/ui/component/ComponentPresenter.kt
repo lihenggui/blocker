@@ -240,29 +240,34 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun disableAllComponents(packageName: String, type: EComponentType) {
-        Single.create((SingleOnSubscribe<Boolean> { emitter ->
+        Observable.create((ObservableOnSubscribe<ComponentInfo> { emitter ->
+            if (!PermissionUtils.isRootAvailable) {
+                emitter.onError(RootUnavailableException())
+                return@ObservableOnSubscribe
+            }
+            val components = getComponents(packageName, type)
             try {
-                val components = getComponents(packageName, type)
-                ifwController.batchDisable(components)
-                emitter.onSuccess(true)
+                components.forEach {
+                    controller.disable(it.packageName, it.name)
+                    emitter.onNext(it)
+                }
+                emitter.onComplete()
             } catch (e: Exception) {
                 emitter.onError(e)
             }
-        })).subscribeOn(Schedulers.io())
+        }))
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .onErrorReturn { false }
-                .subscribe { result, error ->
+                .subscribe({
+                    view?.refreshComponentState(it.name)
+                }, { error ->
+                    Log.e(TAG, "Error in batch disable:", error)
+                    view?.showAlertDialog(StringUtil.getStackTrace(error))
+                    view?.showActionFail()
+                }, {
+                    view?.showActionDone()
                     loadComponents(packageName, type)
-                    if (result) {
-                        view?.showActionDone()
-                    } else {
-                        view?.showActionFail()
-                    }
-                    error?.apply {
-                        Log.e(TAG, "Error in batch disable:", error)
-                        view?.showAlertDialog(StringUtil.getStackTrace(error))
-                    }
-                }
+                })
     }
 
     override fun enableAllComponents(packageName: String, type: EComponentType) {
@@ -275,7 +280,11 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             try {
                 components.forEach {
                     if (!ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(it.packageName, it.name))) {
-                        ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(it.packageName, it.name)
+                        if (PreferenceUtil.getControllerType(context) == EControllerMethod.SHIZUKU) {
+                            ComponentControllerProxy.getInstance(EControllerMethod.SHIZUKU, context).enable(it.packageName, it.name)
+                        } else {
+                            ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(it.packageName, it.name)
+                        }
                     }
                     ifwController.enable(it.packageName, it.name)
                     emitter.onNext(it)
@@ -293,7 +302,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                     Log.e(TAG, "Error in batch enable:", error)
                     view?.showAlertDialog(StringUtil.getStackTrace(error))
                     view?.showActionFail()
-
                 }, {
                     view?.showActionDone()
                     loadComponents(packageName, type)
