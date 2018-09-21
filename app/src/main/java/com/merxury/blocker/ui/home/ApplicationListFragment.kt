@@ -17,6 +17,7 @@ import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
+import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.ui.component.ComponentActivity
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.entity.Application
@@ -88,7 +89,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     override fun showApplicationDetailsUi(application: Application) {
         val intent = Intent(context, ComponentActivity::class.java)
-        intent.putExtra(Constant.APPLICATION, application)
+        intent.putExtra(Constants.APPLICATION, application)
         context?.startActivity(intent)
     }
 
@@ -292,5 +293,4 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
         }
     }
-
 }
