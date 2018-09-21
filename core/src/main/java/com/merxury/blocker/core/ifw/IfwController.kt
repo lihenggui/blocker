@@ -72,6 +72,7 @@ class IfwController(val context: Context) : IController {
     }
 
     override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
+        init(packageName)
         return controller.getComponentEnableState(packageName, componentName)
     }
 
