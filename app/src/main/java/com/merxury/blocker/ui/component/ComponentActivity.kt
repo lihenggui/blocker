@@ -3,12 +3,15 @@ package com.merxury.blocker.ui.component
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.app.ActivityManager
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.util.SparseArray
 import android.view.MenuItem
 import com.bumptech.glide.Glide
@@ -24,13 +27,13 @@ import com.merxury.blocker.util.setupActionBar
 import com.merxury.libkit.entity.Application
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
+import moe.shizuku.api.ShizukuClient
 
 class ComponentActivity : AppCompatActivity(), IActivityView {
 
     private lateinit var application: Application
 
     private lateinit var adapter: FragmentAdapter
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +54,40 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
             android.R.id.home -> finish()
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            ShizukuClient.REQUEST_CODE_AUTHORIZATION -> {
+                if (resultCode == ShizukuClient.AUTH_RESULT_OK) {
+                    ShizukuClient.setToken(data)
+                } else {
+                    Log.d(ComponentFragment.TAG, "User denied Shizuku permission")
+                }
+                return
+            }
+            else -> super.onActivityResult(requestCode, resultCode, data)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        when (requestCode) {
+            ShizukuClient.REQUEST_CODE_PERMISSION -> if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
+                ShizukuClient.requestAuthorization(this)
+            } else {
+                Log.d(ComponentFragment.TAG, "User denied Shizuku permission")
+            }
+        }
+    }
+
+    override fun getBackgroundColor(tabPosition: Int): Int {
+        return when (tabPosition) {
+            0 -> ContextCompat.getColor(this, R.color.google_blue)
+            1 -> ContextCompat.getColor(this, R.color.google_green)
+            2 -> ContextCompat.getColor(this, R.color.google_red)
+            3 -> ContextCompat.getColor(this, R.color.md_yellow_800)
+            else -> ContextCompat.getColor(this, R.color.md_grey_700)
+        }
     }
 
     private fun setupViewPager() {
@@ -125,16 +162,6 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         }
         colorAnimation.duration = 500
         colorAnimation.start()
-    }
-
-    override fun getBackgroundColor(tabPosition: Int): Int {
-        return when (tabPosition) {
-            0 -> ContextCompat.getColor(this, R.color.google_blue)
-            1 -> ContextCompat.getColor(this, R.color.google_green)
-            2 -> ContextCompat.getColor(this, R.color.google_red)
-            3 -> ContextCompat.getColor(this, R.color.md_yellow_800)
-            else -> ContextCompat.getColor(this, R.color.md_grey_700)
-        }
     }
 
     companion object {

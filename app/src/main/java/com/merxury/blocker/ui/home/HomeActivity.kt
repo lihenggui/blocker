@@ -29,7 +29,6 @@ import kotlinx.android.synthetic.main.activity_home.*
 
 
 class HomeActivity : AppCompatActivity(), IActivityView {
-
     private lateinit var drawer: Drawer
     private lateinit var drawerLayout: DrawerLayout
 
