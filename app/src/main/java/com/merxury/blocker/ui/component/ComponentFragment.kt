@@ -2,7 +2,6 @@ package com.merxury.blocker.ui.component
 
 import android.app.Activity
 import android.content.DialogInterface
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
@@ -27,6 +26,7 @@ import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
 import moe.shizuku.api.ShizukuClient
 import moe.shizuku.api.ShizukuClient.REQUEST_CODE_PERMISSION
+
 
 class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
 
@@ -142,21 +142,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             R.id.launch_activity -> presenter.launchActivity(component.packageName, component.name)
         }
         return true
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            ShizukuClient.REQUEST_CODE_AUTHORIZATION -> {
-                if (resultCode == ShizukuClient.AUTH_RESULT_OK) {
-                    ShizukuClient.setToken(data)
-                } else {
-                    Log.d(TAG, "User denied Shizuku permission")
-                    // user denied
-                }
-                return
-            }
-            else -> super.onActivityResult(requestCode, resultCode, data)
-        }
     }
 
     override fun setLoadingIndicator(active: Boolean) {
