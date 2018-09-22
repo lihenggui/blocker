@@ -112,7 +112,7 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
     }
 
     override fun showMessage(res: Int) {
-        ToastUtil.showToast(getString(res), Toast.LENGTH_SHORT)
+        ToastUtil.showToast(res, Toast.LENGTH_SHORT)
     }
 
     override fun showDialog(title: String, message: String, action: () -> Unit) {

@@ -3,6 +3,7 @@ package com.merxury.blocker.util
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
+import android.support.annotation.StringRes
 import android.text.TextUtils
 import android.widget.Toast
 
@@ -20,6 +21,11 @@ object ToastUtil {
     }
 
     fun showToast(message: String, duration: Int) {
+        handler.sendMessage(handler.obtainMessage(0, 0, duration, message))
+    }
+
+    fun showToast(@StringRes msgId: Int, duration: Int) {
+        val message = BlockerApplication.context.getString(msgId)
         handler.sendMessage(handler.obtainMessage(0, 0, duration, message))
     }
 
