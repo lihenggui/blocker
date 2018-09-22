@@ -26,9 +26,10 @@
 -keep public class * extends android.content.BroadcastReceiver
 -keep public class * extends android.content.ContentProvider
 -keep public class com.google.gson.**
--keepclasseswithmembernames  public class com.merxury.ifw.**
--keepclasseswithmembernames  public class com.merxury.blocker.**
--keepclasseswithmembernames  public class org.simpleframework.xml.**
+-keep class com.merxury.** { *; }
+-keepnames class com.merxury.** { *; }
+-keep class org.simpleframework.xml.** { *; }
+-keepnames class org.simpleframework.xml.** { *; }
 -keep public class android.graphics.drawable.VectorDrawable
 -keep class android.support.v4.view.ViewCompat$OnUnhandledKeyEventListenerWrapper
 -keep public class * extends android.view.View {
