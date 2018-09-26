@@ -158,6 +158,13 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                 return true
             }
         })
+        searchView.setOnSearchClickListener {
+            setItemsVisibility(menu, searchItem, false)
+        }
+        searchView.setOnCloseListener {
+            setItemsVisibility(menu, searchItem, true)
+            false
+        }
 
     }
 
@@ -216,6 +223,14 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             R.id.menu_refresh -> presenter.loadApplicationList(context!!, isSystem)
         }
         return true
+    }
+
+    private fun setItemsVisibility(menu: Menu, exception: MenuItem, visible: Boolean) {
+        for (i in 0 until menu.size()) {
+            val item = menu.getItem(i)
+            if (item !== exception)
+                item.isVisible = visible
+        }
     }
 
     interface AppItemListener {
