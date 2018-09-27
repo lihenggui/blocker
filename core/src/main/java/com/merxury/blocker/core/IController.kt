@@ -25,9 +25,9 @@ interface IController {
 
     fun disable(packageName: String, componentName: String): Boolean
 
-    fun batchEnable(componentList: List<ComponentInfo>): Int
+    fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int
 
-    fun batchDisable(componentList: List<ComponentInfo>): Int
+    fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int
 
     fun checkComponentEnableState(packageName: String, componentName: String): Boolean
 }

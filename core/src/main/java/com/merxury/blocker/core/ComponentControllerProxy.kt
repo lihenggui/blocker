@@ -35,12 +35,12 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
         return controller.checkComponentEnableState(packageName, componentName)
     }
 
-    override fun batchEnable(componentList: List<ComponentInfo>): Int {
-        return controller.batchEnable(componentList)
+    override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
+        return controller.batchEnable(componentList) { action(it) }
     }
 
-    override fun batchDisable(componentList: List<ComponentInfo>): Int {
-        return controller.batchDisable(componentList)
+    override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
+        return controller.batchDisable(componentList) { action(it) }
     }
 
     companion object {

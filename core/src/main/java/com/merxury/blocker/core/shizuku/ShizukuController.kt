@@ -22,22 +22,24 @@ class ShizukuController(val context: Context) : IController {
         return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
     }
 
-    override fun batchEnable(componentList: List<ComponentInfo>): Int {
+    override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
         var successCount = 0
         componentList.forEach {
             if (enable(it.packageName, it.name)) {
                 successCount++
             }
+            action(it)
         }
         return successCount
     }
 
-    override fun batchDisable(componentList: List<ComponentInfo>): Int {
+    override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
         var successCount = 0
         componentList.forEach {
             if (disable(it.packageName, it.name)) {
                 successCount++
             }
+            action(it)
         }
         return successCount
     }
