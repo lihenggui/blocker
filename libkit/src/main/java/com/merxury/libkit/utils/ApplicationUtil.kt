@@ -13,8 +13,9 @@ import java.util.*
  */
 
 object ApplicationUtil {
-    private val TAG = "ApplicationUtil"
-    private val MARKET_URL = "market://details?id="
+    private const val TAG = "ApplicationUtil"
+    private const val BLOCKER_PACKAGE_NAME = "com.merxury.blocker"
+    private const val MARKET_URL = "market://details?id="
 
     /**
      * Get a list of installed applications on device
@@ -23,12 +24,11 @@ object ApplicationUtil {
      * @return list of application info
      */
     fun getApplicationList(pm: PackageManager): MutableList<Application> {
-        val installedApplications = pm.getInstalledPackages(0)
-        val appList = ArrayList<Application>(installedApplications.size)
-        for (info in installedApplications) {
-            appList.add(Application(pm, info))
-        }
-        return appList
+        return pm.getInstalledPackages(0)
+                .asSequence()
+                .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
+                .map { Application(pm, it) }
+                .toMutableList()
     }
 
     /**
@@ -38,14 +38,12 @@ object ApplicationUtil {
      * @return a list of installed third party applications
      */
     fun getThirdPartyApplicationList(pm: PackageManager): MutableList<Application> {
-        val installedApplications = pm.getInstalledPackages(0)
-        val thirdPartyList = ArrayList<Application>(installedApplications.size)
-        for (info in installedApplications) {
-            if (info.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0) {
-                thirdPartyList.add(Application(pm, info))
-            }
-        }
-        return thirdPartyList
+        return pm.getInstalledPackages(0)
+                .asSequence()
+                .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
+                .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
+                .map { Application(pm, it) }
+                .toMutableList()
     }
 
     /**
@@ -55,16 +53,11 @@ object ApplicationUtil {
      * @return a list of installed system applications
      */
     fun getSystemApplicationList(pm: PackageManager): MutableList<Application> {
-
-        val installedApplications = pm.getInstalledPackages(0)
-        val sysAppList = ArrayList<Application>(installedApplications.size)
-        for (info in installedApplications) {
-            if (info.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0) {
-                //System App
-                sysAppList.add(Application(pm, info))
-            }
-        }
-        return sysAppList
+        return pm.getInstalledPackages(0)
+                .asSequence()
+                .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
+                .map { Application(pm, it) }
+                .toMutableList()
     }
 
     /**
@@ -84,7 +77,7 @@ object ApplicationUtil {
                 flags = flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
             val components = pm.getPackageInfo(packageName, flags).activities
-            if (components != null && components.size > 0) {
+            if (components != null && components.isNotEmpty()) {
                 Collections.addAll(activities, *components)
             }
         } catch (e: PackageManager.NameNotFoundException) {
@@ -93,7 +86,6 @@ object ApplicationUtil {
             Log.e(TAG, e.message)
             return ApkUtils.getActivities(pm, packageName)
         }
-
         return activities
     }
 
@@ -114,13 +106,12 @@ object ApplicationUtil {
                 flags = flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
             val components = pm.getPackageInfo(packageName, flags).receivers
-            if (components != null && components.size > 0) {
+            if (components != null && components.isNotEmpty()) {
                 Collections.addAll(receivers, *components)
             }
         } catch (e: PackageManager.NameNotFoundException) {
             Log.e(TAG, "Cannot find specified package.")
         }
-
         return receivers
     }
 
@@ -141,13 +132,12 @@ object ApplicationUtil {
                 flags = flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
             val components = pm.getPackageInfo(packageName, flags).services
-            if (components != null && components.size > 0) {
+            if (components != null && components.isNotEmpty()) {
                 Collections.addAll(services, *components)
             }
         } catch (e: PackageManager.NameNotFoundException) {
             Log.e(TAG, "Cannot find specified package.")
         }
-
         return services
     }
 
@@ -168,7 +158,7 @@ object ApplicationUtil {
                 flags = flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
             val components = pm.getPackageInfo(packageName, flags).providers
-            if (components != null && components.size > 0) {
+            if (components != null && components.isNotEmpty()) {
                 Collections.addAll(providers, *components)
             }
         } catch (e: PackageManager.NameNotFoundException) {
@@ -196,7 +186,6 @@ object ApplicationUtil {
         } catch (e: PackageManager.NameNotFoundException) {
             Log.e(TAG, "Cannot find specified package.")
         }
-
         return info
     }
 
@@ -225,7 +214,6 @@ object ApplicationUtil {
         } catch (e: PackageManager.NameNotFoundException) {
             Log.e(TAG, "Cannot find specified package.")
         }
-
         return info
     }
 
@@ -255,7 +243,6 @@ object ApplicationUtil {
             Log.e(TAG, e.message)
             return false
         }
-
         return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
     }
 
@@ -275,7 +262,6 @@ object ApplicationUtil {
         } catch (e: PackageManager.NameNotFoundException) {
             Log.d(TAG, packageName + "is not installed.")
         }
-
         return false
     }
 }
