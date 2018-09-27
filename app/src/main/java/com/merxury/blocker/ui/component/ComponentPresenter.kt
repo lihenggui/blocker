@@ -215,11 +215,11 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(packageName, componentName))
     }
 
-    override fun batchEnable(componentList: List<ComponentInfo>): Int {
+    override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun batchDisable(componentList: List<ComponentInfo>): Int {
+    override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
@@ -247,8 +247,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
             val components = getComponents(packageName, type)
             try {
-                components.forEach {
-                    controller.disable(it.packageName, it.name)
+                controller.batchDisable(components) {
                     emitter.onNext(it)
                 }
                 emitter.onComplete()
@@ -278,7 +277,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             }
             val components = getComponents(packageName, type)
             try {
-                components.forEach {
+                ifwController.batchEnable(components) {
                     if (!ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(it.packageName, it.name))) {
                         if (PreferenceUtil.getControllerType(context) == EControllerMethod.SHIZUKU) {
                             ComponentControllerProxy.getInstance(EControllerMethod.SHIZUKU, context).enable(it.packageName, it.name)
@@ -286,7 +285,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                             ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(it.packageName, it.name)
                         }
                     }
-                    ifwController.enable(it.packageName, it.name)
                     emitter.onNext(it)
                 }
                 emitter.onComplete()

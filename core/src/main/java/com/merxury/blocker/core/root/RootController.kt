@@ -45,22 +45,24 @@ class RootController(val context: Context) : IController {
         return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
     }
 
-    override fun batchEnable(componentList: List<ComponentInfo>): Int {
+    override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
         var succeededCount = 0
         componentList.forEach {
             if (enable(it.packageName, it.name)) {
                 succeededCount++
             }
+            action(it)
         }
         return succeededCount
     }
 
-    override fun batchDisable(componentList: List<ComponentInfo>): Int {
+    override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
         var succeededCount = 0
         componentList.forEach {
             if (disable(it.packageName, it.name)) {
                 succeededCount++
             }
+            action(it)
         }
         return succeededCount
     }

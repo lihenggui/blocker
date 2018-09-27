@@ -45,20 +45,7 @@ class IfwController(val context: Context) : IController {
         return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
     }
 
-    override fun batchEnable(componentList: List<ComponentInfo>): Int {
-        var succeededCount = 0
-        componentList.forEach {
-            init(it.packageName)
-            val type = getComponentType(it.packageName, it.name)
-            if (controller.add(it.packageName, it.name, type)) {
-                succeededCount++
-            }
-        }
-        controller.save()
-        return succeededCount
-    }
-
-    override fun batchDisable(componentList: List<ComponentInfo>): Int {
+    override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
         var succeededCount = 0
         componentList.forEach {
             init(it.packageName)
@@ -66,6 +53,21 @@ class IfwController(val context: Context) : IController {
             if (controller.remove(it.packageName, it.name, type)) {
                 succeededCount++
             }
+            action(it)
+        }
+        controller.save()
+        return succeededCount
+    }
+
+    override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
+        var succeededCount = 0
+        componentList.forEach {
+            init(it.packageName)
+            val type = getComponentType(it.packageName, it.name)
+            if (controller.add(it.packageName, it.name, type)) {
+                succeededCount++
+            }
+            action(it)
         }
         controller.save()
         return succeededCount
