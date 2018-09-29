@@ -115,4 +115,5 @@
     <string name="trim_memory">內存壓縮（實驗性）</string>
     <string name="details">應用詳情</string>
     <string name="starting_application">啟動應用中，請稍後</string>
+    <string name="disable">禁用</string>
 </resources>
