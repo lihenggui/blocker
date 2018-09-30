@@ -95,8 +95,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 }
                 emitter.onComplete()
             } catch (e: Exception) {
-                Log.e(TAG, e.message)
-                e.printStackTrace()
+                Log.e(TAG, "Error occurs in importing rules:", e)
                 emitter.onError(e)
             }
         })
@@ -226,8 +225,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 }
                 emitter.onSuccess(result)
             } catch (e: Exception) {
-                e.printStackTrace()
-                Log.e(TAG, e.message)
+                Log.e(TAG, "Error occurs in importing mat rules:", e)
                 emitter.onError(e)
             }
         })
