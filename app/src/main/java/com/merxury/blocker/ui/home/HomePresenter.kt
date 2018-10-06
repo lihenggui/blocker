@@ -59,10 +59,10 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
 
     override fun sortApplicationList(applications: List<Application>): List<Application> {
         return when (currentComparator) {
-            ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.sortedBy { it.label }.toMutableList()
-            ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.sortedByDescending { it.label }.toMutableList()
-            ApplicationComparatorType.INSTALLATION_TIME -> applications.sortedByDescending { it.firstInstallTime }.toMutableList()
-            ApplicationComparatorType.LAST_UPDATE_TIME -> applications.sortedByDescending { it.lastUpdateTime }.toMutableList()
+            ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.asSequence().sortedBy { it.label }.toMutableList()
+            ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.asSequence().sortedByDescending { it.label }.toMutableList()
+            ApplicationComparatorType.INSTALLATION_TIME -> applications.asSequence().sortedByDescending { it.firstInstallTime }.toMutableList()
+            ApplicationComparatorType.LAST_UPDATE_TIME -> applications.asSequence().sortedByDescending { it.lastUpdateTime }.toMutableList()
         }
     }
 
