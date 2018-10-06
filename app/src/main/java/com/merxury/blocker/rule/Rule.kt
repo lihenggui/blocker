@@ -2,6 +2,7 @@ package com.merxury.blocker.rule
 
 import android.content.ComponentName
 import android.content.Context
+import android.content.pm.ComponentInfo
 import android.preference.PreferenceManager
 import android.util.Log
 import com.google.gson.Gson
@@ -19,6 +20,7 @@ import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
+import com.merxury.ifw.util.RuleSerializer
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
 import com.merxury.libkit.utils.StorageUtils
@@ -209,19 +211,52 @@ object Rule {
     }
 
     fun importIfwRules(context: Context): Int {
-        val ifwFolder = StorageUtils.getIfwFolder()
         val ifwBackupFolder = getBlockerIFWFolder(context)
         if (!ifwBackupFolder.exists()) {
+            ifwBackupFolder.mkdirs()
             return 0
         }
-        val files = FileUtils.listFiles(ifwBackupFolder.absolutePath)
-        files.forEach {
-            val filename = it.split(File.separator).last()
-            val filePath = ifwFolder + filename
-            FileUtils.cat(it, filePath)
-            FileUtils.chmod(filePath, 644, false)
-        }
-        return files.count()
+        val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
+        var succeedCount = 0
+        ifwBackupFolder.listFiles { file -> file.isFile && file.name.endsWith(".xml") }
+                .forEach {
+                    val rule = RuleSerializer.deserialize(it) ?: return@forEach
+                    val activities = rule.activity.componentFilters
+                            .asSequence()
+                            .map { filter -> filter.name.split("/") }
+                            .map { names ->
+                                val component = ComponentInfo()
+                                component.packageName = names[0]
+                                component.name = names[1]
+                                component
+                            }
+                            .toList()
+                    val broadcast = rule.broadcast.componentFilters
+                            .asSequence()
+                            .map { filter -> filter.name.split("/") }
+                            .map { names ->
+                                val component = ComponentInfo()
+                                component.packageName = names[0]
+                                component.name = names[1]
+                                component
+                            }
+                            .toList()
+                    val service = rule.service.componentFilters
+                            .asSequence()
+                            .map { filter -> filter.name.split("/") }
+                            .map { names ->
+                                val component = ComponentInfo()
+                                component.packageName = names[0]
+                                component.name = names[1]
+                                component
+                            }
+                            .toList()
+                    controller.batchDisable(activities) { _ -> }
+                    controller.batchDisable(broadcast) { _ -> }
+                    controller.batchDisable(service) { _ -> }
+                    succeedCount++
+                }
+        return succeedCount
     }
 
     fun resetIfw(): Boolean {
