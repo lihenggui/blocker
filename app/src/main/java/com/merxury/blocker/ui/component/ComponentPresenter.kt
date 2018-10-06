@@ -18,6 +18,7 @@ import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StringUtil
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ManagerUtils
 import com.merxury.libkit.utils.PermissionUtils
@@ -400,13 +401,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     private fun getComponents(packageName: String, type: EComponentType): MutableList<out ComponentInfo> {
-        return when (type) {
+        val components = when (type) {
             EComponentType.RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
             EComponentType.ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)
             EComponentType.SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
             EComponentType.PROVIDER -> ApplicationUtil.getProviderList(pm, packageName)
-            else -> ArrayList()
+            else -> ArrayList<ComponentInfo>()
         }
+        return components.asSequence().sortedBy { it.getSimpleName() }.toMutableList()
     }
 
     companion object {
