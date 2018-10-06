@@ -72,6 +72,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
         }
     }
 
+    @SuppressLint("CheckResult")
     override fun forceStop(packageName: String) {
         Single.create(SingleOnSubscribe<Boolean> { emitter ->
             ManagerUtils.forceStop(packageName)
@@ -87,6 +88,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 })
     }
 
+    @SuppressLint("CheckResult")
     override fun enableApplication(packageName: String) {
         Single.create(SingleOnSubscribe<Boolean> { emitter ->
             ManagerUtils.enableApplication(packageName)
@@ -102,6 +104,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 })
     }
 
+    @SuppressLint("CheckResult")
     override fun disableApplication(packageName: String) {
         Single.create(SingleOnSubscribe<Boolean> { emitter ->
             ManagerUtils.disableApplication(packageName)
@@ -117,6 +120,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 })
     }
 
+    @SuppressLint("CheckResult")
     override fun clearData(packageName: String) {
         Single.create(SingleOnSubscribe<Boolean> { emitter ->
             ManagerUtils.clearData(packageName)
@@ -132,6 +136,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 })
     }
 
+    @SuppressLint("CheckResult")
     override fun trimMemory(packageName: String, level: ETrimMemoryLevel) {
         Single.create(SingleOnSubscribe<Boolean> { emitter ->
             ManagerUtils.trimMemory(packageName, level)
