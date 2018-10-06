@@ -62,6 +62,9 @@ public class IntentFirewallImpl implements IntentFirewall {
     @Override
     public void save() throws Exception {
         ensureNoEmptyTag();
+        if (rules.getActivity() == null && rules.getBroadcast() == null && rules.getService() == null) {
+            return;
+        }
         Serializer serializer = new Persister();
         File file = new File(tmpPath);
         if (file.exists()) {
