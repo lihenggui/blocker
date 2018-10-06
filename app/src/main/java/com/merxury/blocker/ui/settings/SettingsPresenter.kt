@@ -164,8 +164,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 count = Rule.importIfwRules(context)
                 emitter.onComplete()
             } catch (e: Exception) {
-                e.printStackTrace()
-                Log.e(TAG, e.message)
+                Log.e(TAG, "Error while importing:", e)
                 emitter.onError(e)
             }
         })
