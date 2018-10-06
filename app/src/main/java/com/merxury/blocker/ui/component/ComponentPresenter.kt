@@ -52,6 +52,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         view = null
     }
 
+    @SuppressLint("CheckResult")
     override fun loadComponents(packageName: String, type: EComponentType) {
         Log.i(TAG, "Load components for $packageName, type: $type")
         view?.setLoadingIndicator(true)
@@ -93,6 +94,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return true
     }
 
+    @SuppressLint("CheckResult")
     override fun enable(packageName: String, componentName: String): Boolean {
         Log.i(TAG, "Enable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
@@ -125,6 +127,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return true
     }
 
+    @SuppressLint("CheckResult")
     override fun disable(packageName: String, componentName: String): Boolean {
         Log.i(TAG, "Disable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
@@ -156,6 +159,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return sortedComponents.sortedWith(compareBy({ !it.state }, { !it.ifwState }))
     }
 
+    @SuppressLint("CheckResult")
     override fun addToIFW(packageName: String, componentName: String, type: EComponentType) {
         Log.i(TAG, "Disable component via IFW: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
@@ -175,6 +179,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 })
     }
 
+    @SuppressLint("CheckResult")
     override fun removeFromIFW(packageName: String, componentName: String, type: EComponentType) {
         Log.i(TAG, "Disable component via IFW: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
@@ -194,6 +199,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 })
     }
 
+    @SuppressLint("CheckResult")
     override fun launchActivity(packageName: String, componentName: String) {
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
@@ -239,6 +245,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         viewModel.ifwState = ifwController.checkComponentEnableState(viewModel.packageName, viewModel.name)
     }
 
+    @SuppressLint("CheckResult")
     override fun disableAllComponents(packageName: String, type: EComponentType) {
         Observable.create((ObservableOnSubscribe<ComponentInfo> { emitter ->
             if (!PermissionUtils.isRootAvailable) {
@@ -269,6 +276,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 })
     }
 
+    @SuppressLint("CheckResult")
     override fun enableAllComponents(packageName: String, type: EComponentType) {
         Observable.create((ObservableOnSubscribe<ComponentInfo> { emitter ->
             if (!PermissionUtils.isRootAvailable) {
@@ -306,6 +314,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 })
     }
 
+    @SuppressLint("CheckResult")
     override fun exportRule(packageName: String) {
         RxPermissions(context as Activity)
                 .request(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -318,6 +327,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 }
     }
 
+    @SuppressLint("CheckResult")
     private fun exportBlockerRule(packageName: String) {
         Single.create(SingleOnSubscribe<RulesResult> { emitter ->
             try {
@@ -341,6 +351,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 })
     }
 
+    @SuppressLint("CheckResult")
     override fun importRule(packageName: String) {
         RxPermissions(context as Activity)
                 .request(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -353,6 +364,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 }
     }
 
+    @SuppressLint("CheckResult")
     private fun importBlockerRule(packageName: String) {
         view?.showToastMessage(context.getString(R.string.processing), Toast.LENGTH_SHORT)
         Single.create(SingleOnSubscribe<RulesResult> { emitter ->
@@ -378,7 +390,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                     view?.showAlertDialog(StringUtil.getStackTrace(it))
                 })
     }
-
 
     private fun initViewModel(componentList: List<ComponentInfo>): List<ComponentItemViewModel> {
         val viewModels = ArrayList<ComponentItemViewModel>()

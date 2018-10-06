@@ -1,6 +1,7 @@
 package com.merxury.blocker.ui.settings
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.util.Log
@@ -189,6 +190,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .subscribe()
     }
 
+    @SuppressLint("CheckResult")
     override fun resetIFW() {
         Observable.create(ObservableOnSubscribe<Boolean> { emitter ->
             val result = Rule.resetIfw()
