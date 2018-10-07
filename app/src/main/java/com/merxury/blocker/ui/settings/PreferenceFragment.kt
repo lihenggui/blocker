@@ -4,14 +4,15 @@ import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.preference.ListPreference
-import android.preference.Preference
-import android.preference.Preference.OnPreferenceClickListener
-import android.preference.PreferenceFragment
 import android.preference.PreferenceManager
+import android.support.customtabs.CustomTabsIntent
 import android.support.v7.app.AlertDialog
+import android.support.v7.preference.Preference
+import android.support.v7.preference.PreferenceFragmentCompat
 import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
@@ -20,8 +21,7 @@ import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.utils.FileUtils
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, OnPreferenceClickListener {
-
+class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.SettingsView, Preference.OnPreferenceClickListener {
     private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
     private lateinit var prefs: SharedPreferences
     private lateinit var presenter: SettingsPresenter
@@ -41,13 +41,16 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        addPreferencesFromResource(R.xml.preferences)
         setHasOptionsMenu(true)
         prefs = PreferenceManager.getDefaultSharedPreferences(activity)
         findPreference()
         initPreference()
         initListener()
         initPresenter()
+    }
+
+    override fun onCreatePreferences(bundle: Bundle?, s: String?) {
+        addPreferencesFromResource(R.xml.preferences)
     }
 
     private fun findPreference() {
@@ -73,7 +76,7 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
     }
 
     private fun initPresenter() {
-        presenter = SettingsPresenter(activity, this)
+        presenter = SettingsPresenter(context!!, this)
     }
 
     private fun initListener() {
@@ -153,38 +156,46 @@ class PreferenceFragment : PreferenceFragment(), SettingsContract.SettingsView, 
             importIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_ifw_rules_warning_message), presenter::importAllIfwRules)
             importMatRulesPreference -> selectMatFile()
             resetIfwPreference -> showDialog(getString(R.string.warning), getString(R.string.reset_ifw_warning_message), presenter::resetIFW)
-            aboutPreference -> {
-                // TODO add about action
-            }
+            aboutPreference -> showAbout()
             else -> return false
         }
         return true
     }
 
-    private fun selectMatFile() {
-        val intent = Intent(Intent.ACTION_GET_CONTENT)
-        intent.addCategory(Intent.CATEGORY_OPENABLE)
-        intent.type = "*/*"
-        if (intent.resolveActivity(activity.packageManager) != null) {
-            startActivityForResult(intent, matRulePathRequestCode)
-        } else {
-            ToastUtil.showToast(getString(R.string.file_manager_required))
-        }
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             matRulePathRequestCode -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    val filePath = FileUtils.getUriPath(activity, data?.data)
+                    val filePath = FileUtils.getUriPath(context!!, data?.data)
                     showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), filePath, presenter::importMatRules)
                 }
             }
         }
     }
 
+    private fun selectMatFile() {
+        val pm = context?.packageManager ?: return
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = "*/*"
+        if (intent.resolveActivity(pm) != null) {
+            startActivityForResult(intent, matRulePathRequestCode)
+        } else {
+            ToastUtil.showToast(getString(R.string.file_manager_required))
+        }
+    }
+
+    private fun showAbout() {
+        CustomTabsIntent.Builder()
+                .setShowTitle(true)
+                .build()
+                .launchUrl(context, Uri.parse(ABOUT_URL))
+    }
+
     companion object {
         private const val TAG = "PreferenceFragment"
+        private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
 
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             val stringValue = value.toString()
