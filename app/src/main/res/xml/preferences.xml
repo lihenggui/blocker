@@ -9,6 +9,7 @@
             android:entries="@array/pref_controllerType_entries"
             android:entryValues="@array/pref_controllerType_value"
             android:key="@string/key_pref_controller_type"
+            android:summary="%s"
             android:title="@string/pref_controller_type" />
     </android.support.v7.preference.PreferenceCategory>
 
