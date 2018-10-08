@@ -68,7 +68,6 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
 
     private fun initPreference() {
         controllerTypePreference.setDefaultValue(getString(R.string.key_pref_controller_type_default_value))
-        bindPreferenceSummaryToValue(controllerTypePreference)
         rulePathPreference.setDefaultValue(getString(R.string.key_pref_rule_path_default_value))
         bindPreferenceSummaryToValue(rulePathPreference)
         ifwRulePathPreference.setDefaultValue(getString(R.string.key_pref_ifw_rule_path_default_value))
