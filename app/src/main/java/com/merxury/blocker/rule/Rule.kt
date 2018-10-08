@@ -221,36 +221,36 @@ object Rule {
         ifwBackupFolder.listFiles { file -> file.isFile && file.name.endsWith(".xml") }
                 .forEach {
                     val rule = RuleSerializer.deserialize(it) ?: return@forEach
-                    val activities = rule.activity.componentFilters
-                            .asSequence()
-                            .map { filter -> filter.name.split("/") }
-                            .map { names ->
+                    val activities = rule.activity?.componentFilters
+                            ?.asSequence()
+                            ?.map { filter -> filter.name.split("/") }
+                            ?.map { names ->
                                 val component = ComponentInfo()
                                 component.packageName = names[0]
                                 component.name = names[1]
                                 component
                             }
-                            .toList()
-                    val broadcast = rule.broadcast.componentFilters
-                            .asSequence()
-                            .map { filter -> filter.name.split("/") }
-                            .map { names ->
+                            ?.toList() ?: mutableListOf()
+                    val broadcast = rule.broadcast?.componentFilters
+                            ?.asSequence()
+                            ?.map { filter -> filter.name.split("/") }
+                            ?.map { names ->
                                 val component = ComponentInfo()
                                 component.packageName = names[0]
                                 component.name = names[1]
                                 component
                             }
-                            .toList()
-                    val service = rule.service.componentFilters
-                            .asSequence()
-                            .map { filter -> filter.name.split("/") }
-                            .map { names ->
+                            ?.toList() ?: mutableListOf()
+                    val service = rule.service?.componentFilters
+                            ?.asSequence()
+                            ?.map { filter -> filter.name.split("/") }
+                            ?.map { names ->
                                 val component = ComponentInfo()
                                 component.packageName = names[0]
                                 component.name = names[1]
                                 component
                             }
-                            .toList()
+                            ?.toList() ?: mutableListOf()
                     controller.batchDisable(activities) { _ -> }
                     controller.batchDisable(broadcast) { _ -> }
                     controller.batchDisable(service) { _ -> }

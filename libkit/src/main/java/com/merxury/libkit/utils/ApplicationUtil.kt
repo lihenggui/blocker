@@ -253,7 +253,7 @@ object ApplicationUtil {
      * @return true : component is enabled , false: component is disabled
      */
     fun isAppInstalled(pm: PackageManager, packageName: String?): Boolean {
-        if (packageName == null || packageName.trim { it <= ' ' }.isEmpty()) {
+        if (packageName == null || packageName.trim().isEmpty()) {
             return false
         }
         try {

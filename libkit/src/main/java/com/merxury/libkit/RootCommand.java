@@ -89,7 +89,9 @@ public class RootCommand {
         }
 
         String output = commandOutput.toString();
-        Log.d(TAG, "Command: " + comm + "\nOutput: " + output);
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Command: " + comm + "\nOutput: " + output);
+        }
         return output;
     }
 }

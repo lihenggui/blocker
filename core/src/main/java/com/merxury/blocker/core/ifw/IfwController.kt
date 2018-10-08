@@ -47,6 +47,9 @@ class IfwController(val context: Context) : IController {
 
     override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
         var succeededCount = 0
+        if (componentList.isEmpty()) {
+            return succeededCount
+        }
         componentList.forEach {
             init(it.packageName)
             val type = getComponentType(it.packageName, it.name)
@@ -61,6 +64,9 @@ class IfwController(val context: Context) : IController {
 
     override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
         var succeededCount = 0
+        if (componentList.isEmpty()) {
+            return succeededCount
+        }
         componentList.forEach {
             init(it.packageName)
             val type = getComponentType(it.packageName, it.name)

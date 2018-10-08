@@ -89,7 +89,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 }.forEach {
                     val rule = Gson().fromJson(FileReader(it), BlockerRule::class.java)
                     if (!ApplicationUtil.isAppInstalled(context.packageManager, rule.packageName)) {
-                        return@ObservableOnSubscribe
+                        return@forEach
                     }
                     Rule.import(context, File(it))
                     emitter.onNext(rule.packageName!!)
@@ -224,6 +224,8 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 val result = Rule.importMatRules(context, file) { context, name, current, total ->
                     NotificationUtil.updateProcessingNotification(context, name, current, total)
                 }
+                // TODO: Temporary fix to the notification update limit in Android
+                Thread.sleep(1000)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
                 Log.e(TAG, "Error occurs in importing mat rules:", e)
