@@ -63,10 +63,12 @@ public class IntentFirewallImpl implements IntentFirewall {
     public void save() throws Exception {
         ensureNoEmptyTag();
         if (rules.getActivity() == null && rules.getBroadcast() == null && rules.getService() == null) {
+            // If there is no rules presented, delete rule file (if exists)
+            FileUtils.delete(destPath, true);
             return;
         }
-        Serializer serializer = new Persister();
         File file = new File(tmpPath);
+        Serializer serializer = new Persister();
         if (file.exists()) {
             if (!file.delete()) {
                 throw new IOException("Cannot delete file: " + tmpPath);
