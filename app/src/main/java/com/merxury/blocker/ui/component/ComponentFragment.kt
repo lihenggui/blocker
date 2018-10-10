@@ -142,7 +142,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             return false
         }
         val position = (item.menuInfo as ContextMenuRecyclerView.RecyclerContextMenuInfo).position
-        val component = componentAdapter.getData()[position]
+        val component = componentAdapter.getDataAt(position)
         when (item.itemId) {
             R.id.block_by_ifw -> presenter.addToIFW(component.packageName, component.name, type)
             R.id.enable_by_ifw -> presenter.removeFromIFW(component.packageName, component.name, type)
@@ -188,22 +188,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun refreshComponentState(componentName: String) {
-        val components = componentAdapter.getData()
-        for (i in components.indices) {
-            if (componentName == components[i].name) {
-                val viewModel = presenter.getComponentViewModel(packageName, componentName)
-                components[i] = viewModel
-                componentAdapter.notifyItemChanged(i)
-                break
-            }
-        }
-        val copy = componentAdapter.getCopy()
-        for (i in copy.indices) {
-            if (componentName == copy[i].name) {
-                copy[i] = presenter.getComponentViewModel(packageName, componentName)
-                break
-            }
-        }
+        val viewModel = presenter.getComponentViewModel(packageName, componentName)
+        componentAdapter.updateViewModel(viewModel)
     }
 
     override fun showAlertDialog(message: String?) {
@@ -381,12 +367,22 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             notifyDataSetChanged()
         }
 
-        fun getData(): MutableList<ComponentItemViewModel> {
-            return components
+        fun getDataAt(index: Int): ComponentItemViewModel {
+            return components[index]
         }
 
-        fun getCopy(): MutableList<ComponentItemViewModel> {
-            return listCopy
+        fun updateViewModel(viewModel: ComponentItemViewModel) {
+            components.forEachIndexed { i, model ->
+                if (model.name == viewModel.name) {
+                    components[i] = viewModel
+                    notifyItemChanged(i)
+                }
+            }
+            listCopy.forEachIndexed { i, model ->
+                if (model.name == viewModel.name) {
+                    listCopy[i] = viewModel
+                }
+            }
         }
 
         fun filter(keyword: String) {
