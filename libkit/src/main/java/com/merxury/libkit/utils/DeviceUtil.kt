@@ -13,6 +13,6 @@ object DeviceUtil {
     }
 
     fun exitDoze() {
-        RootCommand.runBlockingCommand("dumpsys deviceidle disable")
+        RootCommand.runBlockingCommand("shell input keyevent KEYCODE_WAKEUP")
     }
 }
