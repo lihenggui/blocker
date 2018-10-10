@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.support.v7.widget.SearchView
 import android.util.Log
 import android.util.SparseArray
 import android.view.MenuItem
@@ -78,6 +79,17 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
                 Log.d(ComponentFragment.TAG, "User denied Shizuku permission")
             }
         }
+    }
+
+    override fun onBackPressed() {
+        findViewById<SearchView>(R.id.menu_search)?.let {
+            if (!it.isIconified) {
+                it.isIconified = true
+                it.clearFocus()
+                return
+            }
+        }
+        super.onBackPressed()
     }
 
     override fun getBackgroundColor(tabPosition: Int): Int {
