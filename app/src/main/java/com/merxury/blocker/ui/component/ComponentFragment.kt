@@ -197,6 +197,13 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 break
             }
         }
+        val copy = componentAdapter.getCopy()
+        for (i in copy.indices) {
+            if (componentName == copy[i].name) {
+                copy[i] = presenter.getComponentViewModel(packageName, componentName)
+                break
+            }
+        }
     }
 
     override fun showAlertDialog(message: String?) {
@@ -376,6 +383,10 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
 
         fun getData(): MutableList<ComponentItemViewModel> {
             return components
+        }
+
+        fun getCopy(): MutableList<ComponentItemViewModel> {
+            return listCopy
         }
 
         fun filter(keyword: String) {
