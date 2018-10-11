@@ -1,16 +1,17 @@
 buildscript {
-    ext.kotlin_version = '1.2.70'
+    ext.kotlin_version = '1.2.71'
     ext.support_lib_version = '28.0.0'
     ext.retrofit_version = '2.4.0'
     ext.rxjava_version = '2.2.2'
     ext.rxandroid_version = '2.1.0'
     ext.glide_version = '4.8.0'
+    ext.ktx_version = '1.0.0-alpha09'
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.3.0-alpha08'
+        classpath 'com.android.tools.build:gradle:3.3.0-alpha13'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
