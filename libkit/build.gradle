@@ -45,4 +45,5 @@ dependencies {
     //Shizuku API
     api 'moe.shizuku.privilege:api-base:9'
     api 'moe.shizuku.privilege:api-26:4'
+    api 'com.google.code.gson:gson:2.8.2'
 }

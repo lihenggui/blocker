@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.preference.PreferenceManager
-import com.merxury.blocker.R
 import com.merxury.blocker.util.AppLauncher
 import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
@@ -22,7 +21,6 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
 
     override fun start(context: Context) {
         this.context = context
-        pm = context.packageManager
         homeView?.presenter = this
     }
 
@@ -36,8 +34,8 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
         homeView?.setLoadingIndicator(true)
         Single.create(SingleOnSubscribe<List<Application>> { emitter ->
             val applications: List<Application> = when (isSystemApplication) {
-                false -> ApplicationUtil.getThirdPartyApplicationList(pm)
-                true -> ApplicationUtil.getSystemApplicationList(pm)
+                false -> ApplicationUtil.getThirdPartyApplicationList(context)
+                true -> ApplicationUtil.getSystemApplicationList(context)
             }
             val sortedList = sortApplicationList(applications)
             emitter.onSuccess(sortedList)
@@ -156,6 +154,14 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
         context?.let {
             AppLauncher.showApplicationDetails(it, packageName)
         }
+    }
+
+    override fun blockApplication(packageName: String) {
+        ApplicationUtil.addBlockedApplication(context!!, packageName)
+    }
+
+    override fun unblockApplication(packageName: String) {
+        ApplicationUtil.removeBlockedApplication(context!!, packageName)
     }
 
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL

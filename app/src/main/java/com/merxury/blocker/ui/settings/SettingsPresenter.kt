@@ -6,7 +6,6 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
-import com.merxury.blocker.R
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.RulesResult
@@ -35,7 +34,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
         var appCount = -1
         val exportObservable = Observable.create(ObservableOnSubscribe<Application> { emitter ->
             try {
-                val applicationList = ApplicationUtil.getApplicationList(context.packageManager)
+                val applicationList = ApplicationUtil.getApplicationList(context)
                 applicationList.forEach {
                     Rule.export(context, it.packageName)
                     succeedCount++
@@ -52,7 +51,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnSubscribe {
-                    appCount = ApplicationUtil.getApplicationList(context.packageManager).size
+                    appCount = ApplicationUtil.getApplicationList(context).size
                     NotificationUtil.createProcessingNotification(context, appCount)
                 }
         RxPermissions(context as Activity)

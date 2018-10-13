@@ -125,4 +125,6 @@
     <string name="trim_memory">Trim Memory</string>
     <string name="details">Details</string>
     <string name="starting_application">Starting application, please wait</string>
+    <string name="block">Block</string>
+    <string name="unblock">Unblock</string>
 </resources>

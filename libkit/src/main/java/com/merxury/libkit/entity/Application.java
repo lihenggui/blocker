@@ -13,7 +13,6 @@ import android.support.annotation.Nullable;
 import com.merxury.libkit.utils.ApkUtils;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -40,12 +39,12 @@ public class Application implements Parcelable {
     private String versionName;
     private int versionCode;
     private boolean enabled;
+    private boolean blocked;
     private int targetSdkVersion;
     private int minSdkVersion;
     private String nonLocalizedLabel;
     private String sourceDir;
     private String publicSourceDir;
-    private String[] splitNames;
     private String dataDir;
     private String label;
     private Date firstInstallTime;
@@ -80,9 +79,13 @@ public class Application implements Parcelable {
         } else {
             minSdkVersion = ApkUtils.INSTANCE.getMinSdkVersion(baseApkPath);
         }
-        this.splitNames = this.packageName.split("\\.");
         this.firstInstallTime = new Date(info.firstInstallTime);
         this.lastUpdateTime = new Date(info.lastUpdateTime);
+    }
+
+    public Application(@NonNull PackageManager pm, @NonNull PackageInfo info, boolean blocked) {
+        this(pm, info);
+        this.blocked = blocked;
     }
 
     protected Application(Parcel in) {
@@ -91,12 +94,12 @@ public class Application implements Parcelable {
         this.versionName = in.readString();
         this.versionCode = in.readInt();
         this.enabled = in.readByte() != 0;
+        this.blocked = in.readByte() != 0;
         this.minSdkVersion = in.readInt();
         this.targetSdkVersion = in.readInt();
         this.nonLocalizedLabel = in.readString();
         this.sourceDir = in.readString();
         this.publicSourceDir = in.readString();
-        this.splitNames = in.createStringArray();
         this.dataDir = in.readString();
         this.firstInstallTime = new Date(in.readLong());
         this.lastUpdateTime = new Date(in.readLong());
@@ -182,14 +185,6 @@ public class Application implements Parcelable {
         this.publicSourceDir = publicSourceDir;
     }
 
-    public String[] getSplitNames() {
-        return splitNames;
-    }
-
-    public void setSplitNames(String[] splitNames) {
-        this.splitNames = splitNames;
-    }
-
     public String getDataDir() {
         return dataDir;
     }
@@ -212,6 +207,14 @@ public class Application implements Parcelable {
 
     public void setLastUpdateTime(Date lastUpdateTime) {
         this.lastUpdateTime = lastUpdateTime;
+    }
+
+    public boolean isBlocked() {
+        return blocked;
+    }
+
+    public void setBlocked(boolean blocked) {
+        this.blocked = blocked;
     }
 
     @Override
@@ -237,12 +240,12 @@ public class Application implements Parcelable {
                 ", versionName='" + versionName + '\'' +
                 ", versionCode=" + versionCode +
                 ", enabled=" + enabled +
+                ", blocked=" + blocked +
                 ", minSdkVersion=" + minSdkVersion +
                 ", targetSdkVersion=" + targetSdkVersion +
                 ", nonLocalizedLabel='" + nonLocalizedLabel + '\'' +
                 ", sourceDir='" + sourceDir + '\'' +
                 ", publicSourceDir='" + publicSourceDir + '\'' +
-                ", splitNames=" + Arrays.toString(splitNames) +
                 ", dataDir='" + dataDir + '\'' +
                 '}';
     }
@@ -254,12 +257,12 @@ public class Application implements Parcelable {
         dest.writeString(this.versionName);
         dest.writeInt(this.versionCode);
         dest.writeByte(this.enabled ? (byte) 1 : (byte) 0);
+        dest.writeByte(this.blocked ? (byte) 1 : (byte) 0);
         dest.writeInt(this.minSdkVersion);
         dest.writeInt(this.targetSdkVersion);
         dest.writeString(this.nonLocalizedLabel);
         dest.writeString(this.sourceDir);
         dest.writeString(this.publicSourceDir);
-        dest.writeStringArray(this.splitNames);
         dest.writeString(this.dataDir);
         dest.writeLong(this.firstInstallTime.getTime());
         dest.writeLong(this.lastUpdateTime.getTime());
