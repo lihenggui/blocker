@@ -66,8 +66,6 @@ dependencies {
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
-    // Gson
-    implementation 'com.google.code.gson:gson:2.8.2'
     // Status Bar Util
     implementation 'com.jaeger.statusbarutil:library:1.5.1'
     // Project dependencies

@@ -1,9 +1,13 @@
 package com.merxury.libkit.utils
 
 import android.content.ComponentName
+import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.pm.*
 import android.os.Build
 import android.util.Log
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.merxury.libkit.entity.Application
 import java.util.*
 
@@ -15,15 +19,18 @@ import java.util.*
 object ApplicationUtil {
     private const val TAG = "ApplicationUtil"
     private const val BLOCKER_PACKAGE_NAME = "com.merxury.blocker"
+    private const val BLOCKED_CONF_NAME = "Blocked"
+    private const val BLOCKED_APP_LIST_KEY = "key_blocked_app_list"
     private const val MARKET_URL = "market://details?id="
 
     /**
      * Get a list of installed applications on device
      *
-     * @param pm PackageManager
+     * @param context Context
      * @return list of application info
      */
-    fun getApplicationList(pm: PackageManager): MutableList<Application> {
+    fun getApplicationList(context: Context): MutableList<Application> {
+        val pm = context.packageManager
         return pm.getInstalledPackages(0)
                 .asSequence()
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
@@ -34,10 +41,11 @@ object ApplicationUtil {
     /**
      * get a list of installed third party applications
      *
-     * @param pm PackageManager
+     * @param context Context
      * @return a list of installed third party applications
      */
-    fun getThirdPartyApplicationList(pm: PackageManager): MutableList<Application> {
+    fun getThirdPartyApplicationList(context: Context): MutableList<Application> {
+        val pm = context.packageManager
         return pm.getInstalledPackages(0)
                 .asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
@@ -49,10 +57,11 @@ object ApplicationUtil {
     /**
      * get a list of system applications
      *
-     * @param pm PackageManager
+     * @param context Context
      * @return a list of installed system applications
      */
-    fun getSystemApplicationList(pm: PackageManager): MutableList<Application> {
+    fun getSystemApplicationList(context: Context): MutableList<Application> {
+        val pm = context.packageManager
         return pm.getInstalledPackages(0)
                 .asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
@@ -263,5 +272,29 @@ object ApplicationUtil {
             Log.d(TAG, packageName + "is not installed.")
         }
         return false
+    }
+
+    fun getBlockedApplication(context: Context): MutableList<String> {
+        val sharedPreferences = context.getSharedPreferences(BLOCKED_CONF_NAME, MODE_PRIVATE)
+        val json = sharedPreferences.getString(BLOCKED_APP_LIST_KEY, "[]")
+        return Gson().fromJson<MutableList<String>>(json, object : TypeToken<MutableList<String>>() {}.type)
+    }
+
+    private fun saveBlockedApplication(context: Context, applications: List<String>) {
+        val editor = context.getSharedPreferences(BLOCKED_CONF_NAME, MODE_PRIVATE).edit()
+        editor.putString(BLOCKED_APP_LIST_KEY, Gson().toJson(applications))
+        editor.apply()
+    }
+
+    fun addBlockedApplication(context: Context, packageName: String) {
+        val blockedApplication = getBlockedApplication(context)
+        blockedApplication.add(packageName)
+        saveBlockedApplication(context, blockedApplication)
+    }
+
+    fun removeBlockedApplication(context: Context, packageName: String) {
+        val blockedApplication = getBlockedApplication(context)
+        blockedApplication.remove(packageName)
+        saveBlockedApplication(context, blockedApplication)
     }
 }

@@ -6,16 +6,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
-import android.support.v7.widget.*
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.SearchView
 import android.view.*
 import android.widget.PopupMenu
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
-import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.ui.component.ComponentActivity
@@ -24,7 +23,6 @@ import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
 import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
-import kotlinx.android.synthetic.main.fragment_app_list.view.*
 
 
 class ApplicationListFragment : Fragment(), HomeContract.View {
@@ -179,14 +177,16 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         }
         val position = (item.menuInfo as ContextMenuRecyclerView.RecyclerContextMenuInfo).position
         val application = listAdapter.getDataAt(position)
+        val packageName = application.packageName
         when (item.itemId) {
-            R.id.launch_application -> presenter.launchApplication(application.packageName)
-            R.id.force_stop -> presenter.forceStop(application.packageName)
-            R.id.enable_application -> presenter.enableApplication(application.packageName)
-            R.id.disable_application -> presenter.disableApplication(application.packageName)
-            R.id.clear_data -> presenter.clearData(application.packageName)
-            R.id.trim_memory -> presenter.trimMemory(application.packageName, ETrimMemoryLevel.COMPLETE)
-            R.id.details -> presenter.showDetails(application.packageName)
+            R.id.block_application -> presenter.blockApplication(packageName)
+            R.id.launch_application -> presenter.launchApplication(packageName)
+            R.id.force_stop -> presenter.forceStop(packageName)
+            R.id.enable_application -> presenter.enableApplication(packageName)
+            R.id.disable_application -> presenter.disableApplication(packageName)
+            R.id.clear_data -> presenter.clearData(packageName)
+            R.id.trim_memory -> presenter.trimMemory(packageName, ETrimMemoryLevel.COMPLETE)
+            R.id.details -> presenter.showDetails(packageName)
         }
         return true
     }

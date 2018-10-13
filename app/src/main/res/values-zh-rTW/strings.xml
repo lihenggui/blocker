@@ -116,4 +116,6 @@
     <string name="details">應用詳情</string>
     <string name="starting_application">啟動應用中，請稍後</string>
     <string name="disable">禁用</string>
+    <string name="block">Block</string>
+    <string name="unblock">Unblock</string>
 </resources>

@@ -8,7 +8,6 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.stream.JsonReader
-import com.merxury.blocker.R
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
@@ -133,7 +132,7 @@ object Rule {
     }
 
     fun exportAll(context: Context) {
-        val appList = ApplicationUtil.getThirdPartyApplicationList(context.packageManager)
+        val appList = ApplicationUtil.getThirdPartyApplicationList(context)
         appList.forEach {
             val packageName = it.packageName
             export(context, packageName)
@@ -141,7 +140,7 @@ object Rule {
     }
 
     fun importAll(context: Context) {
-        val appList = ApplicationUtil.getThirdPartyApplicationList(context.packageManager)
+        val appList = ApplicationUtil.getThirdPartyApplicationList(context)
         appList.forEach {
             val packageName = it.packageName
             val file = File(getBlockerRuleFolder(context), packageName + EXTENSION)
