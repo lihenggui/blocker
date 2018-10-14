@@ -115,8 +115,8 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             val layoutManager = android.support.v7.widget.LinearLayoutManager(context)
             this.layoutManager = layoutManager
             adapter = listAdapter
-            itemAnimator = android.support.v7.widget.DefaultItemAnimator()
-            addItemDecoration(android.support.v7.widget.DividerItemDecoration(context, layoutManager.orientation))
+            itemAnimator = DefaultItemAnimator()
+            addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
             registerForContextMenu(this)
         }
         appListSwipeLayout?.apply {
