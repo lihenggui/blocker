@@ -8,6 +8,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.stream.JsonReader
+import com.merxury.blocker.R
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
