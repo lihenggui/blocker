@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
+import com.merxury.blocker.R
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.RulesResult

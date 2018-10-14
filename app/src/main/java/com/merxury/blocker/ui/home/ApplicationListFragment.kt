@@ -6,15 +6,16 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.SearchView
+import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.ui.component.ComponentActivity
@@ -104,31 +105,28 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val root = inflater.inflate(R.layout.fragment_app_list, container, false)
-        with(root) {
-            appListFragmentRecyclerView.apply {
-                val layoutManager = LinearLayoutManager(context)
-                this.layoutManager = layoutManager
-                adapter = listAdapter
-                itemAnimator = DefaultItemAnimator()
-                addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
-                registerForContextMenu(this)
-            }
-            appListSwipeLayout.apply {
-                setColorSchemeColors(
-                        ContextCompat.getColor(context, R.color.colorPrimary),
-                        ContextCompat.getColor(context, R.color.colorAccent),
-                        ContextCompat.getColor(context, R.color.colorPrimaryDark)
-                )
-                setOnRefreshListener { presenter.loadApplicationList(context, isSystem) }
-            }
-        }
         setHasOptionsMenu(true)
-        return root
+        return inflater.inflate(R.layout.fragment_app_list, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        appListFragmentRecyclerView?.apply {
+            val layoutManager = android.support.v7.widget.LinearLayoutManager(context)
+            this.layoutManager = layoutManager
+            adapter = listAdapter
+            itemAnimator = android.support.v7.widget.DefaultItemAnimator()
+            addItemDecoration(android.support.v7.widget.DividerItemDecoration(context, layoutManager.orientation))
+            registerForContextMenu(this)
+        }
+        appListSwipeLayout?.apply {
+            setColorSchemeColors(
+                    ContextCompat.getColor(context, com.merxury.blocker.R.color.colorPrimary),
+                    ContextCompat.getColor(context, com.merxury.blocker.R.color.colorAccent),
+                    ContextCompat.getColor(context, com.merxury.blocker.R.color.colorPrimaryDark)
+            )
+            setOnRefreshListener { presenter.loadApplicationList(context, isSystem) }
+        }
         presenter.loadApplicationList(context!!, isSystem)
     }
 

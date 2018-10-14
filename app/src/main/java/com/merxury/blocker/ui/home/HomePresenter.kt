@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.preference.PreferenceManager
+import com.merxury.blocker.R
 import com.merxury.blocker.util.AppLauncher
 import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
