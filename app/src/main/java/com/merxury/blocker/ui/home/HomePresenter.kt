@@ -57,12 +57,17 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     }
 
     override fun sortApplicationList(applications: List<Application>): List<Application> {
-        return when (currentComparator) {
-            ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.asSequence().sortedBy { it.label }.toMutableList()
-            ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.asSequence().sortedByDescending { it.label }.toMutableList()
-            ApplicationComparatorType.INSTALLATION_TIME -> applications.asSequence().sortedByDescending { it.firstInstallTime }.toMutableList()
-            ApplicationComparatorType.LAST_UPDATE_TIME -> applications.asSequence().sortedByDescending { it.lastUpdateTime }.toMutableList()
+        val sortedList =  when (currentComparator) {
+            ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.asSequence().sortedBy {it.label}
+            ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.asSequence().sortedByDescending { it.label }
+            ApplicationComparatorType.INSTALLATION_TIME -> applications.asSequence().sortedByDescending { it.firstInstallTime }
+            ApplicationComparatorType.LAST_UPDATE_TIME -> applications.asSequence().sortedByDescending { it.lastUpdateTime }
         }
+        val targetList = mutableListOf<Application>()
+        targetList.addAll(sortedList.filter { it.isBlocked })
+        targetList.addAll(sortedList.filter { !it.isBlocked && it.isEnabled })
+        targetList.addAll(sortedList.filter { !it.isEnabled })
+        return targetList
     }
 
     override fun launchApplication(packageName: String) {
