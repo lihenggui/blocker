@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -293,6 +294,13 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                     itemView.app_icon.setImageDrawable(application.getApplicationIcon(pm))
                     itemView.isLongClickable = true
                     itemView.setOnClickListener { listener.onAppClick(application) }
+                    if (!application.isEnabled) {
+                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.md_grey_300))
+                    } else if (application.isBlocked) {
+                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.md_red_50))
+                    } else {
+                        itemView.setBackgroundColor(Color.WHITE)
+                    }
                     val options = RequestOptions()
                             .fitCenter()
                             .error(R.drawable.ic_error_red_24dp)
