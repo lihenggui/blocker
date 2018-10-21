@@ -7,7 +7,7 @@ import android.net.Uri
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
-import android.util.Log
+import com.elvishew.xlog.XLog
 import com.merxury.libkit.RootCommand
 import com.stericson.RootTools.RootTools
 import java.io.File
@@ -17,11 +17,11 @@ import java.io.IOException
 
 
 object FileUtils {
-    const val TAG = "FileUtils"
+    private val logger = XLog.tag("FileUtils").build()
 
     @JvmStatic
     fun copy(source: String, dest: String): Boolean {
-        Log.i(TAG, "Copy $source to $dest")
+        logger.i("Copy $source to $dest")
         try {
             FileInputStream(source).use { input ->
                 FileOutputStream(dest).use { output ->
@@ -35,7 +35,7 @@ object FileUtils {
             }
         } catch (e: IOException) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
             return false
         }
         return true
@@ -55,7 +55,7 @@ object FileUtils {
                 else -> false
             }
         } catch (e: Exception) {
-            Log.e(TAG, e.message)
+            logger.e(e.message)
             false
         }
     }
@@ -90,7 +90,7 @@ object FileUtils {
 
     @JvmStatic
     fun copyWithRoot(source: String, dest: String): Boolean {
-        Log.i(TAG, "Copy $source to $dest with root permission")
+        logger.i("Copy $source to $dest with root permission")
         return RootTools.copyFile(source, dest, false, true)
     }
 
@@ -118,8 +118,8 @@ object FileUtils {
             "rm -f '$file'"
         }
         val output = RootCommand.runBlockingCommand(comm)
-        val result = output.trim().isEmpty();
-        Log.d(TAG, "Delete file $file, result = $result")
+        val result = output.trim().isEmpty()
+        logger.d("Delete file $file, result = $result")
         return result
     }
 
@@ -173,7 +173,7 @@ object FileUtils {
                     val contentUri = ContentUris.withAppendedId(Uri.parse("content://downloads/public_downloads"), id.toLong())
                     return getDataColumn(context, contentUri, null, null)
                 } catch (e: NumberFormatException) {
-                    Log.e(TAG, "Error parsing document id", e)
+                    logger.e("Error parsing document id", e)
                 }
             } else if (isMediaDocument(uri)) {
                 val docId = DocumentsContract.getDocumentId(uri)

@@ -6,8 +6,8 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
-import android.util.Log
 import android.widget.Toast
+import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
@@ -33,6 +33,7 @@ import java.io.File
 
 class ComponentPresenter(val context: Context, var view: ComponentContract.View?, val packageName: String) : ComponentContract.Presenter, IController {
     override var currentComparator: EComponentComparatorType = EComponentComparatorType.SIMPLE_NAME_ASCENDING
+    private val logger = XLog.tag("ComponentPresenter").build()
     private val pm: PackageManager
     private val ifwController by lazy { ComponentControllerProxy.getInstance(EControllerMethod.IFW, context) }
     private val controller: IController by lazy {
@@ -55,7 +56,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     @SuppressLint("CheckResult")
     override fun loadComponents(packageName: String, type: EComponentType) {
-        Log.i(TAG, "Load components for $packageName, type: $type")
+        logger.i("Load components for $packageName, type: $type")
         view?.setLoadingIndicator(true)
         Single.create((SingleOnSubscribe<List<ComponentItemViewModel>> { emitter ->
             val componentList = getComponents(packageName, type)
@@ -88,7 +89,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe { _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
-                        Log.e(TAG, "Error while switching component", error)
+                        logger.e("Error while switching component", error)
                         view?.showAlertDialog(StringUtil.getStackTrace(error))
                     }
                 }
@@ -97,7 +98,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     @SuppressLint("CheckResult")
     override fun enable(packageName: String, componentName: String): Boolean {
-        Log.i(TAG, "Enable component: $componentName")
+        logger.i("Enable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 var result = true
@@ -121,7 +122,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe { _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
-                        Log.e(TAG, "Error while enabling component:", error)
+                        logger.e("Error while enabling component:", error)
                         view?.showAlertDialog(StringUtil.getStackTrace(this))
                     }
                 }
@@ -130,7 +131,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     @SuppressLint("CheckResult")
     override fun disable(packageName: String, componentName: String): Boolean {
-        Log.i(TAG, "Disable component: $componentName")
+        logger.i("Disable component: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 val result = controller.disable(packageName, componentName)
@@ -143,7 +144,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe { _, error ->
                     view?.refreshComponentState(componentName)
                     error?.apply {
-                        Log.e(TAG, "Error while disabling component:", error)
+                        logger.e("Error while disabling component:", error)
                         view?.showAlertDialog(StringUtil.getStackTrace(this))
                     }
                 }
@@ -162,7 +163,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     @SuppressLint("CheckResult")
     override fun addToIFW(packageName: String, componentName: String, type: EComponentType) {
-        Log.i(TAG, "Disable component via IFW: $componentName")
+        logger.i("Disable component via IFW: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 ifwController.disable(packageName, componentName)
@@ -175,14 +176,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe({ _ ->
                     view?.refreshComponentState(componentName)
                 }, { error ->
-                    Log.e(TAG, "Error while disabling component:\n", error)
+                    logger.e("Error while disabling component:\n", error)
                     view?.showAlertDialog(StringUtil.getStackTrace(error))
                 })
     }
 
     @SuppressLint("CheckResult")
     override fun removeFromIFW(packageName: String, componentName: String, type: EComponentType) {
-        Log.i(TAG, "Disable component via IFW: $componentName")
+        logger.i("Disable component via IFW: $componentName")
         Single.create((SingleOnSubscribe<Boolean> { emitter ->
             try {
                 ifwController.enable(packageName, componentName)
@@ -195,7 +196,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe({ _ ->
                     view?.refreshComponentState(componentName)
                 }, { error ->
-                    Log.e(TAG, "Error while enable component:\n", error)
+                    logger.e("Error while enable component:\n", error)
                     view?.showAlertDialog(StringUtil.getStackTrace(error))
                 })
     }
@@ -213,7 +214,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({ _ ->
                 }, { error ->
-                    Log.e(TAG, "Error in launching activity($packageName/$componentName): ", error)
+                    logger.e("Error in launching activity($packageName/$componentName): ", error)
                     view?.showAlertDialog(StringUtil.getStackTrace(error))
                 })
     }
@@ -268,7 +269,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe({
                     view?.refreshComponentState(it.name)
                 }, { error ->
-                    Log.e(TAG, "Error in batch disable:", error)
+                    logger.e("Error in batch disable:", error)
                     view?.showAlertDialog(StringUtil.getStackTrace(error))
                     view?.showActionFail()
                 }, {
@@ -306,7 +307,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 .subscribe({
                     view?.refreshComponentState(it.name)
                 }, { error ->
-                    Log.e(TAG, "Error in batch enable:", error)
+                    logger.e("Error in batch enable:", error)
                     view?.showAlertDialog(StringUtil.getStackTrace(error))
                     view?.showActionFail()
                 }, {
@@ -347,7 +348,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         view?.showActionFail()
                     }
                 }, {
-                    Log.e(TAG, "Error in exporting blocker rules:", it)
+                    logger.e("Error in exporting blocker rules:", it)
                     view?.showAlertDialog(StringUtil.getStackTrace(it))
                 })
     }
@@ -387,7 +388,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                         ToastUtil.showToast(context.getString(R.string.import_fail_message))
                     }
                 }, {
-                    Log.e(TAG, "Error in importing blocker rules:", it)
+                    logger.e("Error in importing blocker rules:", it)
                     view?.showAlertDialog(StringUtil.getStackTrace(it))
                 })
     }

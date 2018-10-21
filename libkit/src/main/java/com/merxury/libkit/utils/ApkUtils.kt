@@ -5,7 +5,7 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
-import android.util.Log
+import com.elvishew.xlog.XLog
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import java.io.File
@@ -13,7 +13,7 @@ import java.io.IOException
 import java.lang.reflect.InvocationTargetException
 
 object ApkUtils {
-    private val TAG = "APKUtils"
+    private val logger = XLog.tag("ApkUtils").build()
 
     /**
      * Get [AssetManager] using reflection
@@ -61,10 +61,10 @@ object ApkUtils {
             }
         } catch (e: XmlPullParserException) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
         } catch (e: IOException) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
         }
         return -1
     }
@@ -89,10 +89,10 @@ object ApkUtils {
             }
         } catch (e: XmlPullParserException) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
         } catch (e: IOException) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
         }
         return activities
     }
@@ -112,10 +112,10 @@ object ApkUtils {
             }
         } catch (e: XmlPullParserException) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
         } catch (e: IOException) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
         }
         return ""
     }

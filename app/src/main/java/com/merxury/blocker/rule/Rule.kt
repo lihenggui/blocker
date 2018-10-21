@@ -4,7 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.preference.PreferenceManager
-import android.util.Log
+import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.stream.JsonReader
@@ -30,11 +30,11 @@ import java.io.FileWriter
 
 object Rule {
     const val EXTENSION = ".json"
-    private const val TAG = "Rule"
+    private val logger = XLog.tag("Rule").build()
 
     // TODO remove template code
     fun export(context: Context, packageName: String): RulesResult {
-        Log.i(TAG, "Backup rules for $packageName")
+        logger.i("Backup rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationUtil.getApplicationComponents(pm, packageName)
         val rule = BlockerRule(packageName = applicationInfo.packageName, versionName = applicationInfo.versionName, versionCode = applicationInfo.versionCode)
@@ -126,7 +126,7 @@ object Rule {
             ifwController?.save()
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
             return RulesResult(false, succeedCount, failedCount)
         }
         return RulesResult(true, succeedCount, failedCount)
@@ -179,14 +179,14 @@ object Rule {
                 if (result) {
                     succeedCount++
                 } else {
-                    Log.d(TAG, "Failed to change component state for : $it")
+                    logger.d("Failed to change component state for : $it")
                     failedCount++
                 }
                 action(context, name, (succeedCount + failedCount), total)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
             return RulesResult(false, succeedCount, failedCount)
         }
         return RulesResult(true, succeedCount, failedCount)
@@ -271,7 +271,7 @@ object Rule {
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
             return false
         }
         return result
@@ -318,14 +318,14 @@ object Rule {
     fun getBlockerRuleFolder(context: Context): File {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val path = pref.getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
-        val storagePath = FileUtils.getExternalStoragePath();
+        val storagePath = FileUtils.getExternalStoragePath()
         return File(storagePath, path)
     }
 
     fun getBlockerIFWFolder(context: Context): File {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val path = pref.getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
-        val storagePath = FileUtils.getExternalStoragePath();
+        val storagePath = FileUtils.getExternalStoragePath()
         return File(storagePath, path)
     }
 

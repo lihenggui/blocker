@@ -34,7 +34,6 @@ public class Application implements Parcelable {
         }
     };
 
-    public static final String TAG = "ApplicationEntity";
     private String packageName;
     private String versionName;
     private int versionCode;

@@ -4,7 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
-import android.util.Log
+import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.IController
 import com.merxury.libkit.RootCommand
 import com.merxury.libkit.utils.ApplicationUtil
@@ -16,6 +16,7 @@ import com.stericson.RootTools.RootTools
  */
 
 class RootController(val context: Context) : IController {
+    private val logger = XLog.tag("RootController").build()
 
     init {
         RootTools.debugMode = true
@@ -27,10 +28,10 @@ class RootController(val context: Context) : IController {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> removeEscapeCharacter(String.format(DISABLE_COMPONENT_TEMPLATE, packageName, componentName))
             else -> return false
         }
-        Log.d(TAG, "command:$comm, componentState is $state")
+        logger.d("command:$comm, componentState is $state")
         try {
             val commandOutput = RootCommand.runBlockingCommand(comm)
-            Log.d(TAG, "Command output: $commandOutput")
+            logger.d("Command output: $commandOutput")
             return !commandOutput.contains(FAILED_EXCEPTION_MSG)
         } catch (e: Exception) {
             throw e
@@ -76,7 +77,6 @@ class RootController(val context: Context) : IController {
     }
 
     companion object {
-        private const val TAG = "RootController"
         private const val DISABLE_COMPONENT_TEMPLATE = "pm disable %s/%s"
         private const val ENABLE_COMPONENT_TEMPLATE = "pm enable %s/%s"
         private const val FAILED_EXCEPTION_MSG = "java.lang.IllegalArgumentException"

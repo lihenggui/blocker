@@ -47,8 +47,4 @@ class ShizukuController(val context: Context) : IController {
     override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
         return ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))
     }
-
-    companion object {
-        private const val TAG = "ShizukuController"
-    }
 }
