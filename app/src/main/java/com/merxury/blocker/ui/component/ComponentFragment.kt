@@ -9,10 +9,10 @@ import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.*
-import android.util.Log
 import android.view.*
 import android.widget.PopupMenu
 import android.widget.Toast
+import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.core.root.EControllerMethod
@@ -34,6 +34,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
     private lateinit var packageName: String
     private lateinit var type: EComponentType
+    private val logger = XLog.tag("ComponentFragment").build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -283,7 +284,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                 return
             }
             if (!ShizukuClient.isManagerInstalled(it)) {
-                Log.e(TAG, "Shizuku is not installed!")
+                logger.e("Shizuku is not installed!")
                 return
             }
             if (!ShizukuClient.getState().isAuthorized) {
@@ -305,7 +306,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     companion object {
-        const val TAG = "ComponentFragment"
         fun newInstance(packageName: String, type: EComponentType): Fragment {
             val fragment = ComponentFragment()
             val bundle = Bundle()

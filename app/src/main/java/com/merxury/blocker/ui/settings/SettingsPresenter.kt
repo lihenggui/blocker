@@ -4,7 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.util.Log
+import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.merxury.blocker.R
 import com.merxury.blocker.rule.Rule
@@ -28,7 +28,8 @@ import java.io.FileReader
 
 // TODO Clean Code
 class SettingsPresenter(private val context: Context, private val settingsView: SettingsContract.SettingsView) : SettingsContract.SettingsPresenter {
-
+    private val logger = XLog.tag("SettingsPresenter").build()
+    
     override fun exportAllRules() {
         var succeedCount = 0
         var failedCount = 0
@@ -44,7 +45,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 emitter.onComplete()
             } catch (e: Exception) {
                 e.printStackTrace()
-                Log.e(TAG, e.message)
+                logger.e(e.message)
                 failedCount++
                 emitter.onError(e)
             }
@@ -96,7 +97,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 }
                 emitter.onComplete()
             } catch (e: Exception) {
-                Log.e(TAG, "Error occurs in importing rules:", e)
+                logger.e("Error occurs in importing rules:", e)
                 emitter.onError(e)
             }
         })
@@ -126,12 +127,12 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
     }
 
     override fun exportAllIfwRules() {
-        var exportedCount = 0;
+        var exportedCount = 0
         val exportIfwObservable = Observable.create(ObservableOnSubscribe<Int> { emitter ->
             try {
                 exportedCount = Rule.exportIfwRules(context)
             } catch (e: Exception) {
-                Log.e(TAG, e.message)
+                logger.e(e.message)
                 e.printStackTrace()
             }
             emitter.onComplete()
@@ -164,7 +165,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 count = Rule.importIfwRules(context)
                 emitter.onComplete()
             } catch (e: Exception) {
-                Log.e(TAG, "Error while importing:", e)
+                logger.e("Error while importing:", e)
                 emitter.onError(e)
             }
         })
@@ -228,7 +229,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
                 Thread.sleep(1000)
                 emitter.onSuccess(result)
             } catch (e: Exception) {
-                Log.e(TAG, "Error occurs in importing mat rules:", e)
+                logger.e("Error occurs in importing mat rules:", e)
                 emitter.onError(e)
             }
         })
@@ -256,9 +257,5 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
 
     override fun destroy() {
 
-    }
-
-    companion object {
-        private const val TAG = "SettingsPresenter"
     }
 }

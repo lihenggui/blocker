@@ -2,8 +2,9 @@ package com.merxury.ifw;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
+import com.elvishew.xlog.Logger;
+import com.elvishew.xlog.XLog;
 import com.merxury.ifw.entity.Activity;
 import com.merxury.ifw.entity.Broadcast;
 import com.merxury.ifw.entity.Component;
@@ -26,10 +27,10 @@ import java.util.List;
 
 public class IntentFirewallImpl implements IntentFirewall {
 
-    private static final String TAG = "IntentFirewallImpl";
     private static final String EXTENSION = ".xml";
     private static final String FILTER_TEMPLATE = "%s/%s";
     private static IntentFirewallImpl instance;
+    private Logger logger = XLog.tag("IntentFirewallImpl").build();
     private String filename;
     private Rules rules;
     private String tmpPath;
@@ -124,7 +125,7 @@ public class IntentFirewallImpl implements IntentFirewall {
             }
         }
         filters.add(new ComponentFilter(filterRule));
-        Log.i(TAG, "Added component:" + packageName + "/" + componentName);
+        logger.i("Added component:" + packageName + "/" + componentName);
         return true;
     }
 
@@ -190,7 +191,7 @@ public class IntentFirewallImpl implements IntentFirewall {
             return;
         }
         String rulePath = StorageUtils.getIfwFolder() + filename;
-        Log.d(TAG, "delete file: " + rulePath);
+        logger.d("delete file: " + rulePath);
         RootTools.deleteFileOrDirectory(rulePath, false);
     }
 
@@ -254,7 +255,7 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     private void handleException(Exception e) {
-        Log.e(TAG, e.getMessage());
+        logger.e(e.getMessage());
         e.printStackTrace();
     }
 

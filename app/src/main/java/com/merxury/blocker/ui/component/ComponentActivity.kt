@@ -12,12 +12,12 @@ import android.support.design.widget.TabLayout
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.SearchView
-import android.util.Log
 import android.util.SparseArray
 import android.view.MenuItem
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.elvishew.xlog.XLog
 import com.jaeger.library.StatusBarUtil
 import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
@@ -33,8 +33,8 @@ import moe.shizuku.api.ShizukuClient
 class ComponentActivity : AppCompatActivity(), IActivityView {
 
     private lateinit var application: Application
-
     private lateinit var adapter: FragmentAdapter
+    private val logger = XLog.tag("ComponentActivity").build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +63,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
                 if (resultCode == ShizukuClient.AUTH_RESULT_OK) {
                     ShizukuClient.setToken(data)
                 } else {
-                    Log.d(ComponentFragment.TAG, "User denied Shizuku permission")
+                    logger.d("User denied Shizuku permission")
                 }
                 return
             }
@@ -76,7 +76,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
             ShizukuClient.REQUEST_CODE_PERMISSION -> if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
                 ShizukuClient.requestAuthorization(this)
             } else {
-                Log.d(ComponentFragment.TAG, "User denied Shizuku permission")
+                logger.d("User denied Shizuku permission")
             }
         }
     }

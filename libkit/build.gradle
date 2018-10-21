@@ -39,6 +39,7 @@ dependencies {
     //rxjava and rxandroid
     api "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
     api "io.reactivex.rxjava2:rxjava:$rxjava_version"
+    api 'com.elvishew:xlog:1.6.0'
     //RootTools and RootShell support
     api(name: 'RootTools', ext: 'aar')
     api(name: 'RootShell', ext: 'aar')

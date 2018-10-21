@@ -13,15 +13,16 @@ import android.support.customtabs.CustomTabsIntent
 import android.support.v7.app.AlertDialog
 import android.support.v7.preference.Preference
 import android.support.v7.preference.PreferenceFragmentCompat
-import android.util.Log
 import android.view.MenuItem
 import android.widget.Toast
+import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.utils.FileUtils
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.SettingsView, Preference.OnPreferenceClickListener {
+    private val logger = XLog.tag("PreferenceFragment")
     private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
     private lateinit var prefs: SharedPreferences
     private lateinit var presenter: SettingsPresenter
@@ -147,7 +148,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         if (preference == null) {
             return false
         }
-        Log.d(TAG, "onPreferenceClick: ${preference.key}")
+        logger.d("onPreferenceClick: ${preference.key}")
         when (preference) {
             exportRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_rules_warning_message), presenter::exportAllRules)
             importRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::importAllRules)
@@ -193,7 +194,6 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
     }
 
     companion object {
-        private const val TAG = "PreferenceFragment"
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
 
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->

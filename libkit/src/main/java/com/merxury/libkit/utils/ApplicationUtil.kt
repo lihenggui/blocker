@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import android.content.pm.*
 import android.os.Build
-import android.util.Log
+import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.merxury.libkit.entity.Application
@@ -17,11 +17,11 @@ import java.util.*
  */
 
 object ApplicationUtil {
-    private const val TAG = "ApplicationUtil"
     private const val BLOCKER_PACKAGE_NAME = "com.merxury.blocker"
     private const val BLOCKED_CONF_NAME = "Blocked"
     private const val BLOCKED_APP_LIST_KEY = "key_blocked_app_list"
     private const val MARKET_URL = "market://details?id="
+    private val logger = XLog.tag("ApplicationUtil").build()
 
     /**
      * Get a list of installed applications on device
@@ -105,9 +105,9 @@ object ApplicationUtil {
                 Collections.addAll(activities, *components)
             }
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.e(TAG, "Cannot find specified package.")
+            logger.e("Cannot find specified package.")
         } catch (e: RuntimeException) {
-            Log.e(TAG, e.message)
+            logger.e(e.message)
             return ApkUtils.getActivities(pm, packageName)
         }
         return activities
@@ -134,7 +134,7 @@ object ApplicationUtil {
                 Collections.addAll(receivers, *components)
             }
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.e(TAG, "Cannot find specified package.")
+            logger.e("Cannot find specified package.")
         }
         return receivers
     }
@@ -160,7 +160,7 @@ object ApplicationUtil {
                 Collections.addAll(services, *components)
             }
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.e(TAG, "Cannot find specified package.")
+            logger.e("Cannot find specified package.")
         }
         return services
     }
@@ -186,7 +186,7 @@ object ApplicationUtil {
                 Collections.addAll(providers, *components)
             }
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.e(TAG, "Cannot find specified package.")
+            logger.e("Cannot find specified package.")
         }
 
         return providers
@@ -208,7 +208,7 @@ object ApplicationUtil {
         try {
             info = pm.getPackageInfo(packageName, flags)
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.e(TAG, "Cannot find specified package.")
+            logger.e("Cannot find specified package.")
         }
         return info
     }
@@ -233,10 +233,10 @@ object ApplicationUtil {
         try {
             info = pm.getPackageInfo(packageName, flags)
         } catch (e: RuntimeException) {
-            Log.e(TAG, e.message)
+            logger.e(e.message)
             info = getPackageInfoFromManifest(pm, packageName)
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.e(TAG, "Cannot find specified package.")
+            logger.e("Cannot find specified package.")
         }
         return info
     }
@@ -264,7 +264,7 @@ object ApplicationUtil {
             state = pm.getComponentEnabledSetting(componentName)
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.e(TAG, e.message)
+            logger.e(e.message)
             return false
         }
         return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
@@ -284,7 +284,7 @@ object ApplicationUtil {
             pm.getApplicationInfo(packageName, 0)
             return true
         } catch (e: PackageManager.NameNotFoundException) {
-            Log.d(TAG, packageName + "is not installed.")
+            logger.d(packageName + "is not installed.")
         }
         return false
     }

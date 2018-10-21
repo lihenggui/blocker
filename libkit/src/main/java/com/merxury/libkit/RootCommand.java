@@ -1,8 +1,9 @@
 package com.merxury.libkit;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
+import com.elvishew.xlog.Logger;
+import com.elvishew.xlog.XLog;
 import com.merxury.libkit.exception.ProcessUnexpectedTerminateException;
 import com.stericson.RootShell.exceptions.RootDeniedException;
 import com.stericson.RootShell.execution.Command;
@@ -23,11 +24,11 @@ import io.reactivex.disposables.Disposable;
  */
 
 public class RootCommand {
-    private static final String TAG = "RootCommand";
+    private static Logger logger = XLog.tag("RootCommand").build();
 
     @NonNull
     public synchronized static String runBlockingCommand(final String comm) throws RootDeniedException, IOException, TimeoutException {
-        final StringBuilder commandOutput = new StringBuilder("");
+        final StringBuilder commandOutput = new StringBuilder();
         final AtomicReference<Throwable> returnException = new AtomicReference<>();
         Observable.create(new ObservableOnSubscribe<String>() {
             @Override
@@ -41,7 +42,7 @@ public class RootCommand {
 
                     @Override
                     public void commandTerminated(int id, String reason) {
-                        Log.d(TAG, reason);
+                        logger.d(reason);
                         emitter.onError(new ProcessUnexpectedTerminateException(reason));
                         super.commandTerminated(id, reason);
                     }
@@ -90,7 +91,7 @@ public class RootCommand {
 
         String output = commandOutput.toString();
         if (BuildConfig.DEBUG) {
-            Log.d(TAG, "Command: " + comm + "\nOutput: " + output);
+            logger.d("Command: " + comm + "\nOutput: " + output);
         }
         return output;
     }
