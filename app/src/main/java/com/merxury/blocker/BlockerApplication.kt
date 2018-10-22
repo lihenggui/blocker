@@ -7,10 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import androidx.work.Constraints
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequest
-import androidx.work.WorkManager
+import androidx.work.*
 import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
 import com.elvishew.xlog.XLog
@@ -56,15 +53,10 @@ class BlockerApplication : Application() {
     }
 
     private fun createScheduleWork() {
-        val constraint = Constraints.Builder()
-                .setRequiresDeviceIdle(true)
-                .build()
-        val scheduleWork = PeriodicWorkRequest.Builder(ScheduledWork::class.java, 15, TimeUnit.MINUTES)
-                .setConstraints(constraint)
-                .build()
+        WorkManager.getInstance().cancelAllWork()
+        val scheduleWork = PeriodicWorkRequest.Builder(ScheduledWork::class.java,
+                PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS).build()
         WorkManager.getInstance().enqueueUniquePeriodicWork("BlockerScheduledWork", ExistingPeriodicWorkPolicy.KEEP, scheduleWork)
-
-
     }
 
     companion object {
