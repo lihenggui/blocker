@@ -127,4 +127,7 @@
     <string name="starting_application">Starting application, please wait</string>
     <string name="block">Block</string>
     <string name="unblock">Unblock</string>
+    <string name="experimental_features">Experimental Features</string>
+    <string name="auto_block">Auto Block</string>
+    <string name="force_doze">Force Doze</string>
 </resources>

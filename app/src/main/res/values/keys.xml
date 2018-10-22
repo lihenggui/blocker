@@ -19,4 +19,7 @@
     <string name="key_pref_about_category">pref_key_about_category</string>
     <string name="key_pref_about">pref_key_about</string>
     <string name="key_pref_comparator_type">pref_key_comparator_type</string>
+    <string name="key_pref_experimental_features">pref_key_experimental_features</string>
+    <string name="key_pref_auto_block">pref_key_auto_block</string>
+    <string name="key_pref_force_doze">pref_key_force_doze</string>
 </resources>

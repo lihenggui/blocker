@@ -7,7 +7,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import androidx.work.*
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
 import com.elvishew.xlog.XLog
@@ -52,6 +54,7 @@ class BlockerApplication : Application() {
         XLog.init(config, androidPrinter, filePrinter)
     }
 
+    @TargetApi(Build.VERSION_CODES.M)
     private fun createScheduleWork() {
         WorkManager.getInstance().cancelAllWork()
         val scheduleWork = PeriodicWorkRequest.Builder(ScheduledWork::class.java,
