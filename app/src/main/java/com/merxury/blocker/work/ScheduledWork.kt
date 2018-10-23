@@ -9,6 +9,7 @@ import com.merxury.blocker.R
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.DeviceUtil
 import com.merxury.libkit.utils.ManagerUtils
+import com.merxury.libkit.utils.PermissionUtils
 import java.util.*
 
 class ScheduledWork(val context: Context, workerParameters: WorkerParameters) : Worker(context, workerParameters) {
@@ -19,6 +20,11 @@ class ScheduledWork(val context: Context, workerParameters: WorkerParameters) : 
         val isAutoBlockOn = preferenceManager.getBoolean(context.getString(R.string.key_pref_auto_block), false)
         val isForceDozeOn = preferenceManager.getBoolean(context.getString(R.string.key_pref_force_doze), false)
         val isScreenOff = !DeviceUtil.isScreenOn(context)
+        val isRooted = PermissionUtils.isRootAvailable
+        if (!isRooted) {
+            logger.d("Can't get root permission, exiting...")
+            return Result.FAILURE
+        }
         try {
             if (isScreenOff) {
                 if (isAutoBlockOn) {

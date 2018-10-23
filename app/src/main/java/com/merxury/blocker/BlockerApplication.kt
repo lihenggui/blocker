@@ -7,6 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import android.support.v7.preference.PreferenceManager
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
@@ -54,16 +55,22 @@ class BlockerApplication : Application() {
         XLog.init(config, androidPrinter, filePrinter)
     }
 
-    @TargetApi(Build.VERSION_CODES.M)
     private fun createScheduleWork() {
-        WorkManager.getInstance().cancelAllWork()
-        val scheduleWork = PeriodicWorkRequest.Builder(ScheduledWork::class.java,
-                PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS).build()
-        WorkManager.getInstance().enqueueUniquePeriodicWork("BlockerScheduledWork", ExistingPeriodicWorkPolicy.KEEP, scheduleWork)
+        val preferenceManager = PreferenceManager.getDefaultSharedPreferences(context)
+        val isAutoBlockOn = preferenceManager.getBoolean(context.getString(R.string.key_pref_auto_block), false)
+        val isForceDozeOn = preferenceManager.getBoolean(context.getString(R.string.key_pref_force_doze), false)
+        if (!isAutoBlockOn && !isForceDozeOn) {
+            WorkManager.getInstance().cancelAllWork()
+        } else {
+            val scheduleWork = PeriodicWorkRequest.Builder(ScheduledWork::class.java,
+                    PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS).build()
+            WorkManager.getInstance().enqueueUniquePeriodicWork(SCHEDULED_WORK_TAG, ExistingPeriodicWorkPolicy.KEEP, scheduleWork)
+        }
     }
 
     companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
+        private const val SCHEDULED_WORK_TAG = "BlockerScheduledWork"
     }
 }
