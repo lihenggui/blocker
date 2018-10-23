@@ -129,5 +129,7 @@
     <string name="unblock">Unblock</string>
     <string name="experimental_features">Experimental Features</string>
     <string name="auto_block">Auto Block</string>
+    <string name="auto_block_summary">Stop background application while screen is off.\n(May not work properly in some Chinese ROM)</string>
     <string name="force_doze">Force Doze</string>
+    <string name="force_doze_summary">Force device into Doze mode while screen is off.</string>
 </resources>

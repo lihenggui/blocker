@@ -67,9 +67,11 @@
         android:title="@string/experimental_features">
         <android.support.v7.preference.CheckBoxPreference
             android:key="@string/key_pref_auto_block"
+            android:summary="@string/auto_block_summary"
             android:title="@string/auto_block" />
         <android.support.v7.preference.CheckBoxPreference
             android:key="@string/key_pref_force_doze"
+            android:summary="@string/force_doze_summary"
             android:title="@string/force_doze" />
     </android.support.v7.preference.PreferenceCategory>
 
