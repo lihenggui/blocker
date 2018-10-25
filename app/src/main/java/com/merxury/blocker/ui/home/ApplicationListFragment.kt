@@ -15,6 +15,7 @@ import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.SearchView
 import android.view.*
 import android.widget.PopupMenu
+import android.widget.Toast
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import com.bumptech.glide.request.RequestOptions
@@ -219,6 +220,14 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     override fun showToastMessage(message: String?, length: Int) {
         ToastUtil.showToast(message ?: "", length)
+    }
+
+    override fun showDataCleared() {
+        Toast.makeText(context, R.string.data_cleared, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun showForceStopped() {
+        Toast.makeText(context, R.string.force_stopped, Toast.LENGTH_SHORT).show()
     }
 
     override fun updateState(packageName: String) {

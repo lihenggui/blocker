@@ -136,10 +136,12 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 .onErrorReturn { false }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-
+                .subscribe({ result ->
+                    if (result) {
+                        homeView?.showDataCleared()
+                    }
                 }, {
-
+                    logger.e(it)
                 })
     }
 

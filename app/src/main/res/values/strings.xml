@@ -132,4 +132,7 @@
     <string name="auto_block_summary">Stop background application while screen is off.\n(May not work properly in some Chinese ROM)</string>
     <string name="force_doze">Force Doze</string>
     <string name="force_doze_summary">Force device into Doze mode while screen is off.</string>
+    <string name="force_stopped">Application stopped</string>
+    <string name="data_cleared">Data Cleared</string>
+    <string name="error">Error</string>
 </resources>
