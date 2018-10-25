@@ -23,6 +23,8 @@ interface HomeContract {
         fun showAlert(@StringRes alertMessage: Int, confirmAction:() -> Unit)
         fun showError(@StringRes errorMessage:Int)
         fun showToastMessage(message: String?, length: Int)
+        fun showDataCleared()
+        fun showForceStopped()
         fun updateState(packageName: String)
     }
 
