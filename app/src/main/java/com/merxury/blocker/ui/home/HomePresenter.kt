@@ -2,8 +2,8 @@ package com.merxury.blocker.ui.home
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
 import android.preference.PreferenceManager
+import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.AppLauncher
 import com.merxury.libkit.entity.Application
@@ -16,9 +16,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
 class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
-
-    private lateinit var pm: PackageManager
     private var context: Context? = null
+    private val logger = XLog.tag(this.javaClass.simpleName).build()
 
     override fun start(context: Context) {
         this.context = context
@@ -33,8 +32,8 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     @SuppressLint("CheckResult")
     override fun loadApplicationList(context: Context, isSystemApplication: Boolean) {
         homeView?.setLoadingIndicator(true)
-        Single.create(SingleOnSubscribe<List<Application>> { emitter ->
-            val applications: List<Application> = when (isSystemApplication) {
+        Single.create(SingleOnSubscribe<MutableList<Application>> { emitter ->
+            val applications: MutableList<Application> = when (isSystemApplication) {
                 false -> ApplicationUtil.getThirdPartyApplicationList(context)
                 true -> ApplicationUtil.getSystemApplicationList(context)
             }
@@ -56,7 +55,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
         homeView?.showApplicationDetailsUi(application)
     }
 
-    override fun sortApplicationList(applications: List<Application>): List<Application> {
+    override fun sortApplicationList(applications: List<Application>): MutableList<Application> {
         val sortedList =  when (currentComparator) {
             ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.asSequence().sortedBy {it.label}
             ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.asSequence().sortedByDescending { it.label }
@@ -85,7 +84,7 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 .onErrorReturn { false }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
+                .subscribe({ result ->
 
                 }, {
 
@@ -101,10 +100,12 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 .onErrorReturn { false }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-
+                .subscribe({ result ->
+                    if (result) {
+                        homeView?.updateState(packageName)
+                    }
                 }, {
-
+                    logger.e(it)
                 })
     }
 
@@ -117,10 +118,12 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
                 .onErrorReturn { false }
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-
+                .subscribe({ result ->
+                    if (result) {
+                        homeView?.updateState(packageName)
+                    }
                 }, {
-
+                    logger.e(it)
                 })
     }
 
@@ -164,10 +167,12 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
 
     override fun blockApplication(packageName: String) {
         ApplicationUtil.addBlockedApplication(context!!, packageName)
+        homeView?.updateState(packageName)
     }
 
     override fun unblockApplication(packageName: String) {
         ApplicationUtil.removeBlockedApplication(context!!, packageName)
+        homeView?.updateState(packageName)
     }
 
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL

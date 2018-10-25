@@ -16,13 +16,14 @@ interface HomeContract {
     interface View : BaseView<Presenter> {
         fun setLoadingIndicator(active: Boolean)
         fun searchForApplication(name: String)
-        fun showApplicationList(applications: List<Application>)
+        fun showApplicationList(applications: MutableList<Application>)
         fun showNoApplication()
         fun showFilteringPopUpMenu()
         fun showApplicationDetailsUi(application: Application)
         fun showAlert(@StringRes alertMessage: Int, confirmAction:() -> Unit)
         fun showError(@StringRes errorMessage:Int)
         fun showToastMessage(message: String?, length: Int)
+        fun updateState(packageName: String)
     }
 
     interface Presenter : BasePresenter {
