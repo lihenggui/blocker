@@ -213,6 +213,15 @@ object ApplicationUtil {
         return info
     }
 
+    fun getApplicationInfo(context: Context, packageName: String): Application? {
+        val pm = context.packageManager
+        val info = getApplicationComponents(pm, packageName, 0) ?: return null
+        return Application(pm, info).apply {
+            val blockedApps = getBlockedApplication(context)
+            isBlocked = blockedApps.contains(this.packageName)
+        }
+    }
+
     /**
      * get a list of components of a specified application
      *

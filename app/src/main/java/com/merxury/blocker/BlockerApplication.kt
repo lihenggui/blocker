@@ -57,8 +57,8 @@ class BlockerApplication : Application() {
 
     private fun createScheduleWork() {
         val preferenceManager = PreferenceManager.getDefaultSharedPreferences(context)
-        val isAutoBlockOn = preferenceManager.getBoolean(context.getString(R.string.key_pref_auto_block), false)
-        val isForceDozeOn = preferenceManager.getBoolean(context.getString(R.string.key_pref_force_doze), false)
+        val isAutoBlockOn = preferenceManager.getBoolean(getString(R.string.key_pref_auto_block), false)
+        val isForceDozeOn = preferenceManager.getBoolean(getString(R.string.key_pref_force_doze), false)
         if (!isAutoBlockOn && !isForceDozeOn) {
             WorkManager.getInstance().cancelAllWork()
         } else {

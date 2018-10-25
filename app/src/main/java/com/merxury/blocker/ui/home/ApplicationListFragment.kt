@@ -9,7 +9,10 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
-import android.support.v7.widget.*
+import android.support.v7.widget.DefaultItemAnimator
+import android.support.v7.widget.DividerItemDecoration
+import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.SearchView
 import android.view.*
 import android.widget.PopupMenu
 import com.bumptech.glide.Glide
@@ -23,6 +26,7 @@ import com.merxury.blocker.ui.component.ComponentActivity
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
+import com.merxury.libkit.utils.ApplicationUtil
 import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
 
@@ -57,7 +61,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         listAdapter.filter(name)
     }
 
-    override fun showApplicationList(applications: List<Application>) {
+    override fun showApplicationList(applications: MutableList<Application>) {
         appListFragmentRecyclerView.visibility = View.VISIBLE
         noAppContainer.visibility = View.GONE
         listAdapter.addData(applications)
@@ -179,6 +183,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         val packageName = application.packageName
         when (item.itemId) {
             R.id.block_application -> presenter.blockApplication(packageName)
+            R.id.unblock_application -> presenter.unblockApplication(packageName)
             R.id.launch_application -> presenter.launchApplication(packageName)
             R.id.force_stop -> presenter.forceStop(packageName)
             R.id.enable_application -> presenter.enableApplication(packageName)
@@ -216,6 +221,11 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         ToastUtil.showToast(message ?: "", length)
     }
 
+    override fun updateState(packageName: String) {
+        val updatedInfo = ApplicationUtil.getApplicationInfo(context!!, packageName) ?: return
+        listAdapter.update(updatedInfo)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_filter -> showFilteringPopUpMenu()
@@ -249,7 +259,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     }
 
-    inner class AppListRecyclerViewAdapter(private val listener: ApplicationListFragment.AppItemListener, private var applications: List<Application> = ArrayList()) : RecyclerView.Adapter<AppListRecyclerViewAdapter.ViewHolder>() {
+    inner class AppListRecyclerViewAdapter(private val listener: ApplicationListFragment.AppItemListener, private var applications: MutableList<Application> = mutableListOf()) : RecyclerView.Adapter<AppListRecyclerViewAdapter.ViewHolder>() {
 
         private lateinit var pm: PackageManager
         private var listCopy = ArrayList<Application>()
@@ -268,7 +278,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             holder.bindApplication(this.applications[position])
         }
 
-        fun addData(applications: List<Application>) {
+        fun addData(applications: MutableList<Application>) {
             this.applications = applications
             this.listCopy = ArrayList(applications)
             notifyDataSetChanged()
@@ -278,11 +288,30 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             return applications[position]
         }
 
+        fun update(application: Application) {
+            val position = getPositionByPackageName(application.packageName)
+            if (position == -1) return
+            applications[position] = application
+            notifyItemChanged(position)
+
+        }
+
+        fun getPositionByPackageName(packageName: String): Int {
+            applications.forEachIndexed { index, application ->
+                if (application.packageName == packageName) {
+                    return index
+                }
+            }
+            return -1
+        }
+
         fun filter(keyword: String) {
             applications = if (keyword.isEmpty()) {
                 listCopy
             } else {
-                listCopy.filter { it.label.contains(keyword, true) or it.packageName.contains(keyword, true) }
+                listCopy.asSequence()
+                        .filter { it.label.contains(keyword, true) || it.packageName.contains(keyword, true) }
+                        .toMutableList()
             }
             notifyDataSetChanged()
         }
