@@ -118,4 +118,5 @@
     <string name="disable">禁用</string>
     <string name="block">Block</string>
     <string name="unblock">Unblock</string>
+    <string name="experimental_features_warning">You turned on experimental feature.</string>
 </resources>

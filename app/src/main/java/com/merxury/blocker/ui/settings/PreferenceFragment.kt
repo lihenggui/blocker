@@ -11,14 +11,20 @@ import android.preference.ListPreference
 import android.preference.PreferenceManager
 import android.support.customtabs.CustomTabsIntent
 import android.support.v7.app.AlertDialog
+import android.support.v7.preference.CheckBoxPreference
 import android.support.v7.preference.Preference
 import android.support.v7.preference.PreferenceFragmentCompat
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.blocker.work.ScheduledWork
 import com.merxury.libkit.utils.FileUtils
+import java.util.concurrent.TimeUnit
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
 class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.SettingsView, Preference.OnPreferenceClickListener {
@@ -36,6 +42,8 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
     private lateinit var importIfwRulePreference: Preference
     private lateinit var resetIfwPreference: Preference
     private lateinit var importMatRulesPreference: Preference
+    private lateinit var autoBlockPreference: CheckBoxPreference
+    private lateinit var forceDozePreference: CheckBoxPreference
     private lateinit var aboutPreference: Preference
 
     private val matRulePathRequestCode = 100
@@ -64,6 +72,8 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         exportIfwRulePreference = findPreference(getString(R.string.key_pref_export_ifw_rules))
         resetIfwPreference = findPreference(getString(R.string.key_pref_reset_ifw_rules))
         importMatRulesPreference = findPreference(getString(R.string.key_pref_import_mat_rules))
+        autoBlockPreference = findPreference(getString(R.string.key_pref_auto_block)) as CheckBoxPreference
+        forceDozePreference = findPreference(getString(R.string.key_pref_force_doze)) as CheckBoxPreference
         aboutPreference = findPreference(getString(R.string.key_pref_about))
     }
 
@@ -90,6 +100,8 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         importIfwRulePreference.onPreferenceClickListener = this
         importMatRulesPreference.onPreferenceClickListener = this
         resetIfwPreference.onPreferenceClickListener = this
+        autoBlockPreference.onPreferenceClickListener = this
+        forceDozePreference.onPreferenceClickListener = this
         aboutPreference.onPreferenceClickListener = this
     }
 
@@ -156,6 +168,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
             importIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_ifw_rules_warning_message), presenter::importAllIfwRules)
             importMatRulesPreference -> selectMatFile()
             resetIfwPreference -> showDialog(getString(R.string.warning), getString(R.string.reset_ifw_warning_message), presenter::resetIFW)
+            autoBlockPreference, forceDozePreference -> initAutoBlockAndDoze()
             aboutPreference -> showAbout()
             else -> return false
         }
@@ -193,8 +206,35 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
                 .launchUrl(context, Uri.parse(ABOUT_URL))
     }
 
+    private fun initAutoBlockAndDoze() {
+        if (!autoBlockPreference.isChecked && !forceDozePreference.isChecked) {
+            logger.d("Canceling scheduled work.")
+            WorkManager.getInstance().cancelAllWork()
+        } else {
+            warnExperimentalFeature()
+            val scheduleWork = PeriodicWorkRequest.Builder(ScheduledWork::class.java,
+                    PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS).build()
+            WorkManager.getInstance().enqueueUniquePeriodicWork(SCHEDULED_WORK_TAG, ExistingPeriodicWorkPolicy.KEEP, scheduleWork)
+            logger.d("Scheduled work activated")
+        }
+    }
+
+    private fun warnExperimentalFeature() {
+        context?.let {
+            AlertDialog.Builder(it)
+                    .setTitle(R.string.warning)
+                    .setMessage(R.string.experimental_features_warning)
+                    .setPositiveButton(android.R.string.yes) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .show()
+        }
+
+    }
+
     companion object {
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
+        private const val SCHEDULED_WORK_TAG = "BlockerScheduledWork"
 
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
             val stringValue = value.toString()
