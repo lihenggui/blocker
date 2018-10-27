@@ -7,10 +7,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
-import android.support.v7.preference.PreferenceManager
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequest
-import androidx.work.WorkManager
 import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
 import com.elvishew.xlog.XLog
@@ -18,9 +14,7 @@ import com.elvishew.xlog.printer.AndroidPrinter
 import com.elvishew.xlog.printer.file.FilePrinter
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.merxury.blocker.util.NotificationUtil
-import com.merxury.blocker.work.ScheduledWork
 import moe.shizuku.api.ShizukuClient
-import java.util.concurrent.TimeUnit
 
 class BlockerApplication : Application() {
     override fun onCreate() {
@@ -33,7 +27,6 @@ class BlockerApplication : Application() {
             createNotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
         }
         ShizukuClient.initialize(this)
-        createScheduleWork()
     }
 
     @TargetApi(Build.VERSION_CODES.O)
@@ -53,19 +46,6 @@ class BlockerApplication : Application() {
                 .backupStrategy(NeverBackupStrategy())
                 .build()
         XLog.init(config, androidPrinter, filePrinter)
-    }
-
-    private fun createScheduleWork() {
-        val preferenceManager = PreferenceManager.getDefaultSharedPreferences(context)
-        val isAutoBlockOn = preferenceManager.getBoolean(getString(R.string.key_pref_auto_block), false)
-        val isForceDozeOn = preferenceManager.getBoolean(getString(R.string.key_pref_force_doze), false)
-        if (!isAutoBlockOn && !isForceDozeOn) {
-            WorkManager.getInstance().cancelAllWork()
-        } else {
-            val scheduleWork = PeriodicWorkRequest.Builder(ScheduledWork::class.java,
-                    PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS).build()
-            WorkManager.getInstance().enqueueUniquePeriodicWork(SCHEDULED_WORK_TAG, ExistingPeriodicWorkPolicy.KEEP, scheduleWork)
-        }
     }
 
     companion object {
