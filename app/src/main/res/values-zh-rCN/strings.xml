@@ -116,7 +116,15 @@
     <string name="details">应用详情</string>
     <string name="starting_application">启动应用中，请稍后</string>
     <string name="disable">禁用</string>
-    <string name="block">Block</string>
-    <string name="unblock">Unblock</string>
-    <string name="experimental_features_warning">You turned on experimental feature.</string>
+    <string name="block">阻止运行</string>
+    <string name="unblock">解除阻止</string>
+    <string name="experimental_features">实验性功能</string>
+    <string name="auto_block">自动阻止运行</string>
+    <string name="auto_block_summary">在屏幕关闭一定时间之后，强行停止指定应用程序的运行。</string>
+    <string name="force_doze">强制Doze</string>
+    <string name="force_doze_summary">当屏幕关闭一定时间之后，强制设备进入Doze模式。</string>
+    <string name="force_stopped">应用程序已强制停止</string>
+    <string name="data_cleared">数据已被清除</string>
+    <string name="error">错误</string>
+    <string name="experimental_features_warning">您启用了一些实验性功能，这些功能目前需要Root权限运行，而且有可能在部分国产ROM上无法正常运行。如不能正常工作请谅解。</string>
 </resources>

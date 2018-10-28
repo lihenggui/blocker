@@ -118,5 +118,13 @@
     <string name="disable">禁用</string>
     <string name="block">Block</string>
     <string name="unblock">Unblock</string>
-    <string name="experimental_features_warning">You turned on experimental feature.</string>
+    <string name="experimental_features">實驗性功能</string>
+    <string name="auto_block">自動阻止運行</string>
+    <string name="auto_block_summary">在屏幕關閉一定時間之後，強行停止指定應用程序的運行。</string>
+    <string name="force_doze">強制Doze</string>
+    <string name="force_doze_summary">當屏幕關閉一定時間之後，強制設備進入Doze模式。</string>
+    <string name="force_stopped">應用程序已強制停止</string>
+    <string name="data_cleared">數據已被清除</string>
+    <string name="error">錯誤</string>
+    <string name="experimental_features_warning">您啟用了一些實驗性功能，這些功能目前需要Root權限運行，而且有可能在部分國產ROM上無法正常運行。如不能正常工作請諒解。</string>
 </resources>
