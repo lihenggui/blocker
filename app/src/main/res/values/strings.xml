@@ -129,11 +129,11 @@
     <string name="unblock">Unblock</string>
     <string name="experimental_features">Experimental Features</string>
     <string name="auto_block">Auto Block</string>
-    <string name="auto_block_summary">Stop background application while screen is off.\n(May not work properly in some Chinese ROM)</string>
+    <string name="auto_block_summary">Stop background application while screen is off.</string>
     <string name="force_doze">Force Doze</string>
     <string name="force_doze_summary">Force device into Doze mode while screen is off.</string>
     <string name="force_stopped">Application stopped</string>
     <string name="data_cleared">Data Cleared</string>
     <string name="error">Error</string>
-    <string name="experimental_features_warning">You turned on experimental feature.</string>
+    <string name="experimental_features_warning">You have some experimental feature turned on.\nNote:\nRoot permission is needed.\nIt might not work on some Chinese ROMs.</string>
 </resources>
