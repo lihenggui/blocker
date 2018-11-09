@@ -10,8 +10,14 @@ class ServiceHelper(private val packageName: String) {
     }
 
     fun isServiceRunning(serviceName: String): Boolean {
-        val regex = SERVICE_REGEX.format(packageName, serviceName).toRegex()
-        return serviceList.contains(regex)
+        val shortName = if (serviceName.startsWith(packageName)) {
+            serviceName.removePrefix(packageName)
+        } else {
+            serviceName
+        }
+        val fullRegex = SERVICE_REGEX.format(packageName, serviceName).toRegex()
+        val shortRegex = SERVICE_REGEX.format(packageName, shortName).toRegex()
+        return serviceList.contains(fullRegex) || serviceList.contains(shortRegex)
     }
 
     fun refresh() {
@@ -19,6 +25,6 @@ class ServiceHelper(private val packageName: String) {
     }
 
     companion object {
-        private const val SERVICE_REGEX = """ServiceRecord\{(.*?) %s\/%s\}"""
+        private const val SERVICE_REGEX = """\s+?\*\sServiceRecord\{(.*?) %s\/%s\}"""
     }
 }
