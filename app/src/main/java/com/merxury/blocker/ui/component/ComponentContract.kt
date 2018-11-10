@@ -40,6 +40,7 @@ interface ComponentContract {
         fun enableAllComponents(packageName: String, type: EComponentType)
         fun exportRule(packageName: String)
         fun importRule(packageName: String)
+        fun isServiceRunning(componentName: String): Boolean
     }
 
     interface ComponentItemListener {

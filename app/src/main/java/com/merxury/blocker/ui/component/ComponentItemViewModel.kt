@@ -6,5 +6,6 @@ data class ComponentItemViewModel(
         var name: String = "",
         var simpleName: String = "",
         var packageName: String = "",
-        var bestComment: String = ""
+        var bestComment: String = "",
+        var isRunning: Boolean = false
 )
