@@ -22,6 +22,7 @@ import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ManagerUtils
 import com.merxury.libkit.utils.PermissionUtils
+import com.merxury.libkit.utils.ServiceHelper
 import com.tbruyelle.rxpermissions2.RxPermissions
 import io.reactivex.Observable
 import io.reactivex.ObservableOnSubscribe
@@ -40,7 +41,8 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         val controllerType = PreferenceUtil.getControllerType(context)
         ComponentControllerProxy.getInstance(controllerType, context)
     }
-
+    private val serviceHelper by lazy { ServiceHelper(packageName) }
+    private lateinit var type: EComponentType
     init {
         view?.presenter = this
         pm = context.packageManager
@@ -59,6 +61,9 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         logger.i("Load components for $packageName, type: $type")
         view?.setLoadingIndicator(true)
         Single.create((SingleOnSubscribe<List<ComponentItemViewModel>> { emitter ->
+            if (type == EComponentType.SERVICE) {
+                serviceHelper.refresh()
+            }
             val componentList = getComponents(packageName, type)
             var viewModels = initViewModel(componentList)
             viewModels = sortComponentList(viewModels, currentComparator)
@@ -245,6 +250,9 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     override fun updateComponentViewModel(viewModel: ComponentItemViewModel) {
         viewModel.state = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(viewModel.packageName, viewModel.name))
         viewModel.ifwState = ifwController.checkComponentEnableState(viewModel.packageName, viewModel.name)
+        if (type == EComponentType.SERVICE) {
+            viewModel.isRunning = isServiceRunning(viewModel.name)
+        }
     }
 
     @SuppressLint("CheckResult")
@@ -366,6 +374,10 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 }
     }
 
+    override fun isServiceRunning(componentName: String): Boolean {
+        return serviceHelper.isServiceRunning(componentName)
+    }
+
     @SuppressLint("CheckResult")
     private fun importBlockerRule(packageName: String) {
         view?.showToastMessage(context.getString(R.string.processing), Toast.LENGTH_SHORT)
@@ -402,6 +414,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     private fun getComponents(packageName: String, type: EComponentType): MutableList<out ComponentInfo> {
+        this.type = type
         val components = when (type) {
             EComponentType.RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
             EComponentType.ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)

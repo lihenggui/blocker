@@ -5,10 +5,6 @@ import com.merxury.libkit.RootCommand
 class ServiceHelper(private val packageName: String) {
     private lateinit var serviceList: String
 
-    init {
-        refresh()
-    }
-
     fun isServiceRunning(serviceName: String): Boolean {
         val shortName = if (serviceName.startsWith(packageName)) {
             serviceName.removePrefix(packageName)

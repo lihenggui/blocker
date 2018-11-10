@@ -16,7 +16,6 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.core.root.EControllerMethod
-import com.merxury.blocker.strategy.entity.Component
 import com.merxury.blocker.strategy.entity.view.AppComponentInfo
 import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.util.PreferenceUtil
@@ -332,29 +331,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
             holder.bindComponent(this.components[position])
             holder.itemView.isLongClickable = true
-            updateComponentDetails(position, holder)
-        }
-
-        private fun updateComponentDetails(position: Int, holder: ViewHolder) {
-            if (::componentData.isInitialized) {
-                val components =
-                        when (type) {
-                            EComponentType.ACTIVITY -> componentData.activity
-                            EComponentType.RECEIVER -> componentData.receiver
-                            EComponentType.SERVICE -> componentData.service
-                            EComponentType.PROVIDER -> componentData.provider
-                            EComponentType.UNKNOWN -> ArrayList()
-                        }
-                val name = this.components[position].name
-                run outside@{
-                    components?.forEach inside@{
-                        if (it.name == name) {
-                            holder.updateComponentDetails(it)
-                            return@outside
-                        }
-                    }
-                }
-            }
         }
 
         override fun getItemCount(): Int {
@@ -411,11 +387,12 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
                     component_switch.setOnClickListener {
                         listener.onSwitchClick(component.name, it.component_switch.isChecked)
                     }
+                    if (component.isRunning) {
+                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.md_light_blue_50))
+                    } else {
+                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.md_white_1000))
+                    }
                 }
-            }
-
-            fun updateComponentDetails(component: Component) {
-                itemView.component_description.text = component.bestComment?.description
             }
         }
     }
