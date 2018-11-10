@@ -17,7 +17,7 @@ class ServiceHelper(private val packageName: String) {
     }
 
     fun refresh() {
-        serviceList = RootCommand.runBlockingCommand("dumpsys activity services $packageName")
+        serviceList = RootCommand.runBlockingCommand("dumpsys activity services -p $packageName")
     }
 
     companion object {
