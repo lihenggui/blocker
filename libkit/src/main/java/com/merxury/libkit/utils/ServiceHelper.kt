@@ -1,8 +1,10 @@
 package com.merxury.libkit.utils
 
+import com.elvishew.xlog.XLog
 import com.merxury.libkit.RootCommand
 
 class ServiceHelper(private val packageName: String) {
+    private val logger = XLog.tag("ServiceHelper").build()
     private var serviceInfo: String = ""
     private val serviceList: MutableList<String> = mutableListOf()
 
@@ -26,7 +28,12 @@ class ServiceHelper(private val packageName: String) {
 
     fun refresh() {
         serviceList.clear()
-        serviceInfo = RootCommand.runBlockingCommand("dumpsys activity services -p $packageName")
+        serviceInfo = try {
+            RootCommand.runBlockingCommand("dumpsys activity services -p $packageName")
+        } catch (e: Exception) {
+            logger.e("Cannot get running service list:", e)
+            ""
+        }
         parseServiceInfo()
     }
 
