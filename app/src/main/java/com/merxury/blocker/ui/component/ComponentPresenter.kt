@@ -61,21 +61,29 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         logger.i("Load components for $packageName, type: $type")
         view?.setLoadingIndicator(true)
         Single.create((SingleOnSubscribe<List<ComponentItemViewModel>> { emitter ->
-            if (type == EComponentType.SERVICE) {
-                serviceHelper.refresh()
+            try {
+                if (type == EComponentType.SERVICE) {
+                    serviceHelper.refresh()
+                }
+                val componentList = getComponents(packageName, type)
+                var viewModels = initViewModel(componentList)
+                viewModels = sortComponentList(viewModels, currentComparator)
+                emitter.onSuccess(viewModels)
+            } catch (e: Exception) {
+                emitter.onError(e)
             }
-            val componentList = getComponents(packageName, type)
-            var viewModels = initViewModel(componentList)
-            viewModels = sortComponentList(viewModels, currentComparator)
-            emitter.onSuccess(viewModels)
         })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { components ->
+                .subscribe { components, error ->
                     view?.setLoadingIndicator(false)
                     if (components.isEmpty()) {
                         view?.showNoComponent()
                     } else {
                         view?.showComponentList(components.toMutableList())
+                    }
+                    error?.apply {
+                        logger.e("Error while loading components", error)
+                        view?.showAlertDialog(StringUtil.getStackTrace(error))
                     }
                 }
     }
