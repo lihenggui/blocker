@@ -171,7 +171,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             EComponentComparatorType.NAME_ASCENDING -> components.sortedBy { it.name }
             EComponentComparatorType.NAME_DESCENDING -> components.sortedByDescending { it.name }
         }
-        return sortedComponents.sortedWith(compareBy({ !it.state }, { !it.ifwState }))
+        return sortedComponents.sortedWith(compareBy({ !it.isRunning }, { !it.state }, { !it.ifwState }))
     }
 
     @SuppressLint("CheckResult")
