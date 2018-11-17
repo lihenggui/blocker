@@ -71,6 +71,10 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
     // Status Bar Util
     implementation 'com.jaeger.statusbarutil:library:1.5.1'
+    // Anko
+    implementation "org.jetbrains.anko:anko:$anko_version"
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.0.1'
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')
