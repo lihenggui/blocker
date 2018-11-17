@@ -20,7 +20,6 @@ import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.ui.component.ComponentActivity
-import com.merxury.blocker.util.DialogUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
@@ -34,7 +33,6 @@ import org.jetbrains.anko.uiThread
 class ApplicationListFragment : Fragment(), HomeContract.View {
     override lateinit var presenter: HomeContract.Presenter
     private var isSystem: Boolean = false
-    private val exceptionHandler = { e: Throwable -> DialogUtil().showWarningDialogWithMessage(context, e) }
     private var itemListener: AppItemListener = object : AppItemListener {
         override fun onAppClick(application: Application) {
             presenter.openApplicationDetails(application)

@@ -15,8 +15,8 @@ import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.RulesResult
+import com.merxury.blocker.util.DialogUtil
 import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.blocker.util.StringUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
@@ -24,12 +24,11 @@ import com.merxury.libkit.utils.ManagerUtils
 import com.merxury.libkit.utils.PermissionUtils
 import com.merxury.libkit.utils.ServiceHelper
 import com.tbruyelle.rxpermissions2.RxPermissions
-import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
-import io.reactivex.Single
-import io.reactivex.SingleOnSubscribe
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 import java.io.File
 
 class ComponentPresenter(val context: Context, var view: ComponentContract.View?, val packageName: String) : ComponentContract.Presenter, IController {
@@ -41,6 +40,12 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     private val controller: IController by lazy {
         val controllerType = PreferenceUtil.getControllerType(context)
         ComponentControllerProxy.getInstance(controllerType, context)
+    }
+    private val exceptionHandler = { e: Throwable ->
+        GlobalScope.launch(Dispatchers.Main) {
+            DialogUtil().showWarningDialogWithMessage(context, e)
+        }
+        logger.e(e)
     }
     private lateinit var type: EComponentType
 
@@ -57,111 +62,67 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         view = null
     }
 
-    @SuppressLint("CheckResult")
     override fun loadComponents(packageName: String, type: EComponentType) {
         logger.i("Load components for $packageName, type: $type")
         view?.setLoadingIndicator(true)
-        Single.create((SingleOnSubscribe<List<ComponentItemViewModel>> { emitter ->
-            try {
-                if (type == EComponentType.SERVICE) {
-                    serviceHelper.refresh()
-                }
-                val componentList = getComponents(packageName, type)
-                var viewModels = initViewModel(componentList)
-                viewModels = sortComponentList(viewModels, currentComparator)
-                emitter.onSuccess(viewModels)
-            } catch (e: Exception) {
-                emitter.onError(e)
+        doAsync(exceptionHandler) {
+            if (type == EComponentType.SERVICE) {
+                serviceHelper.refresh()
             }
-        })).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { components, error ->
-                    view?.setLoadingIndicator(false)
-                    if (components.isEmpty()) {
-                        view?.showNoComponent()
-                    } else {
-                        view?.showComponentList(components.toMutableList())
-                    }
-                    error?.apply {
-                        logger.e("Error while loading components", error)
-                        view?.showAlertDialog(StringUtil.getStackTrace(error))
-                    }
+            val componentList = getComponents(packageName, type)
+            val viewModels = initViewModel(componentList)
+            val sortedViewModels = sortComponentList(viewModels, currentComparator)
+            uiThread {
+                view?.setLoadingIndicator(false)
+                if (sortedViewModels.isEmpty()) {
+                    view?.showNoComponent()
+                } else {
+                    view?.showComponentList(sortedViewModels.toMutableList())
                 }
+            }
+        }
     }
 
     @SuppressLint("CheckResult")
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
-        Single.create((SingleOnSubscribe<Boolean> { emitter ->
-            try {
-                val result = controller.switchComponent(packageName, componentName, state)
-                emitter.onSuccess(result)
-            } catch (e: Exception) {
-                emitter.onError(e)
+        doAsync(exceptionHandler) {
+            controller.switchComponent(packageName, componentName, state)
+            uiThread {
+                view?.refreshComponentState(componentName)
             }
-        })).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { _, error ->
-                    view?.refreshComponentState(componentName)
-                    error?.apply {
-                        logger.e("Error while switching component", error)
-                        view?.showAlertDialog(StringUtil.getStackTrace(error))
-                    }
-                }
+        }
         return true
     }
 
-    @SuppressLint("CheckResult")
     override fun enable(packageName: String, componentName: String): Boolean {
         logger.i("Enable component: $componentName")
-        Single.create((SingleOnSubscribe<Boolean> { emitter ->
-            try {
-                var result = true
-                val controllerType = PreferenceUtil.getControllerType(context)
-                if (controllerType == EControllerMethod.PM) {
-                    if (!checkIFWState(packageName, componentName)) {
-                        result = result && ComponentControllerProxy.getInstance(EControllerMethod.IFW, context).enable(packageName, componentName)
-                    }
-                } else if (controllerType == EControllerMethod.IFW) {
-                    if (!ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))) {
-                        result = result && ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(packageName, componentName)
-                    }
+        doAsync(exceptionHandler) {
+            val controllerType = PreferenceUtil.getControllerType(context)
+            if (controllerType == EControllerMethod.PM) {
+                if (!checkIFWState(packageName, componentName)) {
+                    ComponentControllerProxy.getInstance(EControllerMethod.IFW, context).enable(packageName, componentName)
                 }
-                result = result && controller.enable(packageName, componentName)
-                emitter.onSuccess(result)
-            } catch (e: Exception) {
-                emitter.onError(e)
+            } else if (controllerType == EControllerMethod.IFW) {
+                if (!ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))) {
+                    ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(packageName, componentName)
+                }
             }
-        })).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { _, error ->
-                    view?.refreshComponentState(componentName)
-                    error?.apply {
-                        logger.e("Error while enabling component:", error)
-                        view?.showAlertDialog(StringUtil.getStackTrace(this))
-                    }
-                }
+            controller.enable(packageName, componentName)
+            uiThread {
+                view?.refreshComponentState(componentName)
+            }
+        }
         return true
     }
 
-    @SuppressLint("CheckResult")
     override fun disable(packageName: String, componentName: String): Boolean {
         logger.i("Disable component: $componentName")
-        Single.create((SingleOnSubscribe<Boolean> { emitter ->
-            try {
-                val result = controller.disable(packageName, componentName)
-                emitter.onSuccess(result)
-            } catch (e: Exception) {
-                emitter.onError(e)
+        doAsync(exceptionHandler) {
+            controller.disable(packageName, componentName)
+            uiThread {
+                view?.refreshComponentState(componentName)
             }
-        })).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { _, error ->
-                    view?.refreshComponentState(componentName)
-                    error?.apply {
-                        logger.e("Error while disabling component:", error)
-                        view?.showAlertDialog(StringUtil.getStackTrace(this))
-                    }
-                }
+        }
         return true
     }
 
@@ -175,62 +136,30 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         return sortedComponents.sortedWith(compareBy({ !it.isRunning }, { !it.state }, { !it.ifwState }))
     }
 
-    @SuppressLint("CheckResult")
     override fun addToIFW(packageName: String, componentName: String, type: EComponentType) {
         logger.i("Disable component via IFW: $componentName")
-        Single.create((SingleOnSubscribe<Boolean> { emitter ->
-            try {
-                ifwController.disable(packageName, componentName)
-                emitter.onSuccess(true)
-            } catch (e: Exception) {
-                emitter.onError(e)
+        doAsync(exceptionHandler) {
+            ifwController.disable(packageName, componentName)
+            uiThread {
+                view?.refreshComponentState(componentName)
             }
-        })).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _ ->
-                    view?.refreshComponentState(componentName)
-                }, { error ->
-                    logger.e("Error while disabling component:\n", error)
-                    view?.showAlertDialog(StringUtil.getStackTrace(error))
-                })
+        }
     }
 
-    @SuppressLint("CheckResult")
     override fun removeFromIFW(packageName: String, componentName: String, type: EComponentType) {
         logger.i("Disable component via IFW: $componentName")
-        Single.create((SingleOnSubscribe<Boolean> { emitter ->
-            try {
-                ifwController.enable(packageName, componentName)
-                emitter.onSuccess(true)
-            } catch (e: Exception) {
-                emitter.onError(e)
+        doAsync(exceptionHandler) {
+            ifwController.enable(packageName, componentName)
+            uiThread {
+                view?.refreshComponentState(componentName)
             }
-        })).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _ ->
-                    view?.refreshComponentState(componentName)
-                }, { error ->
-                    logger.e("Error while enable component:\n", error)
-                    view?.showAlertDialog(StringUtil.getStackTrace(error))
-                })
+        }
     }
 
-    @SuppressLint("CheckResult")
     override fun launchActivity(packageName: String, componentName: String) {
-        Single.create((SingleOnSubscribe<Boolean> { emitter ->
-            try {
-                ManagerUtils.launchActivity(packageName, componentName)
-                emitter.onSuccess(true)
-            } catch (e: Exception) {
-                emitter.onError(e)
-            }
-        })).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ _ ->
-                }, { error ->
-                    logger.e("Error in launching activity($packageName/$componentName): ", error)
-                    view?.showAlertDialog(StringUtil.getStackTrace(error))
-                })
+        doAsync(exceptionHandler) {
+            ManagerUtils.launchActivity(packageName, componentName)
+        }
     }
 
     override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
@@ -238,11 +167,11 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     }
 
     override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("Won't implemented")
     }
 
     override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        TODO("Won't  implemented")
     }
 
     override fun checkIFWState(packageName: String, componentName: String): Boolean {
@@ -264,73 +193,47 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         }
     }
 
-    @SuppressLint("CheckResult")
     override fun disableAllComponents(packageName: String, type: EComponentType) {
-        Observable.create((ObservableOnSubscribe<ComponentInfo> { emitter ->
+        doAsync(exceptionHandler) {
             if (!PermissionUtils.isRootAvailable) {
-                emitter.onError(RootUnavailableException())
-                return@ObservableOnSubscribe
+                throw RootUnavailableException()
             }
             val components = getComponents(packageName, type)
-            try {
-                controller.batchDisable(components) {
-                    emitter.onNext(it)
+            controller.batchDisable(components) { componentInfo ->
+                uiThread {
+                    view?.refreshComponentState(componentInfo.name)
                 }
-                emitter.onComplete()
-            } catch (e: Exception) {
-                emitter.onError(e)
             }
-        }))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    view?.refreshComponentState(it.name)
-                }, { error ->
-                    logger.e("Error in batch disable:", error)
-                    view?.showAlertDialog(StringUtil.getStackTrace(error))
-                    view?.showActionFail()
-                }, {
-                    view?.showActionDone()
-                    loadComponents(packageName, type)
-                })
+            uiThread {
+                view?.showActionDone()
+                loadComponents(packageName, type)
+            }
+        }
     }
 
-    @SuppressLint("CheckResult")
     override fun enableAllComponents(packageName: String, type: EComponentType) {
-        Observable.create((ObservableOnSubscribe<ComponentInfo> { emitter ->
+        doAsync(exceptionHandler) {
             if (!PermissionUtils.isRootAvailable) {
-                emitter.onError(RootUnavailableException())
-                return@ObservableOnSubscribe
+                throw RootUnavailableException()
             }
             val components = getComponents(packageName, type)
-            try {
-                ifwController.batchEnable(components) {
-                    if (!ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(it.packageName, it.name))) {
-                        if (PreferenceUtil.getControllerType(context) == EControllerMethod.SHIZUKU) {
-                            ComponentControllerProxy.getInstance(EControllerMethod.SHIZUKU, context).enable(it.packageName, it.name)
-                        } else {
-                            ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(it.packageName, it.name)
-                        }
+            ifwController.batchEnable(components) { componentInfo ->
+                if (!ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(componentInfo.packageName, componentInfo.name))) {
+                    if (PreferenceUtil.getControllerType(context) == EControllerMethod.SHIZUKU) {
+                        ComponentControllerProxy.getInstance(EControllerMethod.SHIZUKU, context).enable(componentInfo.packageName, componentInfo.name)
+                    } else {
+                        ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(componentInfo.packageName, componentInfo.name)
                     }
-                    emitter.onNext(it)
                 }
-                emitter.onComplete()
-            } catch (e: Exception) {
-                emitter.onError(e)
+                uiThread {
+                    view?.refreshComponentState(componentInfo.name)
+                }
             }
-        }))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    view?.refreshComponentState(it.name)
-                }, { error ->
-                    logger.e("Error in batch enable:", error)
-                    view?.showAlertDialog(StringUtil.getStackTrace(error))
-                    view?.showActionFail()
-                }, {
-                    view?.showActionDone()
-                    loadComponents(packageName, type)
-                })
+            uiThread {
+                view?.showActionDone()
+                loadComponents(packageName, type)
+            }
+        }
     }
 
     @SuppressLint("CheckResult")
@@ -346,28 +249,17 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
                 }
     }
 
-    @SuppressLint("CheckResult")
     private fun exportBlockerRule(packageName: String) {
-        Single.create(SingleOnSubscribe<RulesResult> { emitter ->
-            try {
-                val result = Rule.export(context, packageName)
-                emitter.onSuccess(result)
-            } catch (e: Exception) {
-                emitter.onError(e)
+        doAsync(exceptionHandler) {
+            val result = Rule.export(context, packageName)
+            uiThread {
+                if (result.isSucceed) {
+                    view?.showActionDone()
+                } else {
+                    view?.showActionFail()
+                }
             }
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    if (it.isSucceed) {
-                        view?.showActionDone()
-                    } else {
-                        view?.showActionFail()
-                    }
-                }, {
-                    logger.e("Error in exporting blocker rules:", it)
-                    view?.showAlertDialog(StringUtil.getStackTrace(it))
-                })
+        }
     }
 
     @SuppressLint("CheckResult")
@@ -390,28 +282,23 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
     @SuppressLint("CheckResult")
     private fun importBlockerRule(packageName: String) {
         view?.showToastMessage(context.getString(R.string.processing), Toast.LENGTH_SHORT)
-        Single.create(SingleOnSubscribe<RulesResult> { emitter ->
+        doAsync(exceptionHandler) {
             val blockerFolder = Rule.getBlockerRuleFolder(context)
             val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
-            if (!destFile.exists()) {
-                emitter.onSuccess(RulesResult(false, 0, 0))
-                return@SingleOnSubscribe
-            }
-            val result = Rule.import(context, destFile)
-            emitter.onSuccess(result)
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    if (it.isSucceed) {
-                        ToastUtil.showToast(context.getString(R.string.done))
+            val result =
+                    if (!destFile.exists()) {
+                        RulesResult(false, 0, 0)
                     } else {
-                        ToastUtil.showToast(context.getString(R.string.import_fail_message))
+                        Rule.import(context, destFile)
                     }
-                }, {
-                    logger.e("Error in importing blocker rules:", it)
-                    view?.showAlertDialog(StringUtil.getStackTrace(it))
-                })
+            uiThread {
+                if (result.isSucceed) {
+                    ToastUtil.showToast(context.getString(R.string.done))
+                } else {
+                    ToastUtil.showToast(context.getString(R.string.import_fail_message))
+                }
+            }
+        }
     }
 
     private fun initViewModel(componentList: List<ComponentInfo>): List<ComponentItemViewModel> {
@@ -432,9 +319,5 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
             else -> ArrayList<ComponentInfo>()
         }
         return components.asSequence().sortedBy { it.getSimpleName() }.toMutableList()
-    }
-
-    companion object {
-        const val TAG = "ComponentPresenter"
     }
 }
