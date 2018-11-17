@@ -73,8 +73,7 @@ dependencies {
     implementation 'com.jaeger.statusbarutil:library:1.5.1'
     // Anko
     implementation "org.jetbrains.anko:anko:$anko_version"
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.0.1'
+    implementation "org.jetbrains.anko:anko-coroutines:$anko_version"
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')

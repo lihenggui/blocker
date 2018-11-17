@@ -34,15 +34,16 @@ import java.io.File
 
 class ComponentPresenter(val context: Context, var view: ComponentContract.View?, val packageName: String) : ComponentContract.Presenter, IController {
     override var currentComparator: EComponentComparatorType = EComponentComparatorType.SIMPLE_NAME_ASCENDING
-    private val logger = XLog.tag("ComponentPresenter").build()
     private val pm: PackageManager
+    private val logger = XLog.tag(this.javaClass.simpleName).build()
+    private val serviceHelper by lazy { ServiceHelper(packageName) }
     private val ifwController by lazy { ComponentControllerProxy.getInstance(EControllerMethod.IFW, context) }
     private val controller: IController by lazy {
         val controllerType = PreferenceUtil.getControllerType(context)
         ComponentControllerProxy.getInstance(controllerType, context)
     }
-    private val serviceHelper by lazy { ServiceHelper(packageName) }
     private lateinit var type: EComponentType
+
     init {
         view?.presenter = this
         pm = context.packageManager
