@@ -1,6 +1,5 @@
 package com.merxury.blocker.ui.home
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.preference.PreferenceManager
 import com.elvishew.xlog.XLog
@@ -11,6 +10,9 @@ import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ManagerUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
@@ -18,7 +20,9 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
     private var context: Context? = null
     private val logger = XLog.tag(this.javaClass.simpleName).build()
     private val exceptionHandler = { e: Throwable ->
-        DialogUtil().showWarningDialogWithMessage(context, e)
+        GlobalScope.launch(Dispatchers.Main) {
+            DialogUtil().showWarningDialogWithMessage(context, e)
+        }
         logger.e(e)
     }
 
@@ -71,14 +75,12 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
         }
     }
 
-    @SuppressLint("CheckResult")
     override fun forceStop(packageName: String) {
         doAsync(exceptionHandler) {
             ManagerUtils.forceStop(packageName)
         }
     }
 
-    @SuppressLint("CheckResult")
     override fun enableApplication(packageName: String) {
         doAsync(exceptionHandler) {
             ManagerUtils.enableApplication(packageName)
@@ -88,7 +90,6 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
         }
     }
 
-    @SuppressLint("CheckResult")
     override fun disableApplication(packageName: String) {
         doAsync(exceptionHandler) {
             ManagerUtils.disableApplication(packageName)
@@ -98,7 +99,6 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
         }
     }
 
-    @SuppressLint("CheckResult")
     override fun clearData(packageName: String) {
         doAsync(exceptionHandler) {
             ManagerUtils.clearData(packageName)
@@ -108,7 +108,6 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
         }
     }
 
-    @SuppressLint("CheckResult")
     override fun trimMemory(packageName: String, level: ETrimMemoryLevel) {
         doAsync(exceptionHandler) {
             ManagerUtils.trimMemory(packageName, level)
