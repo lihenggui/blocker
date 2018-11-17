@@ -95,7 +95,7 @@
     <string name="reset_ifw">重置IFW</string>
     <string name="import_mat_rules">导入MyAndroidTools规则</string>
     <string name="others">其他</string>
-    <string name="notification_done">%1$d 已导入</string>
+    <string name="notification_done">%1$d 项处理完成</string>
     <string name="last_update_date">最后更新时间</string>
     <string name="import_all_rules_warning_message">外置存储中的规则将会被导入, 现有软件的规则将会被更新，继续操作吗？\n(提示：若是使用PM控制器，将会需要很长的操作时间。)</string>
     <string name="export_all_ifw_rules_warning_message">已生效的Intent Firewall规则将会导出，您现存的规则将会被覆盖（若是存在），继续操作吗？</string>
