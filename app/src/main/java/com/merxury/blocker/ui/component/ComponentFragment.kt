@@ -251,28 +251,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         Toast.makeText(context, R.string.import_fail_message, Toast.LENGTH_SHORT).show()
     }
 
-    override fun showError(errorMessage: Int) {
-        context?.let {
-            AlertDialog.Builder(it)
-                    .setTitle(R.string.oops)
-                    .setMessage(errorMessage)
-                    .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
-                    .show()
-        }
-    }
-
-    override fun showAlert(alertMessage: Int, confirmAction: () -> Unit) {
-        context?.let {
-            AlertDialog.Builder(it)
-                    .setTitle(R.string.alert)
-                    .setMessage(alertMessage)
-                    .setCancelable(true)
-                    .setNegativeButton(R.string.cancel) { dialog: DialogInterface?, _: Int -> dialog?.dismiss() }
-                    .setPositiveButton(R.string.ok) { _: DialogInterface, _: Int -> confirmAction() }
-                    .show()
-        }
-    }
-
     override fun showToastMessage(message: String?, length: Int) {
         ToastUtil.showToast(message ?: "null", length)
     }
