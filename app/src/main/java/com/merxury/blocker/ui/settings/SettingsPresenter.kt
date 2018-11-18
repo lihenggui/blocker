@@ -216,6 +216,7 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
             try {
                 if (filePath == null) {
                     emitter.onError(NullPointerException("File path cannot be null"))
+                    return@SingleOnSubscribe
                 }
                 val file = File(filePath)
                 if (!file.exists()) {
