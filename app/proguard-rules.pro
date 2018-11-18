@@ -26,10 +26,6 @@
 -keep public class * extends android.content.BroadcastReceiver
 -keep public class * extends android.content.ContentProvider
 -keep public class com.google.gson.**
--keep class com.merxury.** { *; }
--keepnames class com.merxury.** { *; }
--keep class org.simpleframework.xml.** { *; }
--keepnames class org.simpleframework.xml.** { *; }
 -keep public class android.graphics.drawable.VectorDrawable
 -keep class android.support.v4.view.ViewCompat$OnUnhandledKeyEventListenerWrapper
 -keep public class * extends android.view.View {
@@ -57,4 +53,17 @@
 
 -keepclassmembers class **.R$* {
     public static <fields>;
+}
+
+-dontwarn javax.xml.stream.events.**
+
+-keep public class org.simpleframework.** { *; }
+-keep class org.simpleframework.xml.** { *; }
+-keep class org.simpleframework.xml.core.** { *; }
+-keep class org.simpleframework.xml.util.** { *; }
+
+-keepattributes ElementList, Root, Annotation
+
+-keepclassmembers class * {
+    @org.simpleframework.xml.* *;
 }
