@@ -14,9 +14,6 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.SearchView
 import android.util.SparseArray
 import android.view.MenuItem
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.elvishew.xlog.XLog
 import com.jaeger.library.StatusBarUtil
 import com.merxury.blocker.R
@@ -29,6 +26,8 @@ import com.merxury.libkit.entity.Application
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
 import moe.shizuku.api.ShizukuClient
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 class ComponentActivity : AppCompatActivity(), IActivityView {
 
@@ -142,10 +141,12 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         app_info_app_package_name.text = getString(R.string.package_name, application.packageName)
         app_info_target_sdk_version.text = getString(R.string.target_sdk_version, CODENAME.get(application.targetSdkVersion, UNKNOWN))
         app_info_min_sdk_version.text = getString(R.string.min_sdk_version, CODENAME.get(application.minSdkVersion, UNKNOWN))
-        Glide.with(this)
-                .load(application.getApplicationIcon(packageManager))
-                .transition(DrawableTransitionOptions.withCrossFade(DrawableCrossFadeFactory.Builder(100).setCrossFadeEnabled(true).build()))
-                .into(app_info_icon)
+        doAsync {
+            val icon = application.getApplicationIcon(packageManager)
+            uiThread {
+                app_info_icon.setImageDrawable(icon)
+            }
+        }
         app_info_icon.setOnClickListener { AppLauncher.startApplication(this, application.packageName) }
     }
 

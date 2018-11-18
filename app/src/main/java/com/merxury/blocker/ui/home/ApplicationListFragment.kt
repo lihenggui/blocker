@@ -16,10 +16,6 @@ import android.support.v7.widget.SearchView
 import android.view.*
 import android.widget.PopupMenu
 import android.widget.Toast
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
-import com.bumptech.glide.request.RequestOptions
-import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.Constants
@@ -30,16 +26,13 @@ import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
 import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 
 class ApplicationListFragment : Fragment(), HomeContract.View {
     override lateinit var presenter: HomeContract.Presenter
-
     private var isSystem: Boolean = false
-
-    /**
-     * listener for clicks on items in the RecyclerView
-     */
     private var itemListener: AppItemListener = object : AppItemListener {
         override fun onAppClick(application: Application) {
             presenter.openApplicationDetails(application)
@@ -103,7 +96,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         val argument = arguments
         argument?.run {
             isSystem = this.getBoolean(IS_SYSTEM)
-
         }
         presenter = HomePresenter(this)
         presenter.start(context!!)
@@ -329,7 +321,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             fun bindApplication(application: Application) {
                 view?.apply {
                     itemView.app_name.text = application.label
-                    itemView.app_icon.setImageDrawable(application.getApplicationIcon(pm))
                     itemView.isLongClickable = true
                     itemView.setOnClickListener { listener.onAppClick(application) }
                     if (!application.isEnabled) {
@@ -339,14 +330,12 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                     } else {
                         itemView.setBackgroundColor(Color.WHITE)
                     }
-                    val options = RequestOptions()
-                            .fitCenter()
-                            .error(R.drawable.ic_error_red_24dp)
-                    Glide.with(this)
-                            .load(application.getApplicationIcon(pm))
-                            .apply(options)
-                            .transition(withCrossFade(DrawableCrossFadeFactory.Builder(100).setCrossFadeEnabled(true).build()))
-                            .into(itemView.app_icon)
+                    doAsync {
+                        val icon = application.getApplicationIcon(pm)
+                        uiThread {
+                            itemView.app_icon.setImageDrawable(icon)
+                        }
+                    }
                 }
             }
 

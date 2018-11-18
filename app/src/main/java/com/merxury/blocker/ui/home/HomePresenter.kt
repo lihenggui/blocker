@@ -1,23 +1,30 @@
 package com.merxury.blocker.ui.home
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.preference.PreferenceManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.AppLauncher
+import com.merxury.blocker.util.DialogUtil
 import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ManagerUtils
-import io.reactivex.Single
-import io.reactivex.SingleOnSubscribe
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
-class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
+class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Presenter {
     private var context: Context? = null
     private val logger = XLog.tag(this.javaClass.simpleName).build()
+    private val exceptionHandler = { e: Throwable ->
+        GlobalScope.launch(Dispatchers.Main) {
+            DialogUtil().showWarningDialogWithMessage(context, e)
+        }
+        logger.e(e)
+    }
 
     override fun start(context: Context) {
         this.context = context
@@ -29,26 +36,23 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
         homeView = null
     }
 
-    @SuppressLint("CheckResult")
     override fun loadApplicationList(context: Context, isSystemApplication: Boolean) {
         homeView?.setLoadingIndicator(true)
-        Single.create(SingleOnSubscribe<MutableList<Application>> { emitter ->
+        doAsync(exceptionHandler) {
             val applications: MutableList<Application> = when (isSystemApplication) {
                 false -> ApplicationUtil.getThirdPartyApplicationList(context)
                 true -> ApplicationUtil.getSystemApplicationList(context)
             }
             val sortedList = sortApplicationList(applications)
-            emitter.onSuccess(sortedList)
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { applications ->
-                    homeView?.setLoadingIndicator(false)
-                    if (applications == null || applications.isEmpty()) {
-                        homeView?.showNoApplication()
-                    } else {
-                        homeView?.showApplicationList(applications)
-                    }
+            uiThread {
+                if (sortedList.isEmpty()) {
+                    homeView?.showNoApplication()
+                } else {
+                    homeView?.showApplicationList(sortedList)
                 }
+                homeView?.setLoadingIndicator(false)
+            }
+        }
     }
 
     override fun openApplicationDetails(application: Application) {
@@ -56,17 +60,13 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     }
 
     override fun sortApplicationList(applications: List<Application>): MutableList<Application> {
-        val sortedList =  when (currentComparator) {
-            ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.asSequence().sortedBy {it.label}
+        val sortedList = when (currentComparator) {
+            ApplicationComparatorType.ASCENDING_BY_LABEL -> applications.asSequence().sortedBy { it.label }
             ApplicationComparatorType.DESCENDING_BY_LABEL -> applications.asSequence().sortedByDescending { it.label }
             ApplicationComparatorType.INSTALLATION_TIME -> applications.asSequence().sortedByDescending { it.firstInstallTime }
             ApplicationComparatorType.LAST_UPDATE_TIME -> applications.asSequence().sortedByDescending { it.lastUpdateTime }
         }
-        val targetList = mutableListOf<Application>()
-        targetList.addAll(sortedList.filter { it.isBlocked })
-        targetList.addAll(sortedList.filter { !it.isBlocked && it.isEnabled })
-        targetList.addAll(sortedList.filter { !it.isEnabled })
-        return targetList
+        return sortedList.asSequence().sortedWith(compareBy({ !it.isBlocked }, { !it.isEnabled })).toMutableList()
     }
 
     override fun launchApplication(packageName: String) {
@@ -75,90 +75,43 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
         }
     }
 
-    @SuppressLint("CheckResult")
     override fun forceStop(packageName: String) {
-        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+        doAsync(exceptionHandler) {
             ManagerUtils.forceStop(packageName)
-            emitter.onSuccess(true)
-        })
-                .onErrorReturn { false }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ result ->
-
-                }, {
-
-                })
+        }
     }
 
-    @SuppressLint("CheckResult")
     override fun enableApplication(packageName: String) {
-        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+        doAsync(exceptionHandler) {
             ManagerUtils.enableApplication(packageName)
-            emitter.onSuccess(true)
-        })
-                .onErrorReturn { false }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ result ->
-                    if (result) {
-                        homeView?.updateState(packageName)
-                    }
-                }, {
-                    logger.e(it)
-                })
+            uiThread {
+                homeView?.updateState(packageName)
+            }
+        }
     }
 
-    @SuppressLint("CheckResult")
     override fun disableApplication(packageName: String) {
-        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+        doAsync(exceptionHandler) {
             ManagerUtils.disableApplication(packageName)
-            emitter.onSuccess(true)
-        })
-                .onErrorReturn { false }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ result ->
-                    if (result) {
-                        homeView?.updateState(packageName)
-                    }
-                }, {
-                    logger.e(it)
-                })
+            uiThread {
+                homeView?.updateState(packageName)
+            }
+        }
     }
 
-    @SuppressLint("CheckResult")
     override fun clearData(packageName: String) {
-        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+        doAsync(exceptionHandler) {
             ManagerUtils.clearData(packageName)
-            emitter.onSuccess(true)
-        })
-                .onErrorReturn { false }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ result ->
-                    if (result) {
-                        homeView?.showDataCleared()
-                    }
-                }, {
-                    logger.e(it)
-                })
+            uiThread {
+                homeView?.showDataCleared()
+            }
+        }
     }
 
-    @SuppressLint("CheckResult")
     override fun trimMemory(packageName: String, level: ETrimMemoryLevel) {
-        Single.create(SingleOnSubscribe<Boolean> { emitter ->
+        doAsync(exceptionHandler) {
             ManagerUtils.trimMemory(packageName, level)
-            emitter.onSuccess(true)
-        })
-                .onErrorReturn { false }
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-
-                }, {
-
-                })
+        }
     }
 
     override fun showDetails(packageName: String) {
@@ -168,13 +121,21 @@ class HomePresenter(var homeView: HomeContract.View?) : HomeContract.Presenter {
     }
 
     override fun blockApplication(packageName: String) {
-        ApplicationUtil.addBlockedApplication(context!!, packageName)
-        homeView?.updateState(packageName)
+        doAsync(exceptionHandler) {
+            ApplicationUtil.addBlockedApplication(context!!, packageName)
+            uiThread {
+                homeView?.updateState(packageName)
+            }
+        }
     }
 
     override fun unblockApplication(packageName: String) {
-        ApplicationUtil.removeBlockedApplication(context!!, packageName)
-        homeView?.updateState(packageName)
+        doAsync(exceptionHandler) {
+            ApplicationUtil.removeBlockedApplication(context!!, packageName)
+            uiThread {
+                homeView?.updateState(packageName)
+            }
+        }
     }
 
     override var currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
