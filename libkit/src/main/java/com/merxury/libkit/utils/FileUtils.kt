@@ -212,6 +212,8 @@ object FileUtils {
                     val index = cursor.getColumnIndexOrThrow(column)
                     return cursor.getString(index)
                 }
+            } catch (e: Exception) {
+                logger.e(e)
             } finally {
                 cursor?.close()
             }
