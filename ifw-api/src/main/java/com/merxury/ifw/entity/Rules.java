@@ -3,7 +3,7 @@ package com.merxury.ifw.entity;
 import org.simpleframework.xml.Element;
 import org.simpleframework.xml.Root;
 
-@Root
+@Root(name = "rules")
 public class Rules {
     @Element(required = false)
     private Activity activity;
