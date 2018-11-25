@@ -16,9 +16,9 @@
 
 package com.merxury.blocker.util
 
-import android.support.annotation.IdRes
-import android.support.v7.app.ActionBar
-import android.support.v7.app.AppCompatActivity
+import androidx.annotation.IdRes
+import androidx.appcompat.app.ActionBar
+import androidx.appcompat.app.AppCompatActivity
 
 fun AppCompatActivity.setupActionBar(@IdRes toolbarId: Int, action: ActionBar.() -> Unit) {
     setSupportActionBar(findViewById(toolbarId))

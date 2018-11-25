@@ -1,7 +1,7 @@
 package com.merxury.blocker.work
 
 import android.content.Context
-import android.support.v7.preference.PreferenceManager
+import androidx.preference.PreferenceManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.elvishew.xlog.XLog

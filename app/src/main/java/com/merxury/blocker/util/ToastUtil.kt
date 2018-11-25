@@ -3,10 +3,9 @@ package com.merxury.blocker.util
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
-import android.support.annotation.StringRes
 import android.text.TextUtils
 import android.widget.Toast
-
+import androidx.annotation.StringRes
 import com.merxury.blocker.BlockerApplication
 
 object ToastUtil {

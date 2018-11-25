@@ -1,6 +1,6 @@
 package com.merxury.blocker.ui.settings
 
-import android.support.annotation.StringRes
+import androidx.annotation.StringRes
 import com.merxury.blocker.base.BasePresenter
 import com.merxury.blocker.base.BaseView
 

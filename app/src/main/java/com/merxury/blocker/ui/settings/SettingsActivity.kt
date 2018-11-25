@@ -1,8 +1,8 @@
 package com.merxury.blocker.ui.settings
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
 import com.merxury.blocker.R
 import com.merxury.blocker.util.setupActionBar
 
