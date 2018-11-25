@@ -1,7 +1,5 @@
 package com.merxury.libkit;
 
-import android.support.annotation.NonNull;
-
 import com.elvishew.xlog.Logger;
 import com.elvishew.xlog.XLog;
 import com.merxury.libkit.exception.ProcessUnexpectedTerminateException;
@@ -13,6 +11,7 @@ import java.io.IOException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import androidx.annotation.NonNull;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;

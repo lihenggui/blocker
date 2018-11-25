@@ -4,19 +4,22 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AlertDialog
-import android.support.v7.widget.*
 import android.view.*
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.core.root.EControllerMethod
-import com.merxury.blocker.strategy.entity.view.AppComponentInfo
 import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
@@ -82,9 +85,9 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         super.onDestroy()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.list_fragment_menu, menu)
-        val searchItem = menu?.findItem(R.id.menu_search)
+        val searchItem = menu.findItem(R.id.menu_search)
         val searchView = searchItem?.actionView as SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String): Boolean {
@@ -123,16 +126,16 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         return true
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         activity?.menuInflater?.inflate(R.menu.component_list_long_click_menu, menu)
         if (type != EComponentType.ACTIVITY) {
-            menu?.removeItem(R.id.launch_activity)
+            menu.removeItem(R.id.launch_activity)
         }
         context?.let {
             if (PreferenceUtil.getControllerType(it) == EControllerMethod.IFW) {
-                menu?.removeItem(R.id.block_by_ifw)
-                menu?.removeItem(R.id.enable_by_ifw)
+                menu.removeItem(R.id.block_by_ifw)
+                menu.removeItem(R.id.enable_by_ifw)
             }
         }
     }
@@ -266,7 +269,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             }
             if (!ShizukuClient.getState().isAuthorized) {
                 if (ShizukuClient.checkSelfPermission(it)) {
-                    ShizukuClient.requestAuthorization(this)
+                    ShizukuClient.requestAuthorization(activity)
                 } else {
                     ActivityCompat.requestPermissions(activity as Activity, arrayOf(ShizukuClient.PERMISSION_V23), REQUEST_CODE_PERMISSION)
                 }
@@ -293,11 +296,12 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         }
     }
 
-    inner class ComponentsRecyclerViewAdapter(private var components: MutableList<ComponentItemViewModel> = ArrayList()) : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
+    inner class ComponentsRecyclerViewAdapter(
+            private var components: MutableList<ComponentItemViewModel> = mutableListOf())
+        : RecyclerView.Adapter<ComponentsRecyclerViewAdapter.ViewHolder>() {
 
         private lateinit var pm: PackageManager
         private var listCopy = ArrayList<ComponentItemViewModel>()
-        private lateinit var componentData: AppComponentInfo
         private lateinit var listener: ComponentContract.ComponentItemListener
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
