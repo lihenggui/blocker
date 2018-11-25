@@ -8,14 +8,13 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.TabLayout
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.SearchView
 import android.util.SparseArray
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
 import com.elvishew.xlog.XLog
-import com.jaeger.library.StatusBarUtil
+import com.google.android.material.tabs.TabLayout
 import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
 import com.merxury.blocker.base.IActivityView
@@ -38,7 +37,6 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_component)
-        // init toolbar
         setupActionBar(R.id.component_toolbar) {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowTitleEnabled(false)
@@ -155,7 +153,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         component_toolbar.setBackgroundColor(color)
         component_tabs.setBackgroundColor(color)
         component_collapsing_toolbar.setBackgroundColor(color)
-        StatusBarUtil.setColor(this, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
+        //StatusBarUtil.setColor(this, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             setTaskDescription(ActivityManager.TaskDescription(null, null, color))
         }

@@ -1,9 +1,10 @@
 package com.merxury.libkit.utils;
 
 import android.os.SystemProperties;
-import android.support.annotation.NonNull;
 
 import java.io.File;
+
+import androidx.annotation.NonNull;
 
 /*
  * Copyright (C) 2007 The Android Open Source Project
