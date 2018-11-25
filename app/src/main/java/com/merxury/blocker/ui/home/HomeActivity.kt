@@ -7,14 +7,13 @@ import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
-import android.support.design.widget.TabLayout
-import android.support.v4.content.ContextCompat
-import android.support.v4.view.ViewPager
-import android.support.v4.widget.DrawerLayout
-import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
-import android.view.View
-import com.jaeger.library.StatusBarUtil
+import android.view.WindowManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.viewpager.widget.ViewPager
+import com.google.android.material.tabs.TabLayout
 import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
 import com.merxury.blocker.base.IActivityView
@@ -35,18 +34,21 @@ class HomeActivity : AppCompatActivity(), IActivityView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home)
-        // Set up toolbar
         setupActionBar(R.id.toolbar) {
             setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp)
             setDisplayHomeAsUpEnabled(true)
         }
+        setupStatusBar()
         setupDrawerContent(savedInstanceState)
         setupViewPager(app_viewpager)
         findViewById<TabLayout>(R.id.app_kind_tabs).apply {
             setupWithViewPager(app_viewpager)
             setupTab(this)
         }
+    }
 
+    private fun setupStatusBar() {
+        window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
     }
 
     private fun setupViewPager(viewPager: ViewPager) {
@@ -114,8 +116,6 @@ class HomeActivity : AppCompatActivity(), IActivityView {
     private fun changeColor(color: Int) {
         toolbar.setBackgroundColor(color)
         app_kind_tabs.setBackgroundColor(color)
-        StatusBarUtil.setColorForDrawerLayout(this, drawerLayout, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
-        findViewById<View>(com.jaeger.library.R.id.statusbarutil_translucent_view).setBackgroundColor(color)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             setTaskDescription(ActivityManager.TaskDescription(null, null, color))
         }

@@ -6,16 +6,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AlertDialog
-import android.support.v7.widget.DefaultItemAnimator
-import android.support.v7.widget.DividerItemDecoration
-import android.support.v7.widget.RecyclerView
-import android.support.v7.widget.SearchView
 import android.view.*
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
 import com.merxury.blocker.R
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.Constants
@@ -110,11 +107,11 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         appListFragmentRecyclerView?.apply {
-            val layoutManager = android.support.v7.widget.LinearLayoutManager(context)
+            val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
             this.layoutManager = layoutManager
             adapter = listAdapter
-            itemAnimator = DefaultItemAnimator()
-            addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
+            itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
+            addItemDecoration(androidx.recyclerview.widget.DividerItemDecoration(context, layoutManager.orientation))
             registerForContextMenu(this)
         }
         appListSwipeLayout?.apply {
@@ -137,9 +134,9 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         return activity as Activity
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?, inflater: MenuInflater) {
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_main, menu)
-        val searchItem = menu?.findItem(R.id.menu_search)
+        val searchItem = menu.findItem(R.id.menu_search)
         val searchView = searchItem?.actionView as SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextChange(newText: String): Boolean {
@@ -162,13 +159,13 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     }
 
-    override fun onCreateContextMenu(menu: ContextMenu?, v: View?, menuInfo: ContextMenu.ContextMenuInfo?) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         activity?.menuInflater?.inflate(R.menu.app_list_long_click_menu, menu)
     }
 
-    override fun onContextItemSelected(item: MenuItem?): Boolean {
-        if (!userVisibleHint || item == null) {
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        if (!userVisibleHint) {
             return false
         }
         val position = (item.menuInfo as ContextMenuRecyclerView.RecyclerContextMenuInfo).position
@@ -250,7 +247,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     companion object {
         const val IS_SYSTEM: String = "IS_SYSTEM"
-        fun newInstance(isSystem: Boolean): Fragment {
+        fun newInstance(isSystem: Boolean): androidx.fragment.app.Fragment {
             val fragment = ApplicationListFragment()
             val bundle = Bundle()
             bundle.putBoolean(IS_SYSTEM, isSystem)
@@ -260,7 +257,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     }
 
-    inner class AppListRecyclerViewAdapter(private val listener: ApplicationListFragment.AppItemListener, private var applications: MutableList<Application> = mutableListOf()) : RecyclerView.Adapter<AppListRecyclerViewAdapter.ViewHolder>() {
+    inner class AppListRecyclerViewAdapter(private val listener: ApplicationListFragment.AppItemListener, private var applications: MutableList<Application> = mutableListOf()) : androidx.recyclerview.widget.RecyclerView.Adapter<AppListRecyclerViewAdapter.ViewHolder>() {
 
         private lateinit var pm: PackageManager
         private var listCopy = ArrayList<Application>()
@@ -317,7 +314,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             notifyDataSetChanged()
         }
 
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        inner class ViewHolder(view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
             fun bindApplication(application: Application) {
                 view?.apply {
                     itemView.app_name.text = application.label
@@ -338,7 +335,6 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                     }
                 }
             }
-
         }
     }
 }

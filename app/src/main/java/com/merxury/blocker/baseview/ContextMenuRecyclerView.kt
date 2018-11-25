@@ -1,20 +1,20 @@
 package com.merxury.blocker.baseview
 
 import android.content.Context
-import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
 import android.view.ContextMenu
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 
 class ContextMenuRecyclerView : RecyclerView {
 
     private var mContextMenuInfo: RecyclerContextMenuInfo? = null
 
-    constructor(context: Context) : super(context) {}
+    constructor(context: Context) : super(context)
 
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {}
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
 
-    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle) {}
+    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle)
 
     override fun getContextMenuInfo(): ContextMenu.ContextMenuInfo? {
         return mContextMenuInfo

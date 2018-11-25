@@ -1,8 +1,8 @@
 package com.merxury.blocker.adapter
 
-import android.support.v4.app.Fragment
-import android.support.v4.app.FragmentManager
-import android.support.v4.app.FragmentPagerAdapter
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentPagerAdapter
 import java.util.*
 
 /**
@@ -10,27 +10,27 @@ import java.util.*
  */
 
 class FragmentAdapter(fm: FragmentManager) : FragmentPagerAdapter(fm) {
-    private val mFragments = ArrayList<Fragment>()
-    private val mFragmentTitles = ArrayList<String>()
+    private val fragments = ArrayList<Fragment>()
+    private val fragmentTitles = ArrayList<String>()
 
     fun addFragment(fragment: Fragment, title: String) {
-        mFragments.add(fragment)
-        mFragmentTitles.add(title)
+        fragments.add(fragment)
+        fragmentTitles.add(title)
     }
 
     fun getFragments(): List<Fragment> {
-        return mFragments;
+        return fragments
     }
 
     override fun getItem(position: Int): Fragment {
-        return mFragments[position]
+        return fragments[position]
     }
 
     override fun getCount(): Int {
-        return mFragments.size
+        return fragments.size
     }
 
     override fun getPageTitle(position: Int): CharSequence? {
-        return mFragmentTitles[position]
+        return fragmentTitles[position]
     }
 }
