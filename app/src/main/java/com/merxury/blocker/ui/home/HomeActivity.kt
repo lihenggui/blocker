@@ -2,13 +2,11 @@ package com.merxury.blocker.ui.home
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
-import android.app.ActivityManager
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
-import android.view.WindowManager
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -19,6 +17,7 @@ import com.merxury.blocker.adapter.FragmentAdapter
 import com.merxury.blocker.base.IActivityView
 import com.merxury.blocker.ui.settings.SettingsActivity
 import com.merxury.blocker.util.setupActionBar
+import com.merxury.libkit.utils.StatusBarUtil
 import com.mikepenz.materialdrawer.Drawer
 import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
@@ -38,17 +37,12 @@ class HomeActivity : AppCompatActivity(), IActivityView {
             setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp)
             setDisplayHomeAsUpEnabled(true)
         }
-        setupStatusBar()
         setupDrawerContent(savedInstanceState)
         setupViewPager(app_viewpager)
         findViewById<TabLayout>(R.id.app_kind_tabs).apply {
             setupWithViewPager(app_viewpager)
             setupTab(this)
         }
-    }
-
-    private fun setupStatusBar() {
-        window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
     }
 
     private fun setupViewPager(viewPager: ViewPager) {
@@ -73,7 +67,7 @@ class HomeActivity : AppCompatActivity(), IActivityView {
                         DividerDrawerItem(),
                         item2
                 )
-                .withOnDrawerItemClickListener { view, position, drawerItem ->
+                .withOnDrawerItemClickListener { _, _, drawerItem ->
                     when (drawerItem?.identifier) {
                         1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
                         2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
@@ -116,9 +110,8 @@ class HomeActivity : AppCompatActivity(), IActivityView {
     private fun changeColor(color: Int) {
         toolbar.setBackgroundColor(color)
         app_kind_tabs.setBackgroundColor(color)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            setTaskDescription(ActivityManager.TaskDescription(null, null, color))
-        }
+        StatusBarUtil.setColorForDrawerLayout(this, drawerLayout, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
+        findViewById<View>(R.id.statusbarutil_translucent_view).setBackgroundColor(color)
     }
 
 
