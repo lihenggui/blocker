@@ -1,5 +1,7 @@
 package com.merxury.blocker.ui.settings
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.app.Activity
 import android.content.Intent
@@ -24,10 +26,12 @@ import com.merxury.blocker.R
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.ScheduledWork
 import com.merxury.libkit.utils.FileUtils
+import com.tbruyelle.rxpermissions2.RxPermissions
 import java.util.concurrent.TimeUnit
 
 @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.SettingsView, Preference.OnPreferenceClickListener {
+class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.SettingsView,
+    Preference.OnPreferenceClickListener {
     private val logger = XLog.tag("PreferenceFragment")
     private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
     private lateinit var prefs: SharedPreferences
@@ -72,8 +76,10 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         exportIfwRulePreference = findPreference(getString(R.string.key_pref_export_ifw_rules))
         resetIfwPreference = findPreference(getString(R.string.key_pref_reset_ifw_rules))
         importMatRulesPreference = findPreference(getString(R.string.key_pref_import_mat_rules))
-        autoBlockPreference = findPreference(getString(R.string.key_pref_auto_block)) as CheckBoxPreference
-        forceDozePreference = findPreference(getString(R.string.key_pref_force_doze)) as CheckBoxPreference
+        autoBlockPreference =
+                findPreference(getString(R.string.key_pref_auto_block)) as CheckBoxPreference
+        forceDozePreference =
+                findPreference(getString(R.string.key_pref_force_doze)) as CheckBoxPreference
         aboutPreference = findPreference(getString(R.string.key_pref_about))
     }
 
@@ -86,7 +92,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
     }
 
     private fun initPresenter() {
-        presenter = SettingsPresenter(context!!, this)
+        presenter = SettingsPresenter(requireContext(), this)
     }
 
     private fun initListener() {
@@ -130,29 +136,37 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         ToastUtil.showToast(res, Toast.LENGTH_SHORT)
     }
 
+    @SuppressLint("CheckResult")
     override fun showDialog(title: String, message: String, action: () -> Unit) {
-        activity?.let {
-            AlertDialog.Builder(it)
-                    .setTitle(title)
-                    .setMessage(message)
-                    .setCancelable(true)
-                    .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-                    .setPositiveButton(R.string.ok) { _, _ -> action() }
-                    .create()
-                    .show()
-        }
+        RxPermissions(requireActivity())
+            .request(
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+            .subscribe { result ->
+                if (result) {
+                    showConfirmationDialog(title, message, action)
+                } else {
+                    showRequirePermissionDialog()
+                }
+            }
     }
 
-    override fun showDialog(title: String, message: String, file: String?, action: (file: String?) -> Unit) {
+    override fun showDialog(
+        title: String,
+        message: String,
+        file: String?,
+        action: (file: String?) -> Unit
+    ) {
         activity?.let {
             AlertDialog.Builder(it)
-                    .setTitle(title)
-                    .setMessage(message)
-                    .setCancelable(true)
-                    .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-                    .setPositiveButton(R.string.ok) { _, _ -> action(file) }
-                    .create()
-                    .show()
+                .setTitle(title)
+                .setMessage(message)
+                .setCancelable(true)
+                .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+                .setPositiveButton(R.string.ok) { _, _ -> action(file) }
+                .create()
+                .show()
         }
     }
 
@@ -162,12 +176,32 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         }
         logger.d("onPreferenceClick: ${preference.key}")
         when (preference) {
-            exportRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_rules_warning_message), presenter::exportAllRules)
-            importRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), presenter::importAllRules)
-            exportIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.export_all_ifw_rules_warning_message), presenter::exportAllIfwRules)
-            importIfwRulePreference -> showDialog(getString(R.string.warning), getString(R.string.import_all_ifw_rules_warning_message), presenter::importAllIfwRules)
+            exportRulePreference -> showDialog(
+                getString(R.string.warning),
+                getString(R.string.export_all_rules_warning_message),
+                presenter::exportAllRules
+            )
+            importRulePreference -> showDialog(
+                getString(R.string.warning),
+                getString(R.string.import_all_rules_warning_message),
+                presenter::importAllRules
+            )
+            exportIfwRulePreference -> showDialog(
+                getString(R.string.warning),
+                getString(R.string.export_all_ifw_rules_warning_message),
+                presenter::exportAllIfwRules
+            )
+            importIfwRulePreference -> showDialog(
+                getString(R.string.warning),
+                getString(R.string.import_all_ifw_rules_warning_message),
+                presenter::importAllIfwRules
+            )
             importMatRulesPreference -> selectMatFile()
-            resetIfwPreference -> showDialog(getString(R.string.warning), getString(R.string.reset_ifw_warning_message), presenter::resetIFW)
+            resetIfwPreference -> showDialog(
+                getString(R.string.warning),
+                getString(R.string.reset_ifw_warning_message),
+                presenter::resetIFW
+            )
             autoBlockPreference, forceDozePreference -> initAutoBlockAndDoze()
             aboutPreference -> showAbout()
             else -> return false
@@ -181,7 +215,12 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
             matRulePathRequestCode -> {
                 if (resultCode == Activity.RESULT_OK) {
                     val filePath = FileUtils.getUriPath(context!!, data?.data)
-                    showDialog(getString(R.string.warning), getString(R.string.import_all_rules_warning_message), filePath, presenter::importMatRules)
+                    showDialog(
+                        getString(R.string.warning),
+                        getString(R.string.import_all_rules_warning_message),
+                        filePath,
+                        presenter::importMatRules
+                    )
                 }
             }
         }
@@ -201,9 +240,9 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
 
     private fun showAbout() {
         CustomTabsIntent.Builder()
-                .setShowTitle(true)
-                .build()
-                .launchUrl(context, Uri.parse(ABOUT_URL))
+            .setShowTitle(true)
+            .build()
+            .launchUrl(context, Uri.parse(ABOUT_URL))
     }
 
     private fun initAutoBlockAndDoze() {
@@ -212,9 +251,15 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
             WorkManager.getInstance().cancelAllWork()
         } else {
             warnExperimentalFeature()
-            val scheduleWork = PeriodicWorkRequest.Builder(ScheduledWork::class.java,
-                    PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS).build()
-            WorkManager.getInstance().enqueueUniquePeriodicWork(SCHEDULED_WORK_TAG, ExistingPeriodicWorkPolicy.KEEP, scheduleWork)
+            val scheduleWork = PeriodicWorkRequest.Builder(
+                ScheduledWork::class.java,
+                PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS
+            ).build()
+            WorkManager.getInstance().enqueueUniquePeriodicWork(
+                SCHEDULED_WORK_TAG,
+                ExistingPeriodicWorkPolicy.KEEP,
+                scheduleWork
+            )
             logger.d("Scheduled work activated")
         }
     }
@@ -222,42 +267,66 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
     private fun warnExperimentalFeature() {
         context?.let {
             AlertDialog.Builder(it)
-                    .setTitle(R.string.warning)
-                    .setMessage(R.string.experimental_features_warning)
-                    .setPositiveButton(android.R.string.yes) { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                    .show()
+                .setTitle(R.string.warning)
+                .setMessage(R.string.experimental_features_warning)
+                .setPositiveButton(android.R.string.yes) { dialog, _ -> dialog.dismiss() }
+                .show()
         }
+    }
 
+    private fun showConfirmationDialog(
+        title: String,
+        message: String,
+        action: () -> Unit
+    ) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(true)
+            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .setPositiveButton(R.string.ok) { _, _ -> action() }
+            .create()
+            .show()
+    }
+
+    private fun showRequirePermissionDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.warning)
+            .setMessage(R.string.require_permission_message)
+            .setPositiveButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
+            .create()
+            .show()
     }
 
     companion object {
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
         private const val SCHEDULED_WORK_TAG = "BlockerScheduledWork"
 
-        private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
-            val stringValue = value.toString()
-            if (preference is ListPreference) {
-                val index = preference.findIndexOfValue(stringValue)
-                preference.setSummary(
+        private val sBindPreferenceSummaryToValueListener =
+            Preference.OnPreferenceChangeListener { preference, value ->
+                val stringValue = value.toString()
+                if (preference is ListPreference) {
+                    val index = preference.findIndexOfValue(stringValue)
+                    preference.setSummary(
                         if (index >= 0)
                             preference.entries[index]
                         else
-                            null)
-
-            } else {
-                preference.summary = stringValue
+                            null
+                    )
+                } else {
+                    preference.summary = stringValue
+                }
+                true
             }
-            true
-        }
 
         private fun bindPreferenceSummaryToValue(preference: Preference) {
             preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
-            sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
-                    PreferenceManager
-                            .getDefaultSharedPreferences(preference.context)
-                            .getString(preference.key, ""))
+            sBindPreferenceSummaryToValueListener.onPreferenceChange(
+                preference,
+                PreferenceManager
+                    .getDefaultSharedPreferences(preference.context)
+                    .getString(preference.key, "")
+            )
         }
     }
 }
