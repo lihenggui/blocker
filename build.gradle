@@ -5,8 +5,9 @@ buildscript {
     ext.rxjava_version = '2.2.2'
     ext.rxandroid_version = '2.1.0'
     ext.glide_version = '4.8.0'
-    ext.ktx_version = '1.0.0-alpha11'
+    ext.ktx_version = '1.0.0-alpha13'
     ext.anko_version='0.10.8'
+    ext.coroutine_version='1.0.1'
     repositories {
         google()
         jcenter()
