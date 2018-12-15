@@ -1,255 +1,153 @@
 package com.merxury.blocker.ui.settings
 
-import android.Manifest
-import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Context
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.merxury.blocker.R
+import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
-import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.util.NotificationUtil
-import com.merxury.blocker.util.ToastUtil
-import com.merxury.libkit.entity.Application
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
-import com.tbruyelle.rxpermissions2.RxPermissions
-import io.reactivex.Observable
-import io.reactivex.ObservableOnSubscribe
-import io.reactivex.Single
-import io.reactivex.SingleOnSubscribe
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import com.stericson.RootTools.RootTools
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileReader
 
-// TODO Clean Code
-class SettingsPresenter(private val context: Context, private val settingsView: SettingsContract.SettingsView) : SettingsContract.SettingsPresenter {
+class SettingsPresenter(
+    private val context: Context,
+    private val settingsView: SettingsContract.SettingsView
+) : SettingsContract.SettingsPresenter {
     private val logger = XLog.tag("SettingsPresenter").build()
-    
-    override fun exportAllRules() {
+    private val exceptionHandler = CoroutineExceptionHandler { _, e: Throwable -> logger.e(e) }
+    private val uiScope = CoroutineScope(Dispatchers.Main)
+
+    override fun exportAllRules() = uiScope.launch {
         var succeedCount = 0
         var failedCount = 0
-        var appCount = -1
-        val exportObservable = Observable.create(ObservableOnSubscribe<Application> { emitter ->
-            try {
-                val applicationList = ApplicationUtil.getApplicationList(context)
-                applicationList.forEach {
-                    Rule.export(context, it.packageName)
-                    succeedCount++
-                    emitter.onNext(it)
-                }
-                emitter.onComplete()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                logger.e(e.message)
-                failedCount++
-                emitter.onError(e)
+        var appCount: Int
+        val errorHandler = CoroutineExceptionHandler { _, e ->
+            failedCount++
+            logger.e(e)
+        }
+        withContext(Dispatchers.IO + errorHandler) {
+            checkRootAccess()
+            val applicationList = ApplicationUtil.getApplicationList(context)
+            appCount = applicationList.size
+            NotificationUtil.createProcessingNotification(context, appCount)
+            applicationList.forEach { currentApp ->
+                Rule.export(context, currentApp.packageName)
+                succeedCount++
+                NotificationUtil.updateProcessingNotification(
+                    context,
+                    currentApp.label,
+                    (succeedCount + failedCount),
+                    appCount
+                )
             }
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe {
-                    appCount = ApplicationUtil.getApplicationList(context).size
-                    NotificationUtil.createProcessingNotification(context, appCount)
-                }
-        RxPermissions(context as Activity)
-                .request(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                .map { granted ->
-                    if (granted) {
-                        exportObservable.subscribe({ info ->
-                            NotificationUtil.updateProcessingNotification(context, info.label, (succeedCount + failedCount), appCount)
-                        }, { error ->
-                            // onError
-                        }, {
-                            NotificationUtil.finishProcessingNotification(context, succeedCount)
-                            settingsView.showExportResult(true, succeedCount, failedCount)
-                        })
-                    } else {
-                        settingsView.showMessage(R.string.need_storage_permission)
-                    }
-                }
-                .subscribe()
+            delay(1000L)
+            NotificationUtil.finishProcessingNotification(context, succeedCount)
+        }
+        settingsView.showExportResult(true, succeedCount, failedCount)
     }
 
-    override fun importAllRules() {
+    override fun importAllRules() = uiScope.launch {
         var restoredCount = 0
-        var rulesCount = 0
-        val importObservable = Observable.create(ObservableOnSubscribe<String> { emitter ->
-            try {
-                val files = FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath)
-                if (files.isEmpty()) {
-                    emitter.onComplete()
-                    return@ObservableOnSubscribe
-                }
-                files.filter {
-                    it.endsWith(Rule.EXTENSION)
-                }.forEach {
-                    val rule = Gson().fromJson(FileReader(it), BlockerRule::class.java)
-                    if (!ApplicationUtil.isAppInstalled(context.packageManager, rule.packageName)) {
-                        return@forEach
-                    }
-                    Rule.import(context, File(it))
-                    emitter.onNext(rule.packageName!!)
-                }
-                emitter.onComplete()
-            } catch (e: Exception) {
-                logger.e("Error occurs in importing rules:", e)
-                emitter.onError(e)
+        var rulesCount: Int
+        withContext(Dispatchers.IO + exceptionHandler) {
+            checkRootAccess()
+            rulesCount = FileUtils.getFileCounts(
+                Rule.getBlockerRuleFolder(context).absolutePath,
+                Rule.EXTENSION
+            )
+            NotificationUtil.createProcessingNotification(context, rulesCount)
+            val files = FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath)
+            if (files.isEmpty()) {
+                return@withContext
             }
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe {
-                    rulesCount = FileUtils.getFileCounts(Rule.getBlockerRuleFolder(context).absolutePath, Rule.EXTENSION)
-                    NotificationUtil.createProcessingNotification(context, rulesCount)
+            files.filter {
+                it.endsWith(Rule.EXTENSION)
+            }.forEach {
+                val rule = Gson().fromJson(FileReader(it), BlockerRule::class.java)
+                if (!ApplicationUtil.isAppInstalled(context.packageManager, rule.packageName)) {
+                    return@forEach
                 }
-        RxPermissions(context as Activity)
-                .request(Manifest.permission.READ_EXTERNAL_STORAGE)
-                .map { granted ->
-                    if (granted) {
-                        importObservable.subscribe({ packageName ->
-                            restoredCount++
-                            NotificationUtil.updateProcessingNotification(context, packageName, restoredCount, rulesCount)
-                        }, { error ->
-                            //onError
-                        }, {
-                            NotificationUtil.finishProcessingNotification(context, restoredCount)
-                        })
-                    } else {
-                        settingsView.showMessage(R.string.need_storage_permission)
-                    }
-                }
-                .subscribe()
+                Rule.import(context, File(it))
+                restoredCount++
+                NotificationUtil.updateProcessingNotification(
+                    context,
+                    rule.packageName ?: "",
+                    restoredCount,
+                    rulesCount
+                )
+            }
+        }
+        NotificationUtil.finishProcessingNotification(context, restoredCount)
     }
 
-    override fun exportAllIfwRules() {
-        var exportedCount = 0
-        val exportIfwObservable = Observable.create(ObservableOnSubscribe<Int> { emitter ->
-            try {
-                exportedCount = Rule.exportIfwRules(context)
-            } catch (e: Exception) {
-                logger.e(e.message)
-                e.printStackTrace()
-            }
-            emitter.onComplete()
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
-        RxPermissions(context as Activity)
-                .request(Manifest.permission.READ_EXTERNAL_STORAGE)
-                .map { granted ->
-                    if (granted) {
-                        exportIfwObservable.subscribe({ _ ->
-
-                        }, { error ->
-                            //onError
-                        }, {
-                            NotificationUtil.finishProcessingNotification(context, exportedCount)
-                        })
-                    } else {
-                        settingsView.showMessage(R.string.need_storage_permission)
-                    }
-                }
-                .subscribe()
+    override fun exportAllIfwRules() = uiScope.launch {
+        withContext(Dispatchers.IO + exceptionHandler) {
+            checkRootAccess()
+            NotificationUtil.createProcessingNotification(context, 0)
+            val exportedCount = Rule.exportIfwRules(context)
+            NotificationUtil.finishProcessingNotification(context, exportedCount)
+        }
     }
 
-    override fun importAllIfwRules() {
+    override fun importAllIfwRules() = uiScope.launch {
         var count = 0
-        val importIfwObservable = Observable.create(ObservableOnSubscribe<Int> { emitter ->
-            try {
-                count = Rule.importIfwRules(context)
-                emitter.onComplete()
-            } catch (e: Exception) {
-                logger.e("Error while importing:", e)
-                emitter.onError(e)
-            }
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
-
-        RxPermissions(context as Activity)
-                .request(Manifest.permission.READ_EXTERNAL_STORAGE)
-                .map { granted ->
-                    if (granted) {
-                        importIfwObservable.subscribe({ _ ->
-                            //onNext
-                        }, { error ->
-                            //onError
-                        }, {
-                            NotificationUtil.finishProcessingNotification(context, count)
-                            settingsView.showExportResult(true, count, 0)
-                        })
-                    }
-                }
-                .subscribe()
+        withContext(Dispatchers.IO + exceptionHandler) {
+            checkRootAccess()
+            NotificationUtil.createProcessingNotification(context, 0)
+            count = Rule.importIfwRules(context)
+            NotificationUtil.finishProcessingNotification(context, count)
+        }
+        settingsView.showExportResult(true, count, 0)
     }
 
-    @SuppressLint("CheckResult")
-    override fun resetIFW() {
-        Observable.create(ObservableOnSubscribe<Boolean> { emitter ->
-            val result = Rule.resetIfw()
-            emitter.onNext(result)
-            emitter.onComplete()
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({ result ->
-                    if (result) {
-                        settingsView.showMessage(R.string.done)
-                    } else {
-                        settingsView.showMessage(R.string.ifw_reset_error)
-                    }
-
-                }, { error ->
-                    settingsView.showMessage(R.string.ifw_reset_error)
-                })
+    override fun resetIFW() = uiScope.launch {
+        val errorHandler = CoroutineExceptionHandler { _, e ->
+            logger.e(e)
+            settingsView.showMessage(R.string.ifw_reset_error)
+        }
+        var result = false
+        withContext(Dispatchers.IO + errorHandler) {
+            checkRootAccess()
+            result = Rule.resetIfw()
+        }
+        if (result) {
+            settingsView.showMessage(R.string.done)
+        } else {
+            settingsView.showMessage(R.string.ifw_reset_error)
+        }
     }
 
-    override fun importMatRules(filePath: String?) {
-        val importMatSingle = Single.create(SingleOnSubscribe<RulesResult> { emitter ->
-            try {
-                if (filePath == null) {
-                    emitter.onError(NullPointerException("File path cannot be null"))
-                    return@SingleOnSubscribe
-                }
-                val file = File(filePath)
-                if (!file.exists()) {
-                    emitter.onError(FileNotFoundException("Cannot find MyAndroidTools Rule File: ${file.path}"))
-                    return@SingleOnSubscribe
-                }
-                val result = Rule.importMatRules(context, file) { context, name, current, total ->
-                    NotificationUtil.updateProcessingNotification(context, name, current, total)
-                }
-                // TODO: Temporary fix to the notification update limit in Android
-                Thread.sleep(1000)
-                emitter.onSuccess(result)
-            } catch (e: Exception) {
-                logger.e("Error occurs in importing mat rules:", e)
-                emitter.onError(e)
+    override fun importMatRules(filePath: String?) = uiScope.launch {
+        val errorHandler = CoroutineExceptionHandler { _, e ->
+            logger.e(e)
+            NotificationUtil.finishProcessingNotification(context, 0)
+        }
+        withContext(Dispatchers.IO + errorHandler) {
+            checkRootAccess()
+            NotificationUtil.createProcessingNotification(context, 0)
+            if (filePath == null) {
+                throw NullPointerException("File path cannot be null")
             }
-        })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnSubscribe { NotificationUtil.createProcessingNotification(context, 0) }
-        RxPermissions(context as Activity)
-                .request(Manifest.permission.READ_EXTERNAL_STORAGE)
-                .map { granted ->
-                    if (granted) {
-                        importMatSingle.subscribe({ result ->
-                            NotificationUtil.finishProcessingNotification(context, result.failedCount + result.succeedCount)
-                        }, { error ->
-                            NotificationUtil.finishProcessingNotification(context, 0)
-                            ToastUtil.showToast(error.message ?: error.toString())
-                        })
-                    }
-                }
-                .subscribe()
+            val file = File(filePath)
+            if (!file.exists()) {
+                throw FileNotFoundException("Cannot find MyAndroidTools Rule File: ${file.path}")
+            }
+            val result = Rule.importMatRules(context, file) { context, name, current, total ->
+                NotificationUtil.updateProcessingNotification(context, name, current, total)
+            }
+            Thread.sleep(1000)
+            NotificationUtil.finishProcessingNotification(
+                context,
+                result.failedCount + result.succeedCount
+            )
+        }
     }
 
     override fun start(context: Context) {
@@ -258,5 +156,11 @@ class SettingsPresenter(private val context: Context, private val settingsView: 
 
     override fun destroy() {
 
+    }
+
+    private fun checkRootAccess() {
+        if (!RootTools.isAccessGiven()) {
+            throw RootUnavailableException()
+        }
     }
 }

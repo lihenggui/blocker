@@ -2,11 +2,9 @@ package com.merxury.blocker.ui.component
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
-import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import android.os.Bundle
 import android.util.SparseArray
 import android.view.MenuItem
@@ -22,6 +20,7 @@ import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.util.AppLauncher
 import com.merxury.blocker.util.setupActionBar
 import com.merxury.libkit.entity.Application
+import com.merxury.libkit.utils.StatusBarUtil
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
 import moe.shizuku.api.ShizukuClient
@@ -153,10 +152,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         component_toolbar.setBackgroundColor(color)
         component_tabs.setBackgroundColor(color)
         component_collapsing_toolbar.setBackgroundColor(color)
-        //StatusBarUtil.setColor(this, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            setTaskDescription(ActivityManager.TaskDescription(null, null, color))
-        }
+        StatusBarUtil.setColor(this, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
     }
 
     private fun changeBackgroundColor(tab: TabLayout.Tab) {
