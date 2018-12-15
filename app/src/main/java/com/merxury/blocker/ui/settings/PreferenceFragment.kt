@@ -178,30 +178,36 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         when (preference) {
             exportRulePreference -> showDialog(
                 getString(R.string.warning),
-                getString(R.string.export_all_rules_warning_message),
-                presenter::exportAllRules
-            )
+                getString(R.string.export_all_rules_warning_message)
+            ) {
+                presenter.exportAllRules()
+            }
             importRulePreference -> showDialog(
                 getString(R.string.warning),
-                getString(R.string.import_all_rules_warning_message),
-                presenter::importAllRules
-            )
+                getString(R.string.import_all_rules_warning_message)
+            ) {
+                presenter.importAllRules()
+            }
             exportIfwRulePreference -> showDialog(
                 getString(R.string.warning),
-                getString(R.string.export_all_ifw_rules_warning_message),
-                presenter::exportAllIfwRules
-            )
+                getString(R.string.export_all_ifw_rules_warning_message)
+            ) {
+                presenter.exportAllIfwRules()
+            }
+
             importIfwRulePreference -> showDialog(
                 getString(R.string.warning),
-                getString(R.string.import_all_ifw_rules_warning_message),
-                presenter::importAllIfwRules
-            )
+                getString(R.string.import_all_ifw_rules_warning_message)
+            ) {
+                presenter.importAllIfwRules()
+            }
             importMatRulesPreference -> selectMatFile()
             resetIfwPreference -> showDialog(
                 getString(R.string.warning),
-                getString(R.string.reset_ifw_warning_message),
-                presenter::resetIFW
-            )
+                getString(R.string.reset_ifw_warning_message)
+            ) {
+                presenter.resetIFW()
+            }
             autoBlockPreference, forceDozePreference -> initAutoBlockAndDoze()
             aboutPreference -> showAbout()
             else -> return false
@@ -214,13 +220,14 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         when (requestCode) {
             matRulePathRequestCode -> {
                 if (resultCode == Activity.RESULT_OK) {
-                    val filePath = FileUtils.getUriPath(context!!, data?.data)
+                    val filePath = FileUtils.getUriPath(requireContext(), data?.data)
                     showDialog(
                         getString(R.string.warning),
                         getString(R.string.import_all_rules_warning_message),
-                        filePath,
-                        presenter::importMatRules
-                    )
+                        filePath
+                    ) {
+                        presenter.importMatRules(it)
+                    }
                 }
             }
         }
