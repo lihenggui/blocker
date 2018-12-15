@@ -23,7 +23,7 @@ class ScheduledWork(val context: Context, workerParameters: WorkerParameters) : 
         val isRooted = PermissionUtils.isRootAvailable
         if (!isRooted) {
             logger.d("Can't get root permission, exiting...")
-            return Result.FAILURE
+            return Result.failure()
         }
         try {
             if (isScreenOff) {
@@ -38,8 +38,8 @@ class ScheduledWork(val context: Context, workerParameters: WorkerParameters) : 
             }
         } catch (e: Exception) {
             logger.e(e)
-            return Result.RETRY
+            return Result.retry()
         }
-        return Result.SUCCESS
+        return Result.success()
     }
 }
