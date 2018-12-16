@@ -63,11 +63,7 @@ class SettingsPresenter(
                 Rule.EXTENSION
             )
             NotificationUtil.createProcessingNotification(context, rulesCount)
-            val files = FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath)
-            if (files.isEmpty()) {
-                return@withContext
-            }
-            files.filter {
+            FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath).filter {
                 it.endsWith(Rule.EXTENSION)
             }.forEach {
                 val rule = Gson().fromJson(FileReader(it), BlockerRule::class.java)
