@@ -21,8 +21,11 @@ class SettingsPresenter(
     private val settingsView: SettingsContract.SettingsView
 ) : SettingsContract.SettingsPresenter {
     private val logger = XLog.tag("SettingsPresenter").build()
-    private val exceptionHandler = CoroutineExceptionHandler { _, e: Throwable -> logger.e(e) }
-    private val uiScope = CoroutineScope(Dispatchers.Main)
+    private val exceptionHandler = CoroutineExceptionHandler { _, e: Throwable ->
+        logger.e("Caught an exception:", e)
+        NotificationUtil.cancelNotification(context)
+    }
+    private val uiScope = CoroutineScope(Dispatchers.Main + exceptionHandler)
 
     override fun exportAllRules() = uiScope.launch {
         var succeedCount = 0
@@ -56,7 +59,7 @@ class SettingsPresenter(
     override fun importAllRules() = uiScope.launch {
         var restoredCount = 0
         var rulesCount: Int
-        withContext(Dispatchers.IO + exceptionHandler) {
+        withContext(Dispatchers.IO) {
             checkRootAccess()
             rulesCount = FileUtils.getFileCounts(
                 Rule.getBlockerRuleFolder(context).absolutePath,
@@ -83,8 +86,9 @@ class SettingsPresenter(
         NotificationUtil.finishProcessingNotification(context, restoredCount)
     }
 
+
     override fun exportAllIfwRules() = uiScope.launch {
-        withContext(Dispatchers.IO + exceptionHandler) {
+        withContext(Dispatchers.IO) {
             checkRootAccess()
             NotificationUtil.createProcessingNotification(context, 0)
             val exportedCount = Rule.exportIfwRules(context)
@@ -94,7 +98,7 @@ class SettingsPresenter(
 
     override fun importAllIfwRules() = uiScope.launch {
         var count = 0
-        withContext(Dispatchers.IO + exceptionHandler) {
+        withContext(Dispatchers.IO) {
             checkRootAccess()
             NotificationUtil.createProcessingNotification(context, 0)
             count = Rule.importIfwRules(context)
@@ -103,29 +107,31 @@ class SettingsPresenter(
         settingsView.showExportResult(true, count, 0)
     }
 
-    override fun resetIFW() = uiScope.launch {
+    override fun resetIFW() {
         val errorHandler = CoroutineExceptionHandler { _, e ->
             logger.e(e)
             settingsView.showMessage(R.string.ifw_reset_error)
         }
-        var result = false
-        withContext(Dispatchers.IO + errorHandler) {
-            checkRootAccess()
-            result = Rule.resetIfw()
-        }
-        if (result) {
-            settingsView.showMessage(R.string.done)
-        } else {
-            settingsView.showMessage(R.string.ifw_reset_error)
+        CoroutineScope(Dispatchers.Main + errorHandler).launch {
+            var result = false
+            withContext(Dispatchers.IO) {
+                checkRootAccess()
+                result = Rule.resetIfw()
+            }
+            if (result) {
+                settingsView.showMessage(R.string.done)
+            } else {
+                settingsView.showMessage(R.string.ifw_reset_error)
+            }
         }
     }
 
-    override fun importMatRules(filePath: String?) = uiScope.launch {
+    override fun importMatRules(filePath: String?) {
         val errorHandler = CoroutineExceptionHandler { _, e ->
             logger.e(e)
             NotificationUtil.finishProcessingNotification(context, 0)
         }
-        withContext(Dispatchers.IO + errorHandler) {
+        CoroutineScope(Dispatchers.IO + errorHandler).launch {
             checkRootAccess()
             NotificationUtil.createProcessingNotification(context, 0)
             if (filePath == null) {
