@@ -20,7 +20,7 @@ interface SettingsContract : BaseView<SettingsContract.SettingsPresenter> {
         fun importAllRules(): Job
         fun exportAllIfwRules(): Job
         fun importAllIfwRules(): Job
-        fun importMatRules(filePath: String?): Job
-        fun resetIFW(): Job
+        fun importMatRules(filePath: String?)
+        fun resetIFW()
     }
 }
