@@ -1,8 +1,9 @@
 package com.merxury.libkit.utils;
 
-import android.os.SystemProperties;
+import android.util.Log;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 import androidx.annotation.NonNull;
 
@@ -60,7 +61,14 @@ public class StorageUtils {
      * if disabled.
      */
     public static boolean isEncryptedFilesystemEnabled() {
-        return SystemProperties.getBoolean(SYSTEM_PROPERTY_EFS_ENABLED, false);
+        try {
+            return (boolean) Class.forName("android.os.SystemProperties")
+                    .getMethod("getBoolean", String.class, boolean.class)
+                    .invoke(null, SYSTEM_PROPERTY_EFS_ENABLED, false);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            Log.e("StorgeUtils", "Cannot access internal method", e);
+            return false;
+        }
     }
 
     @NonNull
