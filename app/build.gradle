@@ -12,8 +12,8 @@ android {
         applicationId "com.merxury.blocker"
         minSdkVersion 19
         targetSdkVersion 28
-        versionCode 38
-        versionName "0.1.38-alpha"
+        versionCode 40
+        versionName "0.1.40-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         resConfigs "en", "zh-rCN", "zh-rTW"
         multiDexEnabled true
