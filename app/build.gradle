@@ -1,9 +1,6 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
-
 apply plugin: 'kotlin-android-extensions'
-
 apply plugin: 'kotlin-kapt'
 
 android {
@@ -49,10 +46,10 @@ dependencies {
     implementation 'com.google.android.material:material:1.1.0-alpha02'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.annotation:annotation:1.0.1'
-    implementation 'androidx.preference:preference:1.1.0-alpha01'
+    implementation 'androidx.preference:preference:1.1.0-alpha02'
     implementation 'androidx.browser:browser:1.0.0'
-    implementation "android.arch.work:work-runtime-ktx:$ktx_version"
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha2'
+    implementation "android.arch.work:work-runtime-ktx:1.0.0-beta01"
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha3'
     implementation "com.mikepenz:materialdrawer:6.1.1"
     // rxpermission
     implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.5@aar'
