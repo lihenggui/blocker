@@ -206,6 +206,9 @@ public class IntentFirewallImpl implements IntentFirewall {
             return true;
         }
         for (ComponentFilter filter : componentFilters) {
+            if (filter == null) {
+                return false;
+            }
             String filterName = formatName(packageName, componentName);
             if (filterName.equals(filter.getName())) {
                 return false;
