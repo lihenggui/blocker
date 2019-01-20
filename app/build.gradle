@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
-apply plugin: 'io.fabric'
 
 android {
     compileSdkVersion 28
@@ -50,7 +49,7 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.0.1'
     implementation 'androidx.preference:preference:1.1.0-alpha02'
     implementation 'androidx.browser:browser:1.0.0'
-    implementation "android.arch.work:work-runtime-ktx:1.0.0-beta01"
+    implementation "android.arch.work:work-runtime-ktx:1.0.0-beta02"
     implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha3'
     implementation "com.mikepenz:materialdrawer:6.1.1"
     // rxpermission
