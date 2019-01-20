@@ -127,4 +127,10 @@
     <string name="data_cleared">数据已被清除</string>
     <string name="error">错误</string>
     <string name="experimental_features_warning">您启用了一些实验性功能，这些功能目前需要Root权限运行，而且有可能在部分国产ROM上无法正常运行。如不能正常工作请谅解。</string>
+    <string name="report">反馈</string>
+    <string name="send_email">发送电子邮件</string>
+    <string name="report_subject_template">Blocker反馈: (请填写您的主题)</string>
+    <string name="report_content_template">（请详细描述您的问题：）</string>
+    <string name="require_permission_message">Blocker需要您授予权限才可继续操作</string>
+    <string name="processing_progress_indicator">进度指示条</string>
 </resources>
