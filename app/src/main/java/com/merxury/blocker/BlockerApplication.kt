@@ -13,6 +13,7 @@ import com.elvishew.xlog.XLog
 import com.elvishew.xlog.printer.AndroidPrinter
 import com.elvishew.xlog.printer.file.FilePrinter
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
+import com.elvishew.xlog.printer.file.naming.ChangelessFileNameGenerator
 import com.merxury.blocker.util.NotificationUtil
 import moe.shizuku.api.ShizukuClient
 
@@ -38,19 +39,20 @@ class BlockerApplication : Application() {
 
     private fun initLogger() {
         val config = LogConfiguration.Builder()
-                .logLevel(LogLevel.ALL)
-                .t()
-                .build()
+            .logLevel(LogLevel.ALL)
+            .t()
+            .build()
         val androidPrinter = AndroidPrinter()
         val filePrinter = FilePrinter.Builder(filesDir.absolutePath)
-                .backupStrategy(NeverBackupStrategy())
-                .build()
+            .backupStrategy(NeverBackupStrategy())
+            .fileNameGenerator(ChangelessFileNameGenerator(LOG_FILENAME))
+            .build()
         XLog.init(config, androidPrinter, filePrinter)
     }
 
     companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
-        private const val SCHEDULED_WORK_TAG = "BlockerScheduledWork"
+        const val LOG_FILENAME = "blocker_log.log"
     }
 }

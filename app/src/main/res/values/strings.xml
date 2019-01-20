@@ -137,4 +137,8 @@
     <string name="error">Error</string>
     <string name="experimental_features_warning">You have some experimental feature turned on.\nNote:\nRoot permission is needed.\nIt might not work on some Chinese ROMs.</string>
     <string name="require_permission_message">Blocker need your permission to continue operations.</string>
+    <string name="report">Report</string>
+    <string name="report_subject_template">Blocker Report: (Write down your subject here)</string>
+    <string name="report_content_template">(Write down your problems below:)</string>
+    <string name="send_email">Send Email…</string>
 </resources>

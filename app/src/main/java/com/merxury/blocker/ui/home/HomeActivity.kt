@@ -9,9 +9,11 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.viewpager.widget.ViewPager
 import com.google.android.material.tabs.TabLayout
+import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
 import com.merxury.blocker.base.IActivityView
@@ -53,30 +55,41 @@ class HomeActivity : AppCompatActivity(), IActivityView {
     }
 
     private fun setupDrawerContent(savedInstanceState: Bundle?) {
-        val item1 = PrimaryDrawerItem().withIdentifier(1).withName(R.string.app_list_title).withIcon(R.drawable.ic_list)
-        val item2 = SecondaryDrawerItem().withIdentifier(2).withName(R.string.action_settings).withIcon(R.drawable.ic_settings)
+        val listItem = PrimaryDrawerItem()
+            .withIdentifier(1)
+            .withName(R.string.app_list_title)
+            .withIcon(R.drawable.ic_list)
+        val settingItem = SecondaryDrawerItem()
+            .withIdentifier(2)
+            .withName(R.string.action_settings)
+            .withIcon(R.drawable.ic_settings)
+        val emailItem = SecondaryDrawerItem()
+            .withIdentifier(3)
+            .withName(R.string.report)
+            .withIcon(R.drawable.ic_email)
         drawer = DrawerBuilder()
-                .withActivity(this)
-                .withTranslucentStatusBar(true)
-                .withToolbar(toolbar)
-                .withSavedInstance(savedInstanceState)
-                .withActionBarDrawerToggleAnimated(true)
-
-                .addDrawerItems(
-                        item1,
-                        DividerDrawerItem(),
-                        item2
-                )
-                .withOnDrawerItemClickListener { _, _, drawerItem ->
-                    when (drawerItem?.identifier) {
-                        1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
-                        2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
-                    }
-                    false
+            .withActivity(this)
+            .withTranslucentStatusBar(true)
+            .withToolbar(toolbar)
+            .withSavedInstance(savedInstanceState)
+            .withActionBarDrawerToggleAnimated(true)
+            .addDrawerItems(
+                listItem,
+                settingItem,
+                DividerDrawerItem(),
+                emailItem
+            )
+            .withOnDrawerItemClickListener { _, _, drawerItem ->
+                when (drawerItem?.identifier) {
+                    1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
+                    2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
+                    3L -> showReportScreen()
                 }
-                .withSelectedItem(1L)
-                .withCloseOnClick(true)
-                .build()
+                false
+            }
+            .withSelectedItem(1L)
+            .withCloseOnClick(true)
+            .build()
         drawerLayout = drawer.drawerLayout
 
     }
@@ -145,5 +158,22 @@ class HomeActivity : AppCompatActivity(), IActivityView {
         if (drawer.isDrawerOpen) {
             drawer.closeDrawer()
         }
+    }
+
+    private fun showReportScreen() {
+        val logFile = filesDir.resolve(BlockerApplication.LOG_FILENAME)
+        val emailIntent = Intent(Intent.ACTION_SEND)
+            .setType("vnd.android.cursor.dir/email")
+            .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
+            .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
+            .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
+        if (logFile.exists()) {
+            val logUri = FileProvider.getUriForFile(
+                this,
+                "com.merxury.blocker.provider", //(use your app signature + ".provider" )
+                logFile);
+            emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
+        }
+        startActivity(Intent.createChooser(emailIntent , getString(R.string.send_email)));
     }
 }
