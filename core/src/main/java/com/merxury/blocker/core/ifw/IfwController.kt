@@ -11,6 +11,7 @@ import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import com.merxury.libkit.utils.ApplicationUtil
+import java.lang.Exception
 
 class IfwController(val context: Context) : IController {
     private lateinit var controller: IntentFirewall
@@ -32,7 +33,12 @@ class IfwController(val context: Context) : IController {
             else -> false
         }
         if (result) {
-            controller.save()
+            try {
+                controller.save()
+            }catch (e: Exception) {
+                controller.removeCache()
+                throw e
+            }
         }
         return result;
     }

@@ -83,20 +83,20 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         }
     }
 
-    @SuppressLint("CheckResult")
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
-        doAsync(exceptionHandler) {
-            controller.switchComponent(packageName, componentName, state)
-            uiThread {
-                view?.refreshComponentState(componentName)
-            }
-        }
-        return true
+        return controller.switchComponent(packageName, componentName, state)
     }
 
     override fun enable(packageName: String, componentName: String): Boolean {
         logger.i("Enable component: $componentName")
-        doAsync(exceptionHandler) {
+        val handler = { e: Throwable ->
+            GlobalScope.launch(Dispatchers.Main) {
+                DialogUtil().showWarningDialogWithMessage(context, e)
+                view?.refreshComponentState(componentName)
+            }
+            logger.e(e)
+        }
+        doAsync(handler) {
             val controllerType = PreferenceUtil.getControllerType(context)
             if (controllerType == EControllerMethod.PM) {
                 if (!checkIFWState(packageName, componentName)) {
@@ -117,7 +117,14 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
 
     override fun disable(packageName: String, componentName: String): Boolean {
         logger.i("Disable component: $componentName")
-        doAsync(exceptionHandler) {
+        val handler = { e: Throwable ->
+            GlobalScope.launch(Dispatchers.Main) {
+                DialogUtil().showWarningDialogWithMessage(context, e)
+                view?.refreshComponentState(componentName)
+            }
+            logger.e(e)
+        }
+        doAsync(handler) {
             controller.disable(packageName, componentName)
             uiThread {
                 view?.refreshComponentState(componentName)
