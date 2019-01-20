@@ -218,6 +218,7 @@ public class IntentFirewallImpl implements IntentFirewall {
     }
 
     private void openFile() {
+        removeCache();
         if (FileUtils.isExist(destPath)) {
             String ruleContent = FileUtils.read(destPath);
             Serializer serializer = new Persister();
@@ -233,6 +234,20 @@ public class IntentFirewallImpl implements IntentFirewall {
             }
         } else {
             rules = new Rules();
+        }
+    }
+
+    public boolean removeCache() {
+        try {
+            File cacheFile = new File(cacheDir, filename);
+            boolean result = cacheFile.exists() && cacheFile.delete();
+            if (result) {
+                reload();
+            }
+            return result;
+        }catch (Exception e) {
+            logger.e("Cannot delete cache file: " + cacheDir, e);
+            return false;
         }
     }
 

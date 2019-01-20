@@ -18,4 +18,6 @@ public interface IntentFirewall {
     void reload();
 
     String getPackageName();
+
+    boolean removeCache();
 }
