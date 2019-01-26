@@ -133,4 +133,8 @@
     <string name="send_email">發送電子郵件</string>
     <string name="require_permission_message">Blocker需要您授予權限才可繼續操作</string>
     <string name="processing_progress_indicator">進度指示條</string>
+    <string name="copy_component_name">複製名稱</string>
+    <string name="copy_full_name">複製全名</string>
+    <string name="component_name">組件名稱</string>
+    <string name="copied">已復制</string>
 </resources>

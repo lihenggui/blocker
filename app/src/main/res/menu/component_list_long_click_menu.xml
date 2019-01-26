@@ -9,4 +9,10 @@
     <item
         android:id="@+id/launch_activity"
         android:title="@string/launch_activity" />
+    <item
+        android:id="@+id/copy_component_name"
+        android:title="@string/copy_component_name" />
+    <item
+        android:id="@+id/copy_full_name"
+        android:title="@string/copy_full_name" />
 </menu>

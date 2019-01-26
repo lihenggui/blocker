@@ -141,4 +141,8 @@
     <string name="report_subject_template">Blocker Report: (Write down your subject here)</string>
     <string name="report_content_template">(Write down your problems below:)</string>
     <string name="send_email">Send Email…</string>
+    <string name="copy_component_name">Copy Name</string>
+    <string name="copy_full_name">Copy Full Name</string>
+    <string name="component_name">Component Name</string>
+    <string name="copied">Copied</string>
 </resources>
