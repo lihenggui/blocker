@@ -1,6 +1,9 @@
 package com.merxury.blocker.ui.component
 
 import android.app.Activity
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -150,6 +153,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             R.id.block_by_ifw -> presenter.addToIFW(component.packageName, component.name, type)
             R.id.enable_by_ifw -> presenter.removeFromIFW(component.packageName, component.name, type)
             R.id.launch_activity -> presenter.launchActivity(component.packageName, component.name)
+            R.id.copy_component_name -> copyToClipboard(component.simpleName)
+            R.id.copy_full_name -> copyToClipboard(component.name)
         }
         return true
     }
@@ -283,6 +288,14 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             if (item !== exception)
                 item.isVisible = visible
         }
+    }
+
+    private fun copyToClipboard(content: String) {
+        val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                ?: return
+        val clip = ClipData.newPlainText(getString(R.string.component_name), content)
+        clipboard.primaryClip = clip
+        Toast.makeText(requireContext(), R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
     companion object {

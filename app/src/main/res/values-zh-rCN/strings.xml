@@ -133,4 +133,8 @@
     <string name="report_content_template">（请详细描述您的问题：）</string>
     <string name="require_permission_message">Blocker需要您授予权限才可继续操作</string>
     <string name="processing_progress_indicator">进度指示条</string>
+    <string name="copy_component_name">复制名称</string>
+    <string name="copy_full_name">复制全名</string>
+    <string name="component_name">组件名称</string>
+    <string name="copied">已复制</string>
 </resources>
