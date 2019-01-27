@@ -174,10 +174,6 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         componentAdapter.filter(name)
     }
 
-    override fun getViewActivity(): Activity {
-        return activity as Activity
-    }
-
     override fun showFilteringPopUpMenu() {
         PopupMenu(activity, activity?.findViewById(R.id.menu_filter)).apply {
             menuInflater.inflate(R.menu.filter_component, menu)
