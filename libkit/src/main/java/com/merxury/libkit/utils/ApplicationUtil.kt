@@ -91,14 +91,15 @@ object ApplicationUtil {
      * @param packageName package name
      * @return list of activity
      */
+    @Suppress("DEPRECATION")
     fun getActivityList(pm: PackageManager, packageName: String): MutableList<ActivityInfo> {
         val activities = ArrayList<ActivityInfo>()
         try {
             var flags = PackageManager.GET_ACTIVITIES
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags = flags or PackageManager.GET_DISABLED_COMPONENTS
+            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                flags or PackageManager.GET_DISABLED_COMPONENTS
             } else {
-                flags = flags or PackageManager.MATCH_DISABLED_COMPONENTS
+                flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
             val components = pm.getPackageInfo(packageName, flags).activities
             if (components != null && components.isNotEmpty()) {
@@ -120,14 +121,15 @@ object ApplicationUtil {
      * @param packageName package name
      * @return list of receiver
      */
+    @Suppress("DEPRECATION")
     fun getReceiverList(pm: PackageManager, packageName: String): MutableList<ActivityInfo> {
         val receivers = ArrayList<ActivityInfo>()
         try {
             var flags = PackageManager.GET_RECEIVERS
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags = flags or PackageManager.GET_DISABLED_COMPONENTS
+            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                flags or PackageManager.GET_DISABLED_COMPONENTS
             } else {
-                flags = flags or PackageManager.MATCH_DISABLED_COMPONENTS
+                flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
             val components = pm.getPackageInfo(packageName, flags).receivers
             if (components != null && components.isNotEmpty()) {
@@ -172,14 +174,15 @@ object ApplicationUtil {
      * @param packageName package name
      * @return list of provider
      */
+    @Suppress("DEPRECATION")
     fun getProviderList(pm: PackageManager, packageName: String): MutableList<ProviderInfo> {
         val providers = ArrayList<ProviderInfo>()
         try {
             var flags = PackageManager.GET_PROVIDERS
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags = flags or PackageManager.GET_DISABLED_COMPONENTS
+            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                flags or PackageManager.GET_DISABLED_COMPONENTS
             } else {
-                flags = flags or PackageManager.MATCH_DISABLED_COMPONENTS
+                flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
             val components = pm.getPackageInfo(packageName, flags).providers
             if (components != null && components.isNotEmpty()) {
@@ -229,14 +232,15 @@ object ApplicationUtil {
      * @param packageName package name
      * @return a set of components
      */
+    @Suppress("DEPRECATION")
     fun getApplicationComponents(pm: PackageManager, packageName: String): PackageInfo {
         var flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
                 PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
                 PackageManager.GET_INTENT_FILTERS
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            flags = flags or PackageManager.GET_DISABLED_COMPONENTS
+        flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            flags or PackageManager.GET_DISABLED_COMPONENTS
         } else {
-            flags = flags or PackageManager.MATCH_DISABLED_COMPONENTS
+            flags or PackageManager.MATCH_DISABLED_COMPONENTS
         }
         var info = PackageInfo()
         try {
