@@ -22,7 +22,7 @@ object DeviceUtil {
         RootCommand.runBlockingCommand("shell input keyevent KEYCODE_WAKEUP")
     }
 
-    @SuppressWarnings("deprecation")
+    @Suppress("DEPRECATION")
     fun isScreenOn(context: Context): Boolean {
         return if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT_WATCH) {
             val dm = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
