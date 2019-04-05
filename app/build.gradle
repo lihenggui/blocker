@@ -35,7 +35,6 @@ android {
     }
 }
 repositories {
-    maven { url 'https://maven.fabric.io/public' }
     flatDir {
         dirs 'libs'
     }
@@ -44,13 +43,13 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
-    implementation 'com.google.android.material:material:1.1.0-alpha02'
+    implementation 'com.google.android.material:material:1.1.0-alpha05'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.annotation:annotation:1.0.1'
-    implementation 'androidx.preference:preference:1.1.0-alpha02'
+    implementation 'androidx.annotation:annotation:1.0.2'
+    implementation 'androidx.preference:preference:1.1.0-alpha04'
     implementation 'androidx.browser:browser:1.0.0'
-    implementation "android.arch.work:work-runtime-ktx:1.0.0-beta02"
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha3'
+    implementation "android.arch.work:work-runtime-ktx:1.0.1-rc01"
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-alpha4'
     implementation "com.mikepenz:materialdrawer:6.1.1"
     // rxpermission
     implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.5@aar'
@@ -58,13 +57,13 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.11.0'
     // Anko
     implementation "org.jetbrains.anko:anko:$anko_version"
     implementation "org.jetbrains.anko:anko-coroutines:$anko_version"
     // Coroutine
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.0.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')
