@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/blocker.iml" filepath="$PROJECT_DIR$/blocker.iml" />
+      <module fileurl="file://$PROJECT_DIR$/core/core.iml" filepath="$PROJECT_DIR$/core/core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/ifw-api/ifw-api.iml" filepath="$PROJECT_DIR$/ifw-api/ifw-api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/libkit/libkit.iml" filepath="$PROJECT_DIR$/libkit/libkit.iml" />
+    </modules>
+  </component>
+</project>
