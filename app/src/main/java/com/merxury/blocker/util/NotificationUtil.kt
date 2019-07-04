@@ -13,7 +13,7 @@ object NotificationUtil {
     private lateinit var builder: NotificationCompat.Builder
     fun createProcessingNotification(context: Context, total: Int) {
         builder = NotificationCompat.Builder(context, PROCESSING_INDICATOR_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentTitle(context.getString(R.string.processing))
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setProgress(total, 0, true)
