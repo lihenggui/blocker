@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -30,8 +30,9 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api 'androidx.appcompat:appcompat:1.0.2'
+    api 'androidx.appcompat:appcompat:1.1.0'
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
@@ -45,5 +46,5 @@ dependencies {
     //Shizuku API
     api 'moe.shizuku.privilege:api-base:9'
     api 'moe.shizuku.privilege:api-26:4'
-    api 'com.google.code.gson:gson:2.8.5'
+    api 'com.google.code.gson:gson:2.8.6'
 }

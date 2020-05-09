@@ -4,11 +4,11 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     defaultConfig {
         applicationId "com.merxury.blocker"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 40
         versionName "0.1.40-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -42,14 +42,14 @@ repositories {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.recyclerview:recyclerview:1.0.0'
-    implementation 'com.google.android.material:material:1.1.0-alpha07'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'com.google.android.material:material:1.2.0-alpha06'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.annotation:annotation:1.1.0'
-    implementation 'androidx.preference:preference:1.1.0-beta01'
-    implementation 'androidx.browser:browser:1.0.0'
+    implementation 'androidx.preference:preference:1.1.1'
+    implementation 'androidx.browser:browser:1.2.0'
     implementation "android.arch.work:work-runtime-ktx:1.0.1"
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta5'
     implementation "com.mikepenz:materialdrawer:6.1.1"
     // rxpermission
     implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.5@aar'
@@ -57,13 +57,13 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
     implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
     implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.11.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.12.6'
     // Anko
     implementation "org.jetbrains.anko:anko:$anko_version"
     implementation "org.jetbrains.anko:anko-coroutines:$anko_version"
     // Coroutine
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.1.1'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.2'
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')
