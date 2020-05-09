@@ -249,7 +249,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         CustomTabsIntent.Builder()
             .setShowTitle(true)
             .build()
-            .launchUrl(context, Uri.parse(ABOUT_URL))
+            .launchUrl(requireContext(), Uri.parse(ABOUT_URL))
     }
 
     private fun initAutoBlockAndDoze() {

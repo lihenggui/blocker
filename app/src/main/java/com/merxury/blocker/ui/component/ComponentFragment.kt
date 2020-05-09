@@ -290,7 +290,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         val clipboard = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
                 ?: return
         val clip = ClipData.newPlainText(getString(R.string.component_name), content)
-        clipboard.primaryClip = clip
+        clipboard.setPrimaryClip(clip)
         Toast.makeText(requireContext(), R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
