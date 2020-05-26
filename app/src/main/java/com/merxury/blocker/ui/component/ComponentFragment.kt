@@ -136,7 +136,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             menu.removeItem(R.id.launch_activity)
         }
         context?.let {
-            if (PreferenceUtil.getControllerType(it) == EControllerMethod.IFW) {
+            if (PreferenceUtil.getControllerType(it) != EControllerMethod.IFW) {
                 menu.removeItem(R.id.block_by_ifw)
                 menu.removeItem(R.id.enable_by_ifw)
             }
