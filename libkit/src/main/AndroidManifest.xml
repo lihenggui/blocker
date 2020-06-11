@@ -1,1 +1,5 @@
-<manifest package="com.merxury.libkit" />
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    package="com.merxury.libkit">
+
+    <uses-sdk tools:overrideLibrary="moe.shizuku.api, moe.shizuku.shared" />
+</manifest>

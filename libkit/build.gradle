@@ -10,7 +10,6 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -44,7 +43,7 @@ dependencies {
     api(name: 'RootTools', ext: 'aar')
     api(name: 'RootShell', ext: 'aar')
     //Shizuku API
-    api 'moe.shizuku.privilege:api-base:9'
-    api 'moe.shizuku.privilege:api-26:4'
+    api 'moe.shizuku.privilege:api:4.0.0'
+    api 'me.weishu:free_reflection:2.2.0'
     api 'com.google.code.gson:gson:2.8.6'
 }

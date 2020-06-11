@@ -2,8 +2,6 @@ package com.merxury.blocker.ui.component
 
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.SparseArray
@@ -23,7 +21,6 @@ import com.merxury.libkit.entity.Application
 import com.merxury.libkit.utils.StatusBarUtil
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
-import moe.shizuku.api.ShizukuClient
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 
@@ -51,30 +48,6 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
             android.R.id.home -> finish()
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            ShizukuClient.REQUEST_CODE_AUTHORIZATION -> {
-                if (resultCode == ShizukuClient.AUTH_RESULT_OK) {
-                    ShizukuClient.setToken(data)
-                } else {
-                    logger.d("User denied Shizuku permission")
-                }
-                return
-            }
-            else -> super.onActivityResult(requestCode, resultCode, data)
-        }
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        when (requestCode) {
-            ShizukuClient.REQUEST_CODE_PERMISSION -> if (grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED) {
-                ShizukuClient.requestAuthorization(this)
-            } else {
-                logger.d("User denied Shizuku permission")
-            }
-        }
     }
 
     override fun onBackPressed() {
@@ -203,6 +176,11 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
             CODENAME.put(26, "Android 8.0")
             CODENAME.put(27, "Android 8.1")
             CODENAME.put(28, "Android P")
+            CODENAME.put(29, "Android 10")
+            CODENAME.put(30, "Android R")
+            CODENAME.put(31, "Android S")
+            CODENAME.put(32, "Android T")
+            CODENAME.put(33, "Android U")
             // Reference : https://source.android.com/setup/start/build-numbers
         }
     }
