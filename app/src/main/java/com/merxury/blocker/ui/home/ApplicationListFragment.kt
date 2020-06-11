@@ -73,7 +73,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                     R.id.last_update_time -> presenter.currentComparator = ApplicationComparatorType.LAST_UPDATE_TIME
                     else -> presenter.currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
                 }
-                presenter.loadApplicationList(context!!, isSystem)
+                presenter.loadApplicationList(requireContext(), isSystem)
                 true
             }
             show()
@@ -94,7 +94,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             isSystem = this.getBoolean(IS_SYSTEM)
         }
         presenter = HomePresenter(this)
-        presenter.start(context!!)
+        presenter.start(requireContext())
         listAdapter = AppListRecyclerViewAdapter(itemListener)
     }
 
@@ -121,7 +121,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             )
             setOnRefreshListener { presenter.loadApplicationList(context, isSystem) }
         }
-        presenter.loadApplicationList(context!!, isSystem)
+        presenter.loadApplicationList(requireContext(), isSystem)
     }
 
     override fun onDestroy() {
@@ -215,14 +215,15 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun updateState(packageName: String) {
-        val updatedInfo = ApplicationUtil.getApplicationInfo(context!!, packageName) ?: return
+        val updatedInfo = ApplicationUtil.getApplicationInfo(requireContext(), packageName)
+                ?: return
         listAdapter.update(updatedInfo)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_filter -> showFilteringPopUpMenu()
-            R.id.menu_refresh -> presenter.loadApplicationList(context!!, isSystem)
+            R.id.menu_refresh -> presenter.loadApplicationList(requireContext(), isSystem)
         }
         return true
     }
