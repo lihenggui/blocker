@@ -20,6 +20,9 @@ public class RootCommand {
     @NonNull
     public synchronized static String runBlockingCommand(final String comm) {
         logger.d("Execute command " + comm);
+        if (!Shell.rootAccess()) {
+            throw new RuntimeException("Root unavailable");
+        }
         List<String> result = Shell.su(comm).exec().getOut();
         return TextUtils.join("\n", result);
     }
