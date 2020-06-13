@@ -19,7 +19,6 @@ android {
         release {
             zipAlignEnabled true
             minifyEnabled true
-            useProguard true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -34,11 +33,7 @@ android {
         exclude 'META-INF/proguard/androidx-annotations.pro'
     }
 }
-repositories {
-    flatDir {
-        dirs 'libs'
-    }
-}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'

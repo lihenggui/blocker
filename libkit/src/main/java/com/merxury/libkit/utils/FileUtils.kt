@@ -9,7 +9,6 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import com.elvishew.xlog.XLog
 import com.merxury.libkit.RootCommand
-import com.stericson.RootTools.RootTools
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -86,12 +85,6 @@ object FileUtils {
             return ""
         }
         return RootCommand.runBlockingCommand(comm)
-    }
-
-    @JvmStatic
-    fun copyWithRoot(source: String, dest: String): Boolean {
-        logger.i("Copy $source to $dest with root permission")
-        return RootTools.copyFile(source, dest, false, true)
     }
 
     @JvmStatic
