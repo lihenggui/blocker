@@ -11,9 +11,9 @@ import com.merxury.ifw.entity.ComponentFilter;
 import com.merxury.ifw.entity.ComponentType;
 import com.merxury.ifw.entity.Rules;
 import com.merxury.ifw.entity.Service;
+import com.merxury.libkit.RootCommand;
 import com.merxury.libkit.utils.FileUtils;
 import com.merxury.libkit.utils.StorageUtils;
-import com.stericson.RootTools.RootTools;
 
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
@@ -193,7 +193,11 @@ public class IntentFirewallImpl implements IntentFirewall {
         }
         String rulePath = StorageUtils.getIfwFolder() + filename;
         logger.d("delete file: " + rulePath);
-        RootTools.deleteFileOrDirectory(rulePath, false);
+        if (!rulePath.contains("ifw")) {
+            logger.e("Something wrong happened, folder is not correct");
+            return;
+        }
+        RootCommand.runBlockingCommand("rm -rf " + rulePath);
     }
 
     @Override

@@ -274,7 +274,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
             logger.e("Shizuku does not support Android 5.1 or below")
             return
         }
-        if (ContextCompat.checkSelfPermission(requireContext(), ShizukuApiConstants.PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(context, ShizukuApiConstants.PERMISSION) == PackageManager.PERMISSION_GRANTED) {
             return
         } else if (ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), ShizukuApiConstants.PERMISSION)) {
             logger.e("User denied Shizuku permission")

@@ -19,7 +19,7 @@ class ShizukuController(val context: Context) : IController {
             pm = IPackageManager.Stub.asInterface(ShizukuBinderWrapper(SystemServiceHelper.getSystemService("package")))
         }
         // 0 means kill the application
-        pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, ShizukuService.getUid())
+        pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
         return true
     }
 

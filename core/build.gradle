@@ -14,7 +14,6 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            useProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -22,11 +21,7 @@ android {
         abortOnError false
     }
 }
-repositories {
-    flatDir {
-        dirs 'libs'
-    }
-}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation project(':ifw-api')
