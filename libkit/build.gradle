@@ -37,7 +37,6 @@ dependencies {
     api "io.reactivex.rxjava2:rxjava:$rxjava_version"
     api 'com.elvishew:xlog:1.6.0'
     api 'com.github.topjohnwu.libsu:core:2.5.1'
-    api 'com.github.topjohnwu.libsu:busybox:2.5.1'
     //Shizuku API
     api 'moe.shizuku.privilege:api:4.0.0'
     api 'me.weishu:free_reflection:2.2.0'
