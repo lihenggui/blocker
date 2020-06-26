@@ -1,9 +1,7 @@
 package com.merxury.blocker.ui.component
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.DialogInterface
+import android.app.Activity
+import android.content.*
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -21,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.base.BaseLazyFragment
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.ui.Constants
@@ -32,7 +31,7 @@ import kotlinx.android.synthetic.main.fragment_component.view.*
 import moe.shizuku.api.ShizukuApiConstants
 
 
-class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
+class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
 
     override lateinit var presenter: ComponentContract.Presenter
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
@@ -77,8 +76,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         return root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun loadData() {
         presenter.loadComponents(packageName, type)
     }
 
@@ -219,6 +217,9 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun onSwitchClick(name: String, isChecked: Boolean) {
+        if (type == EComponentType.SERVICE) {
+            requireActivity().setResult(Activity.RESULT_OK, Intent().putExtra("package", packageName))
+        }
         if (isChecked) {
             presenter.enable(packageName, name)
         } else {

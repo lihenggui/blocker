@@ -11,7 +11,7 @@ public class Component {
     protected boolean block = true;
 
     @Attribute
-    protected boolean log = true;
+    protected boolean log = false;
 
     @ElementList(entry = "component-filter", inline = true, empty = false, required = false)
     protected List<ComponentFilter> componentFilters;

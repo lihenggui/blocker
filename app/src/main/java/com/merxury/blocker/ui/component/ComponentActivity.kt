@@ -77,6 +77,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.SERVICE), getString(R.string.service))
         adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.ACTIVITY), getString(R.string.activity))
         adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.PROVIDER), getString(R.string.provider))
+        component_viewpager.offscreenPageLimit = 3
         component_viewpager.adapter = adapter
     }
 
