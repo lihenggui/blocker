@@ -148,14 +148,16 @@ object ApplicationUtil {
      * @param packageName package name
      * @return list of service
      */
+
+    @Suppress("DEPRECATION")
     fun getServiceList(pm: PackageManager, packageName: String): MutableList<ServiceInfo> {
         val services = ArrayList<ServiceInfo>()
         try {
             var flags = PackageManager.GET_SERVICES
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags = flags or PackageManager.GET_DISABLED_COMPONENTS
+            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                flags or PackageManager.GET_DISABLED_COMPONENTS
             } else {
-                flags = flags or PackageManager.MATCH_DISABLED_COMPONENTS
+                flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
             val components = pm.getPackageInfo(packageName, flags).services
             if (components != null && components.isNotEmpty()) {

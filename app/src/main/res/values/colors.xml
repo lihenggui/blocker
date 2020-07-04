@@ -12,4 +12,8 @@
     <color name="google_green">#3cba54</color>
     <color name="google_yellow">#f4c20d</color>
     <color name="google_blue">#4885ed</color>
+    <color name="info_text_color">#ffffff</color>
+    <color name="component_item_background_color">#ffffff</color>
+    <color name="disabled_app_color">#BDBDBD</color>
+    <color name="blocked_app_color">#ED9395</color>
 </resources>

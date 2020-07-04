@@ -5,7 +5,6 @@ import android.animation.ValueAnimator
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -20,16 +19,16 @@ import com.merxury.blocker.base.IActivityView
 import com.merxury.blocker.ui.settings.SettingsActivity
 import com.merxury.blocker.util.setupActionBar
 import com.merxury.libkit.utils.StatusBarUtil
-import com.mikepenz.materialdrawer.Drawer
-import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
+import com.mikepenz.materialdrawer.model.interfaces.withIcon
+import com.mikepenz.materialdrawer.model.interfaces.withIdentifier
+import com.mikepenz.materialdrawer.model.interfaces.withName
 import kotlinx.android.synthetic.main.activity_home.*
 
 
 class HomeActivity : AppCompatActivity(), IActivityView {
-    private lateinit var drawer: Drawer
     private lateinit var drawerLayout: DrawerLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,36 +66,25 @@ class HomeActivity : AppCompatActivity(), IActivityView {
             .withIdentifier(3)
             .withName(R.string.report)
             .withIcon(R.drawable.ic_email)
-        drawer = DrawerBuilder()
-            .withActivity(this)
-            .withTranslucentStatusBar(true)
-            .withToolbar(toolbar)
-            .withSavedInstance(savedInstanceState)
-            .withActionBarDrawerToggleAnimated(true)
-            .addDrawerItems(
-                listItem,
-                settingItem,
-                DividerDrawerItem(),
-                emailItem
-            )
-            .withOnDrawerItemClickListener { _, _, drawerItem ->
-                when (drawerItem?.identifier) {
-                    1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
-                    2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
-                    3L -> showReportScreen()
-                }
-                false
+        slider.itemAdapter.add(
+            listItem,
+            settingItem,
+            DividerDrawerItem(),
+            emailItem
+        )
+        slider.onDrawerItemClickListener = { v, drawerItem, position ->
+            when (drawerItem.identifier) {
+                1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
+                2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
+                3L -> showReportScreen()
             }
-            .withSelectedItem(1L)
-            .withCloseOnClick(true)
-            .build()
-        drawerLayout = drawer.drawerLayout
-
+            false
+        }
     }
 
     private fun setupTab(tabLayout: TabLayout) {
         changeColor(getBackgroundColor(0))
-        tabLayout.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.md_white_1000))
+        tabLayout.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.component_item_background_color))
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 changeBackgroundColor(tabLayout, tab)
@@ -112,13 +100,6 @@ class HomeActivity : AppCompatActivity(), IActivityView {
         })
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            drawer.openDrawer()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
-    }
 
     private fun changeColor(color: Int) {
         toolbar.setBackgroundColor(color)
@@ -147,16 +128,9 @@ class HomeActivity : AppCompatActivity(), IActivityView {
 
     override fun getBackgroundColor(tabPosition: Int): Int {
         return when (tabPosition) {
-            0 -> ContextCompat.getColor(this, R.color.colorPrimary)
-            1 -> ContextCompat.getColor(this, R.color.md_red_500)
-            else -> ContextCompat.getColor(this, R.color.md_grey_700)
-        }
-    }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
-        if (drawer.isDrawerOpen) {
-            drawer.closeDrawer()
+            0 -> ContextCompat.getColor(this, R.color.primary)
+            1 -> ContextCompat.getColor(this, R.color.google_red)
+            else -> ContextCompat.getColor(this, R.color.google_blue)
         }
     }
 

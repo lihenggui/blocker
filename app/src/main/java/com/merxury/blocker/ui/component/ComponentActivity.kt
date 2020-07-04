@@ -9,7 +9,6 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
-import com.elvishew.xlog.XLog
 import com.google.android.material.tabs.TabLayout
 import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
@@ -21,17 +20,20 @@ import com.merxury.libkit.entity.Application
 import com.merxury.libkit.utils.StatusBarUtil
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.*
+import java.lang.RuntimeException
+import kotlin.coroutines.CoroutineContext
 
-class ComponentActivity : AppCompatActivity(), IActivityView {
-
+class ComponentActivity : AppCompatActivity(), IActivityView, CoroutineScope {
     private lateinit var application: Application
     private lateinit var adapter: FragmentAdapter
-    private val logger = XLog.tag("ComponentActivity").build()
+    private lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        job = Job()
         setContentView(R.layout.activity_component)
         setupActionBar(R.id.component_toolbar) {
             setDisplayHomeAsUpEnabled(true)
@@ -43,8 +45,13 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         showApplicationBriefInfo(application)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onDestroy() {
+        super.onDestroy()
+        job.cancel()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             android.R.id.home -> finish()
         }
         return super.onOptionsItemSelected(item)
@@ -66,8 +73,8 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
             0 -> ContextCompat.getColor(this, R.color.google_blue)
             1 -> ContextCompat.getColor(this, R.color.google_green)
             2 -> ContextCompat.getColor(this, R.color.google_red)
-            3 -> ContextCompat.getColor(this, R.color.md_yellow_800)
-            else -> ContextCompat.getColor(this, R.color.md_grey_700)
+            3 -> ContextCompat.getColor(this, R.color.google_yellow)
+            else -> ContextCompat.getColor(this, R.color.secondary_text)
         }
     }
 
@@ -85,13 +92,14 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         if (intent == null) {
             finish()
         }
-        application = intent.getParcelableExtra(Constants.APPLICATION)
+        application = intent.getParcelableExtra(Constants.APPLICATION) ?:
+                throw RuntimeException("App info should not be null")
     }
 
     private fun setupTab() {
         component_tabs.setupWithViewPager(component_viewpager)
         changeColor(getBackgroundColor(0))
-        component_tabs.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.md_white_1000))
+        component_tabs.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.info_text_color))
         component_tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 changeBackgroundColor(tab)
@@ -112,15 +120,14 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         app_info_app_package_name.text = getString(R.string.package_name, application.packageName)
         app_info_target_sdk_version.text = getString(R.string.target_sdk_version, CODENAME.get(application.targetSdkVersion, UNKNOWN))
         app_info_min_sdk_version.text = getString(R.string.min_sdk_version, CODENAME.get(application.minSdkVersion, UNKNOWN))
-        doAsync {
-            val icon = application.getApplicationIcon(packageManager)
-            uiThread {
-                app_info_icon.setImageDrawable(icon)
+        launch {
+            val icon = withContext(Dispatchers.IO) {
+                application.getApplicationIcon(packageManager)
             }
+            app_info_icon.setImageDrawable(icon)
         }
         app_info_icon.setOnClickListener { AppLauncher.startApplication(this, application.packageName) }
     }
-
 
     private fun changeColor(color: Int) {
         component_toolbar.setBackgroundColor(color)

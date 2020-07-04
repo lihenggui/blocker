@@ -38,24 +38,14 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    implementation 'com.google.android.material:material:1.2.0-alpha06'
+    implementation 'com.google.android.material:material:1.3.0-alpha01'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'androidx.browser:browser:1.2.0'
     implementation "android.arch.work:work-runtime-ktx:1.0.1"
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta5'
-    implementation "com.mikepenz:materialdrawer:6.1.1"
-    // rxpermission
-    implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.5@aar'
-    // retrofit
-    implementation "com.squareup.retrofit2:retrofit:$retrofit_version"
-    implementation "com.squareup.retrofit2:adapter-rxjava2:$retrofit_version"
-    implementation "com.squareup.retrofit2:converter-gson:$retrofit_version"
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.12.6'
-    // Anko
-    implementation "org.jetbrains.anko:anko:$anko_version"
-    implementation "org.jetbrains.anko:anko-coroutines:$anko_version"
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta7'
+    implementation 'com.mikepenz:materialdrawer:8.1.3'
     // Coroutine
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.2'

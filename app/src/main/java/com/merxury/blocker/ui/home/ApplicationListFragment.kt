@@ -14,7 +14,6 @@ import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.Fragment
 import com.merxury.blocker.R
 import com.merxury.blocker.base.BaseLazyFragment
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
@@ -29,10 +28,7 @@ import com.merxury.libkit.utils.ServiceHelper
 import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.coroutines.*
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
 import kotlin.coroutines.CoroutineContext
-
 
 class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, CoroutineScope {
 
@@ -190,11 +186,6 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
             registerForContextMenu(this)
         }
         appListSwipeLayout?.apply {
-            setColorSchemeColors(
-                    ContextCompat.getColor(context, R.color.colorPrimary),
-                    ContextCompat.getColor(context, R.color.colorAccent),
-                    ContextCompat.getColor(context, R.color.colorPrimaryDark)
-            )
             setOnRefreshListener { presenter.loadApplicationList(context, isSystem) }
         }
     }
@@ -389,50 +380,63 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
             notifyDataSetChanged()
         }
 
-        inner class ViewHolder(view: View) : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
+        inner class ViewHolder(view: View) :
+            androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
             fun bindApplication(application: Application) {
                 view?.apply {
                     itemView.app_name.text = application.label
                     itemView.isLongClickable = true
                     itemView.setOnClickListener { listener.onAppClick(application) }
                     if (!application.isEnabled) {
-                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.md_grey_300))
+                        itemView.setBackgroundColor(
+                            ContextCompat.getColor(
+                                context,
+                                R.color.disabled_app_color
+                            )
+                        )
                     } else if (application.isBlocked) {
-                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.md_red_50))
+                        itemView.setBackgroundColor(
+                            ContextCompat.getColor(
+                                context,
+                                R.color.blocked_app_color
+                            )
+                        )
                     } else {
                         itemView.setBackgroundColor(Color.WHITE)
                     }
-                    doAsync {
-                        val status = servicesStatus.find { it.packageName == application.packageName }
-                        val icon = application.getApplicationIcon(pm)
-                        uiThread {
-                            if (status == null) {
-                                itemView.allCount.visibility = View.GONE
-                                itemView.runCount.visibility = View.GONE
-                                itemView.disableCount.visibility = View.GONE
-                            } else {
-                                itemView.allCount.visibility = View.VISIBLE
-                                itemView.allCount.text = status.allCount.toString()
+                    launch {
+                        val icon = withContext(Dispatchers.IO) {
+                            application.getApplicationIcon(pm)
+                        }
+                        itemView.app_icon.setImageDrawable(icon)
+                        val status = withContext(Dispatchers.IO) {
+                            servicesStatus.find { it.packageName == application.packageName }
+                        }
+                        if (status == null) {
+                            itemView.allCount.visibility = View.GONE
+                            itemView.runCount.visibility = View.GONE
+                            itemView.disableCount.visibility = View.GONE
+                        } else {
+                            itemView.allCount.visibility = View.VISIBLE
+                            itemView.allCount.text = status.allCount.toString()
 
-                                //run
-                                itemView.runCount.run {
-                                    if (status.runCount == 0) visibility = View.GONE
-                                    else {
-                                        visibility = View.VISIBLE
-                                        text = status.runCount.toString()
-                                    }
-                                }
-
-                                //dis
-                                itemView.disableCount.run {
-                                    if (status.disCount == 0) visibility = View.GONE
-                                    else {
-                                        visibility = View.VISIBLE
-                                        text = status.disCount.toString()
-                                    }
+                            //run
+                            itemView.runCount.run {
+                                if (status.runCount == 0) visibility = View.GONE
+                                else {
+                                    visibility = View.VISIBLE
+                                    text = status.runCount.toString()
                                 }
                             }
-                            itemView.app_icon.setImageDrawable(icon)
+
+                            //dis
+                            itemView.disableCount.run {
+                                if (status.disCount == 0) visibility = View.GONE
+                                else {
+                                    visibility = View.VISIBLE
+                                    text = status.disCount.toString()
+                                }
+                            }
                         }
                     }
                 }
