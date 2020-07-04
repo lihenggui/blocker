@@ -26,10 +26,8 @@ import com.merxury.blocker.R
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.ScheduledWork
 import com.merxury.libkit.utils.FileUtils
-import com.tbruyelle.rxpermissions2.RxPermissions
 import java.util.concurrent.TimeUnit
 
-@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.SettingsView,
     Preference.OnPreferenceClickListener {
     private val logger = XLog.tag("PreferenceFragment")
@@ -138,18 +136,19 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
 
     @SuppressLint("CheckResult")
     override fun showDialog(title: String, message: String, action: () -> Unit) {
-        RxPermissions(requireActivity())
-            .request(
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            )
-            .subscribe { result ->
-                if (result) {
-                    showConfirmationDialog(title, message, action)
-                } else {
-                    showRequirePermissionDialog()
-                }
-            }
+        TODO("Do permission check")
+//        RxPermissions(requireActivity())
+//            .request(
+//                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                Manifest.permission.READ_EXTERNAL_STORAGE
+//            )
+//            .subscribe { result ->
+//                if (result) {
+//                    showConfirmationDialog(title, message, action)
+//                } else {
+//                    showRequirePermissionDialog()
+//                }
+//            }
     }
 
     override fun showDialog(

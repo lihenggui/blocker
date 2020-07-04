@@ -51,11 +51,6 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
         val root = inflater.inflate(R.layout.fragment_component, container, false)
         with(root) {
             componentListSwipeLayout.apply {
-                setColorSchemeColors(
-                        ContextCompat.getColor(context, R.color.colorPrimary),
-                        ContextCompat.getColor(context, R.color.colorAccent),
-                        ContextCompat.getColor(context, R.color.colorPrimaryDark)
-                )
                 setOnRefreshListener {
                     presenter.loadComponents(packageName, type)
                 }
@@ -388,9 +383,9 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
                         listener.onSwitchClick(component.name, it.component_switch.isChecked)
                     }
                     if (component.isRunning) {
-                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.md_light_blue_50))
+                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.google_blue))
                     } else {
-                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.md_white_1000))
+                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.component_item_background_color))
                     }
                 }
             }

@@ -10,13 +10,11 @@ import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ManagerUtils
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
+import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
-class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Presenter {
+class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Presenter, CoroutineScope {
+    private lateinit var job: Job
     private var context: Context? = null
     private val logger = XLog.tag(this.javaClass.simpleName).build()
     private val exceptionHandler = { e: Throwable ->
@@ -25,8 +23,11 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
         }
         logger.e(e)
     }
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
     override fun start(context: Context) {
+        job = Job()
         this.context = context
         homeView?.presenter = this
     }
@@ -34,24 +35,25 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
     override fun destroy() {
         context = null
         homeView = null
+        job.cancel()
     }
 
     override fun loadApplicationList(context: Context, isSystemApplication: Boolean) {
         homeView?.setLoadingIndicator(true)
-        doAsync(exceptionHandler) {
-            val applications: MutableList<Application> = when (isSystemApplication) {
-                false -> ApplicationUtil.getThirdPartyApplicationList(context)
-                true -> ApplicationUtil.getSystemApplicationList(context)
-            }
-            val sortedList = sortApplicationList(applications)
-            uiThread {
-                if (sortedList.isEmpty()) {
-                    homeView?.showNoApplication()
-                } else {
-                    homeView?.showApplicationList(sortedList)
+        launch {
+            val sortedList = withContext(Dispatchers.IO) {
+                val applications: MutableList<Application> = when (isSystemApplication) {
+                    false -> ApplicationUtil.getThirdPartyApplicationList(context)
+                    true -> ApplicationUtil.getSystemApplicationList(context)
                 }
-                homeView?.setLoadingIndicator(false)
+                sortApplicationList(applications)
             }
+            if (sortedList.isEmpty()) {
+                homeView?.showNoApplication()
+            } else {
+                homeView?.showApplicationList(sortedList)
+            }
+            homeView?.setLoadingIndicator(false)
         }
     }
 
@@ -76,40 +78,34 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
     }
 
     override fun forceStop(packageName: String) {
-        doAsync(exceptionHandler) {
+        launch (Dispatchers.IO) {
             ManagerUtils.forceStop(packageName)
         }
     }
 
     override fun enableApplication(packageName: String) {
-        doAsync(exceptionHandler) {
-            ManagerUtils.enableApplication(packageName)
-            uiThread {
-                homeView?.updateState(packageName)
-            }
+        launch {
+            withContext(Dispatchers.IO) {ManagerUtils.enableApplication(packageName)}
+            homeView?.updateState(packageName)
         }
     }
 
     override fun disableApplication(packageName: String) {
-        doAsync(exceptionHandler) {
-            ManagerUtils.disableApplication(packageName)
-            uiThread {
-                homeView?.updateState(packageName)
-            }
+        launch {
+            withContext(Dispatchers.IO) {ManagerUtils.disableApplication(packageName)}
+            homeView?.updateState(packageName)
         }
     }
 
     override fun clearData(packageName: String) {
-        doAsync(exceptionHandler) {
-            ManagerUtils.clearData(packageName)
-            uiThread {
-                homeView?.showDataCleared()
-            }
-        }
+       launch {
+           withContext(Dispatchers.IO) { ManagerUtils.clearData(packageName) }
+           homeView?.showDataCleared()
+       }
     }
 
     override fun trimMemory(packageName: String, level: ETrimMemoryLevel) {
-        doAsync(exceptionHandler) {
+        launch(Dispatchers.IO) {
             ManagerUtils.trimMemory(packageName, level)
         }
     }
@@ -121,20 +117,16 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
     }
 
     override fun blockApplication(packageName: String) {
-        doAsync(exceptionHandler) {
-            ApplicationUtil.addBlockedApplication(context!!, packageName)
-            uiThread {
-                homeView?.updateState(packageName)
-            }
+        launch {
+            withContext(Dispatchers.IO) {ApplicationUtil.addBlockedApplication(context!!, packageName)}
+            homeView?.updateState(packageName)
         }
     }
 
     override fun unblockApplication(packageName: String) {
-        doAsync(exceptionHandler) {
-            ApplicationUtil.removeBlockedApplication(context!!, packageName)
-            uiThread {
-                homeView?.updateState(packageName)
-            }
+        launch {
+            withContext(Dispatchers.IO) {ApplicationUtil.removeBlockedApplication(context!!, packageName)}
+            homeView?.updateState(packageName)
         }
     }
 
