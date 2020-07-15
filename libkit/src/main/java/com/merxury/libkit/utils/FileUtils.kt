@@ -106,11 +106,6 @@ object FileUtils {
     }
 
     @JvmStatic
-    fun getExternalStoragePath(): String {
-        return Environment.getExternalStorageDirectory().absolutePath + File.separator
-    }
-
-    @JvmStatic
     fun delete(file: String, recursively: Boolean): Boolean {
         val comm = if (recursively) {
             "rm -rf '$file'"
@@ -164,7 +159,7 @@ object FileUtils {
                 val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 val type = split[0]
                 if ("primary".equals(type, ignoreCase = true)) {
-                    return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+                    return getExternalStoragePath(context) + "/" + split[1]
                 }
                 // TODO handle non-primary volumes
             } else if (isDownloadsDocument(uri)) {
