@@ -195,9 +195,6 @@ object Rule {
     fun exportIfwRules(context: Context): Int {
         val ifwFolder = StorageUtils.getIfwFolder()
         val ifwBackupFolder = getBlockerIFWFolder(context)
-        if (!ifwBackupFolder.exists()) {
-            ifwBackupFolder.mkdirs()
-        }
         val files = FileUtils.listFiles(ifwFolder)
         files.forEach {
             val filename = it.split(File.separator).last()
@@ -316,17 +313,21 @@ object Rule {
     }
 
     fun getBlockerRuleFolder(context: Context): File {
-        val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val path = pref.getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
-        val storagePath = FileUtils.getExternalStoragePath()
-        return File(storagePath, path)
+        val path = FileUtils.getExternalStoragePath(context) +
+                File.separator + "rule" + File.separator
+        if (!File(path).exists()) {
+            File(path).mkdirs()
+        }
+        return File(path)
     }
 
     fun getBlockerIFWFolder(context: Context): File {
-        val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val path = pref.getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
-        val storagePath = FileUtils.getExternalStoragePath()
-        return File(storagePath, path)
+        val path = FileUtils.getExternalStoragePath(context) +
+                File.separator + "ifw" + File.separator
+        if (!File(path).exists()) {
+            File(path).mkdirs()
+        }
+        return File(path)
     }
 
     private fun getController(context: Context): IController {
