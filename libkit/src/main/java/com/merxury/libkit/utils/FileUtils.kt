@@ -222,6 +222,11 @@ object FileUtils {
     }
 
     @JvmStatic
+    fun getExternalStoragePath(context: Context): String {
+        return context.getExternalFilesDir(null).toString()
+    }
+
+    @JvmStatic
     fun isExternalStorageDocument(uri: Uri): Boolean {
         return "com.android.externalstorage.documents" == uri.authority
     }
