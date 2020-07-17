@@ -32,50 +32,12 @@ import kotlin.coroutines.CoroutineContext
 
 class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, CoroutineScope {
 
-    override val coroutineContext: CoroutineContext = Dispatchers.IO
-
-    private var parentJob: Job? = null
-
-    private val servicesStatus = mutableListOf<ApplicationServicesStatus>()
-
-    private fun initApplicationServicesStatus(applications: List<Application>) {
-        parentJob?.cancel()
-        parentJob = launch {
-            val pm = requireContext().packageManager
-            applications.forEachIndexed { index, application ->
-                launch {
-                    getApplicationServiceStatus(pm, application.packageName).let {
-                        withContext(Dispatchers.Main) {
-                            servicesStatus.add(it)
-                            listAdapter.notifyItemChanged(index)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @WorkerThread
-    private fun getApplicationServiceStatus(packageManager: PackageManager, packageName: String): ApplicationServicesStatus {
-        val serviceHelper = ServiceHelper(packageName)
-        serviceHelper.refresh()
-        val ifwImpl = IntentFirewallImpl(context, packageName)
-        val services = ApplicationUtil.getServiceList(packageManager, packageName)
-        var run = 0
-        var dis = 0
-        for (service in services) {
-            if (!ifwImpl.getComponentEnableState(packageName, service.name) || !ApplicationUtil.checkComponentIsEnabled(packageManager, ComponentName(packageName, service.name))) {
-                dis++
-            }
-            if (serviceHelper.isServiceRunning(service.name)) {
-                run++
-            }
-        }
-        return ApplicationServicesStatus(packageName, services.size, run, dis)
-    }
-
+    override val coroutineContext: CoroutineContext = Dispatchers.Main
     override lateinit var presenter: HomeContract.Presenter
+    private val servicesStatus = mutableListOf<ApplicationServicesStatus>()
+    private lateinit var listAdapter: AppListRecyclerViewAdapter
     private var isSystem: Boolean = false
+    private var parentJob: Job? = null
     private var itemListener: AppItemListener = object : AppItemListener {
         override fun onAppClick(application: Application) {
             presenter.openApplicationDetails(application)
@@ -86,7 +48,40 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
         }
     }
 
-    private lateinit var listAdapter: AppListRecyclerViewAdapter
+    private fun initApplicationServicesStatus(applications: List<Application>) {
+        parentJob?.cancel()
+        parentJob = launch(Dispatchers.IO) {
+            val pm = requireContext().packageManager
+            applications.forEachIndexed { index, application ->
+                val appStatus = getApplicationServiceStatus(pm, application.packageName)
+                withContext(Dispatchers.Main) {
+                    servicesStatus.add(appStatus)
+                    listAdapter.notifyItemChanged(index)
+                }
+            }
+        }
+    }
+
+    @WorkerThread
+    private suspend fun getApplicationServiceStatus(packageManager: PackageManager, packageName: String): ApplicationServicesStatus {
+        return withContext(Dispatchers.IO) {
+            val serviceHelper = ServiceHelper(packageName)
+            serviceHelper.refresh()
+            val ifwImpl = IntentFirewallImpl(context, packageName)
+            val services = ApplicationUtil.getServiceList(packageManager, packageName)
+            var run = 0
+            var dis = 0
+            for (service in services) {
+                if (!ifwImpl.getComponentEnableState(packageName, service.name) || !ApplicationUtil.checkComponentIsEnabled(packageManager, ComponentName(packageName, service.name))) {
+                    dis++
+                }
+                if (serviceHelper.isServiceRunning(service.name)) {
+                    run++
+                }
+            }
+            ApplicationServicesStatus(packageName, services.size, run, dis)
+        }
+    }
 
     override fun setLoadingIndicator(active: Boolean) {
         appListSwipeLayout?.run {
@@ -147,10 +142,8 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
                     }
                     listAdapter.applications.forEachIndexed { index, application ->
                         if (application.packageName == packageName) {
-                            withContext(Dispatchers.Main) {
-                                servicesStatus.add(status)
-                                listAdapter.notifyItemChanged(index)
-                            }
+                            servicesStatus.add(status)
+                            listAdapter.notifyItemChanged(index)
                             return@launch
                         }
                     }
@@ -409,7 +402,7 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
                             application.getApplicationIcon(pm)
                         }
                         itemView.app_icon.setImageDrawable(icon)
-                        val status = withContext(Dispatchers.IO) {
+                        val status = withContext(Dispatchers.Default) {
                             servicesStatus.find { it.packageName == application.packageName }
                         }
                         if (status == null) {

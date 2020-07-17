@@ -33,7 +33,6 @@ class ComponentPresenter(
     var view: ComponentContract.View?,
     val packageName: String
 ) : ComponentContract.Presenter, IController, CoroutineScope {
-    private lateinit var job: Job
     private lateinit var type: EComponentType
     private val pm: PackageManager
     private val logger = XLog.tag("ComponentPresenter").build()
@@ -44,15 +43,10 @@ class ComponentPresenter(
             context
         )
     }
+    private var job: Job = Job()
     private val controller: IController by lazy {
         val controllerType = PreferenceUtil.getControllerType(context)
         ComponentControllerProxy.getInstance(controllerType, context)
-    }
-    private val exceptionHandler = { e: Throwable ->
-        GlobalScope.launch(Dispatchers.Main) {
-            DialogUtil().showWarningDialogWithMessage(context, e)
-        }
-        logger.e(e)
     }
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.Main + job
@@ -65,6 +59,7 @@ class ComponentPresenter(
     }
 
     override fun start(context: Context) {
+        job.cancel()
         job = Job()
     }
 
