@@ -5,6 +5,7 @@ import android.animation.ValueAnimator
 import android.content.Intent
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -19,16 +20,16 @@ import com.merxury.blocker.base.IActivityView
 import com.merxury.blocker.ui.settings.SettingsActivity
 import com.merxury.blocker.util.setupActionBar
 import com.merxury.libkit.utils.StatusBarUtil
+import com.mikepenz.materialdrawer.Drawer
+import com.mikepenz.materialdrawer.DrawerBuilder
 import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
-import com.mikepenz.materialdrawer.model.interfaces.withIcon
-import com.mikepenz.materialdrawer.model.interfaces.withIdentifier
-import com.mikepenz.materialdrawer.model.interfaces.withName
 import kotlinx.android.synthetic.main.activity_home.*
 
 
 class HomeActivity : AppCompatActivity(), IActivityView {
+    private lateinit var drawer: Drawer
     private lateinit var drawerLayout: DrawerLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,36 +56,47 @@ class HomeActivity : AppCompatActivity(), IActivityView {
 
     private fun setupDrawerContent(savedInstanceState: Bundle?) {
         val listItem = PrimaryDrawerItem()
-            .withIdentifier(1)
-            .withName(R.string.app_list_title)
-            .withIcon(R.drawable.ic_list)
+                .withIdentifier(1)
+                .withName(R.string.app_list_title)
+                .withIcon(R.drawable.ic_list)
         val settingItem = SecondaryDrawerItem()
-            .withIdentifier(2)
-            .withName(R.string.action_settings)
-            .withIcon(R.drawable.ic_settings)
+                .withIdentifier(2)
+                .withName(R.string.action_settings)
+                .withIcon(R.drawable.ic_settings)
         val emailItem = SecondaryDrawerItem()
-            .withIdentifier(3)
-            .withName(R.string.report)
-            .withIcon(R.drawable.ic_email)
-        slider.itemAdapter.add(
-            listItem,
-            settingItem,
-            DividerDrawerItem(),
-            emailItem
-        )
-        slider.onDrawerItemClickListener = { v, drawerItem, position ->
-            when (drawerItem.identifier) {
-                1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
-                2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
-                3L -> showReportScreen()
-            }
-            false
-        }
+                .withIdentifier(3)
+                .withName(R.string.report)
+                .withIcon(R.drawable.ic_email)
+        drawer = DrawerBuilder()
+                .withActivity(this)
+                .withTranslucentStatusBar(true)
+                .withToolbar(toolbar)
+                .withSavedInstance(savedInstanceState)
+                .withActionBarDrawerToggleAnimated(true)
+                .addDrawerItems(
+                        listItem,
+                        settingItem,
+                        DividerDrawerItem(),
+                        emailItem
+                )
+                .withOnDrawerItemClickListener { _, _, drawerItem ->
+                    when (drawerItem?.identifier) {
+                        1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
+                        2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
+                        3L -> showReportScreen()
+                    }
+                    false
+                }
+                .withSelectedItem(1L)
+                .withCloseOnClick(true)
+                .build()
+        drawerLayout = drawer.drawerLayout
+
     }
 
     private fun setupTab(tabLayout: TabLayout) {
         changeColor(getBackgroundColor(0))
-        tabLayout.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.component_item_background_color))
+        tabLayout.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.md_white_1000))
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {
                 changeBackgroundColor(tabLayout, tab)
@@ -100,6 +112,13 @@ class HomeActivity : AppCompatActivity(), IActivityView {
         })
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == android.R.id.home) {
+            drawer.openDrawer()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
 
     private fun changeColor(color: Int) {
         toolbar.setBackgroundColor(color)
@@ -128,26 +147,33 @@ class HomeActivity : AppCompatActivity(), IActivityView {
 
     override fun getBackgroundColor(tabPosition: Int): Int {
         return when (tabPosition) {
-            0 -> ContextCompat.getColor(this, R.color.primary)
-            1 -> ContextCompat.getColor(this, R.color.google_red)
-            else -> ContextCompat.getColor(this, R.color.google_blue)
+            0 -> ContextCompat.getColor(this, R.color.colorPrimary)
+            1 -> ContextCompat.getColor(this, R.color.md_red_500)
+            else -> ContextCompat.getColor(this, R.color.md_grey_700)
+        }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        if (drawer.isDrawerOpen) {
+            drawer.closeDrawer()
         }
     }
 
     private fun showReportScreen() {
         val logFile = filesDir.resolve(BlockerApplication.LOG_FILENAME)
         val emailIntent = Intent(Intent.ACTION_SEND)
-            .setType("vnd.android.cursor.dir/email")
-            .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
-            .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
-            .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
+                .setType("vnd.android.cursor.dir/email")
+                .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
+                .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
+                .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
         if (logFile.exists()) {
             val logUri = FileProvider.getUriForFile(
-                this,
-                "com.merxury.blocker.provider", //(use your app signature + ".provider" )
-                logFile);
+                    this,
+                    "com.merxury.blocker.provider", //(use your app signature + ".provider" )
+                    logFile);
             emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
         }
-        startActivity(Intent.createChooser(emailIntent , getString(R.string.send_email)));
+        startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)));
     }
 }
