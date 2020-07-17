@@ -5,9 +5,11 @@ apply plugin: 'kotlin-kapt'
 
 android {
     compileSdkVersion 29
+    buildToolsVersion "29.0.3"
     defaultConfig {
         applicationId "com.merxury.blocker"
         minSdkVersion 19
+        //noinspection OldTargetApi
         targetSdkVersion 29
         versionCode 40
         versionName "0.1.40-beta"
@@ -43,13 +45,14 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.recyclerview:recyclerview:1.1.0'
-    implementation 'com.google.android.material:material:1.2.0-alpha06'
+    implementation 'com.google.android.material:material:1.3.0-alpha01'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'androidx.annotation:annotation:1.1.0'
     implementation 'androidx.preference:preference:1.1.1'
     implementation 'androidx.browser:browser:1.2.0'
     implementation "android.arch.work:work-runtime-ktx:1.0.1"
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta5'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-beta8'
+    //noinspection GradleDependency
     implementation "com.mikepenz:materialdrawer:6.1.1"
     // rxpermission
     implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.5@aar'
@@ -62,14 +65,14 @@ dependencies {
     implementation "org.jetbrains.anko:anko:$anko_version"
     implementation "org.jetbrains.anko:anko-coroutines:$anko_version"
     // Coroutine
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.2'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.2'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.7'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.7'
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')
     implementation project(':libkit')
 
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 }
