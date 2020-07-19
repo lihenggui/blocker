@@ -3,14 +3,23 @@ package com.merxury.blocker.core.shizuku
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
+import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.IController
 import com.merxury.libkit.utils.ApplicationUtil
-import moe.shizuku.api.ShizukuPackageManagerV26
+import moe.shizuku.api.ShizukuBinderWrapper
+import moe.shizuku.api.ShizukuService
+import moe.shizuku.api.SystemServiceHelper
 
 class ShizukuController(val context: Context) : IController {
+    private var pm: IPackageManager? = null
+
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
-        ShizukuPackageManagerV26.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
+        if (pm == null) {
+            pm = IPackageManager.Stub.asInterface(ShizukuBinderWrapper(SystemServiceHelper.getSystemService("package")))
+        }
+        // 0 means kill the application
+        pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
         return true
     }
 

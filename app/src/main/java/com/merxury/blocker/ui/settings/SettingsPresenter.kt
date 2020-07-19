@@ -10,7 +10,7 @@ import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
-import com.stericson.RootTools.RootTools
+import com.merxury.libkit.utils.PermissionUtils
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileNotFoundException
@@ -144,7 +144,7 @@ class SettingsPresenter(
             val result = Rule.importMatRules(context, file) { context, name, current, total ->
                 NotificationUtil.updateProcessingNotification(context, name, current, total)
             }
-            Thread.sleep(1000)
+            delay(1000)
             NotificationUtil.finishProcessingNotification(
                 context,
                 result.failedCount + result.succeedCount
@@ -161,7 +161,7 @@ class SettingsPresenter(
     }
 
     private fun checkRootAccess() {
-        if (!RootTools.isAccessGiven()) {
+        if (!PermissionUtils.isRootAvailable) {
             throw RootUnavailableException()
         }
     }

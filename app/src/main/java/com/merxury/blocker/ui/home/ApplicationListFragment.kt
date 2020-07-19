@@ -1,5 +1,7 @@
 package com.merxury.blocker.ui.home
 
+import android.app.Activity
+import android.content.ComponentName
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -8,25 +10,74 @@ import android.os.Bundle
 import android.view.*
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.annotation.WorkerThread
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.merxury.blocker.R
+import com.merxury.blocker.base.BaseLazyFragment
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.ui.component.ComponentActivity
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
+import com.merxury.libkit.utils.ServiceHelper
 import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
+import kotlinx.coroutines.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
+import kotlin.coroutines.CoroutineContext
 
 
-class ApplicationListFragment : Fragment(), HomeContract.View {
+class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, CoroutineScope {
+
+    override val coroutineContext: CoroutineContext = Dispatchers.IO
+
+    private var parentJob: Job? = null
+
+    private val servicesStatus = mutableListOf<ApplicationServicesStatus>()
+
+    private fun initApplicationServicesStatus(applications: List<Application>) {
+        parentJob?.cancel()
+        parentJob = launch {
+            val pm = requireContext().packageManager
+            applications.forEachIndexed { index, application ->
+                launch {
+                    getApplicationServiceStatus(pm, application.packageName).let {
+                        withContext(Dispatchers.Main) {
+                            servicesStatus.add(it)
+                            listAdapter.notifyItemChanged(index)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @WorkerThread
+    private fun getApplicationServiceStatus(packageManager: PackageManager, packageName: String): ApplicationServicesStatus {
+        val serviceHelper = ServiceHelper(packageName)
+        serviceHelper.refresh()
+        val ifwImpl = IntentFirewallImpl(context, packageName)
+        val services = ApplicationUtil.getServiceList(packageManager, packageName)
+        var run = 0
+        var dis = 0
+        for (service in services) {
+            if (!ifwImpl.getComponentEnableState(packageName, service.name) || !ApplicationUtil.checkComponentIsEnabled(packageManager, ComponentName(packageName, service.name))) {
+                dis++
+            }
+            if (serviceHelper.isServiceRunning(service.name)) {
+                run++
+            }
+        }
+        return ApplicationServicesStatus(packageName, services.size, run, dis)
+    }
+
     override lateinit var presenter: HomeContract.Presenter
     private var isSystem: Boolean = false
     private var itemListener: AppItemListener = object : AppItemListener {
@@ -54,7 +105,9 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     override fun showApplicationList(applications: MutableList<Application>) {
         appListFragmentRecyclerView.visibility = View.VISIBLE
         noAppContainer.visibility = View.GONE
+        servicesStatus.clear()
         listAdapter.addData(applications)
+        initApplicationServicesStatus(applications)
     }
 
     override fun showNoApplication() {
@@ -73,7 +126,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                     R.id.last_update_time -> presenter.currentComparator = ApplicationComparatorType.LAST_UPDATE_TIME
                     else -> presenter.currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
                 }
-                presenter.loadApplicationList(context!!, isSystem)
+                presenter.loadApplicationList(requireContext(), isSystem)
                 true
             }
             show()
@@ -84,7 +137,30 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     override fun showApplicationDetailsUi(application: Application) {
         val intent = Intent(context, ComponentActivity::class.java)
         intent.putExtra(Constants.APPLICATION, application)
-        context?.startActivity(intent)
+        startActivityForResult(intent, 888)
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == 888 && resultCode == Activity.RESULT_OK && data != null) {
+            data.getStringExtra("package")?.let { packageName ->
+                launch {
+                    val status = getApplicationServiceStatus(requireContext().packageManager, packageName)
+                    servicesStatus.removeAll {
+                        it.packageName == packageName
+                    }
+                    listAdapter.applications.forEachIndexed { index, application ->
+                        if (application.packageName == packageName) {
+                            withContext(Dispatchers.Main) {
+                                servicesStatus.add(status)
+                                listAdapter.notifyItemChanged(index)
+                            }
+                            return@launch
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -94,7 +170,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
             isSystem = this.getBoolean(IS_SYSTEM)
         }
         presenter = HomePresenter(this)
-        presenter.start(context!!)
+        presenter.start(requireContext())
         listAdapter = AppListRecyclerViewAdapter(itemListener)
     }
 
@@ -115,13 +191,16 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
         }
         appListSwipeLayout?.apply {
             setColorSchemeColors(
-                    ContextCompat.getColor(context, com.merxury.blocker.R.color.colorPrimary),
-                    ContextCompat.getColor(context, com.merxury.blocker.R.color.colorAccent),
-                    ContextCompat.getColor(context, com.merxury.blocker.R.color.colorPrimaryDark)
+                    ContextCompat.getColor(context, R.color.colorPrimary),
+                    ContextCompat.getColor(context, R.color.colorAccent),
+                    ContextCompat.getColor(context, R.color.colorPrimaryDark)
             )
             setOnRefreshListener { presenter.loadApplicationList(context, isSystem) }
         }
-        presenter.loadApplicationList(context!!, isSystem)
+    }
+
+    override fun loadData() {
+        presenter.loadApplicationList(requireContext(), isSystem)
     }
 
     override fun onDestroy() {
@@ -215,14 +294,15 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
     }
 
     override fun updateState(packageName: String) {
-        val updatedInfo = ApplicationUtil.getApplicationInfo(context!!, packageName) ?: return
+        val updatedInfo = ApplicationUtil.getApplicationInfo(requireContext(), packageName)
+                ?: return
         listAdapter.update(updatedInfo)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_filter -> showFilteringPopUpMenu()
-            R.id.menu_refresh -> presenter.loadApplicationList(context!!, isSystem)
+            R.id.menu_refresh -> presenter.loadApplicationList(requireContext(), isSystem)
         }
         return true
     }
@@ -252,7 +332,7 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
 
     }
 
-    inner class AppListRecyclerViewAdapter(private val listener: ApplicationListFragment.AppItemListener, private var applications: MutableList<Application> = mutableListOf()) : androidx.recyclerview.widget.RecyclerView.Adapter<AppListRecyclerViewAdapter.ViewHolder>() {
+    inner class AppListRecyclerViewAdapter(private val listener: ApplicationListFragment.AppItemListener, var applications: MutableList<Application> = mutableListOf()) : androidx.recyclerview.widget.RecyclerView.Adapter<AppListRecyclerViewAdapter.ViewHolder>() {
 
         private lateinit var pm: PackageManager
         private var listCopy = ArrayList<Application>()
@@ -323,8 +403,35 @@ class ApplicationListFragment : Fragment(), HomeContract.View {
                         itemView.setBackgroundColor(Color.WHITE)
                     }
                     doAsync {
+                        val status = servicesStatus.find { it.packageName == application.packageName }
                         val icon = application.getApplicationIcon(pm)
                         uiThread {
+                            if (status == null) {
+                                itemView.allCount.visibility = View.GONE
+                                itemView.runCount.visibility = View.GONE
+                                itemView.disableCount.visibility = View.GONE
+                            } else {
+                                itemView.allCount.visibility = View.VISIBLE
+                                itemView.allCount.text = status.allCount.toString()
+
+                                //run
+                                itemView.runCount.run {
+                                    if (status.runCount == 0) visibility = View.GONE
+                                    else {
+                                        visibility = View.VISIBLE
+                                        text = status.runCount.toString()
+                                    }
+                                }
+
+                                //dis
+                                itemView.disableCount.run {
+                                    if (status.disCount == 0) visibility = View.GONE
+                                    else {
+                                        visibility = View.VISIBLE
+                                        text = status.disCount.toString()
+                                    }
+                                }
+                            }
                             itemView.app_icon.setImageDrawable(icon)
                         }
                     }

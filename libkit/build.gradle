@@ -10,22 +10,18 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
         release {
             minifyEnabled true
-            useProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }
 
 repositories {
-    flatDir {
-        dirs 'libs'
-    }
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -40,11 +36,9 @@ dependencies {
     api "io.reactivex.rxjava2:rxandroid:$rxandroid_version"
     api "io.reactivex.rxjava2:rxjava:$rxjava_version"
     api 'com.elvishew:xlog:1.6.0'
-    //RootTools and RootShell support
-    api(name: 'RootTools', ext: 'aar')
-    api(name: 'RootShell', ext: 'aar')
+    api 'com.github.topjohnwu.libsu:core:2.5.1'
     //Shizuku API
-    api 'moe.shizuku.privilege:api-base:9'
-    api 'moe.shizuku.privilege:api-26:4'
+    api 'moe.shizuku.privilege:api:4.0.0'
+    api 'me.weishu:free_reflection:2.2.0'
     api 'com.google.code.gson:gson:2.8.6'
 }

@@ -8,7 +8,7 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.IController
 import com.merxury.libkit.RootCommand
 import com.merxury.libkit.utils.ApplicationUtil
-import com.stericson.RootTools.RootTools
+
 
 /**
  * Created by Mercury on 2017/12/31.
@@ -17,10 +17,6 @@ import com.stericson.RootTools.RootTools
 
 class RootController(val context: Context) : IController {
     private val logger = XLog.tag("RootController").build()
-
-    init {
-        RootTools.debugMode = true
-    }
 
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
         val comm: String = when (state) {
