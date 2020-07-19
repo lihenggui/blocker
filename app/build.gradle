@@ -11,8 +11,8 @@ android {
         minSdkVersion 19
         //noinspection OldTargetApi
         targetSdkVersion 29
-        versionCode 40
-        versionName "0.1.40-beta"
+        versionCode 41
+        versionName "0.1.41-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         resConfigs "en", "zh-rCN", "zh-rTW"
         multiDexEnabled true
@@ -21,7 +21,6 @@ android {
         release {
             zipAlignEnabled true
             minifyEnabled true
-            useProguard true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -36,11 +35,7 @@ android {
         exclude 'META-INF/proguard/androidx-annotations.pro'
     }
 }
-repositories {
-    flatDir {
-        dirs 'libs'
-    }
-}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'

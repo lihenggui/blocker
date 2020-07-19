@@ -30,10 +30,10 @@
             android:name=".ui.component.ComponentActivity"
             android:theme="@style/AppTheme.OverlapSystemBar" />
         <activity
-            android:theme="@style/AppTheme.PlayStoreStyle"
             android:name=".ui.settings.SettingsActivity"
+            android:label="@string/title_activity_settings"
             android:launchMode="singleTask"
-            android:label="@string/title_activity_settings" />
+            android:theme="@style/AppTheme.PlayStoreStyle" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -42,9 +42,16 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths">
-            </meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
+
+        <provider
+            android:name="moe.shizuku.api.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
 
 </manifest>

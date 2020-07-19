@@ -1,11 +1,9 @@
 package com.merxury.blocker.ui.component
 
 import android.app.Activity
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.DialogInterface
+import android.content.*
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.*
 import android.widget.PopupMenu
@@ -21,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.base.BaseLazyFragment
 import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.ui.Constants
@@ -29,11 +28,10 @@ import com.merxury.blocker.util.ToastUtil
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
-import moe.shizuku.api.ShizukuClient
-import moe.shizuku.api.ShizukuClient.REQUEST_CODE_PERMISSION
+import moe.shizuku.api.ShizukuApiConstants
 
 
-class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
+class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
 
     override lateinit var presenter: ComponentContract.Presenter
     private lateinit var componentAdapter: ComponentsRecyclerViewAdapter
@@ -45,7 +43,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         super.onCreate(savedInstanceState)
         type = arguments?.getSerializable(Constants.CATEGORY) as EComponentType
         packageName = arguments?.getString(Constants.PACKAGE_NAME) ?: ""
-        presenter = ComponentPresenter(context!!, this, packageName)
+        presenter = ComponentPresenter(requireContext(), this, packageName)
         initShizuku()
     }
 
@@ -78,8 +76,7 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         return root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun loadData() {
         presenter.loadComponents(packageName, type)
     }
 
@@ -220,6 +217,9 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun onSwitchClick(name: String, isChecked: Boolean) {
+        if (type == EComponentType.SERVICE) {
+            requireActivity().setResult(Activity.RESULT_OK, Intent().putExtra("package", packageName))
+        }
         if (isChecked) {
             presenter.enable(packageName, name)
         } else {
@@ -228,19 +228,17 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     override fun showDisableAllAlert() {
-        context?.let {
-            AlertDialog.Builder(it)
-                    .setTitle(R.string.warning)
-                    .setMessage(R.string.warning_disable_all_component)
-                    .setCancelable(true)
-                    .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-                    .setPositiveButton(R.string.ok) { _, _ ->
-                        Toast.makeText(it, R.string.disabling_hint, Toast.LENGTH_SHORT).show()
-                        presenter.disableAllComponents(packageName, type)
-                    }
-                    .create()
-                    .show()
-        }
+        AlertDialog.Builder(requireContext())
+                .setTitle(R.string.warning)
+                .setMessage(R.string.warning_disable_all_component)
+                .setCancelable(true)
+                .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+                .setPositiveButton(R.string.ok) { _, _ ->
+                    Toast.makeText(requireContext(), R.string.disabling_hint, Toast.LENGTH_SHORT).show()
+                    presenter.disableAllComponents(packageName, type)
+                }
+                .create()
+                .show()
     }
 
     override fun showActionDone() {
@@ -259,22 +257,31 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
         ToastUtil.showToast(message ?: "null", length)
     }
 
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        logger.d("Request permission back, $requestCode, $permissions, $grantResults")
+        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == REQUEST_CODE_PERMISSION) {
+            logger.d("Shizuku permission granted")
+        }
+    }
+
     private fun initShizuku() {
-        context?.let {
-            if (PreferenceUtil.getControllerType(it) != EControllerMethod.SHIZUKU) {
-                return
-            }
-            if (!ShizukuClient.isManagerInstalled(it)) {
-                logger.e("Shizuku is not installed!")
-                return
-            }
-            if (!ShizukuClient.getState().isAuthorized) {
-                if (ShizukuClient.checkSelfPermission(it)) {
-                    ShizukuClient.requestAuthorization(activity)
-                } else {
-                    ActivityCompat.requestPermissions(activity as Activity, arrayOf(ShizukuClient.PERMISSION_V23), REQUEST_CODE_PERMISSION)
-                }
-            }
+        val context = requireContext()
+        if (PreferenceUtil.getControllerType(context) != EControllerMethod.SHIZUKU) {
+            return
+        }
+        logger.d("Request shizuku permission")
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            logger.e("Shizuku does not support Android 5.1 or below")
+            return
+        }
+        if (ContextCompat.checkSelfPermission(context, ShizukuApiConstants.PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+            return
+        } else if (ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), ShizukuApiConstants.PERMISSION)) {
+            logger.e("User denied Shizuku permission")
+            return
+        } else {
+            ActivityCompat.requestPermissions(requireActivity(), arrayOf(SHIZUKU_PERMISSION_V23), REQUEST_CODE_PERMISSION)
         }
     }
 
@@ -295,6 +302,8 @@ class ComponentFragment : Fragment(), ComponentContract.View, ComponentContract.
     }
 
     companion object {
+        private const val SHIZUKU_PERMISSION_V23 = "moe.shizuku.manager.permission.API_V23"
+        private const val REQUEST_CODE_PERMISSION = 101
         fun newInstance(packageName: String, type: EComponentType): Fragment {
             val fragment = ComponentFragment()
             val bundle = Bundle()

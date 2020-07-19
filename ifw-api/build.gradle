@@ -15,7 +15,6 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            useProguard false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -25,9 +24,6 @@ android {
     }
 }
 repositories {
-    flatDir {
-        dirs 'libs'
-    }
     mavenCentral()
 }
 dependencies {
