@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import com.elvishew.xlog.XLog
 import com.merxury.libkit.RootCommand
 import java.io.File
@@ -217,6 +218,20 @@ object FileUtils {
         } else {
             Environment.getExternalStorageDirectory().absolutePath
         }
+    }
+
+    // api 29 only, a dirty usage
+    @RequiresApi(29)
+    @JvmStatic
+    fun getExternalStoragePath(): String {
+        return "/storage/emulated/0/Blocker"
+    }
+
+    // api 29 only, a dirty usage
+    @RequiresApi(29)
+    @JvmStatic
+    fun getExternalStorageMove(src: String, dst: String) {
+        RootCommand.runBlockingCommand("cp -r $src $dst")
     }
 
     @JvmStatic
