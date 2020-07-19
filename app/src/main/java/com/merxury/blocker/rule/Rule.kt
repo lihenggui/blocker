@@ -3,6 +3,7 @@ package com.merxury.blocker.rule
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
+import android.os.Build
 import android.preference.PreferenceManager
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
@@ -218,16 +219,18 @@ object Rule {
         files.forEach {
             val filename = it.split(File.separator).last()
             val content = FileUtils.read(it)
-            val file = File(getBlockerIFWFolder(context), filename)
+            val file = File(ifwBackupFolder, filename)
             val fileWriter = FileWriter(file)
             fileWriter.write(content)
             fileWriter.close()
         }
+        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(ifwBackupFolder.absolutePath ,FileUtils.getExternalStoragePath())
         return files.count()
     }
 
     fun importIfwRules(context: Context): Int {
         val ifwBackupFolder = getBlockerIFWFolder(context)
+        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(FileUtils.getExternalStoragePath(), ifwBackupFolder.absolutePath)
         if (!ifwBackupFolder.exists()) {
             ifwBackupFolder.mkdirs()
             return 0
