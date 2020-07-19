@@ -70,6 +70,7 @@ object Rule {
         return if (rule.components.isNotEmpty()) {
             val ruleFile = File(getBlockerRuleFolder(context), packageName + EXTENSION)
             saveRuleToStorage(rule, ruleFile)
+            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(getBlockerRuleFolder(context).absolutePath, FileUtils.getExternalStoragePath())
             RulesResult(true, disabledComponentsCount, 0)
         } else {
             RulesResult(false, 0, 0)
@@ -77,6 +78,7 @@ object Rule {
     }
 
     fun import(context: Context, file: File): RulesResult {
+        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(FileUtils.getExternalStoragePath(), getBlockerRuleFolder(context).absolutePath)
         val jsonReader = JsonReader(FileReader(file))
         val appRule = Gson().fromJson<BlockerRule>(jsonReader, BlockerRule::class.java)
                 ?: return RulesResult(false, 0, 0)
@@ -224,7 +226,7 @@ object Rule {
             fileWriter.write(content)
             fileWriter.close()
         }
-        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(ifwBackupFolder.absolutePath ,FileUtils.getExternalStoragePath())
+        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(ifwBackupFolder.absolutePath, FileUtils.getExternalStoragePath())
         return files.count()
     }
 
