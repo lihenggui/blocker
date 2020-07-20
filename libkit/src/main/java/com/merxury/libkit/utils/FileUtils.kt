@@ -224,7 +224,7 @@ object FileUtils {
     @RequiresApi(29)
     @JvmStatic
     fun getExternalStoragePath(): String {
-        return "/storage/emulated/0"
+        return "/storage/emulated/0/Blocker"
     }
 
     // api 29 only, a dirty usage
