@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.os.Build
 import android.preference.PreferenceManager
+import androidx.annotation.RequiresApi
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -70,7 +71,7 @@ object Rule {
         return if (rule.components.isNotEmpty()) {
             val ruleFile = File(getBlockerRuleFolder(context), packageName + EXTENSION)
             saveRuleToStorage(rule, ruleFile)
-            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(getBlockerRuleFolder(context).absolutePath, FileUtils.getExternalStoragePath())
+            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(getBlockerRuleFolder(context).absolutePath, getBlockerExternalFolder(context, true))
             RulesResult(true, disabledComponentsCount, 0)
         } else {
             RulesResult(false, 0, 0)
@@ -78,7 +79,7 @@ object Rule {
     }
 
     fun import(context: Context, file: File): RulesResult {
-        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(FileUtils.getExternalStoragePath(), getBlockerRuleFolder(context).absolutePath)
+        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(getBlockerExternalFolder(context, true), getBlockerRuleFolder(context).absolutePath)
         val jsonReader = JsonReader(FileReader(file))
         val appRule = Gson().fromJson<BlockerRule>(jsonReader, BlockerRule::class.java)
                 ?: return RulesResult(false, 0, 0)
@@ -226,13 +227,13 @@ object Rule {
             fileWriter.write(content)
             fileWriter.close()
         }
-        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(ifwBackupFolder.absolutePath, FileUtils.getExternalStoragePath())
+        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(ifwBackupFolder.absolutePath, getBlockerExternalFolder(context, false))
         return files.count()
     }
 
     fun importIfwRules(context: Context): Int {
         val ifwBackupFolder = getBlockerIFWFolder(context)
-        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(FileUtils.getExternalStoragePath(), ifwBackupFolder.absolutePath)
+        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(getBlockerExternalFolder(context, false), ifwBackupFolder.absolutePath)
         if (!ifwBackupFolder.exists()) {
             ifwBackupFolder.mkdirs()
             return 0
@@ -336,8 +337,27 @@ object Rule {
         return false
     }
 
+    // api 29 only, a dirty usage
+    @RequiresApi(29)
+    @JvmStatic
+    private fun getBlockerExternalFolder(context: Context, flag: Boolean): String {
+        val path = if (flag) {
+            FileUtils.getExternalStoragePath() +
+                    PreferenceManager.getDefaultSharedPreferences(context)
+                            .getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
+        } else {
+            FileUtils.getExternalStoragePath() +
+                    PreferenceManager.getDefaultSharedPreferences(context)
+                            .getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
+        }
+        if (!File(path).exists()) {
+            File(path).mkdirs()
+        }
+        return path
+    }
+
     fun getBlockerRuleFolder(context: Context): File {
-        val path = FileUtils.getExternalStoragePath(context) + File.separator +
+        val path = FileUtils.getExternalStoragePath(context) +
                 PreferenceManager.getDefaultSharedPreferences(context)
                         .getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
         if (!File(path).exists()) {
@@ -346,8 +366,8 @@ object Rule {
         return File(path)
     }
 
-    fun getBlockerIFWFolder(context: Context): File {
-        val path = FileUtils.getExternalStoragePath(context) + File.separator +
+    private fun getBlockerIFWFolder(context: Context): File {
+        val path = FileUtils.getExternalStoragePath(context) +
                 PreferenceManager.getDefaultSharedPreferences(context)
                         .getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
         if (!File(path).exists()) {
