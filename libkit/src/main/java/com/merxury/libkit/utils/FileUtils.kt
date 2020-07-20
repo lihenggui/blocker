@@ -231,7 +231,7 @@ object FileUtils {
     @RequiresApi(29)
     @JvmStatic
     fun getExternalStorageMove(src: String, dst: String) {
-        RootCommand.runBlockingCommand("cp -rf $src $dst")
+        RootCommand.runBlockingCommand("cp -R -f $src $dst")
     }
 
     @JvmStatic
