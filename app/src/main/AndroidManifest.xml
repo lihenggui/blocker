@@ -16,7 +16,6 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:requestLegacyExternalStorage="false"
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.home.HomeActivity"
