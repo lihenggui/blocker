@@ -4,9 +4,11 @@ import android.content.ContentUris
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import com.elvishew.xlog.XLog
 import com.merxury.libkit.RootCommand
 import java.io.File
@@ -99,11 +101,6 @@ object FileUtils {
     }
 
     @JvmStatic
-    fun getExternalStoragePath(): String {
-        return Environment.getExternalStorageDirectory().absolutePath + File.separator
-    }
-
-    @JvmStatic
     fun delete(file: String, recursively: Boolean): Boolean {
         val comm = if (recursively) {
             "rm -rf '$file'"
@@ -157,7 +154,7 @@ object FileUtils {
                 val split = docId.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
                 val type = split[0]
                 if ("primary".equals(type, ignoreCase = true)) {
-                    return Environment.getExternalStorageDirectory().toString() + "/" + split[1]
+                    return getExternalStoragePath(context) + "/" + split[1]
                 }
                 // TODO handle non-primary volumes
             } else if (isDownloadsDocument(uri)) {
@@ -212,6 +209,29 @@ object FileUtils {
             }
         }
         return null
+    }
+
+    @JvmStatic
+    fun getExternalStoragePath(context: Context): String {
+        return if (Build.VERSION.SDK_INT > 28) {
+            context.getExternalFilesDir(null).toString()
+        } else {
+            Environment.getExternalStorageDirectory().absolutePath
+        }
+    }
+
+    // api 29 only, a dirty usage
+    @RequiresApi(29)
+    @JvmStatic
+    fun getExternalStoragePath(): String {
+        return "/storage/emulated/0"
+    }
+
+    // api 29 only, a dirty usage
+    @RequiresApi(29)
+    @JvmStatic
+    fun getExternalStorageMove(src: String, dst: String) {
+        RootCommand.runBlockingCommand("cp -RTf $src $dst")
     }
 
     @JvmStatic
