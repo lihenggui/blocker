@@ -79,7 +79,6 @@ object Rule {
     }
 
     fun import(context: Context, file: File): RulesResult {
-        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(getBlockerExternalFolder(context, true), getBlockerRuleFolder(context).absolutePath)
         val jsonReader = JsonReader(FileReader(file))
         val appRule = Gson().fromJson<BlockerRule>(jsonReader, BlockerRule::class.java)
                 ?: return RulesResult(false, 0, 0)
@@ -340,7 +339,7 @@ object Rule {
     // api 29 only, a dirty usage
     @RequiresApi(29)
     @JvmStatic
-    private fun getBlockerExternalFolder(context: Context, flag: Boolean): String {
+    fun getBlockerExternalFolder(context: Context, flag: Boolean): String {
         val path = if (flag) {
             FileUtils.getExternalStoragePath() +
                     PreferenceManager.getDefaultSharedPreferences(context)

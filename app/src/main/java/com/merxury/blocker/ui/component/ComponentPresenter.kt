@@ -6,6 +6,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
@@ -19,10 +20,7 @@ import com.merxury.blocker.util.DialogUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.entity.getSimpleName
-import com.merxury.libkit.utils.ApplicationUtil
-import com.merxury.libkit.utils.ManagerUtils
-import com.merxury.libkit.utils.PermissionUtils
-import com.merxury.libkit.utils.ServiceHelper
+import com.merxury.libkit.utils.*
 import com.tbruyelle.rxpermissions2.RxPermissions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -291,6 +289,7 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         view?.showToastMessage(context.getString(R.string.processing), Toast.LENGTH_SHORT)
         doAsync(exceptionHandler) {
             val blockerFolder = Rule.getBlockerRuleFolder(context)
+            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(Rule.getBlockerExternalFolder(context, true), blockerFolder.absolutePath)
             val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
             val result =
                     if (!destFile.exists()) {
