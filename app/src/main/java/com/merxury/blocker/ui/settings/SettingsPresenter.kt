@@ -1,6 +1,7 @@
 package com.merxury.blocker.ui.settings
 
 import android.content.Context
+import android.os.Build
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.merxury.blocker.R
@@ -66,6 +67,7 @@ class SettingsPresenter(
                 Rule.EXTENSION
             )
             NotificationUtil.createProcessingNotification(context, rulesCount)
+            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(Rule.getBlockerExternalFolder(context, true), Rule.getBlockerRuleFolder(context).absolutePath)
             FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath).filter {
                 it.endsWith(Rule.EXTENSION)
             }.forEach {
