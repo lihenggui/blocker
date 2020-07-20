@@ -3,7 +3,9 @@ package com.merxury.blocker.rule
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
+import android.os.Build
 import android.preference.PreferenceManager
+import androidx.annotation.RequiresApi
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -41,44 +43,35 @@ object Rule {
         var disabledComponentsCount = 0
         val ifwController = IntentFirewallImpl.getInstance(context, packageName)
         applicationInfo.receivers?.forEach {
-            if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER, EControllerMethod.IFW))
-                disabledComponentsCount++
-            }
-            if (!ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
-                disabledComponentsCount++
-            }
+            val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
+            val statePM = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))
+            rule.components.add(ComponentRule(it.packageName, it.name, stateIFW, EComponentType.RECEIVER, EControllerMethod.IFW))
+            rule.components.add(ComponentRule(it.packageName, it.name, statePM, EComponentType.RECEIVER, EControllerMethod.PM))
+            disabledComponentsCount++
         }
         applicationInfo.services?.forEach {
-            if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE, EControllerMethod.IFW))
-                disabledComponentsCount++
-            }
-            if (!ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.SERVICE))
-                disabledComponentsCount++
-            }
+            val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
+            val statePM = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))
+            rule.components.add(ComponentRule(it.packageName, it.name, stateIFW, EComponentType.SERVICE, EControllerMethod.IFW))
+            rule.components.add(ComponentRule(it.packageName, it.name, statePM, EComponentType.SERVICE, EControllerMethod.PM))
+            disabledComponentsCount++
         }
         applicationInfo.activities?.forEach {
-            if (!ifwController.getComponentEnableState(it.packageName, it.name)) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY, EControllerMethod.IFW))
-                disabledComponentsCount++
-            }
-            if (!ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.ACTIVITY))
-                disabledComponentsCount++
-            }
+            val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
+            val statePM = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))
+            rule.components.add(ComponentRule(it.packageName, it.name, stateIFW, EComponentType.ACTIVITY, EControllerMethod.IFW))
+            rule.components.add(ComponentRule(it.packageName, it.name, statePM, EComponentType.ACTIVITY, EControllerMethod.PM))
+            disabledComponentsCount++
         }
         applicationInfo.providers?.forEach {
-            if (!ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))) {
-                rule.components.add(ComponentRule(it.packageName, it.name, EComponentType.RECEIVER))
-                disabledComponentsCount++
-            }
+            val statePM = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))
+            rule.components.add(ComponentRule(it.packageName, it.name, statePM, EComponentType.PROVIDER, EControllerMethod.PM))
+            disabledComponentsCount++
         }
         return if (rule.components.isNotEmpty()) {
             val ruleFile = File(getBlockerRuleFolder(context), packageName + EXTENSION)
             saveRuleToStorage(rule, ruleFile)
+            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(getBlockerRuleFolder(context).absolutePath, getBlockerExternalFolder(context, true))
             RulesResult(true, disabledComponentsCount, 0)
         } else {
             RulesResult(false, 0, 0)
@@ -106,16 +99,45 @@ object Rule {
                 val controllerResult = when (it.method) {
                     EControllerMethod.IFW -> {
                         when (it.type) {
-                            EComponentType.RECEIVER -> ifwController?.add(it.packageName, it.name, ComponentType.BROADCAST)
-                                    ?: false
-                            EComponentType.SERVICE -> ifwController?.add(it.packageName, it.name, ComponentType.SERVICE)
-                                    ?: false
-                            EComponentType.ACTIVITY -> ifwController?.add(it.packageName, it.name, ComponentType.ACTIVITY)
-                                    ?: false
-                            else -> controller.disable(it.packageName, it.name)
+                            EComponentType.RECEIVER -> {
+                                if (it.state) {
+                                    ifwController?.add(it.packageName, it.name, ComponentType.BROADCAST) ?: false
+                                } else {
+                                    ifwController?.remove(it.packageName, it.name, ComponentType.BROADCAST) ?: false
+                                }
+                            }
+                            EComponentType.SERVICE -> {
+                                if (it.state) {
+                                    ifwController?.add(it.packageName, it.name, ComponentType.SERVICE) ?: false
+                                } else {
+                                    ifwController?.remove(it.packageName, it.name, ComponentType.SERVICE) ?: false
+                                }
+                            }
+                            EComponentType.ACTIVITY -> {
+                                if (it.state) {
+                                    ifwController?.add(it.packageName, it.name, ComponentType.ACTIVITY) ?: false
+                                } else {
+                                    ifwController?.remove(it.packageName, it.name, ComponentType.ACTIVITY) ?: false
+                                }
+                            }
+                            // content provider needs PM to implement it
+                            EComponentType.PROVIDER -> {
+                                if (it.state) {
+                                    controller.enable(it.packageName, it.name)
+                                } else {
+                                    controller.disable(it.packageName, it.name)
+                                }
+                            }
+                            EComponentType.UNKNOWN -> false
                         }
                     }
-                    else -> controller.disable(it.packageName, it.name)
+                    else -> {
+                        if (it.state) {
+                            controller.enable(it.packageName, it.name)
+                        } else {
+                            controller.disable(it.packageName, it.name)
+                        }
+                    }
                 }
                 if (controllerResult) {
                     succeedCount++
@@ -195,23 +217,22 @@ object Rule {
     fun exportIfwRules(context: Context): Int {
         val ifwFolder = StorageUtils.getIfwFolder()
         val ifwBackupFolder = getBlockerIFWFolder(context)
-        if (!ifwBackupFolder.exists()) {
-            ifwBackupFolder.mkdirs()
-        }
         val files = FileUtils.listFiles(ifwFolder)
         files.forEach {
             val filename = it.split(File.separator).last()
             val content = FileUtils.read(it)
-            val file = File(getBlockerIFWFolder(context), filename)
+            val file = File(ifwBackupFolder, filename)
             val fileWriter = FileWriter(file)
             fileWriter.write(content)
             fileWriter.close()
         }
+        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(ifwBackupFolder.absolutePath, getBlockerExternalFolder(context, false))
         return files.count()
     }
 
     fun importIfwRules(context: Context): Int {
         val ifwBackupFolder = getBlockerIFWFolder(context)
+        if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(getBlockerExternalFolder(context, false), ifwBackupFolder.absolutePath)
         if (!ifwBackupFolder.exists()) {
             ifwBackupFolder.mkdirs()
             return 0
@@ -315,18 +336,43 @@ object Rule {
         return false
     }
 
-    fun getBlockerRuleFolder(context: Context): File {
-        val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val path = pref.getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
-        val storagePath = FileUtils.getExternalStoragePath()
-        return File(storagePath, path)
+    // api 29 only, a dirty usage
+    @RequiresApi(29)
+    @JvmStatic
+    fun getBlockerExternalFolder(context: Context, flag: Boolean): String {
+        val path = if (flag) {
+            FileUtils.getExternalStoragePath() +
+                    PreferenceManager.getDefaultSharedPreferences(context)
+                            .getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
+        } else {
+            FileUtils.getExternalStoragePath() +
+                    PreferenceManager.getDefaultSharedPreferences(context)
+                            .getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
+        }
+        if (!File(path).exists()) {
+            File(path).mkdirs()
+        }
+        return path
     }
 
-    fun getBlockerIFWFolder(context: Context): File {
-        val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val path = pref.getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
-        val storagePath = FileUtils.getExternalStoragePath()
-        return File(storagePath, path)
+    fun getBlockerRuleFolder(context: Context): File {
+        val path = FileUtils.getExternalStoragePath(context) +
+                PreferenceManager.getDefaultSharedPreferences(context)
+                        .getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
+        if (!File(path).exists()) {
+            File(path).mkdirs()
+        }
+        return File(path)
+    }
+
+    private fun getBlockerIFWFolder(context: Context): File {
+        val path = FileUtils.getExternalStoragePath(context) +
+                PreferenceManager.getDefaultSharedPreferences(context)
+                        .getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
+        if (!File(path).exists()) {
+            File(path).mkdirs()
+        }
+        return File(path)
     }
 
     private fun getController(context: Context): IController {
