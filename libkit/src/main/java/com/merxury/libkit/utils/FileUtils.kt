@@ -224,14 +224,14 @@ object FileUtils {
     @RequiresApi(29)
     @JvmStatic
     fun getExternalStoragePath(): String {
-        return "/storage/emulated/0/Blocker"
+        return "/storage/emulated/0"
     }
 
     // api 29 only, a dirty usage
     @RequiresApi(29)
     @JvmStatic
     fun getExternalStorageMove(src: String, dst: String) {
-        RootCommand.runBlockingCommand("cp -R -f $src $dst")
+        RootCommand.runBlockingCommand("cp -RT $src $dst")
     }
 
     @JvmStatic
