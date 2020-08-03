@@ -1,20 +1,8 @@
-package com.merxury.blocker
-
-import android.annotation.SuppressLint
-import android.annotation.TargetApi
+package 
 import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
-import android.os.Build
-import com.elvishew.xlog.LogConfiguration
-import com.elvishew.xlog.LogLevel
-import com.elvishew.xlog.XLog
-import com.elvishew.xlog.printer.AndroidPrinter
-import com.elvishew.xlog.printer.file.FilePrinter
-import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
-import com.elvishew.xlog.printer.file.naming.ChangelessFileNameGenerator
-import com.merxury.blocker.util.NotificationUtil
+import android.content.ContextationUtil
 import me.weishu.reflection.Reflection
 
 class BlockerApplication : Application() {
