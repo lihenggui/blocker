@@ -4,12 +4,11 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.3"
+    compileSdkVersion 30
+    buildToolsVersion "30.0.1"
     defaultConfig {
         applicationId "com.merxury.blocker"
         minSdkVersion 19
-        //noinspection OldTargetApi
         targetSdkVersion 29
         versionCode 42
         versionName "0.1.42-beta"
