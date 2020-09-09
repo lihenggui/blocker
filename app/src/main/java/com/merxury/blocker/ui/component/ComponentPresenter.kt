@@ -289,7 +289,6 @@ class ComponentPresenter(val context: Context, var view: ComponentContract.View?
         view?.showToastMessage(context.getString(R.string.processing), Toast.LENGTH_SHORT)
         doAsync(exceptionHandler) {
             val blockerFolder = Rule.getBlockerRuleFolder(context)
-            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(Rule.getBlockerExternalFolder(context, true), blockerFolder.absolutePath)
             val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
             val result =
                     if (!destFile.exists()) {

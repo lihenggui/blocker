@@ -67,7 +67,6 @@ class SettingsPresenter(
                 Rule.EXTENSION
             )
             NotificationUtil.createProcessingNotification(context, rulesCount)
-            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(Rule.getBlockerExternalFolder(context, true), Rule.getBlockerRuleFolder(context).absolutePath)
             FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath).filter {
                 it.endsWith(Rule.EXTENSION)
             }.forEach {
