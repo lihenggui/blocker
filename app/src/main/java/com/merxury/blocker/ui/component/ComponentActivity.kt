@@ -43,8 +43,8 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         showApplicationBriefInfo(application)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        when (item?.itemId) {
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
             android.R.id.home -> finish()
         }
         return super.onOptionsItemSelected(item)
@@ -85,7 +85,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView {
         if (intent == null) {
             finish()
         }
-        application = intent.getParcelableExtra(Constants.APPLICATION)
+        application = intent.getParcelableExtra(Constants.APPLICATION)!!
     }
 
     private fun setupTab() {
