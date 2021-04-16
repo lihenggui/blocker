@@ -29,7 +29,11 @@ class ServiceHelper(private val packageName: String) {
     fun refresh() {
         serviceList.clear()
         serviceInfo = try {
-            RootCommand.runBlockingCommand("dumpsys activity services -p $packageName")
+            if (PermissionUtils.isRootAvailable) {
+                RootCommand.runBlockingCommand("dumpsys activity services -p $packageName")
+            } else {
+                ""
+            }
         } catch (e: Exception) {
             logger.e("Cannot get running service list:", e)
             ""

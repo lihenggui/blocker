@@ -93,52 +93,50 @@ class ComponentPresenter(
 
     override fun enable(packageName: String, componentName: String): Boolean {
         logger.i("Enable component: $componentName")
-        val handler = { e: Throwable ->
-            GlobalScope.launch(Dispatchers.Main) {
+        launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    val controllerType = PreferenceUtil.getControllerType(context)
+                    if (controllerType == EControllerMethod.PM) {
+                        if (!checkIFWState(packageName, componentName)) {
+                            ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
+                                .enable(packageName, componentName)
+                        }
+                    } else if (controllerType == EControllerMethod.IFW) {
+                        if (!ApplicationUtil.checkComponentIsEnabled(
+                                context.packageManager,
+                                ComponentName(packageName, componentName)
+                            )
+                        ) {
+                            ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+                                .enable(packageName, componentName)
+                        }
+                    }
+                    controller.enable(packageName, componentName)
+                }
+                view?.refreshComponentState(componentName)
+            } catch (e: Exception) {
+                logger.e(e)
                 DialogUtil().showWarningDialogWithMessage(context, e)
                 view?.refreshComponentState(componentName)
             }
-            logger.e(e)
-        }
-        launch {
-            withContext(Dispatchers.IO) {
-                val controllerType = PreferenceUtil.getControllerType(context)
-                if (controllerType == EControllerMethod.PM) {
-                    if (!checkIFWState(packageName, componentName)) {
-                        ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
-                            .enable(packageName, componentName)
-                    }
-                } else if (controllerType == EControllerMethod.IFW) {
-                    if (!ApplicationUtil.checkComponentIsEnabled(
-                            context.packageManager,
-                            ComponentName(packageName, componentName)
-                        )
-                    ) {
-                        ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
-                            .enable(packageName, componentName)
-                    }
-                }
-                controller.enable(packageName, componentName)
-            }
-            view?.refreshComponentState(componentName)
         }
         return true
     }
 
     override fun disable(packageName: String, componentName: String): Boolean {
         logger.i("Disable component: $componentName")
-        val handler = { e: Throwable ->
-            GlobalScope.launch(Dispatchers.Main) {
+        launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    controller.disable(packageName, componentName)
+                }
+                view?.refreshComponentState(componentName)
+            } catch (e: Exception) {
+                logger.e(e)
                 DialogUtil().showWarningDialogWithMessage(context, e)
                 view?.refreshComponentState(componentName)
             }
-            logger.e(e)
-        }
-        launch {
-            withContext(Dispatchers.IO) {
-                controller.disable(packageName, componentName)
-            }
-            view?.refreshComponentState(componentName)
         }
         return true
     }
@@ -327,8 +325,15 @@ class ComponentPresenter(
         launch {
             val result = withContext(Dispatchers.IO) {
                 val blockerFolder = Rule.getBlockerRuleFolder(context)
-                if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(Rule.getBlockerExternalFolder(context, true), blockerFolder.absolutePath)
-            val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    FileUtils.getExternalStorageMove(
+                        Rule.getBlockerExternalFolder(
+                            context,
+                            true
+                        ), blockerFolder.absolutePath
+                    )
+                }
+                val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
                 if (!destFile.exists()) {
                     RulesResult(false, 0, 0)
                 } else {
