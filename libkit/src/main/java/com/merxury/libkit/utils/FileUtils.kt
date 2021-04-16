@@ -50,7 +50,11 @@ object FileUtils {
     @JvmStatic
     fun isExist(path: String): Boolean {
         return try {
-            val output = RootCommand.runBlockingCommand("[ -f '$path' ] && echo \"yes\" || echo \"no\"")
+            if (!PermissionUtils.isRootAvailable) {
+                return false
+            }
+            val output =
+                RootCommand.runBlockingCommand("[ -f '$path' ] && echo \"yes\" || echo \"no\"")
             when (output.trim()) {
                 "yes" -> true
                 else -> false
@@ -213,22 +217,22 @@ object FileUtils {
 
     @JvmStatic
     fun getExternalStoragePath(context: Context): String {
-        return if (Build.VERSION.SDK_INT > 28) {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             context.getExternalFilesDir(null).toString()
         } else {
             Environment.getExternalStorageDirectory().absolutePath
         }
     }
 
-    // api 29 only, a dirty usage
-    @RequiresApi(29)
+    // TODO api 29 only, a dirty usage
+    @RequiresApi(Build.VERSION_CODES.Q)
     @JvmStatic
     fun getExternalStoragePath(): String {
         return "/storage/emulated/0"
     }
 
-    // api 29 only, a dirty usage
-    @RequiresApi(29)
+    // TODO api 29 only, a dirty usage
+    @RequiresApi(Build.VERSION_CODES.Q)
     @JvmStatic
     fun getExternalStorageMove(src: String, dst: String) {
         RootCommand.runBlockingCommand("cp -RTf $src $dst")

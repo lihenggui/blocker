@@ -71,7 +71,10 @@ object Rule {
         return if (rule.components.isNotEmpty()) {
             val ruleFile = File(getBlockerRuleFolder(context), packageName + EXTENSION)
             saveRuleToStorage(rule, ruleFile)
-            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(getBlockerRuleFolder(context).absolutePath, getBlockerExternalFolder(context, true))
+            if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) FileUtils.getExternalStorageMove(
+                getBlockerRuleFolder(context).absolutePath,
+                getBlockerExternalFolder(context, true)
+            )
             RulesResult(true, disabledComponentsCount, 0)
         } else {
             RulesResult(false, 0, 0)
