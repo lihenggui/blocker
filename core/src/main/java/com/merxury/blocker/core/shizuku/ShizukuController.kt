@@ -7,9 +7,8 @@ import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.IController
 import com.merxury.libkit.utils.ApplicationUtil
-import moe.shizuku.api.ShizukuBinderWrapper
-import moe.shizuku.api.ShizukuService
-import moe.shizuku.api.SystemServiceHelper
+import rikka.shizuku.ShizukuBinderWrapper
+import rikka.shizuku.SystemServiceHelper
 
 class ShizukuController(val context: Context) : IController {
     private var pm: IPackageManager? = null
