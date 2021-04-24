@@ -28,7 +28,7 @@ import com.merxury.blocker.util.ToastUtil
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
-import moe.shizuku.api.ShizukuApiConstants
+import rikka.shizuku.ShizukuProvider
 
 
 class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
@@ -270,13 +270,25 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
             logger.e("Shizuku does not support Android 5.1 or below")
             return
         }
-        if (ContextCompat.checkSelfPermission(context, ShizukuApiConstants.PERMISSION) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                ShizukuProvider.PERMISSION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
             return
-        } else if (ActivityCompat.shouldShowRequestPermissionRationale(requireActivity(), ShizukuApiConstants.PERMISSION)) {
+        } else if (ActivityCompat.shouldShowRequestPermissionRationale(
+                requireActivity(),
+                ShizukuProvider.PERMISSION
+            )
+        ) {
             logger.e("User denied Shizuku permission")
             return
         } else {
-            ActivityCompat.requestPermissions(requireActivity(), arrayOf(SHIZUKU_PERMISSION_V23), REQUEST_CODE_PERMISSION)
+            ActivityCompat.requestPermissions(
+                requireActivity(),
+                arrayOf(SHIZUKU_PERMISSION_V23),
+                REQUEST_CODE_PERMISSION
+            )
         }
     }
 
