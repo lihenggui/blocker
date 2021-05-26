@@ -26,6 +26,7 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
 import kotlinx.android.synthetic.main.activity_home.*
+import java.lang.RuntimeException
 
 
 class HomeActivity : AppCompatActivity(), IActivityView {
