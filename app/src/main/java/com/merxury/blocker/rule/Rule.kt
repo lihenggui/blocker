@@ -346,11 +346,11 @@ object Rule {
         val path = if (flag) {
             FileUtils.getExternalStoragePath() +
                     PreferenceManager.getDefaultSharedPreferences(context)
-                            .getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
+                        .getString(context.getString(R.string.key_pref_rule_path), null)
         } else {
             FileUtils.getExternalStoragePath() +
                     PreferenceManager.getDefaultSharedPreferences(context)
-                            .getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
+                        .getString(context.getString(R.string.key_pref_ifw_rule_path), null)
         }
         if (!File(path).exists()) {
             File(path).mkdirs()
@@ -361,7 +361,7 @@ object Rule {
     fun getBlockerRuleFolder(context: Context): File {
         val path = FileUtils.getExternalStoragePath(context) +
                 PreferenceManager.getDefaultSharedPreferences(context)
-                        .getString(context.getString(R.string.key_pref_rule_path), context.getString(R.string.key_pref_rule_path_default_value))
+                    .getString(context.getString(R.string.key_pref_rule_path), null)
         if (!File(path).exists()) {
             File(path).mkdirs()
         }
@@ -371,7 +371,7 @@ object Rule {
     private fun getBlockerIFWFolder(context: Context): File {
         val path = FileUtils.getExternalStoragePath(context) +
                 PreferenceManager.getDefaultSharedPreferences(context)
-                        .getString(context.getString(R.string.key_pref_ifw_rule_path), context.getString(R.string.key_pref_ifw_rule_path_default_value))
+                    .getString(context.getString(R.string.key_pref_ifw_rule_path), null)
         if (!File(path).exists()) {
             File(path).mkdirs()
         }

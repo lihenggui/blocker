@@ -81,7 +81,7 @@
     </plurals>
     <string name="title_activity_settings">設定</string>
     <string name="pref_header_general">通用</string>
-    <string name="pref_rule_settings">規則</string>
+    <string name="pref_rule_settings">Blocker規則</string>
     <string name="pref_rule_path_summary">規則將會儲存至此資料夾</string>
     <string name="pref_rule_path_title">選擇路徑</string>
     <string name="import_rules">匯入規則</string>

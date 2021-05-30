@@ -1,49 +1,41 @@
 package com.merxury.blocker.ui.settings
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
-import android.preference.ListPreference
-import android.preference.PreferenceManager
 import android.view.MenuItem
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.preference.CheckBoxPreference
+import androidx.core.content.edit
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequest
-import androidx.work.WorkManager
+import androidx.preference.PreferenceManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.work.ScheduledWork
 import com.merxury.libkit.utils.FileUtils
-import java.util.concurrent.TimeUnit
 
+@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.SettingsView,
-    Preference.OnPreferenceClickListener {
+    Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener {
     private val logger = XLog.tag("PreferenceFragment")
-    private lateinit var listener: SharedPreferences.OnSharedPreferenceChangeListener
     private lateinit var prefs: SharedPreferences
     private lateinit var presenter: SettingsPresenter
 
     private var controllerTypePreference: Preference? = null
-    private var rulePathPreference: Preference? = null
     private var exportRulePreference: Preference? = null
     private var importRulePreference: Preference? = null
-    private var ifwRulePathPreference: Preference? = null
     private var exportIfwRulePreference: Preference? = null
     private var importIfwRulePreference: Preference? = null
     private var resetIfwPreference: Preference? = null
     private var importMatRulesPreference: Preference? = null
-    private var autoBlockPreference: CheckBoxPreference? = null
-    private var forceDozePreference: CheckBoxPreference? = null
     private var aboutPreference: Preference? = null
+    private var storagePreference: Preference? = null
 
     private val matRulePathRequestCode = 100
 
@@ -61,29 +53,79 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         addPreferencesFromResource(R.xml.preferences)
     }
 
+    override fun onPreferenceChange(preference: Preference?, newValue: Any?): Boolean {
+        logger.d("Preference: $preference changed, value = $newValue")
+        return true
+    }
+
     private fun findPreference() {
         controllerTypePreference = findPreference(getString(R.string.key_pref_controller_type))
-        rulePathPreference = findPreference(getString(R.string.key_pref_rule_path))
         exportRulePreference = findPreference(getString(R.string.key_pref_export_rules))
         importRulePreference = findPreference(getString(R.string.key_pref_import_rules))
-        ifwRulePathPreference = findPreference(getString(R.string.key_pref_ifw_rule_path))
         importIfwRulePreference = findPreference(getString(R.string.key_pref_import_ifw_rules))
         exportIfwRulePreference = findPreference(getString(R.string.key_pref_export_ifw_rules))
         resetIfwPreference = findPreference(getString(R.string.key_pref_reset_ifw_rules))
         importMatRulesPreference = findPreference(getString(R.string.key_pref_import_mat_rules))
-        autoBlockPreference =
-                findPreference(getString(R.string.key_pref_auto_block)) as? CheckBoxPreference
-        forceDozePreference =
-                findPreference(getString(R.string.key_pref_force_doze)) as? CheckBoxPreference
         aboutPreference = findPreference(getString(R.string.key_pref_about))
+        storagePreference = findPreference(getString(R.string.key_pref_save_folder_path))
     }
 
     private fun initPreference() {
         controllerTypePreference?.setDefaultValue(getString(R.string.key_pref_controller_type_default_value))
-        rulePathPreference?.setDefaultValue(getString(R.string.key_pref_rule_path_default_value))
-        bindPreferenceSummaryToValue(rulePathPreference)
-        ifwRulePathPreference?.setDefaultValue(getString(R.string.key_pref_ifw_rule_path_default_value))
-        bindPreferenceSummaryToValue(ifwRulePathPreference)
+        storagePreference?.summaryProvider = Preference.SummaryProvider<Preference> {
+            val path = getRulePath()
+            path?.toString() ?: getString(R.string.folder_not_set)
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            matRulePathRequestCode -> {
+                if (resultCode == Activity.RESULT_OK) {
+                    val filePath = FileUtils.getUriPath(requireContext(), data?.data)
+                    showDialog(
+                        getString(R.string.warning),
+                        getString(R.string.import_all_rules_warning_message),
+                        filePath
+                    ) {
+                        presenter.importMatRules(it)
+                    }
+                }
+            }
+            REQUEST_CODE_ASSIGN_FOLDER -> handleAssignFolder(data)
+        }
+    }
+
+
+    private fun assignFolder() {
+        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), REQUEST_CODE_ASSIGN_FOLDER)
+    }
+
+    private fun handleAssignFolder(data: Intent?) {
+        if (data == null) {
+            logger.e("Intent data is null")
+            return
+        }
+        val uri = data.data ?: run {
+            logger.e("Null folder assigned")
+            return
+        }
+        val desiredPermission =
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        val flags = data.flags and desiredPermission
+        requireActivity().contentResolver.takePersistableUriPermission(uri, flags)
+        logger.d("Assigned ${uri.path} with FLAG_GRANT_READ_URI_PERMISSION and FLAG_GRANT_WRITE_URI_PERMISSION")
+        storeRulePath(uri)
+    }
+
+    private fun storeRulePath(uri: Uri) {
+        prefs.edit { putString(getString(R.string.key_pref_rule_path), uri.path) }
+    }
+
+    private fun getRulePath(): Uri? {
+        val storedPath = prefs.getString(getString(R.string.key_pref_rule_path), null)
+        if (storedPath.isNullOrEmpty()) return null
+        return Uri.parse(storedPath)
     }
 
     private fun initPresenter() {
@@ -91,20 +133,17 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
     }
 
     private fun initListener() {
-        listener = SharedPreferences.OnSharedPreferenceChangeListener { sharedPreferences, key ->
-            // TODO add later
-        }
-        prefs.registerOnSharedPreferenceChangeListener(listener)
+        storagePreference?.onPreferenceClickListener = this
         exportRulePreference?.onPreferenceClickListener = this
         importRulePreference?.onPreferenceClickListener = this
         exportIfwRulePreference?.onPreferenceClickListener = this
         importIfwRulePreference?.onPreferenceClickListener = this
         importMatRulesPreference?.onPreferenceClickListener = this
         resetIfwPreference?.onPreferenceClickListener = this
-        autoBlockPreference?.onPreferenceClickListener = this
-        forceDozePreference?.onPreferenceClickListener = this
         aboutPreference?.onPreferenceClickListener = this
+        storagePreference?.onPreferenceChangeListener = this
     }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
@@ -131,21 +170,8 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         ToastUtil.showToast(res, Toast.LENGTH_SHORT)
     }
 
-    @SuppressLint("CheckResult")
     override fun showDialog(title: String, message: String, action: () -> Unit) {
-        TODO("Do permission check")
-//        RxPermissions(requireActivity())
-//            .request(
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//                Manifest.permission.READ_EXTERNAL_STORAGE
-//            )
-//            .subscribe { result ->
-//                if (result) {
-//                    showConfirmationDialog(title, message, action)
-//                } else {
-//                    showRequirePermissionDialog()
-//                }
-//            }
+
     }
 
     override fun showDialog(
@@ -154,16 +180,14 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         file: String?,
         action: (file: String?) -> Unit
     ) {
-        activity?.let {
-            AlertDialog.Builder(it)
-                .setTitle(title)
-                .setMessage(message)
-                .setCancelable(true)
-                .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-                .setPositiveButton(R.string.ok) { _, _ -> action(file) }
-                .create()
-                .show()
-        }
+        AlertDialog.Builder(requireActivity())
+            .setTitle(title)
+            .setMessage(message)
+            .setCancelable(true)
+            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
+            .setPositiveButton(R.string.ok) { _, _ -> action(file) }
+            .create()
+            .show()
     }
 
     override fun onPreferenceClick(preference: Preference?): Boolean {
@@ -204,30 +228,13 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
             ) {
                 presenter.resetIFW()
             }
-            autoBlockPreference, forceDozePreference -> initAutoBlockAndDoze()
             aboutPreference -> showAbout()
+            storagePreference -> assignFolder()
             else -> return false
         }
         return true
     }
 
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            matRulePathRequestCode -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    val filePath = FileUtils.getUriPath(requireContext(), data?.data)
-                    showDialog(
-                        getString(R.string.warning),
-                        getString(R.string.import_all_rules_warning_message),
-                        filePath
-                    ) {
-                        presenter.importMatRules(it)
-                    }
-                }
-            }
-        }
-    }
 
     private fun selectMatFile() {
         val pm = context?.packageManager ?: return
@@ -248,88 +255,8 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
             .launchUrl(requireContext(), Uri.parse(ABOUT_URL))
     }
 
-    private fun initAutoBlockAndDoze() {
-        if (autoBlockPreference?.isChecked == false && forceDozePreference?.isChecked == false) {
-            logger.d("Canceling scheduled work.")
-            WorkManager.getInstance().cancelAllWork()
-        } else {
-            warnExperimentalFeature()
-            val scheduleWork = PeriodicWorkRequest.Builder(
-                ScheduledWork::class.java,
-                PeriodicWorkRequest.MIN_PERIODIC_INTERVAL_MILLIS, TimeUnit.MILLISECONDS
-            ).build()
-            WorkManager.getInstance().enqueueUniquePeriodicWork(
-                SCHEDULED_WORK_TAG,
-                ExistingPeriodicWorkPolicy.KEEP,
-                scheduleWork
-            )
-            logger.d("Scheduled work activated")
-        }
-    }
-
-    private fun warnExperimentalFeature() {
-        context?.let {
-            AlertDialog.Builder(it)
-                .setTitle(R.string.warning)
-                .setMessage(R.string.experimental_features_warning)
-                .setPositiveButton(android.R.string.yes) { dialog, _ -> dialog.dismiss() }
-                .show()
-        }
-    }
-
-    private fun showConfirmationDialog(
-        title: String,
-        message: String,
-        action: () -> Unit
-    ) {
-        AlertDialog.Builder(requireContext())
-            .setTitle(title)
-            .setMessage(message)
-            .setCancelable(true)
-            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-            .setPositiveButton(R.string.ok) { _, _ -> action() }
-            .create()
-            .show()
-    }
-
-    private fun showRequirePermissionDialog() {
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.warning)
-            .setMessage(R.string.require_permission_message)
-            .setPositiveButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
-            .create()
-            .show()
-    }
-
     companion object {
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
-        private const val SCHEDULED_WORK_TAG = "BlockerScheduledWork"
-
-        private val sBindPreferenceSummaryToValueListener =
-            Preference.OnPreferenceChangeListener { preference, value ->
-                val stringValue = value.toString()
-                if (preference is ListPreference) {
-                    val index = preference.findIndexOfValue(stringValue)
-                    preference.setSummary(
-                        if (index >= 0)
-                            preference.entries[index]
-                        else
-                            null
-                    )
-                } else {
-                    preference.summary = stringValue
-                }
-                true
-            }
-
-        private fun bindPreferenceSummaryToValue(preference: Preference?) {
-            preference?.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
-            sBindPreferenceSummaryToValueListener.onPreferenceChange(
-                preference,
-                PreferenceManager
-                    .getDefaultSharedPreferences(preference?.context)
-                    .getString(preference?.key, "")
-            )
-        }
+        private const val REQUEST_CODE_ASSIGN_FOLDER = 1000
     }
 }

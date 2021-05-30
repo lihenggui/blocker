@@ -1,86 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.preference.PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-    <androidx.preference.PreferenceCategory
-        android:key="@string/key_pref_controller_settings"
-        android:title="@string/pref_controller_settings">
-        <androidx.preference.ListPreference
-            android:defaultValue="@string/key_pref_controller_type_default_value"
-            android:dialogTitle="@string/pref_controller_chooser_title"
-            android:entries="@array/pref_controllerType_entries"
-            android:entryValues="@array/pref_controllerType_value"
-            android:key="@string/key_pref_controller_type"
-            android:summary="%s"
-            android:title="@string/pref_controller_type" />
-    </androidx.preference.PreferenceCategory>
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+        app:key="@string/key_pref_controller_settings"
+        app:title="@string/controller_settings">
+        <ListPreference
+            app:defaultValue="@string/key_pref_controller_type_default_value"
+            app:dialogTitle="@string/controller_chooser_title"
+            app:entries="@array/pref_controllerType_entries"
+            app:entryValues="@array/pref_controllerType_value"
+            app:key="@string/key_pref_controller_type"
+            app:summary="%s"
+            app:title="@string/controller_type" />
+    </PreferenceCategory>
 
-    <androidx.preference.PreferenceCategory
-        android:key="@string/key_pref_rules"
-        android:title="@string/pref_rule_settings">
-        <androidx.preference.EditTextPreference
-            android:defaultValue="@string/key_pref_rule_path_default_value"
-            android:inputType="text"
-            android:key="@string/key_pref_rule_path"
-            android:summary="@string/pref_rule_path_summary"
-            android:title="@string/pref_rule_path_title" />
-        <androidx.preference.Preference
-            android:dependency="@string/key_pref_rule_path"
-            android:key="@string/key_pref_export_rules"
-            android:title="@string/export_rules" />
-        <androidx.preference.Preference
-            android:dependency="@string/key_pref_rule_path"
-            android:key="@string/key_pref_import_rules"
-            android:title="@string/import_rules" />
-    </androidx.preference.PreferenceCategory>
+    <PreferenceCategory app:title="@string/rule_folder_settings">
+        <Preference
+            app:key="@string/key_pref_save_folder_path"
+            app:title="@string/set_folder_to_save" />
+    </PreferenceCategory>
 
-    <androidx.preference.PreferenceCategory
-        android:key="@string/key_pref_ifw"
-        android:title="@string/pref_ifw_settings">
-        <androidx.preference.EditTextPreference
-            android:defaultValue="@string/key_pref_ifw_rule_path_default_value"
-            android:inputType="text"
-            android:key="@string/key_pref_ifw_rule_path"
-            android:summary="@string/pref_rule_path_summary"
-            android:title="@string/pref_rule_path_title" />
-        <androidx.preference.Preference
-            android:dependency="@string/key_pref_ifw_rule_path"
-            android:key="@string/key_pref_export_ifw_rules"
-            android:title="@string/export_ifw_rules" />
-        <androidx.preference.Preference
-            android:dependency="@string/key_pref_ifw_rule_path"
-            android:key="@string/key_pref_import_ifw_rules"
-            android:title="@string/import_ifw_rules" />
-        <androidx.preference.Preference
-            android:key="@string/key_pref_reset_ifw_rules"
-            android:title="@string/reset_ifw" />
-    </androidx.preference.PreferenceCategory>
+    <PreferenceCategory
+        app:key="@string/key_pref_rules"
+        app:title="@string/pref_rule_settings">
+        <Preference
+            app:key="@string/key_pref_export_rules"
+            app:title="@string/export_rules" />
+        <Preference
+            app:key="@string/key_pref_import_rules"
+            app:title="@string/import_rules" />
+    </PreferenceCategory>
 
-    <androidx.preference.PreferenceCategory
-        android:key="@string/key_pref_other"
-        android:title="@string/others">
-        <androidx.preference.Preference
-            android:key="@string/key_pref_import_mat_rules"
-            android:title="@string/import_mat_rules" />
-    </androidx.preference.PreferenceCategory>
+    <PreferenceCategory
+        app:key="@string/key_pref_ifw"
+        app:title="@string/pref_ifw_settings">
+        <Preference
+            app:key="@string/key_pref_export_ifw_rules"
+            app:title="@string/export_ifw_rules" />
+        <Preference
+            app:key="@string/key_pref_import_ifw_rules"
+            app:title="@string/import_ifw_rules" />
+        <Preference
+            app:key="@string/key_pref_reset_ifw_rules"
+            app:title="@string/reset_ifw" />
+    </PreferenceCategory>
 
-    <androidx.preference.PreferenceCategory
-        android:key="@string/key_pref_experimental_features"
-        android:title="@string/experimental_features">
-        <androidx.preference.CheckBoxPreference
-            android:key="@string/key_pref_auto_block"
-            android:summary="@string/auto_block_summary"
-            android:title="@string/auto_block" />
-        <androidx.preference.CheckBoxPreference
-            android:key="@string/key_pref_force_doze"
-            android:summary="@string/force_doze_summary"
-            android:title="@string/force_doze" />
-    </androidx.preference.PreferenceCategory>
+    <PreferenceCategory
+        app:key="@string/key_pref_other"
+        app:title="@string/others">
+        <Preference
+            app:key="@string/key_pref_import_mat_rules"
+            app:title="@string/import_mat_rules" />
+    </PreferenceCategory>
 
-    <androidx.preference.PreferenceCategory
-        android:key="@string/key_pref_about_category"
-        android:title="@string/about">
-        <androidx.preference.Preference
-            android:key="@string/key_pref_about"
-            android:title="@string/about" />
-    </androidx.preference.PreferenceCategory>
+    <PreferenceCategory
+        app:key="@string/key_pref_about_category"
+        app:title="@string/about">
+        <Preference
+            app:key="@string/key_pref_about"
+            app:title="@string/about" />
+    </PreferenceCategory>
 
-</androidx.preference.PreferenceScreen>
+</PreferenceScreen>
