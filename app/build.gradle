@@ -29,9 +29,6 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    lintOptions {
-        abortOnError false
-    }
     packagingOptions {
         exclude 'META-INF/proguard/androidx-annotations.pro'
     }
