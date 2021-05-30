@@ -17,6 +17,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.utils.FileUtils
 
@@ -72,10 +73,13 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
 
     private fun initPreference() {
         controllerTypePreference?.setDefaultValue(getString(R.string.key_pref_controller_type_default_value))
-        storagePreference?.summaryProvider = Preference.SummaryProvider<Preference> {
-            val path = getRulePath()
-            path?.toString() ?: getString(R.string.folder_not_set)
-        }
+        updateFolderSummary()
+    }
+
+    private fun updateFolderSummary() {
+        val path = PreferenceUtil.getSavedRulePath(requireContext())
+        val summary = path?.toString() ?: getString(R.string.folder_not_set)
+        storagePreference?.summary = summary
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -114,18 +118,13 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
             Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
         val flags = data.flags and desiredPermission
         requireActivity().contentResolver.takePersistableUriPermission(uri, flags)
-        logger.d("Assigned ${uri.path} with FLAG_GRANT_READ_URI_PERMISSION and FLAG_GRANT_WRITE_URI_PERMISSION")
+        logger.d("Assigned ${uri.path} with READ_URI_PERMISSION and WRITE_URI_PERMISSION")
         storeRulePath(uri)
+        updateFolderSummary()
     }
 
     private fun storeRulePath(uri: Uri) {
         prefs.edit { putString(getString(R.string.key_pref_rule_path), uri.path) }
-    }
-
-    private fun getRulePath(): Uri? {
-        val storedPath = prefs.getString(getString(R.string.key_pref_rule_path), null)
-        if (storedPath.isNullOrEmpty()) return null
-        return Uri.parse(storedPath)
     }
 
     private fun initPresenter() {
