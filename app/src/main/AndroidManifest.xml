@@ -3,12 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.merxury.blocker">
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
     <uses-permission android:name="moe.shizuku.manager.permission.API" />
@@ -22,6 +25,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.home.HomeActivity"
+            android:exported="true"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.OverlapSystemBar">
             <intent-filter>
@@ -31,9 +35,11 @@
         </activity>
         <activity
             android:name=".ui.component.ComponentActivity"
+            android:exported="false"
             android:theme="@style/AppTheme.OverlapSystemBar" />
         <activity
             android:name=".ui.settings.SettingsActivity"
+            android:exported="false"
             android:label="@string/title_activity_settings"
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.PlayStoreStyle" />
