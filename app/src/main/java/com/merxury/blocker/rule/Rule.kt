@@ -6,6 +6,8 @@ import android.content.pm.ComponentInfo
 import android.os.Build
 import android.preference.PreferenceManager
 import androidx.annotation.RequiresApi
+import androidx.core.net.toFile
+import androidx.documentfile.provider.DocumentFile
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -359,13 +361,11 @@ object Rule {
     }
 
     fun getBlockerRuleFolder(context: Context): File {
-        val path = FileUtils.getExternalStoragePath(context) +
-                PreferenceManager.getDefaultSharedPreferences(context)
-                    .getString(context.getString(R.string.key_pref_rule_path), null)
-        if (!File(path).exists()) {
-            File(path).mkdirs()
+        val path = PreferenceUtil.getSavedRulePath(context)?.toFile() ?: throw RuntimeException("Cannot convert Uri to File")
+        if (!path.exists()) {
+            path.mkdirs()
         }
-        return File(path)
+        return path
     }
 
     private fun getBlockerIFWFolder(context: Context): File {
