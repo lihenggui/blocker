@@ -10,7 +10,6 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.DefaultItemAnimator
@@ -28,7 +27,7 @@ import com.merxury.blocker.util.ToastUtil
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
-import rikka.shizuku.ShizukuProvider
+import rikka.shizuku.Shizuku
 
 
 class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentContract.ComponentItemListener {
@@ -252,14 +251,6 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
         ToastUtil.showToast(message ?: "null", length)
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        logger.d("Request permission back, $requestCode, $permissions, $grantResults")
-        if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED && requestCode == REQUEST_CODE_PERMISSION) {
-            logger.d("Shizuku permission granted")
-        }
-    }
-
     private fun initShizuku() {
         val context = requireContext()
         if (PreferenceUtil.getControllerType(context) != EControllerMethod.SHIZUKU) {
@@ -270,25 +261,28 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
             logger.e("Shizuku does not support Android 5.1 or below")
             return
         }
-        if (ContextCompat.checkSelfPermission(
-                context,
-                ShizukuProvider.PERMISSION
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
+        if (Shizuku.isPreV11()) {
+            // Pre-v11 is unsupported
             return
-        } else if (ActivityCompat.shouldShowRequestPermissionRationale(
-                requireActivity(),
-                ShizukuProvider.PERMISSION
-            )
-        ) {
-            logger.e("User denied Shizuku permission")
-            return
-        } else {
-            ActivityCompat.requestPermissions(
-                requireActivity(),
-                arrayOf(SHIZUKU_PERMISSION_V23),
-                REQUEST_CODE_PERMISSION
-            )
+        }
+        when {
+            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED -> {
+                logger.d("Shizuku permission was already granted")
+                return
+            }
+            Shizuku.shouldShowRequestPermissionRationale() -> {
+                // Users choose "Deny and don't ask again"
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Permission required")
+                    .setMessage("Blocker requires Shizuku permission to work, please grant the permission in the Shizuku app.")
+                    .show()
+                logger.e("User denied Shizuku permission")
+                return
+            }
+            else -> {
+                logger.d("Request Shizuku permission")
+                Shizuku.requestPermission(REQUEST_CODE_PERMISSION)
+            }
         }
     }
 
