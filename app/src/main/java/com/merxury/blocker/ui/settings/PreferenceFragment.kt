@@ -1,14 +1,13 @@
 package com.merxury.blocker.ui.settings
 
 import android.app.Activity
+import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.view.MenuItem
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.edit
@@ -21,12 +20,9 @@ import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.utils.FileUtils
 
-@RequiresApi(Build.VERSION_CODES.LOLLIPOP)
-class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.SettingsView,
-    Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener {
+class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener {
     private val logger = XLog.tag("PreferenceFragment")
-    private lateinit var prefs: SharedPreferences
-    private lateinit var presenter: SettingsPresenter
+    private lateinit var sp: SharedPreferences
 
     private var controllerTypePreference: Preference? = null
     private var exportRulePreference: Preference? = null
@@ -43,11 +39,10 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        prefs = PreferenceManager.getDefaultSharedPreferences(activity)
+        sp = PreferenceManager.getDefaultSharedPreferences(activity)
         findPreference()
         initPreference()
         initListener()
-        initPresenter()
     }
 
     override fun onCreatePreferences(bundle: Bundle?, s: String?) {
@@ -56,7 +51,47 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
 
     override fun onPreferenceChange(preference: Preference?, newValue: Any?): Boolean {
         logger.d("Preference: $preference changed, value = $newValue")
+        if (preference == aboutPreference) {
+            showAbout()
+        }
         return true
+    }
+
+    override fun onPreferenceClick(preference: Preference?): Boolean {
+        if (preference == storagePreference) {
+            setFolderToSave()
+        }
+        return true
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == RESULT_OK && requestCode == PERMISSION_REQUEST_CODE) {
+            if (data != null) {
+                PreferenceUtil.setRulePath(requireContext(), data.data)
+            }
+        }
+    }
+
+    private fun setFolderToSave() {
+
+    }
+
+    private fun askPermission() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        startActivityForResult(intent, PERMISSION_REQUEST_CODE)
+    }
+
+    private fun arePermissionsGranted(uriString: String): Boolean {
+        // list of all persisted permissions for our app
+        val list = requireActivity().contentResolver.persistedUriPermissions
+        for (i in list.indices) {
+            val persistedUriString = list[i].uri.toString()
+            if (persistedUriString == uriString && list[i].isWritePermission && list[i].isReadPermission) {
+                return true
+            }
+        }
+        return false
     }
 
     private fun findPreference() {
@@ -82,55 +117,6 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         storagePreference?.summary = summary
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            matRulePathRequestCode -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    val filePath = FileUtils.getUriPath(requireContext(), data?.data)
-                    showDialog(
-                        getString(R.string.warning),
-                        getString(R.string.import_all_rules_warning_message),
-                        filePath
-                    ) {
-                        presenter.importMatRules(it)
-                    }
-                }
-            }
-            REQUEST_CODE_ASSIGN_FOLDER -> handleAssignFolder(data)
-        }
-    }
-
-
-    private fun assignFolder() {
-        startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), REQUEST_CODE_ASSIGN_FOLDER)
-    }
-
-    private fun handleAssignFolder(data: Intent?) {
-        if (data == null) {
-            logger.e("Intent data is null")
-            return
-        }
-        val uri = data.data ?: run {
-            logger.e("Null folder assigned")
-            return
-        }
-        val desiredPermission =
-            Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-        val flags = data.flags and desiredPermission
-        requireActivity().contentResolver.takePersistableUriPermission(uri, flags)
-        logger.d("Assigned ${uri.path} with READ_URI_PERMISSION and WRITE_URI_PERMISSION")
-        storeRulePath(uri)
-        updateFolderSummary()
-    }
-
-    private fun storeRulePath(uri: Uri) {
-        prefs.edit { putString(getString(R.string.key_pref_rule_path), uri.path) }
-    }
-
-    private fun initPresenter() {
-        presenter = SettingsPresenter(requireContext(), this)
-    }
-
     private fun initListener() {
         storagePreference?.onPreferenceClickListener = this
         exportRulePreference?.onPreferenceClickListener = this
@@ -143,7 +129,6 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         storagePreference?.onPreferenceChangeListener = this
     }
 
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val id = item.itemId
         if (id == android.R.id.home) {
@@ -152,88 +137,6 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
         }
         return super.onOptionsItemSelected(item)
     }
-
-    override fun showExportResult(isSucceed: Boolean, successfulCount: Int, failedCount: Int) {
-
-    }
-
-    override fun showImportResult(isSucceed: Boolean, successfulCount: Int, failedCount: Int) {
-
-    }
-
-    override fun showResetResult(isSucceed: Boolean) {
-
-    }
-
-    override fun showMessage(res: Int) {
-        ToastUtil.showToast(res, Toast.LENGTH_SHORT)
-    }
-
-    override fun showDialog(title: String, message: String, action: () -> Unit) {
-
-    }
-
-    override fun showDialog(
-        title: String,
-        message: String,
-        file: String?,
-        action: (file: String?) -> Unit
-    ) {
-        AlertDialog.Builder(requireActivity())
-            .setTitle(title)
-            .setMessage(message)
-            .setCancelable(true)
-            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-            .setPositiveButton(R.string.ok) { _, _ -> action(file) }
-            .create()
-            .show()
-    }
-
-    override fun onPreferenceClick(preference: Preference?): Boolean {
-        if (preference == null) {
-            return false
-        }
-        logger.d("onPreferenceClick: ${preference.key}")
-        when (preference) {
-            exportRulePreference -> showDialog(
-                getString(R.string.warning),
-                getString(R.string.export_all_rules_warning_message)
-            ) {
-                presenter.exportAllRules()
-            }
-            importRulePreference -> showDialog(
-                getString(R.string.warning),
-                getString(R.string.import_all_rules_warning_message)
-            ) {
-                presenter.importAllRules()
-            }
-            exportIfwRulePreference -> showDialog(
-                getString(R.string.warning),
-                getString(R.string.export_all_ifw_rules_warning_message)
-            ) {
-                presenter.exportAllIfwRules()
-            }
-
-            importIfwRulePreference -> showDialog(
-                getString(R.string.warning),
-                getString(R.string.import_all_ifw_rules_warning_message)
-            ) {
-                presenter.importAllIfwRules()
-            }
-            importMatRulesPreference -> selectMatFile()
-            resetIfwPreference -> showDialog(
-                getString(R.string.warning),
-                getString(R.string.reset_ifw_warning_message)
-            ) {
-                presenter.resetIFW()
-            }
-            aboutPreference -> showAbout()
-            storagePreference -> assignFolder()
-            else -> return false
-        }
-        return true
-    }
-
 
     private fun selectMatFile() {
         val pm = context?.packageManager ?: return
@@ -256,6 +159,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), SettingsContract.Settings
 
     companion object {
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
-        private const val REQUEST_CODE_ASSIGN_FOLDER = 1000
+        private const val PERMISSION_REQUEST_CODE = 101
+        private const val SP_SAVE_FOLDER = "sp_save_folder"
     }
 }

@@ -26,4 +26,12 @@ object PreferenceUtil {
         if (storedPath.isNullOrEmpty()) return null
         return Uri.parse(storedPath)
     }
+
+    fun setRulePath(context: Context, uri: Uri?) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putString(context.getString(R.string.key_pref_rule_path), uri?.toString())
+            .apply()
+
+    }
 }
