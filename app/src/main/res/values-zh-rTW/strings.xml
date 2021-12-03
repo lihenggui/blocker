@@ -68,9 +68,6 @@
     <string name="import_rule_failed_exception">匯入規則失敗，錯誤原因: %1$s</string>
     <string name="export_rule_failed_no_permission">匯出規則失敗，需要儲存權限以寫入規則</string>
     <string name="export_rule_failed_exception">匯出規則失敗，錯誤原因: %1$s</string>
-    <string name="pref_controller_settings">控制器設定</string>
-    <string name="pref_controller_chooser_title">選擇控制器</string>
-    <string name="pref_controller_type">控制器種類</string>
     <string name="pref_header_about">關於</string>
     <string name="fail">失敗</string>
     <plurals name="import_rule_succeed">
