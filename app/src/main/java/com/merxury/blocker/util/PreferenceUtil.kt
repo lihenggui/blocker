@@ -27,6 +27,10 @@ object PreferenceUtil {
         return Uri.parse(storedPath)
     }
 
+    fun getIfwRulePath(context: Context): Uri? {
+        return getSavedRulePath(context)?.buildUpon()?.appendPath("ifw")?.build()
+    }
+
     fun setRulePath(context: Context, uri: Uri?) {
         PreferenceManager.getDefaultSharedPreferences(context)
             .edit()
