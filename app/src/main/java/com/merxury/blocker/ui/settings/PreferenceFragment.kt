@@ -10,10 +10,15 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
+import androidx.preference.SwitchPreference
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.blocker.work.ExportBlockerRulesWork
 
 class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
@@ -29,6 +34,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     private var importMatRulesPreference: Preference? = null
     private var aboutPreference: Preference? = null
     private var storagePreference: Preference? = null
+    private var backupSystemAppPreference: SwitchPreference? = null
 
     private val matRulePathRequestCode = 100
 
@@ -84,7 +90,9 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     }
 
     private fun exportRules() {
-
+        val exportRequest = OneTimeWorkRequestBuilder<ExportBlockerRulesWork>().build()
+        WorkManager.getInstance(requireContext())
+            .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportRequest)
     }
 
     private fun findPreference() {
@@ -97,6 +105,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         importMatRulesPreference = findPreference(getString(R.string.key_pref_import_mat_rules))
         aboutPreference = findPreference(getString(R.string.key_pref_about))
         storagePreference = findPreference(getString(R.string.key_pref_save_folder_path))
+        backupSystemAppPreference = findPreference(getString(R.string.key_pref_backup_system_apps))
     }
 
     private fun initPreference() {
