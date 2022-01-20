@@ -51,16 +51,16 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     }
 
     override fun onPreferenceChange(preference: Preference?, newValue: Any?): Boolean {
-        logger.d("Preference: $preference changed, value = $newValue")
-        if (preference == aboutPreference) {
-            showAbout()
-        }
+        logger.d("Preference: ${preference?.key} changed, value = $newValue")
         return true
     }
 
     override fun onPreferenceClick(preference: Preference?): Boolean {
-        if (preference == storagePreference) {
-            setFolderToSave()
+        logger.d("Preference: ${preference?.key} clicked")
+        when (preference) {
+            storagePreference -> setFolderToSave()
+            exportRulePreference -> exportRules()
+            aboutPreference -> showAbout()
         }
         return true
     }
@@ -81,6 +81,10 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     private fun setFolderToSave() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
         startActivityForResult(intent, PERMISSION_REQUEST_CODE)
+    }
+
+    private fun exportRules() {
+
     }
 
     private fun findPreference() {

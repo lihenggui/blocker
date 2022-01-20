@@ -278,9 +278,11 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
     }
 
     override fun updateState(packageName: String) {
-        val updatedInfo = ApplicationUtil.getApplicationInfo(requireContext(), packageName)
-                ?: return
-        listAdapter.update(updatedInfo)
+        launch {
+            val updatedInfo = ApplicationUtil.getApplicationInfo(requireContext(), packageName)
+                ?: return@launch
+            listAdapter.update(updatedInfo)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

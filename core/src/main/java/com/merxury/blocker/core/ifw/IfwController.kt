@@ -11,7 +11,7 @@ import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import com.merxury.libkit.utils.ApplicationUtil
-import java.lang.Exception
+import kotlinx.coroutines.runBlocking
 
 class IfwController(val context: Context) : IController {
     private lateinit var controller: IntentFirewall
@@ -92,7 +92,10 @@ class IfwController(val context: Context) : IController {
 
     private fun init(packageName: String) {
         initController(packageName)
-        initPackageInfo(packageName)
+        runBlocking {
+            // TODO Will remove this blocking call
+            initPackageInfo(packageName)
+        }
     }
 
     private fun initController(packageName: String) {
@@ -102,9 +105,10 @@ class IfwController(val context: Context) : IController {
         }
     }
 
-    private fun initPackageInfo(packageName: String) {
+    private suspend fun initPackageInfo(packageName: String) {
         if (!::packageInfo.isInitialized || packageInfo.packageName != packageName) {
-            packageInfo = ApplicationUtil.getApplicationComponents(context.packageManager, packageName)
+            packageInfo =
+                ApplicationUtil.getApplicationComponents(context.packageManager, packageName)
         }
     }
 
