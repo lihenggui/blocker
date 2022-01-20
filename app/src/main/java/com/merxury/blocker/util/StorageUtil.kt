@@ -32,7 +32,7 @@ object StorageUtil {
             return false
         }
         // Create blocker rule file
-        var file = dir.findFile(packageName)
+        var file = dir.findFile(packageName + Rule.EXTENSION)
         if (file == null) {
             file = dir.createFile(Rule.BLOCKER_RULE_MIME, packageName)
         }
@@ -40,20 +40,18 @@ object StorageUtil {
             logger.w("Cannot create rule $packageName")
             return false
         }
-        withContext(dispatcher) {
+        return withContext(dispatcher) {
             try {
                 context.contentResolver.openOutputStream(file.uri)?.use {
                     val text = GsonBuilder().setPrettyPrinting().create().toJson(rule)
                     it.write(text.toByteArray())
                 }
-                true
+                return@withContext true
             } catch (e: Exception) {
                 logger.e("Cannot write rules for $packageName", e)
                 return@withContext false
             }
         }
-        // Should be unreachable
-        return false
     }
 
     suspend fun saveIfwToStorage(
@@ -92,18 +90,16 @@ object StorageUtil {
             return false
         }
         // Write file contents
-        withContext(dispatcher) {
+        return withContext(dispatcher) {
             try {
                 context.contentResolver.openOutputStream(file.uri)?.use {
                     it.write(content.toByteArray())
                 }
-                true
+                return@withContext true
             } catch (e: Exception) {
                 logger.e("Cannot write rules for $filename", e)
                 return@withContext false
             }
         }
-        // Should be unreachable
-        return false
     }
 }

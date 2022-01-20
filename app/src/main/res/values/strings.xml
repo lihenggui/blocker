@@ -145,7 +145,8 @@
     <string name="copy_full_name">Copy Full Name</string>
     <string name="component_name">Component Name</string>
     <string name="copied">Copied</string>
-    <string name="rule_folder_settings">Folder settings</string>
+    <string name="rule_backup_settings">Backup settings</string>
     <string name="set_folder_to_save">Set folder to save</string>
     <string name="folder_not_set">Folder not set</string>
+    <string name="backup_system_apps">Backup system apps</string>
 </resources>

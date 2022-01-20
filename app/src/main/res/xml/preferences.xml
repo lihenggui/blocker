@@ -13,10 +13,14 @@
             app:title="@string/controller_type" />
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/rule_folder_settings">
+    <PreferenceCategory app:title="@string/rule_backup_settings">
         <Preference
             app:key="@string/key_pref_save_folder_path"
             app:title="@string/set_folder_to_save" />
+        <SwitchPreference
+            app:key="@string/key_pref_backup_system_apps"
+            app:title="@string/backup_system_apps"
+            app:defaultValue="false" />
     </PreferenceCategory>
 
     <PreferenceCategory
