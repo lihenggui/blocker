@@ -41,6 +41,11 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         initListener()
     }
 
+    override fun onResume() {
+        super.onResume()
+        updateFolderSummary()
+    }
+
     override fun onCreatePreferences(bundle: Bundle?, s: String?) {
         addPreferencesFromResource(R.xml.preferences)
     }
@@ -64,30 +69,18 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK && requestCode == PERMISSION_REQUEST_CODE) {
             if (data != null) {
+                val uri = data.data ?: return
+                val flags = data.flags and
+                        (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+                requireActivity().contentResolver.takePersistableUriPermission(uri, flags)
                 PreferenceUtil.setRulePath(requireContext(), data.data)
             }
         }
     }
 
     private fun setFolderToSave() {
-        askPermission()
-    }
-
-    private fun askPermission() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
         startActivityForResult(intent, PERMISSION_REQUEST_CODE)
-    }
-
-    private fun arePermissionsGranted(uriString: String): Boolean {
-        // list of all persisted permissions for our app
-        val list = requireActivity().contentResolver.persistedUriPermissions
-        for (i in list.indices) {
-            val persistedUriString = list[i].uri.toString()
-            if (persistedUriString == uriString && list[i].isWritePermission && list[i].isReadPermission) {
-                return true
-            }
-        }
-        return false
     }
 
     private fun findPreference() {
@@ -109,7 +102,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
 
     private fun updateFolderSummary() {
         val path = PreferenceUtil.getSavedRulePath(requireContext())
-        val summary = path?.toString() ?: getString(R.string.folder_not_set)
+        val summary = path?.path ?: getString(R.string.folder_not_set)
         storagePreference?.summary = summary
     }
 
@@ -156,6 +149,5 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     companion object {
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
         private const val PERMISSION_REQUEST_CODE = 101
-        private const val SP_SAVE_FOLDER = "sp_save_folder"
     }
 }
