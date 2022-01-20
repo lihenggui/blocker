@@ -1,21 +1,16 @@
 package com.merxury.blocker.ui.settings
 
 import android.content.Context
-import android.os.Build
 import com.elvishew.xlog.XLog
-import com.google.gson.Gson
 import com.merxury.blocker.R
 import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
-import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.libkit.utils.ApplicationUtil
-import com.merxury.libkit.utils.FileUtils
 import com.merxury.libkit.utils.PermissionUtils
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileNotFoundException
-import java.io.FileReader
 
 class SettingsPresenter(
     private val context: Context,
@@ -58,34 +53,34 @@ class SettingsPresenter(
     }
 
     override fun importAllRules() = uiScope.launch {
-        var restoredCount = 0
-        var rulesCount: Int
-        withContext(Dispatchers.IO) {
-            checkRootAccess()
-            rulesCount = FileUtils.getFileCounts(
-                Rule.getBlockerRuleFolder(context).absolutePath,
-                Rule.EXTENSION
-            )
-            NotificationUtil.createProcessingNotification(context, rulesCount)
-            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(Rule.getBlockerExternalFolder(context, true), Rule.getBlockerRuleFolder(context).absolutePath)
-            FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath).filter {
-                it.endsWith(Rule.EXTENSION)
-            }.forEach {
-                val rule = Gson().fromJson(FileReader(it), BlockerRule::class.java)
-                if (!ApplicationUtil.isAppInstalled(context.packageManager, rule.packageName)) {
-                    return@forEach
-                }
-                Rule.import(context, File(it))
-                restoredCount++
-                NotificationUtil.updateProcessingNotification(
-                    context,
-                    rule.packageName ?: "",
-                    restoredCount,
-                    rulesCount
-                )
-            }
-        }
-        NotificationUtil.finishProcessingNotification(context, restoredCount)
+//        var restoredCount = 0
+//        var rulesCount: Int
+//        withContext(Dispatchers.IO) {
+//            checkRootAccess()
+//            rulesCount = FileUtils.getFileCounts(
+//                Rule.getBlockerRuleFolder(context).absolutePath,
+//                Rule.EXTENSION
+//            )
+//            NotificationUtil.createProcessingNotification(context, rulesCount)
+//            if (Build.VERSION.SDK_INT > 28) FileUtils.getExternalStorageMove(Rule.getBlockerExternalFolder(context, true), Rule.getBlockerRuleFolder(context).absolutePath)
+//            FileUtils.listFiles(Rule.getBlockerRuleFolder(context).absolutePath).filter {
+//                it.endsWith(Rule.EXTENSION)
+//            }.forEach {
+//                val rule = Gson().fromJson(FileReader(it), BlockerRule::class.java)
+//                if (!ApplicationUtil.isAppInstalled(context.packageManager, rule.packageName)) {
+//                    return@forEach
+//                }
+//                Rule.import(context, File(it))
+//                restoredCount++
+//                NotificationUtil.updateProcessingNotification(
+//                    context,
+//                    rule.packageName ?: "",
+//                    restoredCount,
+//                    rulesCount
+//                )
+//            }
+//        }
+//        NotificationUtil.finishProcessingNotification(context, restoredCount)
     }
 
 

@@ -6,7 +6,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
-import android.os.Build
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import com.elvishew.xlog.XLog
@@ -16,14 +15,14 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
-import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.util.DialogUtil
 import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.entity.getSimpleName
-import com.merxury.libkit.utils.*
+import com.merxury.libkit.utils.ApplicationUtil
+import com.merxury.libkit.utils.ManagerUtils
+import com.merxury.libkit.utils.PermissionUtils
+import com.merxury.libkit.utils.ServiceHelper
 import kotlinx.coroutines.*
-import java.io.File
 import kotlin.coroutines.CoroutineContext
 
 class ComponentPresenter(
@@ -322,30 +321,21 @@ class ComponentPresenter(
 
     private fun importBlockerRule(packageName: String) {
         view?.showToastMessage(context.getString(R.string.processing), Toast.LENGTH_SHORT)
-        launch {
-            val result = withContext(Dispatchers.IO) {
-                val blockerFolder = Rule.getBlockerRuleFolder(context)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    FileUtils.getExternalStorageMove(
-                        Rule.getBlockerExternalFolder(
-                            context,
-                            true
-                        ), blockerFolder.absolutePath
-                    )
-                }
-                val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
-                if (!destFile.exists()) {
-                    RulesResult(false, 0, 0)
-                } else {
-                    Rule.import(context, destFile)
-                }
-            }
-            if (result.isSucceed) {
-                ToastUtil.showToast(context.getString(R.string.done))
-            } else {
-                ToastUtil.showToast(context.getString(R.string.import_fail_message))
-            }
-        }
+//        launch {
+//            val result = withContext(Dispatchers.IO) {
+//                val destFile = File(blockerFolder, packageName + Rule.EXTENSION)
+//                if (!destFile.exists()) {
+//                    RulesResult(false, 0, 0)
+//                } else {
+//                    Rule.import(context, destFile)
+//                }
+//            }
+//            if (result.isSucceed) {
+//                ToastUtil.showToast(context.getString(R.string.done))
+//            } else {
+//                ToastUtil.showToast(context.getString(R.string.import_fail_message))
+//            }
+//        }
     }
 
     private fun initViewModel(componentList: List<ComponentInfo>): List<ComponentItemViewModel> {

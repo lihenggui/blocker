@@ -3,19 +3,17 @@ package com.merxury.ifw.util
 import com.elvishew.xlog.XLog
 import com.merxury.ifw.entity.Rules
 import org.simpleframework.xml.core.Persister
-import java.io.File
+import java.io.InputStream
 
 object RuleSerializer {
     private val serializer by lazy { Persister() }
     private val logger = XLog.tag("RuleSerializer").build()
-    fun deserialize(file: File): Rules? {
-        if (!file.exists()) {
-            return null
-        }
+
+    fun deserialize(inStream: InputStream): Rules? {
         return try {
-            serializer.read(Rules::class.java, file)
+            serializer.read(Rules::class.java, inStream)
         } catch (e: Exception) {
-            logger.e("${file.absolutePath} is not a valid ifw rule, skipping", e)
+            logger.e("Not a valid ifw rule, skipping", e)
             null
         }
     }

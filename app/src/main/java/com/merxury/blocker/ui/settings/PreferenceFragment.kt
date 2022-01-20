@@ -1,16 +1,12 @@
 package com.merxury.blocker.ui.settings
 
-import android.app.Activity
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
-import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.core.content.edit
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
@@ -18,9 +14,9 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.libkit.utils.FileUtils
 
-class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener, Preference.OnPreferenceChangeListener {
+class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
+    Preference.OnPreferenceChangeListener {
     private val logger = XLog.tag("PreferenceFragment")
     private lateinit var sp: SharedPreferences
 
@@ -74,7 +70,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     }
 
     private fun setFolderToSave() {
-
+        askPermission()
     }
 
     private fun askPermission() {
