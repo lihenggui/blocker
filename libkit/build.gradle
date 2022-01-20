@@ -20,11 +20,11 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    api 'androidx.appcompat:appcompat:1.4.0'
+    api 'androidx.appcompat:appcompat:1.4.1'
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    api "androidx.coordinatorlayout:coordinatorlayout:1.1.0"
-    api 'com.elvishew:xlog:1.9.0'
-    api 'com.github.topjohnwu.libsu:core:3.1.2'
+    api "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
+    api 'com.elvishew:xlog:1.10.1'
+    api 'com.github.topjohnwu.libsu:core:3.2.1'
     api 'com.github.tiann:FreeReflection:3.1.0'
     api 'com.google.code.gson:gson:2.8.6'
     api "dev.rikka.shizuku:api:12.1.0"
