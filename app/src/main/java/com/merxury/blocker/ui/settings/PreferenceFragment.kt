@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.documentfile.provider.DocumentFile
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
@@ -19,6 +20,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.ExportBlockerRulesWork
+import com.merxury.blocker.work.ImportAllRuleWork
 
 class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
@@ -47,11 +49,6 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         initListener()
     }
 
-    override fun onResume() {
-        super.onResume()
-        updateFolderSummary()
-    }
-
     override fun onCreatePreferences(bundle: Bundle?, s: String?) {
         addPreferencesFromResource(R.xml.preferences)
     }
@@ -65,7 +62,9 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         logger.d("Preference: ${preference?.key} clicked")
         when (preference) {
             storagePreference -> setFolderToSave()
-            exportRulePreference -> exportRules()
+            exportRulePreference -> exportBlockerRule()
+            importRulePreference -> importBlockerRule()
+            importMatRulesPreference -> selectMatFile()
             aboutPreference -> showAbout()
         }
         return true
@@ -76,10 +75,12 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         if (resultCode == RESULT_OK && requestCode == PERMISSION_REQUEST_CODE) {
             if (data != null) {
                 val uri = data.data ?: return
+                logger.d("Save folder: $uri")
                 val flags = data.flags and
                         (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 requireActivity().contentResolver.takePersistableUriPermission(uri, flags)
                 PreferenceUtil.setRulePath(requireContext(), data.data)
+                updateFolderSummary()
             }
         }
     }
@@ -89,7 +90,13 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         startActivityForResult(intent, PERMISSION_REQUEST_CODE)
     }
 
-    private fun exportRules() {
+    private fun importBlockerRule() {
+        val importBlockerRuleReq = OneTimeWorkRequestBuilder<ImportAllRuleWork>().build()
+        WorkManager.getInstance(requireContext())
+            .enqueue(importBlockerRuleReq)
+    }
+
+    private fun exportBlockerRule() {
         val exportRequest = OneTimeWorkRequestBuilder<ExportBlockerRulesWork>().build()
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportRequest)
@@ -114,8 +121,20 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     }
 
     private fun updateFolderSummary() {
-        val path = PreferenceUtil.getSavedRulePath(requireContext())
-        val summary = path?.path ?: getString(R.string.folder_not_set)
+        val uri = PreferenceUtil.getSavedRulePath(requireContext())
+        // Hasn't set the dir to store
+        if (uri == null) {
+            storagePreference?.summary = getString(R.string.directory_invalid_or_not_set)
+            return
+        }
+        val folder = DocumentFile.fromTreeUri(requireContext(), uri)
+        // Folder may be unreachable
+        val isFolderUnreachable = (folder == null) || !folder.canRead() || !folder.canWrite()
+        val summary = if (isFolderUnreachable) {
+            getString(R.string.directory_invalid_or_not_set)
+        } else {
+            uri.path
+        }
         storagePreference?.summary = summary
     }
 

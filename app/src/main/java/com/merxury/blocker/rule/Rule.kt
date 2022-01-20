@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import androidx.documentfile.provider.DocumentFile
 import com.elvishew.xlog.XLog
-import com.google.gson.Gson
-import com.google.gson.stream.JsonReader
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
@@ -26,15 +24,22 @@ import com.merxury.libkit.utils.StorageUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import java.io.File
-import java.io.FileReader
 
 object Rule {
     const val BLOCKER_RULE_MIME = "application/json"
     const val EXTENSION = ".json"
     private val logger = XLog.tag("Rule").build()
 
-    suspend fun export(context: Context) {
+    suspend fun exportAll(context: Context) {
+        logger.i("Export rules for all apps")
         ApplicationUtil.getApplicationList(context).forEach {
+            export(context, it.packageName)
+        }
+    }
+
+    suspend fun exportUserApp(context: Context) {
+        logger.i("Export rules for user apps")
+        ApplicationUtil.getThirdPartyApplicationList(context).forEach {
             export(context, it.packageName)
         }
     }
@@ -144,24 +149,21 @@ object Rule {
         }
     }
 
-    fun import(context: Context, file: File): RulesResult {
-        val jsonReader = JsonReader(FileReader(file))
-        val appRule = Gson().fromJson<BlockerRule>(jsonReader, BlockerRule::class.java)
-            ?: return RulesResult(false, 0, 0)
+    fun import(context: Context, rule: BlockerRule): RulesResult {
         var succeedCount = 0
         var failedCount = 0
-        val total = appRule.components.size
+        val total = rule.components.size
         val controller = getController(context)
         var ifwController: IntentFirewall? = null
         // Detects if contains IFW rules, if exists, create a new controller.
-        appRule.components.forEach ifwDetection@{
+        rule.components.forEach ifwDetection@{
             if (it.method == EControllerMethod.IFW) {
-                ifwController = IntentFirewallImpl.getInstance(context, appRule.packageName)
+                ifwController = IntentFirewallImpl.getInstance(context, rule.packageName)
                 return@ifwDetection
             }
         }
         try {
-            appRule.components.forEach {
+            rule.components.forEach {
                 val controllerResult = when (it.method) {
                     EControllerMethod.IFW -> {
                         when (it.type) {

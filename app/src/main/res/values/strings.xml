@@ -147,6 +147,6 @@
     <string name="copied">Copied</string>
     <string name="rule_backup_settings">Backup settings</string>
     <string name="set_folder_to_save">Set folder to save</string>
-    <string name="folder_not_set">Folder not set</string>
+    <string name="directory_invalid_or_not_set">Directory is invalid or not set</string>
     <string name="backup_system_apps">Backup system apps</string>
 </resources>
