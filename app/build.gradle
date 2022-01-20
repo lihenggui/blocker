@@ -45,9 +45,6 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.1.1'
     implementation 'androidx.browser:browser:1.4.0'
     implementation 'com.mikepenz:materialdrawer:6.1.2'
-    // Coroutine
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1'
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1'
     // Crashlytics
     implementation platform('com.google.firebase:firebase-bom:28.3.1')
     implementation 'com.google.firebase:firebase-crashlytics-ktx'
