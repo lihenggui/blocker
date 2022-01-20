@@ -9,6 +9,9 @@ import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.merxury.libkit.entity.Application
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.*
 
 /**
@@ -29,10 +32,14 @@ object ApplicationUtil {
      * @param context Context
      * @return list of application info
      */
-    fun getApplicationList(context: Context): MutableList<Application> {
+    suspend fun getApplicationList(
+        context: Context,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): MutableList<Application> {
         val pm = context.packageManager
         val blockedApps = getBlockedApplication(context)
-        return pm.getInstalledPackages(0)
+        return withContext(dispatcher) {
+            pm.getInstalledPackages(0)
                 .asSequence()
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
                 .map {
@@ -41,6 +48,7 @@ object ApplicationUtil {
                     }
                 }
                 .toMutableList()
+        }
     }
 
     /**
@@ -49,10 +57,14 @@ object ApplicationUtil {
      * @param context Context
      * @return a list of installed third party applications
      */
-    fun getThirdPartyApplicationList(context: Context): MutableList<Application> {
+    suspend fun getThirdPartyApplicationList(
+        context: Context,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): MutableList<Application> {
         val pm = context.packageManager
         val blockedApps = getBlockedApplication(context)
-        return pm.getInstalledPackages(0)
+        return withContext(dispatcher) {
+            pm.getInstalledPackages(0)
                 .asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
@@ -62,6 +74,7 @@ object ApplicationUtil {
                     }
                 }
                 .toMutableList()
+        }
     }
 
     /**
@@ -70,10 +83,14 @@ object ApplicationUtil {
      * @param context Context
      * @return a list of installed system applications
      */
-    fun getSystemApplicationList(context: Context): MutableList<Application> {
+    suspend fun getSystemApplicationList(
+        context: Context,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): MutableList<Application> {
         val pm = context.packageManager
         val blockedApps = getBlockedApplication(context)
-        return pm.getInstalledPackages(0)
+        return withContext(dispatcher) {
+            pm.getInstalledPackages(0)
                 .asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
                 .map {
@@ -82,6 +99,7 @@ object ApplicationUtil {
                     }
                 }
                 .toMutableList()
+        }
     }
 
     /**
@@ -92,26 +110,32 @@ object ApplicationUtil {
      * @return list of activity
      */
     @Suppress("DEPRECATION")
-    fun getActivityList(pm: PackageManager, packageName: String): MutableList<ActivityInfo> {
-        val activities = ArrayList<ActivityInfo>()
-        try {
-            var flags = PackageManager.GET_ACTIVITIES
-            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or PackageManager.GET_DISABLED_COMPONENTS
-            } else {
-                flags or PackageManager.MATCH_DISABLED_COMPONENTS
+    suspend fun getActivityList(
+        pm: PackageManager,
+        packageName: String,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): MutableList<ActivityInfo> {
+        return withContext(dispatcher) {
+            val activities = ArrayList<ActivityInfo>()
+            try {
+                var flags = PackageManager.GET_ACTIVITIES
+                flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                    flags or PackageManager.GET_DISABLED_COMPONENTS
+                } else {
+                    flags or PackageManager.MATCH_DISABLED_COMPONENTS
+                }
+                val components = pm.getPackageInfo(packageName, flags).activities
+                if (components != null && components.isNotEmpty()) {
+                    Collections.addAll(activities, *components)
+                }
+            } catch (e: PackageManager.NameNotFoundException) {
+                logger.w("Cannot find specified package.")
+            } catch (e: RuntimeException) {
+                logger.e("Failed to fetch activity list", e)
+                return@withContext ApkUtils.getActivities(pm, packageName)
             }
-            val components = pm.getPackageInfo(packageName, flags).activities
-            if (components != null && components.isNotEmpty()) {
-                Collections.addAll(activities, *components)
-            }
-        } catch (e: PackageManager.NameNotFoundException) {
-            logger.e("Cannot find specified package.")
-        } catch (e: RuntimeException) {
-            logger.e(e.message)
-            return ApkUtils.getActivities(pm, packageName)
+            activities
         }
-        return activities
     }
 
     /**
@@ -122,23 +146,29 @@ object ApplicationUtil {
      * @return list of receiver
      */
     @Suppress("DEPRECATION")
-    fun getReceiverList(pm: PackageManager, packageName: String): MutableList<ActivityInfo> {
-        val receivers = ArrayList<ActivityInfo>()
-        try {
-            var flags = PackageManager.GET_RECEIVERS
-            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or PackageManager.GET_DISABLED_COMPONENTS
-            } else {
-                flags or PackageManager.MATCH_DISABLED_COMPONENTS
+    suspend fun getReceiverList(
+        pm: PackageManager,
+        packageName: String,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): MutableList<ActivityInfo> {
+        return withContext(dispatcher) {
+            val receivers = ArrayList<ActivityInfo>()
+            try {
+                var flags = PackageManager.GET_RECEIVERS
+                flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                    flags or PackageManager.GET_DISABLED_COMPONENTS
+                } else {
+                    flags or PackageManager.MATCH_DISABLED_COMPONENTS
+                }
+                val components = pm.getPackageInfo(packageName, flags).receivers
+                if (components != null && components.isNotEmpty()) {
+                    Collections.addAll(receivers, *components)
+                }
+            } catch (e: PackageManager.NameNotFoundException) {
+                logger.e("Cannot find specified package.")
             }
-            val components = pm.getPackageInfo(packageName, flags).receivers
-            if (components != null && components.isNotEmpty()) {
-                Collections.addAll(receivers, *components)
-            }
-        } catch (e: PackageManager.NameNotFoundException) {
-            logger.e("Cannot find specified package.")
+            receivers
         }
-        return receivers
     }
 
     /**
@@ -150,23 +180,29 @@ object ApplicationUtil {
      */
 
     @Suppress("DEPRECATION")
-    fun getServiceList(pm: PackageManager, packageName: String): MutableList<ServiceInfo> {
-        val services = ArrayList<ServiceInfo>()
-        try {
-            var flags = PackageManager.GET_SERVICES
-            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or PackageManager.GET_DISABLED_COMPONENTS
-            } else {
-                flags or PackageManager.MATCH_DISABLED_COMPONENTS
+    suspend fun getServiceList(
+        pm: PackageManager,
+        packageName: String,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): MutableList<ServiceInfo> {
+        return withContext(dispatcher) {
+            val services = ArrayList<ServiceInfo>()
+            try {
+                var flags = PackageManager.GET_SERVICES
+                flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                    flags or PackageManager.GET_DISABLED_COMPONENTS
+                } else {
+                    flags or PackageManager.MATCH_DISABLED_COMPONENTS
+                }
+                val components = pm.getPackageInfo(packageName, flags).services
+                if (components != null && components.isNotEmpty()) {
+                    Collections.addAll(services, *components)
+                }
+            } catch (e: PackageManager.NameNotFoundException) {
+                logger.e("Cannot find specified package.")
             }
-            val components = pm.getPackageInfo(packageName, flags).services
-            if (components != null && components.isNotEmpty()) {
-                Collections.addAll(services, *components)
-            }
-        } catch (e: PackageManager.NameNotFoundException) {
-            logger.e("Cannot find specified package.")
+            services
         }
-        return services
     }
 
     /**
@@ -177,24 +213,29 @@ object ApplicationUtil {
      * @return list of provider
      */
     @Suppress("DEPRECATION")
-    fun getProviderList(pm: PackageManager, packageName: String): MutableList<ProviderInfo> {
-        val providers = ArrayList<ProviderInfo>()
-        try {
-            var flags = PackageManager.GET_PROVIDERS
-            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or PackageManager.GET_DISABLED_COMPONENTS
-            } else {
-                flags or PackageManager.MATCH_DISABLED_COMPONENTS
+    suspend fun getProviderList(
+        pm: PackageManager,
+        packageName: String,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): MutableList<ProviderInfo> {
+        return withContext(dispatcher) {
+            val providers = ArrayList<ProviderInfo>()
+            try {
+                var flags = PackageManager.GET_PROVIDERS
+                flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                    flags or PackageManager.GET_DISABLED_COMPONENTS
+                } else {
+                    flags or PackageManager.MATCH_DISABLED_COMPONENTS
+                }
+                val components = pm.getPackageInfo(packageName, flags).providers
+                if (components != null && components.isNotEmpty()) {
+                    Collections.addAll(providers, *components)
+                }
+            } catch (e: PackageManager.NameNotFoundException) {
+                logger.e("Cannot find specified package.")
             }
-            val components = pm.getPackageInfo(packageName, flags).providers
-            if (components != null && components.isNotEmpty()) {
-                Collections.addAll(providers, *components)
-            }
-        } catch (e: PackageManager.NameNotFoundException) {
-            logger.e("Cannot find specified package.")
+            providers
         }
-
-        return providers
     }
 
     /**
@@ -208,17 +249,24 @@ object ApplicationUtil {
      * GET_SERVICES, GET_SIGNATURES, MATCH_DISABLED_COMPONENTS (API level 24), MATCH_DISABLED_UNTIL_USED_COMPONENTS(API level 24)
      * @return a set of components
      */
-    fun getApplicationComponents(pm: PackageManager, packageName: String, flags: Int): PackageInfo? {
-        var info: PackageInfo? = null
-        try {
-            info = pm.getPackageInfo(packageName, flags)
-        } catch (e: PackageManager.NameNotFoundException) {
-            logger.e("Cannot find specified package.")
+    suspend fun getApplicationComponents(
+        pm: PackageManager,
+        packageName: String,
+        flags: Int,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): PackageInfo? {
+        return withContext(dispatcher) {
+            var info: PackageInfo? = null
+            try {
+                info = pm.getPackageInfo(packageName, flags)
+            } catch (e: PackageManager.NameNotFoundException) {
+                logger.e("Cannot find specified package.")
+            }
+            info
         }
-        return info
     }
 
-    fun getApplicationInfo(context: Context, packageName: String): Application? {
+    suspend fun getApplicationInfo(context: Context, packageName: String): Application? {
         val pm = context.packageManager
         val info = getApplicationComponents(pm, packageName, 0) ?: return null
         return Application(pm, info).apply {
@@ -235,28 +283,37 @@ object ApplicationUtil {
      * @return a set of components
      */
     @Suppress("DEPRECATION")
-    fun getApplicationComponents(pm: PackageManager, packageName: String): PackageInfo {
-        var flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
-                PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
-                PackageManager.GET_INTENT_FILTERS
-        flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            flags or PackageManager.GET_DISABLED_COMPONENTS
-        } else {
-            flags or PackageManager.MATCH_DISABLED_COMPONENTS
+    suspend fun getApplicationComponents(
+        pm: PackageManager,
+        packageName: String,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): PackageInfo {
+        return withContext(dispatcher) {
+            var flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
+                    PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
+                    PackageManager.GET_INTENT_FILTERS
+            flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                flags or PackageManager.GET_DISABLED_COMPONENTS
+            } else {
+                flags or PackageManager.MATCH_DISABLED_COMPONENTS
+            }
+            var info = PackageInfo()
+            try {
+                info = pm.getPackageInfo(packageName, flags)
+            } catch (e: RuntimeException) {
+                logger.e(e.message)
+                info = getPackageInfoFromManifest(pm, packageName)
+            } catch (e: PackageManager.NameNotFoundException) {
+                logger.e("Cannot find specified package.")
+            }
+            info
         }
-        var info = PackageInfo()
-        try {
-            info = pm.getPackageInfo(packageName, flags)
-        } catch (e: RuntimeException) {
-            logger.e(e.message)
-            info = getPackageInfoFromManifest(pm, packageName)
-        } catch (e: PackageManager.NameNotFoundException) {
-            logger.e("Cannot find specified package.")
-        }
-        return info
     }
 
-    private fun getPackageInfoFromManifest(pm: PackageManager, packageName: String): PackageInfo {
+    private suspend fun getPackageInfoFromManifest(
+        pm: PackageManager,
+        packageName: String
+    ): PackageInfo {
         val info = PackageInfo()
         info.packageName = packageName
         info.activities = getActivityList(pm, packageName).toTypedArray()
@@ -304,10 +361,15 @@ object ApplicationUtil {
         return false
     }
 
-    fun getBlockedApplication(context: Context): MutableList<String> {
+    suspend fun getBlockedApplication(
+        context: Context,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): MutableList<String> {
         val sharedPreferences = context.getSharedPreferences(BLOCKED_CONF_NAME, MODE_PRIVATE)
         val json = sharedPreferences.getString(BLOCKED_APP_LIST_KEY, "[]")
-        return Gson().fromJson<MutableList<String>>(json, object : TypeToken<MutableList<String>>() {}.type)
+        return withContext(dispatcher) {
+            Gson().fromJson(json, object : TypeToken<MutableList<String>>() {}.type)
+        }
     }
 
     private fun saveBlockedApplication(context: Context, applications: List<String>) {
@@ -316,7 +378,7 @@ object ApplicationUtil {
         editor.apply()
     }
 
-    fun addBlockedApplication(context: Context, packageName: String) {
+    suspend fun addBlockedApplication(context: Context, packageName: String) {
         val blockedApplication = getBlockedApplication(context)
         if (blockedApplication.contains(packageName)) {
             return
@@ -325,7 +387,7 @@ object ApplicationUtil {
         saveBlockedApplication(context, blockedApplication)
     }
 
-    fun removeBlockedApplication(context: Context, packageName: String) {
+    suspend fun removeBlockedApplication(context: Context, packageName: String) {
         val blockedApplication = getBlockedApplication(context)
         blockedApplication.remove(packageName)
         saveBlockedApplication(context, blockedApplication)

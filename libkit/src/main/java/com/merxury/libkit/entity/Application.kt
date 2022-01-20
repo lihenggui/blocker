@@ -1,270 +1,147 @@
-package com.merxury.libkit.entity;
+package com.merxury.libkit.entity
 
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.graphics.drawable.Drawable;
-import android.os.Build;
-import android.os.Parcel;
-import android.os.Parcelable;
-
-import com.merxury.libkit.utils.ApkUtils;
-
-import java.io.File;
-import java.util.Date;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
+import android.graphics.drawable.Drawable
+import android.os.Build
+import android.os.Parcel
+import android.os.Parcelable
+import com.merxury.libkit.utils.ApkUtils.getMinSdkVersion
+import kotlinx.coroutines.runBlocking
+import java.io.File
+import java.util.*
 
 /**
  * Created by Mercury on 2017/12/30.
  * An entity class that describe simplified application information
  */
+class Application : Parcelable {
+    var packageName: String = ""
+    var versionName: String = ""
+    var versionCode = 0
+    var isEnabled = false
+    var isBlocked = false
+    var targetSdkVersion = 0
+    var minSdkVersion = 0
+    var nonLocalizedLabel: String? = null
+    var sourceDir: String? = null
+    var publicSourceDir: String? = null
+    var dataDir: String? = null
+    var label: String = ""
+    var firstInstallTime: Date? = null
+    var lastUpdateTime: Date? = null
 
-public class Application implements Parcelable {
-
-    public static final Creator<Application> CREATOR = new Creator<Application>() {
-        @Override
-        public Application createFromParcel(Parcel source) {
-            return new Application(source);
-        }
-
-        @Override
-        public Application[] newArray(int size) {
-            return new Application[size];
-        }
-    };
-
-    private String packageName;
-    private String versionName;
-    private int versionCode;
-    private boolean enabled;
-    private boolean blocked;
-    private int targetSdkVersion;
-    private int minSdkVersion;
-    private String nonLocalizedLabel;
-    private String sourceDir;
-    private String publicSourceDir;
-    private String dataDir;
-    private String label;
-    private Date firstInstallTime;
-    private Date lastUpdateTime;
-
-    private Application() {
-    }
-
-    public Application(@NonNull PackageInfo info) {
-        this.packageName = info.packageName;
-        this.versionName = info.versionName;
-        this.versionCode = info.versionCode;
-        ApplicationInfo appDetails = info.applicationInfo;
+    private constructor() {}
+    constructor(info: PackageInfo) {
+        packageName = info.packageName
+        versionName = info.versionName
+        versionCode = info.versionCode
+        val appDetails = info.applicationInfo
         if (appDetails != null) {
-            this.targetSdkVersion = appDetails.targetSdkVersion;
-            this.enabled = appDetails.enabled;
+            targetSdkVersion = appDetails.targetSdkVersion
+            isEnabled = appDetails.enabled
         }
     }
 
-    public Application(@NonNull PackageManager pm, @NonNull PackageInfo info) {
-        this(info);
-        ApplicationInfo appDetail = info.applicationInfo;
-        this.targetSdkVersion = appDetail.targetSdkVersion;
-        this.nonLocalizedLabel = String.valueOf(appDetail.nonLocalizedLabel);
-        this.sourceDir = appDetail.sourceDir;
-        this.publicSourceDir = appDetail.sourceDir;
-        this.dataDir = appDetail.dataDir;
-        this.label = appDetail.loadLabel(pm).toString();
-        File baseApkPath = new File(publicSourceDir);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            minSdkVersion = appDetail.minSdkVersion;
+    constructor(pm: PackageManager, info: PackageInfo) : this(info) {
+        val appDetail = info.applicationInfo
+        targetSdkVersion = appDetail.targetSdkVersion
+        nonLocalizedLabel = appDetail.nonLocalizedLabel?.toString()
+        sourceDir = appDetail.sourceDir
+        publicSourceDir = appDetail.sourceDir
+        dataDir = appDetail.dataDir
+        label = appDetail.loadLabel(pm).toString()
+        val baseApkPath = File(publicSourceDir)
+        minSdkVersion = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            appDetail.minSdkVersion
         } else {
-            minSdkVersion = ApkUtils.INSTANCE.getMinSdkVersion(baseApkPath);
+            // TODO Will remove this blocking call
+            runBlocking {
+                getMinSdkVersion(baseApkPath)
+            }
         }
-        this.firstInstallTime = new Date(info.firstInstallTime);
-        this.lastUpdateTime = new Date(info.lastUpdateTime);
+        firstInstallTime = Date(info.firstInstallTime)
+        lastUpdateTime = Date(info.lastUpdateTime)
     }
 
-    public Application(@NonNull PackageManager pm, @NonNull PackageInfo info, boolean blocked) {
-        this(pm, info);
-        this.blocked = blocked;
+    constructor(pm: PackageManager, info: PackageInfo, blocked: Boolean) : this(pm, info) {
+        isBlocked = blocked
     }
 
-    protected Application(Parcel in) {
-        this.label = in.readString();
-        this.packageName = in.readString();
-        this.versionName = in.readString();
-        this.versionCode = in.readInt();
-        this.enabled = in.readByte() != 0;
-        this.blocked = in.readByte() != 0;
-        this.minSdkVersion = in.readInt();
-        this.targetSdkVersion = in.readInt();
-        this.nonLocalizedLabel = in.readString();
-        this.sourceDir = in.readString();
-        this.publicSourceDir = in.readString();
-        this.dataDir = in.readString();
-        this.firstInstallTime = new Date(in.readLong());
-        this.lastUpdateTime = new Date(in.readLong());
+    protected constructor(`in`: Parcel) {
+        label = `in`.readString() ?: ""
+        packageName = `in`.readString() ?: ""
+        versionName = `in`.readString() ?: ""
+        versionCode = `in`.readInt()
+        isEnabled = `in`.readByte().toInt() != 0
+        isBlocked = `in`.readByte().toInt() != 0
+        minSdkVersion = `in`.readInt()
+        targetSdkVersion = `in`.readInt()
+        nonLocalizedLabel = `in`.readString()
+        sourceDir = `in`.readString()
+        publicSourceDir = `in`.readString()
+        dataDir = `in`.readString()
+        firstInstallTime = Date(`in`.readLong())
+        lastUpdateTime = Date(`in`.readLong())
     }
 
-    public String getPackageName() {
-        return packageName;
+    override fun describeContents(): Int {
+        return 0
     }
 
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
-    }
-
-    public String getVersionName() {
-        return versionName;
-    }
-
-    public void setVersionName(String versionName) {
-        this.versionName = versionName;
-    }
-
-    public int getVersionCode() {
-        return versionCode;
-    }
-
-    public void setVersionCode(int versionCode) {
-        this.versionCode = versionCode;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public int getTargetSdkVersion() {
-        return targetSdkVersion;
-    }
-
-    public void setTargetSdkVersion(int targetSdkVersion) {
-        this.targetSdkVersion = targetSdkVersion;
-    }
-
-    public String getLabel() {
-        return label;
-    }
-
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
-    public int getMinSdkVersion() {
-        return minSdkVersion;
-    }
-
-    public void setMinSdkVersion(int minSdkVersion) {
-        this.minSdkVersion = minSdkVersion;
-    }
-
-    public String getNonLocalizedLabel() {
-        return nonLocalizedLabel;
-    }
-
-    public void setNonLocalizedLabel(String nonLocalizedLabel) {
-        this.nonLocalizedLabel = nonLocalizedLabel;
-    }
-
-    public String getSourceDir() {
-        return sourceDir;
-    }
-
-    public void setSourceDir(String sourceDir) {
-        this.sourceDir = sourceDir;
-    }
-
-    public String getPublicSourceDir() {
-        return publicSourceDir;
-    }
-
-    public void setPublicSourceDir(String publicSourceDir) {
-        this.publicSourceDir = publicSourceDir;
-    }
-
-    public String getDataDir() {
-        return dataDir;
-    }
-
-    public void setDataDir(String dataDir) {
-        this.dataDir = dataDir;
-    }
-
-    public Date getFirstInstallTime() {
-        return firstInstallTime;
-    }
-
-    public void setFirstInstallTime(Date firstInstallTime) {
-        this.firstInstallTime = firstInstallTime;
-    }
-
-    public Date getLastUpdateTime() {
-        return lastUpdateTime;
-    }
-
-    public void setLastUpdateTime(Date lastUpdateTime) {
-        this.lastUpdateTime = lastUpdateTime;
-    }
-
-    public boolean isBlocked() {
-        return blocked;
-    }
-
-    public void setBlocked(boolean blocked) {
-        this.blocked = blocked;
-    }
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Nullable
-    public Drawable getApplicationIcon(PackageManager pm) {
+    fun getApplicationIcon(pm: PackageManager): Drawable? {
         try {
-            return pm.getApplicationIcon(packageName);
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
+            return pm.getApplicationIcon(packageName!!)
+        } catch (e: PackageManager.NameNotFoundException) {
+            e.printStackTrace()
         }
-        return null;
+        return null
     }
 
-    @Override
-    public String toString() {
+    override fun toString(): String {
         return "Application{" +
                 "label='" + label + '\'' +
                 ", packageName='" + packageName + '\'' +
                 ", versionName='" + versionName + '\'' +
                 ", versionCode=" + versionCode +
-                ", enabled=" + enabled +
-                ", blocked=" + blocked +
+                ", enabled=" + isEnabled +
+                ", blocked=" + isBlocked +
                 ", minSdkVersion=" + minSdkVersion +
                 ", targetSdkVersion=" + targetSdkVersion +
                 ", nonLocalizedLabel='" + nonLocalizedLabel + '\'' +
                 ", sourceDir='" + sourceDir + '\'' +
                 ", publicSourceDir='" + publicSourceDir + '\'' +
                 ", dataDir='" + dataDir + '\'' +
-                '}';
+                '}'
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(this.label);
-        dest.writeString(this.packageName);
-        dest.writeString(this.versionName);
-        dest.writeInt(this.versionCode);
-        dest.writeByte(this.enabled ? (byte) 1 : (byte) 0);
-        dest.writeByte(this.blocked ? (byte) 1 : (byte) 0);
-        dest.writeInt(this.minSdkVersion);
-        dest.writeInt(this.targetSdkVersion);
-        dest.writeString(this.nonLocalizedLabel);
-        dest.writeString(this.sourceDir);
-        dest.writeString(this.publicSourceDir);
-        dest.writeString(this.dataDir);
-        dest.writeLong(this.firstInstallTime.getTime());
-        dest.writeLong(this.lastUpdateTime.getTime());
+    override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeString(label)
+        dest.writeString(packageName)
+        dest.writeString(versionName)
+        dest.writeInt(versionCode)
+        dest.writeByte(if (isEnabled) 1.toByte() else 0.toByte())
+        dest.writeByte(if (isBlocked) 1.toByte() else 0.toByte())
+        dest.writeInt(minSdkVersion)
+        dest.writeInt(targetSdkVersion)
+        dest.writeString(nonLocalizedLabel)
+        dest.writeString(sourceDir)
+        dest.writeString(publicSourceDir)
+        dest.writeString(dataDir)
+        dest.writeLong(firstInstallTime!!.time)
+        dest.writeLong(lastUpdateTime!!.time)
+    }
+
+    companion object {
+        @JvmField
+        val CREATOR: Parcelable.Creator<Application> = object : Parcelable.Creator<Application> {
+            override fun createFromParcel(source: Parcel): Application {
+                return Application(source)
+            }
+
+            override fun newArray(size: Int): Array<Application?> {
+                return arrayOfNulls(size)
+            }
+        }
     }
 }

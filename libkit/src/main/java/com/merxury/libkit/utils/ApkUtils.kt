@@ -6,6 +6,9 @@ import android.content.pm.PackageManager
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
 import com.elvishew.xlog.XLog
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import java.io.File
@@ -25,14 +28,14 @@ object ApkUtils {
             val assetManagerClass: Class<*>
             try {
                 assetManagerClass = Class
-                        .forName("android.content.res.AssetManager")
+                    .forName("android.content.res.AssetManager")
                 return assetManagerClass.newInstance()
             } catch (e: ClassNotFoundException) {
-                e.printStackTrace()
+                logger.e("Cannot create AssetManager", e)
             } catch (e: InstantiationException) {
-                e.printStackTrace()
+                logger.e("Cannot create AssetManager", e)
             } catch (e: IllegalAccessException) {
-                e.printStackTrace()
+                logger.e("Cannot create AssetManager", e)
             }
 
             return null
@@ -47,29 +50,32 @@ object ApkUtils {
      * @param apkFile
      * @return minSdkVersion or -1 if not found in Manifest
      */
-    fun getMinSdkVersion(apkFile: File): Int {
-        try {
-            val parser = getParserForManifest(apkFile)
-            while (parser.next() != XmlPullParser.END_DOCUMENT) {
-                if (parser.eventType == XmlPullParser.START_TAG && parser.name == "uses-sdk") {
-                    for (i in 0 until parser.attributeCount) {
-                        if (parser.getAttributeName(i) == "minSdkVersion") {
-                            return parser.getAttributeIntValue(i, -1)
+    suspend fun getMinSdkVersion(
+        apkFile: File,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): Int {
+        return withContext(dispatcher) {
+            try {
+                val parser = getParserForManifest(apkFile)
+                while (parser.next() != XmlPullParser.END_DOCUMENT) {
+                    if (parser.eventType == XmlPullParser.START_TAG && parser.name == "uses-sdk") {
+                        for (i in 0 until parser.attributeCount) {
+                            if (parser.getAttributeName(i) == "minSdkVersion") {
+                                return@withContext parser.getAttributeIntValue(i, -1)
+                            }
                         }
                     }
                 }
+            } catch (e: XmlPullParserException) {
+                logger.e("Cannot parse manifest", e)
+            } catch (e: IOException) {
+                logger.e("Cannot parse manifest", e)
             }
-        } catch (e: XmlPullParserException) {
-            e.printStackTrace()
-            logger.e(e.message)
-        } catch (e: IOException) {
-            e.printStackTrace()
-            logger.e(e.message)
+            return@withContext -1
         }
-        return -1
     }
 
-    fun getActivities(pm: PackageManager, packageName: String): MutableList<ActivityInfo> {
+    suspend fun getActivities(pm: PackageManager, packageName: String): MutableList<ActivityInfo> {
         val activities = mutableListOf<ActivityInfo>()
         try {
             val packageInfo = pm.getPackageInfo(packageName, 0)
@@ -81,23 +87,24 @@ object ApkUtils {
                             val componentInfo = ActivityInfo()
                             componentInfo.packageName = packageName
                             componentInfo.name = parser.getAttributeValue(i)
-                            componentInfo.enabled = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(componentInfo.packageName, componentInfo.name))
+                            componentInfo.enabled = ApplicationUtil.checkComponentIsEnabled(
+                                pm,
+                                ComponentName(componentInfo.packageName, componentInfo.name)
+                            )
                             activities.add(componentInfo)
                         }
                     }
                 }
             }
         } catch (e: XmlPullParserException) {
-            e.printStackTrace()
-            logger.e(e.message)
+            logger.e("Cannot parse Activities from xml", e)
         } catch (e: IOException) {
-            e.printStackTrace()
-            logger.e(e.message)
+            logger.e("Cannot parse Activities from xml", e)
         }
         return activities
     }
 
-    fun getPackageName(apkFile: File): String {
+    suspend fun getPackageName(apkFile: File): String {
         var packageName: String? = null
         try {
             val parser = getParserForManifest(apkFile)
@@ -111,11 +118,9 @@ object ApkUtils {
                 }
             }
         } catch (e: XmlPullParserException) {
-            e.printStackTrace()
-            logger.e(e.message)
+            logger.e("Cannot parse package name from xml", e)
         } catch (e: IOException) {
-            e.printStackTrace()
-            logger.e(e.message)
+            logger.e("Cannot parse package name from xml", e)
         }
         return ""
     }
@@ -131,11 +136,17 @@ object ApkUtils {
      * @throws IOException
      */
     @Throws(IOException::class)
-    private fun getParserForManifest(apkFile: File): XmlResourceParser {
-        val assetManagerInstance = assetManager
-        val cookie = addAssets(apkFile, assetManagerInstance!!)
-        return (assetManagerInstance as AssetManager).openXmlResourceParser(
-                cookie, "AndroidManifest.xml")
+    private suspend fun getParserForManifest(
+        apkFile: File,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): XmlResourceParser {
+        return withContext(dispatcher) {
+            val assetManagerInstance = assetManager
+            val cookie = addAssets(apkFile, assetManagerInstance!!)
+            return@withContext (assetManagerInstance as AssetManager).openXmlResourceParser(
+                cookie, "AndroidManifest.xml"
+            )
+        }
     }
 
     /**
@@ -148,9 +159,12 @@ object ApkUtils {
     private fun addAssets(apkFile: File, assetManagerInstance: Any): Int {
         try {
             val addAssetPath = assetManagerInstance.javaClass.getMethod(
-                    "addAssetPath", String::class.java)
-            return addAssetPath.invoke(assetManagerInstance,
-                    apkFile.absolutePath) as Int
+                "addAssetPath", String::class.java
+            )
+            return addAssetPath.invoke(
+                assetManagerInstance,
+                apkFile.absolutePath
+            ) as Int
         } catch (e: NoSuchMethodException) {
             e.printStackTrace()
         } catch (e: InvocationTargetException) {

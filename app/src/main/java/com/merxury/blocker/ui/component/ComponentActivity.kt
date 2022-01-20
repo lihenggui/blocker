@@ -21,7 +21,6 @@ import com.merxury.libkit.utils.StatusBarUtil
 import kotlinx.android.synthetic.main.activity_component.*
 import kotlinx.android.synthetic.main.application_brief_info_layout.*
 import kotlinx.coroutines.*
-import java.lang.RuntimeException
 import kotlin.coroutines.CoroutineContext
 
 class ComponentActivity : AppCompatActivity(), IActivityView, CoroutineScope {
@@ -185,10 +184,10 @@ class ComponentActivity : AppCompatActivity(), IActivityView, CoroutineScope {
             CODENAME.put(27, "Android 8.1")
             CODENAME.put(28, "Android P")
             CODENAME.put(29, "Android 10")
-            CODENAME.put(30, "Android R")
-            CODENAME.put(31, "Android S")
-            CODENAME.put(32, "Android T")
-            CODENAME.put(33, "Android U")
+            CODENAME.put(30, "Android 11")
+            CODENAME.put(31, "Android 12")
+            CODENAME.put(32, "Android API 32")
+            CODENAME.put(33, "Android API 33")
             // Reference : https://source.android.com/setup/start/build-numbers
         }
     }

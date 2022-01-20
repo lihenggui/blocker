@@ -346,18 +346,22 @@ class ComponentPresenter(
         return viewModels
     }
 
-    private fun getComponents(
+    private suspend fun getComponents(
         packageName: String,
-        type: EComponentType
+        type: EComponentType,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): MutableList<out ComponentInfo> {
-        this.type = type
-        val components = when (type) {
-            EComponentType.RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
-            EComponentType.ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)
-            EComponentType.SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
-            EComponentType.PROVIDER -> ApplicationUtil.getProviderList(pm, packageName)
-            else -> ArrayList<ComponentInfo>()
+        return withContext(dispatcher) {
+            this@ComponentPresenter.type = type
+            val components = when (type) {
+                EComponentType.RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
+                EComponentType.ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)
+                EComponentType.SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
+                EComponentType.PROVIDER -> ApplicationUtil.getProviderList(pm, packageName)
+                else -> ArrayList<ComponentInfo>()
+            }
+            return@withContext components.asSequence().sortedBy { it.getSimpleName() }
+                .toMutableList()
         }
-        return components.asSequence().sortedBy { it.getSimpleName() }.toMutableList()
     }
 }
