@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools" translatable="false" tools:ignore="MissingTranslation">
-    <string name="key_pref_controller_settings">pref_key_controller_settings</string>
-    <string name="key_pref_controller_type">pref_controllerType</string>
-    <string name="key_pref_controller_type_default_value">ifw</string>
-    <string name="key_pref_rule_path">pref_key_rule_path</string>
-    <string name="key_pref_rules">pref_key_rules</string>
-    <string name="key_pref_ifw">pref_key_ifw</string>
-    <string name="key_pref_ifw_rule_path">pref_key_ifw_rule_path</string>
-    <string name="key_pref_export_rules">pref_key_export_rules</string>
-    <string name="key_pref_import_rules">pref_key_import_rules</string>
-    <string name="key_pref_export_ifw_rules">pref_key_export_ifw_rules</string>
-    <string name="key_pref_import_ifw_rules">pref_key_import_ifw_rules</string>
-    <string name="key_pref_reset_ifw_rules">pref_key_reset_ifw_rules</string>
-    <string name="key_pref_import_mat_rules">pref_key_import_mat_rules</string>
-    <string name="key_pref_other">pref_key_other</string>
-    <string name="key_pref_about_category">pref_key_about_category</string>
-    <string name="key_pref_about">pref_key_about</string>
-    <string name="key_pref_comparator_type">pref_key_comparator_type</string>
-    <string name="key_pref_save_folder_path">key_pref_save_folder_path</string>
-    <string name="key_pref_backup_system_apps">key_pref_backup_system_apps</string>
+    <string name="key_pref_controller_settings" translatable="false">pref_key_controller_settings</string>
+    <string name="key_pref_controller_type" translatable="false">pref_controllerType</string>
+    <string name="key_pref_controller_type_default_value" translatable="false">ifw</string>
+    <string name="key_pref_rule_path" translatable="false">pref_key_rule_path</string>
+    <string name="key_pref_rules" translatable="false">pref_key_rules</string>
+    <string name="key_pref_ifw" translatable="false">pref_key_ifw</string>
+    <string name="key_pref_ifw_rule_path" translatable="false">pref_key_ifw_rule_path</string>
+    <string name="key_pref_export_rules" translatable="false">pref_key_export_rules</string>
+    <string name="key_pref_import_rules" translatable="false">pref_key_import_rules</string>
+    <string name="key_pref_export_ifw_rules" translatable="false">pref_key_export_ifw_rules</string>
+    <string name="key_pref_import_ifw_rules" translatable="false">pref_key_import_ifw_rules</string>
+    <string name="key_pref_reset_ifw_rules" translatable="false">pref_key_reset_ifw_rules</string>
+    <string name="key_pref_import_mat_rules" translatable="false">pref_key_import_mat_rules</string>
+    <string name="key_pref_other" translatable="false">pref_key_other</string>
+    <string name="key_pref_about_category" translatable="false">pref_key_about_category</string>
+    <string name="key_pref_about" translatable="false">pref_key_about</string>
+    <string name="key_pref_comparator_type" translatable="false">pref_key_comparator_type</string>
+    <string name="key_pref_save_folder_path" translatable="false">key_pref_save_folder_path</string>
+    <string name="key_pref_backup_system_apps" translatable="false">key_pref_backup_system_apps</string>
 </resources>
