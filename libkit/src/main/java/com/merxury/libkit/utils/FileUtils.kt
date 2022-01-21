@@ -8,7 +8,6 @@ import android.os.Build
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
-import androidx.annotation.RequiresApi
 import com.elvishew.xlog.XLog
 import com.merxury.libkit.RootCommand
 import java.io.File
@@ -222,20 +221,6 @@ object FileUtils {
         } else {
             Environment.getExternalStorageDirectory().absolutePath
         }
-    }
-
-    // TODO api 29 only, a dirty usage
-    @RequiresApi(Build.VERSION_CODES.Q)
-    @JvmStatic
-    fun getExternalStoragePath(): String {
-        return "/storage/emulated/0"
-    }
-
-    // TODO api 29 only, a dirty usage
-    @RequiresApi(Build.VERSION_CODES.Q)
-    @JvmStatic
-    fun getExternalStorageMove(src: String, dst: String) {
-        RootCommand.runBlockingCommand("cp -RTf $src $dst")
     }
 
     @JvmStatic

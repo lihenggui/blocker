@@ -38,7 +38,7 @@ class ExportIfwRulesWork(context: Context, params: WorkerParameters) :
             files.forEach {
                 logger.i("Export $it")
                 val filename = it.split(File.separator).last()
-                updateNotification(filename, current, total)
+                setForeground(updateNotification(filename, current, total))
                 val content = FileUtils.read(ifwFolder + it)
                 StorageUtil.saveIfwToStorage(applicationContext, filename, content)
                 current++

@@ -143,7 +143,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     private fun importMatRule(fileUri: Uri) {
         ToastUtil.showToast(R.string.import_mat_rule_please_wait, Toast.LENGTH_LONG)
         val data = Data.Builder()
-            .putString(ImportMatRulesWork.KEY_FILE_URI, fileUri.path)
+            .putString(ImportMatRulesWork.KEY_FILE_URI, fileUri.toString())
             .build()
         val exportWork = OneTimeWorkRequestBuilder<ImportMatRulesWork>()
             .setInputData(data)
@@ -217,6 +217,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         intent.type = "*/*"
         if (intent.resolveActivity(pm) != null) {
             startActivityForResult(intent, MAT_FILE_REQUEST_CODE)
+            ToastUtil.showToast(R.string.please_select_mat_files, Toast.LENGTH_LONG)
         } else {
             ToastUtil.showToast(getString(R.string.file_manager_required))
         }

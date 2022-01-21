@@ -54,7 +54,7 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
             // Start importing files
             files.forEach { documentFile ->
                 logger.i("Importing ${documentFile.name}")
-                updateNotification(documentFile.name ?: "", imported, total)
+                setForeground(updateNotification(documentFile.name ?: "", imported, total))
                 context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
                     val rule = RuleSerializer.deserialize(stream) ?: return@forEach
                     val activities = rule.activity?.componentFilters

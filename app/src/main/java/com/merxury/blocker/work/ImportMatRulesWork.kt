@@ -3,6 +3,7 @@ package com.merxury.blocker.work
 import android.content.Context
 import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -14,6 +15,7 @@ import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.ToastUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -37,27 +39,37 @@ class ImportMatRulesWork(context: Context, params: WorkerParameters) :
         val controllerType = PreferenceUtil.getControllerType(context)
         val controller = ComponentControllerProxy.getInstance(controllerType, context)
         val uninstalledAppList = mutableListOf<String>()
-        context.contentResolver.openInputStream(uri)?.use { stream ->
-            val fileContent = stream.reader().readLines().filter { line ->
-                line.trim().isNotEmpty() && line.contains("/")
-            }
-            fileContent.forEach { line ->
-                val trimmedLine = line.split(" ").firstOrNull() ?: return@forEach
-                val splitResult = trimmedLine.split("/")
-                val packageName = splitResult[0]
-                val name = splitResult[1]
-                if (Rule.isApplicationUninstalled(context, uninstalledAppList, packageName)) {
-                    return@forEach
+        var total: Int
+        var current = 0
+        try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                val fileContent = stream.reader().readLines().filter { line ->
+                    line.trim().isNotEmpty() && line.contains("/")
                 }
-                controller.disable(packageName, name)
+                total = fileContent.count()
+                fileContent.forEach { line ->
+                    val trimmedLine = line.split(" ").firstOrNull() ?: return@forEach
+                    val splitResult = trimmedLine.split("/")
+                    val packageName = splitResult[0]
+                    val name = splitResult[1]
+                    if (Rule.isApplicationUninstalled(context, uninstalledAppList, packageName)) {
+                        return@forEach
+                    }
+                    setForeground(updateNotification(packageName, current, total))
+                    controller.disable(packageName, name)
+                    current++
+                }
             }
+        } catch (e: Exception) {
+            logger.e("Failed to import MAT files.", e)
+            ToastUtil.showToast(R.string.import_mat_failed_message, Toast.LENGTH_LONG)
         }
         return@withContext Result.success()
     }
 
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
         val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
-        val title = applicationContext.getString(R.string.import_ifw_please_wait)
+        val title = applicationContext.getString(R.string.import_mat_rule_please_wait)
         val cancel = applicationContext.getString(R.string.cancel)
         // This PendingIntent can be used to cancel the worker
         val intent = WorkManager.getInstance(applicationContext)
@@ -72,6 +84,7 @@ class ImportMatRulesWork(context: Context, params: WorkerParameters) :
             .setSubText(name)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setProgress(total, current, false)
+
             .setOngoing(true)
             .addAction(android.R.drawable.ic_delete, cancel, intent)
             .build()

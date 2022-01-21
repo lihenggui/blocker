@@ -165,4 +165,6 @@
     <string name="import_ifw_failed_message">Failed to import IFW rules, did you grant permissions to Blocker?</string>
     <string name="import_successfully">Import rules successfully</string>
     <string name="clear_ifw_message">Cleared %1$d IFW rules.</string>
+    <string name="please_select_mat_files">Please select MAT rules.</string>
+    <string name="import_mat_failed_message">Failed to import MAT rules, did you grant permissions to Blocker?</string>
 </resources>
