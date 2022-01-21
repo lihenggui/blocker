@@ -22,6 +22,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.ExportBlockerRulesWork
+import com.merxury.blocker.work.ExportIfwRulesWork
 import com.merxury.blocker.work.ImportBlockerRuleWork
 
 class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
@@ -66,6 +67,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
             storagePreference -> setFolderToSave()
             exportRulePreference -> exportBlockerRule()
             importRulePreference -> importBlockerRule()
+            exportIfwRulePreference -> exportIfwRule()
             importMatRulesPreference -> selectMatFile()
             aboutPreference -> showAbout()
         }
@@ -108,6 +110,15 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportWork)
         ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
+    }
+
+    private fun exportIfwRule() {
+        ToastUtil.showToast(R.string.backing_up_ifw_please_wait, Toast.LENGTH_LONG)
+        val exportWork = OneTimeWorkRequestBuilder<ExportIfwRulesWork>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+        WorkManager.getInstance(requireContext())
+            .enqueueUniqueWork("ExportIfwRule", ExistingWorkPolicy.KEEP, exportWork)
     }
 
     private fun findPreference() {
