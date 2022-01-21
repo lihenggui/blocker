@@ -144,7 +144,7 @@
     <string name="backing_up_apps_please_wait">正在導出應用規則，請稍等…</string>
     <string name="backing_up_ifw_please_wait">正在導出IFW應用規則，請稍等…</string>
     <string name="import_ifw_please_wait">正在導入IFW應用規則，請稍等…</string>
-    <string name="import_app_rules_please_wait">正在導出應用規則，請稍等…</string>
+    <string name="import_app_rules_please_wait">正在導入應用規則，請稍等…</string>
     <string name="import_mat_rule_please_wait">正在導入MAT應用規則，請稍等…</string>
     <string name="reset_ifw_please_wait">重置IFW中，請稍等…</string>
     <string name="failed_to_back_up">備份應用規則失敗，請檢查權限或者提交錯誤報告。</string>

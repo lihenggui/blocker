@@ -16,7 +16,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        maven { url 'https://dl.bintray.com/rikkaw/Shizuku/' }
         maven { url 'https://jitpack.io' }
     }
 }
