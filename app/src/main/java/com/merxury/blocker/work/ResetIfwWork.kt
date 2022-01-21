@@ -37,7 +37,7 @@ class ResetIfwWork(context: Context, params: WorkerParameters) :
             files.forEach {
                 updateNotification(it, count, total)
                 logger.i("Delete $it")
-                FileUtils.delete(it, false)
+                FileUtils.delete(ifwFolder + it, false)
                 count++
             }
         } catch (e: Exception) {
