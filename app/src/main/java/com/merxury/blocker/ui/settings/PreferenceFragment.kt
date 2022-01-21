@@ -21,9 +21,7 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.work.ExportBlockerRulesWork
-import com.merxury.blocker.work.ExportIfwRulesWork
-import com.merxury.blocker.work.ImportBlockerRuleWork
+import com.merxury.blocker.work.*
 
 class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
@@ -68,6 +66,8 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
             exportRulePreference -> exportBlockerRule()
             importRulePreference -> importBlockerRule()
             exportIfwRulePreference -> exportIfwRule()
+            importIfwRulePreference -> importIfwRule()
+            resetIfwPreference -> resetIfw()
             importMatRulesPreference -> selectMatFile()
             aboutPreference -> showAbout()
         }
@@ -119,6 +119,24 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
             .build()
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("ExportIfwRule", ExistingWorkPolicy.KEEP, exportWork)
+    }
+
+    private fun importIfwRule() {
+        ToastUtil.showToast(R.string.import_ifw_please_wait, Toast.LENGTH_LONG)
+        val exportWork = OneTimeWorkRequestBuilder<ImportIfwRulesWork>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+        WorkManager.getInstance(requireContext())
+            .enqueueUniqueWork("ImportIfwRule", ExistingWorkPolicy.KEEP, exportWork)
+    }
+
+    private fun resetIfw() {
+        ToastUtil.showToast(R.string.reset_ifw_please_wait, Toast.LENGTH_LONG)
+        val exportWork = OneTimeWorkRequestBuilder<ResetIfwWork>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+        WorkManager.getInstance(requireContext())
+            .enqueueUniqueWork("ResetIfw", ExistingWorkPolicy.KEEP, exportWork)
     }
 
     private fun findPreference() {

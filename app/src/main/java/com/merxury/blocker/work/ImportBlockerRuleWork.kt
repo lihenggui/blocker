@@ -52,6 +52,7 @@ class ImportBlockerRuleWork(context: Context, params: WorkerParameters) :
             val total = files.count()
             var current = 1
             files.forEach {
+                logger.i("Import ${it.uri}")
                 val inputStream =
                     InputStreamReader(context.contentResolver.openInputStream(it.uri))
                 val rule = Gson().fromJson(inputStream, BlockerRule::class.java)
