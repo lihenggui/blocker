@@ -67,7 +67,7 @@ object FileUtils {
 
     @JvmStatic
     fun listFiles(path: String): List<String> {
-        val output = RootCommand.runBlockingCommand("find '$path'")
+        val output = RootCommand.runBlockingCommand("ls '$path'")
         if (output.contains("No such file or directory")) {
             return ArrayList()
         }

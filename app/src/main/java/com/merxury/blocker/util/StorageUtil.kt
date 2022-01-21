@@ -81,9 +81,9 @@ object StorageUtil {
             return false
         }
         // Create IFW file
-        var file = dir.findFile(filename)
+        var file = ifwDir.findFile(filename)
         if (file == null) {
-            file = dir.createFile("", filename)
+            file = ifwDir.createFile("", filename)
         }
         if (file == null) {
             logger.w("Cannot create ifw rule $filename")

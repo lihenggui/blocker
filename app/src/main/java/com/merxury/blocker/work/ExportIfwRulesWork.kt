@@ -30,7 +30,7 @@ class ExportIfwRulesWork(context: Context, params: WorkerParameters) :
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         logger.i("Start to export IFW rules.")
-        var current = 1
+        var current = 0
         try {
             val ifwFolder = StorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
@@ -39,7 +39,7 @@ class ExportIfwRulesWork(context: Context, params: WorkerParameters) :
                 logger.i("Export $it")
                 val filename = it.split(File.separator).last()
                 updateNotification(filename, current, total)
-                val content = FileUtils.read(it)
+                val content = FileUtils.read(ifwFolder + it)
                 StorageUtil.saveIfwToStorage(applicationContext, filename, content)
                 current++
             }
@@ -49,6 +49,8 @@ class ExportIfwRulesWork(context: Context, params: WorkerParameters) :
             return@withContext Result.failure()
         }
         logger.i("Export IFW rules finished, success count = $current.")
+        val message = applicationContext.getString(R.string.export_ifw_successful_message, current)
+        ToastUtil.showToast(message, Toast.LENGTH_LONG)
         return@withContext Result.success()
     }
 
