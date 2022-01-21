@@ -14,6 +14,7 @@ import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
@@ -97,7 +98,9 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     }
 
     private fun exportBlockerRule() {
-        val exportRequest = OneTimeWorkRequestBuilder<ExportBlockerRulesWork>().build()
+        val exportRequest = OneTimeWorkRequestBuilder<ExportBlockerRulesWork>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportRequest)
     }
