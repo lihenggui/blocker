@@ -17,7 +17,7 @@ import java.util.*
  */
 class Application : Parcelable {
     var packageName: String = ""
-    var versionName: String = ""
+    var versionName: String? = ""
     var versionCode = 0
     var isEnabled = false
     var isBlocked = false
