@@ -137,4 +137,26 @@
     <string name="copy_full_name">复制全名</string>
     <string name="component_name">组件名称</string>
     <string name="copied">已复制</string>
+    <string name="rule_backup_settings">备份设置</string>
+    <string name="set_folder_to_save">设置保存目录</string>
+    <string name="directory_invalid_or_not_set">目录未设置或不可读</string>
+    <string name="backup_system_apps">备份系统应用</string>
+    <string name="backing_up_apps_please_wait">正在导出应用规则，请稍等…</string>
+    <string name="backing_up_ifw_please_wait">正在导出IFW应用规则，请稍等…</string>
+    <string name="import_ifw_please_wait">正在导入IFW应用规则，请稍等…</string>
+    <string name="reset_ifw_please_wait">重置IFW中，请稍等…</string>
+    <string name="import_mat_rule_please_wait">正在导入MAT应用规则，请稍等…</string>
+    <string name="import_app_rules_please_wait">正在导出应用规则，请稍等…</string>
+    <string name="failed_to_back_up">备份应用规则失败，请检查权限或者提交错误报告。</string>
+    <string name="backup_finished">应用规则备份完毕。</string>
+    <string name="dir_is_invalid">目录无效，请检查备份目录是否设置成功。</string>
+    <string name="import_failed_message">导入Blocker规则失败，请检查超级用户权限是否授予</string>
+    <string name="no_rules_imported">没有规则被导入，请检查目录是否正确设置或者权限是否被正确授予</string>
+    <string name="export_ifw_failed_message">导出IFW规则失败，请检查权限是否被正确授予。</string>
+    <string name="import_ifw_failed_message">导入IFW规则失败，请检查超级用户权限是否被正确授予。</string>
+    <string name="export_ifw_successful_message">成功导入%1$d个IFW规则</string>
+    <string name="import_successfully">导入规则成功</string>
+    <string name="clear_ifw_message">清除了%1$d个IFW规则</string>
+    <string name="please_select_mat_files">请选择MyAndroidTools规则</string>
+    <string name="import_mat_failed_message">导入MAT规则失败，请检查超级用户权限是否被正确授予。</string>
 </resources>
