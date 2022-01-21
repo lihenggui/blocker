@@ -367,7 +367,7 @@ object Rule {
         return lines
     }
 
-    private fun isApplicationUninstalled(
+    fun isApplicationUninstalled(
         context: Context,
         savedList: MutableList<String>,
         packageName: String

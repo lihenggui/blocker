@@ -153,6 +153,7 @@
     <string name="backing_up_ifw_please_wait">Backing up IFW rules, please wait…</string>
     <string name="import_ifw_please_wait">Importing IFW rules, please wait…</string>
     <string name="reset_ifw_please_wait">Resetting IFW, please wait…</string>
+    <string name="import_mat_rule_please_wait">Importing MAT rules, please wait…</string>
     <string name="import_app_rules_please_wait">Importing app rules, please wait…</string>
     <string name="failed_to_back_up">Failed to back up app rules, please check your permission or create feedback.</string>
     <string name="backup_finished">Backup app rules finished.</string>

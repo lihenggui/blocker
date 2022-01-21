@@ -13,10 +13,7 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkManager
+import androidx.work.*
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
@@ -38,8 +35,6 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     private var aboutPreference: Preference? = null
     private var storagePreference: Preference? = null
     private var backupSystemAppPreference: SwitchPreference? = null
-
-    private val matRulePathRequestCode = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -85,6 +80,12 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
                 requireActivity().contentResolver.takePersistableUriPermission(uri, flags)
                 PreferenceUtil.setRulePath(requireContext(), data.data)
                 updateFolderSummary()
+            }
+        }
+        if (resultCode == RESULT_OK && requestCode == MAT_FILE_REQUEST_CODE) {
+            if (data != null) {
+                val uri = data.data ?: return
+                importMatRule(uri)
             }
         }
     }
@@ -137,6 +138,19 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
             .build()
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("ResetIfw", ExistingWorkPolicy.KEEP, exportWork)
+    }
+
+    private fun importMatRule(fileUri: Uri) {
+        ToastUtil.showToast(R.string.import_mat_rule_please_wait, Toast.LENGTH_LONG)
+        val data = Data.Builder()
+            .putString(ImportMatRulesWork.KEY_FILE_URI, fileUri.path)
+            .build()
+        val exportWork = OneTimeWorkRequestBuilder<ImportMatRulesWork>()
+            .setInputData(data)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+        WorkManager.getInstance(requireContext())
+            .enqueueUniqueWork("ImportMatRule", ExistingWorkPolicy.KEEP, exportWork)
     }
 
     private fun findPreference() {
@@ -202,7 +216,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = "*/*"
         if (intent.resolveActivity(pm) != null) {
-            startActivityForResult(intent, matRulePathRequestCode)
+            startActivityForResult(intent, MAT_FILE_REQUEST_CODE)
         } else {
             ToastUtil.showToast(getString(R.string.file_manager_required))
         }
@@ -218,5 +232,6 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     companion object {
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
         private const val PERMISSION_REQUEST_CODE = 101
+        private const val MAT_FILE_REQUEST_CODE = 102
     }
 }
