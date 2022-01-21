@@ -30,20 +30,6 @@ object Rule {
     const val EXTENSION = ".json"
     private val logger = XLog.tag("Rule").build()
 
-    suspend fun exportAll(context: Context) {
-        logger.i("Export rules for all apps")
-        ApplicationUtil.getApplicationList(context).forEach {
-            export(context, it.packageName)
-        }
-    }
-
-    suspend fun exportUserApp(context: Context) {
-        logger.i("Export rules for user apps")
-        ApplicationUtil.getThirdPartyApplicationList(context).forEach {
-            export(context, it.packageName)
-        }
-    }
-
     suspend fun export(context: Context, packageName: String): RulesResult {
         logger.i("Backup rules for $packageName")
         val pm = context.packageManager
