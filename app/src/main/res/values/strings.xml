@@ -151,6 +151,8 @@
     <string name="backup_system_apps">Backup system apps</string>
     <string name="backing_up_apps_please_wait">Backing up app rules, please wait…</string>
     <string name="backing_up_ifw_please_wait">Backing up IFW rules, please wait…</string>
+    <string name="import_ifw_please_wait">Importing IFW rules, please wait…</string>
+    <string name="reset_ifw_please_wait">Resetting IFW, please wait…</string>
     <string name="import_app_rules_please_wait">Importing app rules, please wait…</string>
     <string name="failed_to_back_up">Failed to back up app rules, please check your permission or create feedback.</string>
     <string name="backup_finished">Backup app rules finished.</string>
@@ -158,5 +160,7 @@
     <string name="import_failed_message">Failed to import Blocker rules, please check if you have Super user permissions or not.</string>
     <string name="no_rules_imported">No rules imported, please check the folder or the permission.</string>
     <string name="export_ifw_failed_message">Failed to export IFW rules, did you grant permissions to Blocker?</string>
+    <string name="import_ifw_failed_message">Failed to import IFW rules, did you grant permissions to Blocker?</string>
     <string name="import_successfully">Import rules successfully</string>
+    <string name="clear_ifw_message">Cleared %1$d IFW rules.</string>
 </resources>

@@ -21,8 +21,6 @@ import com.merxury.ifw.util.RuleSerializer
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
 import com.merxury.libkit.utils.StorageUtils
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import java.io.File
 
 object Rule {
@@ -276,20 +274,6 @@ object Rule {
             return RulesResult(false, succeedCount, failedCount)
         }
         return RulesResult(true, succeedCount, failedCount)
-    }
-
-    suspend fun exportIfwRules(
-        context: Context,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): Int {
-        val ifwFolder = StorageUtils.getIfwFolder()
-        val files = FileUtils.listFiles(ifwFolder)
-        files.forEach {
-            val filename = it.split(File.separator).last()
-            val content = FileUtils.read(it)
-            StorageUtil.saveIfwToStorage(context, filename, content)
-        }
-        return files.count()
     }
 
     suspend fun importIfwRules(context: Context): Int {

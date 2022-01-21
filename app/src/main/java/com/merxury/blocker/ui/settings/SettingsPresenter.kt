@@ -80,7 +80,6 @@ class SettingsPresenter(
     override fun exportAllIfwRules() = uiScope.launch {
         withContext(Dispatchers.IO) {
             checkRootAccess()
-            val exportedCount = Rule.exportIfwRules(context)
         }
     }
 

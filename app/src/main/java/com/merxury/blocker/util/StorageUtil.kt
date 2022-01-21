@@ -42,7 +42,7 @@ object StorageUtil {
         }
         return withContext(dispatcher) {
             try {
-                context.contentResolver.openOutputStream(file.uri)?.use {
+                context.contentResolver.openOutputStream(file.uri, "rwt")?.use {
                     val text = GsonBuilder().setPrettyPrinting().create().toJson(rule)
                     it.write(text.toByteArray())
                 }
@@ -92,7 +92,7 @@ object StorageUtil {
         // Write file contents
         return withContext(dispatcher) {
             try {
-                context.contentResolver.openOutputStream(file.uri)?.use {
+                context.contentResolver.openOutputStream(file.uri, "rwt")?.use {
                     it.write(content.toByteArray())
                 }
                 return@withContext true
