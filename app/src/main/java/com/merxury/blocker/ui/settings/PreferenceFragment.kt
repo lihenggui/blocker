@@ -6,6 +6,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.Preference
@@ -21,7 +22,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.ExportBlockerRulesWork
-import com.merxury.blocker.work.ImportAllRuleWork
+import com.merxury.blocker.work.ImportBlockerRuleWork
 
 class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
@@ -92,17 +93,21 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     }
 
     private fun importBlockerRule() {
-        val importBlockerRuleReq = OneTimeWorkRequestBuilder<ImportAllRuleWork>().build()
-        WorkManager.getInstance(requireContext())
-            .enqueue(importBlockerRuleReq)
-    }
-
-    private fun exportBlockerRule() {
-        val exportRequest = OneTimeWorkRequestBuilder<ExportBlockerRulesWork>()
+        val importWork = OneTimeWorkRequestBuilder<ImportBlockerRuleWork>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
         WorkManager.getInstance(requireContext())
-            .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportRequest)
+            .enqueueUniqueWork("ImportBlockerRule", ExistingWorkPolicy.KEEP, importWork)
+        ToastUtil.showToast(R.string.import_app_rules_please_wait, Toast.LENGTH_LONG)
+    }
+
+    private fun exportBlockerRule() {
+        val exportWork = OneTimeWorkRequestBuilder<ExportBlockerRulesWork>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+        WorkManager.getInstance(requireContext())
+            .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportWork)
+        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
     }
 
     private fun findPreference() {

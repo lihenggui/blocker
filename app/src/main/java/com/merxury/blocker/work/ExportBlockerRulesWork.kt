@@ -30,7 +30,6 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result {
         // Notify users that work is being started
         logger.i("Start to backup app rules")
-        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
         setForeground(updateNotification("", 0, 0))
         // Backup logic
         val shouldBackupSystemApp = PreferenceUtil.shouldBackupSystemApps(applicationContext)
