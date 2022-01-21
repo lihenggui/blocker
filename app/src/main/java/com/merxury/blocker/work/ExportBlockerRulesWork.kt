@@ -2,6 +2,7 @@ package com.merxury.blocker.work
 
 import android.content.Context
 import android.os.Build
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -12,6 +13,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,8 +23,16 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
 
     private val logger = XLog.tag("ExportBlockerRulesWork")
 
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        return updateNotification("", 0, 0)
+    }
+
     override suspend fun doWork(): Result {
+        // Notify users that work is being started
+        logger.i("Start to backup app rules")
+        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
         setForeground(updateNotification("", 0, 0))
+        // Backup logic
         val shouldBackupSystemApp = PreferenceUtil.shouldBackupSystemApps(applicationContext)
         return withContext(Dispatchers.IO) {
             try {
@@ -39,9 +49,14 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
                     current++
                 }
             } catch (e: Exception) {
+                // Notify users that something bad happens
+                ToastUtil.showToast(R.string.failed_to_back_up, Toast.LENGTH_LONG)
                 logger.e("Failed to export blocker rules", e)
                 return@withContext Result.failure()
             }
+            // Success, show a toast then cancel notifications
+            ToastUtil.showToast(R.string.backup_finished, Toast.LENGTH_LONG)
+            logger.i("Backup app rules finished.")
             return@withContext Result.success()
         }
 

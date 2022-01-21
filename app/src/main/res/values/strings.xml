@@ -150,4 +150,6 @@
     <string name="directory_invalid_or_not_set">Directory is invalid or not set</string>
     <string name="backup_system_apps">Backup system apps</string>
     <string name="backing_up_apps_please_wait">Backing up app rules, please wait…</string>
+    <string name="failed_to_back_up">Failed to back up app rules, please check your permission or create feedback.</string>
+    <string name="backup_finished">Backup app rules finished.</string>
 </resources>
