@@ -15,7 +15,7 @@ import java.util.List;
  */
 
 public class RootCommand {
-    private static Logger logger = XLog.tag("RootCommand").build();
+    private static final Logger logger = XLog.tag("RootCommand").build();
 
     @NonNull
     public synchronized static String runBlockingCommand(final String comm) {

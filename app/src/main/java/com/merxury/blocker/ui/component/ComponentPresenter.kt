@@ -296,7 +296,7 @@ class ComponentPresenter(
     private fun exportBlockerRule(packageName: String) {
         launch {
             val result = withContext(Dispatchers.IO) { Rule.export(context, packageName) }
-            if (result.isSucceed) {
+            if (result) {
                 view?.showActionDone()
             } else {
                 view?.showActionFail()
