@@ -17,7 +17,10 @@ object NotificationUtil {
         val channelId = PROCESSING_INDICATOR_CHANNEL_ID
         val channelName = context.getString(R.string.processing_progress_indicator)
         val channel =
-            NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH)
+            NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH).apply {
+                setSound(null, null)
+                vibrationPattern = null
+            }
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
         manager?.createNotificationChannel(channel)
     }
