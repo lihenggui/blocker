@@ -178,7 +178,12 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
             storagePreference?.summary = getString(R.string.directory_invalid_or_not_set)
             return
         }
-        val folder = DocumentFile.fromTreeUri(requireContext(), uri)
+        val folder = try {
+            DocumentFile.fromTreeUri(requireContext(), uri)
+        } catch (e: Exception) {
+            logger.e("Invalid Uri $uri", e)
+            null
+        }
         // Folder may be unreachable
         val isFolderUnreachable = (folder == null) || !folder.canRead() || !folder.canWrite()
         val summary = if (isFolderUnreachable) {

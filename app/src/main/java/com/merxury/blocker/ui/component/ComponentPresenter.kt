@@ -236,14 +236,15 @@ class ComponentPresenter(
     override fun disableAllComponents(packageName: String, type: EComponentType) {
         launch {
             withContext(Dispatchers.IO) {
-                if (!PermissionUtils.isRootAvailable) {
-                    throw RootUnavailableException()
-                }
-                val components = getComponents(packageName, type)
-                controller.batchDisable(components) { componentInfo ->
-                    launch {
-                        view?.refreshComponentState(componentInfo.name)
+                try {
+                    val components = getComponents(packageName, type)
+                    controller.batchDisable(components) { componentInfo ->
+                        launch {
+                            view?.refreshComponentState(componentInfo.name)
+                        }
                     }
+                } catch (e: Exception) {
+                    logger.e("Cannot disable components", e)
                 }
             }
             view?.showActionDone()

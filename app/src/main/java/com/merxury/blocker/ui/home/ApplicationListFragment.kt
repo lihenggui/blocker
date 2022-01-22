@@ -28,13 +28,14 @@ import com.merxury.libkit.utils.ServiceHelper
 import kotlinx.android.synthetic.main.app_list_item.view.*
 import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.coroutines.*
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
 
 class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, CoroutineScope {
 
     override val coroutineContext: CoroutineContext = Dispatchers.Main
     override lateinit var presenter: HomeContract.Presenter
-    private val servicesStatus = mutableListOf<ApplicationServicesStatus>()
+    private val servicesStatus = CopyOnWriteArrayList<ApplicationServicesStatus>()
     private lateinit var listAdapter: AppListRecyclerViewAdapter
     private var isSystem: Boolean = false
     private var parentJob: Job? = null
@@ -44,7 +45,7 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
         }
 
         override fun onAppLongClick(application: Application) {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            // Not implemented
         }
     }
 

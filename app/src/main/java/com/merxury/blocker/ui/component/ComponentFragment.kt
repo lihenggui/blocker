@@ -27,6 +27,9 @@ import com.merxury.blocker.util.ToastUtil
 import kotlinx.android.synthetic.main.component_item.view.*
 import kotlinx.android.synthetic.main.fragment_component.*
 import kotlinx.android.synthetic.main.fragment_component.view.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import rikka.shizuku.Shizuku
 
 
@@ -107,15 +110,15 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
         when (item.itemId) {
             R.id.menu_filter -> showFilteringPopUpMenu()
             R.id.menu_refresh -> presenter.loadComponents(packageName, type)
-            R.id.menu_block_all -> showDisableAllAlert()
-            R.id.menu_enable_all -> {
-                Toast.makeText(context, R.string.enabling_hint, Toast.LENGTH_SHORT).show()
-                presenter.enableAllComponents(packageName, type)
-            }
-            R.id.menu_export_rule -> presenter.exportRule(packageName)
-            R.id.menu_import_rule -> {
-                presenter.importRule(packageName)
-            }
+//            R.id.menu_block_all -> showDisableAllAlert()
+//            R.id.menu_enable_all -> {
+//                Toast.makeText(context, R.string.enabling_hint, Toast.LENGTH_SHORT).show()
+//                presenter.enableAllComponents(packageName, type)
+//            }
+//            R.id.menu_export_rule -> presenter.exportRule(packageName)
+//            R.id.menu_import_rule -> {
+//                presenter.importRule(packageName)
+//            }
         }
         return true
     }
@@ -265,8 +268,14 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
             // Pre-v11 is unsupported
             return
         }
+        val shizukuPermissionGranted = try {
+            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+        } catch (e: Exception) {
+            logger.e("Cannot check Shizuku permission", e)
+            false
+        }
         when {
-            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED -> {
+            shizukuPermissionGranted -> {
                 logger.d("Shizuku permission was already granted")
                 return
             }
@@ -349,15 +358,17 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
         }
 
         fun updateViewModel(viewModel: ComponentItemViewModel) {
-            components.forEachIndexed { i, model ->
-                if (model.name == viewModel.name) {
-                    components[i] = viewModel
-                    notifyItemChanged(i)
+            CoroutineScope(Dispatchers.Main).launch {
+                components.forEachIndexed { i, model ->
+                    if (model.name == viewModel.name) {
+                        components[i] = viewModel
+                        notifyItemChanged(i)
+                    }
                 }
-            }
-            listCopy.forEachIndexed { i, model ->
-                if (model.name == viewModel.name) {
-                    listCopy[i] = viewModel
+                listCopy.forEachIndexed { i, model ->
+                    if (model.name == viewModel.name) {
+                        listCopy[i] = viewModel
+                    }
                 }
             }
         }
