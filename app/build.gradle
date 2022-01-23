@@ -19,7 +19,7 @@ android {
         versionCode 45
         versionName "0.1.45-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        resConfigs "en", "zh-rCN", "zh-rTW"
+        resConfigs "en", "zh-rCN", "zh-rTW", "ru"
         multiDexEnabled true
     }
 
