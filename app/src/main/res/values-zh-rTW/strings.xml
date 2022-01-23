@@ -4,7 +4,7 @@
     <string name="title_activity_main">已安裝程式列表</string>
     <string name="system_app_tab_text">系統程式</string>
     <string name="third_party_app_tab_text">使用者程式</string>
-    <string name="settings">設定</string>
+    <string name="action_settings">設定</string>
     <string name="third_party_app">使用者程式</string>
     <string name="system_app">系統程式</string>
     <string name="receiver">廣播接收器</string>
@@ -22,7 +22,7 @@
     <string name="menu_filter">過濾條件</string>
     <string name="refresh">重新整理</string>
     <string name="logo">Logo</string>
-    <string name="application_list">應用程式列表</string>
+    <string name="app_list_title">應用程式列表</string>
     <string name="copy_command">複製</string>
     <string name="send_command">發送</string>
     <string name="app_icon_description">應用程式圖示</string>

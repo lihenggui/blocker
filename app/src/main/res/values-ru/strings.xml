@@ -3,7 +3,7 @@
     <string name="title_activity_main">Установленные приложения</string>
     <string name="system_app_tab_text">Системные</string>
     <string name="third_party_app_tab_text">Пользовательские</string>
-    <string name="settings">Настройки</string>
+    <string name="action_settings">Настройки</string>
     <string name="third_party_app">Пользовательские</string>
     <string name="system_app">Системные</string>
     <string name="receiver">Приемники</string>
@@ -20,7 +20,7 @@
     <string name="menu_filter">Фильтр</string>
     <string name="refresh">Обновить</string>
     <string name="logo">Logo</string>
-    <string name="application_list">Список приложений</string>
+    <string name="app_list_title">Список приложений</string>
     <!--COPY FROM https://github.com/RikkaApps/Shizuku/blob/master/manager/src/main/res/values/strings.xml-->
     <string name="copy_command">Copy</string>
     <string name="send_command">Send</string>

@@ -1,5 +1,6 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
@@ -13,22 +14,13 @@ android {
     buildToolsVersion "31.0.0"
     defaultConfig {
         applicationId "com.merxury.blocker"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 31
         versionCode 45
         versionName "0.1.45-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         resConfigs "en", "zh-rCN", "zh-rTW"
         multiDexEnabled true
-    }
-
-    buildFeatures {
-        viewBinding true
-        compose true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion compose_version
     }
 
     signingConfigs {
@@ -82,27 +74,14 @@ dependencies {
     implementation 'androidx.annotation:annotation:1.3.0'
     implementation 'androidx.preference:preference-ktx:1.1.1'
     implementation 'androidx.browser:browser:1.4.0'
-    // Android WorkManager
-    implementation("androidx.work:work-runtime:2.7.1")
-    implementation("androidx.work:work-runtime-ktx:2.7.1")
-    // Android navigation
-    implementation "androidx.navigation:navigation-fragment-ktx:2.3.5"
-    implementation "androidx.navigation:navigation-ui-ktx:2.3.5"
-    implementation "androidx.navigation:navigation-compose:2.4.0-rc01"
-    // Jetpack compose
-    implementation 'androidx.activity:activity-compose:1.4.0'
-    implementation 'androidx.compose.material:material:1.0.5'
-    implementation 'androidx.compose.animation:animation:1.0.5'
-    implementation 'androidx.compose.ui:ui-tooling:1.0.5'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.0'
-    // KTX
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.0'
-    implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.0'
+    implementation 'com.mikepenz:materialdrawer:6.1.2'
     // Crashlytics
     prodImplementation platform('com.google.firebase:firebase-bom:28.3.1')
     prodImplementation 'com.google.firebase:firebase-crashlytics-ktx'
     prodImplementation 'com.google.firebase:firebase-analytics-ktx'
+    // Android WorkManager
+    implementation("androidx.work:work-runtime:2.7.1")
+    implementation("androidx.work:work-runtime-ktx:2.7.1")
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')
