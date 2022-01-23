@@ -3,7 +3,7 @@
     <string name="title_activity_main">Installed Applications</string>
     <string name="system_app_tab_text">System</string>
     <string name="third_party_app_tab_text">Third party</string>
-    <string name="settings">Settings</string>
+    <string name="action_settings">Settings</string>
     <string name="third_party_app">Third Party</string>
     <string name="system_app">System</string>
     <string name="receiver">Receiver</string>
@@ -20,7 +20,7 @@
     <string name="menu_filter">Filter</string>
     <string name="refresh">Refresh</string>
     <string name="logo">Logo</string>
-    <string name="application_list">Application list</string>
+    <string name="app_list_title">Application list</string>
     <!--COPY FROM https://github.com/RikkaApps/Shizuku/blob/master/manager/src/main/res/values/strings.xml-->
     <string name="copy_command">Copy</string>
     <string name="send_command">Send</string>
