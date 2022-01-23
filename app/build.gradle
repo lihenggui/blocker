@@ -5,6 +5,10 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
+def keystorePropertiesFile = rootProject.file("keystore.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
     compileSdkVersion 31
     buildToolsVersion "31.0.0"
@@ -18,19 +22,45 @@ android {
         resConfigs "en", "zh-rCN", "zh-rTW"
         multiDexEnabled true
     }
+
+    signingConfigs {
+        config {
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+        }
+    }
+
     buildTypes {
+        debug {
+            debuggable true
+        }
         release {
             zipAlignEnabled true
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+
+    flavorDimensions "version"
+
+    productFlavors {
+        basic {
+            ext.enableCrashlytics = false
+        }
+        prod {
+            signingConfig signingConfigs.config
+        }
     }
-    packagingOptions {
-        exclude 'META-INF/proguard/androidx-annotations.pro'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+
+    kotlinOptions {
+        jvmTarget = "11"
     }
 }
 
@@ -46,9 +76,9 @@ dependencies {
     implementation 'androidx.browser:browser:1.4.0'
     implementation 'com.mikepenz:materialdrawer:6.1.2'
     // Crashlytics
-    implementation platform('com.google.firebase:firebase-bom:28.3.1')
-    implementation 'com.google.firebase:firebase-crashlytics-ktx'
-    implementation 'com.google.firebase:firebase-analytics-ktx'
+    prodImplementation platform('com.google.firebase:firebase-bom:28.3.1')
+    prodImplementation 'com.google.firebase:firebase-crashlytics-ktx'
+    prodImplementation 'com.google.firebase:firebase-analytics-ktx'
     // Android WorkManager
     implementation("androidx.work:work-runtime:2.7.1")
     implementation("androidx.work:work-runtime-ktx:2.7.1")
