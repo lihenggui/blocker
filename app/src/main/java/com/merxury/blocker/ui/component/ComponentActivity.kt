@@ -1,8 +1,5 @@
 package com.merxury.blocker.ui.component
 
-import android.animation.ArgbEvaluator
-import android.animation.ValueAnimator
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.SparseArray
 import android.view.MenuItem
@@ -14,13 +11,11 @@ import com.merxury.blocker.R
 import com.merxury.blocker.adapter.FragmentAdapter
 import com.merxury.blocker.base.IActivityView
 import com.merxury.blocker.ui.Constants
-import com.merxury.blocker.util.AppLauncher
 import com.merxury.blocker.util.setupActionBar
 import com.merxury.libkit.entity.Application
-import com.merxury.libkit.utils.StatusBarUtil
-import kotlinx.android.synthetic.main.activity_component.*
-import kotlinx.android.synthetic.main.application_brief_info_layout.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
 
 class ComponentActivity : AppCompatActivity(), IActivityView, CoroutineScope {
@@ -79,12 +74,32 @@ class ComponentActivity : AppCompatActivity(), IActivityView, CoroutineScope {
 
     private fun setupViewPager() {
         adapter = FragmentAdapter(supportFragmentManager)
-        adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.RECEIVER), getString(R.string.receiver))
-        adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.SERVICE), getString(R.string.service))
-        adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.ACTIVITY), getString(R.string.activity))
-        adapter.addFragment(ComponentFragment.newInstance(application.packageName, EComponentType.PROVIDER), getString(R.string.provider))
-        component_viewpager.offscreenPageLimit = 3
-        component_viewpager.adapter = adapter
+        adapter.addFragment(
+            ComponentFragment.newInstance(
+                application.packageName,
+                EComponentType.RECEIVER
+            ), getString(R.string.receiver)
+        )
+        adapter.addFragment(
+            ComponentFragment.newInstance(
+                application.packageName,
+                EComponentType.SERVICE
+            ), getString(R.string.service)
+        )
+        adapter.addFragment(
+            ComponentFragment.newInstance(
+                application.packageName,
+                EComponentType.ACTIVITY
+            ), getString(R.string.activity)
+        )
+        adapter.addFragment(
+            ComponentFragment.newInstance(
+                application.packageName,
+                EComponentType.PROVIDER
+            ), getString(R.string.provider)
+        )
+//        component_viewpager.offscreenPageLimit = 3
+//        component_viewpager.adapter = adapter
     }
 
     private fun getDataFromIntent() {
@@ -96,59 +111,58 @@ class ComponentActivity : AppCompatActivity(), IActivityView, CoroutineScope {
     }
 
     private fun setupTab() {
-        component_tabs.setupWithViewPager(component_viewpager)
+//        component_tabs.setupWithViewPager(component_viewpager)
         changeColor(getBackgroundColor(0))
-        component_tabs.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.info_text_color))
-        component_tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) {
-                changeBackgroundColor(tab)
-            }
-
-            override fun onTabUnselected(tab: TabLayout.Tab) {
-
-            }
-
-            override fun onTabReselected(tab: TabLayout.Tab) {
-
-            }
-        })
+//        component_tabs.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.info_text_color))
+//        component_tabs.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+//            override fun onTabSelected(tab: TabLayout.Tab) {
+//                changeBackgroundColor(tab)
+//            }
+//
+//            override fun onTabUnselected(tab: TabLayout.Tab) {
+//
+//            }
+//
+//            override fun onTabReselected(tab: TabLayout.Tab) {
+//
+//            }
+//        })
     }
 
     private fun showApplicationBriefInfo(application: Application) {
-        app_info_app_name.text = getString(R.string.application_label, application.label)
-        app_info_app_package_name.text = getString(R.string.package_name, application.packageName)
-        app_info_target_sdk_version.text = getString(R.string.target_sdk_version, CODENAME.get(application.targetSdkVersion, UNKNOWN))
-        app_info_min_sdk_version.text = getString(R.string.min_sdk_version, CODENAME.get(application.minSdkVersion, UNKNOWN))
-        launch {
-            val icon = withContext(Dispatchers.IO) {
-                application.getApplicationIcon(packageManager)
-            }
-            app_info_icon.setImageDrawable(icon)
-        }
-        app_info_icon.setOnClickListener { AppLauncher.startApplication(this, application.packageName) }
+//        app_info_app_name.text = getString(R.string.application_label, application.label)
+//        app_info_app_package_name.text = getString(R.string.package_name, application.packageName)
+//        app_info_target_sdk_version.text = getString(R.string.target_sdk_version, CODENAME.get(application.targetSdkVersion, UNKNOWN))
+//        app_info_min_sdk_version.text = getString(R.string.min_sdk_version, CODENAME.get(application.minSdkVersion, UNKNOWN))
+//        launch {
+//            val icon = withContext(Dispatchers.IO) {
+//                application.getApplicationIcon(packageManager)
+//            }
+//            app_info_icon.setImageDrawable(icon)
+//        }
+//        app_info_icon.setOnClickListener { AppLauncher.startApplication(this, application.packageName) }
     }
 
     private fun changeColor(color: Int) {
-        component_toolbar.setBackgroundColor(color)
-        component_tabs.setBackgroundColor(color)
-        component_collapsing_toolbar.setBackgroundColor(color)
-        StatusBarUtil.setColor(this, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
+//        component_toolbar.setBackgroundColor(color)
+//        component_tabs.setBackgroundColor(color)
+//        component_collapsing_toolbar.setBackgroundColor(color)
     }
 
     private fun changeBackgroundColor(tab: TabLayout.Tab) {
-        val colorFrom = if (component_tabs.background != null) {
-            (component_tabs.background as ColorDrawable).color
-        } else {
-            ContextCompat.getColor(this, android.R.color.darker_gray)
-        }
-        val colorTo = getBackgroundColor(tab.position)
-        val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
-        colorAnimation.addUpdateListener { animation ->
-            val color = animation.animatedValue as Int
-            changeColor(color)
-        }
-        colorAnimation.duration = 500
-        colorAnimation.start()
+//        val colorFrom = if (component_tabs.background != null) {
+//            (component_tabs.background as ColorDrawable).color
+//        } else {
+//            ContextCompat.getColor(this, android.R.color.darker_gray)
+//        }
+//        val colorTo = getBackgroundColor(tab.position)
+//        val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
+//        colorAnimation.addUpdateListener { animation ->
+//            val color = animation.animatedValue as Int
+//            changeColor(color)
+//        }
+//        colorAnimation.duration = 500
+//        colorAnimation.start()
     }
 
     companion object {
