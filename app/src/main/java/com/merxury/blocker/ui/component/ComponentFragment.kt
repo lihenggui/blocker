@@ -12,9 +12,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.DefaultItemAnimator
-import androidx.recyclerview.widget.DividerItemDecoration
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
@@ -24,9 +21,6 @@ import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.ui.Constants
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import kotlinx.android.synthetic.main.component_item.view.*
-import kotlinx.android.synthetic.main.fragment_component.*
-import kotlinx.android.synthetic.main.fragment_component.view.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,22 +46,22 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val root = inflater.inflate(R.layout.fragment_component, container, false)
         with(root) {
-            componentListSwipeLayout.apply {
-                setOnRefreshListener {
-                    presenter.loadComponents(packageName, type)
-                }
-            }
+//            componentListSwipeLayout.apply {
+//                setOnRefreshListener {
+//                    presenter.loadComponents(packageName, type)
+//                }
+//            }
 
-            componentListFragmentRecyclerView.apply {
-                val layoutManager = LinearLayoutManager(context)
-                this.layoutManager = layoutManager
-                componentAdapter = ComponentsRecyclerViewAdapter()
-                componentAdapter.setOnClickListener(this@ComponentFragment)
-                this.adapter = componentAdapter
-                this.itemAnimator = DefaultItemAnimator()
-                addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
-                registerForContextMenu(this)
-            }
+//            componentListFragmentRecyclerView.apply {
+//                val layoutManager = LinearLayoutManager(context)
+//                this.layoutManager = layoutManager
+//                componentAdapter = ComponentsRecyclerViewAdapter()
+//                componentAdapter.setOnClickListener(this@ComponentFragment)
+//                this.adapter = componentAdapter
+//                this.itemAnimator = DefaultItemAnimator()
+//                addItemDecoration(DividerItemDecoration(context, layoutManager.orientation))
+//                registerForContextMenu(this)
+//            }
         }
         setHasOptionsMenu(true)
         return root
@@ -154,14 +148,14 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
     }
 
     override fun setLoadingIndicator(active: Boolean) {
-        componentListSwipeLayout?.run {
-            post { isRefreshing = active }
-        }
+//        componentListSwipeLayout?.run {
+//            post { isRefreshing = active }
+//        }
     }
 
     override fun showNoComponent() {
-        componentListFragmentRecyclerView?.visibility = View.GONE
-        noComponentContainer?.visibility = View.VISIBLE
+//        componentListFragmentRecyclerView?.visibility = View.GONE
+//        noComponentContainer?.visibility = View.VISIBLE
     }
 
     override fun searchForComponent(name: String) {
@@ -201,8 +195,8 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
     }
 
     override fun showComponentList(components: MutableList<ComponentItemViewModel>) {
-        noComponentContainer?.visibility = View.GONE
-        componentListFragmentRecyclerView?.visibility = View.VISIBLE
+//        noComponentContainer?.visibility = View.GONE
+//        componentListFragmentRecyclerView?.visibility = View.VISIBLE
         componentAdapter.updateData(components)
     }
 
@@ -389,20 +383,30 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
         inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
             fun bindComponent(component: ComponentItemViewModel) {
                 with(itemView) {
-                    component_name.text = component.simpleName
-                    component_package_name.text = component.name
-                    component_switch.isChecked = component.state && component.ifwState
-                    setOnClickListener {
-                        listener.onSwitchClick(component.name, !it.component_switch.isChecked)
-                        it.component_switch.isChecked = !it.component_switch.isChecked
-                    }
-                    component_switch.setOnClickListener {
-                        listener.onSwitchClick(component.name, it.component_switch.isChecked)
-                    }
+//                    component_name.text = component.simpleName
+//                    component_package_name.text = component.name
+//                    component_switch.isChecked = component.state && component.ifwState
+//                    setOnClickListener {
+//                        listener.onSwitchClick(component.name, !it.component_switch.isChecked)
+//                        it.component_switch.isChecked = !it.component_switch.isChecked
+//                    }
+//                    component_switch.setOnClickListener {
+//                        listener.onSwitchClick(component.name, it.component_switch.isChecked)
+//                    }
                     if (component.isRunning) {
-                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.google_blue))
+                        itemView.setBackgroundColor(
+                            ContextCompat.getColor(
+                                context,
+                                R.color.google_blue
+                            )
+                        )
                     } else {
-                        itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.component_item_background_color))
+                        itemView.setBackgroundColor(
+                            ContextCompat.getColor(
+                                context,
+                                R.color.component_item_background_color
+                            )
+                        )
                     }
                 }
             }

@@ -4,7 +4,7 @@
     <string name="title_activity_main">已安装程序列表</string>
     <string name="system_app_tab_text">系统程序</string>
     <string name="third_party_app_tab_text">用户程序</string>
-    <string name="action_settings">设置</string>
+    <string name="settings">设置</string>
     <string name="third_party_app">用户程序</string>
     <string name="system_app">系统程序</string>
     <string name="receiver">广播接收器</string>
@@ -22,7 +22,7 @@
     <string name="menu_filter">过滤条件</string>
     <string name="refresh">刷新</string>
     <string name="logo">Logo</string>
-    <string name="app_list_title">应用程序列表</string>
+    <string name="application_list">应用程序列表</string>
     <string name="copy_command">复制</string>
     <string name="send_command">发送</string>
     <string name="app_icon_description">应用程序图标</string>

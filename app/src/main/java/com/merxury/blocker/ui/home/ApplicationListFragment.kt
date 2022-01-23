@@ -25,8 +25,6 @@ import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ServiceHelper
-import kotlinx.android.synthetic.main.app_list_item.view.*
-import kotlinx.android.synthetic.main.fragment_app_list.*
 import kotlinx.coroutines.*
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
@@ -37,8 +35,6 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
     override lateinit var presenter: HomeContract.Presenter
     private val servicesStatus = CopyOnWriteArrayList<ApplicationServicesStatus>()
     private lateinit var listAdapter: AppListRecyclerViewAdapter
-    private var isSystem: Boolean = false
-    private var parentJob: Job? = null
     private var itemListener: AppItemListener = object : AppItemListener {
         override fun onAppClick(application: Application) {
             presenter.openApplicationDetails(application)
@@ -85,9 +81,9 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
     }
 
     override fun setLoadingIndicator(active: Boolean) {
-        appListSwipeLayout?.run {
-            post { isRefreshing = active }
-        }
+//        appListSwipeLayout?.run {
+//            post { isRefreshing = active }
+//        }
     }
 
     override fun searchForApplication(name: String) {
@@ -95,16 +91,16 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
     }
 
     override fun showApplicationList(applications: MutableList<Application>) {
-        appListFragmentRecyclerView.visibility = View.VISIBLE
-        noAppContainer.visibility = View.GONE
+//        appListFragmentRecyclerView.visibility = View.VISIBLE
+//        noAppContainer.visibility = View.GONE
         servicesStatus.clear()
         listAdapter.addData(applications)
         initApplicationServicesStatus(applications)
     }
 
     override fun showNoApplication() {
-        appListFragmentRecyclerView.visibility = View.GONE
-        noAppContainer.visibility = View.VISIBLE
+//        appListFragmentRecyclerView.visibility = View.GONE
+//        noAppContainer.visibility = View.VISIBLE
     }
 
     override fun showFilteringPopUpMenu() {
@@ -171,17 +167,17 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        appListFragmentRecyclerView?.apply {
-            val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
-            this.layoutManager = layoutManager
-            adapter = listAdapter
-            itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
-            addItemDecoration(androidx.recyclerview.widget.DividerItemDecoration(context, layoutManager.orientation))
-            registerForContextMenu(this)
-        }
-        appListSwipeLayout?.apply {
-            setOnRefreshListener { presenter.loadApplicationList(context, isSystem) }
-        }
+//        appListFragmentRecyclerView?.apply {
+//            val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+//            this.layoutManager = layoutManager
+//            adapter = listAdapter
+//            itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
+//            addItemDecoration(androidx.recyclerview.widget.DividerItemDecoration(context, layoutManager.orientation))
+//            registerForContextMenu(this)
+//        }
+//        appListSwipeLayout?.apply {
+//            setOnRefreshListener { presenter.loadApplicationList(context, isSystem) }
+//        }
     }
 
     override fun loadData() {
@@ -380,7 +376,7 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
             androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {
             fun bindApplication(application: Application) {
                 view?.apply {
-                    itemView.app_name.text = application.label
+//                    itemView.app_name.text = application.label
                     itemView.isLongClickable = true
                     itemView.setOnClickListener { listener.onAppClick(application) }
                     if (!application.isEnabled) {
@@ -404,36 +400,36 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
                         val icon = withContext(Dispatchers.IO) {
                             application.getApplicationIcon(pm)
                         }
-                        itemView.app_icon.setImageDrawable(icon)
+//                        itemView.app_icon.setImageDrawable(icon)
                         val status = withContext(Dispatchers.Default) {
                             servicesStatus.find { it.packageName == application.packageName }
                         }
-                        if (status == null) {
-                            itemView.allCount.visibility = View.GONE
-                            itemView.runCount.visibility = View.GONE
-                            itemView.disableCount.visibility = View.GONE
-                        } else {
-                            itemView.allCount.visibility = View.VISIBLE
-                            itemView.allCount.text = status.allCount.toString()
-
-                            //run
-                            itemView.runCount.run {
-                                if (status.runCount == 0) visibility = View.GONE
-                                else {
-                                    visibility = View.VISIBLE
-                                    text = status.runCount.toString()
-                                }
-                            }
-
-                            //dis
-                            itemView.disableCount.run {
-                                if (status.disCount == 0) visibility = View.GONE
-                                else {
-                                    visibility = View.VISIBLE
-                                    text = status.disCount.toString()
-                                }
-                            }
-                        }
+//                        if (status == null) {
+//                            itemView.allCount.visibility = View.GONE
+//                            itemView.runCount.visibility = View.GONE
+//                            itemView.disableCount.visibility = View.GONE
+//                        } else {
+//                            itemView.allCount.visibility = View.VISIBLE
+//                            itemView.allCount.text = status.allCount.toString()
+//
+//                            //run
+//                            itemView.runCount.run {
+//                                if (status.runCount == 0) visibility = View.GONE
+//                                else {
+//                                    visibility = View.VISIBLE
+//                                    text = status.runCount.toString()
+//                                }
+//                            }
+//
+//                            //dis
+//                            itemView.disableCount.run {
+//                                if (status.disCount == 0) visibility = View.GONE
+//                                else {
+//                                    visibility = View.VISIBLE
+//                                    text = status.disCount.toString()
+//                                }
+//                            }
+//                        }
                     }
                 }
             }
