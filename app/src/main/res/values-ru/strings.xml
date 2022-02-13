@@ -14,7 +14,7 @@
     <string name="app_cannot_start">Это приложение нельзя запустить напрямую</string>
     <string name="no_app_message">Не могу найти ни одного приложения.</string>
     <string name="no_component_message">Не удается обнаружить ни одного компонента.</string>
-    <string name="application_label">Название: %1$s</string>
+    <string name="application_label">Название приложения: %1$s</string>
     <string name="min_sdk_version">Минимальная версия SDK: %1$s</string>
     <string name="package_name">Имя пакета: %1$s</string>
     <string name="menu_filter">Фильтр</string>
@@ -41,7 +41,7 @@
     <string name="package_name_des">Имя пакета ↓</string>
     <string name="search">Поиск</string>
     <string name="component_like_description">Кнопка "нравится"</string>
-    <string name="component_dislike_description">Кнопка"не нравится"</string>
+    <string name="component_dislike_description">Кнопка "не нравится"</string>
     <string name="block_by_ifw">IFW блокировка</string>
     <string name="view_component_comments">Просмотреть все комментарии</string>
     <string name="upvote">Голосовать за</string>
@@ -68,11 +68,11 @@
     <string name="export_alert_message">Вы собираетесь экспортировать правила Intent Firewall во внешнее хранилище, продолжить?</string>
     <string name="import_alert_message">Вы собираетесь импортировать правила Intent Firewall из внешнего хранилища, продолжить?</string>
     <string name="export_rule_succeed">Экспортировано в папку %1$s во внешнем хранилище.</string>
-    <string name="export_rule_failed">Сбой экспорта правил во внешнее хранилище</string>
-    <string name="import_rule_failed_no_permission">Сбой импорта правил Intent Firewall, требуется разрешение на доступ к хранилищу.</string>
-    <string name="import_rule_failed_exception">Сбой импорта правил, причина: %1$s</string>
-    <string name="export_rule_failed_no_permission">Сбой экспорта правил Intent Firewall, требуется разрешение на доступ к хранилищу</string>
-    <string name="export_rule_failed_exception">Сбой экспорта правил, причина: %1$s</string>
+    <string name="export_rule_failed">Сбой экспортирования правил во внешнее хранилище</string>
+    <string name="import_rule_failed_no_permission">Сбой импортирования правил Intent Firewall, требуется разрешение на доступ к хранилищу.</string>
+    <string name="import_rule_failed_exception">Сбой импортирования правил, причина: %1$s</string>
+    <string name="export_rule_failed_no_permission">Сбой экспортирования правил Intent Firewall, требуется разрешение на доступ к хранилищу</string>
+    <string name="export_rule_failed_exception">Сбой экспортирования правил, причина: %1$s</string>
     <plurals name="import_rule_succeed">
         <item quantity="one">Импортировано %1$d правило</item>
         <item quantity="other">Импортировано %1$d правил/а</item>
@@ -89,7 +89,7 @@
     <string name="controller_type">Тип контроллера</string>
     <string name="pref_header_about">О приложении</string>
     <string name="fail">Сбой</string>
-    <string name="pref_rule_settings">Правила блокировщика</string>
+    <string name="pref_rule_settings">Правила Blocker-a</string>
     <string name="pref_rule_path_summary">Правила будут сохранены в эту папку</string>
     <string name="pref_rule_path_title">Задать путь</string>
     <string name="export_rules">Экспорт правил</string>
@@ -99,7 +99,7 @@
     <string name="import_rule">Импорт правила</string>
     <string name="export_rule">Экспорт</string>
     <string name="processing">Обработка…</string>
-    <string name="import_fail_message">Сбой импорта, правило не существует.</string>
+    <string name="import_fail_message">Сбой импортирования, правило не существует.</string>
     <string name="reset_ifw">Сброс IFW</string>
     <string name="import_mat_rules">Импорт правил MyAndroidTools</string>
     <string name="others">Другое</string>
@@ -141,8 +141,8 @@
     <string name="report_subject_template">Отчет о работе Blocker: (укажите здесь свою тему)</string>
     <string name="report_content_template">(Опишите возникшие проблемы ниже :)</string>
     <string name="send_email">Отправка Email…</string>
-    <string name="copy_component_name">Копировать название</string>
-    <string name="copy_full_name">Копировать название компонента</string>
+    <string name="copy_component_name">Копировать название компонента</string>
+    <string name="copy_full_name">Копировать полное название компонента</string>
     <string name="component_name">Название компонента</string>
     <string name="copied">Скопировано</string>
     <string name="rule_backup_settings">Настройки резервного копирования</string>
@@ -158,13 +158,13 @@
     <string name="failed_to_back_up">Сбой создания резервной копии правил для приложений. Проверьте разрешения или создайте отчет..</string>
     <string name="backup_finished">Резервное копирование правил завершено</string>
     <string name="dir_is_invalid">Папка недействительна, проверьте, установили ли вы папку для резервного копирования или нет.</string>
-    <string name="import_failed_message">Сбой импорта правил Blocker. Проверьте, есть ли у вас root права.</string>
+    <string name="import_failed_message">Сбой импортирования правил Blocker. Проверьте, есть ли у вас root права.</string>
     <string name="no_rules_imported">Правила не импортированы, проверьте папку или разрешения.</string>
     <string name="export_ifw_failed_message">Не удалось экспортировать правила IFW. Вы предоставили Blocker-у разрешения?</string>
     <string name="export_ifw_successful_message">Успешно экспортировано %1$d правил IFW.</string>
-    <string name="import_ifw_failed_message">Сбой импорта правил IFW. Вы предоставили Blocker-у разрешения?</string>
+    <string name="import_ifw_failed_message">Сбой импортирования правил IFW. Вы предоставили Blocker-у разрешения?</string>
     <string name="import_successfully">Правила успешно импортированы</string>
     <string name="clear_ifw_message">Удалено %1$d правил IFW.</string>
     <string name="please_select_mat_files">Выберите правила MyAndroidTools.</string>
-    <string name="import_mat_failed_message">Сбой импортирта правил MAT. Вы предоставили Blocker-у разрешения?</string>
+    <string name="import_mat_failed_message">Сбой импортирования правил MAT. Вы предоставили Blocker-у разрешения?</string>
 </resources>
