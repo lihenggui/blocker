@@ -13,4 +13,5 @@
     <dimen name="like_button_size">16dp</dimen>
     <dimen name="margin_end_layout_tablet">32dp</dimen>
     <dimen name="margin_start_layout_tablet">32dp</dimen>
+    <dimen name="app_icon_size">40dp</dimen>
 </resources>

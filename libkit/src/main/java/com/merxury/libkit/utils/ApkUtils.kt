@@ -104,6 +104,7 @@ object ApkUtils {
         return activities
     }
 
+    @SuppressWarnings("unused")
     suspend fun getPackageName(apkFile: File): String {
         var packageName: String? = null
         try {

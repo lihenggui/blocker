@@ -33,7 +33,7 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         logger.i("Started to import IFW rules")
         val context = applicationContext
-        var total = 0
+        val total: Int
         var imported = 0
         try {
             // Check directory is readable

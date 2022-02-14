@@ -13,12 +13,21 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.*
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.work.*
+import com.merxury.blocker.work.ExportBlockerRulesWork
+import com.merxury.blocker.work.ExportIfwRulesWork
+import com.merxury.blocker.work.ImportBlockerRuleWork
+import com.merxury.blocker.work.ImportIfwRulesWork
+import com.merxury.blocker.work.ImportMatRulesWork
+import com.merxury.blocker.work.ResetIfwWork
 
 class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
@@ -39,7 +48,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
-        sp = PreferenceManager.getDefaultSharedPreferences(activity)
+        sp = PreferenceManager.getDefaultSharedPreferences(requireContext())
         findPreference()
         initPreference()
         initListener()
@@ -49,13 +58,13 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         addPreferencesFromResource(R.xml.preferences)
     }
 
-    override fun onPreferenceChange(preference: Preference?, newValue: Any?): Boolean {
-        logger.d("Preference: ${preference?.key} changed, value = $newValue")
+    override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
+        logger.d("Preference: ${preference.key} changed, value = $newValue")
         return true
     }
 
-    override fun onPreferenceClick(preference: Preference?): Boolean {
-        logger.d("Preference: ${preference?.key} clicked")
+    override fun onPreferenceClick(preference: Preference): Boolean {
+        logger.d("Preference: ${preference.key} clicked")
         when (preference) {
             storagePreference -> setFolderToSave()
             exportRulePreference -> exportBlockerRule()

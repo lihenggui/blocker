@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.home
+package com.merxury.blocker.ui.applist
 
 enum class SortType {
     NAME,

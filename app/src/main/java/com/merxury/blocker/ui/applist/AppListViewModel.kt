@@ -1,6 +1,7 @@
-package com.merxury.blocker.ui.home
+package com.merxury.blocker.ui.applist
 
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -15,8 +16,16 @@ class AppListViewModel : ViewModel() {
 
     private val _sortType = MutableLiveData<SortType?>()
     val sortType: LiveData<SortType?> = _sortType
+    private var pm: PackageManager? = null
+
+    override fun onCleared() {
+        pm = null
+    }
 
     fun loadData(context: Context, loadSystemApp: Boolean) {
+        if (pm == null) {
+            pm = context.packageManager
+        }
         viewModelScope.launch {
             val list = if (loadSystemApp) {
                 ApplicationUtil.getSystemApplicationList(context)
@@ -35,9 +44,9 @@ class AppListViewModel : ViewModel() {
 
     private fun sortList(list: List<Application>, sortType: SortType?): List<Application> {
         return when (sortType) {
-            SortType.NAME -> list.sortedBy { it.label }
+            SortType.NAME -> list.sortedBy { it.getLabel(pm!!) }
             SortType.INSTALL_TIME -> list.sortedBy { it.lastUpdateTime }
-            else -> list.sortedBy { it.label }
+            else -> list.sortedBy { it.getLabel(pm!!) }
         }
     }
 }
