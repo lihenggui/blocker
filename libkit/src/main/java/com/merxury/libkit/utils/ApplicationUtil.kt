@@ -40,7 +40,7 @@ object ApplicationUtil {
             pm.getInstalledPackages(0)
                 .asSequence()
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
-                .map { Application(pm, it) }
+                .map { Application(it) }
                 .toMutableList()
         }
     }
@@ -61,9 +61,7 @@ object ApplicationUtil {
                 .asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
-                .map {
-                    Application(pm, it)
-                }
+                .map { Application(it) }
                 .toMutableList()
         }
     }
@@ -83,9 +81,7 @@ object ApplicationUtil {
             pm.getInstalledPackages(0)
                 .asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
-                .map {
-                    Application(pm, it)
-                }
+                .map { Application(it) }
                 .toMutableList()
         }
     }
@@ -257,7 +253,7 @@ object ApplicationUtil {
     suspend fun getApplicationInfo(context: Context, packageName: String): Application? {
         val pm = context.packageManager
         val info = getApplicationComponents(pm, packageName, 0) ?: return null
-        return Application(pm, info)
+        return Application(info)
     }
 
     /**

@@ -7,7 +7,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.view.*
+import android.view.ContextMenu
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.annotation.WorkerThread
@@ -25,7 +31,10 @@ import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ServiceHelper
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.coroutines.CoroutineContext
 
@@ -46,17 +55,17 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
     }
 
     private fun initApplicationServicesStatus(applications: List<Application>) {
-        parentJob?.cancel()
-        parentJob = launch(Dispatchers.IO) {
-            val pm = requireContext().packageManager
-            applications.forEachIndexed { index, application ->
-                val appStatus = getApplicationServiceStatus(pm, application.packageName)
-                withContext(Dispatchers.Main) {
-                    servicesStatus.add(appStatus)
-                    listAdapter.notifyItemChanged(index)
-                }
-            }
-        }
+//        parentJob?.cancel()
+//        parentJob = launch(Dispatchers.IO) {
+//            val pm = requireContext().packageManager
+//            applications.forEachIndexed { index, application ->
+//                val appStatus = getApplicationServiceStatus(pm, application.packageName)
+//                withContext(Dispatchers.Main) {
+//                    servicesStatus.add(appStatus)
+//                    listAdapter.notifyItemChanged(index)
+//                }
+//            }
+//        }
     }
 
     @WorkerThread
@@ -114,7 +123,7 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
                     R.id.last_update_time -> presenter.currentComparator = ApplicationComparatorType.LAST_UPDATE_TIME
                     else -> presenter.currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
                 }
-                presenter.loadApplicationList(requireContext(), isSystem)
+//                presenter.loadApplicationList(requireContext(), isSystem)
                 true
             }
             show()
@@ -153,7 +162,7 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
         super.onCreate(savedInstanceState)
         val argument = arguments
         argument?.run {
-            isSystem = this.getBoolean(IS_SYSTEM)
+//            isSystem = this.getBoolean(IS_SYSTEM)
         }
         presenter = HomePresenter(this)
         presenter.start(requireContext())
@@ -181,7 +190,7 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
     }
 
     override fun loadData() {
-        presenter.loadApplicationList(requireContext(), isSystem)
+//        presenter.loadApplicationList(requireContext(), isSystem)
     }
 
     override fun onDestroy() {
@@ -285,7 +294,7 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.menu_filter -> showFilteringPopUpMenu()
-            R.id.menu_refresh -> presenter.loadApplicationList(requireContext(), isSystem)
+//            R.id.menu_refresh -> presenter.loadApplicationList(requireContext(), isSystem)
         }
         return true
     }
@@ -386,19 +395,12 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
                                 R.color.disabled_app_color
                             )
                         )
-                    } else if (application.isBlocked) {
-                        itemView.setBackgroundColor(
-                            ContextCompat.getColor(
-                                context,
-                                R.color.blocked_app_color
-                            )
-                        )
                     } else {
                         itemView.setBackgroundColor(Color.WHITE)
                     }
                     launch {
                         val icon = withContext(Dispatchers.IO) {
-                            application.getApplicationIcon(pm)
+//                            application.getApplicationIcon(pm)
                         }
 //                        itemView.app_icon.setImageDrawable(icon)
                         val status = withContext(Dispatchers.Default) {
