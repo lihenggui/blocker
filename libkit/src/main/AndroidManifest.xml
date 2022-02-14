@@ -1,5 +1,4 @@
-<manifest xmlns:tools="http://schemas.android.com/tools"
-    package="com.merxury.libkit">
+<manifest xmlns:tools="http://schemas.android.com/tools">
 
     <uses-sdk tools:overrideLibrary="rikka.shizuku.provider, rikka.shizuku.api, rikka.shizuku.shared, rikka.shizuku.aidl, me.weishu.freereflection" />
 </manifest>

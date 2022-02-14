@@ -171,7 +171,7 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         setHasOptionsMenu(true)
-        return inflater.inflate(R.layout.fragment_app_list, container, false)
+        return inflater.inflate(R.layout.app_list_fragment, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
