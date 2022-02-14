@@ -10,7 +10,12 @@ import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.ETrimMemoryLevel
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ManagerUtils
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Presenter, CoroutineScope {
@@ -68,7 +73,7 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
             ApplicationComparatorType.INSTALLATION_TIME -> applications.asSequence().sortedByDescending { it.firstInstallTime }
             ApplicationComparatorType.LAST_UPDATE_TIME -> applications.asSequence().sortedByDescending { it.lastUpdateTime }
         }
-        return sortedList.asSequence().sortedWith(compareBy({ !it.isBlocked }, { !it.isEnabled })).toMutableList()
+        return sortedList.asSequence().sortedWith(compareBy { !it.isEnabled }).toMutableList()
     }
 
     override fun launchApplication(packageName: String) {
@@ -118,14 +123,14 @@ class HomePresenter(private var homeView: HomeContract.View?) : HomeContract.Pre
 
     override fun blockApplication(packageName: String) {
         launch {
-            withContext(Dispatchers.IO) {ApplicationUtil.addBlockedApplication(context!!, packageName)}
+//            withContext(Dispatchers.IO) {ApplicationUtil.addBlockedApplication(context!!, packageName)}
             homeView?.updateState(packageName)
         }
     }
 
     override fun unblockApplication(packageName: String) {
         launch {
-            withContext(Dispatchers.IO) {ApplicationUtil.removeBlockedApplication(context!!, packageName)}
+//            withContext(Dispatchers.IO) {ApplicationUtil.removeBlockedApplication(context!!, packageName)}
             homeView?.updateState(packageName)
         }
     }
