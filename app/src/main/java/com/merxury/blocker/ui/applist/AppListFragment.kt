@@ -7,12 +7,17 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.elvishew.xlog.XLog
 import com.merxury.blocker.databinding.AppListFragmentBinding
+import com.merxury.blocker.util.unsafeLazy
 
 class AppListFragment : Fragment() {
     private var _binding: AppListFragmentBinding? = null
     private val binding get() = _binding!!
     private var viewModel: AppListViewModel? = null
+    private val adapter by unsafeLazy { AppListAdapter(this@AppListFragment.lifecycleScope) }
+    private val logger = XLog.tag("AppListFragment")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,11 +36,19 @@ class AppListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
+        viewModel?.appList?.observe(viewLifecycleOwner) { adapter.updateAppList(it) }
+        viewModel?.loadData(requireContext(), true)
+    }
+
+    override fun onDestroy() {
+        adapter.release()
+        super.onDestroy()
     }
 
     private fun initRecyclerView() {
         binding.appListRecyclerView.apply {
-            adapter = AppListAdapter(this@AppListFragment.lifecycleScope)
+            adapter = this@AppListFragment.adapter
+            layoutManager = LinearLayoutManager(requireContext())
         }
     }
 

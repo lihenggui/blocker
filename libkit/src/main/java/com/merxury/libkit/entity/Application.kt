@@ -30,10 +30,11 @@ class Application() : Parcelable {
         packageInfo = parcel.readParcelable(PackageInfo::class.java.classLoader)
     }
 
-    constructor(info: PackageInfo) : this() {
+    constructor(pm: PackageManager, info: PackageInfo) : this() {
         packageInfo = info
         packageName = info.packageName
         versionName = info.versionName
+        label = getLabel(pm)
         val appDetails = info.applicationInfo
         if (appDetails != null) {
             isEnabled = appDetails.enabled
