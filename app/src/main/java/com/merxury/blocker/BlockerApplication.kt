@@ -7,6 +7,7 @@ import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
 import com.elvishew.xlog.XLog
 import com.elvishew.xlog.flattener.ClassicFlattener
+import com.elvishew.xlog.printer.AndroidPrinter
 import com.elvishew.xlog.printer.file.FilePrinter
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
@@ -29,16 +30,14 @@ class BlockerApplication : Application() {
             .logLevel(LogLevel.ALL)
             .tag("Blocker")
             .enableThreadInfo()
-            .enableStackTrace(0)
             .build()
         val filePrinter = FilePrinter.Builder(filesDir.resolve(LOG_PATH).absolutePath)
             .backupStrategy(NeverBackupStrategy())
             .fileNameGenerator(DateFileNameGenerator())
             .flattener(ClassicFlattener())
             .build()
-        XLog.init(config, filePrinter)
-        XLog.d("Test")
-        XLog.e("Logger initialized", RuntimeException())
+        val androidPrinter = AndroidPrinter()
+        XLog.init(config, androidPrinter, filePrinter)
     }
 
     companion object {

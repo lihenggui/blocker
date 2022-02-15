@@ -2,18 +2,18 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/home_nav_graph"
-    app:startDestination="@id/applicationListFragment">
+    app:startDestination="@id/app_list_fragment">
 
     <fragment
-        android:id="@+id/applicationListFragment"
-        android:name="com.merxury.blocker.ui.home.ApplicationListFragment"
+        android:id="@+id/app_list_fragment"
+        android:name="com.merxury.blocker.ui.applist.AppListFragment"
         android:label="@string/app_name">
         <action
-            android:id="@+id/action_applicationListFragment_to_preferenceFragment"
-            app:destination="@id/preferenceFragment" />
+            android:id="@+id/action_appListFragment_to_preferenceFragment"
+            app:destination="@id/preference_fragment" />
     </fragment>
     <fragment
-        android:id="@+id/preferenceFragment"
+        android:id="@+id/preference_fragment"
         android:name="com.merxury.blocker.ui.settings.PreferenceFragment"
         android:label="PreferenceFragment" />
 </navigation>

@@ -7,11 +7,12 @@ import android.view.ViewGroup
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AppListItemBinding
+import com.merxury.blocker.util.AppIconCache
 import com.merxury.libkit.entity.Application
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import me.zhanghai.android.appiconloader.AppIconLoader
+import kotlinx.coroutines.launch
 
 class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     RecyclerView.Adapter<AppListAdapter.AppListViewHolder>() {
@@ -55,18 +56,37 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
         notifyDataSetChanged()
     }
 
-    class AppListViewHolder(private val context: Context, private val binding: AppListItemBinding) :
+    fun release() {
+        if (loadIconJob?.isActive == true) {
+            loadIconJob?.cancel()
+        }
+    }
+
+    inner class AppListViewHolder(
+        private val context: Context,
+        private val binding: AppListItemBinding
+    ) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(app: Application) {
-            val loader = AppIconLoader(
-                context.resources.getDimensionPixelSize(R.dimen.app_icon_size),
-                false,
-                context
-            )
-            binding.appName.text = app.label
-            app.packageInfo?.applicationInfo?.let {
-                binding.appIcon.setImageBitmap(loader.loadIcon(it))
+            // Load icon
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val appInfo = app.packageInfo?.applicationInfo ?: run {
+                        logger.e("Application info is null, packageName: ${app.packageName}")
+                        return@launch
+                    }
+                    loadIconJob = AppIconCache.loadIconBitmapAsync(
+                        context,
+                        appInfo,
+                        appInfo.uid,
+                        binding.appIcon
+                    )
+                } catch (e: Exception) {
+                    logger.e("Failed to load icon, packageName: ${app.packageName}", e)
+                }
             }
+            binding.appName.text = app.label
+            binding.versionCode.text = app.versionName
         }
     }
 }
