@@ -21,23 +21,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/vertical_guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5" />
-
     <TextView
         android:id="@+id/app_name"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="4dp"
+        android:layout_marginBottom="2dp"
+        android:layout_marginEnd="8dp"
         android:layout_toEndOf="@id/app_icon"
-        app:layout_constraintBottom_toTopOf="@id/vertical_guideline"
-        app:layout_constraintEnd_toStartOf="@id/text_end_guideline"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintBottom_toTopOf="@id/version_code"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/app_icon"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="Application Name" />
@@ -45,49 +41,17 @@
     <TextView
         android:id="@+id/version_code"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="8dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/text_end_guideline"
-        app:layout_constraintStart_toEndOf="@id/app_icon"
-        app:layout_constraintTop_toBottomOf="@id/vertical_guideline"
-        tools:text="Version Code" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/text_end_guideline"
-        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.6" />
-
-    <TextView
-        android:id="@+id/running_service_count"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="@id/vertical_guideline"
-        app:layout_constraintStart_toEndOf="@id/text_end_guideline"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="10" />
-
-    <TextView
-        android:id="@+id/blocked_service_count"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="@id/vertical_guideline"
-        app:layout_constraintStart_toEndOf="@id/running_service_count"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="20" />
-
-    <TextView
-        android:id="@+id/total_service_count"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="@id/vertical_guideline"
-        app:layout_constraintStart_toEndOf="@id/blocked_service_count"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="30" />
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/app_icon"
+        app:layout_constraintTop_toBottomOf="@id/app_name"
+        tools:text="Version Code" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
