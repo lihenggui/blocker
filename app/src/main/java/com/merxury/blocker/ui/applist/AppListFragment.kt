@@ -37,7 +37,7 @@ class AppListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
         viewModel?.appList?.observe(viewLifecycleOwner) { adapter.updateAppList(it) }
-        viewModel?.loadData(requireContext(), true)
+        viewModel?.loadData(requireContext(), false)
     }
 
     override fun onDestroy() {
