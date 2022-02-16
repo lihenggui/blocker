@@ -20,8 +20,7 @@
         <activity
             android:name=".ui.home.HomeActivity"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:theme="@style/AppTheme.OverlapSystemBar">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -29,8 +28,7 @@
         </activity>
         <activity
             android:name=".ui.component.ComponentActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme.OverlapSystemBar" />
+            android:exported="false" />
         <activity
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"

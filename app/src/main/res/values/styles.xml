@@ -1,46 +1,13 @@
 <resources>
-
-    <!-- Base application theme. -->
-    <style name="AppTheme.OverlapSystemBar" parent="Base.AppTheme" />
-
-    <style name="Base.AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
     </style>
 
-    <style name="Toolbar" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorAccent">@color/accent</item>
-    </style>
-
-    <style name="AppTheme.PlayStoreStyle" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme.PlayStoreStyle" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">#607D8B</item>
         <item name="colorPrimaryDark">#455A64</item>
         <item name="colorAccent">#009688</item>
     </style>
-
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-    </style>
-
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
-
-    <style name="InfoTextStyle" parent="@android:style/TextAppearance">
-        <item name="android:textAlignment">viewStart</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:textColor">@color/info_text_color</item>
-        <item name="android:ellipsize">end</item>
-        <item name="android:singleLine">true</item>
-        <item name="android:layout_marginStart">0dp</item>
-        <item name="android:layout_marginEnd">@dimen/margin_end_text</item>
-    </style>
-
-
 </resources>
