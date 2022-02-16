@@ -1,5 +1,6 @@
 package com.merxury.blocker.ui.settings
 
+import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.SharedPreferences
@@ -78,6 +79,7 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
         return true
     }
 
+    @SuppressLint("WrongConstant")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK && requestCode == PERMISSION_REQUEST_CODE) {
