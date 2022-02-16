@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.CopyOnWriteArrayList
 
 class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     RecyclerView.Adapter<AppListAdapter.AppListViewHolder>() {
@@ -30,7 +31,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
 
     private val logger = XLog.tag("AppListAdapter")
     private var list: MutableList<Application> = mutableListOf()
-    private var appState: MutableList<AppState> = mutableListOf()
+    private var appState: CopyOnWriteArrayList<AppState> = CopyOnWriteArrayList()
     private var loadIconJob: Job? = null
     private var loadServiceStatusJob: Job? = null
 
