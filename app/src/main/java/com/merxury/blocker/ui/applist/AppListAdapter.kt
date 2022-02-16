@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AppListItemBinding
 import com.merxury.blocker.util.AppIconCache
 import com.merxury.libkit.entity.Application
@@ -69,6 +70,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(app: Application) {
             // Load icon
+            binding.appIcon.setTag(R.id.app_item_icon_id, app.packageName)
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val appInfo = app.packageInfo?.applicationInfo ?: run {
@@ -78,7 +80,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
                     loadIconJob = AppIconCache.loadIconBitmapAsync(
                         context,
                         appInfo,
-                        appInfo.uid,
+                        appInfo.uid / 100000,
                         binding.appIcon
                     )
                 } catch (e: Exception) {
