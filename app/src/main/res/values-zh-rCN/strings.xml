@@ -23,8 +23,6 @@
     <string name="refresh">刷新</string>
     <string name="logo">Logo</string>
     <string name="application_list">应用程序列表</string>
-    <string name="copy_command">复制</string>
-    <string name="send_command">发送</string>
     <string name="app_icon_description">应用程序图标</string>
     <string name="name_asc">组件名（升序）</string>
     <string name="name_des">组件名（降序）</string>

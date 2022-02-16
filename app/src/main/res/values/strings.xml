@@ -21,13 +21,6 @@
     <string name="refresh">Refresh</string>
     <string name="logo">Logo</string>
     <string name="application_list">Application list</string>
-    <!--COPY FROM https://github.com/RikkaApps/Shizuku/blob/master/manager/src/main/res/values/strings.xml-->
-    <string name="copy_command">Copy</string>
-    <string name="send_command">Send</string>
-    <string name="starting_shell" translatable="false">Starting root shell…</string>
-    <string name="cannot_start_no_root" translatable="false">Can\'t start service because root permission is not granted or this device is not rooted.</string>
-    <string name="cannot_start_shell_failed" translatable="false">There\'s something wrong when running shell command.</string>
-
     <!-- content description-->
     <string name="app_icon_description">Application icon</string>
     <string name="name_asc">Name (Ascending)</string>
