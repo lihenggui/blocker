@@ -17,7 +17,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginBottom="8dp"
         android:contentDescription="@string/app_icon_description"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/main_info_barrier"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -44,14 +44,34 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="2dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="2dp"
         android:layout_marginEnd="8dp"
         android:maxLines="1"
         android:ellipsize="end"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/main_info_barrier"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/app_icon"
         app:layout_constraintTop_toBottomOf="@id/app_name"
         tools:text="Version Code" />
+
+    <androidx.constraintlayout.widget.Barrier
+        android:id="@+id/main_info_barrier"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:constraint_referenced_ids="app_icon, version_code"
+        app:barrierDirection="bottom" />
+
+    <TextView
+        android:id="@+id/service_status"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        tools:text="Acquiring service status..."
+        app:layout_constraintTop_toBottomOf="@id/main_info_barrier"
+        app:layout_constraintStart_toEndOf="@id/app_icon"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
