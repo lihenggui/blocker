@@ -23,7 +23,6 @@
 
     <TextView
         android:id="@+id/app_info_app_name"
-        style="@style/InfoTextStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="@id/app_info_icon_barrier"
@@ -33,7 +32,6 @@
 
     <TextView
         android:id="@+id/app_info_target_sdk_version"
-        style="@style/InfoTextStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_text_interval"
@@ -44,7 +42,6 @@
 
     <TextView
         android:id="@+id/app_info_min_sdk_version"
-        style="@style/InfoTextStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_text_interval"
@@ -63,7 +60,6 @@
 
     <TextView
         android:id="@+id/app_info_app_package_name"
-        style="@style/InfoTextStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_text_interval"
@@ -73,6 +69,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/icon_bottom_barrier"
         tools:text="Package name" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
