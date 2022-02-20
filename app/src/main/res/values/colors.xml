@@ -1,14 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#00B0FF</color>
-    <color name="primary_dark">#0091EA</color>
-    <color name="accent">#0091EA</color>
-    <color name="primary_text">#212121</color>
-    <color name="secondary_text">#757575</color>
-    <color name="google_red">#DB3236</color>
-    <color name="google_green">#3cba54</color>
-    <color name="google_yellow">#f4c20d</color>
-    <color name="google_blue">#4885ed</color>
-    <color name="component_item_background_color">#ffffff</color>
-    <color name="disabled_app_color">#BDBDBD</color>
+    <color name="primary">#29b6f6</color>
+    <color name="primary_dark">#0086c3</color>
+    <color name="primary_light">#73e8ff</color>
+    <color name="accent">#0086c3</color>
 </resources>

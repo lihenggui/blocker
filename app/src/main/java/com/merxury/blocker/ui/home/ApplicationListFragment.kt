@@ -7,13 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.view.ContextMenu
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.annotation.WorkerThread
@@ -392,7 +386,7 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
                         itemView.setBackgroundColor(
                             ContextCompat.getColor(
                                 context,
-                                R.color.disabled_app_color
+                                R.color.primary_dark
                             )
                         )
                     } else {

@@ -63,13 +63,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView, CoroutineScope {
     }
 
     override fun getBackgroundColor(tabPosition: Int): Int {
-        return when (tabPosition) {
-            0 -> ContextCompat.getColor(this, R.color.google_blue)
-            1 -> ContextCompat.getColor(this, R.color.google_green)
-            2 -> ContextCompat.getColor(this, R.color.google_red)
-            3 -> ContextCompat.getColor(this, R.color.google_yellow)
-            else -> ContextCompat.getColor(this, R.color.secondary_text)
-        }
+        return ContextCompat.getColor(this, R.color.accent)
     }
 
     private fun setupViewPager() {

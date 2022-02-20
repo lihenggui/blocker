@@ -7,7 +7,7 @@
     <fragment
         android:id="@+id/list"
         android:name="com.merxury.blocker.ui.applist.AppListFragment"
-        android:label="@string/app_name"></fragment>
+        android:label="@string/app_name" />
     <fragment
         android:id="@+id/settings"
         android:name="com.merxury.blocker.ui.settings.PreferenceFragment"
