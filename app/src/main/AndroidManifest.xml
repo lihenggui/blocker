@@ -33,8 +33,7 @@
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:label="@string/title_activity_settings"
-            android:launchMode="singleTask"
-            android:theme="@style/AppTheme.PlayStoreStyle" />
+            android:launchMode="singleTask" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
