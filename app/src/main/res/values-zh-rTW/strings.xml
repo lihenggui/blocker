@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Blocker</string>
-    <string name="title_activity_main">已安裝程式列表</string>
-    <string name="system_app_tab_text">系統程式</string>
-    <string name="third_party_app_tab_text">使用者程式</string>
+    <string name="system">系統程式</string>
+    <string name="third_party">使用者程式</string>
     <string name="settings">設定</string>
-    <string name="third_party_app">使用者程式</string>
-    <string name="system_app">系統程式</string>
     <string name="receiver">廣播接收器</string>
-    <string name="provider">內容提供者</string>
+    <string name="content_provider">內容提供者</string>
     <string name="activity">活動</string>
     <string name="service">服務</string>
-    <string name="loading_text">載入中…</string>
+    <string name="loading">載入中…</string>
     <string name="app_cannot_start">這個應用程式無介面，無法直接直接啟動</string>
     <string name="no_app_message">嗷嗚～沒有應用程式哦</string>
     <string name="no_component_message">嗷嗚～沒有應用程式元件哦</string>
@@ -19,7 +16,7 @@
     <string name="min_sdk_version">最低支援系統版本: %1$s</string>
     <string name="target_sdk_version">開發SDK版本: %1$s</string>
     <string name="package_name">程式包名: %1$s</string>
-    <string name="menu_filter">過濾條件</string>
+    <string name="filter">過濾條件</string>
     <string name="refresh">重新整理</string>
     <string name="logo">Logo</string>
     <string name="application_list">應用程式列表</string>
@@ -33,8 +30,6 @@
     <string name="package_name_asc">包名（升序）</string>
     <string name="package_name_des">包名（降序）</string>
     <string name="search">搜尋</string>
-    <string name="component_like_description">按讚</string>
-    <string name="component_dislike_description">我踩</string>
     <string name="block_by_ifw">使用IFW禁用</string>
     <string name="view_component_comments">查看所有評論</string>
     <string name="upvote">按讚</string>
@@ -46,7 +41,6 @@
     <string name="add_comment">評論</string>
     <string name="cancel">取消</string>
     <string name="send">發送</string>
-    <string name="vote_fail">踩失敗了 : (</string>
     <string name="block_all">禁用全部</string>
     <string name="enable_all">啟用全部</string>
     <string name="warning">警告</string>
