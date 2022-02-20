@@ -96,7 +96,7 @@ class ComponentActivity : AppCompatActivity(), IActivityView, CoroutineScope {
             ComponentFragment.newInstance(
                 application.packageName,
                 EComponentType.PROVIDER
-            ), getString(R.string.provider)
+            ), getString(R.string.content_provider)
         )
 //        component_viewpager.offscreenPageLimit = 3
 //        component_viewpager.adapter = adapter

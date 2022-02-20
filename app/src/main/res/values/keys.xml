@@ -6,7 +6,6 @@
     <string name="key_pref_rule_path" translatable="false">pref_key_rule_path</string>
     <string name="key_pref_rules" translatable="false">pref_key_rules</string>
     <string name="key_pref_ifw" translatable="false">pref_key_ifw</string>
-    <string name="key_pref_ifw_rule_path" translatable="false">pref_key_ifw_rule_path</string>
     <string name="key_pref_export_rules" translatable="false">pref_key_export_rules</string>
     <string name="key_pref_import_rules" translatable="false">pref_key_import_rules</string>
     <string name="key_pref_export_ifw_rules" translatable="false">pref_key_export_ifw_rules</string>

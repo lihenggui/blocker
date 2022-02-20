@@ -1,23 +1,20 @@
 <resources>
     <string name="app_name">Blocker</string>
-    <string name="title_activity_main">Установленные приложения</string>
-    <string name="system_app_tab_text">Системные</string>
-    <string name="third_party_app_tab_text">Пользовательские</string>
+    <string name="system">Системные</string>
+    <string name="third_party">Пользовательские</string>
     <string name="settings">Настройки</string>
-    <string name="third_party_app">Пользовательские</string>
-    <string name="system_app">Системные</string>
     <string name="receiver">Приемники</string>
-    <string name="provider">Поставщики</string>
+    <string name="content_provider">Поставщики</string>
     <string name="activity">Активити</string>
     <string name="service">Службы</string>
-    <string name="loading_text">Загрузка…</string>
+    <string name="loading">Загрузка…</string>
     <string name="app_cannot_start">Это приложение нельзя запустить напрямую</string>
     <string name="no_app_message">Не могу найти ни одного приложения.</string>
     <string name="no_component_message">Не удается обнаружить ни одного компонента.</string>
     <string name="application_label">Название: %1$s</string>
     <string name="min_sdk_version">Минимальная версия SDK: %1$s</string>
     <string name="package_name">Имя пакета: %1$s</string>
-    <string name="menu_filter">Фильтр</string>
+    <string name="filter">Фильтр</string>
     <string name="refresh">Обновить</string>
     <string name="logo">Logo</string>
     <string name="application_list">Список приложений</string>
@@ -33,8 +30,6 @@
     <string name="package_name_asc">Имя пакета ↑</string>
     <string name="package_name_des">Имя пакета ↓</string>
     <string name="search">Поиск</string>
-    <string name="component_like_description">Кнопка "нравится"</string>
-    <string name="component_dislike_description">Кнопка"не нравится"</string>
     <string name="block_by_ifw">IFW блокировка</string>
     <string name="view_component_comments">Просмотреть все комментарии</string>
     <string name="upvote">Голосовать за</string>
@@ -46,7 +41,6 @@
     <string name="add_comment">Добавить комментарий</string>
     <string name="cancel">Отмена</string>
     <string name="send">Отправка</string>
-    <string name="vote_fail">Не удалось проголосовать за этот компонент.</string>
     <string name="target_sdk_version">Целевая версия SDK: %1$s</string>
     <string name="block_all">Блокировать все</string>
     <string name="enable_all">Разблокировать все</string>
