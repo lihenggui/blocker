@@ -6,8 +6,7 @@
     android:layout_height="wrap_content"
     android:background="?android:selectableItemBackground"
     android:clickable="true"
-    android:focusable="true"
-    android:gravity="center_vertical">
+    android:focusable="true">
 
     <ImageView
         android:id="@+id/app_icon"
@@ -23,15 +22,16 @@
 
     <TextView
         android:id="@+id/app_name"
+        style="?android:attr/textColorPrimary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="2dp"
         android:layout_marginEnd="8dp"
+        android:layout_marginBottom="2dp"
         android:layout_toEndOf="@id/app_icon"
-        android:maxLines="1"
         android:ellipsize="end"
+        android:maxLines="1"
         app:layout_constraintBottom_toTopOf="@id/version_code"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/app_icon"
@@ -40,14 +40,15 @@
 
     <TextView
         android:id="@+id/version_code"
+        style="?android:attr/textColorSecondary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="2dp"
-        android:layout_marginBottom="2dp"
         android:layout_marginEnd="8dp"
-        android:maxLines="1"
+        android:layout_marginBottom="2dp"
         android:ellipsize="end"
+        android:maxLines="1"
         app:layout_constraintBottom_toBottomOf="@id/main_info_barrier"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/app_icon"
@@ -58,20 +59,21 @@
         android:id="@+id/main_info_barrier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:constraint_referenced_ids="app_icon, version_code"
-        app:barrierDirection="bottom" />
+        app:barrierDirection="bottom"
+        app:constraint_referenced_ids="app_icon, version_code" />
 
     <TextView
         android:id="@+id/service_status"
+        style="?android:attr/textColorSecondary"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="2dp"
-        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
-        tools:text="Acquiring service status..."
-        app:layout_constraintTop_toBottomOf="@id/main_info_barrier"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/app_icon"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/main_info_barrier"
+        tools:text="Acquiring service status..." />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

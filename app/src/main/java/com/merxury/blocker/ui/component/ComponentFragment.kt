@@ -397,14 +397,14 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
                         itemView.setBackgroundColor(
                             ContextCompat.getColor(
                                 context,
-                                R.color.google_blue
+                                R.color.primary_dark
                             )
                         )
                     } else {
                         itemView.setBackgroundColor(
                             ContextCompat.getColor(
                                 context,
-                                R.color.component_item_background_color
+                                R.color.primary_dark
                             )
                         )
                     }
