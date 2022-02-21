@@ -22,9 +22,9 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <fragment
-        android:name="com.merxury.blocker.ui.settings.PreferenceFragment"
+        android:name="com.merxury.blocker.ui.settings.SettingsFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="?attr/actionBarSize"
-        android:tag="com.merxury.blocker.ui.settings.PreferenceFragment" />
+        android:tag="com.merxury.blocker.ui.settings.SettingsFragment" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
