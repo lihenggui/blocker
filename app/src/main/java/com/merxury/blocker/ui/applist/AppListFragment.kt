@@ -10,6 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupWithNavController
+import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.databinding.AppListFragmentBinding
@@ -66,7 +67,9 @@ class AppListFragment : Fragment() {
     private fun initRecyclerView() {
         binding.appListRecyclerView.apply {
             adapter = this@AppListFragment.adapter
-            layoutManager = LinearLayoutManager(requireContext())
+            val manager = LinearLayoutManager(context)
+            layoutManager = manager
+            addItemDecoration(DividerItemDecoration(requireContext(), manager.orientation))
         }
     }
 
