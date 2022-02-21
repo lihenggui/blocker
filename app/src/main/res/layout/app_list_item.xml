@@ -22,7 +22,7 @@
 
     <TextView
         android:id="@+id/app_name"
-        style="?android:attr/textColorPrimary"
+        style="@style/TextAppearance.Material3.TitleMedium"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -40,7 +40,7 @@
 
     <TextView
         android:id="@+id/version_code"
-        style="?android:attr/textColorSecondary"
+        style="@style/TextAppearance.Material3.LabelSmall"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -64,7 +64,7 @@
 
     <TextView
         android:id="@+id/service_status"
-        style="?android:attr/textColorSecondary"
+        style="@style/TextAppearance.Material3.LabelSmall"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
