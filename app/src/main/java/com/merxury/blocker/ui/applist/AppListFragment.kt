@@ -35,14 +35,28 @@ class AppListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initSwipeLayout()
         initRecyclerView()
-        viewModel?.appList?.observe(viewLifecycleOwner) { adapter.updateAppList(it) }
+        viewModel?.appList?.observe(viewLifecycleOwner) {
+            hideLoading()
+            if (it.isEmpty()) {
+                showNoAppView()
+            } else {
+                showAppView()
+                adapter.updateAppList(it)
+            }
+        }
         viewModel?.loadData(requireContext(), true)
     }
 
     override fun onDestroy() {
         adapter.release()
         super.onDestroy()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun initRecyclerView() {
@@ -52,8 +66,23 @@ class AppListFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
+    private fun initSwipeLayout() {
+        binding.appListRefreshLayout.setOnRefreshListener {
+            viewModel?.loadData(requireContext(), true)
+        }
+    }
+
+    private fun showNoAppView() {
+        binding.noAppsContainer.visibility = View.VISIBLE
+    }
+
+    private fun showAppView() {
+        binding.noAppsContainer.visibility = View.GONE
+    }
+
+    private fun hideLoading() {
+        if (binding.appListRefreshLayout.isRefreshing) {
+            binding.appListRefreshLayout.isRefreshing = false
+        }
     }
 }
