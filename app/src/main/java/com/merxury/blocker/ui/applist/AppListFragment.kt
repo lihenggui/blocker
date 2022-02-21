@@ -7,6 +7,9 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.databinding.AppListFragmentBinding
@@ -35,6 +38,7 @@ class AppListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initToolbar()
         initSwipeLayout()
         initRecyclerView()
         viewModel?.appList?.observe(viewLifecycleOwner) {
@@ -46,7 +50,7 @@ class AppListFragment : Fragment() {
                 adapter.updateAppList(it)
             }
         }
-        viewModel?.loadData(requireContext(), true)
+        viewModel?.loadData(requireContext(), false)
     }
 
     override fun onDestroy() {
@@ -70,6 +74,12 @@ class AppListFragment : Fragment() {
         binding.appListRefreshLayout.setOnRefreshListener {
             viewModel?.loadData(requireContext(), true)
         }
+    }
+
+    private fun initToolbar() {
+        val navController = findNavController()
+        val appBarConfiguration = AppBarConfiguration(navController.graph)
+        binding.toolbar.setupWithNavController(navController, appBarConfiguration)
     }
 
     private fun showNoAppView() {

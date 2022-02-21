@@ -7,9 +7,14 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
+import androidx.appcompat.widget.Toolbar
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.documentfile.provider.DocumentFile
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
@@ -30,7 +35,7 @@ import com.merxury.blocker.work.ImportIfwRulesWork
 import com.merxury.blocker.work.ImportMatRulesWork
 import com.merxury.blocker.work.ResetIfwWork
 
-class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
+class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
     private val logger = XLog.tag("PreferenceFragment")
     private lateinit var sp: SharedPreferences
@@ -57,6 +62,11 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
 
     override fun onCreatePreferences(bundle: Bundle?, s: String?) {
         addPreferencesFromResource(R.xml.preferences)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        initToolbar(view)
     }
 
     override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
@@ -99,6 +109,13 @@ class PreferenceFragment : PreferenceFragmentCompat(), Preference.OnPreferenceCl
                 importMatRule(uri)
             }
         }
+    }
+
+    private fun initToolbar(view: View) {
+        val navController = findNavController()
+        val appBarConfiguration = AppBarConfiguration(navController.graph)
+        view.findViewById<Toolbar>(R.id.toolbar)
+            .setupWithNavController(navController, appBarConfiguration)
     }
 
     private fun setFolderToSave() {
