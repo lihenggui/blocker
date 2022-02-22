@@ -56,8 +56,18 @@ object PreferenceUtil {
         return pref.getBoolean(context.getString(R.string.key_pref_show_system_apps), false)
     }
 
-    fun shouldLoadSystemApps(context: Context): Boolean {
+    fun setShowRunningServiceInfo(context: Context, value: Boolean) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putBoolean(context.getString(R.string.key_pref_show_running_service_info), value)
+            .apply()
+    }
+
+    fun getShowRunningServiceInfo(context: Context): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        return pref.getBoolean(context.getString(R.string.key_pref_load_system_apps), false)
+        return pref.getBoolean(
+            context.getString(R.string.key_pref_show_running_service_info),
+            false
+        )
     }
 }

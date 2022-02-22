@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.RecyclerView
@@ -12,6 +13,7 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AppListItemBinding
 import com.merxury.blocker.util.AppIconCache
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.Application
 import com.merxury.libkit.utils.ApplicationUtil
@@ -100,6 +102,15 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
             }
             binding.appName.text = app.label
             binding.versionCode.text = app.versionName
+            if (PreferenceUtil.getShowRunningServiceInfo(context)) {
+                binding.serviceStatus.visibility = View.VISIBLE
+                getRunningServiceInfo(app)
+            } else {
+                binding.serviceStatus.visibility = View.GONE
+            }
+        }
+
+        private fun getRunningServiceInfo(app: Application) {
             binding.serviceStatus.text =
                 context.getString(R.string.acquiring_service_status_please_wait)
             // Load service status

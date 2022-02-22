@@ -158,4 +158,5 @@
     <string name="service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
     <string name="show_system_apps">Show system apps</string>
     <string name="sort">Sort</string>
+    <string name="show_service_info">Show service info</string>
 </resources>

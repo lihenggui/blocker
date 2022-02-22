@@ -97,6 +97,10 @@ class AppListFragment : Fragment() {
                     handleShowSystemAppsClicked(menuItem)
                     true
                 }
+                R.id.action_show_service_info -> {
+                    handleShowServiceInfoClicked(menuItem)
+                    true
+                }
                 else -> {
                     handleSortAction(menuItem)
                     true
@@ -132,6 +136,12 @@ class AppListFragment : Fragment() {
             R.id.action_sort_last_update_time -> SortType.LAST_UPDATE_TIME
             else -> null
         }
+    }
+
+    private fun handleShowServiceInfoClicked(menuItem: MenuItem) {
+        menuItem.isChecked = !menuItem.isChecked
+        PreferenceUtil.setShowRunningServiceInfo(requireContext(), menuItem.isChecked)
+        loadData()
     }
 
     private fun loadData() {

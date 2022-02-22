@@ -18,6 +18,6 @@
     <string name="key_pref_comparator_type" translatable="false">pref_key_comparator_type</string>
     <string name="key_pref_save_folder_path" translatable="false">key_pref_save_folder_path</string>
     <string name="key_pref_backup_system_apps" translatable="false">key_pref_backup_system_apps</string>
-    <string name="key_pref_load_system_apps" translatable="false">key_pref_load_system_apps</string>
     <string name="key_pref_show_system_apps" translatable="false">key_pref_show_system_apps</string>
+    <string name="key_pref_show_running_service_info" translatable="false">key_pref_show_running_service_info</string>
 </resources>
