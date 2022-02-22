@@ -1,6 +1,8 @@
 package com.merxury.blocker.ui.applist
 
 enum class SortType {
-    NAME,
-    INSTALL_TIME
+    NAME_ASC,
+    NAME_DESC,
+    INSTALL_TIME,
+    LAST_UPDATE_TIME
 }

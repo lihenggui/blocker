@@ -21,7 +21,7 @@
     <!-- content description-->
     <string name="app_icon_description">Иконка приложения</string>
     <string name="name_asc">Название ↑</string>
-    <string name="name_des">Название ↓</string>
+    <string name="name_desc">Название ↓</string>
     <string name="installation_date">Дата первой установки</string>
     <string name="alert">Оповещение</string>
     <string name="oops">Ой</string>

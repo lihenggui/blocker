@@ -7,7 +7,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
-import android.view.*
+import android.view.ContextMenu
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.annotation.WorkerThread
@@ -108,14 +114,15 @@ class ApplicationListFragment : BaseLazyFragment(), HomeContract.View, Coroutine
 
     override fun showFilteringPopUpMenu() {
         PopupMenu(activity, activity?.findViewById(R.id.menu_filter)).apply {
-            menuInflater.inflate(R.menu.filter_application, menu)
+//            menuInflater.inflate(R.menu.filter_application, menu)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.name_asc -> presenter.currentComparator = ApplicationComparatorType.ASCENDING_BY_LABEL
-                    R.id.name_des -> presenter.currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
-                    R.id.installation_time -> presenter.currentComparator = ApplicationComparatorType.INSTALLATION_TIME
-                    R.id.last_update_time -> presenter.currentComparator = ApplicationComparatorType.LAST_UPDATE_TIME
-                    else -> presenter.currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
+//                    R.id.action_sort_name_asc -> presenter.currentComparator = ApplicationComparatorType.ASCENDING_BY_LABEL
+//                    R.id.name_des -> presenter.currentComparator = ApplicationComparatorType.DESCENDING_BY_LABEL
+//                    R.id.installation_time -> presenter.currentComparator = ApplicationComparatorType.INSTALLATION_TIME
+//                    R.id.last_update_time -> presenter.currentComparator = ApplicationComparatorType.LAST_UPDATE_TIME
+                    else -> presenter.currentComparator =
+                        ApplicationComparatorType.DESCENDING_BY_LABEL
                 }
 //                presenter.loadApplicationList(requireContext(), isSystem)
                 true
