@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 class AppListViewModel : ViewModel() {
     private val _appList = MutableLiveData<List<Application>>()
     val appList: LiveData<List<Application>> = _appList
+    private var originalList = listOf<Application>()
     private val _sortType = MutableLiveData<SortType?>()
     val sortType: LiveData<SortType?> = _sortType
     private var pm: PackageManager? = null
@@ -30,12 +31,14 @@ class AppListViewModel : ViewModel() {
         }
         viewModelScope.launch {
             val list = if (loadSystemApp) {
-                ApplicationUtil.getSystemApplicationList(context)
+                ApplicationUtil.getApplicationList(context)
             } else {
                 ApplicationUtil.getThirdPartyApplicationList(context)
             }
             logger.i("loadData done, list size: ${list.size}")
-            _appList.value = sortList(list, _sortType.value)
+            val sortedList = sortList(list, _sortType.value)
+            originalList = sortedList
+            _appList.value = sortedList
         }
     }
 
@@ -43,6 +46,19 @@ class AppListViewModel : ViewModel() {
         _sortType.value = sortType
         val list = _appList.value ?: mutableListOf()
         _appList.value = sortList(list, sortType)
+    }
+
+    fun filter(keyword: String?) {
+        if (keyword.isNullOrEmpty()) {
+            _appList.value = originalList
+            return
+        }
+        // Ignore spaces
+        val clearedKeyword = keyword.trim().replace(" ", "")
+        _appList.value = originalList.filter {
+            it.label.replace(" ", "").contains(clearedKeyword, true) ||
+                    it.packageName.contains(keyword, true)
+        }
     }
 
     private fun sortList(list: List<Application>, sortType: SortType?): List<Application> {
