@@ -102,7 +102,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
             }
             binding.appName.text = app.label
             binding.versionCode.text = app.versionName
-            if (PreferenceUtil.getShowRunningServiceInfo(context)) {
+            if (PreferenceUtil.getShowServiceInfo(context)) {
                 binding.serviceStatus.visibility = View.VISIBLE
                 getRunningServiceInfo(app)
             } else {
