@@ -156,4 +156,6 @@
     <string name="import_mat_failed_message">Failed to import MAT rules, did you grant permissions to Blocker?</string>
     <string name="acquiring_service_status_please_wait">Acquiring service status…</string>
     <string name="service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
+    <string name="show_system_apps">Show system apps</string>
+    <string name="sort">Sort</string>
 </resources>

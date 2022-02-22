@@ -8,13 +8,14 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
+        style="@style/Widget.MaterialComponents.Toolbar.Primary"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/primary"
-        android:elevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/app_list_actions"
+        app:title="@string/app_name" />
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/app_list_refresh_layout"
@@ -51,7 +52,7 @@
                     android:layout_height="48dp"
                     android:layout_gravity="center"
                     android:contentDescription="@string/no_app_message"
-                    android:src="@drawable/ic_no_app_24dp" />
+                    android:src="@drawable/ic_no_app" />
 
                 <TextView
                     android:id="@+id/no_app_text"

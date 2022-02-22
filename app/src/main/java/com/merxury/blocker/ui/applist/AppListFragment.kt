@@ -13,6 +13,7 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AppListFragmentBinding
 import com.merxury.blocker.util.unsafeLazy
 
@@ -83,6 +84,13 @@ class AppListFragment : Fragment() {
         val navController = findNavController()
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
+        binding.toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem?.itemId) {
+                R.id.action_show_system_apps -> true
+                R.id.action_sort -> true
+                else -> false
+            }
+        }
     }
 
     private fun showNoAppView() {

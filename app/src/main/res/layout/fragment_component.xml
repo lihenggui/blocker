@@ -30,7 +30,7 @@
                 android:layout_height="48dp"
                 android:layout_gravity="center"
                 android:contentDescription="@string/no_component_message"
-                android:src="@drawable/ic_no_app_24dp" />
+                android:src="@drawable/ic_no_app" />
 
             <TextView
                 android:id="@+id/noComponentMain"
