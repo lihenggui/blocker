@@ -7,6 +7,11 @@
         android:checkable="true"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_show_service_info"
+        android:title="@string/show_service_info"
+        android:checkable="true"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_sort"
         android:title="@string/sort"
         app:showAsAction="never">
