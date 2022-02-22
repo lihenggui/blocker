@@ -49,10 +49,10 @@ class AppListFragment : Fragment() {
         viewModel?.appList?.observe(viewLifecycleOwner) {
             hideLoading()
             if (it.isEmpty()) {
-                binding.noAppsContainer.visibility = View.VISIBLE
+                binding.noAppText.visibility = View.VISIBLE
                 binding.appListRecyclerView.visibility = View.GONE
             } else {
-                binding.noAppsContainer.visibility = View.GONE
+                binding.noAppText.visibility = View.GONE
                 binding.appListRecyclerView.visibility = View.VISIBLE
                 adapter.updateAppList(it)
             }
