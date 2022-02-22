@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/menu_search"
-        android:icon="@drawable/ic_search_white_24dp"
+        android:icon="@drawable/ic_search"
         android:imeOptions="actionSearch"
         android:inputType="textCapWords"
         android:title="@string/search"
@@ -11,7 +11,7 @@
         app:showAsAction="always" />
     <item
         android:id="@+id/menu_filter"
-        android:icon="@drawable/ic_sort_24dp"
+        android:icon="@drawable/ic_sort"
         android:title="@string/filter"
         app:showAsAction="always" />
     <item
