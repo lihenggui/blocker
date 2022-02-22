@@ -90,6 +90,8 @@ class AppListFragment : Fragment() {
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
         binding.toolbar.menu.findItem(R.id.action_show_system_apps).isChecked =
             PreferenceUtil.getShowSystemApps(requireContext())
+        binding.toolbar.menu.findItem(R.id.action_show_service_info).isChecked =
+            PreferenceUtil.getShowServiceInfo(requireContext())
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             logger.i("Menu item clicked: $menuItem")
             when (menuItem?.itemId) {
@@ -140,7 +142,7 @@ class AppListFragment : Fragment() {
 
     private fun handleShowServiceInfoClicked(menuItem: MenuItem) {
         menuItem.isChecked = !menuItem.isChecked
-        PreferenceUtil.setShowRunningServiceInfo(requireContext(), menuItem.isChecked)
+        PreferenceUtil.setShowServiceInfo(requireContext(), menuItem.isChecked)
         loadData()
     }
 
