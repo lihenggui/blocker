@@ -1,11 +1,21 @@
 package com.merxury.blocker.ui.component
 
 import android.app.Activity
-import android.content.*
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.view.*
+import android.view.ContextMenu
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -167,8 +177,10 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
             menuInflater.inflate(R.menu.filter_component, menu)
             setOnMenuItemClickListener { item ->
                 when (item.itemId) {
-                    R.id.name_asc -> presenter.currentComparator = EComponentComparatorType.SIMPLE_NAME_ASCENDING
-                    R.id.name_des -> presenter.currentComparator = EComponentComparatorType.SIMPLE_NAME_DESCENDING
+                    R.id.action_sort_name_asc -> presenter.currentComparator =
+                        EComponentComparatorType.SIMPLE_NAME_ASCENDING
+                    R.id.name_des -> presenter.currentComparator =
+                        EComponentComparatorType.SIMPLE_NAME_DESCENDING
                     R.id.package_name_asc -> presenter.currentComparator = EComponentComparatorType.NAME_ASCENDING
                     R.id.package_name_des -> presenter.currentComparator = EComponentComparatorType.NAME_DESCENDING
                 }

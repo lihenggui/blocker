@@ -47,8 +47,10 @@ class AppListViewModel : ViewModel() {
 
     private fun sortList(list: List<Application>, sortType: SortType?): List<Application> {
         return when (sortType) {
-            SortType.NAME -> list.sortedBy { it.getLabel(pm!!) }
-            SortType.INSTALL_TIME -> list.sortedBy { it.lastUpdateTime }
+            SortType.NAME_ASC -> list.sortedBy { it.getLabel(pm!!) }
+            SortType.NAME_DESC -> list.sortedByDescending { it.getLabel(pm!!) }
+            SortType.INSTALL_TIME -> list.sortedBy { it.firstInstallTime }
+            SortType.LAST_UPDATE_TIME -> list.sortedBy { it.lastUpdateTime }
             else -> list.sortedBy { it.getLabel(pm!!) }
         }
     }

@@ -5,7 +5,7 @@
         android:title="@string/name_asc" />
     <item
         android:id="@+id/name_des"
-        android:title="@string/name_des" />
+        android:title="@string/name_desc" />
 
     <item
         android:id="@+id/package_name_asc"

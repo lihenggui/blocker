@@ -97,8 +97,10 @@ class AppListFragment : Fragment() {
                     handleShowSystemAppsClicked(menuItem)
                     true
                 }
-                R.id.action_sort -> true
-                else -> false
+                else -> {
+                    handleSortAction(menuItem)
+                    true
+                }
             }
         }
     }
@@ -113,6 +115,23 @@ class AppListFragment : Fragment() {
         menuItem.isChecked = !menuItem.isChecked
         PreferenceUtil.setShowSystemApps(requireContext(), menuItem.isChecked)
         loadData()
+    }
+
+    private fun handleSortAction(menuItem: MenuItem) {
+        logger.i("Sort action clicked: $menuItem")
+        val sortType = getSortType(menuItem) ?: return
+        logger.i("Sort type: $sortType")
+        viewModel?.updateSorting(sortType)
+    }
+
+    private fun getSortType(menuItem: MenuItem): SortType? {
+        return when (menuItem.itemId) {
+            R.id.action_sort_name_asc -> SortType.NAME_ASC
+            R.id.action_sort_name_desc -> SortType.NAME_DESC
+            R.id.action_sort_install_time -> SortType.INSTALL_TIME
+            R.id.action_sort_last_update_time -> SortType.LAST_UPDATE_TIME
+            else -> null
+        }
     }
 
     private fun loadData() {

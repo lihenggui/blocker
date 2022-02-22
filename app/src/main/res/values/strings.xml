@@ -21,7 +21,7 @@
     <!-- content description-->
     <string name="app_icon_description">Application icon</string>
     <string name="name_asc">Name (Ascending)</string>
-    <string name="name_des">Name (Descending)</string>
+    <string name="name_desc">Name (Descending)</string>
     <string name="installation_date">First Install Date</string>
     <string name="alert">Alert</string>
     <string name="oops">Oops</string>
