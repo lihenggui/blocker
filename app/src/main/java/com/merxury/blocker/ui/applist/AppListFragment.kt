@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -88,10 +89,18 @@ class AppListFragment : Fragment() {
         val navController = findNavController()
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
+        // Handle search events
+        val searchView = binding.toolbar.menu.findItem(R.id.action_search).actionView as? SearchView
+        searchView?.apply {
+            queryHint = getString(R.string.app_name_or_package_name)
+            handleSearchEvents(this)
+        }
+        // Set default actions
         binding.toolbar.menu.findItem(R.id.action_show_system_apps).isChecked =
             PreferenceUtil.getShowSystemApps(requireContext())
         binding.toolbar.menu.findItem(R.id.action_show_service_info).isChecked =
             PreferenceUtil.getShowServiceInfo(requireContext())
+        // Handle click events
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             logger.i("Menu item clicked: $menuItem")
             when (menuItem?.itemId) {
@@ -109,6 +118,19 @@ class AppListFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun handleSearchEvents(searchView: SearchView) {
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel?.filter(newText)
+                return true
+            }
+        })
     }
 
     private fun hideLoading() {

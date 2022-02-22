@@ -159,4 +159,5 @@
     <string name="show_system_apps">Show system apps</string>
     <string name="sort">Sort</string>
     <string name="show_service_info">Show service info</string>
+    <string name="app_name_or_package_name">App name or package name</string>
 </resources>
