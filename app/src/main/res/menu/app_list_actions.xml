@@ -4,6 +4,7 @@
     <item
         android:id="@+id/action_show_system_apps"
         android:title="@string/show_system_apps"
+        android:checkable="true"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_sort"

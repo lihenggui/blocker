@@ -2,6 +2,7 @@ package com.merxury.blocker.ui.applist
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AppListFragmentBinding
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.unsafeLazy
 
 class AppListFragment : Fragment() {
@@ -46,13 +48,15 @@ class AppListFragment : Fragment() {
         viewModel?.appList?.observe(viewLifecycleOwner) {
             hideLoading()
             if (it.isEmpty()) {
-                showNoAppView()
+                binding.noAppsContainer.visibility = View.VISIBLE
+                binding.appListRecyclerView.visibility = View.GONE
             } else {
-                showAppView()
+                binding.noAppsContainer.visibility = View.GONE
+                binding.appListRecyclerView.visibility = View.VISIBLE
                 adapter.updateAppList(it)
             }
         }
-        viewModel?.loadData(requireContext(), false)
+        loadData()
     }
 
     override fun onDestroy() {
@@ -76,7 +80,7 @@ class AppListFragment : Fragment() {
 
     private fun initSwipeLayout() {
         binding.appListRefreshLayout.setOnRefreshListener {
-            viewModel?.loadData(requireContext(), true)
+            loadData()
         }
     }
 
@@ -84,26 +88,35 @@ class AppListFragment : Fragment() {
         val navController = findNavController()
         val appBarConfiguration = AppBarConfiguration(navController.graph)
         binding.toolbar.setupWithNavController(navController, appBarConfiguration)
+        binding.toolbar.menu.findItem(R.id.action_show_system_apps).isChecked =
+            PreferenceUtil.getShowSystemApps(requireContext())
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
+            logger.i("Menu item clicked: $menuItem")
             when (menuItem?.itemId) {
-                R.id.action_show_system_apps -> true
+                R.id.action_show_system_apps -> {
+                    handleShowSystemAppsClicked(menuItem)
+                    true
+                }
                 R.id.action_sort -> true
                 else -> false
             }
         }
     }
 
-    private fun showNoAppView() {
-        binding.noAppsContainer.visibility = View.VISIBLE
-    }
-
-    private fun showAppView() {
-        binding.noAppsContainer.visibility = View.GONE
-    }
-
     private fun hideLoading() {
         if (binding.appListRefreshLayout.isRefreshing) {
             binding.appListRefreshLayout.isRefreshing = false
         }
+    }
+
+    private fun handleShowSystemAppsClicked(menuItem: MenuItem) {
+        menuItem.isChecked = !menuItem.isChecked
+        PreferenceUtil.setShowSystemApps(requireContext(), menuItem.isChecked)
+        loadData()
+    }
+
+    private fun loadData() {
+        val shouldShowSystemApp = PreferenceUtil.getShowSystemApps(requireContext())
+        viewModel?.loadData(requireContext(), shouldShowSystemApp)
     }
 }
