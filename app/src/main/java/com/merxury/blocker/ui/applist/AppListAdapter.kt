@@ -1,9 +1,7 @@
 package com.merxury.blocker.ui.applist
 
 import android.annotation.SuppressLint
-import android.content.ComponentName
 import android.content.Context
-import android.content.pm.PackageManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,16 +11,13 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AppListItemBinding
 import com.merxury.blocker.util.AppIconCache
+import com.merxury.blocker.util.AppStateCache
 import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.Application
-import com.merxury.libkit.utils.ApplicationUtil
-import com.merxury.libkit.utils.ServiceHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.concurrent.CopyOnWriteArrayList
 
 class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     RecyclerView.Adapter<AppListAdapter.AppListViewHolder>() {
@@ -33,7 +28,6 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
 
     private val logger = XLog.tag("AppListAdapter")
     private var list: MutableList<Application> = mutableListOf()
-    private var appState: CopyOnWriteArrayList<AppState> = CopyOnWriteArrayList()
     private var loadIconJob: Job? = null
     private var loadServiceStatusJob: Job? = null
 
@@ -116,15 +110,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
             // Load service status
             lifecycleScope.launch(Dispatchers.IO) {
                 loadServiceStatusJob = launch {
-                    // Find from adapter's cache first
-                    val cachedResult = appState.find { it.packageName == app.packageName }
-                    val result: AppState
-                    if (cachedResult == null) {
-                        result = getServiceStatus(context.packageManager, app.packageName)
-                        appState.add(result)
-                    } else {
-                        result = cachedResult
-                    }
+                    val result = AppStateCache.get(context, app.packageName)
                     withContext(Dispatchers.Main) {
                         binding.serviceStatus.text = context.getString(
                             R.string.service_status_template,
@@ -135,29 +121,6 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
                     }
                 }
             }
-        }
-
-        private suspend fun getServiceStatus(pm: PackageManager, packageName: String): AppState {
-            val serviceHelper = ServiceHelper(packageName)
-            serviceHelper.refresh()
-            val ifwImpl = IntentFirewallImpl.getInstance(context, packageName)
-            val services = ApplicationUtil.getServiceList(pm, packageName)
-            var running = 0
-            var blocked = 0
-            for (service in services) {
-                if (!ifwImpl.getComponentEnableState(packageName, service.name) ||
-                    !ApplicationUtil.checkComponentIsEnabled(
-                        pm,
-                        ComponentName(packageName, service.name)
-                    )
-                ) {
-                    blocked++
-                }
-                if (serviceHelper.isServiceRunning(service.name)) {
-                    running++
-                }
-            }
-            return AppState(running, blocked, services.count(), packageName)
         }
     }
 }
