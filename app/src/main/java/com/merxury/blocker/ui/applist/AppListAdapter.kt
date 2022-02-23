@@ -17,7 +17,6 @@ import com.merxury.libkit.entity.Application
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     RecyclerView.Adapter<AppListAdapter.AppListViewHolder>() {
@@ -43,7 +42,18 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
             logger.e("Application info is null, position: $position")
             return
         }
-        holder.bind(application)
+        holder.bind(position, application)
+    }
+
+    override fun onBindViewHolder(
+        holder: AppListViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        super.onBindViewHolder(holder, position, payloads)
+        if (payloads.isEmpty()) return
+        val serviceState = payloads.getOrNull(0) as? AppState ?: return
+        holder.bind(serviceState)
     }
 
     override fun getItemCount(): Int {
@@ -75,7 +85,8 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
         private val binding: AppListItemBinding
     ) :
         RecyclerView.ViewHolder(binding.root) {
-        fun bind(app: Application) {
+
+        fun bind(position: Int, app: Application) {
             // Load icon
             binding.appIcon.setTag(R.id.app_item_icon_id, app.packageName)
             lifecycleScope.launch(Dispatchers.IO) {
@@ -98,26 +109,30 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
             binding.versionCode.text = app.versionName
             if (PreferenceUtil.getShowServiceInfo(context)) {
                 binding.serviceStatus.visibility = View.VISIBLE
-                getRunningServiceInfo(app)
+                getRunningServiceInfo(position, app)
             } else {
                 binding.serviceStatus.visibility = View.GONE
             }
         }
 
-        private fun getRunningServiceInfo(app: Application) {
+        fun bind(state: AppState) {
+            binding.serviceStatus.text = context.getString(
+                R.string.service_status_template,
+                state.running,
+                state.blocked,
+                state.total
+            )
+        }
+
+        private fun getRunningServiceInfo(position: Int, app: Application) {
             binding.serviceStatus.text =
                 context.getString(R.string.acquiring_service_status_please_wait)
             // Load service status
             lifecycleScope.launch(Dispatchers.IO) {
                 loadServiceStatusJob = launch {
                     val result = AppStateCache.get(context, app.packageName)
-                    withContext(Dispatchers.Main) {
-                        binding.serviceStatus.text = context.getString(
-                            R.string.service_status_template,
-                            result.running,
-                            result.blocked,
-                            result.total
-                        )
+                    binding.root.post {
+                        notifyItemChanged(position, result)
                     }
                 }
             }
