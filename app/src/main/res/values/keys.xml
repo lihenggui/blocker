@@ -15,7 +15,6 @@
     <string name="key_pref_other" translatable="false">pref_key_other</string>
     <string name="key_pref_about_category" translatable="false">pref_key_about_category</string>
     <string name="key_pref_about" translatable="false">pref_key_about</string>
-    <string name="key_pref_comparator_type" translatable="false">pref_key_comparator_type</string>
     <string name="key_pref_save_folder_path" translatable="false">key_pref_save_folder_path</string>
     <string name="key_pref_backup_system_apps" translatable="false">key_pref_backup_system_apps</string>
     <string name="key_pref_show_system_apps" translatable="false">key_pref_show_system_apps</string>
