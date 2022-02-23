@@ -10,6 +10,10 @@ import com.merxury.libkit.utils.ServiceHelper
 object AppStateCache {
     private val cache = mutableMapOf<String, AppState>()
 
+    fun getInCache(context: Context, packageName: String): AppState? {
+        return cache[packageName]
+    }
+
     suspend fun get(context: Context, packageName: String): AppState {
         val cachedResult = cache[packageName]
         val result: AppState

@@ -128,6 +128,12 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
             binding.serviceStatus.text =
                 context.getString(R.string.acquiring_service_status_please_wait)
             // Load service status
+            val cachedState = AppStateCache.getInCache(context, app.packageName)
+            if (cachedState != null) {
+                bind(cachedState)
+                return
+            }
+            // Can't find in cache, load service status directly
             lifecycleScope.launch(Dispatchers.IO) {
                 loadServiceStatusJob = launch {
                     val result = AppStateCache.get(context, app.packageName)
