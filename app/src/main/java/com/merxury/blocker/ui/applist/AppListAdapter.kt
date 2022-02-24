@@ -1,11 +1,12 @@
 package com.merxury.blocker.ui.applist
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
@@ -19,14 +20,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
-    RecyclerView.Adapter<AppListAdapter.AppListViewHolder>() {
+    ListAdapter<Application, AppListAdapter.AppListViewHolder>(DiffCallback()) {
 
     init {
         setHasStableIds(true)
     }
 
     private val logger = XLog.tag("AppListAdapter")
-    private var list: MutableList<Application> = mutableListOf()
     private var loadIconJob: Job? = null
     private var loadServiceStatusJob: Job? = null
 
@@ -37,7 +37,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     }
 
     override fun onBindViewHolder(holder: AppListViewHolder, position: Int) {
-        val application = list.getOrNull(position)
+        val application = currentList.getOrNull(position)
         if (application == null) {
             logger.e("Application info is null, position: $position")
             return
@@ -57,18 +57,15 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     }
 
     override fun getItemCount(): Int {
-        return list.size
+        return currentList.size
     }
 
     override fun getItemId(position: Int): Long {
-        return list.getOrNull(position)?.packageName?.hashCode()?.toLong() ?: 0
+        return currentList.getOrNull(position)?.packageName?.hashCode()?.toLong() ?: 0
     }
 
-    // We need to refresh the whole list
-    @SuppressLint("NotifyDataSetChanged")
     fun updateAppList(list: List<Application>) {
-        this.list = list.toMutableList()
-        notifyDataSetChanged()
+        submitList(list)
     }
 
     fun release() {
@@ -77,6 +74,16 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
         }
         if (loadServiceStatusJob?.isActive == true) {
             loadServiceStatusJob?.cancel()
+        }
+    }
+
+    private class DiffCallback : DiffUtil.ItemCallback<Application>() {
+        override fun areItemsTheSame(oldItem: Application, newItem: Application): Boolean {
+            return oldItem.packageName == newItem.packageName
+        }
+
+        override fun areContentsTheSame(oldItem: Application, newItem: Application): Boolean {
+            return oldItem == newItem
         }
     }
 

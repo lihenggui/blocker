@@ -60,6 +60,7 @@ class Application() : Parcelable {
         return "Application(packageName='$packageName', versionName='$versionName', isEnabled=$isEnabled, label='$label', firstInstallTime=$firstInstallTime, lastUpdateTime=$lastUpdateTime, packageInfo=$packageInfo)"
     }
 
+
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(packageName)
         parcel.writeString(versionName)
@@ -70,6 +71,34 @@ class Application() : Parcelable {
 
     override fun describeContents(): Int {
         return 0
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Application
+
+        if (packageName != other.packageName) return false
+        if (versionName != other.versionName) return false
+        if (isEnabled != other.isEnabled) return false
+        if (label != other.label) return false
+        if (firstInstallTime != other.firstInstallTime) return false
+        if (lastUpdateTime != other.lastUpdateTime) return false
+        if (packageInfo != other.packageInfo) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = packageName.hashCode()
+        result = 31 * result + (versionName?.hashCode() ?: 0)
+        result = 31 * result + isEnabled.hashCode()
+        result = 31 * result + label.hashCode()
+        result = 31 * result + (firstInstallTime?.hashCode() ?: 0)
+        result = 31 * result + (lastUpdateTime?.hashCode() ?: 0)
+        result = 31 * result + (packageInfo?.hashCode() ?: 0)
+        return result
     }
 
     companion object CREATOR : Parcelable.Creator<Application> {
