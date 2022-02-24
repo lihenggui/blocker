@@ -29,12 +29,6 @@
         <activity
             android:name=".ui.component.ComponentActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.settings.SettingsActivity"
-            android:exported="false"
-            android:label="@string/title_activity_settings"
-            android:launchMode="singleTask" />
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.merxury.blocker.provider"
