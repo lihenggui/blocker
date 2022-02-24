@@ -33,7 +33,7 @@
         android:layout_toEndOf="@id/app_icon"
         android:ellipsize="end"
         android:maxLines="1"
-        app:layout_constraintBottom_toTopOf="@id/version_code"
+        app:layout_constraintBottom_toTopOf="@id/version_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/app_icon"
         app:layout_constraintTop_toTopOf="parent"
@@ -42,7 +42,7 @@
         tools:text="Application Name" />
 
     <TextView
-        android:id="@+id/version_code"
+        android:id="@+id/version_name"
         style="@style/TextAppearance.Material3.LabelSmall"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -70,7 +70,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/app_icon"
-        app:layout_constraintTop_toBottomOf="@id/version_code"
+        app:layout_constraintTop_toBottomOf="@id/version_name"
         tools:text="Acquiring service status..." />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

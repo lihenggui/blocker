@@ -29,6 +29,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     private val logger = XLog.tag("AppListAdapter")
     private var loadIconJob: Job? = null
     private var loadServiceStatusJob: Job? = null
+    var onItemClick: ((Application) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppListViewHolder {
         val context = parent.context
@@ -94,6 +95,9 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(position: Int, app: Application) {
+            binding.root.setOnClickListener {
+                onItemClick?.invoke(app)
+            }
             // Load icon
             binding.appIcon.setTag(R.id.app_item_icon_id, app.packageName)
             lifecycleScope.launch(Dispatchers.IO) {
@@ -113,7 +117,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
                 }
             }
             binding.appName.text = app.label
-            binding.versionCode.text = app.versionName
+            binding.versionName.text = app.versionName
             if (PreferenceUtil.getShowServiceInfo(context)) {
                 binding.serviceStatus.visibility = View.VISIBLE
                 getRunningServiceInfo(position, app)
