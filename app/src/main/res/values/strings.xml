@@ -99,4 +99,6 @@
     <string name="sort">Sort</string>
     <string name="show_service_info">Show service info</string>
     <string name="app_name_or_package_name">App name or package name</string>
+    <string name="permission_required">Permission required</string>
+    <string name="shizuku_permission_required_message">Blocker requires Shizuku permission to work, please grant the permission in the Shizuku app.</string>
 </resources>
