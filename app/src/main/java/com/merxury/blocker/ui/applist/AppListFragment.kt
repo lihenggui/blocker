@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AppListFragmentBinding
+import com.merxury.blocker.ui.detail.AppDetailActivity
 import com.merxury.blocker.util.AppStateCache
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.unsafeLazy
@@ -77,6 +78,9 @@ class AppListFragment : Fragment() {
             val manager = LinearLayoutManager(context)
             layoutManager = manager
             addItemDecoration(DividerItemDecoration(requireContext(), manager.orientation))
+            this@AppListFragment.adapter.onItemClick = { app ->
+                AppDetailActivity.start(requireContext(), app)
+            }
         }
     }
 
