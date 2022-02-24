@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
@@ -232,15 +231,6 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         resetIfwPreference?.onPreferenceClickListener = this
         aboutPreference?.onPreferenceClickListener = this
         storagePreference?.onPreferenceChangeListener = this
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val id = item.itemId
-        if (id == android.R.id.home) {
-            startActivity(Intent(activity, SettingsActivity::class.java))
-            return true
-        }
-        return super.onOptionsItemSelected(item)
     }
 
     private fun selectMatFile() {
