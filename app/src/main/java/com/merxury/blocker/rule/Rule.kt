@@ -10,7 +10,6 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.ComponentRule
-import com.merxury.blocker.rule.entity.RulesResult
 import com.merxury.blocker.ui.component.EComponentType
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
@@ -21,7 +20,6 @@ import com.merxury.ifw.util.RuleSerializer
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
 import com.merxury.libkit.utils.StorageUtils
-import java.io.File
 
 object Rule {
     const val BLOCKER_RULE_MIME = "application/json"
@@ -232,50 +230,6 @@ object Rule {
         return true
     }
 
-    fun importMatRules(
-        context: Context,
-        file: File,
-        action: (context: Context, name: String, current: Int, total: Int) -> Unit
-    ): RulesResult {
-        var succeedCount = 0
-        var failedCount = 0
-        val total = countLines(file)
-        val controller = getController(context)
-        val uninstalledAppList = mutableListOf<String>()
-        try {
-            file.forEachLine {
-                if (it.trim().isEmpty() || !it.contains("/")) {
-                    failedCount++
-                    return@forEachLine
-                }
-                val splitResult = it.split("/")
-                if (splitResult.size != 2) {
-                    failedCount++
-                    return@forEachLine
-                }
-                val packageName = splitResult[0]
-                val name = splitResult[1]
-                if (isApplicationUninstalled(context, uninstalledAppList, packageName)) {
-                    failedCount++
-                    return@forEachLine
-                }
-                val result = controller.disable(packageName, name)
-                if (result) {
-                    succeedCount++
-                } else {
-                    logger.d("Failed to change component state for : $it")
-                    failedCount++
-                }
-                action(context, name, (succeedCount + failedCount), total)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            logger.e(e.message)
-            return RulesResult(false, succeedCount, failedCount)
-        }
-        return RulesResult(true, succeedCount, failedCount)
-    }
-
     suspend fun importIfwRules(context: Context): Int {
         val ifwBackupFolderUri = PreferenceUtil.getIfwRulePath(context)
         if (ifwBackupFolderUri == null) {
@@ -353,19 +307,6 @@ object Rule {
         return result
     }
 
-    private fun countLines(file: File): Int {
-        var lines = 0
-        if (!file.exists()) {
-            return lines
-        }
-        file.forEachLine {
-            if (it.trim().isEmpty()) {
-                return@forEachLine
-            }
-            lines++
-        }
-        return lines
-    }
 
     fun isApplicationUninstalled(
         context: Context,
