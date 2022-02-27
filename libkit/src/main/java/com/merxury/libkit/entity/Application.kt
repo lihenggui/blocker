@@ -28,6 +28,8 @@ class Application() : Parcelable {
         isEnabled = parcel.readByte() != 0.toByte()
         label = parcel.readString().orEmpty()
         packageInfo = parcel.readParcelable(PackageInfo::class.java.classLoader)
+        firstInstallTime = Date(parcel.readLong())
+        lastUpdateTime = Date(parcel.readLong())
     }
 
     constructor(pm: PackageManager, info: PackageInfo) : this() {
@@ -67,6 +69,8 @@ class Application() : Parcelable {
         parcel.writeByte(if (isEnabled) 1 else 0)
         parcel.writeString(label)
         parcel.writeParcelable(packageInfo, flags)
+        parcel.writeLong(firstInstallTime?.time ?: 0)
+        parcel.writeLong(lastUpdateTime?.time ?: 0)
     }
 
     override fun describeContents(): Int {

@@ -57,10 +57,60 @@
             tools:text="1.0.0" />
 
         <View
+            android:id="@+id/divider1"
             style="@style/Divider"
-            app:layout_constraintTop_toBottomOf="@id/version_name"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintTop_toBottomOf="@id/version_name" />
+
+        <TextView
+            android:id="@+id/more_info_header"
+            style="@style/SectionHeader"
+            android:text="@string/more_info"
+            app:layout_constraintBottom_toTopOf="@id/item_target_sdk_version"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/divider1" />
+
+        <com.merxury.blocker.view.PreferenceItemView
+            android:id="@+id/item_target_sdk_version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/more_info_header"
+            app:item_title="@string/target_sdk_version"
+            tools:item_summary="32" />
+
+        <com.merxury.blocker.view.PreferenceItemView
+            android:id="@+id/item_min_sdk_version"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/item_target_sdk_version"
+            app:item_title="@string/minimum_sdk_version"
+            tools:item_summary="21" />
+
+        <com.merxury.blocker.view.PreferenceItemView
+            android:id="@+id/item_last_update_time"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/item_min_sdk_version"
+            app:item_title="@string/last_update_time"
+            tools:item_summary="2022-01-01" />
+
+        <com.merxury.blocker.view.PreferenceItemView
+            android:id="@+id/item_data_dir"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/item_last_update_time"
+            app:item_title="@string/data_dir"
+            tools:item_summary="/data/data/com.merxury.blocker" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>
