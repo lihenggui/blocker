@@ -209,8 +209,6 @@ object Rule {
                                     controller.disable(it.packageName, it.name)
                                 }
                             }
-                            EComponentType.UNKNOWN -> {
-                            }
                         }
                     }
                     else -> {
