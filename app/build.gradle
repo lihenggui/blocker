@@ -96,6 +96,7 @@ dependencies {
     implementation 'androidx.compose.animation:animation:1.1.1'
     implementation 'androidx.compose.ui:ui-tooling:1.1.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1'
+    implementation "com.google.android.material:compose-theme-adapter:1.1.4"
     // KTX
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
