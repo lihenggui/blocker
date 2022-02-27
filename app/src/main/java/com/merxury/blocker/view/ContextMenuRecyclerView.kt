@@ -1,4 +1,4 @@
-package com.merxury.blocker.baseview
+package com.merxury.blocker.view
 
 import android.content.Context
 import android.util.AttributeSet

@@ -15,6 +15,7 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
+import com.merxury.blocker.ui.detail.component.EComponentType
 import com.merxury.blocker.util.DialogUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.libkit.entity.getSimpleName
@@ -22,7 +23,12 @@ import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ManagerUtils
 import com.merxury.libkit.utils.PermissionUtils
 import com.merxury.libkit.utils.ServiceHelper
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 class ComponentPresenter(
@@ -359,7 +365,6 @@ class ComponentPresenter(
                 EComponentType.ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)
                 EComponentType.SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
                 EComponentType.PROVIDER -> ApplicationUtil.getProviderList(pm, packageName)
-                else -> ArrayList<ComponentInfo>()
             }
             return@withContext components.asSequence().sortedBy { it.getSimpleName() }
                 .toMutableList()

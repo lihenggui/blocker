@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="?android:selectableItemBackground"
+    android:background="?android:attr/selectableItemBackground"
     android:clickable="true"
     android:focusable="true">
 
@@ -47,10 +47,12 @@
         android:layout_marginBottom="4dp"
         android:ellipsize="end"
         android:singleLine="true"
+        android:visibility="gone"
         app:layout_constraintEnd_toStartOf="@+id/button_group_barrier"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/component_package_name"
-        tools:text="Component Description" />
+        tools:text="Component Description"
+        tools:visibility="visible" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/button_group_barrier"
