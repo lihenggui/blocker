@@ -3,6 +3,7 @@ package com.merxury.blocker.ui.component
 import com.merxury.blocker.base.BasePresenter
 import com.merxury.blocker.base.BaseView
 import com.merxury.blocker.core.IController
+import com.merxury.blocker.ui.detail.component.EComponentType
 
 /**
  * Created by Mercury on 2018/3/18.

@@ -26,11 +26,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.base.BaseLazyFragment
-import com.merxury.blocker.baseview.ContextMenuRecyclerView
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.ui.Constants
+import com.merxury.blocker.ui.detail.component.EComponentType
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.blocker.view.ContextMenuRecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,7 +55,7 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        val root = inflater.inflate(R.layout.fragment_component, container, false)
+        val root = inflater.inflate(R.layout.component_fragment, container, false)
         with(root) {
 //            componentListSwipeLayout.apply {
 //                setOnRefreshListener {

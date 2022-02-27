@@ -10,7 +10,7 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.ComponentRule
-import com.merxury.blocker.ui.component.EComponentType
+import com.merxury.blocker.ui.detail.component.EComponentType
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
 import com.merxury.ifw.IntentFirewall

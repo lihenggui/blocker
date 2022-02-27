@@ -2,6 +2,8 @@ package com.merxury.ifw;
 
 import android.content.Context;
 
+import androidx.annotation.NonNull;
+
 import com.elvishew.xlog.Logger;
 import com.elvishew.xlog.XLog;
 import com.merxury.ifw.entity.Activity;
@@ -24,20 +26,18 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import androidx.annotation.NonNull;
-
 public class IntentFirewallImpl implements IntentFirewall {
 
     private static final String EXTENSION = ".xml";
     private static final String FILTER_TEMPLATE = "%s/%s";
     private static IntentFirewallImpl instance;
-    private Logger logger = XLog.tag("IntentFirewallImpl").build();
-    private String filename;
+    private final Logger logger = XLog.tag("IntentFirewallImpl").build();
+    private final String filename;
     private Rules rules;
-    private String tmpPath;
-    private String destPath;
-    private String packageName;
-    private String cacheDir;
+    private final String tmpPath;
+    private final String destPath;
+    private final String packageName;
+    private final String cacheDir;
 
     public IntentFirewallImpl(Context context, String packageName) {
         this.packageName = packageName;
