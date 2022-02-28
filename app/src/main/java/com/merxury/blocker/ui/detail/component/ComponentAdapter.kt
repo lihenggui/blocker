@@ -13,6 +13,7 @@ class ComponentAdapter :
     ListAdapter<ComponentData, ComponentAdapter.ComponentViewHolder>(DiffCallback()) {
 
     private val logger = XLog.tag("ComponentAdapter")
+    var onItemClick: ((ComponentData, Boolean) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ComponentViewHolder {
         val context = parent.context
@@ -27,6 +28,16 @@ class ComponentAdapter :
             return
         }
         holder.bind(component)
+    }
+
+    fun updateItem(component: ComponentData) {
+        val name = component.name
+        val index = currentList.indexOfFirst { it.name == name }
+        if (index == -1) {
+            logger.e("Can't find updated item in the list, name: $name")
+            return
+        }
+        notifyItemChanged(index)
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<ComponentData>() {
@@ -46,6 +57,9 @@ class ComponentAdapter :
             binding.componentPackageName.text = component.name
             val isBlocked = component.ifwBlocked || component.pmBlocked
             binding.componentSwitch.isChecked = !isBlocked
+            binding.componentSwitch.setOnCheckedChangeListener { _, isChecked ->
+                onItemClick?.invoke(component, isChecked)
+            }
         }
     }
 }
