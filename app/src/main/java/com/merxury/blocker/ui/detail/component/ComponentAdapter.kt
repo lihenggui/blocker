@@ -3,17 +3,13 @@ package com.merxury.blocker.ui.detail.component
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.ComponentControllerProxy
-import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.databinding.ComponentItemBinding
-import com.merxury.ifw.IntentFirewallImpl
 
-class ComponentAdapter(val lifecycleScope: LifecycleCoroutineScope) :
+class ComponentAdapter :
     ListAdapter<ComponentData, ComponentAdapter.ComponentViewHolder>(DiffCallback()) {
 
     private val logger = XLog.tag("ComponentAdapter")
@@ -46,14 +42,10 @@ class ComponentAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     inner class ComponentViewHolder(val context: Context, val binding: ComponentItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
         fun bind(component: ComponentData) {
-            binding.componentName.text = component.name
-            binding.componentPackageName.text = component.packageName
-            val pmState = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
-                .checkComponentEnableState(component.packageName, component.name)
-            val ifwState = IntentFirewallImpl.getInstance(context, component.packageName)
-                .getComponentEnableState(component.packageName, component.name)
-            logger.i("Component ${component.simpleName} pm state: $pmState, ifw state: $ifwState")
-            binding.componentSwitch.isChecked = pmState && ifwState
+            binding.componentName.text = component.simpleName
+            binding.componentPackageName.text = component.name
+            val isBlocked = component.ifwBlocked || component.pmBlocked
+            binding.componentSwitch.isChecked = !isBlocked
         }
     }
 }
