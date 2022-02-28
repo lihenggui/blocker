@@ -16,7 +16,6 @@ import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.exception.RootUnavailableException
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.ui.detail.component.EComponentType
-import com.merxury.blocker.util.DialogUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
@@ -122,7 +121,7 @@ class ComponentPresenter(
                 view?.refreshComponentState(componentName)
             } catch (e: Exception) {
                 logger.e(e)
-                DialogUtil().showWarningDialogWithMessage(context, e)
+//                DialogUtil().showWarningDialogWithMessage(context, e)
                 view?.refreshComponentState(componentName)
             }
         }
@@ -139,7 +138,7 @@ class ComponentPresenter(
                 view?.refreshComponentState(componentName)
             } catch (e: Exception) {
                 logger.e(e)
-                DialogUtil().showWarningDialogWithMessage(context, e)
+//                DialogUtil().showWarningDialogWithMessage(context, e)
                 view?.refreshComponentState(componentName)
             }
         }

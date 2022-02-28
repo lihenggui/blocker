@@ -18,7 +18,6 @@
     <string name="name_desc">Название ↓</string>
     <string name="installation_date">Дата первой установки</string>
     <string name="oops">Ой</string>
-    <string name="no_root_error_message">Возникла ошибка при переключении состояния компонента. \n Трассировка стека:\n %1$s</string>
     <string name="close">Закрыть</string>
     <string name="package_name_asc">Имя пакета ↑</string>
     <string name="package_name_des">Имя пакета ↓</string>

@@ -200,8 +200,8 @@ class ComponentFragment : BaseLazyFragment(), ComponentContract.View, ComponentC
     override fun showAlertDialog(message: String?) {
         context?.apply {
             AlertDialog.Builder(this)
-                    .setTitle(resources.getString(R.string.oops))
-                    .setMessage(getString(R.string.no_root_error_message, message))
+                .setTitle(resources.getString(R.string.oops))
+                .setMessage(getString(R.string.control_component_error_message, message))
                     .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
                     .show()
         }
