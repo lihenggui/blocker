@@ -46,6 +46,9 @@ class ComponentFragment : Fragment() {
     }
 
     private fun initView() {
+        adapter.onItemClick = { componentData, checked ->
+            viewModel.controlComponent(requireContext(), componentData, checked)
+        }
         binding.recyclerView.apply {
             adapter = this@ComponentFragment.adapter
             val manager = LinearLayoutManager(context)
@@ -71,6 +74,13 @@ class ComponentFragment : Fragment() {
                 binding.recyclerView.visibility = View.VISIBLE
                 adapter.submitList(it)
             }
+        }
+        viewModel.updatedItemData.observe(viewLifecycleOwner) {
+            logger.i("Received updated component info: ${it}, type = ${type.name}")
+            adapter.updateItem(it)
+        }
+        viewModel.error.observe(viewLifecycleOwner) {
+            logger.e("Received error: $it")
         }
     }
 

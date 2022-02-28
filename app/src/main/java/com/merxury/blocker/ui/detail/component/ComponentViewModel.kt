@@ -1,5 +1,6 @@
 package com.merxury.blocker.ui.detail.component
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
@@ -11,11 +12,15 @@ import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ServiceHelper
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     private val logger = XLog.tag("ComponentViewModel")
@@ -23,18 +28,13 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     private val _data = MutableLiveData<List<ComponentData>>()
     val data: LiveData<List<ComponentData>>
         get() = _data
-    private val _services = MutableLiveData<List<ComponentData>>()
-    val services: LiveData<List<ComponentData>>
-        get() = _services
-    private val _receivers = MutableLiveData<List<ComponentData>>()
-    val receivers: LiveData<List<ComponentData>>
-        get() = _receivers
-    private val _activities = MutableLiveData<List<ComponentData>>()
-    val activities: LiveData<List<ComponentData>>
-        get() = _activities
-    private val _providers = MutableLiveData<List<ComponentData>>()
-    val providers: LiveData<List<ComponentData>>
-        get() = _providers
+    private val errorStack = MutableLiveData<Throwable>()
+    val error: LiveData<Throwable>
+        get() = errorStack
+    private val updatedItem = MutableLiveData<ComponentData>()
+    val updatedItemData: LiveData<ComponentData>
+        get() = updatedItem
+
 
     fun load(context: Context, packageName: String, type: EComponentType) {
         logger.i("Load $packageName $type")
@@ -42,12 +42,102 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
             val components = getComponents(packageName, type)
             val data = convertToComponentData(context, packageName, components, type)
             _data.value = data
-            when (type) {
-                EComponentType.ACTIVITY -> _activities.value = data
-                EComponentType.SERVICE -> _services.value = data
-                EComponentType.RECEIVER -> _receivers.value = data
-                EComponentType.PROVIDER -> _providers.value = data
+        }
+    }
+
+    fun controlComponent(context: Context, component: ComponentData, enabled: Boolean) {
+        logger.i("Control ${component.name} $enabled")
+        viewModelScope.launch {
+            when (PreferenceUtil.getControllerType(context)) {
+                EControllerMethod.PM -> controlComponentInPmMode(context, component, enabled)
+                EControllerMethod.IFW -> controlComponentInIfwMode(context, component, enabled)
+                EControllerMethod.SHIZUKU -> controlComponentInShizukuMode(
+                    context,
+                    component,
+                    enabled
+                )
             }
+        }
+    }
+
+    private suspend fun controlComponentInPmMode(
+        context: Context,
+        component: ComponentData,
+        enabled: Boolean,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ) = withContext(dispatcher) {
+        try {
+            // First we need to change IFW state if it's been blocked by IFW
+            val ifwController = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
+            val blockedByIfw =
+                !ifwController.checkComponentEnableState(component.packageName, component.name)
+            if (blockedByIfw && enabled) {
+                // Unblock IFW first, then control component by using PM controller
+                ifwController.enable(component.packageName, component.name)
+            }
+            // Use PM controller to control components
+            val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+            if (enabled) {
+                pmController.enable(component.packageName, component.name)
+            } else {
+                pmController.disable(component.packageName, component.name)
+            }
+        } catch (e: Throwable) {
+            logger.e("Failed to control component ${component.name} to state $enabled", e)
+            errorStack.postValue(e)
+            updatedItem.postValue(component)
+        }
+    }
+
+    private suspend fun controlComponentInIfwMode(
+        context: Context,
+        component: ComponentData,
+        enabled: Boolean,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ) = withContext(dispatcher) {
+        try {
+            // Need to enable the component by PM controller first
+            if (enabled && !ApplicationUtil.checkComponentIsEnabled(
+                    context.packageManager,
+                    ComponentName(component.packageName, component.name)
+                )
+            ) {
+                ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+                    .enable(component.packageName, component.name)
+            }
+            // Then use IFW controller to control the state
+            val ifwController = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
+            if (enabled) {
+                ifwController.enable(component.packageName, component.name)
+            } else {
+                ifwController.disable(component.packageName, component.name)
+            }
+        } catch (e: Throwable) {
+            logger.e("Failed to control component ${component.name} to state $enabled", e)
+            errorStack.postValue(e)
+            updatedItem.postValue(component)
+        }
+    }
+
+    private suspend fun controlComponentInShizukuMode(
+        context: Context,
+        component: ComponentData,
+        enabled: Boolean,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ) = withContext(dispatcher) {
+        try {
+            // In Shizuku mode, use root privileges as little as possible
+            val controller =
+                ComponentControllerProxy.getInstance(EControllerMethod.SHIZUKU, context)
+            if (enabled) {
+                controller.enable(component.packageName, component.name)
+            } else {
+                controller.disable(component.packageName, component.name)
+            }
+        } catch (e: Throwable) {
+            logger.e("Failed to control component ${component.name} to state $enabled", e)
+            errorStack.postValue(e)
+            updatedItem.postValue(component)
         }
     }
 
