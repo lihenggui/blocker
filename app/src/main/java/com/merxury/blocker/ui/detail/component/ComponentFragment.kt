@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.elvishew.xlog.XLog
 import com.merxury.blocker.databinding.ComponentFragmentBinding
 
 class ComponentFragment : Fragment() {
@@ -16,6 +17,7 @@ class ComponentFragment : Fragment() {
     private val adapter = ComponentAdapter()
     private var packageName: String = ""
     private var type: EComponentType = EComponentType.RECEIVER
+    private val logger = XLog.tag("ComponentFragment")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,6 +59,7 @@ class ComponentFragment : Fragment() {
 
     private fun observeData() {
         viewModel.data.observe(viewLifecycleOwner) {
+            logger.i("Received component info: ${it.count()}, type = ${type.name}")
             if (binding.swipeLayout.isRefreshing) {
                 binding.swipeLayout.isRefreshing = false
             }
