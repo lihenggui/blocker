@@ -31,6 +31,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/app_icon"
+            style="@style/TextAppearance.Material3.HeadlineSmall"
             tools:text="Blocker" />
 
         <TextView
@@ -43,6 +44,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/app_name"
+            style="@style/TextAppearance.Material3.BodySmall"
             tools:text="com.merxury.blocker" />
 
         <TextView
@@ -54,6 +56,8 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/package_name"
+            style="@style/TextAppearance.Material3.BodySmall"
+            app:layout_constraintBottom_toTopOf="@id/divider1"
             tools:text="1.0.0" />
 
         <View

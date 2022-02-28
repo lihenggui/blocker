@@ -16,7 +16,7 @@
         <item name="android:background">?android:attr/listDivider</item>
     </style>
 
-    <style name="SectionHeader">
+    <style name="SectionHeader" parent="TextAppearance.Material3.TitleSmall">
         <item name="android:textColor">@color/accent</item>
         <item name="android:textSize">14sp</item>
         <item name="android:layout_margin">16dp</item>
