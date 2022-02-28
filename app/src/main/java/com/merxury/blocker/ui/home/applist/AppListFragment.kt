@@ -1,17 +1,13 @@
-package com.merxury.blocker.ui.applist
+package com.merxury.blocker.ui.home.applist
 
+import android.app.SearchManager
+import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
@@ -31,6 +27,7 @@ class AppListFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
         viewModel = ViewModelProvider(this)[AppListViewModel::class.java]
     }
 
@@ -45,7 +42,6 @@ class AppListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initToolbar()
         initSwipeLayout()
         initRecyclerView()
         viewModel?.appList?.observe(viewLifecycleOwner) {
@@ -60,6 +56,36 @@ class AppListFragment : Fragment() {
             }
         }
         loadData()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        menu.clear()
+        inflater.inflate(R.menu.app_list_actions, menu)
+        initSearch(menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        initMenus(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        logger.i("Menu item clicked: $item")
+        return when (item.itemId) {
+            R.id.action_show_system_apps -> {
+                handleShowSystemAppsClicked(item)
+                true
+            }
+            R.id.action_show_service_info -> {
+                handleShowServiceInfoClicked(item)
+                true
+            }
+            else -> {
+                handleSortAction(item)
+                true
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -91,50 +117,29 @@ class AppListFragment : Fragment() {
         }
     }
 
-    private fun initToolbar() {
-        val navController = findNavController()
-        val appBarConfiguration = AppBarConfiguration(navController.graph)
-        binding.toolbar.setupWithNavController(navController, appBarConfiguration)
-        // Handle search events
-        val searchView = binding.toolbar.menu.findItem(R.id.action_search).actionView as? SearchView
-        searchView?.apply {
-            queryHint = getString(R.string.app_name_or_package_name)
-            handleSearchEvents(this)
-        }
-        // Set default actions
-        binding.toolbar.menu.findItem(R.id.action_show_system_apps).isChecked =
+    private fun initMenus(menu: Menu) {
+        menu.findItem(R.id.action_show_system_apps)?.isChecked =
             PreferenceUtil.getShowSystemApps(requireContext())
-        binding.toolbar.menu.findItem(R.id.action_show_service_info).isChecked =
+        menu.findItem(R.id.action_show_service_info)?.isChecked =
             PreferenceUtil.getShowServiceInfo(requireContext())
-        // Handle click events
-        binding.toolbar.setOnMenuItemClickListener { menuItem ->
-            logger.i("Menu item clicked: $menuItem")
-            when (menuItem?.itemId) {
-                R.id.action_show_system_apps -> {
-                    handleShowSystemAppsClicked(menuItem)
-                    true
-                }
-                R.id.action_show_service_info -> {
-                    handleShowServiceInfoClicked(menuItem)
-                    true
-                }
-                else -> {
-                    handleSortAction(menuItem)
-                    true
-                }
-            }
-        }
     }
 
-    private fun handleSearchEvents(searchView: SearchView) {
+    private fun initSearch(menu: Menu) {
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView ?: return
+        val searchManager =
+            requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
+                logger.i("onQueryTextSubmit: $query")
+                viewModel?.filter(query)
+                return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 viewModel?.filter(newText)
-                return true
+                return false
             }
         })
     }

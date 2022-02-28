@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.applist
+package com.merxury.blocker.ui.home.applist
 
 data class AppState(
     var running: Int = 0,

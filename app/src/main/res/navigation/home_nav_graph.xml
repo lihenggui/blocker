@@ -6,10 +6,10 @@
 
     <fragment
         android:id="@+id/list"
-        android:name="com.merxury.blocker.ui.applist.AppListFragment"
+        android:name="com.merxury.blocker.ui.home.applist.AppListFragment"
         android:label="@string/app_name" />
     <fragment
         android:id="@+id/settings"
-        android:name="com.merxury.blocker.ui.settings.SettingsFragment"
+        android:name="com.merxury.blocker.ui.home.settings.SettingsFragment"
         android:label="@string/settings" />
 </navigation>

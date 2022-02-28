@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.settings
+package com.merxury.blocker.ui.home.settings
 
 import android.annotation.SuppressLint
 import android.app.Activity.RESULT_OK
@@ -6,33 +6,19 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
 import android.widget.Toast
-import androidx.appcompat.widget.Toolbar
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.documentfile.provider.DocumentFile
-import androidx.navigation.fragment.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupWithNavController
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.Data
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkManager
+import androidx.work.*
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.work.ExportBlockerRulesWork
-import com.merxury.blocker.work.ExportIfwRulesWork
-import com.merxury.blocker.work.ImportBlockerRuleWork
-import com.merxury.blocker.work.ImportIfwRulesWork
-import com.merxury.blocker.work.ImportMatRulesWork
-import com.merxury.blocker.work.ResetIfwWork
+import com.merxury.blocker.work.*
 
 class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
@@ -61,11 +47,6 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
 
     override fun onCreatePreferences(bundle: Bundle?, s: String?) {
         addPreferencesFromResource(R.xml.preferences)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        initToolbar(view)
     }
 
     override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
@@ -108,13 +89,6 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
                 importMatRule(uri)
             }
         }
-    }
-
-    private fun initToolbar(view: View) {
-        val navController = findNavController()
-        val appBarConfiguration = AppBarConfiguration(navController.graph)
-        view.findViewById<Toolbar>(R.id.toolbar)
-            .setupWithNavController(navController, appBarConfiguration)
     }
 
     private fun setFolderToSave() {
