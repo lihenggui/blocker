@@ -96,13 +96,13 @@ dependencies {
     implementation 'androidx.compose.animation:animation:1.1.1'
     implementation 'androidx.compose.ui:ui-tooling:1.1.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1'
-    implementation "com.google.android.material:compose-theme-adapter:1.1.4"
+    implementation "com.google.android.material:compose-theme-adapter:1.1.5"
     // KTX
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.1'
     // Crashlytics
-    prodImplementation platform('com.google.firebase:firebase-bom:29.0.4')
+    prodImplementation platform('com.google.firebase:firebase-bom:29.1.0')
     prodImplementation 'com.google.firebase:firebase-crashlytics-ktx'
     prodImplementation 'com.google.firebase:firebase-analytics-ktx'
     // Project dependencies
