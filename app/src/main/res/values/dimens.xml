@@ -1,8 +1,3 @@
 <resources>
-    <dimen name="margin_text_interval">8dp</dimen>
-    <dimen name="margin_start_layout">20dp</dimen>
-    <dimen name="margin_end_layout">16dp</dimen>
-    <dimen name="margin_end_layout_tablet">32dp</dimen>
-    <dimen name="margin_start_layout_tablet">32dp</dimen>
     <dimen name="app_icon_size">40dp</dimen>
 </resources>

@@ -36,10 +36,6 @@
     <string name="done">Готово</string>
     <string name="export_ifw_rules">Экспорт правил IFW</string>
     <string name="import_ifw_rules">Импорт правил IFW</string>
-
-
-    <string name="title_activity_settings">Настройки</string>
-
     <string name="controller_settings">Настройки контроллера</string>
     <string name="controller_chooser_title">Выбор контроллера</string>
     <string name="controller_type">Тип контроллера</string>
@@ -60,10 +56,6 @@
     <string name="disable">Заморозить</string>
     <string name="enable">Разморозить</string>
     <string name="starting_application">Запускаем приложение, подождите</string>
-    <string name="block">Заблокировать</string>
-    <string name="unblock">Разблокировать</string>
-    <string name="experimental_features">Экспериментальные функции</string>
-    <string name="require_permission_message">Для Blocker требуется ваше разрешение для продолжения работы.</string>
     <string name="report">Отчет</string>
     <string name="report_subject_template">Отчет о работе Blocker: (укажите здесь свою тему)</string>
     <string name="report_content_template">(Опишите возникшие проблемы ниже :)</string>

@@ -40,7 +40,6 @@
     <string name="controller_chooser_title">选择控制器</string>
     <string name="controller_type">控制器种类</string>
     <string name="fail">失败</string>
-    <string name="title_activity_settings">设置</string>
     <string name="pref_rule_settings">Blocker规则</string>
     <string name="import_rules">导入规则</string>
     <string name="pref_ifw_settings">IFW 规则</string>
@@ -56,14 +55,10 @@
     <string name="enable">启用</string>
     <string name="starting_application">启动应用中，请稍后</string>
     <string name="disable">禁用</string>
-    <string name="block">阻止运行</string>
-    <string name="unblock">解除阻止</string>
-    <string name="experimental_features">实验性功能</string>
     <string name="report">反馈</string>
     <string name="send_email">发送电子邮件</string>
     <string name="report_subject_template">Blocker反馈: (请填写您的主题)</string>
     <string name="report_content_template">（请详细描述您的问题：）</string>
-    <string name="require_permission_message">Blocker需要您授予权限才可继续操作</string>
     <string name="processing_progress_indicator">进度指示条</string>
     <string name="copy_component_name">复制名称</string>
     <string name="copy_full_name">复制全名</string>
