@@ -4,12 +4,7 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -50,9 +45,13 @@ class ComponentFragment : Fragment() {
             this,
             ComponentViewModel.ComponentViewModelFactory(requireContext().packageManager)
         )[ComponentViewModel::class.java]
-        viewModel.load(requireContext(), packageName, type)
         initView()
         observeData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.load(requireContext(), packageName, type)
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -124,10 +123,8 @@ class ComponentFragment : Fragment() {
             }
             if (it.isEmpty()) {
                 binding.noComponentHint.visibility = View.VISIBLE
-                binding.recyclerView.visibility = View.GONE
             } else {
                 binding.noComponentHint.visibility = View.GONE
-                binding.recyclerView.visibility = View.VISIBLE
                 adapter.submitList(it)
             }
         }
