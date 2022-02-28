@@ -78,8 +78,8 @@ class AppDetailActivity : AppCompatActivity() {
         supportActionBar?.apply {
             setDisplayHomeAsUpEnabled(true)
             setDisplayShowHomeEnabled(true)
+            title = app.label
         }
-        binding.toolbar.title = app.label
     }
 
     private fun initViewPager() {
