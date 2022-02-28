@@ -23,6 +23,11 @@ class AppInfoFragment : Fragment() {
     private var loadIconJob: Job? = null
     private lateinit var app: Application
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
