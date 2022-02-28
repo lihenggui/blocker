@@ -13,7 +13,7 @@ class ComponentAdapter :
     ListAdapter<ComponentData, ComponentAdapter.ComponentViewHolder>(DiffCallback()) {
 
     private val logger = XLog.tag("ComponentAdapter")
-    var onItemClick: ((ComponentData, Boolean) -> Unit)? = null
+    var onSwitchClick: ((ComponentData, Boolean) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ComponentViewHolder {
         val context = parent.context
@@ -56,9 +56,12 @@ class ComponentAdapter :
             binding.componentName.text = component.simpleName
             binding.componentPackageName.text = component.name
             val isBlocked = component.ifwBlocked || component.pmBlocked
-            binding.componentSwitch.isChecked = !isBlocked
-            binding.componentSwitch.setOnCheckedChangeListener { _, isChecked ->
-                onItemClick?.invoke(component, isChecked)
+            binding.componentSwitch.apply {
+                setOnCheckedChangeListener(null)
+                isChecked = !isBlocked
+                setOnCheckedChangeListener { _, isChecked ->
+                    onSwitchClick?.invoke(component, isChecked)
+                }
             }
         }
     }

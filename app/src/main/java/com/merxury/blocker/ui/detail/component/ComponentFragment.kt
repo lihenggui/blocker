@@ -1,5 +1,7 @@
 package com.merxury.blocker.ui.detail.component
 
+import android.app.SearchManager
+import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -9,6 +11,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -54,7 +57,9 @@ class ComponentFragment : Fragment() {
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
+        menu.clear()
         inflater.inflate(R.menu.component_fragment_menu, menu)
+        initSearch(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -75,8 +80,29 @@ class ComponentFragment : Fragment() {
         }
     }
 
+    private fun initSearch(menu: Menu) {
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView ?: return
+        val searchManager =
+            requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                logger.i("onQueryTextSubmit: $query")
+                viewModel.filter(query)
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                logger.i("onQueryTextChange: $newText")
+                viewModel.filter(newText)
+                return false
+            }
+        })
+    }
+
     private fun initView() {
-        adapter.onItemClick = { componentData, checked ->
+        adapter.onSwitchClick = { componentData, checked ->
             viewModel.controlComponent(requireContext(), componentData, checked)
         }
         binding.recyclerView.apply {
