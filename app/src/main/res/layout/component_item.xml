@@ -20,6 +20,7 @@
         app:layout_constraintEnd_toStartOf="@+id/button_group_barrier"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        style="@style/TextAppearance.Material3.LabelLarge"
         tools:text="Component Name" />
 
     <TextView
@@ -35,6 +36,7 @@
         app:layout_constraintEnd_toStartOf="@+id/button_group_barrier"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/component_name"
+        style="@style/TextAppearance.Material3.BodySmall"
         tools:text="Component PackageName" />
 
     <TextView
@@ -51,6 +53,7 @@
         app:layout_constraintEnd_toStartOf="@+id/button_group_barrier"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/component_package_name"
+        style="@style/TextAppearance.Material3.BodySmall"
         tools:text="Component Description"
         tools:visibility="visible" />
 
