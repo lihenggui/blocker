@@ -77,7 +77,7 @@ class AppDetailActivity : AppCompatActivity() {
             adapter = AppDetailAdapter(this@AppDetailActivity, app)
         }
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
-            tab.text = "Tab $position"
+            tab.setText(AppDetailAdapter.titles[position])
         }.attach()
     }
 
