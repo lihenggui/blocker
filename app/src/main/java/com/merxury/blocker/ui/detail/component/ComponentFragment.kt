@@ -3,6 +3,9 @@ package com.merxury.blocker.ui.detail.component
 import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
@@ -26,6 +29,7 @@ class ComponentFragment : Fragment() {
         super.onCreate(savedInstanceState)
         packageName = arguments?.getString(KEY_PACKAGE_NAME).orEmpty()
         type = arguments?.getSerializable(KEY_TYPE) as? EComponentType ?: EComponentType.RECEIVER
+        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -46,6 +50,29 @@ class ComponentFragment : Fragment() {
         viewModel.load(requireContext(), packageName, type)
         initView()
         observeData()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.component_fragment_menu, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_block_all -> {
+                viewModel.disableAll(requireContext(), packageName, type)
+                true
+            }
+            R.id.action_enable_all -> {
+                viewModel.enableAll(requireContext(), packageName, type)
+                true
+            }
+            R.id.action_refresh -> {
+                viewModel.load(requireContext(), packageName, type)
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun initView() {

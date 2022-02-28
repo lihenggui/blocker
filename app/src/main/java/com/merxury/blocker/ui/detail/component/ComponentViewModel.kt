@@ -47,7 +47,7 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
 
     fun controlComponent(context: Context, component: ComponentData, enabled: Boolean) {
         logger.i("Control ${component.name} $enabled")
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             when (PreferenceUtil.getControllerType(context)) {
                 EControllerMethod.PM -> controlComponentInPmMode(context, component, enabled)
                 EControllerMethod.IFW -> controlComponentInIfwMode(context, component, enabled)
@@ -56,6 +56,42 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                     component,
                     enabled
                 )
+            }
+        }
+    }
+
+    fun enableAll(context: Context, packageName: String, type: EComponentType) {
+        logger.i("Enable all $packageName, type $type")
+        viewModelScope.launch(Dispatchers.IO) {
+            val controllerType = PreferenceUtil.getControllerType(context)
+            val controller = ComponentControllerProxy.getInstance(controllerType, context)
+            _data.value?.forEach {
+                try {
+                    controller.enable(it.packageName, it.name)
+                } catch (e: Throwable) {
+                    logger.e("Failed to enable all components $packageName, type $type", e)
+                    errorStack.postValue(e)
+                    updatedItem.postValue(it)
+                    return@launch
+                }
+            }
+        }
+    }
+
+    fun disableAll(context: Context, packageName: String, type: EComponentType) {
+        logger.i("Disable all $packageName, type $type")
+        viewModelScope.launch {
+            val controllerType = PreferenceUtil.getControllerType(context)
+            val controller = ComponentControllerProxy.getInstance(controllerType, context)
+            _data.value?.forEach {
+                try {
+                    controller.disable(it.packageName, it.name)
+                } catch (e: Throwable) {
+                    logger.e("Failed to disable all components $packageName, type $type", e)
+                    errorStack.postValue(e)
+                    updatedItem.postValue(it)
+                    return@launch
+                }
             }
         }
     }

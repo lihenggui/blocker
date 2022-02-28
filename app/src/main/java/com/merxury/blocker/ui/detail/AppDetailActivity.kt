@@ -32,6 +32,11 @@ class AppDetailActivity : AppCompatActivity() {
         initShizuku()
     }
 
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
+    }
+
     private fun initShizuku() {
         if (PreferenceUtil.getControllerType(this) != EControllerMethod.SHIZUKU) {
             return
@@ -69,6 +74,11 @@ class AppDetailActivity : AppCompatActivity() {
     }
 
     private fun initToolbar() {
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.apply {
+            setDisplayHomeAsUpEnabled(true)
+            setDisplayShowHomeEnabled(true)
+        }
         binding.toolbar.title = app.label
     }
 
