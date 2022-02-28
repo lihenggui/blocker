@@ -1,14 +1,17 @@
 package com.merxury.blocker.ui.detail.component
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ComponentFragmentBinding
 
 class ComponentFragment : Fragment() {
@@ -80,7 +83,11 @@ class ComponentFragment : Fragment() {
             adapter.updateItem(it)
         }
         viewModel.error.observe(viewLifecycleOwner) {
-            logger.e("Received error: $it")
+            AlertDialog.Builder(requireContext())
+                .setTitle(resources.getString(R.string.oops))
+                .setMessage(getString(R.string.control_component_error_message, it.message))
+                .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+                .show()
         }
     }
 
