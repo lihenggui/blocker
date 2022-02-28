@@ -28,6 +28,7 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     private val _data = MutableLiveData<List<ComponentData>>()
     val data: LiveData<List<ComponentData>>
         get() = _data
+    private var originalList = mutableListOf<ComponentData>()
     private val errorStack = MutableLiveData<Throwable>()
     val error: LiveData<Throwable>
         get() = errorStack
@@ -35,12 +36,12 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     val updatedItemData: LiveData<ComponentData>
         get() = updatedItem
 
-
     fun load(context: Context, packageName: String, type: EComponentType) {
         logger.i("Load $packageName $type")
         viewModelScope.launch {
             val components = getComponents(packageName, type)
             val data = convertToComponentData(context, packageName, components, type)
+            originalList = data
             _data.value = data
         }
     }
@@ -94,6 +95,19 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                 }
             }
         }
+    }
+
+    fun filter(keyword: String?) {
+        if (keyword.isNullOrEmpty()) {
+            _data.value = originalList
+            return
+        }
+        // Ignore spaces
+        val clearedKeyword = keyword.trim().replace(" ", "")
+        val filteredList = originalList.filter {
+            it.simpleName.contains(clearedKeyword, true) || it.name.contains(clearedKeyword, true)
+        }
+        _data.value = filteredList
     }
 
     private suspend fun controlComponentInPmMode(
