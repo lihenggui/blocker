@@ -36,8 +36,6 @@
     <string name="done">Done</string>
     <string name="export_ifw_rules">Export IFW Rules</string>
     <string name="import_ifw_rules">Import IFW Rules</string>
-    <string name="title_activity_settings">Settings</string>
-
     <string name="controller_settings">Controller Settings</string>
     <string name="controller_chooser_title">Choose Controller</string>
     <string name="controller_type">Controller Type</string>
@@ -58,10 +56,6 @@
     <string name="disable">Disable</string>
     <string name="enable">Enable</string>
     <string name="starting_application">Starting application, please wait</string>
-    <string name="block">Block</string>
-    <string name="unblock">Unblock</string>
-    <string name="experimental_features">Experimental Features</string>
-    <string name="require_permission_message">Blocker need your permission to continue operations.</string>
     <string name="report">Report</string>
     <string name="report_subject_template">Blocker Report: (Write down your subject here)</string>
     <string name="report_content_template">(Write down your problems below:)</string>
