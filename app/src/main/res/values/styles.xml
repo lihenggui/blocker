@@ -8,12 +8,6 @@
         <item name="colorSecondary">@color/secondary</item>
         <item name="colorOnSecondary">@color/color_on_secondary</item>
         <item name="colorSecondaryContainer">@color/primary_light</item>
-        <item name="preferenceTheme">@style/SettingsTheme</item>
-    </style>
-
-    <!-- Only for show Toolbar in the settings fragment-->
-    <style name="SettingsTheme" parent="AppTheme">
-        <item name="android:layout">@layout/settings_fragment</item>
     </style>
 
     <style name="Divider">

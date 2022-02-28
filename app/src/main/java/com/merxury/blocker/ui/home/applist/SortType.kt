@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.applist
+package com.merxury.blocker.ui.home.applist
 
 enum class SortType {
     NAME_ASC,
