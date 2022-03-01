@@ -21,6 +21,7 @@ import com.merxury.libkit.entity.Application
 import rikka.shizuku.Shizuku
 import rikka.shizuku.Shizuku.OnBinderDeadListener
 import rikka.shizuku.Shizuku.OnBinderReceivedListener
+import rikka.sui.Sui
 
 class AppDetailActivity : AppCompatActivity() {
     private var _app: Application? = null
@@ -87,6 +88,9 @@ class AppDetailActivity : AppCompatActivity() {
         }
         try {
             return if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                if (Sui.isSui()) {
+                    Sui.init(packageName)
+                }
                 true
             } else if (Shizuku.shouldShowRequestPermissionRationale()) {
                 logger.e("User denied Shizuku permission (shouldShowRequestPermissionRationale=true)")

@@ -141,7 +141,7 @@ class ComponentFragment : Fragment() {
                 adapter.submitList(it)
             }
         }
-        viewModel.updatedItemData.observe(viewLifecycleOwner) {
+        viewModel.updatedItem.observe(viewLifecycleOwner) {
             logger.i("Received updated component info: ${it}, type = ${type.name}")
             adapter.updateItem(it)
         }

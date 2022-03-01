@@ -32,9 +32,9 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     private val errorStack = MutableLiveData<Throwable>()
     val error: LiveData<Throwable>
         get() = errorStack
-    private val updatedItem = MutableLiveData<ComponentData>()
-    val updatedItemData: LiveData<ComponentData>
-        get() = updatedItem
+    private val _updatedItem = MutableLiveData<ComponentData>()
+    val updatedItem: LiveData<ComponentData>
+        get() = _updatedItem
 
     fun load(context: Context, packageName: String, type: EComponentType) {
         logger.i("Load $packageName $type")
@@ -72,16 +72,16 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                 } catch (e: Throwable) {
                     logger.e("Failed to enable all components $packageName, type $type", e)
                     errorStack.postValue(e)
-                    updatedItem.postValue(it)
                     return@launch
                 }
+                load(context, packageName, type)
             }
         }
     }
 
     fun disableAll(context: Context, packageName: String, type: EComponentType) {
         logger.i("Disable all $packageName, type $type")
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val controllerType = PreferenceUtil.getControllerType(context)
             val controller = ComponentControllerProxy.getInstance(controllerType, context)
             _data.value?.forEach {
@@ -90,10 +90,10 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                 } catch (e: Throwable) {
                     logger.e("Failed to disable all components $packageName, type $type", e)
                     errorStack.postValue(e)
-                    updatedItem.postValue(it)
                     return@launch
                 }
             }
+            load(context, packageName, type)
         }
     }
 
@@ -135,7 +135,7 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         } catch (e: Throwable) {
             logger.e("Failed to control component ${component.name} to state $enabled", e)
             errorStack.postValue(e)
-            updatedItem.postValue(component)
+            _updatedItem.postValue(component)
         }
     }
 
@@ -165,7 +165,7 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         } catch (e: Throwable) {
             logger.e("Failed to control component ${component.name} to state $enabled", e)
             errorStack.postValue(e)
-            updatedItem.postValue(component)
+            _updatedItem.postValue(component)
         }
     }
 
@@ -187,7 +187,7 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         } catch (e: Throwable) {
             logger.e("Failed to control component ${component.name} to state $enabled", e)
             errorStack.postValue(e)
-            updatedItem.postValue(component)
+            _updatedItem.postValue(component)
         }
     }
 
