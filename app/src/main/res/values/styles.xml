@@ -1,15 +1,4 @@
 <resources>
-
-    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/primary</item>
-        <item name="colorPrimaryDark">@color/primary_dark</item>
-        <item name="colorOnPrimary">@color/color_on_primary</item>
-        <item name="colorAccent">@color/accent</item>
-        <item name="colorSecondary">@color/secondary</item>
-        <item name="colorOnSecondary">@color/color_on_secondary</item>
-        <item name="colorSecondaryContainer">@color/primary_light</item>
-    </style>
-
     <style name="Divider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
@@ -17,7 +6,6 @@
     </style>
 
     <style name="SectionHeader" parent="TextAppearance.Material3.TitleSmall">
-        <item name="android:textColor">@color/accent</item>
         <item name="android:textSize">14sp</item>
         <item name="android:layout_margin">16dp</item>
         <item name="android:layout_height">wrap_content</item>

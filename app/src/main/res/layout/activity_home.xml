@@ -10,7 +10,7 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
-        style="@style/Widget.MaterialComponents.Toolbar.Primary"
+        style="@style/Widget.Material3.Toolbar.OnSurface"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         app:buttonGravity="center_vertical"
