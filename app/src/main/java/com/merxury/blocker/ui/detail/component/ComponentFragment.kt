@@ -59,7 +59,7 @@ class ComponentFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.load(requireContext(), packageName, type)
+        load()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -80,7 +80,7 @@ class ComponentFragment : Fragment() {
                 true
             }
             R.id.action_refresh -> {
-                viewModel.load(requireContext(), packageName, type)
+                load()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -119,13 +119,18 @@ class ComponentFragment : Fragment() {
             addItemDecoration(DividerItemDecoration(requireContext(), manager.orientation))
         }
         binding.swipeLayout.setOnRefreshListener {
-            viewModel.load(requireContext(), packageName, type)
+            load()
         }
         ViewCompat.setOnApplyWindowInsetsListener(binding.recyclerView) { view, windowInsets ->
             val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.updatePadding(bottom = insets.bottom)
             WindowInsetsCompat.CONSUMED
         }
+    }
+
+    private fun load() {
+        binding.swipeLayout.isRefreshing = true
+        viewModel.load(requireContext(), packageName, type)
     }
 
     private fun observeData() {
