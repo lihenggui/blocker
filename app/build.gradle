@@ -15,10 +15,10 @@ android {
         applicationId "com.merxury.blocker"
         minSdkVersion 21
         targetSdkVersion 32
-        versionCode 45
-        versionName "0.1.45-beta"
+        versionCode 145
+        versionName "1.0.45-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        resConfigs 'en', 'zh-rCN', 'zh-rTW'
+        resConfigs 'en', 'zh-rCN', 'zh-rTW', 'ru'
         multiDexEnabled true
     }
 
