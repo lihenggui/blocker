@@ -4,9 +4,17 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -112,6 +120,11 @@ class ComponentFragment : Fragment() {
         }
         binding.swipeLayout.setOnRefreshListener {
             viewModel.load(requireContext(), packageName, type)
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(binding.recyclerView) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updatePadding(bottom = insets.bottom)
+            WindowInsetsCompat.CONSUMED
         }
     }
 

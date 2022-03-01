@@ -5,8 +5,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import com.elvishew.xlog.XLog
 import com.google.android.material.tabs.TabLayoutMediator
 import com.merxury.blocker.R
@@ -29,6 +34,7 @@ class AppDetailActivity : AppCompatActivity() {
         fetchAppInfo()
         initToolbar()
         initViewPager()
+        initEdgeToEdge()
         initShizuku()
     }
 
@@ -89,6 +95,19 @@ class AppDetailActivity : AppCompatActivity() {
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.setText(AppDetailAdapter.titles[position])
         }.attach()
+    }
+
+    private fun initEdgeToEdge() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                topMargin = insets.top
+                leftMargin = insets.left
+                rightMargin = insets.right
+            }
+            windowInsets
+        }
     }
 
     private fun fetchAppInfo() {
