@@ -3,7 +3,6 @@ package com.merxury.blocker.ui.detail
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
@@ -20,12 +19,39 @@ import com.merxury.blocker.databinding.ActivityAppDetailBinding
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.libkit.entity.Application
 import rikka.shizuku.Shizuku
+import rikka.shizuku.Shizuku.OnBinderDeadListener
+import rikka.shizuku.Shizuku.OnBinderReceivedListener
 
 class AppDetailActivity : AppCompatActivity() {
     private var _app: Application? = null
     private val app get() = _app!!
     private val logger = XLog.tag("DetailActivity")
     private lateinit var binding: ActivityAppDetailBinding
+    private val binderReceivedListener = OnBinderReceivedListener {
+        if (Shizuku.isPreV11()) {
+            logger.e("Shizuku pre-v11 is not supported")
+        } else {
+            logger.i("Shizuku binder received")
+            checkPermission()
+        }
+    }
+    private val binderDeadListener = OnBinderDeadListener {
+        logger.e("Shizuku binder dead")
+    }
+    private val requestPermissionResultListener =
+        Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+            if (requestCode == REQUEST_CODE_PERMISSION) {
+                if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                    logger.i("Shizuku permission granted")
+                } else {
+                    logger.e("Shizuku permission denied")
+                    AlertDialog.Builder(this)
+                        .setTitle(R.string.permission_required)
+                        .setMessage(R.string.shizuku_permission_required_message)
+                        .show()
+                }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,7 +61,7 @@ class AppDetailActivity : AppCompatActivity() {
         initToolbar()
         initViewPager()
         initEdgeToEdge()
-        initShizuku()
+        registerShizuku()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -43,40 +69,45 @@ class AppDetailActivity : AppCompatActivity() {
         return true
     }
 
-    private fun initShizuku() {
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterShizuku()
+    }
+
+    private fun registerShizuku() {
+        if (PreferenceUtil.getControllerType(this) != EControllerMethod.SHIZUKU) return
+        Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
+        Shizuku.addBinderDeadListener(binderDeadListener)
+        Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
+    }
+
+    private fun checkPermission(): Boolean {
+        if (Shizuku.isPreV11()) {
+            return false
+        }
+        try {
+            return if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                true
+            } else if (Shizuku.shouldShowRequestPermissionRationale()) {
+                logger.e("User denied Shizuku permission (shouldShowRequestPermissionRationale=true)")
+                false
+            } else {
+                Shizuku.requestPermission(REQUEST_CODE_PERMISSION)
+                false
+            }
+        } catch (e: Throwable) {
+            logger.e("Check Shizuku permission failed", e)
+        }
+        return false
+    }
+
+    private fun unregisterShizuku() {
         if (PreferenceUtil.getControllerType(this) != EControllerMethod.SHIZUKU) {
             return
         }
-        logger.i("Request Shizuku permission")
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            logger.e("Shizuku does not support Android 5.1 or below")
-            return
-        }
-        if (Shizuku.isPreV11()) {
-            // Pre-v11 is unsupported
-            return
-        }
-        val shizukuPermissionGranted =
-            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-        when {
-            shizukuPermissionGranted -> {
-                logger.d("Shizuku permission was already granted")
-                return
-            }
-            Shizuku.shouldShowRequestPermissionRationale() -> {
-                // Users choose "Deny and don't ask again"
-                AlertDialog.Builder(this)
-                    .setTitle(R.string.permission_required)
-                    .setMessage(R.string.shizuku_permission_required_message)
-                    .show()
-                logger.e("User denied Shizuku permission")
-                return
-            }
-            else -> {
-                logger.d("Request Shizuku permission")
-                Shizuku.requestPermission(REQUEST_CODE_PERMISSION)
-            }
-        }
+        Shizuku.removeBinderReceivedListener(binderReceivedListener)
+        Shizuku.removeBinderDeadListener(binderDeadListener)
+        Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
     }
 
     private fun initToolbar() {
