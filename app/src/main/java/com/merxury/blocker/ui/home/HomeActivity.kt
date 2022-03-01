@@ -51,22 +51,4 @@ class HomeActivity : AppCompatActivity() {
             windowInsets
         }
     }
-
-    private fun showReportScreen() {
-//        val logFile = filesDir.resolve(BlockerApplication.LOG_FILENAME)
-//        val emailIntent = Intent(Intent.ACTION_SEND)
-//            .setType("vnd.android.cursor.dir/email")
-//            .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
-//            .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
-//            .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
-//        if (logFile.exists()) {
-//            val logUri = FileProvider.getUriForFile(
-//                this,
-//                "com.merxury.blocker.provider",
-//                logFile
-//            )
-//            emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
-//        }
-//        startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)));
-    }
 }
