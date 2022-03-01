@@ -18,9 +18,9 @@
             app:key="@string/key_pref_save_folder_path"
             app:title="@string/set_folder_to_save" />
         <SwitchPreference
+            app:defaultValue="false"
             app:key="@string/key_pref_backup_system_apps"
-            app:title="@string/backup_system_apps"
-            app:defaultValue="false" />
+            app:title="@string/backup_system_apps" />
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -62,6 +62,12 @@
         <Preference
             app:key="@string/key_pref_about"
             app:title="@string/about" />
+        <Preference
+            app:key="@string/key_pref_group"
+            app:title="@string/discussion_group" />
+        <Preference
+            app:key="@string/key_pref_report_issue"
+            app:title="@string/report_issue" />
     </PreferenceCategory>
 
 </PreferenceScreen>

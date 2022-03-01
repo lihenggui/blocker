@@ -8,17 +8,28 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.*
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkManager
+import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.work.*
+import com.merxury.blocker.work.ExportBlockerRulesWork
+import com.merxury.blocker.work.ExportIfwRulesWork
+import com.merxury.blocker.work.ImportBlockerRuleWork
+import com.merxury.blocker.work.ImportIfwRulesWork
+import com.merxury.blocker.work.ImportMatRulesWork
+import com.merxury.blocker.work.ResetIfwWork
 
 class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
@@ -35,6 +46,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     private var aboutPreference: Preference? = null
     private var storagePreference: Preference? = null
     private var backupSystemAppPreference: SwitchPreference? = null
+    private var groupPreference: Preference? = null
+    private var reportPreference: Preference? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,6 +78,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
             resetIfwPreference -> resetIfw()
             importMatRulesPreference -> selectMatFile()
             aboutPreference -> showAbout()
+            groupPreference -> showDiscussionGroup()
+            reportPreference -> reportIssue()
         }
         return true
     }
@@ -165,6 +180,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         aboutPreference = findPreference(getString(R.string.key_pref_about))
         storagePreference = findPreference(getString(R.string.key_pref_save_folder_path))
         backupSystemAppPreference = findPreference(getString(R.string.key_pref_backup_system_apps))
+        groupPreference = findPreference(getString(R.string.key_pref_group))
+        reportPreference = findPreference(getString(R.string.key_pref_report_issue))
     }
 
     private fun initPreference() {
@@ -227,8 +244,35 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
             .launchUrl(requireContext(), Uri.parse(ABOUT_URL))
     }
 
+    private fun showDiscussionGroup() {
+        CustomTabsIntent.Builder()
+            .setShowTitle(true)
+            .build()
+            .launchUrl(requireContext(), Uri.parse(GROUP_URL))
+    }
+
+    private fun reportIssue() {
+        val baseLogDir = requireContext().filesDir.resolve("log")
+        val zippedLog = requireContext().filesDir.resolve("log.zip")
+        LogUtils.compress(baseLogDir.toString(), zippedLog.toString())
+        val emailIntent = Intent(Intent.ACTION_SEND)
+            .setType("vnd.android.cursor.dir/email")
+            .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
+            .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
+            .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
+
+        val logUri = FileProvider.getUriForFile(
+            requireContext(),
+            "com.merxury.blocker.provider",
+            zippedLog
+        )
+        emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
+        startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)));
+    }
+
     companion object {
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
+        private const val GROUP_URL = "https://t.me/blockerandroid"
         private const val PERMISSION_REQUEST_CODE = 101
         private const val MAT_FILE_REQUEST_CODE = 102
     }
