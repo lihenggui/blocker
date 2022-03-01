@@ -9,15 +9,11 @@ import com.merxury.blocker.core.IController
 import com.merxury.libkit.utils.ApplicationUtil
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
-import rikka.sui.Sui
 
 class ShizukuController(val context: Context) : IController {
     private var pm: IPackageManager? = null
 
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
-        if (!Sui.isSui()) {
-            Sui.init(context.packageName)
-        }
         if (pm == null) {
             pm = IPackageManager.Stub.asInterface(
                 ShizukuBinderWrapper(
