@@ -3,6 +3,7 @@ package com.merxury.blocker.ui.detail.component
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -63,6 +64,7 @@ class ComponentAdapter :
                     onSwitchClick?.invoke(component, isChecked)
                 }
             }
+            binding.runningIndicator.isVisible = component.isRunning
         }
     }
 }
