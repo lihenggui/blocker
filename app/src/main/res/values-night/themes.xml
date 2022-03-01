@@ -1,6 +1,5 @@
 <resources>
-
-    <style name="AppTheme" parent="Theme.Material3.Dark.NoActionBar">
+    <style name="BaseAppTheme" parent="Theme.Material3.Dark.NoActionBar">
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
         <item name="colorOnPrimary">@color/md_theme_dark_onPrimary</item>
         <item name="colorPrimaryContainer">@color/md_theme_dark_primaryContainer</item>
@@ -30,4 +29,6 @@
         <!--        <item name="colorShadow">@color/md_theme_dark_shadow</item>-->
         <item name="colorPrimaryInverse">@color/md_theme_dark_primaryInverse</item>
     </style>
+
+    <style name="AppTheme" parent="BaseAppTheme" />
 </resources>
