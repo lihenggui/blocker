@@ -14,8 +14,8 @@
     <string name="refresh">刷新</string>
     <string name="application_list">应用程序列表</string>
     <string name="app_icon_description">应用程序图标</string>
-    <string name="name_asc">组件名（升序）</string>
-    <string name="name_desc">组件名（降序）</string>
+    <string name="name_asc">名称（升序）</string>
+    <string name="name_desc">名称（降序）</string>
     <string name="installation_date">安装日期</string>
     <string name="oops">发生错误</string>
     <string name="close">关闭</string>

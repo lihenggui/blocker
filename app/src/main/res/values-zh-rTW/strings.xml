@@ -14,8 +14,8 @@
     <string name="refresh">重新整理</string>
     <string name="application_list">應用程式列表</string>
     <string name="app_icon_description">應用程式圖示</string>
-    <string name="name_asc">元件名（升序）</string>
-    <string name="name_desc">元件名（降序）</string>
+    <string name="name_asc">名稱（升序）</string>
+    <string name="name_desc">名稱（降序）</string>
     <string name="installation_date">安裝日期</string>
     <string name="oops">發生錯誤</string>
     <string name="close">關閉</string>
