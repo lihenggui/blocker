@@ -213,7 +213,9 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                 pmBlocked = !pmController.checkComponentEnableState(packageName, it.name),
                 isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
             )
-        }.toMutableList()
+        }
+            .sortedBy { !it.isRunning }
+            .toMutableList()
     }
 
     private suspend fun getComponents(
