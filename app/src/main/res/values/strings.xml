@@ -102,4 +102,6 @@
     <string name="data_dir">Data dir</string>
     <string name="control_component_error_message">Failed to switch component state. Error message: %1$s.</string>
     <string name="app_info">App info</string>
+    <string name="running">Running</string>
+    <string name="service_is_running">Service is running</string>
 </resources>
