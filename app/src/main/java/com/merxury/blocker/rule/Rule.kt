@@ -147,7 +147,13 @@ object Rule {
     }
 
     fun import(context: Context, rule: BlockerRule): Boolean {
-        val controller = getController(context)
+        val controllerType = PreferenceUtil.getControllerType(context)
+        val controller = if (controllerType == EControllerMethod.IFW) {
+            // Fallback to traditional controller
+            ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+        } else {
+            ComponentControllerProxy.getInstance(controllerType, context)
+        }
         var ifwController: IntentFirewall? = null
         // Detects if contains IFW rules, if exists, create a new controller.
         rule.components.forEach ifwDetection@{
@@ -161,8 +167,10 @@ object Rule {
                 when (it.method) {
                     EControllerMethod.IFW -> {
                         when (it.type) {
+                            // state == false means that IFW applied
+                            // We should add in the IFW controller
                             EComponentType.RECEIVER -> {
-                                if (it.state) {
+                                if (!it.state) {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
@@ -177,7 +185,7 @@ object Rule {
                                 }
                             }
                             EComponentType.SERVICE -> {
-                                if (it.state) {
+                                if (!it.state) {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
@@ -192,7 +200,7 @@ object Rule {
                                 }
                             }
                             EComponentType.ACTIVITY -> {
-                                if (it.state) {
+                                if (!it.state) {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
@@ -208,7 +216,7 @@ object Rule {
                             }
                             // content provider needs PM to implement it
                             EComponentType.PROVIDER -> {
-                                if (it.state) {
+                                if (!it.state) {
                                     controller.enable(it.packageName, it.name)
                                 } else {
                                     controller.disable(it.packageName, it.name)
@@ -217,6 +225,7 @@ object Rule {
                         }
                     }
                     else -> {
+                        // For PM controllers, state enabled means component is enabled
                         if (it.state) {
                             controller.enable(it.packageName, it.name)
                         } else {
@@ -334,10 +343,5 @@ object Rule {
             return true
         }
         return false
-    }
-
-    private fun getController(context: Context): IController {
-        val controllerType = PreferenceUtil.getControllerType(context)
-        return ComponentControllerProxy.getInstance(controllerType, context)
     }
 }
