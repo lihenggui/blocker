@@ -11,6 +11,7 @@ import com.elvishew.xlog.printer.AndroidPrinter
 import com.elvishew.xlog.printer.file.FilePrinter
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
+import com.google.android.material.color.DynamicColors
 import me.weishu.reflection.Reflection
 
 class BlockerApplication : Application() {
@@ -18,6 +19,7 @@ class BlockerApplication : Application() {
         super.onCreate()
         initLogger()
         context = this
+        DynamicColors.applyToActivitiesIfAvailable(this)
     }
 
     override fun attachBaseContext(base: Context?) {
