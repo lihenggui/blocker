@@ -3,6 +3,7 @@ package com.merxury.blocker.rule
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.documentfile.provider.DocumentFile
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
@@ -35,7 +36,7 @@ object Rule {
         val rule = BlockerRule(
             packageName = applicationInfo.packageName,
             versionName = applicationInfo.versionName,
-            versionCode = applicationInfo.versionCode
+            versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo)
         )
         val ifwController = IntentFirewallImpl.getInstance(context, packageName)
         try {
