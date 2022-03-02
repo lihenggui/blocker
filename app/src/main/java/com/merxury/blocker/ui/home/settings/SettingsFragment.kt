@@ -14,22 +14,13 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.Data
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkManager
+import androidx.work.*
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.work.ExportBlockerRulesWork
-import com.merxury.blocker.work.ExportIfwRulesWork
-import com.merxury.blocker.work.ImportBlockerRuleWork
-import com.merxury.blocker.work.ImportIfwRulesWork
-import com.merxury.blocker.work.ImportMatRulesWork
-import com.merxury.blocker.work.ResetIfwWork
+import com.merxury.blocker.work.*
 
 class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
@@ -222,6 +213,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         resetIfwPreference?.onPreferenceClickListener = this
         aboutPreference?.onPreferenceClickListener = this
         storagePreference?.onPreferenceChangeListener = this
+        groupPreference?.onPreferenceClickListener = this
+        reportPreference?.onPreferenceClickListener = this
     }
 
     private fun selectMatFile() {
