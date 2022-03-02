@@ -16,6 +16,7 @@ import com.merxury.blocker.util.StorageUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
+import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.util.RuleSerializer
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
@@ -24,6 +25,7 @@ import com.merxury.libkit.utils.StorageUtils
 object Rule {
     const val BLOCKER_RULE_MIME = "application/json"
     const val EXTENSION = ".json"
+    const val IFW_EXTENSION = ".xml"
     private val logger = XLog.tag("Rule").build()
 
     suspend fun export(context: Context, packageName: String): Boolean {
@@ -131,10 +133,13 @@ object Rule {
                     )
                 )
             }
-            if (rule.components.isNotEmpty()) {
+            val result = if (rule.components.isNotEmpty()) {
                 StorageUtil.saveRuleToStorage(context, rule, packageName)
+            } else {
+                // No components exported, return true
+                true
             }
-            return true
+            return result
         } catch (e: RuntimeException) {
             logger.e("Failed to export $packageName, ${e.message}")
             return false
@@ -248,43 +253,50 @@ object Rule {
             }
             context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
                 val rule = RuleSerializer.deserialize(stream) ?: return@forEach
-                val activities = rule.activity?.componentFilters
-                    ?.asSequence()
-                    ?.map { filter -> filter.name.split("/") }
-                    ?.map { names ->
-                        val component = ComponentInfo()
-                        component.packageName = names[0]
-                        component.name = names[1]
-                        component
-                    }
-                    ?.toList() ?: mutableListOf()
-                val broadcast = rule.broadcast?.componentFilters
-                    ?.asSequence()
-                    ?.map { filter -> filter.name.split("/") }
-                    ?.map { names ->
-                        val component = ComponentInfo()
-                        component.packageName = names[0]
-                        component.name = names[1]
-                        component
-                    }
-                    ?.toList() ?: mutableListOf()
-                val service = rule.service?.componentFilters
-                    ?.asSequence()
-                    ?.map { filter -> filter.name.split("/") }
-                    ?.map { names ->
-                        val component = ComponentInfo()
-                        component.packageName = names[0]
-                        component.name = names[1]
-                        component
-                    }
-                    ?.toList() ?: mutableListOf()
-                controller.batchDisable(activities) {}
-                controller.batchDisable(broadcast) {}
-                controller.batchDisable(service) {}
+                updateIfwState(rule, controller)
                 succeedCount++
             }
         }
         return succeedCount
+    }
+
+    fun updateIfwState(
+        rule: Rules,
+        controller: IController
+    ) {
+        val activities = rule.activity?.componentFilters
+            ?.asSequence()
+            ?.map { filter -> filter.name.split("/") }
+            ?.map { names ->
+                val component = ComponentInfo()
+                component.packageName = names[0]
+                component.name = names[1]
+                component
+            }
+            ?.toList() ?: mutableListOf()
+        val broadcast = rule.broadcast?.componentFilters
+            ?.asSequence()
+            ?.map { filter -> filter.name.split("/") }
+            ?.map { names ->
+                val component = ComponentInfo()
+                component.packageName = names[0]
+                component.name = names[1]
+                component
+            }
+            ?.toList() ?: mutableListOf()
+        val service = rule.service?.componentFilters
+            ?.asSequence()
+            ?.map { filter -> filter.name.split("/") }
+            ?.map { names ->
+                val component = ComponentInfo()
+                component.packageName = names[0]
+                component.name = names[1]
+                component
+            }
+            ?.toList() ?: mutableListOf()
+        controller.batchDisable(activities) {}
+        controller.batchDisable(broadcast) {}
+        controller.batchDisable(service) {}
     }
 
     fun resetIfw(): Boolean {

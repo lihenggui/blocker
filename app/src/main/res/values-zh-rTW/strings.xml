@@ -42,7 +42,6 @@
     <string name="pref_ifw_settings">IFW 規則</string>
     <string name="about">關於</string>
     <string name="processing">處理中…</string>
-    <string name="import_fail_message">匯入失敗，規則檔案不存在。</string>
     <string name="export_rules">匯出規則</string>
     <string name="reset_ifw">重設IFW</string>
     <string name="import_mat_rules">匯入MyAndroidTools規則</string>

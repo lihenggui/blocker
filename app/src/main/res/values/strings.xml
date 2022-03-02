@@ -46,7 +46,6 @@
     <string name="pref_ifw_settings">IFW Settings</string>
     <string name="about">About</string>
     <string name="processing">Processing…</string>
-    <string name="import_fail_message">Import fail, rule does not exist.</string>
     <string name="reset_ifw">Reset IFW</string>
     <string name="import_mat_rules">Import MyAndroidTools Rules</string>
     <string name="others">Others</string>
@@ -106,4 +105,11 @@
     <string name="service_is_running">Service is running</string>
     <string name="discussion_group">Discussion group</string>
     <string name="report_issue">Report issue</string>
+    <string name="backup_folder_hasnt_been_set_yet">Backup folder hasn\'t been set yet, please define one folder in settings.</string>
+    <string name="operation_failed">Operation failed</string>
+    <string name="error_occurred_with_message">Error occurred.\n%1$s</string>
+    <string name="export_to_dest">Exported to %1$s</string>
+    <string name="import_from_successfully">Imported from %1$s</string>
+    <string name="import_fail_message">Failed to import rules, please check if you have correct permissions or not.</string>
+    <string name="export_fail_message">Failed to export rules, please check if you have correct permissions or not.</string>
 </resources>

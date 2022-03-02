@@ -46,7 +46,6 @@
     <string name="pref_ifw_settings">Настройки IFW</string>
     <string name="about">О приложении Blocker</string>
     <string name="processing">Обработка…</string>
-    <string name="import_fail_message">Сбой импорта, правило не существует.</string>
     <string name="reset_ifw">Сброс IFW</string>
     <string name="import_mat_rules">Импорт правил MyAndroidTools</string>
     <string name="others">Другое</string>
