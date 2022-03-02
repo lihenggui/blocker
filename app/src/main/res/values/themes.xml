@@ -36,7 +36,6 @@
     </style>
 
     <style name="AppTheme" parent="BaseAppTheme" />
-
     <style name="ShapeAppearance.App.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
