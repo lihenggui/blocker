@@ -4,4 +4,8 @@
         <attr name="item_title" format="string" />
         <attr name="item_summary" format="string" />
     </declare-styleable>
+    <declare-styleable name="DetailActionView">
+        <attr name="detail_title" format="string" />
+        <attr name="detail_icon" format="reference" />
+    </declare-styleable>
 </resources>
