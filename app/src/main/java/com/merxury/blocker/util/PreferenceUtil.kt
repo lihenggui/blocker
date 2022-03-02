@@ -28,7 +28,10 @@ object PreferenceUtil {
     }
 
     fun getIfwRulePath(context: Context): Uri? {
-        return getSavedRulePath(context)?.buildUpon()?.appendPath("ifw")?.build()
+        return getSavedRulePath(context)
+            ?.buildUpon()
+            ?.appendPath("ifw")
+            ?.build()
     }
 
     fun setRulePath(context: Context, uri: Uri?) {

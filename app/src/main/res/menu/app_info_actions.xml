@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_export_rule"
+        android:title="@string/export_rules"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_import_rule"
+        android:title="@string/import_rules"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_export_ifw_rule"
+        android:title="@string/export_ifw_rules"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_import_ifw_rule"
+        android:title="@string/import_ifw_rules"
+        app:showAsAction="never" />
+</menu>

@@ -1,19 +1,28 @@
 package com.merxury.blocker.ui.detail.appinfo
 
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.data.AndroidCodeName
 import com.merxury.blocker.databinding.AppInfoFragmentBinding
+import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.AppIconCache
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.libkit.entity.Application
+import java.io.File
 import java.text.DateFormat
 import java.util.*
-
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -22,6 +31,7 @@ class AppInfoFragment : Fragment() {
     private val binding get() = _binding!!
     private var loadIconJob: Job? = null
     private lateinit var app: Application
+    private val logger = XLog.tag("AppInfoFragment")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +60,156 @@ class AppInfoFragment : Fragment() {
         if (loadIconJob?.isActive == true) {
             loadIconJob?.cancel()
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        menu.clear()
+        inflater.inflate(R.menu.app_info_actions, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_import_rule -> {
+                importRule()
+                true
+            }
+            R.id.action_export_rule -> {
+                exportRule()
+                true
+            }
+            R.id.action_import_ifw_rule -> {
+                importIfwRule()
+                true
+            }
+            R.id.action_export_ifw_rule -> {
+                exportIfwRule()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun importRule() = lifecycleScope.launch {
+        try {
+            if (checkFolderReadyWithHint()) {
+                val uri = RuleBackupHelper.import(requireContext(), app.packageName)
+                if (uri == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.import_fail_message),
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.import_from_successfully, uri.path),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        } catch (e: Exception) {
+            logger.e("Can't import rule for ${app.packageName}", e)
+            showErrorDialog(e)
+        }
+    }
+
+    private fun exportRule() = lifecycleScope.launch {
+        try {
+            if (checkFolderReadyWithHint()) {
+                val result = RuleBackupHelper.export(requireContext(), app.packageName)
+                if (result) {
+                    val folder = PreferenceUtil.getSavedRulePath(requireContext())
+                    val fileName = app.packageName + Rule.EXTENSION
+                    Toast.makeText(
+                        requireContext(),
+                        getString(
+                            R.string.export_to_dest,
+                            folder?.path + File.separator + fileName
+                        ),
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.export_fail_message),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        } catch (e: Exception) {
+            logger.e("Can't export rule for ${app.packageName}", e)
+            showErrorDialog(e)
+        }
+    }
+
+    private fun importIfwRule() = lifecycleScope.launch {
+        try {
+            if (checkFolderReadyWithHint()) {
+                val uri = RuleBackupHelper.importIfwRule(requireContext(), app.packageName)
+                if (uri == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.import_fail_message),
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.import_from_successfully, uri.path),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        } catch (e: Exception) {
+            logger.e("Can't import ifw rule for ${app.packageName}", e)
+            showErrorDialog(e)
+        }
+    }
+
+    private fun exportIfwRule() = lifecycleScope.launch {
+        try {
+            if (checkFolderReadyWithHint()) {
+                val uri = RuleBackupHelper.exportIfwRule(requireContext(), app.packageName)
+                if (uri == null) {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.export_fail_message),
+                        Toast.LENGTH_LONG
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.export_to_dest, uri),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+            }
+        } catch (e: Exception) {
+            logger.e("Can't export ifw rule for ${app.packageName}", e)
+            showErrorDialog(e)
+        }
+    }
+
+    private fun checkFolderReadyWithHint(): Boolean {
+        if (PreferenceUtil.getSavedRulePath(requireContext()) == null) {
+            Toast.makeText(
+                requireContext(),
+                R.string.backup_folder_hasnt_been_set_yet,
+                Toast.LENGTH_LONG
+            ).show()
+            return false
+        }
+        return true
+    }
+
+    private fun showErrorDialog(e: Exception) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(resources.getString(R.string.operation_failed))
+            .setMessage(getString(R.string.control_component_error_message, e.message))
+            .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+            .show()
     }
 
     private fun showHeader() {

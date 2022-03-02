@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="?attr/selectableItemBackground">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -23,6 +24,7 @@
 
         <TextView
             android:id="@+id/app_name"
+            style="@style/TextAppearance.Material3.HeadlineSmall"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="2dp"
@@ -31,11 +33,11 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/app_icon"
-            style="@style/TextAppearance.Material3.HeadlineSmall"
             tools:text="Blocker" />
 
         <TextView
             android:id="@+id/package_name"
+            style="@style/TextAppearance.Material3.BodySmall"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="2dp"
@@ -44,20 +46,19 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/app_name"
-            style="@style/TextAppearance.Material3.BodySmall"
             tools:text="com.merxury.blocker" />
 
         <TextView
             android:id="@+id/version_name"
+            style="@style/TextAppearance.Material3.BodySmall"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:gravity="center"
+            app:layout_constraintBottom_toTopOf="@id/divider1"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/package_name"
-            style="@style/TextAppearance.Material3.BodySmall"
-            app:layout_constraintBottom_toTopOf="@id/divider1"
             tools:text="1.0.0" />
 
         <View
@@ -71,6 +72,7 @@
             android:id="@+id/horizontal_scroll_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:paddingHorizontal="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/divider1">
@@ -80,10 +82,18 @@
                 android:layout_height="wrap_content">
 
                 <com.merxury.blocker.view.DetailActionView
+                    android:id="@+id/action_export_rule"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:detail_icon="@drawable/ic_search"
-                    app:detail_title="@string/search" />
+                    app:detail_icon="@drawable/ic_save"
+                    app:detail_title="@string/export_rules" />
+
+                <com.merxury.blocker.view.DetailActionView
+                    android:id="@+id/action_import_rule"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:detail_icon="@drawable/ic_import"
+                    app:detail_title="@string/import_rules" />
             </LinearLayout>
 
         </HorizontalScrollView>
@@ -101,40 +111,40 @@
             android:id="@+id/item_target_sdk_version"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:item_title="@string/target_sdk_version"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/more_info_header"
-            app:item_title="@string/target_sdk_version"
             tools:item_summary="32" />
 
         <com.merxury.blocker.view.PreferenceItemView
             android:id="@+id/item_min_sdk_version"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:item_title="@string/minimum_sdk_version"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/item_target_sdk_version"
-            app:item_title="@string/minimum_sdk_version"
             tools:item_summary="21" />
 
         <com.merxury.blocker.view.PreferenceItemView
             android:id="@+id/item_last_update_time"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:item_title="@string/last_update_time"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/item_min_sdk_version"
-            app:item_title="@string/last_update_time"
             tools:item_summary="2022-01-01" />
 
         <com.merxury.blocker.view.PreferenceItemView
             android:id="@+id/item_data_dir"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:item_title="@string/data_dir"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/item_last_update_time"
-            app:item_title="@string/data_dir"
             tools:item_summary="/data/data/com.merxury.blocker" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
