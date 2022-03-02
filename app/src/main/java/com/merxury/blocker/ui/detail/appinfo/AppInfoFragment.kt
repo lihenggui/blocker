@@ -52,6 +52,7 @@ class AppInfoFragment : Fragment() {
         app = arguments?.getParcelable("app")!!
         showHeader()
         showInfo()
+        initQuickActions()
     }
 
     override fun onDestroyView() {
@@ -210,6 +211,23 @@ class AppInfoFragment : Fragment() {
             .setMessage(getString(R.string.control_component_error_message, e.message))
             .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
             .show()
+    }
+
+    private fun initQuickActions() {
+        binding.actionLaunchApp.setOnClickListener {
+            logger.i("Launch app ${app.packageName}")
+            val intent = requireContext().packageManager.getLaunchIntentForPackage(app.packageName)
+            if (intent == null) {
+                Toast.makeText(requireContext(), R.string.cannot_launch_this_app, Toast.LENGTH_LONG)
+                    .show()
+            } else {
+                startActivity(intent)
+            }
+        }
+        binding.actionExportRule.setOnClickListener { exportRule() }
+        binding.actionImportRule.setOnClickListener { importRule() }
+        binding.actionExportIfwRule.setOnClickListener { exportIfwRule() }
+        binding.actionImportIfwRule.setOnClickListener { importIfwRule() }
     }
 
     private fun showHeader() {
