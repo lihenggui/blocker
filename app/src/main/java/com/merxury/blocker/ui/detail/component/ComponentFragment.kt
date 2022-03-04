@@ -4,12 +4,7 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
@@ -141,8 +136,10 @@ class ComponentFragment : Fragment() {
             }
             if (it.isEmpty()) {
                 binding.noComponentHint.visibility = View.VISIBLE
+                binding.recyclerView.visibility = View.GONE
             } else {
                 binding.noComponentHint.visibility = View.GONE
+                binding.recyclerView.visibility = View.VISIBLE
                 adapter.submitList(it)
             }
         }
