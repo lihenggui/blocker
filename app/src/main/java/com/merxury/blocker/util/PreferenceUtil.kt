@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.preference.PreferenceManager
 import com.merxury.blocker.R
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.ui.home.applist.SortType
 
 object PreferenceUtil {
     fun getControllerType(context: Context): EControllerMethod {
@@ -72,5 +73,22 @@ object PreferenceUtil {
             context.getString(R.string.key_pref_show_running_service_info),
             false
         )
+    }
+
+    fun setSortType(context: Context, value: SortType?) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putString(context.getString(R.string.key_pref_sort_type), value?.name)
+            .apply()
+    }
+
+    fun getSortType(context: Context): SortType {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val value = pref.getString(context.getString(R.string.key_pref_sort_type), null).orEmpty()
+        return try {
+            SortType.valueOf(value)
+        } catch (e: Exception) {
+            SortType.NAME_ASC
+        }
     }
 }

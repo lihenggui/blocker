@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.libkit.entity.Application
 import com.merxury.libkit.utils.ApplicationUtil
 import kotlinx.coroutines.launch
@@ -36,7 +37,8 @@ class AppListViewModel : ViewModel() {
                 ApplicationUtil.getThirdPartyApplicationList(context)
             }
             logger.i("loadData done, list size: ${list.size}")
-            val sortedList = sortList(list, _sortType.value)
+            val sortType = PreferenceUtil.getSortType(context)
+            val sortedList = sortList(list, sortType)
             originalList = sortedList
             _appList.value = sortedList
         }
@@ -65,8 +67,8 @@ class AppListViewModel : ViewModel() {
         return when (sortType) {
             SortType.NAME_ASC -> list.sortedBy { it.getLabel(pm!!) }
             SortType.NAME_DESC -> list.sortedByDescending { it.getLabel(pm!!) }
-            SortType.INSTALL_TIME -> list.sortedBy { it.firstInstallTime }
-            SortType.LAST_UPDATE_TIME -> list.sortedBy { it.lastUpdateTime }
+            SortType.INSTALL_TIME -> list.sortedByDescending { it.firstInstallTime }
+            SortType.LAST_UPDATE_TIME -> list.sortedByDescending { it.lastUpdateTime }
             else -> list.sortedBy { it.getLabel(pm!!) }
         }
     }
