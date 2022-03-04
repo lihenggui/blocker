@@ -26,7 +26,6 @@
     <string name="enabling_hint">啟用元件中…</string>
     <string name="export_ifw_rules">匯出IFW規則</string>
     <string name="import_ifw_rules">匯入IFW規則</string>
-    <string name="ok" translatable="false">確定</string>
     <string name="fail">失敗</string>
     <string name="pref_rule_settings">Blocker規則</string>
     <string name="import_rules">匯入規則</string>
@@ -68,4 +67,31 @@
     <string name="please_select_mat_files">請選擇MyAndroidTools規則</string>
     <string name="clear_ifw_message">清除了%1$d個IFW規則</string>
     <string name="import_mat_failed_message">導入MAT規則失敗，請檢查超級用戶權限是否授予</string>
+    <string name="acquiring_service_status_please_wait">正在獲取服務狀態…</string>
+    <string name="service_status_template">服務: 正在運行%1$d個, 已阻止%2$d個, 共計%3$d個.</string>
+    <string name="show_system_apps">顯示系統應用</string>
+    <string name="sort">排序</string>
+    <string name="show_service_info">顯示服務信息</string>
+    <string name="app_name_or_package_name">應用名或者包名</string>
+    <string name="permission_required">需要權限</string>
+    <string name="shizuku_permission_required_message">Blocker需要Shizuku權限工作，請在Shizuku應用中對Blocker授權</string>
+    <string name="more_info">更多信息</string>
+    <string name="target_sdk_version">目標SDK版本</string>
+    <string name="minimum_sdk_version">最低SDK版本</string>
+    <string name="last_update_time">最後更新時間</string>
+    <string name="data_dir">數據目錄</string>
+    <string name="control_component_error_message">更改組件開關失敗。錯誤信息：%1$s</string>
+    <string name="app_info">應用信息</string>
+    <string name="service_is_running">服務正在運行中</string>
+    <string name="discussion_group">討論組</string>
+    <string name="report_issue">反饋問題</string>
+    <string name="backup_folder_hasnt_been_set_yet">未設置備份目錄，請在設置中選擇一個先。</string>
+    <string name="operation_failed">操作失敗</string>
+    <string name="error_occurred_with_message">發生錯誤. %1$s</string>
+    <string name="export_to_dest">已導出至%1$s</string>
+    <string name="import_from_successfully">從%1$s導入成功</string>
+    <string name="import_fail_message">導入規則失敗，請檢查你是否獲得了權限。</string>
+    <string name="export_fail_message">導出規則失敗，請檢查你是否獲得了權限。</string>
+    <string name="launch_app">啟動應用</string>
+    <string name="cannot_launch_this_app">無法啟動這個應用</string>
 </resources>
