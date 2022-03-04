@@ -24,7 +24,6 @@
     <string name="enable_all">Enable All</string>
     <string name="disabling_hint">Disabling components…</string>
     <string name="enabling_hint">Enabling components…</string>
-    <string name="ok">OK</string>
     <string name="export_ifw_rules">Export IFW Rules</string>
     <string name="import_ifw_rules">Import IFW Rules</string>
     <string name="controller_settings">Controller Settings</string>
@@ -79,7 +78,7 @@
     <string name="more_info">More info</string>
     <string name="target_sdk_version">Target SDK version</string>
     <string name="minimum_sdk_version">Minimum SDK version</string>
-    <string name="sdk_version_with_name_template">%1$d (%2$s)</string>
+    <string name="sdk_version_with_name_template" translatable="false">%1$d (%2$s)</string>
     <string name="last_update_time">Last update time</string>
     <string name="data_dir">Data dir</string>
     <string name="control_component_error_message">Failed to switch component state. Error message: %1$s.</string>
@@ -89,7 +88,7 @@
     <string name="report_issue">Report issue</string>
     <string name="backup_folder_hasnt_been_set_yet">Backup folder hasn\'t been set yet, please define one folder in settings.</string>
     <string name="operation_failed">Operation failed</string>
-    <string name="error_occurred_with_message">Error occurred.\n%1$s</string>
+    <string name="error_occurred_with_message">Error occurred. %1$s</string>
     <string name="export_to_dest">Exported to %1$s</string>
     <string name="import_from_successfully">Imported from %1$s</string>
     <string name="import_fail_message">Failed to import rules, please check if you have correct permissions or not.</string>
