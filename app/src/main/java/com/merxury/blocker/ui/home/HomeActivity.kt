@@ -1,180 +1,53 @@
 package com.merxury.blocker.ui.home
 
-import android.animation.ArgbEvaluator
-import android.animation.ValueAnimator
-import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.MenuItem
-import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
-import androidx.drawerlayout.widget.DrawerLayout
-import androidx.viewpager.widget.ViewPager
-import com.google.android.material.tabs.TabLayout
-import com.merxury.blocker.BlockerApplication
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.setupWithNavController
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.merxury.blocker.R
-import com.merxury.blocker.adapter.FragmentAdapter
-import com.merxury.blocker.base.IActivityView
-import com.merxury.blocker.ui.settings.SettingsActivity
-import com.merxury.blocker.util.setupActionBar
-import com.merxury.libkit.utils.StatusBarUtil
-import com.mikepenz.materialdrawer.Drawer
-import com.mikepenz.materialdrawer.DrawerBuilder
-import com.mikepenz.materialdrawer.model.DividerDrawerItem
-import com.mikepenz.materialdrawer.model.PrimaryDrawerItem
-import com.mikepenz.materialdrawer.model.SecondaryDrawerItem
-import kotlinx.android.synthetic.main.activity_home.*
-import java.lang.RuntimeException
+import com.merxury.blocker.databinding.ActivityHomeBinding
 
 
-class HomeActivity : AppCompatActivity(), IActivityView {
-    private lateinit var drawer: Drawer
-    private lateinit var drawerLayout: DrawerLayout
+class HomeActivity : AppCompatActivity() {
+    private lateinit var navController: NavController
+    private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var binding: ActivityHomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_home)
-        setupActionBar(R.id.toolbar) {
-            setHomeAsUpIndicator(R.drawable.ic_menu_white_24dp)
-            setDisplayHomeAsUpEnabled(true)
-        }
-        setupDrawerContent(savedInstanceState)
-        setupViewPager(app_viewpager)
-        findViewById<TabLayout>(R.id.app_kind_tabs).apply {
-            setupWithViewPager(app_viewpager)
-            setupTab(this)
-        }
+        binding = ActivityHomeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        initEdgeToEdge()
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
+        appBarConfiguration = AppBarConfiguration(navController.graph)
+        findViewById<BottomNavigationView>(R.id.bottom_nav)
+            .setupWithNavController(navController)
     }
 
-    private fun setupViewPager(viewPager: ViewPager) {
-        val adapter = FragmentAdapter(supportFragmentManager)
-        adapter.addFragment(ApplicationListFragment.newInstance(false), getString(R.string.third_party_app_tab_text))
-        adapter.addFragment(ApplicationListFragment.newInstance(true), getString(R.string.system_app_tab_text))
-        viewPager.adapter = adapter
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
-    private fun setupDrawerContent(savedInstanceState: Bundle?) {
-        val listItem = PrimaryDrawerItem()
-                .withIdentifier(1)
-                .withName(R.string.app_list_title)
-                .withIcon(R.drawable.ic_list)
-        val settingItem = SecondaryDrawerItem()
-                .withIdentifier(2)
-                .withName(R.string.action_settings)
-                .withIcon(R.drawable.ic_settings)
-        val emailItem = SecondaryDrawerItem()
-                .withIdentifier(3)
-                .withName(R.string.report)
-                .withIcon(R.drawable.ic_email)
-        drawer = DrawerBuilder()
-                .withActivity(this)
-                .withTranslucentStatusBar(true)
-                .withToolbar(toolbar)
-                .withSavedInstance(savedInstanceState)
-                .withActionBarDrawerToggleAnimated(true)
-                .addDrawerItems(
-                        listItem,
-                        settingItem,
-                        DividerDrawerItem(),
-                        emailItem
-                )
-                .withOnDrawerItemClickListener { _, _, drawerItem ->
-                    when (drawerItem?.identifier) {
-                        1L -> startActivity(Intent(this@HomeActivity, HomeActivity::class.java))
-                        2L -> startActivity(Intent(this@HomeActivity, SettingsActivity::class.java))
-                        3L -> showReportScreen()
-                    }
-                    false
-                }
-                .withSelectedItem(1L)
-                .withCloseOnClick(true)
-                .build()
-        drawerLayout = drawer.drawerLayout
-
-    }
-
-    private fun setupTab(tabLayout: TabLayout) {
-        changeColor(getBackgroundColor(0))
-        tabLayout.setSelectedTabIndicatorColor(ContextCompat.getColor(this, R.color.md_white_1000))
-        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab) {
-                changeBackgroundColor(tabLayout, tab)
+    private fun initEdgeToEdge() {
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { view, windowInsets ->
+            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+            view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                leftMargin = insets.left
+                rightMargin = insets.right
             }
-
-            override fun onTabUnselected(tab: TabLayout.Tab) {
-
-            }
-
-            override fun onTabReselected(tab: TabLayout.Tab) {
-
-            }
-        })
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            drawer.openDrawer()
-            return true
+            windowInsets
         }
-        return super.onOptionsItemSelected(item)
-    }
-
-    private fun changeColor(color: Int) {
-        toolbar.setBackgroundColor(color)
-        app_kind_tabs.setBackgroundColor(color)
-        StatusBarUtil.setColorForDrawerLayout(this, drawerLayout, color, com.merxury.blocker.constant.Constant.STATUS_BAR_ALPHA)
-        findViewById<View>(R.id.statusbarutil_translucent_view).setBackgroundColor(color)
-    }
-
-
-    private fun changeBackgroundColor(tabLayout: TabLayout, tab: TabLayout.Tab) {
-        val colorFrom: Int
-        if (tabLayout.background != null) {
-            colorFrom = (tabLayout.background as ColorDrawable).color
-        } else {
-            colorFrom = ContextCompat.getColor(this, android.R.color.darker_gray)
-        }
-        val colorTo = getBackgroundColor(tab.position)
-        val colorAnimation = ValueAnimator.ofObject(ArgbEvaluator(), colorFrom, colorTo)
-        colorAnimation.addUpdateListener { animation ->
-            val color = animation.animatedValue as Int
-            changeColor(color)
-        }
-        colorAnimation.duration = 500
-        colorAnimation.start()
-    }
-
-    override fun getBackgroundColor(tabPosition: Int): Int {
-        return when (tabPosition) {
-            0 -> ContextCompat.getColor(this, R.color.colorPrimary)
-            1 -> ContextCompat.getColor(this, R.color.md_red_500)
-            else -> ContextCompat.getColor(this, R.color.md_grey_700)
-        }
-    }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
-        if (drawer.isDrawerOpen) {
-            drawer.closeDrawer()
-        }
-    }
-
-    private fun showReportScreen() {
-        val logFile = filesDir.resolve(BlockerApplication.LOG_FILENAME)
-        val emailIntent = Intent(Intent.ACTION_SEND)
-                .setType("vnd.android.cursor.dir/email")
-                .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
-                .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
-                .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
-        if (logFile.exists()) {
-            val logUri = FileProvider.getUriForFile(
-                    this,
-                    "com.merxury.blocker.provider", //(use your app signature + ".provider" )
-                    logFile);
-            emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
-        }
-        startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)));
     }
 }

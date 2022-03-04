@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.preference.PreferenceManager
 import com.merxury.blocker.R
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.ui.home.applist.SortType
 
 object PreferenceUtil {
     fun getControllerType(context: Context): EControllerMethod {
@@ -28,7 +29,10 @@ object PreferenceUtil {
     }
 
     fun getIfwRulePath(context: Context): Uri? {
-        return getSavedRulePath(context)?.buildUpon()?.appendPath("ifw")?.build()
+        return getSavedRulePath(context)
+            ?.buildUpon()
+            ?.appendPath("ifw")
+            ?.build()
     }
 
     fun setRulePath(context: Context, uri: Uri?) {
@@ -42,5 +46,49 @@ object PreferenceUtil {
     fun shouldBackupSystemApps(context: Context): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         return pref.getBoolean(context.getString(R.string.key_pref_backup_system_apps), false)
+    }
+
+    fun setShowSystemApps(context: Context, value: Boolean) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putBoolean(context.getString(R.string.key_pref_show_system_apps), value)
+            .apply()
+    }
+
+    fun getShowSystemApps(context: Context): Boolean {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        return pref.getBoolean(context.getString(R.string.key_pref_show_system_apps), false)
+    }
+
+    fun setShowServiceInfo(context: Context, value: Boolean) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putBoolean(context.getString(R.string.key_pref_show_running_service_info), value)
+            .apply()
+    }
+
+    fun getShowServiceInfo(context: Context): Boolean {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        return pref.getBoolean(
+            context.getString(R.string.key_pref_show_running_service_info),
+            false
+        )
+    }
+
+    fun setSortType(context: Context, value: SortType?) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putString(context.getString(R.string.key_pref_sort_type), value?.name)
+            .apply()
+    }
+
+    fun getSortType(context: Context): SortType {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val value = pref.getString(context.getString(R.string.key_pref_sort_type), null).orEmpty()
+        return try {
+            SortType.valueOf(value)
+        } catch (e: Exception) {
+            SortType.NAME_ASC
+        }
     }
 }

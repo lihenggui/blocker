@@ -29,7 +29,7 @@ class ResetIfwWork(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         logger.i("Clear IFW rules")
         var count = 0
-        var total = 0
+        val total: Int
         try {
             val ifwFolder = StorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)

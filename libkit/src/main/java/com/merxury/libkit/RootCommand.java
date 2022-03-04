@@ -4,8 +4,6 @@ import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 
-import com.elvishew.xlog.Logger;
-import com.elvishew.xlog.XLog;
 import com.topjohnwu.superuser.Shell;
 
 import java.util.List;
@@ -15,11 +13,9 @@ import java.util.List;
  */
 
 public class RootCommand {
-    private static final Logger logger = XLog.tag("RootCommand").build();
 
     @NonNull
     public synchronized static String runBlockingCommand(final String comm) {
-        logger.d("Execute command " + comm);
         if (!Shell.rootAccess()) {
             throw new RuntimeException("Root unavailable");
         }
