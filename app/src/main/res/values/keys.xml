@@ -21,4 +21,5 @@
     <string name="key_pref_show_running_service_info" translatable="false">key_pref_show_running_service_info</string>
     <string name="key_pref_group" translatable="false">key_pref_group</string>
     <string name="key_pref_report_issue" translatable="false">key_pref_report_issue</string>
+    <string name="key_pref_sort_type" translatable="false">key_pref_sort_type</string>
 </resources>
