@@ -1,12 +1,11 @@
 package com.merxury.blocker.ui.home.settings
 
-import android.annotation.SuppressLint
-import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
@@ -61,7 +60,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     override fun onPreferenceClick(preference: Preference): Boolean {
         logger.d("Preference: ${preference.key} clicked")
         when (preference) {
-            storagePreference -> setFolderToSave()
+            storagePreference -> selectFolder()
             exportRulePreference -> exportBlockerRule()
             importRulePreference -> importBlockerRule()
             exportIfwRulePreference -> exportIfwRule()
@@ -75,32 +74,28 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         return true
     }
 
-    @SuppressLint("WrongConstant")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK && requestCode == PERMISSION_REQUEST_CODE) {
-            if (data != null) {
-                val uri = data.data ?: return
-                logger.d("Save folder: $uri")
-                val flags = data.flags and
-                        (Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                requireActivity().contentResolver.takePersistableUriPermission(uri, flags)
-                PreferenceUtil.setRulePath(requireContext(), data.data)
-                updateFolderSummary()
+    private val getFolderResult =
+        registerForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
+            if (uri == null) {
+                logger.w("Get folder failed")
+                return@registerForActivityResult
             }
+            logger.d("Save folder: $uri")
+            val flags =
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            requireActivity().contentResolver.takePersistableUriPermission(uri, flags)
+            PreferenceUtil.setRulePath(requireContext(), uri)
+            updateFolderSummary()
         }
-        if (resultCode == RESULT_OK && requestCode == MAT_FILE_REQUEST_CODE) {
-            if (data != null) {
-                val uri = data.data ?: return
-                importMatRule(uri)
-            }
-        }
-    }
 
-    private fun setFolderToSave() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        startActivityForResult(intent, PERMISSION_REQUEST_CODE)
-    }
+    private val importMatResult =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            if (uri == null) {
+                logger.w("Get MAT file failed")
+                return@registerForActivityResult
+            }
+            importMatRule(uri)
+        }
 
     private fun importBlockerRule() {
         val importWork = OneTimeWorkRequestBuilder<ImportBlockerRuleWork>()
@@ -217,13 +212,23 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         reportPreference?.onPreferenceClickListener = this
     }
 
+    private fun selectFolder() {
+        val pm = context?.packageManager ?: return
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+        if (intent.resolveActivity(pm) != null) {
+            getFolderResult.launch(null)
+        } else {
+            ToastUtil.showToast(getString(R.string.file_manager_required))
+        }
+    }
+
     private fun selectMatFile() {
         val pm = context?.packageManager ?: return
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.addCategory(Intent.CATEGORY_OPENABLE)
         intent.type = "*/*"
         if (intent.resolveActivity(pm) != null) {
-            startActivityForResult(intent, MAT_FILE_REQUEST_CODE)
+            importMatResult.launch(arrayOf("*/*"))
             ToastUtil.showToast(R.string.please_select_mat_files, Toast.LENGTH_LONG)
         } else {
             ToastUtil.showToast(getString(R.string.file_manager_required))
@@ -260,13 +265,11 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
             zippedLog
         )
         emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
-        startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)));
+        startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)))
     }
 
     companion object {
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
         private const val GROUP_URL = "https://t.me/blockerandroid"
-        private const val PERMISSION_REQUEST_CODE = 101
-        private const val MAT_FILE_REQUEST_CODE = 102
     }
 }
