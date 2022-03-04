@@ -18,8 +18,7 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".ui.home.HomeActivity"
-            android:exported="true"
-            android:launchMode="singleTask">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -28,6 +27,7 @@
         <activity
             android:name=".ui.detail.AppDetailActivity"
             android:exported="false" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.merxury.blocker.provider"
