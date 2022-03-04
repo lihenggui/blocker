@@ -58,11 +58,11 @@
     <string name="failed_to_back_up">Сбой создания резервной копии правил для приложений. Проверьте разрешения или создайте отчет..</string>
     <string name="backup_finished">Резервное копирование правил завершено</string>
     <string name="dir_is_invalid">Папка недействительна, проверьте, установили ли вы папку для резервного копирования или нет.</string>
-    <string name="import_failed_message">Сбой импорта правил Blocker. Проверьте, есть ли у вас root права.</string>
+    <string name="import_failed_message">Сбой импортирования правил Blocker. Проверьте, есть ли у вас root права.</string>
     <string name="no_rules_imported">Правила не импортированы, проверьте папку или разрешения.</string>
     <string name="export_ifw_failed_message">Не удалось экспортировать правила IFW. Вы предоставили Blocker-у разрешения?</string>
     <string name="export_ifw_successful_message">Успешно экспортировано %1$d правил IFW.</string>
-    <string name="import_ifw_failed_message">Сбой импорта правил IFW. Вы предоставили Blocker-у разрешения?</string>
+    <string name="import_ifw_failed_message">Сбой импортирования правил IFW. Вы предоставили Blocker-у разрешения?</string>
     <string name="import_successfully">Правила успешно импортированы</string>
     <string name="clear_ifw_message">Удалено %1$d правил IFW.</string>
     <string name="please_select_mat_files">Выберите правила MyAndroidTools.</string>
