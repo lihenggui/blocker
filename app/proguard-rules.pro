@@ -21,13 +21,11 @@
 #-renamesourcefileattribute SourceFile
 -keep public class * extends android.app.Activity
 -keep public class * extends android.app.Application
--keep public class * extends android.app.MapActivity
 -keep public class * extends android.app.Service
 -keep public class * extends android.content.BroadcastReceiver
 -keep public class * extends android.content.ContentProvider
 -keep public class com.google.gson.**
 -keep public class android.graphics.drawable.VectorDrawable
--keep class android.support.v4.view.ViewCompat$OnUnhandledKeyEventListenerWrapper
 -keep public class * extends android.view.View {
     public <init>(android.content.Context);
     public <init>(android.content.Context, android.util.AttributeSet);

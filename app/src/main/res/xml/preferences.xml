@@ -8,6 +8,7 @@
             app:dialogTitle="@string/controller_chooser_title"
             app:entries="@array/pref_controllerType_entries"
             app:entryValues="@array/pref_controllerType_value"
+            app:icon="@drawable/ic_auto_fix"
             app:key="@string/key_pref_controller_type"
             app:summary="%s"
             app:title="@string/controller_type" />
@@ -15,21 +16,25 @@
 
     <PreferenceCategory app:title="@string/rule_backup_settings">
         <Preference
+            app:icon="@drawable/ic_folder_plus"
             app:key="@string/key_pref_save_folder_path"
             app:title="@string/set_folder_to_save" />
         <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/ic_cellphone_cog"
             app:key="@string/key_pref_backup_system_apps"
-            app:title="@string/backup_system_apps"
-            app:defaultValue="false" />
+            app:title="@string/backup_system_apps" />
     </PreferenceCategory>
 
     <PreferenceCategory
         app:key="@string/key_pref_rules"
         app:title="@string/pref_rule_settings">
         <Preference
+            app:icon="@drawable/ic_export"
             app:key="@string/key_pref_export_rules"
             app:title="@string/export_rules" />
         <Preference
+            app:icon="@drawable/ic_import"
             app:key="@string/key_pref_import_rules"
             app:title="@string/import_rules" />
     </PreferenceCategory>
@@ -38,12 +43,15 @@
         app:key="@string/key_pref_ifw"
         app:title="@string/pref_ifw_settings">
         <Preference
+            app:icon="@drawable/ic_export"
             app:key="@string/key_pref_export_ifw_rules"
             app:title="@string/export_ifw_rules" />
         <Preference
+            app:icon="@drawable/ic_import"
             app:key="@string/key_pref_import_ifw_rules"
             app:title="@string/import_ifw_rules" />
         <Preference
+            app:icon="@drawable/ic_restart"
             app:key="@string/key_pref_reset_ifw_rules"
             app:title="@string/reset_ifw" />
     </PreferenceCategory>
@@ -52,6 +60,7 @@
         app:key="@string/key_pref_other"
         app:title="@string/others">
         <Preference
+            app:icon="@drawable/ic_import"
             app:key="@string/key_pref_import_mat_rules"
             app:title="@string/import_mat_rules" />
     </PreferenceCategory>
@@ -60,8 +69,17 @@
         app:key="@string/key_pref_about_category"
         app:title="@string/about">
         <Preference
+            app:icon="@drawable/ic_github"
             app:key="@string/key_pref_about"
             app:title="@string/about" />
+        <Preference
+            app:icon="@drawable/ic_telegram"
+            app:key="@string/key_pref_group"
+            app:title="@string/discussion_group" />
+        <Preference
+            app:icon="@drawable/ic_bug"
+            app:key="@string/key_pref_report_issue"
+            app:title="@string/report_issue" />
     </PreferenceCategory>
 
 </PreferenceScreen>

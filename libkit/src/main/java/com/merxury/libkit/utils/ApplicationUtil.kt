@@ -2,12 +2,14 @@ package com.merxury.libkit.utils
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
-import android.content.pm.*
+import android.content.pm.ActivityInfo
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
+import android.content.pm.ProviderInfo
+import android.content.pm.ServiceInfo
 import android.os.Build
 import com.elvishew.xlog.XLog
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.merxury.libkit.entity.Application
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -21,9 +23,6 @@ import java.util.*
 
 object ApplicationUtil {
     private const val BLOCKER_PACKAGE_NAME = "com.merxury.blocker"
-    private const val BLOCKED_CONF_NAME = "Blocked"
-    private const val BLOCKED_APP_LIST_KEY = "key_blocked_app_list"
-    private const val MARKET_URL = "market://details?id="
     private val logger = XLog.tag("ApplicationUtil").build()
 
     /**
@@ -37,16 +36,11 @@ object ApplicationUtil {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): MutableList<Application> {
         val pm = context.packageManager
-        val blockedApps = getBlockedApplication(context)
         return withContext(dispatcher) {
             pm.getInstalledPackages(0)
                 .asSequence()
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
-                .map {
-                    Application(pm, it).apply {
-                        isBlocked = blockedApps.contains(it.packageName)
-                    }
-                }
+                .map { Application(pm, it) }
                 .toMutableList()
         }
     }
@@ -62,17 +56,12 @@ object ApplicationUtil {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): MutableList<Application> {
         val pm = context.packageManager
-        val blockedApps = getBlockedApplication(context)
         return withContext(dispatcher) {
             pm.getInstalledPackages(0)
                 .asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
-                .map {
-                    Application(pm, it).apply {
-                        isBlocked = blockedApps.contains(it.packageName)
-                    }
-                }
+                .map { Application(pm, it) }
                 .toMutableList()
         }
     }
@@ -88,16 +77,11 @@ object ApplicationUtil {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): MutableList<Application> {
         val pm = context.packageManager
-        val blockedApps = getBlockedApplication(context)
         return withContext(dispatcher) {
             pm.getInstalledPackages(0)
                 .asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
-                .map {
-                    Application(pm, it).apply {
-                        isBlocked = blockedApps.contains(it.packageName)
-                    }
-                }
+                .map { Application(pm, it) }
                 .toMutableList()
         }
     }
@@ -269,10 +253,7 @@ object ApplicationUtil {
     suspend fun getApplicationInfo(context: Context, packageName: String): Application? {
         val pm = context.packageManager
         val info = getApplicationComponents(pm, packageName, 0) ?: return null
-        return Application(pm, info).apply {
-            val blockedApps = getBlockedApplication(context)
-            isBlocked = blockedApps.contains(this.packageName)
-        }
+        return Application(pm, info)
     }
 
     /**
@@ -359,37 +340,5 @@ object ApplicationUtil {
             logger.d(packageName + "is not installed.")
         }
         return false
-    }
-
-    suspend fun getBlockedApplication(
-        context: Context,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): MutableList<String> {
-        val sharedPreferences = context.getSharedPreferences(BLOCKED_CONF_NAME, MODE_PRIVATE)
-        val json = sharedPreferences.getString(BLOCKED_APP_LIST_KEY, "[]")
-        return withContext(dispatcher) {
-            Gson().fromJson(json, object : TypeToken<MutableList<String>>() {}.type)
-        }
-    }
-
-    private fun saveBlockedApplication(context: Context, applications: List<String>) {
-        val editor = context.getSharedPreferences(BLOCKED_CONF_NAME, MODE_PRIVATE).edit()
-        editor.putString(BLOCKED_APP_LIST_KEY, Gson().toJson(applications))
-        editor.apply()
-    }
-
-    suspend fun addBlockedApplication(context: Context, packageName: String) {
-        val blockedApplication = getBlockedApplication(context)
-        if (blockedApplication.contains(packageName)) {
-            return
-        }
-        blockedApplication.add(packageName)
-        saveBlockedApplication(context, blockedApplication)
-    }
-
-    suspend fun removeBlockedApplication(context: Context, packageName: String) {
-        val blockedApplication = getBlockedApplication(context)
-        blockedApplication.remove(packageName)
-        saveBlockedApplication(context, blockedApplication)
     }
 }

@@ -5,27 +5,15 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.IController
 import com.merxury.libkit.utils.ApplicationUtil
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
-import rikka.sui.Sui
 
 class ShizukuController(val context: Context) : IController {
-    private val logger = XLog.tag("ShizukuController").build()
     private var pm: IPackageManager? = null
 
     override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
-        if (!Sui.isSui()) {
-            logger.d("Sui is not initialized")
-            val result = Sui.init(context.packageName)
-            if (result) {
-                logger.d("Sui initialized")
-            } else {
-                logger.d("Sui init failed")
-            }
-        }
         if (pm == null) {
             pm = IPackageManager.Stub.asInterface(
                 ShizukuBinderWrapper(

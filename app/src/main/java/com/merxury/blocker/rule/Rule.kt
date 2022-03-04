@@ -3,6 +3,7 @@ package com.merxury.blocker.rule
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.documentfile.provider.DocumentFile
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
@@ -10,22 +11,22 @@ import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.ComponentRule
-import com.merxury.blocker.rule.entity.RulesResult
-import com.merxury.blocker.ui.component.EComponentType
+import com.merxury.blocker.ui.detail.component.EComponentType
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
+import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.util.RuleSerializer
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.FileUtils
 import com.merxury.libkit.utils.StorageUtils
-import java.io.File
 
 object Rule {
     const val BLOCKER_RULE_MIME = "application/json"
     const val EXTENSION = ".json"
+    const val IFW_EXTENSION = ".xml"
     private val logger = XLog.tag("Rule").build()
 
     suspend fun export(context: Context, packageName: String): Boolean {
@@ -35,7 +36,7 @@ object Rule {
         val rule = BlockerRule(
             packageName = applicationInfo.packageName,
             versionName = applicationInfo.versionName,
-            versionCode = applicationInfo.versionCode
+            versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo)
         )
         val ifwController = IntentFirewallImpl.getInstance(context, packageName)
         try {
@@ -133,10 +134,13 @@ object Rule {
                     )
                 )
             }
-            if (rule.components.isNotEmpty()) {
+            val result = if (rule.components.isNotEmpty()) {
                 StorageUtil.saveRuleToStorage(context, rule, packageName)
+            } else {
+                // No components exported, return true
+                true
             }
-            return true
+            return result
         } catch (e: RuntimeException) {
             logger.e("Failed to export $packageName, ${e.message}")
             return false
@@ -144,7 +148,13 @@ object Rule {
     }
 
     fun import(context: Context, rule: BlockerRule): Boolean {
-        val controller = getController(context)
+        val controllerType = PreferenceUtil.getControllerType(context)
+        val controller = if (controllerType == EControllerMethod.IFW) {
+            // Fallback to traditional controller
+            ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+        } else {
+            ComponentControllerProxy.getInstance(controllerType, context)
+        }
         var ifwController: IntentFirewall? = null
         // Detects if contains IFW rules, if exists, create a new controller.
         rule.components.forEach ifwDetection@{
@@ -158,8 +168,10 @@ object Rule {
                 when (it.method) {
                     EControllerMethod.IFW -> {
                         when (it.type) {
+                            // state == false means that IFW applied
+                            // We should add in the IFW controller
                             EComponentType.RECEIVER -> {
-                                if (it.state) {
+                                if (!it.state) {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
@@ -174,7 +186,7 @@ object Rule {
                                 }
                             }
                             EComponentType.SERVICE -> {
-                                if (it.state) {
+                                if (!it.state) {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
@@ -189,7 +201,7 @@ object Rule {
                                 }
                             }
                             EComponentType.ACTIVITY -> {
-                                if (it.state) {
+                                if (!it.state) {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
@@ -205,17 +217,16 @@ object Rule {
                             }
                             // content provider needs PM to implement it
                             EComponentType.PROVIDER -> {
-                                if (it.state) {
+                                if (!it.state) {
                                     controller.enable(it.packageName, it.name)
                                 } else {
                                     controller.disable(it.packageName, it.name)
                                 }
                             }
-                            EComponentType.UNKNOWN -> {
-                            }
                         }
                     }
                     else -> {
+                        // For PM controllers, state enabled means component is enabled
                         if (it.state) {
                             controller.enable(it.packageName, it.name)
                         } else {
@@ -230,50 +241,6 @@ object Rule {
             return false
         }
         return true
-    }
-
-    fun importMatRules(
-        context: Context,
-        file: File,
-        action: (context: Context, name: String, current: Int, total: Int) -> Unit
-    ): RulesResult {
-        var succeedCount = 0
-        var failedCount = 0
-        val total = countLines(file)
-        val controller = getController(context)
-        val uninstalledAppList = mutableListOf<String>()
-        try {
-            file.forEachLine {
-                if (it.trim().isEmpty() || !it.contains("/")) {
-                    failedCount++
-                    return@forEachLine
-                }
-                val splitResult = it.split("/")
-                if (splitResult.size != 2) {
-                    failedCount++
-                    return@forEachLine
-                }
-                val packageName = splitResult[0]
-                val name = splitResult[1]
-                if (isApplicationUninstalled(context, uninstalledAppList, packageName)) {
-                    failedCount++
-                    return@forEachLine
-                }
-                val result = controller.disable(packageName, name)
-                if (result) {
-                    succeedCount++
-                } else {
-                    logger.d("Failed to change component state for : $it")
-                    failedCount++
-                }
-                action(context, name, (succeedCount + failedCount), total)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            logger.e(e.message)
-            return RulesResult(false, succeedCount, failedCount)
-        }
-        return RulesResult(true, succeedCount, failedCount)
     }
 
     suspend fun importIfwRules(context: Context): Int {
@@ -296,43 +263,50 @@ object Rule {
             }
             context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
                 val rule = RuleSerializer.deserialize(stream) ?: return@forEach
-                val activities = rule.activity?.componentFilters
-                    ?.asSequence()
-                    ?.map { filter -> filter.name.split("/") }
-                    ?.map { names ->
-                        val component = ComponentInfo()
-                        component.packageName = names[0]
-                        component.name = names[1]
-                        component
-                    }
-                    ?.toList() ?: mutableListOf()
-                val broadcast = rule.broadcast?.componentFilters
-                    ?.asSequence()
-                    ?.map { filter -> filter.name.split("/") }
-                    ?.map { names ->
-                        val component = ComponentInfo()
-                        component.packageName = names[0]
-                        component.name = names[1]
-                        component
-                    }
-                    ?.toList() ?: mutableListOf()
-                val service = rule.service?.componentFilters
-                    ?.asSequence()
-                    ?.map { filter -> filter.name.split("/") }
-                    ?.map { names ->
-                        val component = ComponentInfo()
-                        component.packageName = names[0]
-                        component.name = names[1]
-                        component
-                    }
-                    ?.toList() ?: mutableListOf()
-                controller.batchDisable(activities) {}
-                controller.batchDisable(broadcast) {}
-                controller.batchDisable(service) {}
+                updateIfwState(rule, controller)
                 succeedCount++
             }
         }
         return succeedCount
+    }
+
+    fun updateIfwState(
+        rule: Rules,
+        controller: IController
+    ) {
+        val activities = rule.activity?.componentFilters
+            ?.asSequence()
+            ?.map { filter -> filter.name.split("/") }
+            ?.map { names ->
+                val component = ComponentInfo()
+                component.packageName = names[0]
+                component.name = names[1]
+                component
+            }
+            ?.toList() ?: mutableListOf()
+        val broadcast = rule.broadcast?.componentFilters
+            ?.asSequence()
+            ?.map { filter -> filter.name.split("/") }
+            ?.map { names ->
+                val component = ComponentInfo()
+                component.packageName = names[0]
+                component.name = names[1]
+                component
+            }
+            ?.toList() ?: mutableListOf()
+        val service = rule.service?.componentFilters
+            ?.asSequence()
+            ?.map { filter -> filter.name.split("/") }
+            ?.map { names ->
+                val component = ComponentInfo()
+                component.packageName = names[0]
+                component.name = names[1]
+                component
+            }
+            ?.toList() ?: mutableListOf()
+        controller.batchDisable(activities) {}
+        controller.batchDisable(broadcast) {}
+        controller.batchDisable(service) {}
     }
 
     fun resetIfw(): Boolean {
@@ -353,19 +327,6 @@ object Rule {
         return result
     }
 
-    private fun countLines(file: File): Int {
-        var lines = 0
-        if (!file.exists()) {
-            return lines
-        }
-        file.forEachLine {
-            if (it.trim().isEmpty()) {
-                return@forEachLine
-            }
-            lines++
-        }
-        return lines
-    }
 
     fun isApplicationUninstalled(
         context: Context,
@@ -383,10 +344,5 @@ object Rule {
             return true
         }
         return false
-    }
-
-    private fun getController(context: Context): IController {
-        val controllerType = PreferenceUtil.getControllerType(context)
-        return ComponentControllerProxy.getInstance(controllerType, context)
     }
 }

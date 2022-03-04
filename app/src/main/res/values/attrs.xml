@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="PreferenceItemView">
+        <attr name="item_title" format="string" />
+        <attr name="item_summary" format="string" />
+    </declare-styleable>
+    <declare-styleable name="DetailActionView">
+        <attr name="detail_title" format="string" />
+        <attr name="detail_icon" format="reference" />
+    </declare-styleable>
+</resources>
