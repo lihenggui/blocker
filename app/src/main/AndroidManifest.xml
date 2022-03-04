@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.merxury.blocker">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -13,7 +12,6 @@
 
     <application
         android:name=".BlockerApplication"
-        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
@@ -21,24 +19,15 @@
         <activity
             android:name=".ui.home.HomeActivity"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:theme="@style/AppTheme.OverlapSystemBar">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
-            android:name=".ui.component.ComponentActivity"
-            android:exported="false"
-            android:theme="@style/AppTheme.OverlapSystemBar" />
-        <activity
-            android:name=".ui.settings.SettingsActivity"
-            android:exported="false"
-            android:label="@string/title_activity_settings"
-            android:launchMode="singleTask"
-            android:theme="@style/AppTheme.PlayStoreStyle" />
-
+            android:name=".ui.detail.AppDetailActivity"
+            android:exported="false" />
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.merxury.blocker.provider"
@@ -48,7 +37,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
-
         <provider
             android:name="rikka.shizuku.ShizukuProvider"
             android:authorities="${applicationId}.shizuku"

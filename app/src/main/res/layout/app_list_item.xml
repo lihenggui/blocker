@@ -6,21 +6,7 @@
     android:layout_height="wrap_content"
     android:background="?android:selectableItemBackground"
     android:clickable="true"
-    android:focusable="true"
-    android:gravity="center_vertical">
-
-    <TextView
-        android:id="@+id/allCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:text="100"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    android:focusable="true">
 
     <ImageView
         android:id="@+id/app_icon"
@@ -32,49 +18,59 @@
         android:contentDescription="@string/app_icon_description"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0" />
 
     <TextView
         android:id="@+id/app_name"
-        android:layout_width="wrap_content"
+        style="@style/TextAppearance.Material3.TitleMedium"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="2dp"
         android:layout_toEndOf="@id/app_icon"
+        android:ellipsize="end"
         android:maxLines="1"
-        android:textAppearance="?attr/textAppearanceListItem"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/version_name"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/app_icon"
         app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0"
+        app:layout_constraintVertical_chainStyle="packed"
         tools:text="Application Name" />
 
     <TextView
-        android:id="@+id/disableCount"
-        android:layout_width="wrap_content"
+        android:id="@+id/version_name"
+        style="@style/TextAppearance.Material3.LabelSmall"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="38dp"
-        android:text="100"
-        android:textColor="@color/google_red"
-        android:textSize="16sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="2dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        app:layout_constraintBottom_toTopOf="@id/service_status"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@id/app_icon"
+        app:layout_constraintTop_toBottomOf="@id/app_name"
+        tools:text="Version Code" />
 
     <TextView
-        android:id="@+id/runCount"
-        android:layout_width="wrap_content"
+        android:id="@+id/service_status"
+        style="@style/TextAppearance.Material3.LabelSmall"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="68dp"
-        android:text="100"
-        android:textColor="@color/google_blue"
-        android:textSize="16sp"
-        android:visibility="gone"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintStart_toEndOf="@id/app_icon"
+        app:layout_constraintTop_toBottomOf="@id/version_name"
+        tools:text="Acquiring service status..." />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

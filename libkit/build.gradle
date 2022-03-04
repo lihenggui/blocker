@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 32
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 31
+        targetSdkVersion 32
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -16,6 +16,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    namespace 'com.merxury.libkit'
 }
 
 repositories {
@@ -35,10 +36,10 @@ dependencies {
     api "dev.rikka.shizuku:api:12.1.0"
     api "dev.rikka.shizuku:provider:12.1.0"
     // Coroutine
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1'
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1'
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0'
 
-    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:runner:1.4.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 }
