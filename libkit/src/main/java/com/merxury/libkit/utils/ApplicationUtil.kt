@@ -2,12 +2,7 @@ package com.merxury.libkit.utils
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.ActivityInfo
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
-import android.content.pm.ProviderInfo
-import android.content.pm.ServiceInfo
+import android.content.pm.*
 import android.os.Build
 import com.elvishew.xlog.XLog
 import com.merxury.libkit.entity.Application
@@ -184,6 +179,9 @@ object ApplicationUtil {
                 }
             } catch (e: PackageManager.NameNotFoundException) {
                 logger.e("Cannot find specified package.")
+            } catch (e: RuntimeException) {
+                logger.e("Failed to fetch service list", e)
+                return@withContext ApkUtils.getServices(pm, packageName)
             }
             services
         }

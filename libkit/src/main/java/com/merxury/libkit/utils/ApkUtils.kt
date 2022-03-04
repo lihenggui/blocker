@@ -3,6 +3,7 @@ package com.merxury.libkit.utils
 import android.content.ComponentName
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
+import android.content.pm.ServiceInfo
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
 import com.elvishew.xlog.XLog
@@ -104,9 +105,36 @@ object ApkUtils {
         return activities
     }
 
-    @SuppressWarnings("unused")
+    suspend fun getServices(pm: PackageManager, packageName: String): MutableList<ServiceInfo> {
+        val services = mutableListOf<ServiceInfo>()
+        try {
+            val packageInfo = pm.getPackageInfo(packageName, 0)
+            val parser = getParserForManifest(File(packageInfo.applicationInfo.sourceDir))
+            while (parser.next() != XmlPullParser.END_DOCUMENT) {
+                if (parser.eventType == XmlPullParser.START_TAG && parser.name == "service") {
+                    for (i in 0 until parser.attributeCount) {
+                        if (parser.getAttributeName(i) == "name") {
+                            val componentInfo = ServiceInfo()
+                            componentInfo.packageName = packageName
+                            componentInfo.name = parser.getAttributeValue(i)
+                            componentInfo.enabled = ApplicationUtil.checkComponentIsEnabled(
+                                pm,
+                                ComponentName(componentInfo.packageName, componentInfo.name)
+                            )
+                            services.add(componentInfo)
+                        }
+                    }
+                }
+            }
+        } catch (e: XmlPullParserException) {
+            logger.e("Cannot parse services from xml", e)
+        } catch (e: IOException) {
+            logger.e("Cannot parse services from xml", e)
+        }
+        return services
+    }
+
     suspend fun getPackageName(apkFile: File): String {
-        var packageName: String? = null
         try {
             val parser = getParserForManifest(apkFile)
             while (parser.next() != XmlPullParser.END_DOCUMENT) {
