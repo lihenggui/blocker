@@ -37,18 +37,22 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
         var imported = 0
         try {
             // Check directory is readable
-            val ifwBackupFolderUri = PreferenceUtil.getIfwRulePath(context)
-            if (ifwBackupFolderUri == null) {
-                logger.e("IFW folder hasn't been set yet.")
+            val backupFolderUri = PreferenceUtil.getIfwRulePath(context)
+            if (backupFolderUri == null) {
+                logger.e("Folder hasn't been set yet.")
                 return@withContext Result.failure()
             }
             val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
-            val folder = DocumentFile.fromTreeUri(context, ifwBackupFolderUri)
+            val folder = DocumentFile.fromTreeUri(context, backupFolderUri)
             if (folder == null) {
-                logger.e("Cannot open ifw backup folder")
+                logger.e("Cannot open backup folder")
                 return@withContext Result.failure()
             }
-            val files = folder.listFiles()
+            val ifwFolder = folder.findFile("ifw") ?: run {
+                logger.e("Cannot find ifw folder")
+                return@withContext Result.failure()
+            }
+            val files = ifwFolder.listFiles()
                 .filter { it.isFile && it.name?.endsWith(".xml") == true }
             total = files.count()
             // Start importing files
