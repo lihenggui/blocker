@@ -203,18 +203,20 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         } else {
             null
         }
-        return components.map {
-            ComponentData(
-                name = it.name,
-                simpleName = it.getSimpleName(),
-                packageName = it.packageName,
-                ifwBlocked = !ifwController.getComponentEnableState(packageName, it.name),
-                pmBlocked = !pmController.checkComponentEnableState(packageName, it.name),
-                isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
-            )
+        return withContext(Dispatchers.Default) {
+            components.map {
+                ComponentData(
+                    name = it.name,
+                    simpleName = it.getSimpleName(),
+                    packageName = it.packageName,
+                    ifwBlocked = !ifwController.getComponentEnableState(packageName, it.name),
+                    pmBlocked = !pmController.checkComponentEnableState(packageName, it.name),
+                    isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
+                )
+            }
+                .sortedBy { !it.isRunning }
+                .toMutableList()
         }
-            .sortedBy { !it.isRunning }
-            .toMutableList()
     }
 
     private suspend fun getComponents(
@@ -227,9 +229,11 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
             EComponentType.SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
             EComponentType.PROVIDER -> ApplicationUtil.getProviderList(pm, packageName)
         }
-        return components.asSequence()
-            .sortedBy { it.getSimpleName() }
-            .toMutableList()
+        return withContext(Dispatchers.Default) {
+            components.asSequence()
+                .sortedBy { it.getSimpleName() }
+                .toMutableList()
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
