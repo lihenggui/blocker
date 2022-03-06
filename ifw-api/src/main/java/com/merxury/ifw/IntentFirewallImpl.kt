@@ -97,7 +97,10 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     }
 
 
-    override fun getComponentEnableState(packageName: String, componentName: String): Boolean {
+    override suspend fun getComponentEnableState(
+        packageName: String,
+        componentName: String
+    ): Boolean {
         val filters: MutableList<ComponentFilter> = ArrayList()
         rule.activity?.let {
             filters.addAll(it.componentFilters)
@@ -187,11 +190,10 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     }
 
     private fun formatName(packageName: String, name: String): String {
-        return String.format(FILTER_TEMPLATE, packageName, name)
+        return "$packageName/$name"
     }
 
     companion object {
         private const val EXTENSION = ".xml"
-        private const val FILTER_TEMPLATE = "%s/%s"
     }
 }

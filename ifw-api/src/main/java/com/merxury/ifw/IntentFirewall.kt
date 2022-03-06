@@ -10,7 +10,7 @@ interface IntentFirewall {
     suspend fun load(): IntentFirewall
     fun add(packageName: String, componentName: String, type: ComponentType?): Boolean
     fun remove(packageName: String, componentName: String, type: ComponentType?): Boolean
-    fun getComponentEnableState(packageName: String, componentName: String): Boolean
+    suspend fun getComponentEnableState(packageName: String, componentName: String): Boolean
 
     @Throws(Exception::class)
     suspend fun clear()
