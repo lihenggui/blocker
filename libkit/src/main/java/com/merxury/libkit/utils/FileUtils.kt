@@ -3,6 +3,7 @@ package com.merxury.libkit.utils
 import com.elvishew.xlog.XLog
 import com.merxury.libkit.RootCommand
 import com.topjohnwu.superuser.io.SuFile
+import com.topjohnwu.superuser.io.SuFileInputStream
 import java.io.File
 import java.io.IOException
 
@@ -56,12 +57,9 @@ object FileUtils {
 
     @JvmStatic
     fun read(path: String): String {
-        val file = SuFile(path)
-        if (!file.exists()) {
-            logger.e("File $path not exists")
-            return ""
+        SuFileInputStream.open(path).use {
+            return it.readBytes().toString(Charsets.UTF_8)
         }
-        return file.readText()
     }
 
     @JvmStatic
