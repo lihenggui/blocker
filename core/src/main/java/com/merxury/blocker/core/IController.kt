@@ -19,15 +19,21 @@ interface IController {
      * @return true : changed component state successfully
      * false: cannot disable component
      */
-    fun switchComponent(packageName: String, componentName: String, state: Int): Boolean
+    suspend fun switchComponent(packageName: String, componentName: String, state: Int): Boolean
 
-    fun enable(packageName: String, componentName: String): Boolean
+    suspend fun enable(packageName: String, componentName: String): Boolean
 
-    fun disable(packageName: String, componentName: String): Boolean
+    suspend fun disable(packageName: String, componentName: String): Boolean
 
-    fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int
+    suspend fun batchEnable(
+        componentList: List<ComponentInfo>,
+        action: (info: ComponentInfo) -> Unit
+    ): Int
 
-    fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int
+    suspend fun batchDisable(
+        componentList: List<ComponentInfo>,
+        action: (info: ComponentInfo) -> Unit
+    ): Int
 
-    fun checkComponentEnableState(packageName: String, componentName: String): Boolean
+    suspend fun checkComponentEnableState(packageName: String, componentName: String): Boolean
 }

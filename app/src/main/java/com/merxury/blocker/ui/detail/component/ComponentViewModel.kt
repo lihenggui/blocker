@@ -4,11 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
@@ -36,11 +32,13 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     val updatedItem: LiveData<ComponentData>
         get() = _updatedItem
 
+    private var originalComponentList: MutableList<out ComponentInfo> = mutableListOf()
+
     fun load(context: Context, packageName: String, type: EComponentType) {
         logger.i("Load $packageName $type")
         viewModelScope.launch {
-            val components = getComponents(packageName, type)
-            val data = convertToComponentData(context, packageName, components, type)
+            originalComponentList = getComponents(packageName, type)
+            val data = convertToComponentData(context, packageName, originalComponentList, type)
             originalList = data
             _data.value = data
         }
@@ -66,16 +64,16 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val controllerType = PreferenceUtil.getControllerType(context)
             val controller = ComponentControllerProxy.getInstance(controllerType, context)
-            _data.value?.forEach {
-                try {
-                    controller.enable(it.packageName, it.name)
-                } catch (e: Throwable) {
-                    logger.e("Failed to enable all components $packageName, type $type", e)
-                    errorStack.postValue(e)
-                    return@launch
+            try {
+                controller.batchEnable(originalComponentList) {
+                    logger.i("Enabling ${it.name}")
                 }
-                load(context, packageName, type)
+            } catch (e: Throwable) {
+                logger.e("Failed to enable all components $packageName, type $type", e)
+                errorStack.postValue(e)
+                return@launch
             }
+            load(context, packageName, type)
         }
     }
 
@@ -84,15 +82,16 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val controllerType = PreferenceUtil.getControllerType(context)
             val controller = ComponentControllerProxy.getInstance(controllerType, context)
-            _data.value?.forEach {
-                try {
-                    controller.disable(it.packageName, it.name)
-                } catch (e: Throwable) {
-                    logger.e("Failed to disable all components $packageName, type $type", e)
-                    errorStack.postValue(e)
-                    return@launch
+            try {
+                controller.batchDisable(originalComponentList) {
+                    logger.i("Disabling ${it.name}")
                 }
+            } catch (e: Throwable) {
+                logger.e("Failed to disable all components $packageName, type $type", e)
+                errorStack.postValue(e)
+                return@launch
             }
+
             load(context, packageName, type)
         }
     }
@@ -191,13 +190,13 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         }
     }
 
-    private fun convertToComponentData(
+    private suspend fun convertToComponentData(
         context: Context,
         packageName: String,
         components: MutableList<out ComponentInfo>,
         type: EComponentType
     ): MutableList<ComponentData> {
-        val ifwController = IntentFirewallImpl.getInstance(context, packageName)
+        val ifwController = IntentFirewallImpl(packageName).load()
         val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
         val serviceHelper = if (type == EComponentType.SERVICE) {
             ServiceHelper(packageName).also { it.refresh() }
