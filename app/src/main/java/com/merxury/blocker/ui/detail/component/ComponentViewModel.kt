@@ -4,11 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
@@ -191,13 +187,13 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         }
     }
 
-    private fun convertToComponentData(
+    private suspend fun convertToComponentData(
         context: Context,
         packageName: String,
         components: MutableList<out ComponentInfo>,
         type: EComponentType
     ): MutableList<ComponentData> {
-        val ifwController = IntentFirewallImpl.getInstance(context, packageName)
+        val ifwController = IntentFirewallImpl(packageName).load()
         val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
         val serviceHelper = if (type == EComponentType.SERVICE) {
             ServiceHelper(packageName).also { it.refresh() }

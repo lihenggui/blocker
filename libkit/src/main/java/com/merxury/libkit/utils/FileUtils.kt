@@ -2,33 +2,18 @@ package com.merxury.libkit.utils
 
 import com.elvishew.xlog.XLog
 import com.merxury.libkit.RootCommand
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import com.topjohnwu.superuser.io.SuFile
+import java.io.File
 import java.io.IOException
 
 object FileUtils {
     private val logger = XLog.tag("FileUtils").build()
 
     @JvmStatic
-    fun copy(source: String, dest: String): Boolean {
-        logger.i("Copy $source to $dest")
-        try {
-            FileInputStream(source).use { input ->
-                FileOutputStream(dest).use { output ->
-                    val buf = ByteArray(1024)
-                    var length = input.read(buf)
-                    while (length > 0) {
-                        output.write(buf, 0, length)
-                        length = input.read(buf)
-                    }
-                }
-            }
-        } catch (e: IOException) {
-            e.printStackTrace()
-            logger.e(e.message)
-            return false
-        }
-        return true
+    fun copy(source: String, dest: String): File {
+        val sourceFile = SuFile(source)
+        val destFile = SuFile(dest)
+        return sourceFile.copyTo(destFile)
     }
 
     @JvmStatic
@@ -38,30 +23,26 @@ object FileUtils {
 
     @JvmStatic
     fun isExist(path: String): Boolean {
+        val file = SuFile(path)
         return try {
             if (!PermissionUtils.isRootAvailable) {
                 return false
             }
-            val output =
-                RootCommand.runBlockingCommand("[ -f '$path' ] && echo \"yes\" || echo \"no\"")
-            when (output.trim()) {
-                "yes" -> true
-                else -> false
-            }
+            return file.exists()
         } catch (e: Exception) {
-            logger.e(e.message)
+            logger.e("Can't check file $path exists", e)
             false
         }
     }
 
     @JvmStatic
     fun listFiles(path: String): List<String> {
-        val output = RootCommand.runBlockingCommand("ls '$path'")
-        if (output.contains("No such file or directory")) {
+        val file = SuFile(path)
+        if (!file.exists()) {
+            logger.w("File $path not exists")
             return ArrayList()
         }
-        val files = output.split("\n")
-        return files.filterNot { it.isEmpty() || it == path }
+        return file.list()?.toList() ?: ArrayList()
     }
 
     @JvmStatic
@@ -75,23 +56,26 @@ object FileUtils {
 
     @JvmStatic
     fun read(path: String): String {
-        val comm = "cat '$path'"
-        if (!isExist(path)) {
+        val file = SuFile(path)
+        if (!file.exists()) {
+            logger.e("File $path not exists")
             return ""
         }
-        return RootCommand.runBlockingCommand(comm)
+        return file.readText()
     }
 
     @JvmStatic
-    fun delete(file: String, recursively: Boolean): Boolean {
-        val comm = if (recursively) {
-            "rm -rf '$file'"
-        } else {
-            "rm -f '$file'"
+    @Throws(IOException::class)
+    fun delete(path: String, recursively: Boolean): Boolean {
+        val file = SuFile(path)
+        if (!file.exists()) {
+            logger.e("Can't delete $path since it doesn't exist")
+            return false
         }
-        val output = RootCommand.runBlockingCommand(comm)
-        val result = output.trim().isEmpty()
-        logger.d("Delete file $file, result = $result")
-        return result
+        return if (recursively) {
+            file.deleteRecursive()
+        } else {
+            file.delete()
+        }
     }
 }

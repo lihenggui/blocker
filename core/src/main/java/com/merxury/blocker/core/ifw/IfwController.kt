@@ -11,19 +11,28 @@ import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import com.merxury.libkit.utils.ApplicationUtil
-import kotlinx.coroutines.runBlocking
 
 class IfwController(val context: Context) : IController {
     private lateinit var controller: IntentFirewall
     private lateinit var packageInfo: PackageInfo
 
-    override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
+    override suspend fun switchComponent(
+        packageName: String,
+        componentName: String,
+        state: Int
+    ): Boolean {
         init(packageName)
-        val type = getComponentType(packageName, componentName)
+        val type = getComponentType(componentName)
         if (type == ComponentType.PROVIDER) {
             return when (state) {
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> ComponentControllerProxy.getInstance(EControllerMethod.PM, context).disable(packageName, componentName)
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> ComponentControllerProxy.getInstance(EControllerMethod.PM, context).enable(packageName, componentName)
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> ComponentControllerProxy.getInstance(
+                    EControllerMethod.PM,
+                    context
+                ).disable(packageName, componentName)
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> ComponentControllerProxy.getInstance(
+                    EControllerMethod.PM,
+                    context
+                ).enable(packageName, componentName)
                 else -> false
             }
         }
@@ -35,30 +44,40 @@ class IfwController(val context: Context) : IController {
         if (result) {
             try {
                 controller.save()
-            }catch (e: Exception) {
-                controller.removeCache()
+            } catch (e: Exception) {
                 throw e
             }
         }
-        return result;
+        return result
     }
 
-    override fun enable(packageName: String, componentName: String): Boolean {
-        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+    override suspend fun enable(packageName: String, componentName: String): Boolean {
+        return switchComponent(
+            packageName,
+            componentName,
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        )
     }
 
-    override fun disable(packageName: String, componentName: String): Boolean {
-        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+    override suspend fun disable(packageName: String, componentName: String): Boolean {
+        return switchComponent(
+            packageName,
+            componentName,
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        )
     }
 
-    override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
+    override suspend fun batchEnable(
+        componentList: List<ComponentInfo>,
+        action: (info: ComponentInfo) -> Unit
+    ): Int {
         var succeededCount = 0
         if (componentList.isEmpty()) {
-            return succeededCount
+            return 0
         }
         componentList.forEach {
             init(it.packageName)
-            val type = getComponentType(it.packageName, it.name)
+            val type = getComponentType(it.name)
             if (controller.remove(it.packageName, it.name, type)) {
                 succeededCount++
             }
@@ -68,14 +87,17 @@ class IfwController(val context: Context) : IController {
         return succeededCount
     }
 
-    override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
+    override suspend fun batchDisable(
+        componentList: List<ComponentInfo>,
+        action: (info: ComponentInfo) -> Unit
+    ): Int {
         var succeededCount = 0
         if (componentList.isEmpty()) {
-            return succeededCount
+            return 0
         }
         componentList.forEach {
             init(it.packageName)
-            val type = getComponentType(it.packageName, it.name)
+            val type = getComponentType(it.name)
             if (controller.add(it.packageName, it.name, type)) {
                 succeededCount++
             }
@@ -85,22 +107,22 @@ class IfwController(val context: Context) : IController {
         return succeededCount
     }
 
-    override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
+    override suspend fun checkComponentEnableState(
+        packageName: String,
+        componentName: String
+    ): Boolean {
         init(packageName)
         return controller.getComponentEnableState(packageName, componentName)
     }
 
-    private fun init(packageName: String) {
+    private suspend fun init(packageName: String) {
         initController(packageName)
-        runBlocking {
-            // TODO Will remove this blocking call
-            initPackageInfo(packageName)
-        }
+        initPackageInfo(packageName)
     }
 
-    private fun initController(packageName: String) {
+    private suspend fun initController(packageName: String) {
         if (!::controller.isInitialized || controller.packageName != packageName) {
-            controller = IntentFirewallImpl.getInstance(context, packageName)
+            controller = IntentFirewallImpl(packageName).load()
             return
         }
     }
@@ -112,7 +134,7 @@ class IfwController(val context: Context) : IController {
         }
     }
 
-    private fun getComponentType(packageName: String, componentName: String): ComponentType {
+    private fun getComponentType(componentName: String): ComponentType {
         packageInfo.receivers?.forEach {
             if (it.name == componentName) {
                 return ComponentType.BROADCAST
