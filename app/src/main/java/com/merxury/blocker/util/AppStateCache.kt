@@ -30,7 +30,7 @@ object AppStateCache {
         val pm = context.packageManager
         val serviceHelper = ServiceHelper(packageName)
         serviceHelper.refresh()
-        val ifwImpl = IntentFirewallImpl.getInstance(context, packageName)
+        val ifwImpl = IntentFirewallImpl(packageName).load()
         val services = ApplicationUtil.getServiceList(pm, packageName)
         var running = 0
         var blocked = 0

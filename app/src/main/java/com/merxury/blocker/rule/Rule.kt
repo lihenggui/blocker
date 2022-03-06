@@ -38,7 +38,7 @@ object Rule {
             versionName = applicationInfo.versionName,
             versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo)
         )
-        val ifwController = IntentFirewallImpl.getInstance(context, packageName)
+        val ifwController = IntentFirewallImpl(packageName).load()
         try {
             applicationInfo.receivers?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
@@ -147,7 +147,7 @@ object Rule {
         }
     }
 
-    fun import(context: Context, rule: BlockerRule): Boolean {
+    suspend fun import(context: Context, rule: BlockerRule): Boolean {
         val controllerType = PreferenceUtil.getControllerType(context)
         val controller = if (controllerType == EControllerMethod.IFW) {
             // Fallback to traditional controller
@@ -159,7 +159,7 @@ object Rule {
         // Detects if contains IFW rules, if exists, create a new controller.
         rule.components.forEach ifwDetection@{
             if (it.method == EControllerMethod.IFW) {
-                ifwController = IntentFirewallImpl.getInstance(context, rule.packageName)
+                ifwController = IntentFirewallImpl(it.packageName).load()
                 return@ifwDetection
             }
         }
@@ -270,7 +270,7 @@ object Rule {
         return succeedCount
     }
 
-    fun updateIfwState(
+    suspend fun updateIfwState(
         rule: Rules,
         controller: IController
     ) {
