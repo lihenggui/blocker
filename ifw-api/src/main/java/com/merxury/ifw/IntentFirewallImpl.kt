@@ -1,0 +1,197 @@
+package com.merxury.ifw
+
+import com.elvishew.xlog.XLog
+import com.merxury.ifw.entity.*
+import com.merxury.libkit.utils.FileUtils
+import com.merxury.libkit.utils.StorageUtils
+import com.topjohnwu.superuser.io.SuFile
+import com.topjohnwu.superuser.io.SuFileInputStream
+import com.topjohnwu.superuser.io.SuFileOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import org.simpleframework.xml.Serializer
+import org.simpleframework.xml.core.Persister
+
+class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
+
+    private val logger = XLog.tag("IntentFirewallImpl").build()
+    private val filename: String = "$packageName$EXTENSION"
+    private val destFile = SuFile(StorageUtils.getIfwFolder() + filename)
+    private var rule: Rules = Rules()
+
+    override suspend fun load() = withContext(Dispatchers.IO) {
+        if (destFile.exists()) {
+            val serializer: Serializer = Persister()
+            try {
+                val input = SuFileInputStream.open(destFile)
+                rule = serializer.read(Rules::class.java, input)
+            } catch (e: Exception) {
+                logger.e("Error reading rules file $destFile:", e)
+            }
+        }
+        return@withContext this@IntentFirewallImpl
+    }
+
+    override suspend fun save() {
+        withContext(Dispatchers.IO) {
+            ensureNoEmptyTag()
+            if (rule.activity == null && rule.broadcast == null && rule.service == null) {
+                // If there is no rules presented, delete rule file (if exists)
+                clear()
+                return@withContext
+            }
+            SuFileOutputStream.open(destFile).use {
+                val serializer: Serializer = Persister()
+                serializer.write(rule, it)
+            }
+            FileUtils.chmod(destFile.absolutePath, 644, false)
+            logger.i("Saved $destFile")
+        }
+    }
+
+    override suspend fun clear() {
+        withContext(Dispatchers.IO) {
+            logger.d("Clear IFW rule $filename")
+            if (destFile.exists()) {
+                destFile.delete()
+            }
+            rule = Rules()
+        }
+    }
+
+    override fun add(packageName: String, componentName: String, type: ComponentType?): Boolean {
+        var result = false
+        when (type) {
+            ComponentType.ACTIVITY -> {
+                if (rule.activity == null) {
+                    rule.activity = Activity()
+                }
+                result = addComponentFilter(packageName, componentName, rule.activity)
+            }
+            ComponentType.BROADCAST -> {
+                if (rule.broadcast == null) {
+                    rule.broadcast = Broadcast()
+                }
+                result = addComponentFilter(packageName, componentName, rule.broadcast)
+            }
+            ComponentType.SERVICE -> {
+                if (rule.service == null) {
+                    rule.service = Service()
+                }
+                result = addComponentFilter(packageName, componentName, rule.service)
+            }
+            else -> {}
+        }
+        return result
+    }
+
+    override fun remove(
+        packageName: String,
+        componentName: String,
+        type: ComponentType?
+    ): Boolean = when (type) {
+        ComponentType.ACTIVITY -> removeComponentFilter(packageName, componentName, rule.activity)
+        ComponentType.BROADCAST -> removeComponentFilter(packageName, componentName, rule.broadcast)
+        ComponentType.SERVICE -> removeComponentFilter(packageName, componentName, rule.service)
+        else -> false
+    }
+
+
+    override fun getComponentEnableState(packageName: String, componentName: String): Boolean {
+        val filters: MutableList<ComponentFilter> = ArrayList()
+        rule.activity?.let {
+            filters.addAll(it.componentFilters)
+        }
+        rule.broadcast?.let {
+            filters.addAll(it.componentFilters)
+        }
+        rule.service?.let {
+            filters.addAll(it.componentFilters)
+        }
+        return getFilterEnableState(packageName, componentName, filters)
+    }
+
+    private fun ensureNoEmptyTag() {
+        if (rule.activity != null && rule.activity.componentFilters.isNullOrEmpty()) {
+            rule.activity = null
+        }
+        if (rule.broadcast != null && rule.broadcast.componentFilters.isNullOrEmpty()) {
+            rule.broadcast = null
+        }
+        if (rule.service != null && rule.service.componentFilters.isNullOrEmpty()) {
+            rule.service = null
+        }
+    }
+
+    private fun addComponentFilter(
+        packageName: String,
+        componentName: String,
+        component: Component?
+    ): Boolean {
+        if (component == null) {
+            return false
+        }
+        var filters = component.componentFilters
+        if (filters == null) {
+            filters = ArrayList()
+            component.componentFilters = filters
+        }
+        val filterRule = formatName(packageName, componentName)
+        // Duplicate filter detection
+        for (filter in filters) {
+            if (filter.name == filterRule) {
+                return false
+            }
+        }
+        filters.add(ComponentFilter(filterRule))
+        logger.i("Added component:$packageName/$componentName")
+        return true
+    }
+
+    private fun removeComponentFilter(
+        packageName: String,
+        componentName: String,
+        component: Component?
+    ): Boolean {
+        if (component == null) {
+            return false
+        }
+        var filters = component.componentFilters
+        if (filters == null) {
+            filters = ArrayList()
+        }
+        val filterRule = formatName(packageName, componentName)
+        for (filter in ArrayList(filters)) {
+            if (filterRule == filter.name) {
+                filters.remove(filter)
+            }
+        }
+        return true
+    }
+
+    private fun getFilterEnableState(
+        packageName: String,
+        componentName: String,
+        componentFilters: List<ComponentFilter>?
+    ): Boolean {
+        if (componentFilters == null) {
+            return true
+        }
+        for (filter in componentFilters) {
+            val filterName = formatName(packageName, componentName)
+            if (filterName == filter.name) {
+                return false
+            }
+        }
+        return true
+    }
+
+    private fun formatName(packageName: String, name: String): String {
+        return String.format(FILTER_TEMPLATE, packageName, name)
+    }
+
+    companion object {
+        private const val EXTENSION = ".xml"
+        private const val FILTER_TEMPLATE = "%s/%s"
+    }
+}
