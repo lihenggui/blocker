@@ -32,11 +32,13 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     val updatedItem: LiveData<ComponentData>
         get() = _updatedItem
 
+    private var originalComponentList: MutableList<out ComponentInfo> = mutableListOf()
+
     fun load(context: Context, packageName: String, type: EComponentType) {
         logger.i("Load $packageName $type")
         viewModelScope.launch {
-            val components = getComponents(packageName, type)
-            val data = convertToComponentData(context, packageName, components, type)
+            originalComponentList = getComponents(packageName, type)
+            val data = convertToComponentData(context, packageName, originalComponentList, type)
             originalList = data
             _data.value = data
         }
@@ -62,16 +64,16 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val controllerType = PreferenceUtil.getControllerType(context)
             val controller = ComponentControllerProxy.getInstance(controllerType, context)
-            _data.value?.forEach {
-                try {
-                    controller.enable(it.packageName, it.name)
-                } catch (e: Throwable) {
-                    logger.e("Failed to enable all components $packageName, type $type", e)
-                    errorStack.postValue(e)
-                    return@launch
+            try {
+                controller.batchEnable(originalComponentList) {
+                    logger.i("Enabling ${it.name}")
                 }
-                load(context, packageName, type)
+            } catch (e: Throwable) {
+                logger.e("Failed to enable all components $packageName, type $type", e)
+                errorStack.postValue(e)
+                return@launch
             }
+            load(context, packageName, type)
         }
     }
 
@@ -80,15 +82,16 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             val controllerType = PreferenceUtil.getControllerType(context)
             val controller = ComponentControllerProxy.getInstance(controllerType, context)
-            _data.value?.forEach {
-                try {
-                    controller.disable(it.packageName, it.name)
-                } catch (e: Throwable) {
-                    logger.e("Failed to disable all components $packageName, type $type", e)
-                    errorStack.postValue(e)
-                    return@launch
+            try {
+                controller.batchDisable(originalComponentList) {
+                    logger.i("Disabling ${it.name}")
                 }
+            } catch (e: Throwable) {
+                logger.e("Failed to disable all components $packageName, type $type", e)
+                errorStack.postValue(e)
+                return@launch
             }
+
             load(context, packageName, type)
         }
     }
