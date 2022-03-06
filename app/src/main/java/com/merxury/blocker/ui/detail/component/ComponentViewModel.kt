@@ -203,6 +203,7 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         } else {
             null
         }
+        // Order priority: running, enabled, name
         return withContext(Dispatchers.Default) {
             components.map {
                 ComponentData(
@@ -214,7 +215,11 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                     isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
                 )
             }
-                .sortedBy { !it.isRunning }
+                .sortedWith(compareBy(
+                    { !it.isRunning },
+                    { (it.ifwBlocked || it.pmBlocked) },
+                    { it.simpleName })
+                )
                 .toMutableList()
         }
     }
