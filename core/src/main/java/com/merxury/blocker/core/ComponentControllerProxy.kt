@@ -19,27 +19,40 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
         EControllerMethod.SHIZUKU -> ShizukuController(context)
     }
 
-    override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
+    override suspend fun switchComponent(
+        packageName: String,
+        componentName: String,
+        state: Int
+    ): Boolean {
         return controller.switchComponent(packageName, componentName, state)
     }
 
-    override fun enable(packageName: String, componentName: String): Boolean {
+    override suspend fun enable(packageName: String, componentName: String): Boolean {
         return controller.enable(packageName, componentName)
     }
 
-    override fun disable(packageName: String, componentName: String): Boolean {
+    override suspend fun disable(packageName: String, componentName: String): Boolean {
         return controller.disable(packageName, componentName)
     }
 
-    override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
+    override suspend fun checkComponentEnableState(
+        packageName: String,
+        componentName: String
+    ): Boolean {
         return controller.checkComponentEnableState(packageName, componentName)
     }
 
-    override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
+    override suspend fun batchEnable(
+        componentList: List<ComponentInfo>,
+        action: (info: ComponentInfo) -> Unit
+    ): Int {
         return controller.batchEnable(componentList) { action(it) }
     }
 
-    override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
+    override suspend fun batchDisable(
+        componentList: List<ComponentInfo>,
+        action: (info: ComponentInfo) -> Unit
+    ): Int {
         return controller.batchDisable(componentList) { action(it) }
     }
 

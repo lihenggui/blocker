@@ -1,23 +1,18 @@
-package com.merxury.ifw;
+package com.merxury.ifw
 
-import com.merxury.ifw.entity.ComponentType;
+import com.merxury.ifw.entity.ComponentType
 
-public interface IntentFirewall {
-    void save() throws Exception;
+interface IntentFirewall {
+    @Throws(Exception::class)
+    suspend fun save()
 
-    boolean add(String packageName, String componentName, ComponentType type);
+    @Throws(Exception::class)
+    suspend fun load(): IntentFirewall
+    fun add(packageName: String, componentName: String, type: ComponentType?): Boolean
+    fun remove(packageName: String, componentName: String, type: ComponentType?): Boolean
+    fun getComponentEnableState(packageName: String, componentName: String): Boolean
 
-    boolean remove(String packageName, String componentName, ComponentType type);
-
-    boolean getComponentEnableState(String packageName, String componentName);
-
-    void clear();
-
-    void clear(String name);
-
-    void reload();
-
-    String getPackageName();
-
-    boolean removeCache();
+    @Throws(Exception::class)
+    suspend fun clear()
+    val packageName: String
 }

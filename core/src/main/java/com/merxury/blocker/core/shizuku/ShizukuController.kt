@@ -13,7 +13,11 @@ import rikka.shizuku.SystemServiceHelper
 class ShizukuController(val context: Context) : IController {
     private var pm: IPackageManager? = null
 
-    override fun switchComponent(packageName: String, componentName: String, state: Int): Boolean {
+    override suspend fun switchComponent(
+        packageName: String,
+        componentName: String,
+        state: Int
+    ): Boolean {
         if (pm == null) {
             pm = IPackageManager.Stub.asInterface(
                 ShizukuBinderWrapper(
@@ -26,15 +30,26 @@ class ShizukuController(val context: Context) : IController {
         return true
     }
 
-    override fun enable(packageName: String, componentName: String): Boolean {
-        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+    override suspend fun enable(packageName: String, componentName: String): Boolean {
+        return switchComponent(
+            packageName,
+            componentName,
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+        )
     }
 
-    override fun disable(packageName: String, componentName: String): Boolean {
-        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+    override suspend fun disable(packageName: String, componentName: String): Boolean {
+        return switchComponent(
+            packageName,
+            componentName,
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        )
     }
 
-    override fun batchEnable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
+    override suspend fun batchEnable(
+        componentList: List<ComponentInfo>,
+        action: (info: ComponentInfo) -> Unit
+    ): Int {
         var successCount = 0
         componentList.forEach {
             if (enable(it.packageName, it.name)) {
@@ -45,7 +60,10 @@ class ShizukuController(val context: Context) : IController {
         return successCount
     }
 
-    override fun batchDisable(componentList: List<ComponentInfo>, action: (info: ComponentInfo) -> Unit): Int {
+    override suspend fun batchDisable(
+        componentList: List<ComponentInfo>,
+        action: (info: ComponentInfo) -> Unit
+    ): Int {
         var successCount = 0
         componentList.forEach {
             if (disable(it.packageName, it.name)) {
@@ -56,7 +74,13 @@ class ShizukuController(val context: Context) : IController {
         return successCount
     }
 
-    override fun checkComponentEnableState(packageName: String, componentName: String): Boolean {
-        return ApplicationUtil.checkComponentIsEnabled(context.packageManager, ComponentName(packageName, componentName))
+    override suspend fun checkComponentEnableState(
+        packageName: String,
+        componentName: String
+    ): Boolean {
+        return ApplicationUtil.checkComponentIsEnabled(
+            context.packageManager,
+            ComponentName(packageName, componentName)
+        )
     }
 }
