@@ -68,6 +68,9 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     }
 
     override fun add(packageName: String, componentName: String, type: ComponentType?): Boolean {
+        if (!PermissionUtils.isRootAvailable) {
+            throw RootUnavailableException()
+        }
         var result = false
         when (type) {
             ComponentType.ACTIVITY -> {
@@ -93,15 +96,28 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
         return result
     }
 
-    override fun remove(
-        packageName: String,
-        componentName: String,
-        type: ComponentType?
-    ): Boolean = when (type) {
-        ComponentType.ACTIVITY -> removeComponentFilter(packageName, componentName, rule.activity)
-        ComponentType.BROADCAST -> removeComponentFilter(packageName, componentName, rule.broadcast)
-        ComponentType.SERVICE -> removeComponentFilter(packageName, componentName, rule.service)
-        else -> false
+    override fun remove(packageName: String, componentName: String, type: ComponentType?): Boolean {
+        if (!PermissionUtils.isRootAvailable) {
+            throw RootUnavailableException()
+        }
+        return when (type) {
+            ComponentType.ACTIVITY -> removeComponentFilter(
+                packageName,
+                componentName,
+                rule.activity
+            )
+            ComponentType.BROADCAST -> removeComponentFilter(
+                packageName,
+                componentName,
+                rule.broadcast
+            )
+            ComponentType.SERVICE -> removeComponentFilter(
+                packageName,
+                componentName,
+                rule.service
+            )
+            else -> false
+        }
     }
 
 
