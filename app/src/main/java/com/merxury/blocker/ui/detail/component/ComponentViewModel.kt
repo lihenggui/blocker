@@ -32,13 +32,11 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     val updatedItem: LiveData<ComponentData>
         get() = _updatedItem
 
-    private var originalComponentList: MutableList<out ComponentInfo> = mutableListOf()
-
     fun load(context: Context, packageName: String, type: EComponentType) {
         logger.i("Load $packageName $type")
         viewModelScope.launch {
-            originalComponentList = getComponents(packageName, type)
-            val data = convertToComponentData(context, packageName, originalComponentList, type)
+            val origList = getComponents(packageName, type)
+            val data = convertToComponentData(context, packageName, origList, type)
             originalList = data
             _data.value = data
         }
@@ -61,38 +59,56 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
 
     fun enableAll(context: Context, packageName: String, type: EComponentType) {
         logger.i("Enable all $packageName, type $type")
-        viewModelScope.launch(Dispatchers.IO) {
-            val controllerType = PreferenceUtil.getControllerType(context)
-            val controller = ComponentControllerProxy.getInstance(controllerType, context)
-            try {
-                controller.batchEnable(originalComponentList) {
-                    logger.i("Enabling ${it.name}")
-                }
-            } catch (e: Throwable) {
-                logger.e("Failed to enable all components $packageName, type $type", e)
-                errorStack.postValue(e)
-                return@launch
-            }
-            load(context, packageName, type)
-        }
+        doBatchOperation(context, packageName, type, true)
     }
 
     fun disableAll(context: Context, packageName: String, type: EComponentType) {
         logger.i("Disable all $packageName, type $type")
+        doBatchOperation(context, packageName, type, false)
+    }
+
+    private fun doBatchOperation(
+        context: Context,
+        packageName: String,
+        type: EComponentType,
+        enable: Boolean
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             val controllerType = PreferenceUtil.getControllerType(context)
             val controller = ComponentControllerProxy.getInstance(controllerType, context)
             try {
-                controller.batchDisable(originalComponentList) {
-                    logger.i("Disabling ${it.name}")
+                val dataList = deepCopy(data.value)
+                val componentInfoList = convertToComponentInfo(dataList)
+                if (enable) {
+                    controller.batchEnable(componentInfoList) {
+                        logger.i("Enabling ${it.name}")
+                    }
+                } else {
+                    controller.batchDisable(componentInfoList) {
+                        logger.i("Disabling ${it.name}")
+                    }
                 }
+                updateComponentViewStatus(dataList, enable, controllerType)
+                _data.postValue(dataList)
             } catch (e: Throwable) {
-                logger.e("Failed to disable all components $packageName, type $type", e)
+                logger.e(
+                    "Failed to control all components $packageName, type $type, enable $enable",
+                    e
+                )
                 errorStack.postValue(e)
                 return@launch
             }
+        }
+    }
 
-            load(context, packageName, type)
+    private fun updateComponentViewStatus(
+        list: List<ComponentData>,
+        status: Boolean,
+        controllerType: EControllerMethod
+    ) {
+        when (controllerType) {
+            EControllerMethod.IFW -> list.forEach { it.ifwBlocked = !status }
+            else -> list.forEach { it.pmBlocked = !status }
         }
     }
 
@@ -215,12 +231,30 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                     isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
                 )
             }
-                .sortedWith(compareBy(
-                    { !it.isRunning },
-                    { (it.ifwBlocked || it.pmBlocked) },
-                    { it.simpleName })
+                .sortedWith(
+                    compareBy(
+                        { !it.isRunning },
+                        { (it.ifwBlocked || it.pmBlocked) },
+                        { it.simpleName })
                 )
                 .toMutableList()
+        }
+    }
+
+    private suspend fun convertToComponentInfo(list: List<ComponentData>?): List<ComponentInfo> {
+        return withContext(Dispatchers.Default) {
+            list?.map {
+                ComponentInfo().apply {
+                    packageName = it.packageName
+                    name = it.name
+                }
+            } ?: listOf()
+        }
+    }
+
+    private suspend fun deepCopy(list: List<ComponentData>?): List<ComponentData> {
+        return withContext(Dispatchers.Default) {
+            list?.map { it.copy() } ?: listOf()
         }
     }
 
