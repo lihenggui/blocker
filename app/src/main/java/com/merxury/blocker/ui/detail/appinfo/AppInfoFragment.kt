@@ -2,12 +2,7 @@ package com.merxury.blocker.ui.detail.appinfo
 
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
@@ -19,12 +14,13 @@ import com.merxury.blocker.databinding.AppInfoFragmentBinding
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.entity.Application
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.DateFormat
 import java.util.*
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 
 class AppInfoFragment : Fragment() {
     private var _binding: AppInfoFragmentBinding? = null
@@ -206,11 +202,16 @@ class AppInfoFragment : Fragment() {
     }
 
     private fun showErrorDialog(e: Exception) {
-        AlertDialog.Builder(requireContext())
-            .setTitle(resources.getString(R.string.operation_failed))
-            .setMessage(getString(R.string.control_component_error_message, e.message))
-            .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
-            .show()
+        val context = context
+        if (context == null) {
+            ToastUtil.showToast(getString(R.string.control_component_error_message, e.message))
+        } else {
+            AlertDialog.Builder(context)
+                .setTitle(resources.getString(R.string.operation_failed))
+                .setMessage(getString(R.string.control_component_error_message, e.message))
+                .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+                .show()
+        }
     }
 
     private fun initQuickActions() {
