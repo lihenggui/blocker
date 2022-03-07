@@ -62,7 +62,7 @@
     <string name="no_rules_imported">沒有規則被導入，請檢查目錄是否正確設置或者權限是否被正確授予</string>
     <string name="export_ifw_failed_message">導出IFW規則失敗，請檢查權限是否被正確授予。</string>
     <string name="import_ifw_failed_message">導入IFW規則失敗，請檢查超級用戶權限是否被正確授予。</string>
-    <string name="export_ifw_successful_message">成功導入%1$d個IFW規則</string>
+    <string name="export_ifw_successful_message">成功導出%1$d個IFW規則</string>
     <string name="import_successfully">導入規則成功</string>
     <string name="please_select_mat_files">請選擇MyAndroidTools規則</string>
     <string name="clear_ifw_message">清除了%1$d個IFW規則</string>

@@ -5,7 +5,6 @@ import android.content.pm.ComponentInfo
 import android.os.Build
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.documentfile.provider.DocumentFile
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
@@ -15,7 +14,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.util.NotificationUtil
-import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.StorageUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.ifw.util.RuleSerializer
 import kotlinx.coroutines.Dispatchers
@@ -37,21 +36,13 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
         var imported = 0
         try {
             // Check directory is readable
-            val backupFolderUri = PreferenceUtil.getIfwRulePath(context)
-            if (backupFolderUri == null) {
+            val ifwFolder = StorageUtil.getOrCreateIfwFolder(context)
+            if (ifwFolder == null) {
                 logger.e("Folder hasn't been set yet.")
+                ToastUtil.showToast(R.string.import_ifw_failed_message, Toast.LENGTH_LONG)
                 return@withContext Result.failure()
             }
             val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
-            val folder = DocumentFile.fromTreeUri(context, backupFolderUri)
-            if (folder == null) {
-                logger.e("Cannot open backup folder")
-                return@withContext Result.failure()
-            }
-            val ifwFolder = folder.findFile("ifw") ?: run {
-                logger.e("Cannot find ifw folder")
-                return@withContext Result.failure()
-            }
             val files = ifwFolder.listFiles()
                 .filter { it.isFile && it.name?.endsWith(".xml") == true }
             total = files.count()

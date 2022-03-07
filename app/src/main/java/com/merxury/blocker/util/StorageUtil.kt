@@ -11,8 +11,41 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object StorageUtil {
-    val IFW_RELATIVE_PATH = "ifw"
+    const val IFW_RELATIVE_PATH = "ifw"
     private val logger = XLog.tag("StorageUtil").build()
+
+    fun getSavedFolder(context: Context): DocumentFile? {
+        val savedUri = PreferenceUtil.getSavedRulePath(context) ?: run {
+            logger.e("Saved rule path is null")
+            return null
+        }
+        return DocumentFile.fromTreeUri(context, savedUri)
+    }
+
+    fun getOrCreateIfwFolder(context: Context): DocumentFile? {
+        val savedFolder = getSavedFolder(context) ?: return null
+        val ifwFolder = savedFolder.findFile(IFW_RELATIVE_PATH) ?: run {
+            savedFolder.createDirectory(IFW_RELATIVE_PATH) ?: run {
+                logger.e("Create ifw folder failed")
+                return null
+            }
+        }
+        return ifwFolder
+    }
+
+    fun isSavedFolderReadable(context: Context): Boolean {
+        val uri = PreferenceUtil.getSavedRulePath(context) ?: return false
+        // Hasn't set the dir to store
+        val folder = try {
+            DocumentFile.fromTreeUri(context, uri)
+        } catch (e: Exception) {
+            logger.e("Invalid Uri $uri", e)
+            return false
+        }
+        // Folder may be unreachable
+        val isFolderUnreachable = (folder == null) || !folder.canRead() || !folder.canWrite()
+        return !isFolderUnreachable
+    }
 
     suspend fun saveRuleToStorage(
         context: Context,
