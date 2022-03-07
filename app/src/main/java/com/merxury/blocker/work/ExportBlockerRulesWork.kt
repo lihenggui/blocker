@@ -13,6 +13,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.StorageUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,11 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
     }
 
     override suspend fun doWork(): Result {
+        // Check storage permission first
+        if (!StorageUtil.isSavedFolderReadable(applicationContext)) {
+            ToastUtil.showToast(R.string.failed_to_back_up, Toast.LENGTH_LONG)
+            return Result.failure()
+        }
         // Notify users that work is being started
         logger.i("Start to backup app rules")
         setForeground(updateNotification("", 0, 0))

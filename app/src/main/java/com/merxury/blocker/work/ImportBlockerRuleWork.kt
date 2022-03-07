@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Build
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
-import androidx.documentfile.provider.DocumentFile
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
@@ -15,7 +14,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.util.NotificationUtil
-import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.StorageUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
@@ -35,13 +34,7 @@ class ImportBlockerRuleWork(context: Context, params: WorkerParameters) :
         var successCount = 0
         try {
             val context = applicationContext
-            val folderUri = PreferenceUtil.getSavedRulePath(context)
-            if (folderUri == null) {
-                logger.e("Cannot read rule path")
-                ToastUtil.showToast(R.string.dir_is_invalid, Toast.LENGTH_LONG)
-                return@withContext Result.failure()
-            }
-            val documentDir = DocumentFile.fromTreeUri(context, folderUri)
+            val documentDir = StorageUtil.getSavedFolder(context)
             if (documentDir == null) {
                 logger.e("Cannot create DocumentFile")
                 ToastUtil.showToast(R.string.dir_is_invalid, Toast.LENGTH_LONG)

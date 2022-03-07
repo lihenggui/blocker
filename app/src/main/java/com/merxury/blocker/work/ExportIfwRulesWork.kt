@@ -29,6 +29,10 @@ class ExportIfwRulesWork(context: Context, params: WorkerParameters) :
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        if (!StorageUtil.isSavedFolderReadable(applicationContext)) {
+            ToastUtil.showToast(R.string.export_ifw_failed_message, Toast.LENGTH_LONG)
+            return@withContext Result.failure()
+        }
         logger.i("Start to export IFW rules.")
         var current = 0
         try {
