@@ -2,7 +2,9 @@ package com.merxury.ifw
 
 import com.elvishew.xlog.XLog
 import com.merxury.ifw.entity.*
+import com.merxury.ifw.exception.RootUnavailableException
 import com.merxury.libkit.utils.FileUtils
+import com.merxury.libkit.utils.PermissionUtils
 import com.merxury.libkit.utils.StorageUtils
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
@@ -20,7 +22,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     private var rule: Rules = Rules()
 
     override suspend fun load() = withContext(Dispatchers.IO) {
-        if (destFile.exists()) {
+        if (PermissionUtils.isRootAvailable && destFile.exists()) {
             val serializer: Serializer = Persister()
             try {
                 val input = SuFileInputStream.open(destFile)
@@ -34,6 +36,9 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
 
     override suspend fun save() {
         withContext(Dispatchers.IO) {
+            if (!PermissionUtils.isRootAvailable) {
+                throw RootUnavailableException()
+            }
             ensureNoEmptyTag()
             if (rule.activity == null && rule.broadcast == null && rule.service == null) {
                 // If there is no rules presented, delete rule file (if exists)
@@ -51,6 +56,9 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
 
     override suspend fun clear() {
         withContext(Dispatchers.IO) {
+            if (!PermissionUtils.isRootAvailable) {
+                throw RootUnavailableException()
+            }
             logger.d("Clear IFW rule $filename")
             if (destFile.exists()) {
                 destFile.delete()
