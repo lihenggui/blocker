@@ -90,6 +90,7 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                 }
                 updateComponentViewStatus(dataList, enable, controllerType)
                 _data.postValue(dataList)
+                updateDataSource(dataList)
             } catch (e: Throwable) {
                 logger.e(
                     "Failed to control all components $packageName, type $type, enable $enable",
@@ -109,6 +110,22 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         when (controllerType) {
             EControllerMethod.IFW -> list.forEach { it.ifwBlocked = !status }
             else -> list.forEach { it.pmBlocked = !status }
+        }
+    }
+
+    // After batch operations, we need to update the original list
+    // So the app can show the correct status
+    private suspend fun updateDataSource(list: List<ComponentData>) {
+        withContext(Dispatchers.Default) {
+            list.forEach { newComp ->
+                val index = originalList.indexOfFirst { newComp.name == it.name }
+                if (index != -1) {
+                    originalList.getOrNull(index)?.apply {
+                        ifwBlocked = newComp.ifwBlocked
+                        pmBlocked = newComp.pmBlocked
+                    }
+                }
+            }
         }
     }
 
