@@ -9,6 +9,10 @@
         android:name="com.merxury.blocker.ui.home.applist.AppListFragment"
         android:label="@string/app_name" />
     <fragment
+        android:id="@+id/adv_search"
+        android:name="com.merxury.blocker.ui.home.advsearch.AdvSearchFragment"
+        android:label="@string/advanced_search" />
+    <fragment
         android:id="@+id/settings"
         android:name="com.merxury.blocker.ui.home.settings.SettingsFragment"
         android:label="@string/settings" />
