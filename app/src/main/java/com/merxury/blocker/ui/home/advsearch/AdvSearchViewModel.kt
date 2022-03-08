@@ -20,8 +20,6 @@ import com.merxury.libkit.utils.ServiceHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.ExperimentalTime
-import kotlin.time.measureTime
 
 class AdvSearchViewModel : ViewModel() {
     private val logger = XLog.tag("AdvSearchViewModel")
@@ -38,15 +36,11 @@ class AdvSearchViewModel : ViewModel() {
     private val _finalData = MutableLiveData<MutableList<Pair<Application, List<ComponentData>>>>()
     val finalData: LiveData<MutableList<Pair<Application, List<ComponentData>>>> = _finalData
 
-    @OptIn(ExperimentalTime::class)
     fun load(context: Context) {
-        val timeToLoad = measureTime {
-            viewModelScope.launch {
-                val appList = ApplicationUtil.getThirdPartyApplicationList(context)
-                processData(context, appList)
-            }
+        viewModelScope.launch {
+            val appList = ApplicationUtil.getApplicationList(context)
+            processData(context, appList)
         }
-        logger.i("load time: $timeToLoad")
     }
 
     private suspend fun processData(context: Context, appList: List<Application>) {
@@ -58,7 +52,7 @@ class AdvSearchViewModel : ViewModel() {
                 val packageName = application.packageName
                 val ifwController = IntentFirewallImpl(packageName).load()
                 _currentProcessApplication.postValue(application)
-                _current.postValue(index)
+                _current.postValue(index + 1)
                 val components = mutableListOf<ComponentData>()
                 val serviceHelper = ServiceHelper(packageName)
                 serviceHelper.refresh()
