@@ -1,12 +1,14 @@
 package com.merxury.blocker.ui.home.advsearch
 
+import android.app.SearchManager
+import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AdvSearchFragmentBinding
 
 class AdvSearchFragment : Fragment() {
@@ -17,6 +19,7 @@ class AdvSearchFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
         viewModel = ViewModelProvider(this)[AdvSearchViewModel::class.java]
     }
 
@@ -46,11 +49,37 @@ class AdvSearchFragment : Fragment() {
             }
         }
         viewModel?.current?.observe(viewLifecycleOwner) {
-            logger.i("current: $it")
             if (totalCount > 0) {
                 val progress = (it * 100 / totalCount)
                 binding.progressBar.setProgressCompat(progress, false)
             }
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        menu.clear()
+        inflater.inflate(R.menu.adv_search_menu, menu)
+        initSearch(menu)
+    }
+
+    private fun initSearch(menu: Menu) {
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView ?: return
+        val searchManager =
+            requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                logger.i("onQueryTextSubmit: $query")
+                viewModel?.filter(query.orEmpty())
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                // Ignore event
+                return false
+            }
+        })
     }
 }

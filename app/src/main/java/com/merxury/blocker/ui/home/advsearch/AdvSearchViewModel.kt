@@ -35,11 +35,43 @@ class AdvSearchViewModel : ViewModel() {
     val currentProcessApplication: LiveData<Application> = _currentProcessApplication
     private val _finalData = MutableLiveData<MutableList<Pair<Application, List<ComponentData>>>>()
     val finalData: LiveData<MutableList<Pair<Application, List<ComponentData>>>> = _finalData
+    private val _filteredData: MutableLiveData<MutableList<Pair<Application, List<ComponentData>>>> =
+        MutableLiveData()
+    val filteredData: LiveData<MutableList<Pair<Application, List<ComponentData>>>> = _filteredData
 
     fun load(context: Context) {
         viewModelScope.launch {
             val appList = ApplicationUtil.getApplicationList(context)
             processData(context, appList)
+        }
+    }
+
+    fun filter(keyword: String) {
+        logger.i("filter: $keyword")
+        if (keyword.isEmpty()) {
+            _filteredData.value = _finalData.value
+            return
+        }
+        viewModelScope.launch(Dispatchers.Default) {
+            val regex = keyword.toRegex()
+            val searchResult = mutableListOf<Pair<Application, List<ComponentData>>>()
+            val dataSource = finalData.value ?: return@launch
+            dataSource.forEach {
+                logger.d("filter: ${it.first.packageName}")
+                val app = it.first
+                val componentList = it.second
+                val filteredComponentList = mutableListOf<ComponentData>()
+                componentList.forEach { component ->
+                    if (component.name.contains(regex) || component.packageName.contains(regex)) {
+                        logger.d("Matched: ${component.name}")
+                        filteredComponentList.add(component)
+                    }
+                }
+                if (filteredComponentList.isNotEmpty()) {
+                    searchResult.add(Pair(app, filteredComponentList))
+                }
+            }
+            _filteredData.postValue(searchResult)
         }
     }
 
