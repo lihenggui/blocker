@@ -3,19 +3,26 @@ package com.merxury.blocker.ui.home.advsearch
 import android.app.SearchManager
 import android.content.Context
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AdvSearchFragmentBinding
+import com.merxury.blocker.util.unsafeLazy
 
 class AdvSearchFragment : Fragment() {
     private val logger = XLog.tag("AdvSearchFragment")
     private lateinit var binding: AdvSearchFragmentBinding
     private var viewModel: AdvSearchViewModel? = null
     private var totalCount = 0
+    private val adapter by unsafeLazy { AdvSearchAdapter(this.lifecycleScope) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,6 +41,7 @@ class AdvSearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initRecyclerView()
         viewModel?.load(requireContext())
         viewModel?.currentProcessApplication?.observe(viewLifecycleOwner) {
             binding.processingName.text = it.packageName
@@ -54,6 +62,9 @@ class AdvSearchFragment : Fragment() {
                 binding.progressBar.setProgressCompat(progress, false)
             }
         }
+        viewModel?.filteredData?.observe(viewLifecycleOwner) {
+            adapter.submitList(it)
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -61,6 +72,15 @@ class AdvSearchFragment : Fragment() {
         menu.clear()
         inflater.inflate(R.menu.adv_search_menu, menu)
         initSearch(menu)
+    }
+
+    override fun onDestroyView() {
+        adapter.release()
+        super.onDestroyView()
+    }
+
+    private fun initRecyclerView() {
+        binding.searchResultList.adapter = adapter
     }
 
     private fun initSearch(menu: Menu) {
