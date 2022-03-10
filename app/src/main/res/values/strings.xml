@@ -95,4 +95,5 @@
     <string name="export_fail_message">Failed to export rules, please check if you have correct permissions or not.</string>
     <string name="launch_app">Launch app</string>
     <string name="cannot_launch_this_app">Cannot launch this app</string>
+    <string name="failed_to_send_log">Failed to send the log</string>
 </resources>
