@@ -94,4 +94,5 @@
     <string name="export_fail_message">導出規則失敗，請檢查你是否獲得了權限。</string>
     <string name="launch_app">啟動應用</string>
     <string name="cannot_launch_this_app">無法啟動這個應用</string>
+    <string name="failed_to_send_log">發送日誌失敗</string>
 </resources>
