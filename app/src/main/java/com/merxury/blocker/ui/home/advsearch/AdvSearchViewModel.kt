@@ -41,7 +41,7 @@ class AdvSearchViewModel : ViewModel() {
 
     fun load(context: Context) {
         viewModelScope.launch {
-            val appList = ApplicationUtil.getApplicationList(context)
+            val appList = ApplicationUtil.getSystemApplicationList(context)
             processData(context, appList)
         }
     }
@@ -101,14 +101,18 @@ class AdvSearchViewModel : ViewModel() {
                     .convertToComponentDataList(ifwController, pmController, null)
                 val receivers = ApplicationUtil.getReceiverList(context.packageManager, packageName)
                     .convertToComponentDataList(ifwController, pmController, null)
-                components.plus(activities)
+                val componentTotalList = components.plus(activities)
                     .plus(services)
                     .plus(providers)
                     .plus(receivers)
-                result.add(Pair(application, components))
+                if (componentTotalList.isNotEmpty()) {
+                    logger.i("Add ${application.packageName} ${componentTotalList.size} components")
+                    result.add(Pair(application, componentTotalList))
+                }
             }
         }
         _finalData.postValue(result)
+        _filteredData.postValue(result)
         _isLoading.postValue(false)
     }
 
