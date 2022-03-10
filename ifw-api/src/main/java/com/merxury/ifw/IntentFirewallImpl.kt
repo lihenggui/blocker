@@ -69,6 +69,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
 
     override fun add(packageName: String, componentName: String, type: ComponentType?): Boolean {
         if (!PermissionUtils.isRootAvailable) {
+            logger.e("Root unavailable, cannot add rule")
             throw RootUnavailableException()
         }
         var result = false
@@ -98,6 +99,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
 
     override fun remove(packageName: String, componentName: String, type: ComponentType?): Boolean {
         if (!PermissionUtils.isRootAvailable) {
+            logger.e("Root unavailable, cannot remove rule")
             throw RootUnavailableException()
         }
         return when (type) {

@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
@@ -20,6 +21,8 @@ import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
@@ -250,22 +253,35 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     }
 
     private fun reportIssue() {
-        val baseLogDir = requireContext().filesDir.resolve("log")
-        val zippedLog = requireContext().filesDir.resolve("log.zip")
-        LogUtils.compress(baseLogDir.toString(), zippedLog.toString())
-        val emailIntent = Intent(Intent.ACTION_SEND)
-            .setType("vnd.android.cursor.dir/email")
-            .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
-            .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
-            .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
-
-        val logUri = FileProvider.getUriForFile(
-            requireContext(),
-            "com.merxury.blocker.provider",
-            zippedLog
-        )
-        emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
-        startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)))
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            val baseLogDir = requireContext().filesDir.resolve("log")
+            val zippedLog = requireContext().filesDir.resolve("log.zip")
+            try {
+                if (!baseLogDir.exists()) {
+                    baseLogDir.mkdirs()
+                    logger.e("Log directory doesn't exist")
+                    ToastUtil.showToast(R.string.failed_to_send_log, Toast.LENGTH_LONG)
+                    return@launch
+                }
+                LogUtils.compress(baseLogDir.toString(), zippedLog.toString())
+            } catch (e: Exception) {
+                logger.e("Failed to compress log", e)
+                ToastUtil.showToast(R.string.failed_to_send_log, Toast.LENGTH_LONG)
+                return@launch
+            }
+            val emailIntent = Intent(Intent.ACTION_SEND)
+                .setType("vnd.android.cursor.dir/email")
+                .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
+                .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
+                .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
+            val logUri = FileProvider.getUriForFile(
+                requireContext(),
+                "com.merxury.blocker.provider",
+                zippedLog
+            )
+            emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
+            startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)))
+        }
     }
 
     companion object {
