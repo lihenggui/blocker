@@ -17,6 +17,7 @@ import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ServiceHelper
+import java.util.regex.PatternSyntaxException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -33,19 +34,20 @@ class AdvSearchViewModel : ViewModel() {
     val isLoading: LiveData<Boolean> = _isLoading
     private val _currentProcessApplication = MutableLiveData<Application>()
     val currentProcessApplication: LiveData<Application> = _currentProcessApplication
-    private val _finalData = MutableLiveData<MutableList<Pair<Application, List<ComponentData>>>>()
-    val finalData: LiveData<MutableList<Pair<Application, List<ComponentData>>>> = _finalData
-    private val _filteredData: MutableLiveData<MutableList<Pair<Application, List<ComponentData>>>> =
+    private val _finalData = MutableLiveData<MutableMap<Application, List<ComponentData>>>()
+    private val finalData: LiveData<MutableMap<Application, List<ComponentData>>> = _finalData
+    private val _filteredData: MutableLiveData<MutableMap<Application, List<ComponentData>>> =
         MutableLiveData()
-    val filteredData: LiveData<MutableList<Pair<Application, List<ComponentData>>>> = _filteredData
+    val filteredData: LiveData<MutableMap<Application, List<ComponentData>>> = _filteredData
 
     fun load(context: Context) {
         viewModelScope.launch {
-            val appList = ApplicationUtil.getSystemApplicationList(context)
+            val appList = ApplicationUtil.getApplicationList(context)
             processData(context, appList)
         }
     }
 
+    @Throws(PatternSyntaxException::class)
     fun filter(keyword: String) {
         logger.i("filter: $keyword")
         if (keyword.isEmpty()) {
@@ -54,21 +56,20 @@ class AdvSearchViewModel : ViewModel() {
         }
         viewModelScope.launch(Dispatchers.Default) {
             val regex = keyword.toRegex()
-            val searchResult = mutableListOf<Pair<Application, List<ComponentData>>>()
+            val searchResult = mutableMapOf<Application, List<ComponentData>>()
             val dataSource = finalData.value ?: return@launch
             dataSource.forEach {
-                logger.d("filter: ${it.first.packageName}")
-                val app = it.first
-                val componentList = it.second
+                logger.d("filter: ${it.key.packageName}")
+                val app = it.key
+                val componentList = it.value
                 val filteredComponentList = mutableListOf<ComponentData>()
                 componentList.forEach { component ->
-                    if (component.name.contains(regex) || component.packageName.contains(regex)) {
-                        logger.d("Matched: ${component.name}")
+                    if (regex.containsMatchIn(component.name) || regex.containsMatchIn(component.packageName)) {
                         filteredComponentList.add(component)
                     }
                 }
                 if (filteredComponentList.isNotEmpty()) {
-                    searchResult.add(Pair(app, filteredComponentList))
+                    searchResult[app] = filteredComponentList
                 }
             }
             _filteredData.postValue(searchResult)
@@ -77,7 +78,7 @@ class AdvSearchViewModel : ViewModel() {
 
     private suspend fun processData(context: Context, appList: List<Application>) {
         notifyDataProcessing(appList)
-        val result = mutableListOf<Pair<Application, List<ComponentData>>>()
+        val result = mutableMapOf<Application, List<ComponentData>>()
         withContext(Dispatchers.Default) {
             val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
             appList.forEachIndexed { index, application ->
@@ -101,18 +102,17 @@ class AdvSearchViewModel : ViewModel() {
                     .convertToComponentDataList(ifwController, pmController, null)
                 val receivers = ApplicationUtil.getReceiverList(context.packageManager, packageName)
                     .convertToComponentDataList(ifwController, pmController, null)
-                val componentTotalList = components.plus(activities)
-                    .plus(services)
-                    .plus(providers)
+                val componentTotalList = components.plus(services)
                     .plus(receivers)
+                    .plus(activities)
+                    .plus(providers)
                 if (componentTotalList.isNotEmpty()) {
                     logger.i("Add ${application.packageName} ${componentTotalList.size} components")
-                    result.add(Pair(application, componentTotalList))
+                    result[application] = componentTotalList
                 }
             }
         }
         _finalData.postValue(result)
-        _filteredData.postValue(result)
         _isLoading.postValue(false)
     }
 
