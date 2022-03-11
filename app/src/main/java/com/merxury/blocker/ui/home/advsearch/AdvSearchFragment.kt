@@ -22,11 +22,10 @@ class AdvSearchFragment : Fragment() {
     private lateinit var binding: AdvSearchFragmentBinding
     private var viewModel: AdvSearchViewModel? = null
     private var totalCount = 0
-    private val adapter by unsafeLazy { AdvSearchAdapter(this.lifecycleScope) }
+    private val adapter by unsafeLazy { ExpandableSearchAdapter(this.lifecycleScope) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
         viewModel = ViewModelProvider(this)[AdvSearchViewModel::class.java]
     }
 
@@ -41,8 +40,16 @@ class AdvSearchFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initRecyclerView()
+        initListView()
         viewModel?.load(requireContext())
+        viewModel?.isLoading?.observe(viewLifecycleOwner) {
+            setSearchIconVisibility(!it)
+            if (it) {
+                binding.loadingIndicatorGroup.visibility = View.VISIBLE
+            } else {
+                binding.loadingIndicatorGroup.visibility = View.GONE
+            }
+        }
         viewModel?.currentProcessApplication?.observe(viewLifecycleOwner) {
             binding.processingName.text = it.packageName
         }
@@ -63,7 +70,7 @@ class AdvSearchFragment : Fragment() {
             }
         }
         viewModel?.filteredData?.observe(viewLifecycleOwner) {
-            adapter.submitList(it)
+            adapter.updateData(it)
         }
     }
 
@@ -79,8 +86,18 @@ class AdvSearchFragment : Fragment() {
         super.onDestroyView()
     }
 
-    private fun initRecyclerView() {
-        binding.searchResultList.adapter = adapter
+    private fun initListView() {
+        binding.list.apply {
+            setAdapter(this@AdvSearchFragment.adapter)
+            setOnChildClickListener { parent, view, groupPosition, childPosition, id ->
+                logger.i("Clicked groupPosition: $groupPosition, childPosition: $childPosition")
+                true
+            }
+            setOnGroupClickListener { parent, view, groupPosition, id ->
+                logger.i("Clicked groupPosition: $groupPosition, id: $id")
+                false
+            }
+        }
     }
 
     private fun initSearch(menu: Menu) {
@@ -101,5 +118,10 @@ class AdvSearchFragment : Fragment() {
                 return false
             }
         })
+    }
+
+    private fun setSearchIconVisibility(enabled: Boolean) {
+        setHasOptionsMenu(enabled)
+        activity?.invalidateOptionsMenu()
     }
 }
