@@ -40,8 +40,8 @@ class AdvSearchViewModel : ViewModel() {
     private val _filteredData: MutableLiveData<MutableMap<Application, List<ComponentData>>> =
         MutableLiveData()
     val filteredData: LiveData<MutableMap<Application, List<ComponentData>>> = _filteredData
-    private val _error = MutableLiveData<Exception>()
-    val error: LiveData<Exception> = _error
+    private val _error = MutableLiveData<Event<Exception>>()
+    val error: LiveData<Event<Exception>> = _error
 
     private var controller: IController? = null
 
@@ -92,7 +92,7 @@ class AdvSearchViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 logger.e("Failed to control component: $packageName to state $enabled", e)
-                _error.postValue(e)
+                _error.postValue(Event(e))
             }
         }
     }
@@ -122,7 +122,7 @@ class AdvSearchViewModel : ViewModel() {
                 }
             } catch (e: Exception) {
                 logger.e("Failed to do batch operation to state $enabled", e)
-                _error.postValue(e)
+                _error.postValue(Event(e))
             }
         }
     }
