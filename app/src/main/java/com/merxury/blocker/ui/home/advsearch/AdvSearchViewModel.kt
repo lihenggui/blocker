@@ -42,8 +42,6 @@ class AdvSearchViewModel : ViewModel() {
     val filteredData: LiveData<MutableMap<Application, List<ComponentData>>> = _filteredData
     private val _error = MutableLiveData<Exception>()
     val error: LiveData<Exception> = _error
-    private val _refreshComponent = MutableLiveData<ComponentData>()
-    val refreshComponent: LiveData<ComponentData> = _refreshComponent
 
     private var controller: IController? = null
 
@@ -100,6 +98,7 @@ class AdvSearchViewModel : ViewModel() {
     }
 
     fun doBatchOperation(enabled: Boolean) {
+        logger.i("doBatchOperation: $enabled")
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val componentList = mutableListOf<ComponentData>()
