@@ -2,12 +2,15 @@ package com.merxury.blocker.ui.home.advsearch
 
 import android.app.SearchManager
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -15,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AdvSearchFragmentBinding
+import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.unsafeLazy
 
 class AdvSearchFragment : Fragment() {
@@ -72,6 +76,10 @@ class AdvSearchFragment : Fragment() {
         viewModel?.filteredData?.observe(viewLifecycleOwner) {
             adapter.updateData(it)
         }
+        viewModel?.error?.observe(viewLifecycleOwner) {
+            showErrorDialog(it)
+            adapter.notifyDataSetChanged()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -87,10 +95,14 @@ class AdvSearchFragment : Fragment() {
     }
 
     private fun initListView() {
+        adapter.onSwitchClick = { component, checked ->
+            logger.i("onSwitchClick: $component, $checked")
+            viewModel?.switchComponent(component.packageName, component.name, checked)
+        }
         binding.list.apply {
             setAdapter(this@AdvSearchFragment.adapter)
             setOnChildClickListener { parent, view, groupPosition, childPosition, id ->
-                logger.i("Clicked groupPosition: $groupPosition, childPosition: $childPosition")
+                logger.i("Child clicked groupPosition: $groupPosition, childPosition: $childPosition")
                 true
             }
             setOnGroupClickListener { parent, view, groupPosition, id ->
@@ -109,7 +121,12 @@ class AdvSearchFragment : Fragment() {
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 logger.i("onQueryTextSubmit: $query")
-                viewModel?.filter(query.orEmpty())
+                try {
+                    viewModel?.filter(query.orEmpty())
+                } catch (e: Exception) {
+                    logger.e("Invalid regex: $query", e)
+                    ToastUtil.showToast(R.string.invalid_regex, Toast.LENGTH_LONG)
+                }
                 return true
             }
 
@@ -118,6 +135,19 @@ class AdvSearchFragment : Fragment() {
                 return false
             }
         })
+    }
+
+    private fun showErrorDialog(e: Exception) {
+        val context = context
+        if (context == null) {
+            ToastUtil.showToast(getString(R.string.control_component_error_message, e.message))
+        } else {
+            AlertDialog.Builder(context)
+                .setTitle(resources.getString(R.string.operation_failed))
+                .setMessage(getString(R.string.control_component_error_message, e.message))
+                .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+                .show()
+        }
     }
 
     private fun setSearchIconVisibility(enabled: Boolean) {

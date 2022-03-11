@@ -24,6 +24,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
     private var appList = listOf<Application>()
     private var data = mutableMapOf<Application, List<ComponentData>>()
     private var loadIconJob: Job? = null
+    var onSwitchClick: ((ComponentData, Boolean) -> Unit)? = null
 
     fun updateData(newData: MutableMap<Application, List<ComponentData>>) {
         appList = newData.keys.toList()
@@ -110,8 +111,12 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
         val view = LayoutInflater.from(context)
             .inflate(R.layout.search_app_component, parent, false)
         view.findViewById<TextView>(R.id.component_name).text = child.name
-        view.findViewById<SwitchMaterial>(R.id.component_switch).isChecked =
-            !(child.pmBlocked || child.ifwBlocked)
+        val switch = view.findViewById<SwitchMaterial>(R.id.component_switch)
+        switch.setOnCheckedChangeListener(null)
+        switch.isChecked = !(child.pmBlocked || child.ifwBlocked)
+        switch.setOnCheckedChangeListener { _, isChecked ->
+            onSwitchClick?.invoke(child, isChecked)
+        }
         return view
     }
 
