@@ -36,14 +36,13 @@
         app:barrierDirection="bottom"
         app:constraint_referenced_ids="processing_name, progress_bar" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/search_result_list"
-        android:layout_width="0dp"
+    <ExpandableListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/loading_barrier"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/loading_barrier" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
