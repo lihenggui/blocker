@@ -11,6 +11,7 @@ import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.ui.detail.component.ComponentData
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.Application
@@ -39,12 +40,20 @@ class AdvSearchViewModel : ViewModel() {
     private val _filteredData: MutableLiveData<MutableMap<Application, List<ComponentData>>> =
         MutableLiveData()
     val filteredData: LiveData<MutableMap<Application, List<ComponentData>>> = _filteredData
+    private val _error = MutableLiveData<Exception>()
+    val error: LiveData<Exception> = _error
+    private val _refreshComponent = MutableLiveData<ComponentData>()
+    val refreshComponent: LiveData<ComponentData> = _refreshComponent
+
+    private var controller: IController? = null
 
     fun load(context: Context) {
         viewModelScope.launch {
             val appList = ApplicationUtil.getApplicationList(context)
             processData(context, appList)
         }
+        val type = PreferenceUtil.getControllerType(context)
+        controller = ComponentControllerProxy.getInstance(type, context)
     }
 
     @Throws(PatternSyntaxException::class)
@@ -54,12 +63,11 @@ class AdvSearchViewModel : ViewModel() {
             _filteredData.value = _finalData.value
             return
         }
+        val regex = keyword.toRegex()
         viewModelScope.launch(Dispatchers.Default) {
-            val regex = keyword.toRegex()
             val searchResult = mutableMapOf<Application, List<ComponentData>>()
             val dataSource = finalData.value ?: return@launch
             dataSource.forEach {
-                logger.d("filter: ${it.key.packageName}")
                 val app = it.key
                 val componentList = it.value
                 val filteredComponentList = mutableListOf<ComponentData>()
@@ -73,6 +81,50 @@ class AdvSearchViewModel : ViewModel() {
                 }
             }
             _filteredData.postValue(searchResult)
+        }
+    }
+
+    fun switchComponent(packageName: String, name: String, enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                if (enabled) {
+                    controller?.enable(packageName, name)
+                } else {
+                    controller?.disable(packageName, name)
+                }
+            } catch (e: Exception) {
+                logger.e("Failed to control component: $packageName to state $enabled", e)
+                _error.postValue(e)
+            }
+        }
+    }
+
+    fun doBatchOperation(enabled: Boolean) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val componentList = mutableListOf<ComponentData>()
+                filteredData.value?.forEach {
+                    componentList.addAll(it.value)
+                }
+                val infoList = componentList.map {
+                    val component = ComponentInfo()
+                    component.packageName = it.packageName
+                    component.name = it.name
+                    component
+                }
+                if (enabled) {
+                    controller?.batchEnable(infoList) {
+                        logger.i("batch enable: $it")
+                    }
+                } else {
+                    controller?.batchDisable(infoList) {
+                        logger.i("batch disable: $it")
+                    }
+                }
+            } catch (e: Exception) {
+                logger.e("Failed to do batch operation to state $enabled", e)
+                _error.postValue(e)
+            }
         }
     }
 
@@ -107,7 +159,6 @@ class AdvSearchViewModel : ViewModel() {
                     .plus(activities)
                     .plus(providers)
                 if (componentTotalList.isNotEmpty()) {
-                    logger.i("Add ${application.packageName} ${componentTotalList.size} components")
                     result[application] = componentTotalList
                 }
             }
