@@ -9,4 +9,11 @@
         android:title="@string/search"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_block_all"
+        android:title="@string/block_all" />
+    <item
+        android:id="@+id/action_enable_all"
+        android:title="@string/enable_all" />
 </menu>

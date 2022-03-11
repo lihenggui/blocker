@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -89,6 +90,20 @@ class AdvSearchFragment : Fragment() {
         initSearch(menu)
     }
 
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_block_all -> {
+                viewModel?.doBatchOperation(false)
+                return true
+            }
+            R.id.action_enable_all -> {
+                viewModel?.doBatchOperation(true)
+                return true
+            }
+            else -> false
+        }
+    }
+
     override fun onDestroyView() {
         adapter.release()
         super.onDestroyView()
@@ -131,6 +146,10 @@ class AdvSearchFragment : Fragment() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrEmpty()) {
+                    onQueryTextSubmit(newText)
+                    return true
+                }
                 // Ignore event
                 return false
             }
