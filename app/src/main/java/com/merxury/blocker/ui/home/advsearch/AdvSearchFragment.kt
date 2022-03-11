@@ -78,8 +78,11 @@ class AdvSearchFragment : Fragment() {
             adapter.updateData(it)
         }
         viewModel?.error?.observe(viewLifecycleOwner) {
-            showErrorDialog(it)
-            adapter.notifyDataSetChanged()
+            val exception = it.getContentIfNotHandled()
+            if (exception != null) {
+                showErrorDialog(exception)
+                adapter.notifyDataSetChanged()
+            }
         }
     }
 
