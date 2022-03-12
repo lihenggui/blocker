@@ -51,7 +51,9 @@ class AdvSearchFragment : Fragment() {
             setSearchIconVisibility(!it)
             if (it) {
                 binding.loadingIndicatorGroup.visibility = View.VISIBLE
+                binding.list.visibility = View.GONE
             } else {
+                binding.list.visibility = View.VISIBLE
                 binding.loadingIndicatorGroup.visibility = View.GONE
             }
         }
@@ -119,14 +121,6 @@ class AdvSearchFragment : Fragment() {
         }
         binding.list.apply {
             setAdapter(this@AdvSearchFragment.adapter)
-            setOnChildClickListener { parent, view, groupPosition, childPosition, id ->
-                logger.i("Child clicked groupPosition: $groupPosition, childPosition: $childPosition")
-                true
-            }
-            setOnGroupClickListener { parent, view, groupPosition, id ->
-                logger.i("Clicked groupPosition: $groupPosition, id: $id")
-                false
-            }
         }
     }
 
@@ -138,23 +132,18 @@ class AdvSearchFragment : Fragment() {
         searchView.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                logger.i("onQueryTextSubmit: $query")
-                try {
-                    viewModel?.filter(query.orEmpty())
-                } catch (e: Exception) {
-                    logger.e("Invalid regex: $query", e)
-                    ToastUtil.showToast(R.string.invalid_regex, Toast.LENGTH_LONG)
-                }
-                return true
+                return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrEmpty()) {
-                    onQueryTextSubmit(newText)
-                    return true
+                logger.i("onQueryTextChange: $newText")
+                try {
+                    viewModel?.filter(newText.orEmpty())
+                } catch (e: Exception) {
+                    logger.e("Invalid regex: $newText", e)
+                    ToastUtil.showToast(R.string.invalid_regex, Toast.LENGTH_LONG)
                 }
-                // Ignore event
-                return false
+                return true
             }
         })
     }
