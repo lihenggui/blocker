@@ -97,4 +97,5 @@
     <string name="cannot_launch_this_app">Cannot launch this app</string>
     <string name="advanced_search">Advanced search</string>
     <string name="invalid_regex">Invalid regex</string>
+    <string name="preparing_data_please_wait">Preparing data, please wait…</string>
 </resources>
