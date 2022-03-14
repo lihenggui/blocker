@@ -47,7 +47,11 @@ class AdvSearchViewModel : ViewModel() {
 
     fun load(context: Context) {
         viewModelScope.launch {
-            val appList = ApplicationUtil.getApplicationList(context)
+            val appList = if (PreferenceUtil.getSearchSystemApps(context)) {
+                ApplicationUtil.getApplicationList(context)
+            } else {
+                ApplicationUtil.getThirdPartyApplicationList(context)
+            }
             processData(context, appList)
         }
         val type = PreferenceUtil.getControllerType(context)
