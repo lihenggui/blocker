@@ -7,18 +7,14 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
-import androidx.navigation.NavController
-import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupWithNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import androidx.viewpager2.widget.ViewPager2
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ActivityHomeBinding
+import com.merxury.blocker.util.unsafeLazy
 
 
 class HomeActivity : AppCompatActivity() {
-    private lateinit var navController: NavController
-    private lateinit var appBarConfiguration: AppBarConfiguration
+    private val adapter by unsafeLazy { HomeAdapter(this) }
     private lateinit var binding: ActivityHomeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,16 +23,26 @@ class HomeActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         initEdgeToEdge()
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
-        navController = navHostFragment.navController
-        appBarConfiguration = AppBarConfiguration(navController.graph)
-        findViewById<BottomNavigationView>(R.id.bottom_nav)
-            .setupWithNavController(navController)
+        initNavigation()
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        return navController.navigateUp() || super.onSupportNavigateUp()
+    private fun initNavigation() {
+        binding.viewPager.adapter = adapter
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                binding.bottomNav.menu.getItem(position)?.isChecked = true
+            }
+        })
+        binding.bottomNav.setOnItemSelectedListener {
+            when (it.itemId) {
+                R.id.list -> binding.viewPager.currentItem = 0
+                R.id.adv_search -> binding.viewPager.currentItem = 1
+                R.id.settings -> binding.viewPager.currentItem = 2
+                else -> binding.viewPager.currentItem = 0
+            }
+            true
+        }
     }
 
     private fun initEdgeToEdge() {
