@@ -79,6 +79,11 @@ class AdvSearchFragment : Fragment() {
             }
         }
         viewModel?.filteredData?.observe(viewLifecycleOwner) {
+            if (it.isEmpty()) {
+                binding.searchNoResultHintGroup.visibility = View.VISIBLE
+            } else {
+                binding.searchNoResultHintGroup.visibility = View.GONE
+            }
             binding.searchHintGroup.visibility = View.GONE
             adapter.updateData(it)
         }
