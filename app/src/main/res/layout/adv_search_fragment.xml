@@ -16,6 +16,7 @@
 
     <TextView
         android:id="@+id/processing_hint"
+        style="@style/TextAppearance.Material3.BodyLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/preparing_data_please_wait"
@@ -26,6 +27,7 @@
 
     <TextView
         android:id="@+id/processing_name"
+        style="@style/TextAppearance.Material3.BodySmall"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -54,6 +56,7 @@
 
     <TextView
         android:id="@+id/search_hint"
+        style="@style/TextAppearance.Material3.BodyMedium"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -86,6 +89,7 @@
 
     <TextView
         android:id="@+id/search_no_result_hint"
+        style="@style/TextAppearance.Material3.BodyMedium"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
