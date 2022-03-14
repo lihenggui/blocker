@@ -1,46 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/selectableItemBackground"
     android:clickable="false"
     android:focusable="false"
-    android:background="?attr/selectableItemBackground"
-    android:paddingStart="24dp"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:paddingStart="24dp">
 
-        <ImageView
-            android:id="@+id/icon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_margin="16dp"
-            android:contentDescription="@string/app_icon_description"
-            tools:src="@mipmap/ic_launcher"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@id/app_name" />
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/app_icon_description"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/app_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@mipmap/ic_launcher" />
 
-        <TextView
-            android:id="@+id/app_name"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/icon"
-            app:layout_constraintEnd_toStartOf="@id/search_count"
-            tools:text="@string/app_name" />
+    <TextView
+        android:id="@+id/app_name"
+        style="@style/TextAppearance.Material3.TitleMedium"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/search_count"
+        app:layout_constraintStart_toEndOf="@id/icon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@string/app_name" />
 
-        <TextView
-            android:id="@+id/search_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="16dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@id/app_name"
-            tools:text="100" />
+    <TextView
+        android:id="@+id/search_count"
+        style="@style/TextAppearance.Material3.BodySmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/app_name"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="100" />
 </androidx.constraintlayout.widget.ConstraintLayout>
