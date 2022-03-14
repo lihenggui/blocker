@@ -98,5 +98,6 @@
     <string name="advanced_search">Advanced search</string>
     <string name="invalid_regex">Invalid regex</string>
     <string name="preparing_data_please_wait">Preparing data, please wait…</string>
-    <string name="search_componment_hint">Type component name in the toolbar to start search</string>
+    <string name="search_component_hint">Type component name in the toolbar to start search</string>
+    <string name="no_search_result">No search result</string>
 </resources>
