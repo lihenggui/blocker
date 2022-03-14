@@ -50,11 +50,13 @@ class AdvSearchFragment : Fragment() {
         viewModel?.isLoading?.observe(viewLifecycleOwner) {
             setSearchIconVisibility(!it)
             if (it) {
+                binding.searchHintGroup.visibility = View.GONE
                 binding.loadingIndicatorGroup.visibility = View.VISIBLE
                 binding.list.visibility = View.GONE
             } else {
                 binding.list.visibility = View.VISIBLE
                 binding.loadingIndicatorGroup.visibility = View.GONE
+                binding.searchHintGroup.visibility = View.VISIBLE
             }
         }
         viewModel?.currentProcessApplication?.observe(viewLifecycleOwner) {
@@ -77,6 +79,7 @@ class AdvSearchFragment : Fragment() {
             }
         }
         viewModel?.filteredData?.observe(viewLifecycleOwner) {
+            binding.searchHintGroup.visibility = View.GONE
             adapter.updateData(it)
         }
         viewModel?.error?.observe(viewLifecycleOwner) {
