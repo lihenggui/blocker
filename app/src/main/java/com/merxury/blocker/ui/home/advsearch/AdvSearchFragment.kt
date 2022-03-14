@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.AdvSearchFragmentBinding
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.unsafeLazy
 
@@ -50,11 +51,11 @@ class AdvSearchFragment : Fragment() {
         viewModel?.isLoading?.observe(viewLifecycleOwner) {
             setSearchIconVisibility(!it)
             if (it) {
+                binding.searchNoResultHintGroup.visibility = View.GONE
                 binding.searchHintGroup.visibility = View.GONE
                 binding.loadingIndicatorGroup.visibility = View.VISIBLE
                 binding.list.visibility = View.GONE
             } else {
-                binding.list.visibility = View.VISIBLE
                 binding.loadingIndicatorGroup.visibility = View.GONE
                 binding.searchHintGroup.visibility = View.VISIBLE
             }
@@ -68,7 +69,6 @@ class AdvSearchFragment : Fragment() {
                 return@observe
             }
             if (it > 0) {
-                logger.i("totalCount: $totalCount")
                 totalCount = it
             }
         }
@@ -79,6 +79,7 @@ class AdvSearchFragment : Fragment() {
             }
         }
         viewModel?.filteredData?.observe(viewLifecycleOwner) {
+            binding.list.visibility = View.VISIBLE
             if (it.isEmpty()) {
                 binding.searchNoResultHintGroup.visibility = View.VISIBLE
             } else {
@@ -103,18 +104,21 @@ class AdvSearchFragment : Fragment() {
         initSearch(menu)
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu) {
+        super.onPrepareOptionsMenu(menu)
+        menu.findItem(R.id.action_show_system_apps)?.isChecked =
+            PreferenceUtil.getSearchSystemApps(requireContext())
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_block_all -> {
-                viewModel?.doBatchOperation(false)
-                return true
-            }
-            R.id.action_enable_all -> {
-                viewModel?.doBatchOperation(true)
-                return true
-            }
-            else -> false
+        when (item.itemId) {
+            R.id.action_show_system_apps -> handleSearchSystemAppClicked(item)
+            R.id.action_refresh -> viewModel?.load(requireContext())
+            R.id.action_block_all -> viewModel?.doBatchOperation(false)
+            R.id.action_enable_all -> viewModel?.doBatchOperation(true)
+            else -> return false
         }
+        return true
     }
 
     override fun onDestroyView() {
@@ -130,6 +134,12 @@ class AdvSearchFragment : Fragment() {
         binding.list.apply {
             setAdapter(this@AdvSearchFragment.adapter)
         }
+    }
+
+    private fun handleSearchSystemAppClicked(menuItem: MenuItem) {
+        menuItem.isChecked = !menuItem.isChecked
+        PreferenceUtil.setSearchSystemApps(requireContext(), menuItem.isChecked)
+        viewModel?.load(requireContext())
     }
 
     private fun initSearch(menu: Menu) {
