@@ -99,4 +99,7 @@
     <string name="preparing_data_please_wait">Подготовка данных, пожалуйста, подождите…</string>
     <string name="search_component_hint">Введите имя компонента на панели инструментов, чтобы начать поиск</string>
     <string name="no_search_result">Нет результата поиска</string>
+    <string name="disabling_components_please_wait">Отключение компонентов, подождите…</string>
+    <string name="enabling_components_please_wait">Включение компонентов, пожалуйста, подождите…</string>
+    <string name="done">Сделанный</string>
 </resources>
