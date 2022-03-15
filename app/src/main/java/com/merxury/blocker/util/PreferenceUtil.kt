@@ -91,4 +91,16 @@ object PreferenceUtil {
             SortType.NAME_ASC
         }
     }
+
+    fun setSearchSystemApps(context: Context, value: Boolean) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putBoolean(context.getString(R.string.key_pref_search_system_apps), value)
+            .apply()
+    }
+
+    fun getSearchSystemApps(context: Context): Boolean {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        return pref.getBoolean(context.getString(R.string.key_pref_search_system_apps), false)
+    }
 }

@@ -29,14 +29,11 @@
                 app:buttonGravity="center_vertical" />
         </com.google.android.material.appbar.AppBarLayout>
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/nav_host_fragment"
-            android:name="androidx.navigation.fragment.NavHostFragment"
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/view_pager"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:defaultNavHost="true"
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
-            app:navGraph="@navigation/home_nav_graph"
             tools:layout="@layout/app_list_fragment" />
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

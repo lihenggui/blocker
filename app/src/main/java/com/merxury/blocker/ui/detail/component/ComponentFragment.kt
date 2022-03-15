@@ -1,10 +1,17 @@
 package com.merxury.blocker.ui.detail.component
 
+import android.annotation.SuppressLint
 import android.app.SearchManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.ViewCompat
@@ -67,10 +74,20 @@ class ComponentFragment : Fragment() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_block_all -> {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.disabling_components_please_wait,
+                    Toast.LENGTH_SHORT
+                ).show()
                 viewModel.disableAll(requireContext(), packageName, type)
                 true
             }
             R.id.action_enable_all -> {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.enabling_components_please_wait,
+                    Toast.LENGTH_SHORT
+                ).show()
                 viewModel.enableAll(requireContext(), packageName, type)
                 true
             }
@@ -128,6 +145,7 @@ class ComponentFragment : Fragment() {
         viewModel.load(requireContext(), packageName, type)
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun observeData() {
         viewModel.data.observe(viewLifecycleOwner) {
             logger.i("Received component info: ${it.count()}, type = ${type.name}")
@@ -141,6 +159,7 @@ class ComponentFragment : Fragment() {
                 binding.noComponentHint.visibility = View.GONE
                 binding.recyclerView.visibility = View.VISIBLE
                 adapter.submitList(it)
+                adapter.notifyDataSetChanged()
             }
         }
         viewModel.updatedItem.observe(viewLifecycleOwner) {
