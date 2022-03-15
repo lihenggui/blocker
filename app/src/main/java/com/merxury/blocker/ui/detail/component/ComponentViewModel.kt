@@ -4,7 +4,11 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
@@ -77,20 +81,21 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
             val controllerType = PreferenceUtil.getControllerType(context)
             val controller = ComponentControllerProxy.getInstance(controllerType, context)
             try {
-                val dataList = deepCopy(data.value)
-                val componentInfoList = convertToComponentInfo(dataList)
+                val dataList = data.value ?: return@launch
+                val componentInfoList = convertToComponentInfo(data.value)
                 if (enable) {
                     controller.batchEnable(componentInfoList) {
                         logger.i("Enabling ${it.name}")
+                        updateComponentViewStatus(dataList, it, true, controllerType)
                     }
                 } else {
                     controller.batchDisable(componentInfoList) {
                         logger.i("Disabling ${it.name}")
+                        updateComponentViewStatus(dataList, it, false, controllerType)
                     }
                 }
-                updateComponentViewStatus(dataList, enable, controllerType)
+
                 _data.postValue(dataList)
-                updateDataSource(dataList)
             } catch (e: Throwable) {
                 logger.e(
                     "Failed to control all components $packageName, type $type, enable $enable",
@@ -104,28 +109,14 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
 
     private fun updateComponentViewStatus(
         list: List<ComponentData>,
+        component: ComponentInfo,
         status: Boolean,
         controllerType: EControllerMethod
     ) {
+        val data = list.find { it.name == component.name }
         when (controllerType) {
-            EControllerMethod.IFW -> list.forEach { it.ifwBlocked = !status }
-            else -> list.forEach { it.pmBlocked = !status }
-        }
-    }
-
-    // After batch operations, we need to update the original list
-    // So the app can show the correct status
-    private suspend fun updateDataSource(list: List<ComponentData>) {
-        withContext(Dispatchers.Default) {
-            list.forEach { newComp ->
-                val index = originalList.indexOfFirst { newComp.name == it.name }
-                if (index != -1) {
-                    originalList.getOrNull(index)?.apply {
-                        ifwBlocked = newComp.ifwBlocked
-                        pmBlocked = newComp.pmBlocked
-                    }
-                }
-            }
+            EControllerMethod.IFW -> data?.ifwBlocked = !status
+            else -> data?.pmBlocked = !status
         }
     }
 
@@ -266,12 +257,6 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                     name = it.name
                 }
             } ?: listOf()
-        }
-    }
-
-    private suspend fun deepCopy(list: List<ComponentData>?): List<ComponentData> {
-        return withContext(Dispatchers.Default) {
-            list?.map { it.copy() } ?: listOf()
         }
     }
 
