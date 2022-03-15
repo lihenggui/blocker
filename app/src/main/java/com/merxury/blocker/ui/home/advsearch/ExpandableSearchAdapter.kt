@@ -47,13 +47,12 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
     }
 
     override fun getGroupId(groupPosition: Int): Long {
-        return appList[groupPosition].hashCode().toLong()
+        return appList[groupPosition].packageName.hashCode().toLong()
     }
 
     override fun getChild(groupPosition: Int, childPosition: Int): Any? {
         val app = appList.getOrNull(groupPosition)
-        val child = data[app]?.getOrNull(childPosition)
-        return child
+        return data[app]?.getOrNull(childPosition)
     }
 
     override fun getChildId(groupPosition: Int, childPosition: Int): Long {
