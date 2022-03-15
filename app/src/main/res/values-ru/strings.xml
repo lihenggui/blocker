@@ -94,4 +94,9 @@
     <string name="export_fail_message">Не удалось экспортировать правила. Проверьте, есть ли у вас разрешение.</string>
     <string name="launch_app">запустить приложение</string>
     <string name="cannot_launch_this_app">Не удалось запустить это приложение</string>
+    <string name="advanced_search">Расширенный поиск</string>
+    <string name="invalid_regex">Недопустимое регулярное выражение</string>
+    <string name="preparing_data_please_wait">Подготовка данных, пожалуйста, подождите…</string>
+    <string name="search_component_hint">Введите имя компонента на панели инструментов, чтобы начать поиск</string>
+    <string name="no_search_result">Нет результата поиска</string>
 </resources>
