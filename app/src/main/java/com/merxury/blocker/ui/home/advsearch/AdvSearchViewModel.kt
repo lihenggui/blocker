@@ -65,7 +65,7 @@ class AdvSearchViewModel : ViewModel() {
             _filteredData.value = _finalData.value
             return
         }
-        val regex = keyword.toRegex()
+        val regex = keyword.lowercase().toRegex()
         viewModelScope.launch(Dispatchers.Default) {
             val searchResult = mutableMapOf<Application, List<ComponentData>>()
             val dataSource = finalData.value ?: return@launch
@@ -74,7 +74,9 @@ class AdvSearchViewModel : ViewModel() {
                 val componentList = it.value
                 val filteredComponentList = mutableListOf<ComponentData>()
                 componentList.forEach { component ->
-                    if (regex.containsMatchIn(component.name) || regex.containsMatchIn(component.packageName)) {
+                    if (regex.containsMatchIn(component.name.lowercase()) ||
+                        regex.containsMatchIn(component.packageName.lowercase())
+                    ) {
                         filteredComponentList.add(component)
                     }
                 }
@@ -135,8 +137,9 @@ class AdvSearchViewModel : ViewModel() {
         notifyDataProcessing(appList)
         val result = mutableMapOf<Application, List<ComponentData>>()
         withContext(Dispatchers.Default) {
+            val sortedList = appList.sortedBy { it.label }
             val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
-            appList.forEachIndexed { index, application ->
+            sortedList.forEachIndexed { index, application ->
                 val packageName = application.packageName
                 val ifwController = IntentFirewallImpl(packageName).load()
                 _currentProcessApplication.postValue(application)
@@ -185,6 +188,7 @@ class AdvSearchViewModel : ViewModel() {
                 isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
             )
         }
+            .sortedBy { it.simpleName }
     }
 
     private fun notifyDataProcessing(appList: List<Application>) {
