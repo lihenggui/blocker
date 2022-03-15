@@ -94,4 +94,9 @@
     <string name="export_fail_message">導出規則失敗，請檢查你是否獲得了權限。</string>
     <string name="launch_app">啟動應用</string>
     <string name="cannot_launch_this_app">無法啟動這個應用</string>
+    <string name="advanced_search">高級搜索</string>
+    <string name="invalid_regex">無效正則表達式</string>
+    <string name="preparing_data_please_wait">準備數據中，請稍等…</string>
+    <string name="search_component_hint">在搜索中輸入組件名或包名開始搜索</string>
+    <string name="no_search_result">無搜索結果</string>
 </resources>
