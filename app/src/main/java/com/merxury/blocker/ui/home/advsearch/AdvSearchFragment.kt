@@ -95,6 +95,13 @@ class AdvSearchFragment : Fragment() {
                 adapter.notifyDataSetChanged()
             }
         }
+        viewModel?.operationDone?.observe(viewLifecycleOwner) {
+            val result = it.getContentIfNotHandled()
+            if (result == true) {
+                Toast.makeText(requireContext(), R.string.done, Toast.LENGTH_SHORT).show()
+                adapter.notifyDataSetChanged()
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -114,11 +121,29 @@ class AdvSearchFragment : Fragment() {
         when (item.itemId) {
             R.id.action_show_system_apps -> handleSearchSystemAppClicked(item)
             R.id.action_refresh -> viewModel?.load(requireContext())
-            R.id.action_block_all -> viewModel?.doBatchOperation(false)
-            R.id.action_enable_all -> viewModel?.doBatchOperation(true)
+            R.id.action_block_all -> batchDisable()
+            R.id.action_enable_all -> batchEnable()
             else -> return false
         }
         return true
+    }
+
+    private fun batchEnable() {
+        Toast.makeText(
+            requireContext(),
+            R.string.enabling_components_please_wait,
+            Toast.LENGTH_SHORT
+        ).show()
+        viewModel?.doBatchOperation(true)
+    }
+
+    private fun batchDisable() {
+        Toast.makeText(
+            requireContext(),
+            R.string.disabling_components_please_wait,
+            Toast.LENGTH_SHORT
+        ).show()
+        viewModel?.doBatchOperation(false)
     }
 
     override fun onDestroyView() {

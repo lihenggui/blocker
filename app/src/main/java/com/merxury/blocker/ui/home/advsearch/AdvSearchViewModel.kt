@@ -42,8 +42,11 @@ class AdvSearchViewModel : ViewModel() {
     val filteredData: LiveData<MutableMap<Application, List<ComponentData>>> = _filteredData
     private val _error = MutableLiveData<Event<Exception>>()
     val error: LiveData<Event<Exception>> = _error
+    private val _operationDone = MutableLiveData<Event<Boolean>>()
+    val operationDone: LiveData<Event<Boolean>> = _operationDone
 
     private var controller: IController? = null
+    private var controllerType = EControllerMethod.IFW
 
     fun load(context: Context) {
         viewModelScope.launch {
@@ -54,8 +57,8 @@ class AdvSearchViewModel : ViewModel() {
             }
             processData(context, appList)
         }
-        val type = PreferenceUtil.getControllerType(context)
-        controller = ComponentControllerProxy.getInstance(type, context)
+        controllerType = PreferenceUtil.getControllerType(context)
+        controller = ComponentControllerProxy.getInstance(controllerType, context)
     }
 
     @Throws(PatternSyntaxException::class)
@@ -120,16 +123,31 @@ class AdvSearchViewModel : ViewModel() {
                 if (enabled) {
                     controller?.batchEnable(infoList) {
                         logger.i("batch enable: $it")
+                        updateComponentStatus(it, true)
                     }
                 } else {
                     controller?.batchDisable(infoList) {
                         logger.i("batch disable: $it")
+                        updateComponentStatus(it, false)
                     }
                 }
+                _operationDone.postValue(Event(true))
             } catch (e: Exception) {
                 logger.e("Failed to do batch operation to state $enabled", e)
                 _error.postValue(Event(e))
             }
+        }
+    }
+
+    private fun updateComponentStatus(component: ComponentInfo, enabled: Boolean) {
+        val data = filteredData.value ?: return
+        val app = data.keys.firstOrNull { it.packageName == component.packageName } ?: return
+        val componentList = data[app] ?: return
+        val componentData = componentList.firstOrNull { it.name == component.name } ?: return
+        if (controllerType == EControllerMethod.IFW) {
+            componentData.ifwBlocked = !enabled
+        } else {
+            componentData.pmBlocked = !enabled
         }
     }
 
