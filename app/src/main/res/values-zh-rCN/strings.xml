@@ -94,6 +94,7 @@
     <string name="export_fail_message">导出规则失败，请检查你是否获得了权限。</string>
     <string name="launch_app">启动应用</string>
     <string name="cannot_launch_this_app">无法启动这个应用</string>
+    <string name="failed_to_send_log">发送日志失败</string>
     <string name="advanced_search">高级搜索</string>
     <string name="invalid_regex">无效正则表达式</string>
     <string name="preparing_data_please_wait">准备数据中，请稍等…</string>

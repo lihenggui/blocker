@@ -94,6 +94,7 @@
     <string name="export_fail_message">Не удалось экспортировать правила. Проверьте, есть ли у вас разрешение.</string>
     <string name="launch_app">запустить приложение</string>
     <string name="cannot_launch_this_app">Не удалось запустить это приложение</string>
+    <string name="failed_to_send_log">Не удалось отправить журнал</string>
     <string name="advanced_search">Расширенный поиск</string>
     <string name="invalid_regex">Недопустимое регулярное выражение</string>
     <string name="preparing_data_please_wait">Подготовка данных, пожалуйста, подождите…</string>
