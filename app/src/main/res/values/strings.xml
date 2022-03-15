@@ -96,4 +96,12 @@
     <string name="launch_app">Launch app</string>
     <string name="cannot_launch_this_app">Cannot launch this app</string>
     <string name="failed_to_send_log">Failed to send the log</string>
+    <string name="advanced_search">Advanced search</string>
+    <string name="invalid_regex">Invalid regex</string>
+    <string name="preparing_data_please_wait">Preparing data, please wait…</string>
+    <string name="search_component_hint">Type component name in the toolbar to start searching</string>
+    <string name="no_search_result">No search result</string>
+    <string name="disabling_components_please_wait">Disabling components, please wait…</string>
+    <string name="enabling_components_please_wait">Enabling components, please wait…</string>
+    <string name="done">Done</string>
 </resources>
