@@ -12,6 +12,9 @@ import com.elvishew.xlog.printer.file.FilePrinter
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
 import com.google.android.material.color.DynamicColors
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.weishu.reflection.Reflection
 
 class BlockerApplication : Application() {
@@ -28,18 +31,24 @@ class BlockerApplication : Application() {
     }
 
     private fun initLogger() {
-        val config = LogConfiguration.Builder()
-            .logLevel(LogLevel.ALL)
-            .tag("Blocker")
-            .enableThreadInfo()
-            .build()
-        val filePrinter = FilePrinter.Builder(filesDir.resolve(LOG_PATH).absolutePath)
-            .backupStrategy(NeverBackupStrategy())
-            .fileNameGenerator(DateFileNameGenerator())
-            .flattener(ClassicFlattener())
-            .build()
-        val androidPrinter = AndroidPrinter()
-        XLog.init(config, androidPrinter, filePrinter)
+        CoroutineScope(Dispatchers.IO).launch {
+            val logFolder = filesDir.resolve(LOG_PATH)
+            if (!logFolder.exists()) {
+                logFolder.mkdirs()
+            }
+            val config = LogConfiguration.Builder()
+                .logLevel(LogLevel.ALL)
+                .tag("Blocker")
+                .enableThreadInfo()
+                .build()
+            val filePrinter = FilePrinter.Builder(logFolder.absolutePath)
+                .backupStrategy(NeverBackupStrategy())
+                .fileNameGenerator(DateFileNameGenerator())
+                .flattener(ClassicFlattener())
+                .build()
+            val androidPrinter = AndroidPrinter()
+            XLog.init(config, androidPrinter, filePrinter)
+        }
     }
 
     companion object {

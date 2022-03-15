@@ -58,7 +58,13 @@ class AppDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAppDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        fetchAppInfo()
+        _app = intent?.getParcelableExtra(EXTRA_APP)
+        if (_app == null) {
+            logger.e("app is null")
+            finish()
+            return
+        }
+        logger.i("Show app: ${app.packageName}")
         initToolbar()
         initViewPager()
         initEdgeToEdge()
@@ -142,16 +148,6 @@ class AppDetailActivity : AppCompatActivity() {
             }
             windowInsets
         }
-    }
-
-    private fun fetchAppInfo() {
-        _app = intent?.getParcelableExtra(EXTRA_APP)
-        if (_app == null) {
-            logger.e("app is null")
-            finish()
-            return
-        }
-        logger.i("Show app: ${app.packageName}")
     }
 
     companion object {
