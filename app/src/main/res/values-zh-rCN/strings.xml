@@ -99,4 +99,7 @@
     <string name="preparing_data_please_wait">准备数据中，请稍等…</string>
     <string name="search_component_hint">在搜索中输入组件名或包名开始搜索</string>
     <string name="no_search_result">无搜索结果</string>
+    <string name="disabling_components_please_wait">批量禁止中，请稍等…</string>
+    <string name="enabling_components_please_wait">批量启用中，请稍等…</string>
+    <string name="done">完成</string>
 </resources>
