@@ -13,6 +13,12 @@
         tools:ignore="AlwaysShowAction" />
 
     <item
+        android:id="@+id/action_regex_search"
+        android:checkable="true"
+        android:title="@string/regex_search"
+        app:showAsAction="never" />
+
+    <item
         android:id="@+id/action_show_system_apps"
         android:checkable="true"
         android:title="@string/show_system_apps"
