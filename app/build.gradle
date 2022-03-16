@@ -103,7 +103,7 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.1'
     // Crashlytics
-    prodImplementation platform('com.google.firebase:firebase-bom:29.1.0')
+    prodImplementation platform('com.google.firebase:firebase-bom:29.2.0')
     prodImplementation 'com.google.firebase:firebase-crashlytics-ktx'
     prodImplementation 'com.google.firebase:firebase-analytics-ktx'
     // Project dependencies
