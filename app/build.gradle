@@ -16,7 +16,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 32
         versionCode 1153
-        versionName "1.1.53-dev"
+        versionName "1.1.53"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         resConfigs 'en', 'zh-rCN', 'zh-rTW', 'ru'
         multiDexEnabled true
