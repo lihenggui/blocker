@@ -1,5 +1,7 @@
 package com.merxury.blocker.ui.detail.component
 
+import com.merxury.libkit.entity.EComponentType
+
 data class ComponentData(
     var name: String = "",
     var simpleName: String = "",
