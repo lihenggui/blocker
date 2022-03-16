@@ -122,12 +122,12 @@ class AdvSearchViewModel : ViewModel() {
                 }
                 if (enabled) {
                     controller?.batchEnable(infoList) {
-                        logger.i("batch enable: $it")
+                        logger.i("batch enable: ${it.name}")
                         updateComponentStatus(it, true)
                     }
                 } else {
                     controller?.batchDisable(infoList) {
-                        logger.i("batch disable: $it")
+                        logger.i("batch disable: ${it.name}")
                         updateComponentStatus(it, false)
                     }
                 }
