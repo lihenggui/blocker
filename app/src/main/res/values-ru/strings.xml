@@ -103,4 +103,5 @@
     <string name="disabling_components_please_wait">Отключение компонентов, подождите…</string>
     <string name="enabling_components_please_wait">Включение компонентов, пожалуйста, подождите…</string>
     <string name="done">Сделанный</string>
+    <string name="browser_required">Требуется установка браузера</string>
 </resources>

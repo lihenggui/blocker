@@ -103,4 +103,5 @@
     <string name="disabling_components_please_wait">批量禁止中，请稍等…</string>
     <string name="enabling_components_please_wait">批量启用中，请稍等…</string>
     <string name="done">完成</string>
+    <string name="browser_required">需要安装浏览器</string>
 </resources>
