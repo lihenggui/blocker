@@ -2,14 +2,19 @@ package com.merxury.libkit.utils
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.*
+import android.content.pm.ActivityInfo
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
+import android.content.pm.ProviderInfo
+import android.content.pm.ServiceInfo
 import android.os.Build
 import com.elvishew.xlog.XLog
 import com.merxury.libkit.entity.Application
+import java.util.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
 
 /**
  * Created by Mercury on 2017/12/30.
@@ -108,9 +113,9 @@ object ApplicationUtil {
                     Collections.addAll(activities, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.w("Cannot find specified package.")
+                logger.w("Cannot find specified package $packageName.")
             } catch (e: RuntimeException) {
-                logger.e("Failed to fetch activity list", e)
+                logger.e("Failed to fetch activity list for $packageName", e)
                 return@withContext ApkUtils.getActivities(pm, packageName)
             }
             activities
@@ -144,7 +149,7 @@ object ApplicationUtil {
                     Collections.addAll(receivers, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.e("Cannot find specified package.")
+                logger.e("Cannot find specified package $packageName.")
             }
             receivers
         }
@@ -178,9 +183,9 @@ object ApplicationUtil {
                     Collections.addAll(services, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.e("Cannot find specified package.")
+                logger.e("Cannot find specified package $packageName.")
             } catch (e: RuntimeException) {
-                logger.e("Failed to fetch service list", e)
+                logger.e("Failed to fetch service list $packageName", e)
                 return@withContext ApkUtils.getServices(pm, packageName)
             }
             services
@@ -214,7 +219,7 @@ object ApplicationUtil {
                     Collections.addAll(providers, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.e("Cannot find specified package.")
+                logger.e("Cannot find specified package $packageName.")
             }
             providers
         }
