@@ -23,4 +23,5 @@
     <string name="key_pref_report_issue" translatable="false">key_pref_report_issue</string>
     <string name="key_pref_sort_type" translatable="false">key_pref_sort_type</string>
     <string name="key_pref_search_system_apps" translatable="false">key_pref_search_system_apps</string>
+    <string name="key_pref_use_regex_search" translatable="false">key_pref_use_regex_search</string>
 </resources>

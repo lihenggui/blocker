@@ -105,4 +105,5 @@
     <string name="enabling_components_please_wait">Enabling components, please wait…</string>
     <string name="done">Done</string>
     <string name="browser_required">Browser required</string>
+    <string name="regex_search">Regex search</string>
 </resources>
