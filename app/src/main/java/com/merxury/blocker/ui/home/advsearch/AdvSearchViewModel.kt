@@ -62,13 +62,16 @@ class AdvSearchViewModel : ViewModel() {
     }
 
     @Throws(PatternSyntaxException::class)
-    fun filter(keyword: String) {
+    fun filter(keyword: String, useRegex: Boolean = false) {
         logger.i("filter: $keyword")
         if (keyword.isEmpty()) {
             _filteredData.value = _finalData.value
             return
         }
-        val regex = keyword.lowercase().toRegex()
+        if (useRegex) {
+            // Check validity of this regex and throw exception earlier
+            keyword.lowercase().toRegex()
+        }
         viewModelScope.launch(Dispatchers.Default) {
             val searchResult = mutableMapOf<Application, List<ComponentData>>()
             val dataSource = finalData.value ?: return@launch
@@ -77,9 +80,7 @@ class AdvSearchViewModel : ViewModel() {
                 val componentList = it.value
                 val filteredComponentList = mutableListOf<ComponentData>()
                 componentList.forEach { component ->
-                    if (regex.containsMatchIn(component.name.lowercase()) ||
-                        regex.containsMatchIn(component.packageName.lowercase())
-                    ) {
+                    if (containsKeyword(component, keyword, useRegex)) {
                         filteredComponentList.add(component)
                     }
                 }
@@ -88,6 +89,21 @@ class AdvSearchViewModel : ViewModel() {
                 }
             }
             _filteredData.postValue(searchResult)
+        }
+    }
+
+    private fun containsKeyword(
+        component: ComponentData,
+        keyword: String,
+        useRegex: Boolean
+    ): Boolean {
+        return if (useRegex) {
+            val regex = keyword.lowercase().toRegex()
+            regex.containsMatchIn(component.name.lowercase()) ||
+                    regex.containsMatchIn(component.packageName.lowercase())
+        } else {
+            component.name.lowercase().contains(keyword.lowercase()) ||
+                    component.packageName.lowercase().contains(keyword.lowercase())
         }
     }
 
