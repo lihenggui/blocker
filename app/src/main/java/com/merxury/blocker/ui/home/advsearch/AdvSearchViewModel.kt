@@ -2,11 +2,13 @@ package com.merxury.blocker.ui.home.advsearch
 
 import android.content.Context
 import android.content.pm.ComponentInfo
+import android.content.pm.PackageManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
@@ -15,6 +17,7 @@ import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.Application
+import com.merxury.libkit.entity.EComponentType
 import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ServiceHelper
@@ -147,10 +150,34 @@ class AdvSearchViewModel : ViewModel() {
                         updateComponentStatus(it, false)
                     }
                 }
+                processProviders(componentList, enabled)
                 _operationDone.postValue(Event(true))
             } catch (e: Exception) {
                 logger.e("Failed to do batch operation to state $enabled", e)
                 _error.postValue(Event(e))
+            }
+        }
+    }
+
+    private suspend fun processProviders(list: List<ComponentData>, enabled: Boolean) {
+        val context = BlockerApplication.context
+        val type = PreferenceUtil.getControllerType(context)
+        if (type != EControllerMethod.IFW) {
+            // Other controllers can handle providers
+            return
+        }
+        // IFW cannot handle providers, do extra logics
+        val providerList = list.filter { it.type == EComponentType.PROVIDER }
+        if (providerList.isNotEmpty()) {
+            val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+            providerList.forEach {
+                if (enabled) {
+                    logger.i("Enable provider: ${it.packageName}/${it.name}")
+                    controller.enable(it.packageName, it.name)
+                } else {
+                    logger.i("Disable provider: ${it.packageName}/${it.name}")
+                    controller.disable(it.packageName, it.name)
+                }
             }
         }
     }
@@ -160,7 +187,7 @@ class AdvSearchViewModel : ViewModel() {
         val app = data.keys.firstOrNull { it.packageName == component.packageName } ?: return
         val componentList = data[app] ?: return
         val componentData = componentList.firstOrNull { it.name == component.name } ?: return
-        if (controllerType == EControllerMethod.IFW) {
+        if (controllerType == EControllerMethod.IFW && componentData.type != EComponentType.PROVIDER) {
             componentData.ifwBlocked = !enabled
         } else {
             componentData.pmBlocked = !enabled
@@ -183,17 +210,18 @@ class AdvSearchViewModel : ViewModel() {
                 serviceHelper.refresh()
                 val activities = ApplicationUtil
                     .getActivityList(context.packageManager, packageName)
-                    .convertToComponentDataList(ifwController, pmController, null)
+                    .convertToComponentDataList(context, ifwController, pmController, null)
                 val services = ApplicationUtil.getServiceList(context.packageManager, packageName)
                     .convertToComponentDataList(
+                        context,
                         ifwController,
                         pmController,
                         ServiceHelper(packageName)
                     )
                 val providers = ApplicationUtil.getProviderList(context.packageManager, packageName)
-                    .convertToComponentDataList(ifwController, pmController, null)
+                    .convertToComponentDataList(context, ifwController, pmController, null)
                 val receivers = ApplicationUtil.getReceiverList(context.packageManager, packageName)
-                    .convertToComponentDataList(ifwController, pmController, null)
+                    .convertToComponentDataList(context, ifwController, pmController, null)
                 val componentTotalList = components.plus(services)
                     .plus(receivers)
                     .plus(activities)
@@ -208,6 +236,7 @@ class AdvSearchViewModel : ViewModel() {
     }
 
     private suspend fun List<ComponentInfo>.convertToComponentDataList(
+        context: Context,
         ifwController: IntentFirewall,
         pmController: IController,
         serviceHelper: ServiceHelper?
@@ -218,11 +247,24 @@ class AdvSearchViewModel : ViewModel() {
                 simpleName = it.getSimpleName(),
                 packageName = it.packageName,
                 ifwBlocked = !ifwController.getComponentEnableState(it.packageName, it.name),
+                type = getComponentType(context.packageManager, it.packageName, it.name),
                 pmBlocked = !pmController.checkComponentEnableState(it.packageName, it.name),
                 isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
             )
         }
             .sortedBy { it.simpleName }
+    }
+
+    private suspend fun getComponentType(
+        pm: PackageManager,
+        packageName: String,
+        name: String
+    ): EComponentType {
+        return if (ApplicationUtil.isProvider(pm, packageName, name)) {
+            EComponentType.PROVIDER
+        } else {
+            EComponentType.RECEIVER
+        }
     }
 
     private fun notifyDataProcessing(appList: List<Application>) {
