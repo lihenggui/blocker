@@ -104,4 +104,5 @@
     <string name="disabling_components_please_wait">Disabling components, please wait…</string>
     <string name="enabling_components_please_wait">Enabling components, please wait…</string>
     <string name="done">Done</string>
+    <string name="browser_required">Browser required</string>
 </resources>

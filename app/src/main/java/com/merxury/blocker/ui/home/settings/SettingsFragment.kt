@@ -14,13 +14,22 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.*
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkManager
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.work.*
+import com.merxury.blocker.work.ExportBlockerRulesWork
+import com.merxury.blocker.work.ExportIfwRulesWork
+import com.merxury.blocker.work.ImportBlockerRuleWork
+import com.merxury.blocker.work.ImportIfwRulesWork
+import com.merxury.blocker.work.ImportMatRulesWork
+import com.merxury.blocker.work.ResetIfwWork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -239,17 +248,32 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     }
 
     private fun showAbout() {
-        CustomTabsIntent.Builder()
-            .setShowTitle(true)
-            .build()
-            .launchUrl(requireContext(), Uri.parse(ABOUT_URL))
+        openUrl(ABOUT_URL)
     }
 
     private fun showDiscussionGroup() {
-        CustomTabsIntent.Builder()
+        openUrl(GROUP_URL)
+    }
+
+    private fun openUrl(url: String) {
+        val chromeIntent = CustomTabsIntent.Builder()
             .setShowTitle(true)
             .build()
-            .launchUrl(requireContext(), Uri.parse(GROUP_URL))
+        val resolveInfo =
+            requireContext().packageManager.queryIntentActivities(chromeIntent.intent, 0)
+        if (resolveInfo.isNotEmpty()) {
+            logger.i("Open url in Chrome Tabs $url")
+            chromeIntent.launchUrl(requireContext(), Uri.parse(url))
+        } else {
+            val browseIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            if (browseIntent.resolveActivity(requireContext().packageManager) != null) {
+                logger.i("Open url in default browser $url")
+                startActivity(browseIntent)
+            } else {
+                logger.w("No browser to open url $url")
+                ToastUtil.showToast(getString(R.string.browser_required))
+            }
+        }
     }
 
     private fun reportIssue() {
