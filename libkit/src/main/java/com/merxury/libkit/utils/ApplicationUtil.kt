@@ -344,4 +344,12 @@ object ApplicationUtil {
         }
         return false
     }
+
+    suspend fun isProvider(
+        pm: PackageManager,
+        packageName: String,
+        componentName: String
+    ): Boolean {
+        return getProviderList(pm, packageName).any { it.name == componentName }
+    }
 }
