@@ -12,6 +12,7 @@ import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.data.Event
 import com.merxury.blocker.ui.detail.component.ComponentData
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewall
