@@ -106,4 +106,15 @@
     <string name="done">Done</string>
     <string name="browser_required">Browser required</string>
     <string name="regex_search">Regex search</string>
+    <string name="local">Local</string>
+    <string name="online">Online</string>
+    <string name="name_with_semicolon_template">Name: %1$s</string>
+    <string name="rule_with_semicolon_template">Rule: %1$s</string>
+    <string name="company_with_semicolon_template">Company: %1$s</string>
+    <string name="side_effect_with_semicolon_template">Side effect: %1$s</string>
+    <string name="safe_to_block_with_semicolon_template">Safe to block: %1$s</string>
+    <string name="description_with_semicolon_template">Description: %1$s</string>
+    <string name="contributor_with_semicolon_template">Contributor: %1$s</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

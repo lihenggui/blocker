@@ -88,7 +88,6 @@
 -keep class com.merxury.ifw.entity.** { *; }
 -keep class com.merxury.libkit.entity.** { *; }
 -keep class com.merxury.blocker.rule.entity.** { *; }
--keep class com.merxury.blocker.strategy.entity.** { *; }
 -keepclassmembers enum * { *; }
 -keep class android.os.** { *; }
 -keepclasseswithmembers class android.content.pm.** { *; }

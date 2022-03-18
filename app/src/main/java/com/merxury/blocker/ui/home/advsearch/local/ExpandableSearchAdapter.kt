@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.home.advsearch
+package com.merxury.blocker.ui.home.advsearch.local
 
 import android.content.Context
 import android.view.LayoutInflater
