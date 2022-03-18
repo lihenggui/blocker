@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.home.advsearch
+package com.merxury.blocker.ui.home.advsearch.local
 
 import android.content.Context
 import android.content.pm.ComponentInfo
@@ -27,7 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class AdvSearchViewModel : ViewModel() {
+class LocalSearchViewModel : ViewModel() {
     private val logger = XLog.tag("AdvSearchViewModel")
     private val _appList = MutableLiveData<List<Application>>()
     val appList: LiveData<List<Application>> = _appList

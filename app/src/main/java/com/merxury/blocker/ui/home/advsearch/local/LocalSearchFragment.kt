@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.home.advsearch
+package com.merxury.blocker.ui.home.advsearch.local
 
 import android.app.SearchManager
 import android.content.Context
@@ -23,16 +23,16 @@ import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.unsafeLazy
 
-class AdvSearchFragment : Fragment() {
+class LocalSearchFragment : Fragment() {
     private val logger = XLog.tag("AdvSearchFragment")
     private lateinit var binding: AdvSearchFragmentBinding
-    private var viewModel: AdvSearchViewModel? = null
+    private var viewModel: LocalSearchViewModel? = null
     private var totalCount = 0
     private val adapter by unsafeLazy { ExpandableSearchAdapter(this.lifecycleScope) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this)[AdvSearchViewModel::class.java]
+        viewModel = ViewModelProvider(this)[LocalSearchViewModel::class.java]
     }
 
     override fun onCreateView(
@@ -165,7 +165,7 @@ class AdvSearchFragment : Fragment() {
             viewModel?.switchComponent(component.packageName, component.name, checked)
         }
         binding.list.apply {
-            setAdapter(this@AdvSearchFragment.adapter)
+            setAdapter(this@LocalSearchFragment.adapter)
         }
     }
 
