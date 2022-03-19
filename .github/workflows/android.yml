@@ -27,7 +27,7 @@ jobs:
         env:
           KEY_GOOGLE_SERVICES: ${{ secrets.KEY_GOOGLE_SERVICES }}
         run: |
-          base64 --decode > app/google-services.json
+          echo $KEY_GOOGLE_SERVICES | base64 --decode > app/google-services.json
       - name: Build release APK
         run: ./gradlew assembleRelease --stacktrace
         env:
