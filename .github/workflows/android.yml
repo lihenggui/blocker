@@ -23,13 +23,10 @@ jobs:
         with:
           filename: 'key-blocker.jks'
           encodedString: ${{ secrets.KEYSTORE }}
-      - name: Decode Google Service key
-        id: decode_google_service_key
-        uses: timheuer/base64-to-file@v1.1
-        with:
-          filename: 'google-services.json'
-          fileDir: ${{ env.RUNNER_WORKSPACE }}/app/
-          encodedString: ${{ secrets.KEY_GOOGLE_SERVICES }}
+        env:
+          KEY_GOOGLE_SERVICES: ${{ secrets.KEY_GOOGLE_SERVICES }}
+        run: |
+          base64 --decode > app/google-services.json
       - name: Build release APK
         run: ./gradlew assembleRelease --stacktrace
         env:
