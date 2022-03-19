@@ -23,6 +23,7 @@ jobs:
         with:
           filename: 'key-blocker.jks'
           encodedString: ${{ secrets.KEYSTORE }}
+      - name: Fetch Google Services key
         env:
           KEY_GOOGLE_SERVICES: ${{ secrets.KEY_GOOGLE_SERVICES }}
         run: |
