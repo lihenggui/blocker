@@ -27,7 +27,8 @@ jobs:
         id: decode_google_service_key
         uses: timheuer/base64-to-file@v1.1
         with:
-          filename: 'app/google-services.json'
+          filename: 'google-services.json'
+          fileDir: ${{ env.RUNNER_WORKSPACE }}/app/
           encodedString: ${{ secrets.KEY_GOOGLE_SERVICES }}
       - name: Build release APK
         run: ./gradlew assembleRelease --stacktrace
