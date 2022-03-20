@@ -47,8 +47,13 @@ jobs:
           alias: ${{ secrets.SIGNING_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
           keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
-      - name: Upload signed apk
+      - name: Upload signed prod APK
         uses: actions/upload-artifact@v3
         with:
           name: snapshot
-          path: ${{ steps.sign.outputs.signedReleaseFile }}
+          path: ${{ steps.sign_prod_app.outputs.signedReleaseFile }}
+      - name: Upload signed basic APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: snapshot
+          path: ${{ steps.sign_basic_app.outputs.signedReleaseFile }}
