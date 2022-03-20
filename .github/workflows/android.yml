@@ -17,30 +17,29 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: gradle
-      - name: Decode Keystore
-        id: decode_keystore
-        uses: timheuer/base64-to-file@v1.1
-        with:
-          filename: 'key-blocker.jks'
-          encodedString: ${{ secrets.KEYSTORE }}
+      - name: Retrieve commit info
+        run: |
+          echo VERSION=$(echo ${{ github.event.head_commit.id }} | head -c 10) >> $GITHUB_ENV
       - name: Fetch Google Services key
         env:
           KEY_GOOGLE_SERVICES: ${{ secrets.KEY_GOOGLE_SERVICES }}
         run: |
           echo $KEY_GOOGLE_SERVICES | base64 --decode > app/google-services.json
-      - name: Build release APK
-        run: ./gradlew assembleRelease --stacktrace
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: -PappVerName=${{ env.VERSION }} assembleRelease
       - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
+        uses: r0adkll/sign-android-release@v1.0.4
         id: sign_app
         with:
-          releaseDirectory: app/build/outputs/apk/prod/release
+          releaseDirectory: app/build/outputs/apk/
           signingKeyBase64: ${{ secrets.KEYSTORE }}
           alias: ${{ secrets.SIGNING_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
           keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
-      - name: Upload APK
-        uses: actions/upload-artifact@v1
+      - name: Upload signed apk
+        uses: actions/upload-artifact@v3
         with:
-          name: Build Artifacts
-          path: app/build/outputs/apk/
+          name: snapshot
+          path: ${{ steps.sign.outputs.signedReleaseFile }}
