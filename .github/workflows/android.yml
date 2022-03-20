@@ -29,11 +29,20 @@ jobs:
         uses: gradle/gradle-build-action@v2
         with:
           arguments: -PappVerName=${{ env.VERSION }} assembleRelease
-      - name: Sign APK
+      - name: Sign Prod APK
         uses: r0adkll/sign-android-release@v1.0.4
-        id: sign_app
+        id: sign_prod_app
         with:
-          releaseDirectory: app/build/outputs/apk/
+          releaseDirectory: app/build/outputs/apk/prod/release
+          signingKeyBase64: ${{ secrets.KEYSTORE }}
+          alias: ${{ secrets.SIGNING_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
+      - name: Sign Basic APK
+        uses: r0adkll/sign-android-release@v1.0.4
+        id: sign_basic_app
+        with:
+          releaseDirectory: app/build/outputs/apk/basic/release
           signingKeyBase64: ${{ secrets.KEYSTORE }}
           alias: ${{ secrets.SIGNING_KEY_ALIAS }}
           keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
