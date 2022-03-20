@@ -17,18 +17,28 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: gradle
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1.1
+        with:
+          filename: 'key-blocker.jks'
+          encodedString: ${{ secrets.KEYSTORE }}
       - name: Fetch Google Services key
         env:
           KEY_GOOGLE_SERVICES: ${{ secrets.KEY_GOOGLE_SERVICES }}
         run: |
           echo $KEY_GOOGLE_SERVICES | base64 --decode > app/google-services.json
-      - name: Build Signed APK
-        uses: victorbnl/build-signed-apk@v1.0.0
+      - name: Build release APK
+        run: ./gradlew assembleRelease --stacktrace
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
         with:
-          keystore: ${{ secrets.KEYSTORE }}
-          keystore_password: ${{ secrets.SIGNING_STORE_PASSWORD }}
-          key_alias: ${{ secrets.SIGNING_KEY_ALIAS }}
-          key_password: ${{ secrets.SIGNING_KEY_PASSWORD }}
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.KEYSTORE }}
+          alias: ${{ secrets.SIGNING_KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.SIGNING_KEY_PASSWORD }}
       - name: Upload APK
         uses: actions/upload-artifact@v1
         with:
