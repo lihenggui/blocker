@@ -9,8 +9,9 @@ import com.elvishew.xlog.XLog
 import com.google.android.material.tabs.TabLayoutMediator
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.SearchContainerFragmentBinding
+import com.merxury.blocker.ui.home.advsearch.local.LocalSearchFragment
 
-class SearchContainerFragment : Fragment() {
+class SearchContainerFragment : Fragment(), ILocalSearchHost {
     private lateinit var binding: SearchContainerFragmentBinding
     private lateinit var adapter: SearchPagerAdapter
     private val logger = XLog.tag("SearchContainerFragment")
@@ -26,7 +27,7 @@ class SearchContainerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        adapter = SearchPagerAdapter(requireActivity())
+        adapter = SearchPagerAdapter(this)
         binding.viewPager.adapter = adapter
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
@@ -35,5 +36,11 @@ class SearchContainerFragment : Fragment() {
                 else -> ""
             }
         }.attach()
+    }
+
+    override fun searchLocal(keyword: String) {
+        logger.i("Search locally: $keyword")
+        binding.viewPager.currentItem = 0
+        (adapter.fragments.first() as? LocalSearchFragment)?.search(keyword)
     }
 }

@@ -14,6 +14,7 @@ import com.merxury.blocker.data.Status
 import com.merxury.blocker.data.source.GeneralRuleRepository
 import com.merxury.blocker.data.source.RulesRetrofitBuilder
 import com.merxury.blocker.databinding.GeneralRulesFragmentBinding
+import com.merxury.blocker.ui.home.advsearch.ILocalSearchHost
 import com.merxury.blocker.util.unsafeLazy
 
 class GeneralRulesFragment : Fragment() {
@@ -83,6 +84,11 @@ class GeneralRulesFragment : Fragment() {
 
     private fun initRecyclerView() {
         binding.recyclerView.adapter = adapter
+        adapter.onItemClickListener = { rule ->
+            logger.d("rule is clicked: $rule")
+            val keyword = rule.searchKeyword.joinToString()
+            (parentFragment as? ILocalSearchHost)?.searchLocal(keyword)
+        }
     }
 
     private fun initSwipeLayout() {
