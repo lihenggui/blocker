@@ -117,4 +117,6 @@
     <string name="contributor_with_semicolon_template">Contributor: %1$s</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="online_rule_settings">Online rules settings</string>
+    <string name="online_rule_source">Online rule source</string>
 </resources>
