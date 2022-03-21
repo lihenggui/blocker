@@ -14,6 +14,16 @@
             app:title="@string/controller_type" />
     </PreferenceCategory>
 
+    <PreferenceCategory app:title="@string/online_rule_settings">
+        <DropDownPreference
+            app:entries="@array/pref_online_rule_source_entries"
+            app:entryValues="@array/pref_online_rule_source_value"
+            app:icon="@drawable/ic_git"
+            app:key="@string/key_pref_online_rule_source"
+            app:title="@string/online_rule_source"
+            app:useSimpleSummaryProvider="true" />
+    </PreferenceCategory>
+
     <PreferenceCategory app:title="@string/rule_backup_settings">
         <Preference
             app:icon="@drawable/ic_folder_plus"
