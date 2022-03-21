@@ -4,9 +4,14 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
-def keystorePropertiesFile = rootProject.file("keystore.properties")
-def keystoreProperties = new Properties()
-keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
 
 android {
     compileSdkVersion 32
@@ -20,6 +25,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         resConfigs 'en', 'zh-rCN', 'zh-rTW', 'ru'
         multiDexEnabled true
+        buildConfigField "String", "GitHash", "\"${getGitHash()}\""
     }
 
     buildFeatures {
@@ -32,12 +38,7 @@ android {
     }
 
     signingConfigs {
-        config {
-            storeFile file(keystoreProperties['storeFile'])
-            storePassword keystoreProperties['storePassword']
-            keyAlias keystoreProperties['keyAlias']
-            keyPassword keystoreProperties['keyPassword']
-        }
+
     }
 
     buildTypes {
@@ -59,7 +60,6 @@ android {
             ext.enableCrashlytics = false
         }
         prod {
-            signingConfig signingConfigs.config
         }
     }
 
@@ -72,6 +72,15 @@ android {
         jvmTarget = "11"
     }
     namespace 'com.merxury.blocker'
+}
+
+// Rename generated APKs
+android.applicationVariants.all { variant ->
+    def flavor = variant.productFlavors[0].name
+    def archiveName = "Blocker-${variant.versionName}-${flavor}-${getGitHash()}"
+    variant.outputs.all {
+        outputFileName = "${archiveName}.apk"
+    }
 }
 
 dependencies {
