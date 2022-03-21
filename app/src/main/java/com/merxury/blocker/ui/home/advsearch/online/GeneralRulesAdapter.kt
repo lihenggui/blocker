@@ -13,6 +13,7 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
 
     private val list = mutableListOf<GeneralRule>()
     private val logger = XLog.tag("GeneralRulesAdapter")
+    var onItemClickListener: ((GeneralRule) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): ViewHolder {
         val context = parent.context
@@ -41,13 +42,16 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
         notifyDataSetChanged()
     }
 
-    class ViewHolder(
+    inner class ViewHolder(
         private val context: Context,
         private val binding: GeneralRulesCardItemBinding
     ) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: GeneralRule) {
+            binding.root.setOnClickListener {
+                onItemClickListener?.invoke(item)
+            }
             binding.name.text = context.getString(R.string.name_with_semicolon_template, item.name)
             binding.company.text =
                 context.getString(R.string.company_with_semicolon_template, item.company)
