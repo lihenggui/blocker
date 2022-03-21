@@ -29,6 +29,8 @@ class LocalSearchFragment : Fragment() {
     private var viewModel: LocalSearchViewModel? = null
     private var totalCount = 0
     private val adapter by unsafeLazy { ExpandableSearchAdapter(this.lifecycleScope) }
+    private var searchView: SearchView? = null
+    private var isLoading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +51,7 @@ class LocalSearchFragment : Fragment() {
         initListView()
         viewModel?.load(requireContext())
         viewModel?.isLoading?.observe(viewLifecycleOwner) {
+            isLoading = it
             setSearchIconVisibility(!it)
             if (it) {
                 binding.searchNoResultHintGroup.visibility = View.GONE
@@ -131,6 +134,15 @@ class LocalSearchFragment : Fragment() {
         return true
     }
 
+    fun search(keyword: String) {
+        if (isLoading) {
+            logger.w("Can't search while loading")
+            return
+        }
+        searchView?.onActionViewExpanded()
+        searchView?.setQuery(keyword, true)
+    }
+
     private fun handleUseRegexClicked(menuItem: MenuItem) {
         menuItem.isChecked = !menuItem.isChecked
         PreferenceUtil.setUseRegexSearch(requireContext(), menuItem.isChecked)
@@ -177,11 +189,11 @@ class LocalSearchFragment : Fragment() {
 
     private fun initSearch(menu: Menu) {
         val searchItem = menu.findItem(R.id.action_search)
-        val searchView = searchItem?.actionView as? SearchView ?: return
+        searchView = searchItem?.actionView as? SearchView ?: return
         val searchManager =
             requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        searchView?.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
