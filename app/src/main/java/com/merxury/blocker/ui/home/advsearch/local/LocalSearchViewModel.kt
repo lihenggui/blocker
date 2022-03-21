@@ -74,8 +74,13 @@ class LocalSearchViewModel : ViewModel() {
         }
         if (useRegex) {
             // Check validity of this regex and throw exception earlier
-            keyword.lowercase().toRegex()
+            keyword.split(",")
+                .filterNot { it.trim().isEmpty() }
+                .map { it.trim().lowercase().toRegex() }
         }
+        val keywords = keyword.split(",")
+            .filterNot { it.trim().isEmpty() }
+            .map { it.trim().lowercase() }
         viewModelScope.launch(Dispatchers.Default) {
             val searchResult = mutableMapOf<Application, List<ComponentData>>()
             val dataSource = finalData.value ?: return@launch
@@ -84,7 +89,7 @@ class LocalSearchViewModel : ViewModel() {
                 val componentList = it.value
                 val filteredComponentList = mutableListOf<ComponentData>()
                 componentList.forEach { component ->
-                    if (containsKeyword(component, keyword, useRegex)) {
+                    if (containsKeyword(component, keywords, useRegex)) {
                         filteredComponentList.add(component)
                     }
                 }
@@ -98,16 +103,16 @@ class LocalSearchViewModel : ViewModel() {
 
     private fun containsKeyword(
         component: ComponentData,
-        keyword: String,
+        keywords: List<String>,
         useRegex: Boolean
     ): Boolean {
         return if (useRegex) {
-            val regex = keyword.lowercase().toRegex()
-            regex.containsMatchIn(component.name.lowercase()) ||
-                    regex.containsMatchIn(component.packageName.lowercase())
+            val regexes = keywords.map { it.toRegex() }
+            regexes.any { it.containsMatchIn(component.name.lowercase()) } ||
+                    regexes.any { it.containsMatchIn(component.packageName.lowercase()) }
         } else {
-            component.name.lowercase().contains(keyword.lowercase()) ||
-                    component.packageName.lowercase().contains(keyword.lowercase())
+            keywords.any { component.name.lowercase().contains(it) } ||
+                    keywords.any { component.packageName.lowercase().contains(it) }
         }
     }
 
