@@ -69,7 +69,7 @@ class LocalSearchViewModel : ViewModel() {
     fun filter(keyword: String, useRegex: Boolean = false) {
         logger.i("filter: $keyword")
         if (keyword.isEmpty()) {
-            _filteredData.value = _finalData.value
+            _filteredData.value = mutableMapOf()
             return
         }
         if (useRegex) {
