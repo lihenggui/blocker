@@ -3,6 +3,7 @@ package com.merxury.blocker.ui.home.advsearch.online
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.elvishew.xlog.XLog
@@ -53,15 +54,37 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
         fun bind(item: GeneralRule) {
             binding.name.text = item.name
             binding.company.text = item.company
-            binding.description.text = item.description
+            if (item.description.isNullOrEmpty()) {
+                binding.descriptionTitle.visibility = View.GONE
+                binding.description.visibility = View.GONE
+            } else {
+                binding.descriptionTitle.visibility = View.VISIBLE
+                binding.description.visibility = View.VISIBLE
+                binding.description.text = item.description
+            }
             binding.rules.text = item.searchKeyword.joinToString("\n")
             binding.safeToBlock.text = if (item.safeToBlock == true) {
                 context.getString(R.string.yes)
             } else {
                 context.getString(R.string.no)
             }
-            binding.sideEffect.text = item.sideEffect
-            binding.contributor.text = item.contributors.joinToString()
+            if (item.sideEffect == null) {
+                binding.sideEffectTitle.visibility = View.GONE
+                binding.sideEffect.visibility = View.GONE
+            } else {
+                binding.sideEffectTitle.visibility = View.VISIBLE
+                binding.sideEffect.visibility = View.VISIBLE
+                binding.sideEffect.text = item.sideEffect
+            }
+            if (item.contributors.isEmpty()) {
+                binding.contributorTitle.visibility = View.GONE
+                binding.contributor.visibility = View.GONE
+            } else {
+                binding.contributorTitle.visibility = View.VISIBLE
+                binding.contributor.visibility = View.VISIBLE
+                binding.contributor.text = item.contributors.joinToString()
+            }
+
             if (!item.iconUrl.isNullOrEmpty()) {
                 val baseUrl = PreferenceUtil.getOnlineSourceType(context).baseUrl
                 val iconUrl = baseUrl + item.iconUrl
