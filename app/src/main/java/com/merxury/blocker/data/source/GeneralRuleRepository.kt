@@ -2,14 +2,18 @@ package com.merxury.blocker.data.source
 
 import androidx.lifecycle.MutableLiveData
 import com.merxury.blocker.data.source.local.GeneralRuleDao
-import com.merxury.blocker.data.source.remote.GeneralRuleService
+import com.merxury.blocker.data.source.remote.RuleRemoteDataSource
 import javax.inject.Inject
 
 class GeneralRuleRepository @Inject constructor(
-    private val removeDataSource: GeneralRuleService,
+    private val remoteDataSource: RuleRemoteDataSource,
     private val localDataSource: GeneralRuleDao
 ) {
     val rules = MutableLiveData<List<GeneralRule>>()
 
-    suspend fun getRules() = removeDataSource.getOnlineRules()
+    fun getRules() = performGetOperation(
+        databaseQuery = { localDataSource.getAll() },
+        networkCall = { remoteDataSource.getRules() },
+        saveCallResult = { localDataSource.insertAll(it) }
+    )
 }
