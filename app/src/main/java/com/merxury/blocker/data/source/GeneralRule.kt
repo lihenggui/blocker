@@ -1,6 +1,14 @@
-package com.merxury.blocker.ui.home.advsearch.online
+package com.merxury.blocker.data.source
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
+import com.merxury.blocker.data.source.local.ListConverters
+
+@Entity(tableName = "general_rules")
+@TypeConverters(ListConverters::class)
 data class GeneralRule(
+    @PrimaryKey val id: Int,
     var name: String? = null,
     var iconUrl: String? = null,
     var company: String? = null,

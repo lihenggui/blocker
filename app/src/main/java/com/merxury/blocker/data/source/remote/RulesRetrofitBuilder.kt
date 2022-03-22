@@ -1,4 +1,4 @@
-package com.merxury.blocker.data.source
+package com.merxury.blocker.data.source.remote
 
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory

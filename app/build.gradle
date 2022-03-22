@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'dagger.hilt.android.plugin'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'com.google.firebase.crashlytics'
 
@@ -83,6 +84,10 @@ android.applicationVariants.all { variant ->
     }
 }
 
+kapt {
+    correctErrorTypes true
+}
+
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
@@ -110,15 +115,19 @@ dependencies {
     implementation "com.google.android.material:compose-theme-adapter:1.1.5"
     // Rooms
     implementation "androidx.room:room-runtime:2.4.2"
-    annotationProcessor "androidx.room:room-compiler:2.4.2"
+    kapt "androidx.room:room-compiler:2.4.2"
     // KTX
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.4.1'
+    implementation("androidx.room:room-ktx:2.4.2")
     // Crashlytics
     prodImplementation platform('com.google.firebase:firebase-bom:29.2.0')
     prodImplementation 'com.google.firebase:firebase-crashlytics-ktx'
     prodImplementation 'com.google.firebase:firebase-analytics-ktx'
+    // Hilt
+    implementation "com.google.dagger:hilt-android:2.41"
+    kapt "com.google.dagger:hilt-android-compiler:2.41"
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')

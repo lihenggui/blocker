@@ -11,8 +11,9 @@ import androidx.viewpager2.widget.ViewPager2
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ActivityHomeBinding
 import com.merxury.blocker.util.unsafeLazy
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class HomeActivity : AppCompatActivity() {
     private val adapter by unsafeLazy { HomeAdapter(this) }
     private lateinit var binding: ActivityHomeBinding
