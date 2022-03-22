@@ -20,6 +20,8 @@
             android:layout_margin="8dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/title_barrier"
+            app:layout_constraintEnd_toStartOf="@id/icon_end_barrier"
             tools:ignore="ContentDescription"
             tools:src="@mipmap/ic_launcher" />
 
@@ -27,8 +29,9 @@
             android:id="@+id/name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/icon"
+            app:layout_constraintStart_toEndOf="@id/icon_end_barrier"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="SDK Sample name" />
 
@@ -38,9 +41,23 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toTopOf="@id/rules"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/icon"
+            app:layout_constraintStart_toEndOf="@id/icon_end_barrier"
             app:layout_constraintTop_toBottomOf="@id/name"
             tools:text="SDK Sample company" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/title_barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="bottom"
+            app:constraint_referenced_ids="name, company, icon" />
+
+        <androidx.constraintlayout.widget.Barrier
+            android:id="@+id/icon_end_barrier"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:barrierDirection="end"
+            app:constraint_referenced_ids="icon" />
 
         <TextView
             android:id="@+id/rules"
@@ -48,8 +65,8 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toTopOf="@id/description"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/icon"
-            app:layout_constraintTop_toBottomOf="@id/company"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/title_barrier"
             tools:text="Rule: com.example.sdk.package" />
 
         <TextView
@@ -58,7 +75,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toTopOf="@id/safe_to_block"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/icon"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/rules"
             tools:text="Rules description: Example rule" />
 
@@ -68,7 +85,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toTopOf="@+id/side_effect"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/icon"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/description"
             tools:text="Safe to block: Yes" />
 
@@ -77,7 +94,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@id/icon"
+            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/safe_to_block"
             tools:text="Side effect: No side effect" />
 
