@@ -9,6 +9,7 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.data.source.GeneralRule
 import com.merxury.blocker.databinding.GeneralRulesCardItemBinding
+import com.merxury.blocker.util.PreferenceUtil
 
 class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>() {
 
@@ -52,23 +53,18 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
         fun bind(item: GeneralRule) {
             binding.name.text = item.name
             binding.company.text = item.company
-            binding.description.text =
-                context.getString(R.string.description_with_semicolon_template, item.description)
-            binding.rules.text = context.getString(
-                R.string.rule_with_semicolon_template,
-                item.searchKeyword.toString()
-            )
-            binding.safeToBlock.text = context.getString(
-                R.string.safe_to_block_with_semicolon_template,
-                item.safeToBlock.toString()
-            )
-            binding.sideEffect.text = context.getString(
-                R.string.side_effect_with_semicolon_template,
-                item.sideEffect.toString()
-            )
+            binding.description.text = item.description
+            binding.rules.text = item.searchKeyword.joinToString("\n")
+            binding.safeToBlock.text = if (item.safeToBlock == true) {
+                context.getString(R.string.yes)
+            } else {
+                context.getString(R.string.no)
+            }
+            binding.sideEffect.text = item.sideEffect
+            binding.contributor.text = item.contributors.joinToString()
             if (!item.iconUrl.isNullOrEmpty()) {
-                val url = "https://gitee.com/Merxury/blocker-general-rules/raw/main"
-                val iconUrl = url + item.iconUrl
+                val baseUrl = PreferenceUtil.getOnlineSourceType(context).baseUrl
+                val iconUrl = baseUrl + item.iconUrl
                 Glide.with(context)
                     .load(iconUrl)
                     .into(binding.icon)
