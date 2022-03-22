@@ -1,5 +1,7 @@
 package com.merxury.blocker.ui.home.advsearch.online
 
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.elvishew.xlog.XLog
@@ -11,8 +13,17 @@ import javax.inject.Inject
 class GeneralRulesViewModel @Inject constructor(private val repo: GeneralRuleRepository) :
     ViewModel() {
     private val logger = XLog.tag("GeneralRulesViewModel")
+    private val reloadTrigger = MutableLiveData<Boolean>()
+    val rules = Transformations.switchMap(reloadTrigger) { repo.getRules() }
 
-    val rules = repo.getRules()
+    init {
+        reloadTrigger.value = true
+    }
+
+    fun refresh() {
+        logger.i("Refresh data")
+        reloadTrigger.value = true
+    }
 
     class Factory(private val repo: GeneralRuleRepository) :
         ViewModelProvider.NewInstanceFactory() {
