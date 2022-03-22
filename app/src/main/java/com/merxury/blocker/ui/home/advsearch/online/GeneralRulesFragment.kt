@@ -43,7 +43,7 @@ class GeneralRulesFragment : Fragment() {
             }
             when (it.status) {
                 Resource.Status.SUCCESS -> {
-                    logger.d("rules is success")
+                    logger.d("Load rules successfully")
                     binding.swipeLayout.isRefreshing = false
                     val data = it.data
                     if (data == null) {
@@ -58,7 +58,7 @@ class GeneralRulesFragment : Fragment() {
                     binding.swipeLayout.isRefreshing = false
                 }
                 Resource.Status.LOADING -> {
-                    logger.d("rules is loading")
+                    logger.d("Load rules")
                     binding.swipeLayout.isRefreshing = true
                 }
             }
@@ -84,7 +84,7 @@ class GeneralRulesFragment : Fragment() {
 
     private fun initSwipeLayout() {
         binding.swipeLayout.setOnRefreshListener {
-
+            viewModel.refresh()
         }
     }
 }
