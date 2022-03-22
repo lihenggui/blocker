@@ -49,12 +49,8 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: GeneralRule) {
-            binding.root.setOnClickListener {
-                onItemClickListener?.invoke(item)
-            }
-            binding.name.text = context.getString(R.string.name_with_semicolon_template, item.name)
-            binding.company.text =
-                context.getString(R.string.company_with_semicolon_template, item.company)
+            binding.name.text = item.name
+            binding.company.text = item.company
             binding.description.text =
                 context.getString(R.string.description_with_semicolon_template, item.description)
             binding.rules.text = context.getString(
