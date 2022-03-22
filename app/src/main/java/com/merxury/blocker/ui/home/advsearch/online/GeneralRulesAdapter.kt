@@ -17,6 +17,7 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
     private val list = mutableListOf<GeneralRule>()
     private val logger = XLog.tag("GeneralRulesAdapter")
     var onItemClickListener: ((GeneralRule) -> Unit)? = null
+    var onSearchClickListener: ((GeneralRule) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): ViewHolder {
         val context = parent.context
@@ -91,6 +92,10 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
                 Glide.with(context)
                     .load(iconUrl)
                     .into(binding.icon)
+            }
+
+            binding.searchButton.setOnClickListener {
+                onSearchClickListener?.invoke(item)
             }
         }
     }
