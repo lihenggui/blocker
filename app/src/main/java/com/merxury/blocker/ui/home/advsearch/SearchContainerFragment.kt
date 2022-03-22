@@ -10,7 +10,9 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.SearchContainerFragmentBinding
 import com.merxury.blocker.ui.home.advsearch.local.LocalSearchFragment
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class SearchContainerFragment : Fragment(), ILocalSearchHost {
     private lateinit var binding: SearchContainerFragmentBinding
     private lateinit var adapter: SearchPagerAdapter

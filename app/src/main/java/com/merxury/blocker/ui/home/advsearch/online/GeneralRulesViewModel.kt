@@ -6,9 +6,13 @@ import androidx.lifecycle.liveData
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.data.Resource
 import com.merxury.blocker.data.source.GeneralRuleRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 
-class GeneralRulesViewModel(private val repo: GeneralRuleRepository) : ViewModel() {
+@HiltViewModel
+class GeneralRulesViewModel @Inject constructor(private val repo: GeneralRuleRepository) :
+    ViewModel() {
     private val logger = XLog.tag("GeneralRulesViewModel")
 
     fun fetchRules() = liveData(Dispatchers.IO) {
