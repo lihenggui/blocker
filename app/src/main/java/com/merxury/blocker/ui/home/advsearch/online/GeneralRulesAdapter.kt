@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.data.source.GeneralRule
 import com.merxury.blocker.databinding.GeneralRulesCardItemBinding
 
 class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>() {

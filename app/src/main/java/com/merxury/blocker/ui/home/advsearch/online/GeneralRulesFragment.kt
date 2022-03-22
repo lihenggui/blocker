@@ -7,30 +7,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.data.Status
-import com.merxury.blocker.data.source.GeneralRuleRepository
-import com.merxury.blocker.data.source.RulesRetrofitBuilder
 import com.merxury.blocker.databinding.GeneralRulesFragmentBinding
 import com.merxury.blocker.ui.home.advsearch.ILocalSearchHost
 import com.merxury.blocker.util.unsafeLazy
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class GeneralRulesFragment : Fragment() {
     private val logger = XLog.tag("GeneralRulesFragment")
-    private lateinit var viewModel: GeneralRulesViewModel
+    private val viewModel: GeneralRulesViewModel by viewModels()
     private lateinit var binding: GeneralRulesFragmentBinding
     private val adapter by unsafeLazy { GeneralRulesAdapter() }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val repository = GeneralRuleRepository(RulesRetrofitBuilder.apiService)
-        viewModel = ViewModelProvider(
-            this,
-            GeneralRulesViewModel.Factory(repository)
-        )[GeneralRulesViewModel::class.java]
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
