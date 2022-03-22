@@ -1,5 +1,6 @@
 package com.merxury.blocker.data.source.local
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -13,6 +14,9 @@ interface GeneralRuleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(generalRule: GeneralRule)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(generalRules: List<GeneralRule>)
+
     @Delete
     suspend fun delete(generalRule: GeneralRule)
 
@@ -20,5 +24,5 @@ interface GeneralRuleDao {
     suspend fun update(generalRule: GeneralRule)
 
     @Query("SELECT * FROM general_rules")
-    suspend fun getAll(): List<GeneralRule>
+    fun getAll(): LiveData<List<GeneralRule>>
 }

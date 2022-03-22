@@ -10,7 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.data.Status
+import com.merxury.blocker.data.Resource
 import com.merxury.blocker.databinding.GeneralRulesFragmentBinding
 import com.merxury.blocker.ui.home.advsearch.ILocalSearchHost
 import com.merxury.blocker.util.unsafeLazy
@@ -36,13 +36,13 @@ class GeneralRulesFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
         initSwipeLayout()
-        viewModel.fetchRules().observe(viewLifecycleOwner) {
+        viewModel.rules.observe(viewLifecycleOwner) {
             if (it == null) {
                 logger.e("rules is null")
                 return@observe
             }
             when (it.status) {
-                Status.SUCCESS -> {
+                Resource.Status.SUCCESS -> {
                     logger.d("rules is success")
                     binding.swipeLayout.isRefreshing = false
                     val data = it.data
@@ -52,12 +52,12 @@ class GeneralRulesFragment : Fragment() {
                     }
                     adapter.updateData(data)
                 }
-                Status.ERROR -> {
+                Resource.Status.ERROR -> {
                     logger.e("Can't fetch rules: ${it.message}")
                     showErrorDialog(it.message)
                     binding.swipeLayout.isRefreshing = false
                 }
-                Status.LOADING -> {
+                Resource.Status.LOADING -> {
                     logger.d("rules is loading")
                     binding.swipeLayout.isRefreshing = true
                 }
