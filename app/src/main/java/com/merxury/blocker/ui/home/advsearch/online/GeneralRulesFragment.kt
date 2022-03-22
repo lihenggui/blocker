@@ -75,7 +75,7 @@ class GeneralRulesFragment : Fragment() {
 
     private fun initRecyclerView() {
         binding.recyclerView.adapter = adapter
-        adapter.onItemClickListener = { rule ->
+        adapter.onSearchClickListener = { rule ->
             logger.d("rule is clicked: $rule")
             val keyword = rule.searchKeyword.joinToString()
             (parentFragment as? ILocalSearchHost)?.searchLocal(keyword)

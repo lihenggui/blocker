@@ -188,6 +188,7 @@
             tools:text="Mercury" />
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/search_button"
             style="?attr/borderlessButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
