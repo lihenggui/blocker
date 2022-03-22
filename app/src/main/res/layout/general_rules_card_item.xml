@@ -108,11 +108,34 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginVertical="2dp"
-            app:layout_constraintBottom_toTopOf="@id/safe_to_block"
+            app:layout_constraintBottom_toTopOf="@id/side_effect_title"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/description_title"
             tools:text="Example rule" />
+
+        <TextView
+            android:id="@+id/side_effect_title"
+            style="@style/TextAppearance.Material3.LabelLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="2dp"
+            android:text="@string/side_effect"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/description" />
+
+        <TextView
+            android:id="@+id/side_effect"
+            style="@style/TextAppearance.Material3.BodySmall"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginVertical="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/side_effect_title"
+            tools:text="Unknown" />
 
         <TextView
             android:id="@+id/safe_to_block_title"
@@ -124,7 +147,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/description" />
+            app:layout_constraintTop_toBottomOf="@id/side_effect" />
 
         <TextView
             android:id="@+id/safe_to_block"
@@ -140,29 +163,6 @@
             tools:text="Yes" />
 
         <TextView
-            android:id="@+id/side_effect_title"
-            style="@style/TextAppearance.Material3.LabelLarge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="2dp"
-            android:text="@string/side_effect"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/safe_to_block_title" />
-
-        <TextView
-            android:id="@+id/side_effect"
-            style="@style/TextAppearance.Material3.BodySmall"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginVertical="2dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/side_effect_title"
-            tools:text="Unknown" />
-
-        <TextView
             android:id="@+id/contributor_title"
             style="@style/TextAppearance.Material3.LabelLarge"
             android:layout_width="wrap_content"
@@ -172,7 +172,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/side_effect" />
+            app:layout_constraintTop_toBottomOf="@id/safe_to_block" />
 
         <TextView
             android:id="@+id/contributor"
