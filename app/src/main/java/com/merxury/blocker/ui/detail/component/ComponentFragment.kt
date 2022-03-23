@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ComponentFragmentBinding
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.libkit.entity.EComponentType
 
 class ComponentFragment : Fragment() {
@@ -58,10 +59,6 @@ class ComponentFragment : Fragment() {
         )[ComponentViewModel::class.java]
         initView()
         observeData()
-    }
-
-    override fun onResume() {
-        super.onResume()
         load()
     }
 
@@ -96,6 +93,17 @@ class ComponentFragment : Fragment() {
                 load()
                 true
             }
+            R.id.action_show_enabled_components_first -> {
+                PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), true)
+                load()
+                true
+            }
+            R.id.action_show_disabled_components_first -> {
+                PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), false)
+                load()
+                true
+            }
+
             else -> super.onOptionsItemSelected(item)
         }
     }
