@@ -18,14 +18,14 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.databinding.AdvSearchFragmentBinding
+import com.merxury.blocker.databinding.LocalSearchFragmentBinding
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.unsafeLazy
 
 class LocalSearchFragment : Fragment() {
     private val logger = XLog.tag("AdvSearchFragment")
-    private lateinit var binding: AdvSearchFragmentBinding
+    private lateinit var binding: LocalSearchFragmentBinding
     private var viewModel: LocalSearchViewModel? = null
     private var totalCount = 0
     private val adapter by unsafeLazy { ExpandableSearchAdapter(this.lifecycleScope) }
@@ -42,7 +42,7 @@ class LocalSearchFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = AdvSearchFragmentBinding.inflate(inflater, container, false)
+        binding = LocalSearchFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
