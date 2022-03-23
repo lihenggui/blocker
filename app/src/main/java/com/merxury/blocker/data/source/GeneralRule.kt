@@ -1,10 +1,12 @@
 package com.merxury.blocker.data.source
 
+import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.merxury.blocker.data.source.local.ListConverters
 
+@Keep
 @Entity(tableName = "general_rules")
 @TypeConverters(ListConverters::class)
 data class GeneralRule(
