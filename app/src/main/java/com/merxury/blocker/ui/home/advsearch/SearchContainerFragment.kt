@@ -35,8 +35,8 @@ class SearchContainerFragment : Fragment(), ILocalSearchHost {
         binding.viewPager.reduceDragSensitivity()
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
-                0 -> getString(R.string.local)
-                1 -> getString(R.string.online)
+                0 -> getString(R.string.local_search)
+                1 -> getString(R.string.online_rules)
                 else -> ""
             }
         }.attach()

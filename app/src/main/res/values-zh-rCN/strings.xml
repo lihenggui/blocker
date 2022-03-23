@@ -105,4 +105,19 @@
     <string name="done">完成</string>
     <string name="browser_required">需要安装浏览器</string>
     <string name="regex_search">正则匹配</string>
+    <string name="local_search">本地搜索</string>
+    <string name="online_rules">线上规则</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="online_rule_settings">在线规则设置</string>
+    <string name="online_rule_source">在线规则源</string>
+    <string name="rules">规则</string>
+    <string name="description">详情</string>
+    <string name="side_effect">禁用后副作用</string>
+    <string name="contributor">贡献者</string>
+    <string name="searching">搜索中</string>
+    <string name="filter">过滤</string>
+    <string name="safe_to_block">是否能安全阻止</string>
+    <string name="show_enabled_components_first">启用组件优先显示</string>
+    <string name="show_disabled_components_first">禁用组件优先显示</string>
 </resources>
