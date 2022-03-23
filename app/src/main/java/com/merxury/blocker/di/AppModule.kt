@@ -37,7 +37,9 @@ object AppModule {
 
     @Provides
     fun providesGson(): Gson {
-        return GsonBuilder().create()
+        return GsonBuilder()
+            .serializeNulls()
+            .create()
     }
 
     @Provides
