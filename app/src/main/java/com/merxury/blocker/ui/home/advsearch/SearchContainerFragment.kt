@@ -10,6 +10,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.SearchContainerFragmentBinding
 import com.merxury.blocker.ui.home.advsearch.local.LocalSearchFragment
+import com.merxury.blocker.util.reduceDragSensitivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -31,6 +32,7 @@ class SearchContainerFragment : Fragment(), ILocalSearchHost {
         super.onViewCreated(view, savedInstanceState)
         adapter = SearchPagerAdapter(this)
         binding.viewPager.adapter = adapter
+        binding.viewPager.reduceDragSensitivity()
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
                 0 -> getString(R.string.local)

@@ -10,6 +10,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.viewpager2.widget.ViewPager2
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ActivityHomeBinding
+import com.merxury.blocker.util.reduceDragSensitivity
 import com.merxury.blocker.util.unsafeLazy
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -35,6 +36,7 @@ class HomeActivity : AppCompatActivity() {
                 binding.bottomNav.menu.getItem(position)?.isChecked = true
             }
         })
+        binding.viewPager.reduceDragSensitivity()
         binding.bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.list -> binding.viewPager.currentItem = 0
