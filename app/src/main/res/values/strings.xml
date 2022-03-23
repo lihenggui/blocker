@@ -117,4 +117,5 @@
     <string name="safe_to_block">Safe to block</string>
     <string name="side_effect">Side effect</string>
     <string name="contributor">Contributor</string>
+    <string name="searching">Searching</string>
 </resources>
