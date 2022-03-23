@@ -134,4 +134,22 @@ object PreferenceUtil {
             OnlineSourceType.GITEE
         }
     }
+
+    fun setShowEnabledComponentShowFirst(context: Context, value: Boolean) {
+        PreferenceManager.getDefaultSharedPreferences(context)
+            .edit()
+            .putBoolean(
+                context.getString(R.string.key_pref_show_enabled_component_show_first),
+                value
+            )
+            .apply()
+    }
+
+    fun getShowEnabledComponentShowFirst(context: Context): Boolean {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        return pref.getBoolean(
+            context.getString(R.string.key_pref_show_enabled_component_show_first),
+            false
+        )
+    }
 }
