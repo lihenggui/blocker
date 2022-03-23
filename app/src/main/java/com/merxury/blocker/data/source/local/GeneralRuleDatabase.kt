@@ -24,6 +24,7 @@ abstract class GeneralRuleDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context): GeneralRuleDatabase {
             return Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")
+                .fallbackToDestructiveMigration()
                 .build()
         }
     }
