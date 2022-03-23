@@ -46,8 +46,12 @@ class LocalSearchViewModel : ViewModel() {
     val filteredData: LiveData<MutableMap<Application, List<ComponentData>>> = _filteredData
     private val _error = MutableLiveData<Event<Exception>>()
     val error: LiveData<Event<Exception>> = _error
+
+    // To notify the user that the batch operation is finished
     private val _operationDone = MutableLiveData<Event<Boolean>>()
     val operationDone: LiveData<Event<Boolean>> = _operationDone
+    private val _isSearching = MutableLiveData<Event<Boolean>>()
+    val isSearching: LiveData<Event<Boolean>> = _isSearching
 
     private var controller: IController? = null
     private var controllerType = EControllerMethod.IFW
@@ -72,6 +76,7 @@ class LocalSearchViewModel : ViewModel() {
             _filteredData.value = mutableMapOf()
             return
         }
+        _isSearching.value = Event(true)
         if (useRegex) {
             // Check validity of this regex and throw exception earlier
             keyword.split(",")
@@ -97,6 +102,7 @@ class LocalSearchViewModel : ViewModel() {
                     searchResult[app] = filteredComponentList
                 }
             }
+            _isSearching.postValue(Event(false))
             _filteredData.postValue(searchResult)
         }
     }

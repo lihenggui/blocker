@@ -44,8 +44,8 @@
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/search_animation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="256dp"
+        android:layout_height="256dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -77,8 +77,8 @@
 
     <com.airbnb.lottie.LottieAnimationView
         android:id="@+id/search_no_result_animation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="256dp"
+        android:layout_height="256dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -106,6 +106,39 @@
         android:layout_height="wrap_content"
         android:visibility="gone"
         app:constraint_referenced_ids="search_no_result_animation, search_no_result_hint"
+        tools:visibility="visible" />
+
+    <com.airbnb.lottie.LottieAnimationView
+        android:id="@+id/searching_animation"
+        android:layout_width="256dp"
+        android:layout_height="256dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:lottie_autoPlay="true"
+        app:lottie_loop="true"
+        app:lottie_rawRes="@raw/searching" />
+
+    <TextView
+        android:id="@+id/searching_hint"
+        style="@style/TextAppearance.Material3.BodyMedium"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/searching"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searching_animation"
+        app:layout_constraintVertical_bias="0" />
+
+    <androidx.constraintlayout.widget.Group
+        android:id="@+id/searching_hint_group"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:constraint_referenced_ids="searching_animation, searching_hint"
         tools:visibility="visible" />
 
     <ExpandableListView

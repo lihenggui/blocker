@@ -105,6 +105,19 @@ class LocalSearchFragment : Fragment() {
                 adapter.notifyDataSetChanged()
             }
         }
+        viewModel?.isSearching?.observe(viewLifecycleOwner) {
+            val result = it.getContentIfNotHandled()
+            if (result == true) {
+                binding.searchingHintGroup.visibility = View.VISIBLE
+                binding.searchNoResultHintGroup.visibility = View.GONE
+                binding.loadingIndicatorGroup.visibility = View.GONE
+                binding.searchHintGroup.visibility = View.GONE
+                binding.list.visibility = View.INVISIBLE
+            } else {
+                binding.list.visibility = View.VISIBLE
+                binding.searchingHintGroup.visibility = View.GONE
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
