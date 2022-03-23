@@ -106,8 +106,8 @@
     <string name="done">Done</string>
     <string name="browser_required">Browser required</string>
     <string name="regex_search">Regex search</string>
-    <string name="local">Local</string>
-    <string name="online">Online</string>
+    <string name="local_search">Local search</string>
+    <string name="online_rules">Online rules</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="online_rule_settings">Online rules settings</string>
@@ -121,5 +121,4 @@
     <string name="filter">Filter</string>
     <string name="show_enabled_components_first">Show enabled components first</string>
     <string name="show_disabled_components_first">Show disabled components first</string>
-    <string name="reset">Reset</string>
 </resources>
