@@ -105,4 +105,19 @@
     <string name="done">Сделанный</string>
     <string name="browser_required">Требуется установка браузера</string>
     <string name="regex_search">обычный матч</string>
+    <string name="local_search">локальный поиск</string>
+    <string name="online_rules">онлайн правила</string>
+    <string name="yes">да</string>
+    <string name="no">нет</string>
+    <string name="online_rule_settings">Настройки сетевых правил</string>
+    <string name="online_rule_source">Источник онлайн-правил</string>
+    <string name="rules">правило</string>
+    <string name="description">Подробности</string>
+    <string name="safe_to_block">Безопасно ли блокировать</string>
+    <string name="side_effect">побочные эффекты после отключения</string>
+    <string name="contributor">Автор</string>
+    <string name="searching">searching</string>
+    <string name="filter">фильтр</string>
+    <string name="show_enabled_components_first">Включить отображение приоритета компонентов</string>
+    <string name="show_disabled_components_first">Отключить отображение приоритета компонентов</string>
 </resources>
