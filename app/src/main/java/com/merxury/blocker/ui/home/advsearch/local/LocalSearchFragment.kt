@@ -152,7 +152,6 @@ class LocalSearchFragment : Fragment() {
             logger.w("Can't search while loading")
             return
         }
-        searchView?.onActionViewExpanded()
         searchView?.setQuery(keyword, true)
     }
 
