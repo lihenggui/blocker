@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.home.advsearch
+package com.merxury.blocker.ui.home.advsearch.local
 
 import android.content.Context
 import android.content.pm.ComponentInfo
@@ -12,6 +12,7 @@ import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.data.Event
 import com.merxury.blocker.ui.detail.component.ComponentData
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewall
@@ -26,7 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class AdvSearchViewModel : ViewModel() {
+class LocalSearchViewModel : ViewModel() {
     private val logger = XLog.tag("AdvSearchViewModel")
     private val _appList = MutableLiveData<List<Application>>()
     val appList: LiveData<List<Application>> = _appList
@@ -45,8 +46,12 @@ class AdvSearchViewModel : ViewModel() {
     val filteredData: LiveData<MutableMap<Application, List<ComponentData>>> = _filteredData
     private val _error = MutableLiveData<Event<Exception>>()
     val error: LiveData<Event<Exception>> = _error
+
+    // To notify the user that the batch operation is finished
     private val _operationDone = MutableLiveData<Event<Boolean>>()
     val operationDone: LiveData<Event<Boolean>> = _operationDone
+    private val _isSearching = MutableLiveData<Event<Boolean>>()
+    val isSearching: LiveData<Event<Boolean>> = _isSearching
 
     private var controller: IController? = null
     private var controllerType = EControllerMethod.IFW
@@ -68,13 +73,19 @@ class AdvSearchViewModel : ViewModel() {
     fun filter(keyword: String, useRegex: Boolean = false) {
         logger.i("filter: $keyword")
         if (keyword.isEmpty()) {
-            _filteredData.value = _finalData.value
+            _filteredData.value = mutableMapOf()
             return
         }
+        _isSearching.value = Event(true)
         if (useRegex) {
             // Check validity of this regex and throw exception earlier
-            keyword.lowercase().toRegex()
+            keyword.split(",")
+                .filterNot { it.trim().isEmpty() }
+                .map { it.trim().lowercase().toRegex() }
         }
+        val keywords = keyword.split(",")
+            .filterNot { it.trim().isEmpty() }
+            .map { it.trim().lowercase() }
         viewModelScope.launch(Dispatchers.Default) {
             val searchResult = mutableMapOf<Application, List<ComponentData>>()
             val dataSource = finalData.value ?: return@launch
@@ -83,7 +94,7 @@ class AdvSearchViewModel : ViewModel() {
                 val componentList = it.value
                 val filteredComponentList = mutableListOf<ComponentData>()
                 componentList.forEach { component ->
-                    if (containsKeyword(component, keyword, useRegex)) {
+                    if (containsKeyword(component, keywords, useRegex)) {
                         filteredComponentList.add(component)
                     }
                 }
@@ -91,22 +102,23 @@ class AdvSearchViewModel : ViewModel() {
                     searchResult[app] = filteredComponentList
                 }
             }
+            _isSearching.postValue(Event(false))
             _filteredData.postValue(searchResult)
         }
     }
 
     private fun containsKeyword(
         component: ComponentData,
-        keyword: String,
+        keywords: List<String>,
         useRegex: Boolean
     ): Boolean {
         return if (useRegex) {
-            val regex = keyword.lowercase().toRegex()
-            regex.containsMatchIn(component.name.lowercase()) ||
-                    regex.containsMatchIn(component.packageName.lowercase())
+            val regexes = keywords.map { it.toRegex() }
+            regexes.any { it.containsMatchIn(component.name.lowercase()) } ||
+                    regexes.any { it.containsMatchIn(component.packageName.lowercase()) }
         } else {
-            component.name.lowercase().contains(keyword.lowercase()) ||
-                    component.packageName.lowercase().contains(keyword.lowercase())
+            keywords.any { component.name.lowercase().contains(it) } ||
+                    keywords.any { component.packageName.lowercase().contains(it) }
         }
     }
 

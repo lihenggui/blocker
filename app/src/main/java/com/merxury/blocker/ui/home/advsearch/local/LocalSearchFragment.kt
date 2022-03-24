@@ -1,4 +1,4 @@
-package com.merxury.blocker.ui.home.advsearch
+package com.merxury.blocker.ui.home.advsearch.local
 
 import android.app.SearchManager
 import android.content.Context
@@ -18,21 +18,23 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.databinding.AdvSearchFragmentBinding
+import com.merxury.blocker.databinding.LocalSearchFragmentBinding
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.unsafeLazy
 
-class AdvSearchFragment : Fragment() {
+class LocalSearchFragment : Fragment() {
     private val logger = XLog.tag("AdvSearchFragment")
-    private lateinit var binding: AdvSearchFragmentBinding
-    private var viewModel: AdvSearchViewModel? = null
+    private lateinit var binding: LocalSearchFragmentBinding
+    private var viewModel: LocalSearchViewModel? = null
     private var totalCount = 0
     private val adapter by unsafeLazy { ExpandableSearchAdapter(this.lifecycleScope) }
+    private var searchView: SearchView? = null
+    private var isLoading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this)[AdvSearchViewModel::class.java]
+        viewModel = ViewModelProvider(this)[LocalSearchViewModel::class.java]
     }
 
     override fun onCreateView(
@@ -40,7 +42,7 @@ class AdvSearchFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = AdvSearchFragmentBinding.inflate(inflater, container, false)
+        binding = LocalSearchFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -49,6 +51,7 @@ class AdvSearchFragment : Fragment() {
         initListView()
         viewModel?.load(requireContext())
         viewModel?.isLoading?.observe(viewLifecycleOwner) {
+            isLoading = it
             setSearchIconVisibility(!it)
             if (it) {
                 binding.searchNoResultHintGroup.visibility = View.GONE
@@ -102,6 +105,19 @@ class AdvSearchFragment : Fragment() {
                 adapter.notifyDataSetChanged()
             }
         }
+        viewModel?.isSearching?.observe(viewLifecycleOwner) {
+            val result = it.getContentIfNotHandled()
+            if (result == true) {
+                binding.searchingHintGroup.visibility = View.VISIBLE
+                binding.searchNoResultHintGroup.visibility = View.GONE
+                binding.loadingIndicatorGroup.visibility = View.GONE
+                binding.searchHintGroup.visibility = View.GONE
+                binding.list.visibility = View.INVISIBLE
+            } else {
+                binding.list.visibility = View.VISIBLE
+                binding.searchingHintGroup.visibility = View.GONE
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -129,6 +145,14 @@ class AdvSearchFragment : Fragment() {
             else -> return false
         }
         return true
+    }
+
+    fun search(keyword: String) {
+        if (isLoading) {
+            logger.w("Can't search while loading")
+            return
+        }
+        searchView?.setQuery(keyword, true)
     }
 
     private fun handleUseRegexClicked(menuItem: MenuItem) {
@@ -165,7 +189,7 @@ class AdvSearchFragment : Fragment() {
             viewModel?.switchComponent(component.packageName, component.name, checked)
         }
         binding.list.apply {
-            setAdapter(this@AdvSearchFragment.adapter)
+            setAdapter(this@LocalSearchFragment.adapter)
         }
     }
 
@@ -177,11 +201,11 @@ class AdvSearchFragment : Fragment() {
 
     private fun initSearch(menu: Menu) {
         val searchItem = menu.findItem(R.id.action_search)
-        val searchView = searchItem?.actionView as? SearchView ?: return
+        searchView = searchItem?.actionView as? SearchView ?: return
         val searchManager =
             requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        searchView?.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
