@@ -22,6 +22,7 @@ import androidx.work.WorkManager
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.ExportBlockerRulesWork
@@ -39,6 +40,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     private lateinit var sp: SharedPreferences
 
     private var controllerTypePreference: Preference? = null
+    private var onlineRuleSourcePreference: Preference? = null
     private var exportRulePreference: Preference? = null
     private var importRulePreference: Preference? = null
     private var exportIfwRulePreference: Preference? = null
@@ -66,6 +68,15 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
 
     override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
         logger.d("Preference: ${preference.key} changed, value = $newValue")
+        if (preference == onlineRuleSourcePreference) {
+            val type = if (newValue == "github") {
+                OnlineSourceType.GITHUB
+            } else {
+                OnlineSourceType.GITEE
+            }
+            logger.i("Set online rule source to $type")
+            PreferenceUtil.setOnlineSourceType(requireContext(), type)
+        }
         return true
     }
 
@@ -169,6 +180,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
 
     private fun findPreference() {
         controllerTypePreference = findPreference(getString(R.string.key_pref_controller_type))
+        onlineRuleSourcePreference =
+            findPreference(getString(R.string.key_pref_online_rule_source))
         exportRulePreference = findPreference(getString(R.string.key_pref_export_rules))
         importRulePreference = findPreference(getString(R.string.key_pref_import_rules))
         importIfwRulePreference = findPreference(getString(R.string.key_pref_import_ifw_rules))
@@ -212,6 +225,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
 
     private fun initListener() {
         storagePreference?.onPreferenceClickListener = this
+        onlineRuleSourcePreference?.onPreferenceChangeListener = this
         exportRulePreference?.onPreferenceClickListener = this
         importRulePreference?.onPreferenceClickListener = this
         exportIfwRulePreference?.onPreferenceClickListener = this

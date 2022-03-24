@@ -17,6 +17,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.databinding.ActivityAppDetailBinding
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.reduceDragSensitivity
 import com.merxury.libkit.entity.Application
 import rikka.shizuku.Shizuku
 import rikka.shizuku.Shizuku.OnBinderDeadListener
@@ -132,6 +133,7 @@ class AppDetailActivity : AppCompatActivity() {
     private fun initViewPager() {
         binding.viewPager.apply {
             adapter = AppDetailAdapter(this@AppDetailActivity, app)
+            reduceDragSensitivity()
         }
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.setText(AppDetailAdapter.titles[position])

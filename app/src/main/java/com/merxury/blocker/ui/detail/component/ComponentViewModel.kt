@@ -228,6 +228,7 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
         } else {
             null
         }
+        val showEnabledFirst = PreferenceUtil.getShowEnabledComponentShowFirst(context)
         // Order priority: running, enabled, name
         return withContext(Dispatchers.Default) {
             components.map {
@@ -243,7 +244,14 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                 .sortedWith(
                     compareBy(
                         { !it.isRunning },
-                        { (it.ifwBlocked || it.pmBlocked) },
+                        {
+                            val blocked = (it.ifwBlocked || it.pmBlocked)
+                            if (showEnabledFirst) {
+                                blocked
+                            } else {
+                                !blocked
+                            }
+                        },
                         { it.simpleName })
                 )
                 .toMutableList()
