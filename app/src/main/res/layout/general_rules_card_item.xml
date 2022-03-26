@@ -24,7 +24,7 @@
             app:layout_constraintEnd_toStartOf="@id/icon_end_barrier"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:srcCompat="@drawable/ic_android"
+            tools:srcCompat="@drawable/ic_android"
             tools:ignore="ContentDescription" />
 
         <TextView
