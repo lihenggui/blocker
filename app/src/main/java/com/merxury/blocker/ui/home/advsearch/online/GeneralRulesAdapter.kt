@@ -91,6 +91,7 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
                 val iconUrl = baseUrl + item.iconUrl
                 Glide.with(context)
                     .load(iconUrl)
+                    .placeholder(R.drawable.ic_android)
                     .into(binding.icon)
             }
 

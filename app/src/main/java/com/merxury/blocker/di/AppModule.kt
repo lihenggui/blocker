@@ -4,6 +4,7 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.merxury.blocker.data.source.GeneralRuleRepository
+import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.data.source.local.GeneralRuleDao
 import com.merxury.blocker.data.source.local.GeneralRuleDatabase
 import com.merxury.blocker.data.source.remote.GeneralRuleService
@@ -22,10 +23,18 @@ import retrofit2.converter.gson.GsonConverterFactory
 @InstallIn(SingletonComponent::class)
 object AppModule {
     @Provides
-    fun provideOnlineRuleRetrofit(@ApplicationContext context: Context, gson: Gson): Retrofit {
-        val sourceType = PreferenceUtil.getOnlineSourceType(context)
+    fun provideOnlineRuleSourceType(@ApplicationContext context: Context): OnlineSourceType {
+        return PreferenceUtil.getOnlineSourceType(context)
+    }
+
+    @Provides
+    fun provideOnlineRuleRetrofit(
+        @ApplicationContext context: Context,
+        gson: Gson,
+        type: OnlineSourceType
+    ): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(sourceType.baseUrl)
+            .baseUrl(type.baseUrl)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
