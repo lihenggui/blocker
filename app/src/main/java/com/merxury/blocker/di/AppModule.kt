@@ -29,7 +29,6 @@ object AppModule {
 
     @Provides
     fun provideOnlineRuleRetrofit(
-        @ApplicationContext context: Context,
         gson: Gson,
         type: OnlineSourceType
     ): Retrofit {
