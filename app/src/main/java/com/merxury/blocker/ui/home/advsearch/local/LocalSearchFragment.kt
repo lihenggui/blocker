@@ -187,6 +187,8 @@ class LocalSearchFragment : Fragment() {
         adapter.onSwitchClick = { component, checked ->
             logger.i("onSwitchClick: $component, $checked")
             viewModel?.switchComponent(component.packageName, component.name, checked)
+            component.ifwBlocked = !checked
+            component.pmBlocked = !checked
         }
         binding.list.apply {
             setAdapter(this@LocalSearchFragment.adapter)
