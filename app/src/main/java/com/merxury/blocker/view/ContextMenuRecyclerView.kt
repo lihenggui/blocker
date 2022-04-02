@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class ContextMenuRecyclerView : RecyclerView {
 
-    private var mContextMenuInfo: RecyclerContextMenuInfo? = null
+    private var contextMenuInfo: RecyclerContextMenuInfo? = null
 
     constructor(context: Context) : super(context)
 
@@ -17,7 +17,7 @@ class ContextMenuRecyclerView : RecyclerView {
     constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle)
 
     override fun getContextMenuInfo(): ContextMenu.ContextMenuInfo? {
-        return mContextMenuInfo
+        return contextMenuInfo
     }
 
     override fun showContextMenuForChild(originalView: View): Boolean {
@@ -25,7 +25,7 @@ class ContextMenuRecyclerView : RecyclerView {
         adapter?.let {
             if (longPressPosition >= 0) {
                 val longPressId = it.getItemId(longPressPosition)
-                mContextMenuInfo = RecyclerContextMenuInfo(longPressPosition, longPressId)
+                contextMenuInfo = RecyclerContextMenuInfo(longPressPosition, longPressId)
                 return super.showContextMenuForChild(originalView)
             }
         }
