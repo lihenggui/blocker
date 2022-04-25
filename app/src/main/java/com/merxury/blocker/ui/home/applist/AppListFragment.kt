@@ -3,7 +3,12 @@ package com.merxury.blocker.ui.home.applist
 import android.app.SearchManager
 import android.content.Context
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -59,6 +64,7 @@ class AppListFragment : Fragment() {
             logger.i("SortType changed to ${it?.name}")
             PreferenceUtil.setSortType(requireContext(), it)
         }
+        registerForContextMenu(binding.appListRecyclerView)
         loadData()
     }
 

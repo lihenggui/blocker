@@ -2,6 +2,8 @@ package com.merxury.blocker.ui.detail.component
 
 import android.annotation.SuppressLint
 import android.app.SearchManager
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
@@ -133,12 +135,39 @@ class ComponentFragment : Fragment() {
         adapter.onSwitchClick = { componentData, checked ->
             viewModel.controlComponent(requireContext(), componentData, checked)
         }
+        adapter.onLaunchClick = { componentData ->
+            try {
+                viewModel.launchActivity(componentData)
+            } catch (e: Exception) {
+                logger.e("Can't launch activity", e)
+                AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.root_required)
+                    .setMessage(R.string.cannot_launch_this_activity)
+                    .setPositiveButton(R.string.ok) { dialog, _ -> dialog.dismiss() }
+                    .show()
+            }
+        }
+        adapter.onCopyClick = { componentData ->
+            val clipboardManager =
+                requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+            val clipData = ClipData.newPlainText(
+                requireContext().getString(R.string.component_name),
+                componentData.name
+            )
+            clipboardManager?.setPrimaryClip(clipData)
+            Toast.makeText(
+                requireContext(),
+                getString(R.string.copied_to_clipboard_template, componentData.name),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
         binding.recyclerView.apply {
             adapter = this@ComponentFragment.adapter
             val manager = LinearLayoutManager(context)
             layoutManager = manager
             addItemDecoration(DividerItemDecoration(requireContext(), manager.orientation))
         }
+        registerForContextMenu(binding.recyclerView)
         binding.swipeLayout.setOnRefreshListener {
             load()
         }

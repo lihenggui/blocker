@@ -15,7 +15,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.merxury.blocker.view.ContextMenuRecyclerView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/app_list_recycler_view"
             android:layout_width="0dp"
             android:layout_height="0dp"
