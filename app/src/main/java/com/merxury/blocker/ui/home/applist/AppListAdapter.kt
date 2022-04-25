@@ -30,6 +30,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     private var loadIconJob: Job? = null
     private var loadServiceStatusJob: Job? = null
     var onItemClick: ((Application) -> Unit)? = null
+    var contextMenuPosition = -1
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppListViewHolder {
         val context = parent.context
@@ -97,6 +98,10 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
         fun bind(position: Int, app: Application) {
             binding.root.setOnClickListener {
                 onItemClick?.invoke(app)
+            }
+            binding.root.setOnLongClickListener {
+                contextMenuPosition = position
+                false
             }
             // Load icon
             binding.appIcon.setTag(R.id.app_item_icon_id, app.packageName)

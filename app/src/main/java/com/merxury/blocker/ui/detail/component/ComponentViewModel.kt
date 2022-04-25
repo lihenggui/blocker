@@ -17,6 +17,7 @@ import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.EComponentType
 import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
+import com.merxury.libkit.utils.ManagerUtils
 import com.merxury.libkit.utils.ServiceHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -70,6 +71,12 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     fun disableAll(context: Context, packageName: String, type: EComponentType) {
         logger.i("Disable all $packageName, type $type")
         doBatchOperation(context, packageName, type, false)
+    }
+
+    @Throws(RuntimeException::class)
+    fun launchActivity(component: ComponentData) {
+        logger.i("Launch ${component.packageName}/${component.name} without params")
+        ManagerUtils.launchActivity(component.packageName, component.name)
     }
 
     private fun doBatchOperation(
@@ -238,7 +245,8 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                     packageName = it.packageName,
                     ifwBlocked = !ifwController.getComponentEnableState(packageName, it.name),
                     pmBlocked = !pmController.checkComponentEnableState(packageName, it.name),
-                    isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
+                    isRunning = serviceHelper?.isServiceRunning(it.name) ?: false,
+                    type = type,
                 )
             }
                 .sortedWith(
