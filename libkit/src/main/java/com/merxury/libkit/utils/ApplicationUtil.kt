@@ -352,4 +352,12 @@ object ApplicationUtil {
     ): Boolean {
         return getProviderList(pm, packageName).any { it.name == componentName }
     }
+
+    suspend fun isActivity(
+        pm: PackageManager,
+        packageName: String,
+        componentName: String
+    ): Boolean {
+        return getActivityList(pm, packageName).any { it.name == componentName }
+    }
 }
