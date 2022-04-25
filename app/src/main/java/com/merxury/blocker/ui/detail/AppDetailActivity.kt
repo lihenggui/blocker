@@ -135,6 +135,7 @@ class AppDetailActivity : AppCompatActivity() {
         binding.viewPager.apply {
             adapter = AppDetailAdapter(this@AppDetailActivity, app)
             reduceDragSensitivity()
+            offscreenPageLimit = 2
         }
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.setText(AppDetailAdapter.titles[position])
