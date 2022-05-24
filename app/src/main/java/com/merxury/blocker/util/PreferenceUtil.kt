@@ -131,7 +131,7 @@ object PreferenceUtil {
         return try {
             OnlineSourceType.valueOf(value)
         } catch (e: Exception) {
-            OnlineSourceType.GITEE
+            OnlineSourceType.GITHUB
         }
     }
 
