@@ -11,11 +11,9 @@
         <item>shizuku</item>
     </string-array>
     <string-array name="pref_online_rule_source_entries">
-        <item>Gitee</item>
         <item>GitHub</item>
     </string-array>
     <string-array name="pref_online_rule_source_value">
-        <item>gitee</item>
         <item>github</item>
     </string-array>
 </resources>
