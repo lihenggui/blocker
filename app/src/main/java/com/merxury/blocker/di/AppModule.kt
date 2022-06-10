@@ -3,12 +3,15 @@ package com.merxury.blocker.di
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.merxury.blocker.data.app.AppComponentDao
 import com.merxury.blocker.data.source.GeneralRuleRepository
 import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.data.source.local.GeneralRuleDao
 import com.merxury.blocker.data.source.local.GeneralRuleDatabase
 import com.merxury.blocker.data.source.remote.GeneralRuleService
 import com.merxury.blocker.data.source.remote.RuleRemoteDataSource
+import com.merxury.blocker.data.app.InstalledAppDao
+import com.merxury.blocker.data.app.InstalledAppDatabase
 import com.merxury.blocker.util.PreferenceUtil
 import dagger.Module
 import dagger.Provides
@@ -48,6 +51,24 @@ object AppModule {
         return GsonBuilder()
             .serializeNulls()
             .create()
+    }
+
+
+    @Provides
+    @Singleton
+    fun provideInstalledAppDatabase(@ApplicationContext context: Context): InstalledAppDatabase {
+        return InstalledAppDatabase.getInstance(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideInstalledAppDao(database: InstalledAppDatabase): InstalledAppDao {
+        return database.installedAppDao()
+    }
+
+    @Provides
+    fun provideAppComponentDao(database: InstalledAppDatabase): AppComponentDao {
+        return database.appComponentDao()
     }
 
     @Provides
