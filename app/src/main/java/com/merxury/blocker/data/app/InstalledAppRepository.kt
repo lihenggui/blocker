@@ -11,6 +11,8 @@ class InstalledAppRepository @Inject constructor(
 
     suspend fun getInstalledAppCount() = installedAppDao.getCount()
 
+    suspend fun getByPackageName(packageName: String) = installedAppDao.getByPackageName(packageName)
+
     suspend fun addInstalledAppList(list: Array<InstalledApp>) {
         installedAppDao.insertAll(*list)
     }

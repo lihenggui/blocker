@@ -32,7 +32,6 @@ class LocalSearchFragment : Fragment() {
     private val logger = XLog.tag("AdvSearchFragment")
     private lateinit var binding: LocalSearchFragmentBinding
     private val viewModel: LocalSearchViewModel by viewModels()
-    private var totalCount = 0
     private val adapter by unsafeLazy { ExpandableSearchAdapter(this.lifecycleScope) }
     private var searchView: SearchView? = null
     private var isLoading = false
@@ -50,12 +49,6 @@ class LocalSearchFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         initListView()
         viewModel.load(requireContext())
-        viewModel.current.observe(viewLifecycleOwner) {
-            if (totalCount > 0) {
-                val progress = (it * 100 / totalCount)
-                binding.progressBar.setProgressCompat(progress, false)
-            }
-        }
         viewModel.filteredData.observe(viewLifecycleOwner) {
             binding.list.visibility = View.VISIBLE
             if (it.isEmpty()) {
@@ -177,7 +170,7 @@ class LocalSearchFragment : Fragment() {
     private fun initListView() {
         adapter.onSwitchClick = { component, checked ->
             logger.i("onSwitchClick: $component, $checked")
-            viewModel.switchComponent(component.packageName, component.name, checked)
+            viewModel.switchComponent(component.packageName, component.componentName, checked)
             component.ifwBlocked = !checked
             component.pmBlocked = !checked
         }
