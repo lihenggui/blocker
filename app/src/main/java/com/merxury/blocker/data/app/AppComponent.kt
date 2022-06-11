@@ -13,8 +13,8 @@ import com.merxury.libkit.entity.EComponentType
 data class AppComponent(
     @ColumnInfo(name = "package_name") val packageName: String,
     @ColumnInfo(name = "component_name") val componentName: String,
-    @ColumnInfo(name = "ifw_blocked") val ifwBlocked: Boolean,
-    @ColumnInfo(name = "pm_blocked") val pmBlocked: Boolean,
+    @ColumnInfo(name = "ifw_blocked") var ifwBlocked: Boolean,
+    @ColumnInfo(name = "pm_blocked") var pmBlocked: Boolean,
     val type: EComponentType,
     val exported: Boolean,
 )

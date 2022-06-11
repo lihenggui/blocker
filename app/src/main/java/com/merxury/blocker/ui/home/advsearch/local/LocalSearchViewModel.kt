@@ -21,7 +21,6 @@ import com.merxury.blocker.ui.detail.component.ComponentData
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
-import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.EComponentType
 import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
@@ -42,11 +41,9 @@ class LocalSearchViewModel @Inject constructor(
     private val logger = XLog.tag("AdvSearchViewModel")
     private val _appList = MutableLiveData<List<InstalledApp>>()
     val appList: LiveData<List<InstalledApp>> = _appList
-    private val _current = MutableLiveData<Int>()
-    val current: LiveData<Int> = _current
-    private val _filteredData: MutableLiveData<MutableMap<Application, List<ComponentData>>> =
+    private val _filteredData: MutableLiveData<Map<InstalledApp?, List<AppComponent>>> =
         MutableLiveData()
-    val filteredData: LiveData<MutableMap<Application, List<ComponentData>>> = _filteredData
+    val filteredData: LiveData<Map<InstalledApp?, List<AppComponent>>> = _filteredData
     private val _error = MutableLiveData<Event<Exception>>()
     val error: LiveData<Event<Exception>> = _error
 
@@ -85,7 +82,8 @@ class LocalSearchViewModel @Inject constructor(
                 versionName = app.versionName,
                 firstInstallTime = app.firstInstallTime,
                 lastUpdateTime = app.lastUpdateTime,
-                isEnabled = app.isEnabled
+                isEnabled = app.isEnabled,
+                label = app.label
             )
         }.forEach { app ->
             _loadingState.value = LocalSearchState.Loading(app)
@@ -174,10 +172,10 @@ class LocalSearchViewModel @Inject constructor(
             .filterNot { it.trim().isEmpty() }
             .map { it.trim().lowercase() }
         viewModelScope.launch(Dispatchers.IO) {
-            val searchResult = mutableMapOf<Application, List<ComponentData>>()
-            val filteredApp = appComponentRepository.getAppComponentByName(keywords)
-            logger.i("filteredApp: $filteredApp")
-            _filteredData.postValue(searchResult)
+            val result = appComponentRepository.getAppComponentByName(keywords)
+                .groupBy { it.packageName }
+                .mapKeys { installedAppRepository.getByPackageName(it.key) }
+            _filteredData.postValue(result)
         }
     }
 
@@ -200,14 +198,11 @@ class LocalSearchViewModel @Inject constructor(
         logger.i("doBatchOperation: $enabled")
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val componentList = mutableListOf<ComponentData>()
-                filteredData.value?.forEach {
-                    componentList.addAll(it.value)
-                }
+                val componentList = _filteredData.value?.entries?.flatMap { it.value } ?: listOf()
                 val infoList = componentList.map {
                     val component = ComponentInfo()
                     component.packageName = it.packageName
-                    component.name = it.name
+                    component.name = it.componentName
                     component
                 }
                 if (enabled) {
@@ -230,7 +225,7 @@ class LocalSearchViewModel @Inject constructor(
         }
     }
 
-    private suspend fun processProviders(list: List<ComponentData>, enabled: Boolean) {
+    private suspend fun processProviders(list: List<AppComponent>, enabled: Boolean) {
         val context = BlockerApplication.context
         val type = PreferenceUtil.getControllerType(context)
         if (type != EControllerMethod.IFW) {
@@ -243,11 +238,11 @@ class LocalSearchViewModel @Inject constructor(
             val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
             providerList.forEach {
                 if (enabled) {
-                    logger.i("Enable provider: ${it.packageName}/${it.name}")
-                    controller.enable(it.packageName, it.name)
+                    logger.i("Enable provider: ${it.packageName}/${it.componentName}")
+                    controller.enable(it.packageName, it.componentName)
                 } else {
-                    logger.i("Disable provider: ${it.packageName}/${it.name}")
-                    controller.disable(it.packageName, it.name)
+                    logger.i("Disable provider: ${it.packageName}/${it.componentName}")
+                    controller.disable(it.packageName, it.componentName)
                 }
             }
         }
@@ -255,9 +250,9 @@ class LocalSearchViewModel @Inject constructor(
 
     private fun updateComponentStatus(component: ComponentInfo, enabled: Boolean) {
         val data = filteredData.value ?: return
-        val app = data.keys.firstOrNull { it.packageName == component.packageName } ?: return
+        val app = data.keys.firstOrNull { it?.packageName == component.packageName } ?: return
         val componentList = data[app] ?: return
-        val componentData = componentList.firstOrNull { it.name == component.name } ?: return
+        val componentData = componentList.firstOrNull { it.componentName == component.name } ?: return
         if (controllerType == EControllerMethod.IFW && componentData.type != EComponentType.PROVIDER) {
             componentData.ifwBlocked = !enabled
         } else {
@@ -295,10 +290,5 @@ class LocalSearchViewModel @Inject constructor(
         } else {
             EComponentType.RECEIVER
         }
-    }
-
-    private fun notifyDataProcessing(appList: List<InstalledApp>) {
-        _appList.value = appList
-        _current.value = 0
     }
 }
