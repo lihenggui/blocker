@@ -27,12 +27,12 @@ interface IController {
 
     suspend fun batchEnable(
         componentList: List<ComponentInfo>,
-        action: (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit
     ): Int
 
     suspend fun batchDisable(
         componentList: List<ComponentInfo>,
-        action: (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit
     ): Int
 
     suspend fun checkComponentEnableState(packageName: String, componentName: String): Boolean

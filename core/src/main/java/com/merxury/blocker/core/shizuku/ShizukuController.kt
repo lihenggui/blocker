@@ -48,7 +48,7 @@ class ShizukuController(val context: Context) : IController {
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
-        action: (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit
     ): Int {
         var successCount = 0
         componentList.forEach {
@@ -62,7 +62,7 @@ class ShizukuController(val context: Context) : IController {
 
     override suspend fun batchDisable(
         componentList: List<ComponentInfo>,
-        action: (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit
     ): Int {
         var successCount = 0
         componentList.forEach {
