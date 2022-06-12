@@ -20,4 +20,8 @@ class InstalledAppRepository @Inject constructor(
     suspend fun addInstalledApp(app: InstalledApp) {
         installedAppDao.insert(app)
     }
+
+    suspend fun deleteAll() {
+        installedAppDao.deleteAll()
+    }
 }

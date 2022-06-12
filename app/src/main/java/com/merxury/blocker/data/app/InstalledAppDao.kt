@@ -18,6 +18,9 @@ interface InstalledAppDao {
     @Delete
     suspend fun delete(installedApp: InstalledApp): Int
 
+    @Query("DELETE FROM installed_app")
+    suspend fun deleteAll()
+
     @Update
     suspend fun update(installedApp: InstalledApp): Int
 
@@ -29,4 +32,5 @@ interface InstalledAppDao {
 
     @Query("SELECT COUNT(package_name) FROM installed_app")
     suspend fun getCount(): Int
+
 }
