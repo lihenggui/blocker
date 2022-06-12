@@ -76,13 +76,16 @@ class LocalSearchViewModel @Inject constructor(
 
     private suspend fun initializeDb(context: Context) {
         val appList = ApplicationUtil.getApplicationList(context)
+        val systemApp = ApplicationUtil.getSystemApplicationList(context)
         appList.map { app ->
+            val isSystem = systemApp.any { it.packageName == app.packageName }
             InstalledApp(
                 packageName = app.packageName,
                 versionName = app.versionName,
                 firstInstallTime = app.firstInstallTime,
                 lastUpdateTime = app.lastUpdateTime,
                 isEnabled = app.isEnabled,
+                isSystem = isSystem,
                 label = app.label
             )
         }.forEach { app ->
@@ -156,7 +159,7 @@ class LocalSearchViewModel @Inject constructor(
     }
 
     @Throws(PatternSyntaxException::class)
-    fun filter(keyword: String, useRegex: Boolean = false) {
+    fun filter(context: Context, keyword: String, useRegex: Boolean = false) {
         logger.i("filter: $keyword")
         if (keyword.isEmpty()) {
             _filteredData.value = mutableMapOf()
@@ -172,9 +175,13 @@ class LocalSearchViewModel @Inject constructor(
             .filterNot { it.trim().isEmpty() }
             .map { it.trim().lowercase() }
         viewModelScope.launch(Dispatchers.IO) {
-            val result = appComponentRepository.getAppComponentByName(keywords)
+            var result = appComponentRepository.getAppComponentByName(keywords)
                 .groupBy { it.packageName }
                 .mapKeys { installedAppRepository.getByPackageName(it.key) }
+            if (!PreferenceUtil.getSearchSystemApps(context)) {
+                // Remove system apps
+                result = result.filterKeys { it?.isSystem == false }
+            }
             _filteredData.postValue(result)
         }
     }
@@ -252,43 +259,12 @@ class LocalSearchViewModel @Inject constructor(
         val data = filteredData.value ?: return
         val app = data.keys.firstOrNull { it?.packageName == component.packageName } ?: return
         val componentList = data[app] ?: return
-        val componentData = componentList.firstOrNull { it.componentName == component.name } ?: return
+        val componentData =
+            componentList.firstOrNull { it.componentName == component.name } ?: return
         if (controllerType == EControllerMethod.IFW && componentData.type != EComponentType.PROVIDER) {
             componentData.ifwBlocked = !enabled
         } else {
             componentData.pmBlocked = !enabled
-        }
-    }
-
-    private suspend fun List<ComponentInfo>.convertToComponentDataList(
-        context: Context,
-        ifwController: IntentFirewall,
-        pmController: IController,
-        serviceHelper: ServiceHelper?
-    ): List<ComponentData> {
-        return this.map {
-            ComponentData(
-                name = it.name,
-                simpleName = it.getSimpleName(),
-                packageName = it.packageName,
-                ifwBlocked = !ifwController.getComponentEnableState(it.packageName, it.name),
-                type = getComponentType(context.packageManager, it.packageName, it.name),
-                pmBlocked = !pmController.checkComponentEnableState(it.packageName, it.name),
-                isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
-            )
-        }
-            .sortedBy { it.simpleName }
-    }
-
-    private suspend fun getComponentType(
-        pm: PackageManager,
-        packageName: String,
-        name: String
-    ): EComponentType {
-        return if (ApplicationUtil.isProvider(pm, packageName, name)) {
-            EComponentType.PROVIDER
-        } else {
-            EComponentType.RECEIVER
         }
     }
 }
