@@ -126,7 +126,7 @@ class LocalSearchFragment : Fragment() {
         when (item.itemId) {
             R.id.action_regex_search -> handleUseRegexClicked(item)
             R.id.action_show_system_apps -> handleSearchSystemAppClicked(item)
-            R.id.action_refresh -> viewModel.load(requireContext())
+            R.id.action_refresh -> viewModel.load(requireContext(), forceInit = true)
             R.id.action_block_all -> batchDisable()
             R.id.action_enable_all -> batchEnable()
             else -> return false
