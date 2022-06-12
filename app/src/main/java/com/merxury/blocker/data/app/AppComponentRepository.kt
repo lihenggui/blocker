@@ -6,8 +6,12 @@ import javax.inject.Singleton
 
 @Singleton
 class AppComponentRepository @Inject constructor(private val appComponentDao: AppComponentDao) {
-    suspend fun getAppComponent(packageName: String): List<AppComponent> {
+    suspend fun getAppComponents(packageName: String): List<AppComponent> {
         return appComponentDao.getByPackageName(packageName)
+    }
+
+    suspend fun getAppComponent(packageName: String, componentName: String): AppComponent? {
+        return appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
     }
 
     suspend fun getAppComponentByType(packageName: String, type: EComponentType): List<AppComponent> {
