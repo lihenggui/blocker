@@ -25,4 +25,8 @@ class AppComponentRepository @Inject constructor(private val appComponentDao: Ap
     suspend fun addAppComponents(vararg appComponents: AppComponent) {
         appComponentDao.insert(*appComponents)
     }
+
+    suspend fun deleteAll() {
+        appComponentDao.deleteAll()
+    }
 }

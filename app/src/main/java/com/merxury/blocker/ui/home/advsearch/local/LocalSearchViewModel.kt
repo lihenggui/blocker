@@ -71,6 +71,10 @@ class LocalSearchViewModel @Inject constructor(
     }
 
     private suspend fun initializeDb(context: Context) {
+        // Delete the old data first to make sure the data is clean
+        installedAppRepository.deleteAll()
+        appComponentRepository.deleteAll()
+        // Rebuild the data
         val appList = ApplicationUtil.getApplicationList(context)
         val systemApp = ApplicationUtil.getSystemApplicationList(context)
         appList.map { app ->
