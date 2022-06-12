@@ -14,5 +14,6 @@ data class InstalledApp(
     @ColumnInfo(name = "first_install_time") var firstInstallTime: Date? = null,
     @ColumnInfo(name = "last_update_time") var lastUpdateTime: Date? = null,
     @ColumnInfo(name = "is_enabled") var isEnabled: Boolean = true,
+    @ColumnInfo(name = "is_system") var isSystem: Boolean = false,
     @ColumnInfo var label: String = "",
 )

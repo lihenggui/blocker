@@ -71,7 +71,10 @@ class LocalSearchFragment : Fragment() {
                 viewModel.loadingState.collect {
                     logger.i("loadingState: $it")
                     when (it) {
-                        is LocalSearchState.NotStarted -> {}
+                        is LocalSearchState.NotStarted -> {
+                            binding.list.visibility = View.GONE
+                            binding.searchHintGroup.visibility = View.VISIBLE
+                        }
                         is LocalSearchState.Loading -> {
                             setSearchIconVisibility(false)
                             binding.searchNoResultHintGroup.visibility = View.GONE
@@ -200,7 +203,7 @@ class LocalSearchFragment : Fragment() {
                 logger.i("onQueryTextChange: $newText")
                 try {
                     val useRegex = PreferenceUtil.getUseRegexSearch(requireContext())
-                    viewModel.filter(newText.orEmpty(), useRegex)
+                    viewModel.filter(requireContext(), newText.orEmpty(), useRegex)
                 } catch (e: Exception) {
                     logger.e("Invalid regex: $newText", e)
                     ToastUtil.showToast(R.string.invalid_regex, Toast.LENGTH_LONG)
@@ -210,7 +213,7 @@ class LocalSearchFragment : Fragment() {
         })
     }
 
-    private fun showErrorDialog(e: Throwable    ) {
+    private fun showErrorDialog(e: Throwable) {
         val context = context
         if (context == null) {
             ToastUtil.showToast(getString(R.string.control_component_error_message, e.message))
