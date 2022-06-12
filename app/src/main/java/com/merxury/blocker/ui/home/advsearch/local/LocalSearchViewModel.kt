@@ -2,7 +2,6 @@ package com.merxury.blocker.ui.home.advsearch.local
 
 import android.content.Context
 import android.content.pm.ComponentInfo
-import android.content.pm.PackageManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -17,12 +16,9 @@ import com.merxury.blocker.data.app.AppComponent
 import com.merxury.blocker.data.app.AppComponentRepository
 import com.merxury.blocker.data.app.InstalledApp
 import com.merxury.blocker.data.app.InstalledAppRepository
-import com.merxury.blocker.ui.detail.component.ComponentData
 import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.EComponentType
-import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ServiceHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -194,6 +190,16 @@ class LocalSearchViewModel @Inject constructor(
                 } else {
                     controller?.disable(packageName, name)
                 }
+                val updatedComponent = appComponentRepository.getAppComponent(packageName, name) ?: run {
+                    logger.e("Component not found: $packageName, $name")
+                    return@launch
+                }
+                if (controllerType == EControllerMethod.IFW) {
+                    updatedComponent.ifwBlocked = !enabled
+                } else {
+                    updatedComponent.pmBlocked = !enabled
+                }
+                appComponentRepository.addAppComponents(updatedComponent)
             } catch (e: Exception) {
                 logger.e("Failed to control component: $packageName to state $enabled", e)
                 _error.postValue(Event(e))
