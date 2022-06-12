@@ -190,16 +190,7 @@ class LocalSearchViewModel @Inject constructor(
                 } else {
                     controller?.disable(packageName, name)
                 }
-                val updatedComponent = appComponentRepository.getAppComponent(packageName, name) ?: run {
-                    logger.e("Component not found: $packageName, $name")
-                    return@launch
-                }
-                if (controllerType == EControllerMethod.IFW) {
-                    updatedComponent.ifwBlocked = !enabled
-                } else {
-                    updatedComponent.pmBlocked = !enabled
-                }
-                appComponentRepository.addAppComponents(updatedComponent)
+                saveComponentInfoToDb(packageName, name, enabled)
             } catch (e: Exception) {
                 logger.e("Failed to control component: $packageName to state $enabled", e)
                 _error.postValue(Event(e))
@@ -261,7 +252,24 @@ class LocalSearchViewModel @Inject constructor(
         }
     }
 
-    private fun updateComponentStatus(component: ComponentInfo, enabled: Boolean) {
+    private suspend fun saveComponentInfoToDb(
+        packageName: String,
+        name: String,
+        enabled: Boolean
+    ) {
+        val updatedComponent = appComponentRepository.getAppComponent(packageName, name) ?: run {
+            logger.e("Component not found: $packageName, $name")
+            return
+        }
+        if (controllerType == EControllerMethod.IFW) {
+            updatedComponent.ifwBlocked = !enabled
+        } else {
+            updatedComponent.pmBlocked = !enabled
+        }
+        appComponentRepository.addAppComponents(updatedComponent)
+    }
+
+    private suspend fun updateComponentStatus(component: ComponentInfo, enabled: Boolean) {
         val data = filteredData.value ?: return
         val app = data.keys.firstOrNull { it?.packageName == component.packageName } ?: return
         val componentList = data[app] ?: return
@@ -272,5 +280,6 @@ class LocalSearchViewModel @Inject constructor(
         } else {
             componentData.pmBlocked = !enabled
         }
+        saveComponentInfoToDb(component.packageName, component.name, enabled)
     }
 }
