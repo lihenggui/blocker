@@ -53,11 +53,11 @@ class LocalSearchViewModel @Inject constructor(
     private var controller: IController? = null
     private var controllerType = EControllerMethod.IFW
 
-    fun load(context: Context) {
+    fun load(context: Context, forceInit: Boolean = false) {
         viewModelScope.launch {
             val countInDb = installedAppRepository.getInstalledAppCount()
             val countInSystem = ApplicationUtil.getApplicationList(context).size
-            if (countInDb != countInSystem) {
+            if (countInDb != countInSystem || forceInit) {
                 // Data not initialized yet, fill the data
                 logger.i("AppComponent data not initialized yet, fill the data")
                 initializeDb(context)
