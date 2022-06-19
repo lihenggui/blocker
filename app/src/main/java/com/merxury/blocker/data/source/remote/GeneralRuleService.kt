@@ -5,6 +5,6 @@ import retrofit2.Response
 import retrofit2.http.GET
 
 interface GeneralRuleService {
-    @GET("zh-cn/general.sh")
+    @GET("zh-cn/general.json")
     suspend fun getOnlineRules(): Response<List<GeneralRule>>
 }
