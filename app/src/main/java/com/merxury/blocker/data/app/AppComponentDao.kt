@@ -39,7 +39,7 @@ interface AppComponentDao {
     ): List<AppComponent>
 
     @Transaction
-    @Query("SELECT * FROM app_component WHERE component_name LIKE '%' || :searchKeywords || '%' OR package_name LIKE '%' || :searchKeywords || '%'")
+    @Query("SELECT * FROM app_component WHERE component_name LIKE '%' || :searchKeywords || '%'")
     suspend fun getByName(searchKeywords: List<String>): List<AppComponent>
 
 }
