@@ -54,6 +54,8 @@ class LocalSearchViewModel @Inject constructor(
     private var controllerType = EControllerMethod.IFW
 
     fun load(context: Context, forceInit: Boolean = false) {
+        // Clear filtered data when loading
+        _filteredData.value = mapOf()
         viewModelScope.launch {
             val countInDb = installedAppRepository.getInstalledAppCount()
             val countInSystem = ApplicationUtil.getApplicationList(context).size
