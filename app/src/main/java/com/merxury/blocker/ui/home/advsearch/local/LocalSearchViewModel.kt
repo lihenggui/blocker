@@ -22,11 +22,9 @@ import com.merxury.libkit.entity.EComponentType
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ServiceHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.regex.PatternSyntaxException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.regex.PatternSyntaxException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,8 +33,6 @@ class LocalSearchViewModel @Inject constructor(
     private val installedAppRepository: InstalledAppRepository
 ) : ViewModel() {
     private val logger = XLog.tag("AdvSearchViewModel")
-    private val _appList = MutableLiveData<List<InstalledApp>>()
-    val appList: LiveData<List<InstalledApp>> = _appList
     private val _filteredData: MutableLiveData<Map<InstalledApp?, List<AppComponent>>> =
         MutableLiveData()
     val filteredData: LiveData<Map<InstalledApp?, List<AppComponent>>> = _filteredData
@@ -47,8 +43,8 @@ class LocalSearchViewModel @Inject constructor(
     private val _operationDone = MutableLiveData<Event<Boolean>>()
     val operationDone: LiveData<Event<Boolean>> = _operationDone
 
-    private val _loadingState = MutableStateFlow<LocalSearchState>(LocalSearchState.NotStarted)
-    val loadingState: StateFlow<LocalSearchState> = _loadingState
+    private val _loadingState = MutableLiveData<LocalSearchState>(LocalSearchState.NotStarted)
+    val loadingState: LiveData<LocalSearchState> = _loadingState
 
     private var controller: IController? = null
     private var controllerType = EControllerMethod.IFW

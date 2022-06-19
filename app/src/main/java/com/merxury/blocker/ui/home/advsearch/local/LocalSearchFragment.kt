@@ -4,20 +4,13 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.LocalSearchFragmentBinding
@@ -25,7 +18,6 @@ import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.unsafeLazy
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class LocalSearchFragment : Fragment() {
@@ -66,43 +58,42 @@ class LocalSearchFragment : Fragment() {
                 adapter.notifyDataSetChanged()
             }
         }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.loadingState.collect {
-                    logger.i("loadingState: $it")
-                    when (it) {
-                        is LocalSearchState.NotStarted -> {
-                            binding.list.visibility = View.GONE
-                            binding.loadingIndicatorGroup.visibility = View.GONE
-                            binding.searchHintGroup.visibility = View.GONE
-                        }
-                        is LocalSearchState.Loading -> {
-                            setSearchIconVisibility(false)
-                            binding.searchNoResultHintGroup.visibility = View.GONE
-                            binding.searchHintGroup.visibility = View.GONE
-                            binding.loadingIndicatorGroup.visibility = View.VISIBLE
-                            binding.list.visibility = View.GONE
-                            binding.processingName.text = it.app.packageName
-                        }
-                        is LocalSearchState.Finished -> {
-                            setSearchIconVisibility(true)
-                            binding.list.visibility = View.VISIBLE
-                            binding.searchingHintGroup.visibility = View.GONE
-                            binding.loadingIndicatorGroup.visibility = View.GONE
-                            binding.searchHintGroup.visibility = View.VISIBLE
-                        }
-                        is LocalSearchState.Searching -> {
-                            binding.searchingHintGroup.visibility = View.VISIBLE
-                            binding.searchNoResultHintGroup.visibility = View.GONE
-                            binding.loadingIndicatorGroup.visibility = View.GONE
-                            binding.searchHintGroup.visibility = View.GONE
-                            binding.list.visibility = View.INVISIBLE
-                        }
-                        is LocalSearchState.Error -> {
-                            showErrorDialog(it.exception)
-                            adapter.notifyDataSetChanged()
-                        }
-                    }
+
+        viewModel.loadingState.observe(viewLifecycleOwner) {
+            logger.i("loadingState: $it")
+            when (it) {
+                is LocalSearchState.NotStarted -> {
+                    binding.list.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.GONE
+                    binding.searchNoResultHintGroup.visibility = View.GONE
+                }
+                is LocalSearchState.Loading -> {
+                    setSearchIconVisibility(false)
+                    binding.searchNoResultHintGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.VISIBLE
+                    binding.list.visibility = View.GONE
+                    binding.processingName.text = it.app.packageName
+                }
+                is LocalSearchState.Finished -> {
+                    setSearchIconVisibility(true)
+                    binding.list.visibility = View.VISIBLE
+                    binding.searchingHintGroup.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.VISIBLE
+                    binding.searchNoResultHintGroup.visibility = View.GONE
+                }
+                is LocalSearchState.Searching -> {
+                    binding.searchingHintGroup.visibility = View.VISIBLE
+                    binding.searchNoResultHintGroup.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.GONE
+                    binding.list.visibility = View.INVISIBLE
+                }
+                is LocalSearchState.Error -> {
+                    showErrorDialog(it.exception)
+                    adapter.notifyDataSetChanged()
                 }
             }
         }
@@ -127,9 +118,7 @@ class LocalSearchFragment : Fragment() {
         when (item.itemId) {
             R.id.action_regex_search -> handleUseRegexClicked(item)
             R.id.action_show_system_apps -> handleSearchSystemAppClicked(item)
-            R.id.action_refresh -> {
-                viewModel.load(requireContext(), forceInit = true)
-            }
+            R.id.action_refresh -> viewModel.load(requireContext(), forceInit = true)
             R.id.action_block_all -> batchDisable()
             R.id.action_enable_all -> batchEnable()
             else -> return false
