@@ -7,11 +7,11 @@ import android.content.pm.PackageManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.data.app.AppComponentRepository
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.EComponentType
@@ -19,12 +19,18 @@ import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ManagerUtils
 import com.merxury.libkit.utils.ServiceHelper
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
+@HiltViewModel
+class ComponentViewModel @Inject constructor(
+    private val pm: PackageManager,
+    private val appComponentRepository: AppComponentRepository
+) : ViewModel() {
     private val logger = XLog.tag("ComponentViewModel")
 
     private val _data = MutableLiveData<List<ComponentData>>()
@@ -51,7 +57,10 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
     fun controlComponent(context: Context, component: ComponentData, enabled: Boolean) {
         logger.i("Control ${component.name} $enabled")
         viewModelScope.launch(Dispatchers.IO) {
-            when (PreferenceUtil.getControllerType(context)) {
+            val appComponent =
+                appComponentRepository.getAppComponent(component.packageName, component.name)
+            val controllerType = PreferenceUtil.getControllerType(context)
+            when (controllerType) {
                 EControllerMethod.PM -> controlComponentInPmMode(context, component, enabled)
                 EControllerMethod.IFW -> controlComponentInIfwMode(context, component, enabled)
                 EControllerMethod.SHIZUKU -> controlComponentInShizukuMode(
@@ -59,6 +68,16 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
                     component,
                     enabled
                 )
+            }
+            // Save the component status to database
+            appComponent?.let {
+                logger.i("Save ${component.name} $enabled")
+                if (controllerType == EControllerMethod.IFW) {
+                    appComponent.ifwBlocked = !enabled
+                } else {
+                    appComponent.pmBlocked = !enabled
+                }
+                appComponentRepository.addAppComponents(appComponent)
             }
         }
     }
@@ -291,13 +310,6 @@ class ComponentViewModel(private val pm: PackageManager) : ViewModel() {
             components.asSequence()
                 .sortedBy { it.getSimpleName() }
                 .toMutableList()
-        }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    class ComponentViewModelFactory(private val pm: PackageManager) : ViewModelProvider.Factory {
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return ComponentViewModel(pm) as T
         }
     }
 }
