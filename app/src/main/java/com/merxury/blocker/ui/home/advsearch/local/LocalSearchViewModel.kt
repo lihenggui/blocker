@@ -173,14 +173,18 @@ class LocalSearchViewModel @Inject constructor(
             .filterNot { it.trim().isEmpty() }
             .map { it.trim().lowercase() }
         viewModelScope.launch(Dispatchers.IO) {
-            var result = appComponentRepository.getAppComponentByName(keywords)
-                .groupBy { it.packageName }
+            val searchedComponents = mutableListOf<AppComponent>()
+            keywords.forEach { keyword ->
+                val appComponents = appComponentRepository.getAppComponentByName(keyword)
+                searchedComponents.addAll(appComponents)
+            }
+            var finalResult = searchedComponents.groupBy { it.packageName }
                 .mapKeys { installedAppRepository.getByPackageName(it.key) }
             if (!PreferenceUtil.getSearchSystemApps(context)) {
                 // Remove system apps
-                result = result.filterKeys { it?.isSystem == false }
+                finalResult = finalResult.filterKeys { it?.isSystem == false }
             }
-            _filteredData.postValue(result)
+            _filteredData.postValue(finalResult)
         }
     }
 
