@@ -60,7 +60,6 @@ class LocalSearchFragment : Fragment() {
         }
 
         viewModel.loadingState.observe(viewLifecycleOwner) {
-            logger.i("loadingState: $it")
             when (it) {
                 is LocalSearchState.NotStarted -> {
                     binding.list.visibility = View.GONE
