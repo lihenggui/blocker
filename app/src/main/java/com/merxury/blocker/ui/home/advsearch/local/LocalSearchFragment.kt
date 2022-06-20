@@ -63,7 +63,7 @@ class LocalSearchFragment : Fragment() {
             when (it) {
                 is LocalSearchState.NotStarted -> {
                     binding.list.visibility = View.GONE
-                    binding.loadingIndicatorGroup.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.VISIBLE
                     binding.searchHintGroup.visibility = View.GONE
                     binding.searchNoResultHintGroup.visibility = View.GONE
                 }
