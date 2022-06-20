@@ -69,7 +69,13 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
         logger.d("Preference: ${preference.key} changed, value = $newValue")
         if (preference == onlineRuleSourcePreference) {
-            PreferenceUtil.setOnlineSourceType(requireContext(), OnlineSourceType.GITHUB)
+            val type = if (newValue == "github") {
+                OnlineSourceType.GITHUB
+            } else {
+                OnlineSourceType.CODING
+            }
+            logger.i("Set online rule source to $type")
+            PreferenceUtil.setOnlineSourceType(requireContext(), type)
         }
         return true
     }
