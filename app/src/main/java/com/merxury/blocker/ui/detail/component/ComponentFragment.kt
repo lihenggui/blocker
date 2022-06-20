@@ -7,12 +7,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
@@ -20,7 +15,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
@@ -28,10 +23,12 @@ import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ComponentFragmentBinding
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.libkit.entity.EComponentType
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ComponentFragment : Fragment() {
     private lateinit var binding: ComponentFragmentBinding
-    private lateinit var viewModel: ComponentViewModel
+    private val viewModel: ComponentViewModel by viewModels()
     private val adapter = ComponentAdapter()
     private var packageName: String = ""
     private var type: EComponentType = EComponentType.RECEIVER
@@ -55,10 +52,6 @@ class ComponentFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(
-            this,
-            ComponentViewModel.ComponentViewModelFactory(requireContext().packageManager)
-        )[ComponentViewModel::class.java]
         initView()
         observeData()
         load()

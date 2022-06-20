@@ -1,26 +1,27 @@
 package com.merxury.blocker.di
 
 import android.content.Context
+import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.merxury.blocker.data.app.AppComponentDao
+import com.merxury.blocker.data.app.InstalledAppDao
+import com.merxury.blocker.data.app.InstalledAppDatabase
 import com.merxury.blocker.data.source.GeneralRuleRepository
 import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.data.source.local.GeneralRuleDao
 import com.merxury.blocker.data.source.local.GeneralRuleDatabase
 import com.merxury.blocker.data.source.remote.GeneralRuleService
 import com.merxury.blocker.data.source.remote.RuleRemoteDataSource
-import com.merxury.blocker.data.app.InstalledAppDao
-import com.merxury.blocker.data.app.InstalledAppDatabase
 import com.merxury.blocker.util.PreferenceUtil
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -96,6 +97,12 @@ object AppModule {
         localDataSource: GeneralRuleDao
     ): GeneralRuleRepository {
         return GeneralRuleRepository(remoteDataSource, localDataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun providePackageManager(@ApplicationContext context: Context): PackageManager {
+        return context.packageManager
     }
 
 }
