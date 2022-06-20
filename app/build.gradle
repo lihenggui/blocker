@@ -95,7 +95,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.documentfile:documentfile:1.0.1'
     implementation 'com.google.android.material:material:1.6.1'
-    implementation 'androidx.annotation:annotation:1.3.0'
+    implementation 'androidx.annotation:annotation:1.4.0'
     implementation 'androidx.preference:preference-ktx:1.2.0'
     implementation 'androidx.browser:browser:1.4.0'
     implementation "androidx.cardview:cardview:1.0.0"
@@ -112,7 +112,7 @@ dependencies {
     implementation 'androidx.compose.animation:animation:1.1.1'
     implementation 'androidx.compose.ui:ui-tooling:1.1.1'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-compose:2.4.1'
-    implementation "com.google.android.material:compose-theme-adapter:1.1.10"
+    implementation "com.google.android.material:compose-theme-adapter:1.1.11"
     // Rooms
     implementation "androidx.room:room-runtime:2.4.2"
     implementation("androidx.room:room-ktx:2.4.2")
