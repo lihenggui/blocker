@@ -20,11 +20,13 @@ import com.merxury.blocker.databinding.ActivityAppDetailBinding
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.reduceDragSensitivity
 import com.merxury.libkit.entity.Application
+import dagger.hilt.android.AndroidEntryPoint
 import rikka.shizuku.Shizuku
 import rikka.shizuku.Shizuku.OnBinderDeadListener
 import rikka.shizuku.Shizuku.OnBinderReceivedListener
 import rikka.sui.Sui
 
+@AndroidEntryPoint
 class AppDetailActivity : AppCompatActivity() {
     private var _app: Application? = null
     private val app get() = _app!!
