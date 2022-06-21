@@ -71,7 +71,6 @@ class LocalSearchFragment : Fragment() {
                     binding.searchNoResultHintGroup.visibility = View.GONE
                 }
                 is LocalSearchState.Loading -> {
-                    setSearchIconVisibility(false)
                     binding.searchNoResultHintGroup.visibility = View.GONE
                     binding.searchHintGroup.visibility = View.GONE
                     binding.loadingIndicatorGroup.visibility = View.VISIBLE
@@ -79,7 +78,6 @@ class LocalSearchFragment : Fragment() {
                     binding.processingName.text = it.app?.packageName
                 }
                 is LocalSearchState.Finished -> {
-                    setSearchIconVisibility(true)
                     binding.searchNoResultHintGroup.isVisible = (it.count == 0)
                     binding.list.isVisible = (it.count > 0)
                     binding.searchingHintGroup.visibility = View.GONE
