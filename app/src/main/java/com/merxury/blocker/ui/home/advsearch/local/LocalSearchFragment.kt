@@ -4,17 +4,13 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
@@ -22,20 +18,16 @@ import com.merxury.blocker.databinding.LocalSearchFragmentBinding
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.unsafeLazy
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class LocalSearchFragment : Fragment() {
     private val logger = XLog.tag("AdvSearchFragment")
     private lateinit var binding: LocalSearchFragmentBinding
-    private var viewModel: LocalSearchViewModel? = null
-    private var totalCount = 0
+    private val viewModel: LocalSearchViewModel by viewModels()
     private val adapter by unsafeLazy { ExpandableSearchAdapter(this.lifecycleScope) }
     private var searchView: SearchView? = null
     private var isLoading = false
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this)[LocalSearchViewModel::class.java]
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -49,39 +41,8 @@ class LocalSearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initListView()
-        viewModel?.load(requireContext())
-        viewModel?.isLoading?.observe(viewLifecycleOwner) {
-            isLoading = it
-            setSearchIconVisibility(!it)
-            if (it) {
-                binding.searchNoResultHintGroup.visibility = View.GONE
-                binding.searchHintGroup.visibility = View.GONE
-                binding.loadingIndicatorGroup.visibility = View.VISIBLE
-                binding.list.visibility = View.GONE
-            } else {
-                binding.loadingIndicatorGroup.visibility = View.GONE
-                binding.searchHintGroup.visibility = View.VISIBLE
-            }
-        }
-        viewModel?.currentProcessApplication?.observe(viewLifecycleOwner) {
-            binding.processingName.text = it.packageName
-        }
-        viewModel?.total?.observe(viewLifecycleOwner) {
-            if (it == 0) {
-                // Do something that shows no apps was installed
-                return@observe
-            }
-            if (it > 0) {
-                totalCount = it
-            }
-        }
-        viewModel?.current?.observe(viewLifecycleOwner) {
-            if (totalCount > 0) {
-                val progress = (it * 100 / totalCount)
-                binding.progressBar.setProgressCompat(progress, false)
-            }
-        }
-        viewModel?.filteredData?.observe(viewLifecycleOwner) {
+        viewModel.load(requireContext())
+        viewModel.filteredData.observe(viewLifecycleOwner) {
             binding.list.visibility = View.VISIBLE
             if (it.isEmpty()) {
                 binding.searchNoResultHintGroup.visibility = View.VISIBLE
@@ -91,31 +52,51 @@ class LocalSearchFragment : Fragment() {
             binding.searchHintGroup.visibility = View.GONE
             adapter.updateData(it)
         }
-        viewModel?.error?.observe(viewLifecycleOwner) {
-            val exception = it.getContentIfNotHandled()
-            if (exception != null) {
-                showErrorDialog(exception)
-                adapter.notifyDataSetChanged()
-            }
-        }
-        viewModel?.operationDone?.observe(viewLifecycleOwner) {
+        viewModel.operationDone.observe(viewLifecycleOwner) {
             val result = it.getContentIfNotHandled()
             if (result == true) {
                 Toast.makeText(requireContext(), R.string.done, Toast.LENGTH_SHORT).show()
                 adapter.notifyDataSetChanged()
             }
         }
-        viewModel?.isSearching?.observe(viewLifecycleOwner) {
-            val result = it.getContentIfNotHandled()
-            if (result == true) {
-                binding.searchingHintGroup.visibility = View.VISIBLE
-                binding.searchNoResultHintGroup.visibility = View.GONE
-                binding.loadingIndicatorGroup.visibility = View.GONE
-                binding.searchHintGroup.visibility = View.GONE
-                binding.list.visibility = View.INVISIBLE
-            } else {
-                binding.list.visibility = View.VISIBLE
-                binding.searchingHintGroup.visibility = View.GONE
+        viewModel.loadingState.observe(viewLifecycleOwner) {
+            logger.i("loadingState: $it")
+            when (it) {
+                is LocalSearchState.NotStarted -> {
+                    setSearchIconVisibility(true)
+                    binding.list.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.VISIBLE
+                    binding.searchNoResultHintGroup.visibility = View.GONE
+                }
+                is LocalSearchState.Loading -> {
+                    binding.searchNoResultHintGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.VISIBLE
+                    binding.list.visibility = View.GONE
+                    binding.processingName.text = it.app?.packageName
+                }
+                is LocalSearchState.Finished -> {
+                    binding.searchNoResultHintGroup.isVisible = (it.count == 0)
+                    binding.list.isVisible = (it.count > 0)
+                    binding.searchingHintGroup.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.GONE
+
+                }
+                is LocalSearchState.Searching -> {
+                    binding.searchingHintGroup.visibility = View.VISIBLE
+                    binding.searchNoResultHintGroup.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.GONE
+                    binding.list.visibility = View.GONE
+                }
+                is LocalSearchState.Error -> {
+                    it.exception.getContentIfNotHandled()?.let { error ->
+                        showErrorDialog(error)
+                        adapter.notifyDataSetChanged()
+                    }
+                }
             }
         }
     }
@@ -131,15 +112,12 @@ class LocalSearchFragment : Fragment() {
         super.onPrepareOptionsMenu(menu)
         menu.findItem(R.id.action_show_system_apps)?.isChecked =
             PreferenceUtil.getSearchSystemApps(requireContext())
-        menu.findItem(R.id.action_regex_search)?.isChecked =
-            PreferenceUtil.getUseRegexSearch(requireContext())
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.action_regex_search -> handleUseRegexClicked(item)
             R.id.action_show_system_apps -> handleSearchSystemAppClicked(item)
-            R.id.action_refresh -> viewModel?.load(requireContext())
+            R.id.action_refresh -> viewModel.load(requireContext(), forceInit = true)
             R.id.action_block_all -> batchDisable()
             R.id.action_enable_all -> batchEnable()
             else -> return false
@@ -155,18 +133,13 @@ class LocalSearchFragment : Fragment() {
         searchView?.setQuery(keyword, true)
     }
 
-    private fun handleUseRegexClicked(menuItem: MenuItem) {
-        menuItem.isChecked = !menuItem.isChecked
-        PreferenceUtil.setUseRegexSearch(requireContext(), menuItem.isChecked)
-    }
-
     private fun batchEnable() {
         Toast.makeText(
             requireContext(),
             R.string.enabling_components_please_wait,
             Toast.LENGTH_SHORT
         ).show()
-        viewModel?.doBatchOperation(true)
+        viewModel.doBatchOperation(true)
     }
 
     private fun batchDisable() {
@@ -175,7 +148,7 @@ class LocalSearchFragment : Fragment() {
             R.string.disabling_components_please_wait,
             Toast.LENGTH_SHORT
         ).show()
-        viewModel?.doBatchOperation(false)
+        viewModel.doBatchOperation(false)
     }
 
     override fun onDestroyView() {
@@ -186,7 +159,7 @@ class LocalSearchFragment : Fragment() {
     private fun initListView() {
         adapter.onSwitchClick = { component, checked ->
             logger.i("onSwitchClick: $component, $checked")
-            viewModel?.switchComponent(component.packageName, component.name, checked)
+            viewModel.switchComponent(component.packageName, component.componentName, checked)
             component.ifwBlocked = !checked
             component.pmBlocked = !checked
         }
@@ -198,7 +171,7 @@ class LocalSearchFragment : Fragment() {
     private fun handleSearchSystemAppClicked(menuItem: MenuItem) {
         menuItem.isChecked = !menuItem.isChecked
         PreferenceUtil.setSearchSystemApps(requireContext(), menuItem.isChecked)
-        viewModel?.load(requireContext())
+        viewModel.load(requireContext())
     }
 
     private fun initSearch(menu: Menu) {
@@ -215,8 +188,7 @@ class LocalSearchFragment : Fragment() {
             override fun onQueryTextChange(newText: String?): Boolean {
                 logger.i("onQueryTextChange: $newText")
                 try {
-                    val useRegex = PreferenceUtil.getUseRegexSearch(requireContext())
-                    viewModel?.filter(newText.orEmpty(), useRegex)
+                    viewModel.filter(requireContext(), newText.orEmpty())
                 } catch (e: Exception) {
                     logger.e("Invalid regex: $newText", e)
                     ToastUtil.showToast(R.string.invalid_regex, Toast.LENGTH_LONG)
@@ -226,7 +198,7 @@ class LocalSearchFragment : Fragment() {
         })
     }
 
-    private fun showErrorDialog(e: Exception) {
+    private fun showErrorDialog(e: Throwable) {
         val context = context
         if (context == null) {
             ToastUtil.showToast(getString(R.string.control_component_error_message, e.message))

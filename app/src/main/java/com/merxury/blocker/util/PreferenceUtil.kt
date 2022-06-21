@@ -105,18 +105,6 @@ object PreferenceUtil {
         return pref.getBoolean(context.getString(R.string.key_pref_search_system_apps), false)
     }
 
-    fun setUseRegexSearch(context: Context, value: Boolean) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
-            .putBoolean(context.getString(R.string.key_pref_use_regex_search), value)
-            .apply()
-    }
-
-    fun getUseRegexSearch(context: Context): Boolean {
-        val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        return pref.getBoolean(context.getString(R.string.key_pref_use_regex_search), false)
-    }
-
     fun setOnlineSourceType(context: Context, type: OnlineSourceType) {
         PreferenceManager.getDefaultSharedPreferences(context)
             .edit()
@@ -127,7 +115,7 @@ object PreferenceUtil {
     fun getOnlineSourceType(context: Context): OnlineSourceType {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val value =
-            pref.getString(context.getString(R.string.key_pref_online_source_type), null).orEmpty()
+            pref.getString(context.getString(R.string.key_pref_online_source_type), "CODING").orEmpty()
         return try {
             OnlineSourceType.valueOf(value)
         } catch (e: Exception) {
