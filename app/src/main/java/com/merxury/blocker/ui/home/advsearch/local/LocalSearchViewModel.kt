@@ -157,17 +157,11 @@ class LocalSearchViewModel @Inject constructor(
     }
 
     @Throws(PatternSyntaxException::class)
-    fun filter(context: Context, keyword: String, useRegex: Boolean = false) {
+    fun filter(context: Context, keyword: String) {
         logger.i("filter: $keyword")
         if (keyword.isEmpty()) {
             _filteredData.value = mutableMapOf()
             return
-        }
-        if (useRegex) {
-            // Check validity of this regex and throw exception earlier
-            keyword.split(",")
-                .filterNot { it.trim().isEmpty() }
-                .map { it.trim().lowercase().toRegex() }
         }
         val keywords = keyword.split(",")
             .filterNot { it.trim().isEmpty() }
