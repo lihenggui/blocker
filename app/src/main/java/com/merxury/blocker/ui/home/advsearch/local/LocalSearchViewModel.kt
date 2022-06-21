@@ -2,7 +2,6 @@ package com.merxury.blocker.ui.home.advsearch.local
 
 import android.content.Context
 import android.content.pm.ComponentInfo
-import android.content.pm.PackageManager
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,112 +12,175 @@ import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.data.Event
-import com.merxury.blocker.ui.detail.component.ComponentData
+import com.merxury.blocker.data.app.AppComponent
+import com.merxury.blocker.data.app.AppComponentRepository
+import com.merxury.blocker.data.app.InstalledApp
+import com.merxury.blocker.data.app.InstalledAppRepository
 import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
-import com.merxury.libkit.entity.Application
 import com.merxury.libkit.entity.EComponentType
-import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
 import com.merxury.libkit.utils.ServiceHelper
-import java.util.regex.PatternSyntaxException
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import java.util.regex.PatternSyntaxException
+import javax.inject.Inject
 
-class LocalSearchViewModel : ViewModel() {
+@HiltViewModel
+class LocalSearchViewModel @Inject constructor(
+    private val appComponentRepository: AppComponentRepository,
+    private val installedAppRepository: InstalledAppRepository
+) : ViewModel() {
     private val logger = XLog.tag("AdvSearchViewModel")
-    private val _appList = MutableLiveData<List<Application>>()
-    val appList: LiveData<List<Application>> = _appList
-    private val _total = MutableLiveData<Int>()
-    val total: LiveData<Int> = _total
-    private val _current = MutableLiveData<Int>()
-    val current: LiveData<Int> = _current
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean> = _isLoading
-    private val _currentProcessApplication = MutableLiveData<Application>()
-    val currentProcessApplication: LiveData<Application> = _currentProcessApplication
-    private val _finalData = MutableLiveData<MutableMap<Application, List<ComponentData>>>()
-    private val finalData: LiveData<MutableMap<Application, List<ComponentData>>> = _finalData
-    private val _filteredData: MutableLiveData<MutableMap<Application, List<ComponentData>>> =
+    private val _filteredData: MutableLiveData<Map<InstalledApp?, List<AppComponent>>> =
         MutableLiveData()
-    val filteredData: LiveData<MutableMap<Application, List<ComponentData>>> = _filteredData
+    val filteredData: LiveData<Map<InstalledApp?, List<AppComponent>>> = _filteredData
     private val _error = MutableLiveData<Event<Exception>>()
     val error: LiveData<Event<Exception>> = _error
 
     // To notify the user that the batch operation is finished
     private val _operationDone = MutableLiveData<Event<Boolean>>()
     val operationDone: LiveData<Event<Boolean>> = _operationDone
-    private val _isSearching = MutableLiveData<Event<Boolean>>()
-    val isSearching: LiveData<Event<Boolean>> = _isSearching
+
+    private val _loadingState = MutableLiveData<LocalSearchState>(LocalSearchState.NotStarted)
+    val loadingState: LiveData<LocalSearchState> = _loadingState
 
     private var controller: IController? = null
     private var controllerType = EControllerMethod.IFW
 
-    fun load(context: Context) {
+    fun load(context: Context, forceInit: Boolean = false) {
+        // Clear filtered data when loading
+        _filteredData.value = mapOf()
         viewModelScope.launch {
-            val appList = if (PreferenceUtil.getSearchSystemApps(context)) {
-                ApplicationUtil.getApplicationList(context)
+            val countInDb = installedAppRepository.getInstalledAppCount()
+            val countInSystem = ApplicationUtil.getApplicationList(context).size
+            if (countInDb != countInSystem || forceInit) {
+                // Data not initialized yet, fill the data
+                logger.i("AppComponent data not initialized yet, fill the data")
+                _loadingState.value = LocalSearchState.Loading(null)
+                initializeDb(context)
             } else {
-                ApplicationUtil.getThirdPartyApplicationList(context)
+                logger.i("AppComponent data already initialized")
             }
-            processData(context, appList)
+            _loadingState.postValue(LocalSearchState.NotStarted)
         }
         controllerType = PreferenceUtil.getControllerType(context)
         controller = ComponentControllerProxy.getInstance(controllerType, context)
     }
 
+    private suspend fun initializeDb(context: Context) {
+        // Delete the old data first to make sure the data is clean
+        installedAppRepository.deleteAll()
+        appComponentRepository.deleteAll()
+        // Rebuild the data
+        val appList = ApplicationUtil.getApplicationList(context)
+        val systemApp = ApplicationUtil.getSystemApplicationList(context)
+        appList.map { app ->
+            val isSystem = systemApp.any { it.packageName == app.packageName }
+            InstalledApp(
+                packageName = app.packageName,
+                versionName = app.versionName,
+                firstInstallTime = app.firstInstallTime,
+                lastUpdateTime = app.lastUpdateTime,
+                isEnabled = app.isEnabled,
+                isSystem = isSystem,
+                label = app.label
+            )
+        }.forEach { app ->
+            _loadingState.value = LocalSearchState.Loading(app)
+            installedAppRepository.addInstalledApp(app)
+            updateComponentInfo(context, app)
+        }
+    }
+
+    private suspend fun updateComponentInfo(context: Context, app: InstalledApp) {
+        val serviceHelper = ServiceHelper(app.packageName)
+        serviceHelper.refresh()
+        val ifwController = IntentFirewallImpl(app.packageName).load()
+        val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+        val activities = ApplicationUtil
+            .getActivityList(context.packageManager, app.packageName)
+            .map {
+                AppComponent(
+                    packageName = app.packageName,
+                    componentName = it.name,
+                    ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
+                    pmBlocked = !pmController.checkComponentEnableState(app.packageName, it.name),
+                    type = EComponentType.ACTIVITY,
+                    exported = it.exported,
+                )
+            }
+        val services = ApplicationUtil
+            .getServiceList(context.packageManager, app.packageName)
+            .map {
+                AppComponent(
+                    packageName = app.packageName,
+                    componentName = it.name,
+                    ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
+                    pmBlocked = !pmController.checkComponentEnableState(app.packageName, it.name),
+                    type = EComponentType.SERVICE,
+                    exported = it.exported,
+                )
+            }
+        val receivers = ApplicationUtil
+            .getReceiverList(context.packageManager, app.packageName)
+            .map {
+                AppComponent(
+                    packageName = app.packageName,
+                    componentName = it.name,
+                    ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
+                    pmBlocked = !pmController.checkComponentEnableState(app.packageName, it.name),
+                    type = EComponentType.RECEIVER,
+                    exported = it.exported,
+                )
+            }
+        val providers = ApplicationUtil
+            .getProviderList(context.packageManager, app.packageName)
+            .map {
+                AppComponent(
+                    packageName = app.packageName,
+                    componentName = it.name,
+                    ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
+                    pmBlocked = !pmController.checkComponentEnableState(app.packageName, it.name),
+                    type = EComponentType.PROVIDER,
+                    exported = it.exported,
+                )
+            }
+        val components = ArrayList<AppComponent>().apply {
+            addAll(activities)
+            addAll(services)
+            addAll(receivers)
+            addAll(providers)
+        }
+        appComponentRepository.addAppComponents(*components.toTypedArray())
+    }
+
     @Throws(PatternSyntaxException::class)
-    fun filter(keyword: String, useRegex: Boolean = false) {
+    fun filter(context: Context, keyword: String) {
         logger.i("filter: $keyword")
         if (keyword.isEmpty()) {
             _filteredData.value = mutableMapOf()
             return
         }
-        _isSearching.value = Event(true)
-        if (useRegex) {
-            // Check validity of this regex and throw exception earlier
-            keyword.split(",")
-                .filterNot { it.trim().isEmpty() }
-                .map { it.trim().lowercase().toRegex() }
-        }
+        _loadingState.value = LocalSearchState.Searching
         val keywords = keyword.split(",")
             .filterNot { it.trim().isEmpty() }
             .map { it.trim().lowercase() }
-        viewModelScope.launch(Dispatchers.Default) {
-            val searchResult = mutableMapOf<Application, List<ComponentData>>()
-            val dataSource = finalData.value ?: return@launch
-            dataSource.forEach {
-                val app = it.key
-                val componentList = it.value
-                val filteredComponentList = mutableListOf<ComponentData>()
-                componentList.forEach { component ->
-                    if (containsKeyword(component, keywords, useRegex)) {
-                        filteredComponentList.add(component)
-                    }
-                }
-                if (filteredComponentList.isNotEmpty()) {
-                    searchResult[app] = filteredComponentList
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            val searchedComponents = mutableListOf<AppComponent>()
+            keywords.forEach { keyword ->
+                val appComponents = appComponentRepository.getAppComponentByName(keyword)
+                searchedComponents.addAll(appComponents)
             }
-            _isSearching.postValue(Event(false))
-            _filteredData.postValue(searchResult)
-        }
-    }
-
-    private fun containsKeyword(
-        component: ComponentData,
-        keywords: List<String>,
-        useRegex: Boolean
-    ): Boolean {
-        return if (useRegex) {
-            val regexes = keywords.map { it.toRegex() }
-            regexes.any { it.containsMatchIn(component.name.lowercase()) } ||
-                    regexes.any { it.containsMatchIn(component.packageName.lowercase()) }
-        } else {
-            keywords.any { component.name.lowercase().contains(it) } ||
-                    keywords.any { component.packageName.lowercase().contains(it) }
+            var finalResult = searchedComponents.groupBy { it.packageName }
+                .mapKeys { installedAppRepository.getByPackageName(it.key) }
+            if (!PreferenceUtil.getSearchSystemApps(context)) {
+                // Remove system apps
+                finalResult = finalResult.filterKeys { it?.isSystem == false }
+            }
+            _filteredData.postValue(finalResult)
+            _loadingState.postValue(LocalSearchState.Finished(finalResult.size))
         }
     }
 
@@ -130,9 +192,10 @@ class LocalSearchViewModel : ViewModel() {
                 } else {
                     controller?.disable(packageName, name)
                 }
+                saveComponentInfoToDb(packageName, name, enabled)
             } catch (e: Exception) {
                 logger.e("Failed to control component: $packageName to state $enabled", e)
-                _error.postValue(Event(e))
+                _loadingState.postValue(LocalSearchState.Error(Event(e)))
             }
         }
     }
@@ -141,14 +204,11 @@ class LocalSearchViewModel : ViewModel() {
         logger.i("doBatchOperation: $enabled")
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val componentList = mutableListOf<ComponentData>()
-                filteredData.value?.forEach {
-                    componentList.addAll(it.value)
-                }
+                val componentList = _filteredData.value?.entries?.flatMap { it.value } ?: listOf()
                 val infoList = componentList.map {
                     val component = ComponentInfo()
                     component.packageName = it.packageName
-                    component.name = it.name
+                    component.name = it.componentName
                     component
                 }
                 if (enabled) {
@@ -171,7 +231,7 @@ class LocalSearchViewModel : ViewModel() {
         }
     }
 
-    private suspend fun processProviders(list: List<ComponentData>, enabled: Boolean) {
+    private suspend fun processProviders(list: List<AppComponent>, enabled: Boolean) {
         val context = BlockerApplication.context
         val type = PreferenceUtil.getControllerType(context)
         if (type != EControllerMethod.IFW) {
@@ -184,105 +244,44 @@ class LocalSearchViewModel : ViewModel() {
             val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
             providerList.forEach {
                 if (enabled) {
-                    logger.i("Enable provider: ${it.packageName}/${it.name}")
-                    controller.enable(it.packageName, it.name)
+                    logger.i("Enable provider: ${it.packageName}/${it.componentName}")
+                    controller.enable(it.packageName, it.componentName)
                 } else {
-                    logger.i("Disable provider: ${it.packageName}/${it.name}")
-                    controller.disable(it.packageName, it.name)
+                    logger.i("Disable provider: ${it.packageName}/${it.componentName}")
+                    controller.disable(it.packageName, it.componentName)
                 }
             }
         }
     }
 
-    private fun updateComponentStatus(component: ComponentInfo, enabled: Boolean) {
+    private suspend fun saveComponentInfoToDb(
+        packageName: String,
+        name: String,
+        enabled: Boolean
+    ) {
+        val updatedComponent = appComponentRepository.getAppComponent(packageName, name) ?: run {
+            logger.e("Component not found: $packageName, $name")
+            return
+        }
+        if (controllerType == EControllerMethod.IFW) {
+            updatedComponent.ifwBlocked = !enabled
+        } else {
+            updatedComponent.pmBlocked = !enabled
+        }
+        appComponentRepository.addAppComponents(updatedComponent)
+    }
+
+    private suspend fun updateComponentStatus(component: ComponentInfo, enabled: Boolean) {
         val data = filteredData.value ?: return
-        val app = data.keys.firstOrNull { it.packageName == component.packageName } ?: return
+        val app = data.keys.firstOrNull { it?.packageName == component.packageName } ?: return
         val componentList = data[app] ?: return
-        val componentData = componentList.firstOrNull { it.name == component.name } ?: return
+        val componentData =
+            componentList.firstOrNull { it.componentName == component.name } ?: return
         if (controllerType == EControllerMethod.IFW && componentData.type != EComponentType.PROVIDER) {
             componentData.ifwBlocked = !enabled
         } else {
             componentData.pmBlocked = !enabled
         }
-    }
-
-    private suspend fun processData(context: Context, appList: List<Application>) {
-        notifyDataProcessing(appList)
-        val result = mutableMapOf<Application, List<ComponentData>>()
-        withContext(Dispatchers.Default) {
-            val sortedList = appList.sortedBy { it.label }
-            val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
-            sortedList.forEachIndexed { index, application ->
-                val packageName = application.packageName
-                val ifwController = IntentFirewallImpl(packageName).load()
-                _currentProcessApplication.postValue(application)
-                _current.postValue(index + 1)
-                val components = mutableListOf<ComponentData>()
-                val serviceHelper = ServiceHelper(packageName)
-                serviceHelper.refresh()
-                val activities = ApplicationUtil
-                    .getActivityList(context.packageManager, packageName)
-                    .convertToComponentDataList(context, ifwController, pmController, null)
-                val services = ApplicationUtil.getServiceList(context.packageManager, packageName)
-                    .convertToComponentDataList(
-                        context,
-                        ifwController,
-                        pmController,
-                        ServiceHelper(packageName)
-                    )
-                val providers = ApplicationUtil.getProviderList(context.packageManager, packageName)
-                    .convertToComponentDataList(context, ifwController, pmController, null)
-                val receivers = ApplicationUtil.getReceiverList(context.packageManager, packageName)
-                    .convertToComponentDataList(context, ifwController, pmController, null)
-                val componentTotalList = components.plus(services)
-                    .plus(receivers)
-                    .plus(activities)
-                    .plus(providers)
-                if (componentTotalList.isNotEmpty()) {
-                    result[application] = componentTotalList
-                }
-            }
-        }
-        _finalData.postValue(result)
-        _isLoading.postValue(false)
-    }
-
-    private suspend fun List<ComponentInfo>.convertToComponentDataList(
-        context: Context,
-        ifwController: IntentFirewall,
-        pmController: IController,
-        serviceHelper: ServiceHelper?
-    ): List<ComponentData> {
-        return this.map {
-            ComponentData(
-                name = it.name,
-                simpleName = it.getSimpleName(),
-                packageName = it.packageName,
-                ifwBlocked = !ifwController.getComponentEnableState(it.packageName, it.name),
-                type = getComponentType(context.packageManager, it.packageName, it.name),
-                pmBlocked = !pmController.checkComponentEnableState(it.packageName, it.name),
-                isRunning = serviceHelper?.isServiceRunning(it.name) ?: false
-            )
-        }
-            .sortedBy { it.simpleName }
-    }
-
-    private suspend fun getComponentType(
-        pm: PackageManager,
-        packageName: String,
-        name: String
-    ): EComponentType {
-        return if (ApplicationUtil.isProvider(pm, packageName, name)) {
-            EComponentType.PROVIDER
-        } else {
-            EComponentType.RECEIVER
-        }
-    }
-
-    private fun notifyDataProcessing(appList: List<Application>) {
-        _appList.value = appList
-        _total.value = appList.size
-        _current.value = 0
-        _isLoading.value = true
+        saveComponentInfoToDb(component.packageName, component.name, enabled)
     }
 }
