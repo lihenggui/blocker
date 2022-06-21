@@ -44,14 +44,14 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
-        action: (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit
     ): Int {
         return controller.batchEnable(componentList) { action(it) }
     }
 
     override suspend fun batchDisable(
         componentList: List<ComponentInfo>,
-        action: (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit
     ): Int {
         return controller.batchDisable(componentList) { action(it) }
     }

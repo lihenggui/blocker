@@ -11,6 +11,8 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.elvishew.xlog.XLog
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.merxury.blocker.R
+import com.merxury.blocker.data.app.AppComponent
+import com.merxury.blocker.data.app.InstalledApp
 import com.merxury.blocker.ui.detail.component.ComponentData
 import com.merxury.blocker.util.AppIconCache
 import com.merxury.libkit.entity.Application
@@ -21,12 +23,12 @@ import kotlinx.coroutines.launch
 class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScope) :
     BaseExpandableListAdapter() {
     private val logger = XLog.tag("ExpandableSearchAdapter")
-    private var appList = listOf<Application>()
-    private var data = mutableMapOf<Application, List<ComponentData>>()
+    private var appList = listOf<InstalledApp?>()
+    private var data = mapOf<InstalledApp?, List<AppComponent>>()
     private var loadIconJob: Job? = null
-    var onSwitchClick: ((ComponentData, Boolean) -> Unit)? = null
+    var onSwitchClick: ((AppComponent, Boolean) -> Unit)? = null
 
-    fun updateData(newData: MutableMap<Application, List<ComponentData>>) {
+    fun updateData(newData: Map<InstalledApp?, List<AppComponent>>) {
         appList = newData.keys.toList()
         data = newData
         notifyDataSetChanged()
@@ -38,7 +40,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
         }
     }
 
-    override fun getGroup(groupPosition: Int): Any {
+    override fun getGroup(groupPosition: Int): Any? {
         return appList[groupPosition]
     }
 
@@ -47,7 +49,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
     }
 
     override fun getGroupId(groupPosition: Int): Long {
-        return appList[groupPosition].packageName.hashCode().toLong()
+        return appList[groupPosition]?.packageName.hashCode().toLong()
     }
 
     override fun getChild(groupPosition: Int, childPosition: Int): Any? {
@@ -58,7 +60,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
     override fun getChildId(groupPosition: Int, childPosition: Int): Long {
         val app = appList.getOrNull(groupPosition)
         val child = data[app]?.getOrNull(childPosition)
-        return child?.name?.hashCode()?.toLong() ?: 0
+        return child?.componentName?.hashCode()?.toLong() ?: 0
     }
 
     override fun getChildrenCount(groupPosition: Int): Int {
@@ -78,10 +80,10 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
         val context = parent?.context ?: throw IllegalStateException("Context is null")
         val view = LayoutInflater.from(context)
             .inflate(R.layout.search_app_header, parent, false)
-        view.findViewById<TextView>(R.id.app_name).text = app.label
+        view.findViewById<TextView>(R.id.app_name).text = app?.label
         view.findViewById<ImageView>(R.id.icon).apply {
-            if (getTag(R.id.app_item_icon_id) != app.packageName) {
-                setTag(R.id.app_item_icon_id, app.packageName)
+            if (getTag(R.id.app_item_icon_id) != app?.packageName) {
+                setTag(R.id.app_item_icon_id, app?.packageName)
                 loadIcon(context, app, this)
             }
         }
@@ -109,7 +111,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
         val context = parent?.context
         val view = LayoutInflater.from(context)
             .inflate(R.layout.search_app_component, parent, false)
-        view.findViewById<TextView>(R.id.component_name).text = child.name
+        view.findViewById<TextView>(R.id.component_name).text = child.componentName
         val switch = view.findViewById<SwitchMaterial>(R.id.component_switch)
         switch.setOnCheckedChangeListener(null)
         switch.isChecked = !(child.pmBlocked || child.ifwBlocked)
@@ -119,11 +121,12 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
         return view
     }
 
-    private fun loadIcon(context: Context, app: Application, view: ImageView) {
+    private fun loadIcon(context: Context, app: InstalledApp?, view: ImageView) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val appInfo = app.packageInfo?.applicationInfo ?: run {
-                    logger.e("Application info is null, packageName: ${app.packageName}")
+                val packageInfo = context.packageManager.getPackageInfo(app?.packageName ?: "", 0)
+                val appInfo = packageInfo?.applicationInfo ?: run {
+                    logger.e("Application info is null, packageName: ${app?.packageName}")
                     return@launch
                 }
                 loadIconJob = AppIconCache.loadIconBitmapAsync(
@@ -133,7 +136,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
                     view
                 )
             } catch (e: Exception) {
-                logger.e("Failed to load icon, packageName: ${app.packageName}", e)
+                logger.e("Failed to load icon, packageName: ${app?.packageName}", e)
             }
         }
     }
