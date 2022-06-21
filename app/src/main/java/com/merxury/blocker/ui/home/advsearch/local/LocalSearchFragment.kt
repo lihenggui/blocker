@@ -8,6 +8,7 @@ import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -60,11 +61,13 @@ class LocalSearchFragment : Fragment() {
         }
 
         viewModel.loadingState.observe(viewLifecycleOwner) {
+            logger.i("loadingState: $it")
             when (it) {
                 is LocalSearchState.NotStarted -> {
+                    setSearchIconVisibility(true)
                     binding.list.visibility = View.GONE
-                    binding.loadingIndicatorGroup.visibility = View.VISIBLE
-                    binding.searchHintGroup.visibility = View.GONE
+                    binding.loadingIndicatorGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.VISIBLE
                     binding.searchNoResultHintGroup.visibility = View.GONE
                 }
                 is LocalSearchState.Loading -> {
@@ -73,22 +76,23 @@ class LocalSearchFragment : Fragment() {
                     binding.searchHintGroup.visibility = View.GONE
                     binding.loadingIndicatorGroup.visibility = View.VISIBLE
                     binding.list.visibility = View.GONE
-                    binding.processingName.text = it.app.packageName
+                    binding.processingName.text = it.app?.packageName
                 }
                 is LocalSearchState.Finished -> {
                     setSearchIconVisibility(true)
-                    binding.list.visibility = View.VISIBLE
+                    binding.searchNoResultHintGroup.isVisible = (it.count == 0)
+                    binding.list.isVisible = (it.count > 0)
                     binding.searchingHintGroup.visibility = View.GONE
                     binding.loadingIndicatorGroup.visibility = View.GONE
-                    binding.searchHintGroup.visibility = View.VISIBLE
-                    binding.searchNoResultHintGroup.visibility = View.GONE
+                    binding.searchHintGroup.visibility = View.GONE
+
                 }
                 is LocalSearchState.Searching -> {
                     binding.searchingHintGroup.visibility = View.VISIBLE
                     binding.searchNoResultHintGroup.visibility = View.GONE
                     binding.loadingIndicatorGroup.visibility = View.GONE
                     binding.searchHintGroup.visibility = View.GONE
-                    binding.list.visibility = View.INVISIBLE
+                    binding.list.visibility = View.GONE
                 }
                 is LocalSearchState.Error -> {
                     showErrorDialog(it.exception)
