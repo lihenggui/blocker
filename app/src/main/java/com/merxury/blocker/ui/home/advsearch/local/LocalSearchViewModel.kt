@@ -58,11 +58,12 @@ class LocalSearchViewModel @Inject constructor(
             if (countInDb != countInSystem || forceInit) {
                 // Data not initialized yet, fill the data
                 logger.i("AppComponent data not initialized yet, fill the data")
+                _loadingState.value = LocalSearchState.Loading(null)
                 initializeDb(context)
             } else {
                 logger.i("AppComponent data already initialized")
-                _loadingState.value = LocalSearchState.Finished
             }
+            _loadingState.postValue(LocalSearchState.NotStarted)
         }
         controllerType = PreferenceUtil.getControllerType(context)
         controller = ComponentControllerProxy.getInstance(controllerType, context)
@@ -91,7 +92,6 @@ class LocalSearchViewModel @Inject constructor(
             installedAppRepository.addInstalledApp(app)
             updateComponentInfo(context, app)
         }
-        _loadingState.value = LocalSearchState.Finished
     }
 
     private suspend fun updateComponentInfo(context: Context, app: InstalledApp) {
@@ -163,6 +163,7 @@ class LocalSearchViewModel @Inject constructor(
             _filteredData.value = mutableMapOf()
             return
         }
+        _loadingState.value = LocalSearchState.Searching
         val keywords = keyword.split(",")
             .filterNot { it.trim().isEmpty() }
             .map { it.trim().lowercase() }
@@ -179,6 +180,7 @@ class LocalSearchViewModel @Inject constructor(
                 finalResult = finalResult.filterKeys { it?.isSystem == false }
             }
             _filteredData.postValue(finalResult)
+            _loadingState.postValue(LocalSearchState.Finished(finalResult.size))
         }
     }
 
