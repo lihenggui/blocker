@@ -59,7 +59,6 @@ class LocalSearchFragment : Fragment() {
                 adapter.notifyDataSetChanged()
             }
         }
-
         viewModel.loadingState.observe(viewLifecycleOwner) {
             logger.i("loadingState: $it")
             when (it) {
@@ -93,8 +92,10 @@ class LocalSearchFragment : Fragment() {
                     binding.list.visibility = View.GONE
                 }
                 is LocalSearchState.Error -> {
-                    showErrorDialog(it.exception)
-                    adapter.notifyDataSetChanged()
+                    it.exception.getContentIfNotHandled()?.let { error ->
+                        showErrorDialog(error)
+                        adapter.notifyDataSetChanged()
+                    }
                 }
             }
         }
