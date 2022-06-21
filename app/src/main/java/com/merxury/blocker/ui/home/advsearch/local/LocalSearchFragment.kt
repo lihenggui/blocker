@@ -109,13 +109,10 @@ class LocalSearchFragment : Fragment() {
         super.onPrepareOptionsMenu(menu)
         menu.findItem(R.id.action_show_system_apps)?.isChecked =
             PreferenceUtil.getSearchSystemApps(requireContext())
-        menu.findItem(R.id.action_regex_search)?.isChecked =
-            PreferenceUtil.getUseRegexSearch(requireContext())
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.action_regex_search -> handleUseRegexClicked(item)
             R.id.action_show_system_apps -> handleSearchSystemAppClicked(item)
             R.id.action_refresh -> viewModel.load(requireContext(), forceInit = true)
             R.id.action_block_all -> batchDisable()
@@ -131,11 +128,6 @@ class LocalSearchFragment : Fragment() {
             return
         }
         searchView?.setQuery(keyword, true)
-    }
-
-    private fun handleUseRegexClicked(menuItem: MenuItem) {
-        menuItem.isChecked = !menuItem.isChecked
-        PreferenceUtil.setUseRegexSearch(requireContext(), menuItem.isChecked)
     }
 
     private fun batchEnable() {
@@ -193,8 +185,7 @@ class LocalSearchFragment : Fragment() {
             override fun onQueryTextChange(newText: String?): Boolean {
                 logger.i("onQueryTextChange: $newText")
                 try {
-                    val useRegex = PreferenceUtil.getUseRegexSearch(requireContext())
-                    viewModel.filter(requireContext(), newText.orEmpty(), useRegex)
+                    viewModel.filter(requireContext(), newText.orEmpty())
                 } catch (e: Exception) {
                     logger.e("Invalid regex: $newText", e)
                     ToastUtil.showToast(R.string.invalid_regex, Toast.LENGTH_LONG)
