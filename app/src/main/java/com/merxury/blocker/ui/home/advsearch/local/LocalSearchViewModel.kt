@@ -195,7 +195,7 @@ class LocalSearchViewModel @Inject constructor(
                 saveComponentInfoToDb(packageName, name, enabled)
             } catch (e: Exception) {
                 logger.e("Failed to control component: $packageName to state $enabled", e)
-                _error.postValue(Event(e))
+                _loadingState.postValue(LocalSearchState.Error(Event(e)))
             }
         }
     }
