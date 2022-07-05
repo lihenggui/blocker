@@ -147,7 +147,7 @@ class ComponentProvider : ContentProvider() {
                     controller.enable(packageName, component.name)
                 }
                 appComponentRepository.getAppComponent(packageName, component.name)?.let {
-                    if (controllerType == EControllerMethod.IFW) {
+                    if (controllerType == EControllerMethod.IFW && component.type != "provider") {
                         it.ifwBlocked = component.block
                     } else {
                         it.pmBlocked = component.block
