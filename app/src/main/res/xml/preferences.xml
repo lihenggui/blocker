@@ -34,6 +34,11 @@
             app:icon="@drawable/ic_cellphone_cog"
             app:key="@string/key_pref_backup_system_apps"
             app:title="@string/backup_system_apps" />
+        <SwitchPreference
+            app:defaultValue="false"
+            app:icon="@drawable/ic_cellphone_cog"
+            app:key="@string/key_pref_restore_system_apps"
+            app:title="@string/restore_system_apps" />
     </PreferenceCategory>
 
     <PreferenceCategory

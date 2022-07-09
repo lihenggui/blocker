@@ -49,6 +49,7 @@
     <string name="set_folder_to_save">Set folder to save</string>
     <string name="directory_invalid_or_not_set">Directory is invalid or not set</string>
     <string name="backup_system_apps">Backup system apps</string>
+    <string name="restore_system_apps">Restore system apps</string>
     <string name="backing_up_apps_please_wait">Backing up app rules, please wait…</string>
     <string name="backing_up_ifw_please_wait">Backing up IFW rules, please wait…</string>
     <string name="import_ifw_please_wait">Importing IFW rules, please wait…</string>

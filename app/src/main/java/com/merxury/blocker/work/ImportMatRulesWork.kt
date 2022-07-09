@@ -16,6 +16,7 @@ import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.libkit.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -38,6 +39,7 @@ class ImportMatRulesWork(context: Context, params: WorkerParameters) :
         val context = applicationContext
         val controllerType = PreferenceUtil.getControllerType(context)
         val controller = ComponentControllerProxy.getInstance(controllerType, context)
+        val shouldRestoreSystemApps = PreferenceUtil.shouldRestoreSystemApps(context)
         val uninstalledAppList = mutableListOf<String>()
         var total: Int
         var current = 0
@@ -53,6 +55,10 @@ class ImportMatRulesWork(context: Context, params: WorkerParameters) :
                     val packageName = splitResult[0]
                     val name = splitResult[1]
                     if (Rule.isApplicationUninstalled(context, uninstalledAppList, packageName)) {
+                        return@forEach
+                    }
+                    val isSystemApp = ApplicationUtil.isSystemApp(context.packageManager, packageName)
+                    if (!shouldRestoreSystemApps && isSystemApp) {
                         return@forEach
                     }
                     setForeground(updateNotification(packageName, current, total))

@@ -14,9 +14,11 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.util.NotificationUtil
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.ifw.util.RuleSerializer
+import com.merxury.libkit.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -35,6 +37,7 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
         val total: Int
         var imported = 0
         try {
+            val shouldRestoreSystemApps = PreferenceUtil.shouldRestoreSystemApps(context)
             // Check directory is readable
             val ifwFolder = StorageUtil.getOrCreateIfwFolder(context)
             if (ifwFolder == null) {
@@ -50,6 +53,7 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
             files.forEach { documentFile ->
                 logger.i("Importing ${documentFile.name}")
                 setForeground(updateNotification(documentFile.name ?: "", imported, total))
+                var packageName: String? = null
                 context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
                     val rule = RuleSerializer.deserialize(stream) ?: return@forEach
                     val activities = rule.activity?.componentFilters
@@ -59,6 +63,7 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
+                            packageName = component.packageName
                             component
                         }
                         ?.toList() ?: mutableListOf()
@@ -69,6 +74,7 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
+                            packageName = component.packageName
                             component
                         }
                         ?.toList() ?: mutableListOf()
@@ -79,9 +85,15 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
+                            packageName = component.packageName
                             component
                         }
                         ?.toList() ?: mutableListOf()
+                    val isSystemApp = ApplicationUtil.isSystemApp(context.packageManager, packageName)
+                    if (!shouldRestoreSystemApps && isSystemApp) {
+                        logger.i("Skipping system app $packageName")
+                        return@forEach
+                    }
                     controller.batchDisable(activities) {}
                     controller.batchDisable(broadcast) {}
                     controller.batchDisable(service) {}
