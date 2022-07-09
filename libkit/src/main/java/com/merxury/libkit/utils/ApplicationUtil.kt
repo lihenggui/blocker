@@ -345,6 +345,19 @@ object ApplicationUtil {
         return false
     }
 
+    fun isSystemApp(pm: PackageManager, packageName: String?): Boolean {
+        if (packageName == null || packageName.trim().isEmpty()) {
+            return false
+        }
+        try {
+            val info = pm.getApplicationInfo(packageName, 0)
+            return info.flags and ApplicationInfo.FLAG_SYSTEM != 0
+        } catch (e: PackageManager.NameNotFoundException) {
+            logger.d(packageName + "is not installed.")
+        }
+        return false
+    }
+
     suspend fun isProvider(
         pm: PackageManager,
         packageName: String,

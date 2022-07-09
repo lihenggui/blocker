@@ -49,6 +49,7 @@
     <string name="set_folder_to_save">设置保存目录</string>
     <string name="directory_invalid_or_not_set">目录未设置或不可读</string>
     <string name="backup_system_apps">备份系统应用</string>
+    <string name="restore_system_apps">还原系统应用</string>
     <string name="backing_up_apps_please_wait">正在导出应用规则，请稍等…</string>
     <string name="backing_up_ifw_please_wait">正在导出IFW应用规则，请稍等…</string>
     <string name="import_ifw_please_wait">正在导入IFW应用规则，请稍等…</string>

@@ -50,6 +50,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     private var aboutPreference: Preference? = null
     private var storagePreference: Preference? = null
     private var backupSystemAppPreference: SwitchPreference? = null
+    private var restoreSystemAppPreference: SwitchPreference? = null
     private var groupPreference: Preference? = null
     private var reportPreference: Preference? = null
 
@@ -191,6 +192,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         aboutPreference = findPreference(getString(R.string.key_pref_about))
         storagePreference = findPreference(getString(R.string.key_pref_save_folder_path))
         backupSystemAppPreference = findPreference(getString(R.string.key_pref_backup_system_apps))
+        restoreSystemAppPreference = findPreference(getString(R.string.key_pref_restore_system_apps))
         groupPreference = findPreference(getString(R.string.key_pref_group))
         reportPreference = findPreference(getString(R.string.key_pref_report_issue))
     }

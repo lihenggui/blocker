@@ -14,6 +14,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.util.NotificationUtil
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.libkit.utils.ApplicationUtil
@@ -34,6 +35,8 @@ class ImportBlockerRuleWork(context: Context, params: WorkerParameters) :
         var successCount = 0
         try {
             val context = applicationContext
+            val shouldRestoreSystemApp = PreferenceUtil.shouldRestoreSystemApps(context)
+            val packageManager = context.packageManager
             val documentDir = StorageUtil.getSavedFolder(context)
             if (documentDir == null) {
                 logger.e("Cannot create DocumentFile")
@@ -49,8 +52,15 @@ class ImportBlockerRuleWork(context: Context, params: WorkerParameters) :
                 val inputStream =
                     InputStreamReader(context.contentResolver.openInputStream(it.uri))
                 val rule = Gson().fromJson(inputStream, BlockerRule::class.java)
-                if (!ApplicationUtil.isAppInstalled(context.packageManager, rule.packageName)) {
+                val appInstalled = ApplicationUtil.isAppInstalled(packageManager, rule.packageName)
+                val isSystemApp = ApplicationUtil.isSystemApp(packageManager, rule.packageName)
+                if (!appInstalled) {
                     logger.w("App ${rule.packageName} is not installed, skipping")
+                    current++
+                    return@forEach
+                }
+                if (!shouldRestoreSystemApp && isSystemApp) {
+                    logger.d("App ${rule.packageName} is a system app, skipping")
                     current++
                     return@forEach
                 }

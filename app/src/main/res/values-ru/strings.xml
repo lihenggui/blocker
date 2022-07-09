@@ -49,6 +49,7 @@
     <string name="set_folder_to_save">Установить папку для сохранения</string>
     <string name="directory_invalid_or_not_set">Папка недействительна или не задана</string>
     <string name="backup_system_apps">Резервное копирование системных приложений</string>
+    <string name="restore_system_apps">Восстановить системные приложения</string>
     <string name="backing_up_apps_please_wait">Резервное копирование правил приложения, подождите…</string>
     <string name="backing_up_ifw_please_wait">Резервное копирование правил IFW, подождите…</string>
     <string name="import_ifw_please_wait">Импорт правил IFW, пожалуйста, подождите…</string>

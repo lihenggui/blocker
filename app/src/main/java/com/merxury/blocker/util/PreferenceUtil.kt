@@ -49,6 +49,11 @@ object PreferenceUtil {
         return pref.getBoolean(context.getString(R.string.key_pref_backup_system_apps), false)
     }
 
+    fun shouldRestoreSystemApps(context: Context): Boolean {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        return pref.getBoolean(context.getString(R.string.key_pref_restore_system_apps), false)
+    }
+
     fun setShowSystemApps(context: Context, value: Boolean) {
         PreferenceManager.getDefaultSharedPreferences(context)
             .edit()
