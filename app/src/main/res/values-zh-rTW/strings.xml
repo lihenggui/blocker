@@ -49,6 +49,7 @@
     <string name="rule_backup_settings">備份設置</string>
     <string name="directory_invalid_or_not_set">目錄未設置或不可讀</string>
     <string name="backup_system_apps">備份系統應用</string>
+    <string name="restore_system_apps">還原系統應用</string>
     <string name="backing_up_apps_please_wait">正在導出應用規則，請稍等…</string>
     <string name="backing_up_ifw_please_wait">正在導出IFW應用規則，請稍等…</string>
     <string name="import_ifw_please_wait">正在導入IFW應用規則，請稍等…</string>
