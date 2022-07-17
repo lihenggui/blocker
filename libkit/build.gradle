@@ -2,11 +2,11 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 33
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 32
+        targetSdkVersion 33
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -24,19 +24,18 @@ repositories {
 }
 
 dependencies {
-    api 'androidx.appcompat:appcompat:1.4.1'
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    api 'androidx.appcompat:appcompat:1.4.2'
     api "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
     api 'com.elvishew:xlog:1.10.1'
     api 'com.github.topjohnwu.libsu:core:3.2.1'
     api "com.github.topjohnwu.libsu:io:3.2.1"
     api 'com.github.tiann:FreeReflection:3.1.0'
-    api 'com.google.code.gson:gson:2.8.9'
+    api 'com.google.code.gson:gson:2.9.0'
     api "dev.rikka.shizuku:api:12.1.0"
     api "dev.rikka.shizuku:provider:12.1.0"
     // Coroutine
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0'
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3'
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:runner:1.4.0'
