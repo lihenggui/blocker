@@ -15,13 +15,13 @@ def getGitHash = { ->
 }
 
 android {
-    compileSdkVersion 32
+    compileSdkVersion 33
     defaultConfig {
         applicationId "com.merxury.blocker"
         minSdkVersion 21
-        targetSdkVersion 32
-        versionCode 1265
-        versionName "1.2.65-alpha"
+        targetSdkVersion 33
+        versionCode 1266
+        versionName "1.2.66-alpha"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         resConfigs 'en', 'zh-rCN', 'zh-rTW', 'ru'
         multiDexEnabled true
@@ -121,12 +121,12 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.0'
     implementation 'androidx.lifecycle:lifecycle-livedata-ktx:2.5.0'
     // Crashlytics
-    prodImplementation platform('com.google.firebase:firebase-bom:29.2.0')
+    prodImplementation platform('com.google.firebase:firebase-bom:30.3.0')
     prodImplementation 'com.google.firebase:firebase-crashlytics-ktx'
     prodImplementation 'com.google.firebase:firebase-analytics-ktx'
     // Hilt
-    implementation "com.google.dagger:hilt-android:2.42"
-    kapt "com.google.dagger:hilt-android-compiler:2.42"
+    implementation "com.google.dagger:hilt-android:$hilt_version"
+    kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
     // Project dependencies
     implementation project(':core')
     implementation project(':ifw-api')
