@@ -1,28 +1,46 @@
 package com.merxury.blocker.ui.detail.component
 
 import android.content.Context
-import android.view.ContextMenu
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.core.view.isVisible
+import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.data.component.OnlineComponentData
+import com.merxury.blocker.data.component.OnlineComponentDataFetcher
 import com.merxury.blocker.databinding.ComponentItemBinding
 import com.merxury.libkit.entity.EComponentType
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class ComponentAdapter :
+class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) :
     ListAdapter<ComponentData, ComponentAdapter.ComponentViewHolder>(DiffCallback()) {
 
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface ComponentAdapterEntryPoint {
+        fun dataFetcher(): OnlineComponentDataFetcher
+    }
+
     private val logger = XLog.tag("ComponentAdapter")
+    private var recyclerView: RecyclerView? = null
     var contextMenuPosition = -1
     var onSwitchClick: ((ComponentData, Boolean) -> Unit)? = null
     var onCopyClick: ((ComponentData) -> Unit)? = null
     var onLaunchClick: ((ComponentData) -> Unit)? = null
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        this.recyclerView = recyclerView
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ComponentViewHolder {
         val context = parent.context
@@ -37,6 +55,22 @@ class ComponentAdapter :
             return
         }
         holder.bind(component, position)
+    }
+
+    override fun onBindViewHolder(
+        holder: ComponentViewHolder,
+        position: Int,
+        payloads: MutableList<Any>
+    ) {
+        if (payloads.isEmpty()) {
+            return super.onBindViewHolder(holder, position, payloads)
+        }
+        val componentData = payloads[0] as OnlineComponentData?
+        if (componentData == null) {
+            logger.e("Component info is null, position: $position")
+            return
+        }
+        holder.bindOnlineData(componentData)
     }
 
     override fun onViewRecycled(holder: ComponentViewHolder) {
@@ -86,6 +120,29 @@ class ComponentAdapter :
             binding.root.setOnLongClickListener {
                 contextMenuPosition = position
                 false
+            }
+            lifecycleScope.launch(Dispatchers.IO) {
+                val entryPoint = EntryPointAccessors.fromApplication(
+                    context,
+                    ComponentAdapterEntryPoint::class.java
+                )
+                val fetcher = entryPoint.dataFetcher()
+                val onlineData = fetcher.getComponentData(context, component.name)
+                withContext(Dispatchers.Main) {
+                    if (recyclerView?.isComputingLayout == true) {
+                        return@withContext
+                    }
+                    if (onlineData != null) {
+                        notifyItemChanged(position, onlineData)
+                    }
+                }
+            }
+        }
+
+        fun bindOnlineData(data: OnlineComponentData) {
+            binding.componentDescription.apply {
+                isVisible = true
+                text = data.description
             }
         }
 
