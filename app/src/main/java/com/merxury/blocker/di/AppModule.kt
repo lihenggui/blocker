@@ -7,6 +7,8 @@ import com.google.gson.GsonBuilder
 import com.merxury.blocker.data.app.AppComponentDao
 import com.merxury.blocker.data.app.InstalledAppDao
 import com.merxury.blocker.data.app.InstalledAppDatabase
+import com.merxury.blocker.data.component.OnlineComponentDataFetcher
+import com.merxury.blocker.data.component.OnlineComponentDataService
 import com.merxury.blocker.data.source.GeneralRuleRepository
 import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.data.source.local.GeneralRuleDao
@@ -45,6 +47,16 @@ object AppModule {
     @Provides
     fun provideGeneralRuleService(retrofit: Retrofit): GeneralRuleService {
         return retrofit.create(GeneralRuleService::class.java)
+    }
+
+    @Provides
+    fun provideOnlineComponentDataService(retrofit: Retrofit): OnlineComponentDataService {
+        return retrofit.create(OnlineComponentDataService::class.java)
+    }
+
+    @Provides
+    fun provideOnlineComponentDataFetcher(service: OnlineComponentDataService): OnlineComponentDataFetcher {
+        return OnlineComponentDataFetcher(service)
     }
 
     @Provides

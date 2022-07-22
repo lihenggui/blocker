@@ -16,12 +16,14 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ComponentFragmentBinding
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.unsafeLazy
 import com.merxury.libkit.entity.EComponentType
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -29,7 +31,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class ComponentFragment : Fragment() {
     private lateinit var binding: ComponentFragmentBinding
     private val viewModel: ComponentViewModel by viewModels()
-    private val adapter = ComponentAdapter()
+    private val adapter by unsafeLazy { ComponentAdapter(lifecycleScope) }
     private var packageName: String = ""
     private var type: EComponentType = EComponentType.RECEIVER
     private val logger = XLog.tag("ComponentFragment")
