@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ComponentFragmentBinding
+import com.merxury.blocker.ui.detail.component.info.ComponentDetailDialogFragment
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.unsafeLazy
 import com.merxury.libkit.entity.EComponentType
@@ -155,6 +156,10 @@ class ComponentFragment : Fragment() {
                 getString(R.string.copied_to_clipboard_template, componentData.name),
                 Toast.LENGTH_SHORT
             ).show()
+        }
+        adapter.onDetailClick = { componentData ->
+            val fragment = ComponentDetailDialogFragment.newInstance(componentData)
+            fragment.show(requireActivity().supportFragmentManager, "ComponentDetailDialogFragment")
         }
         binding.recyclerView.apply {
             adapter = this@ComponentFragment.adapter
