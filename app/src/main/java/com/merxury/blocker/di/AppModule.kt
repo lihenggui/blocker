@@ -7,7 +7,7 @@ import com.google.gson.GsonBuilder
 import com.merxury.blocker.data.app.AppComponentDao
 import com.merxury.blocker.data.app.InstalledAppDao
 import com.merxury.blocker.data.app.InstalledAppDatabase
-import com.merxury.blocker.data.component.OnlineComponentDataFetcher
+import com.merxury.blocker.data.component.OnlineComponentDataRepository
 import com.merxury.blocker.data.component.OnlineComponentDataService
 import com.merxury.blocker.data.source.GeneralRuleRepository
 import com.merxury.blocker.data.source.OnlineSourceType
@@ -21,6 +21,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -34,11 +36,20 @@ object AppModule {
     }
 
     @Provides
+    fun provideOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+            .build()
+    }
+
+    @Provides
     fun provideOnlineRuleRetrofit(
+        okHttpClient: OkHttpClient,
         gson: Gson,
         type: OnlineSourceType
     ): Retrofit {
         return Retrofit.Builder()
+            .client(okHttpClient)
             .baseUrl(type.baseUrl)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
@@ -55,8 +66,8 @@ object AppModule {
     }
 
     @Provides
-    fun provideOnlineComponentDataFetcher(service: OnlineComponentDataService): OnlineComponentDataFetcher {
-        return OnlineComponentDataFetcher(service)
+    fun provideOnlineComponentDataRepository(service: OnlineComponentDataService): OnlineComponentDataRepository {
+        return OnlineComponentDataRepository(service)
     }
 
     @Provides

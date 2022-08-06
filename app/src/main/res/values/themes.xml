@@ -30,6 +30,10 @@
         <!--        <item name="colorInversePrimary">@color/md_theme_inversePrimary</item>-->
         <!--        <item name="colorShadow">@color/md_theme_shadow</item>-->
         <item name="colorPrimaryInverse">@color/md_theme_primaryInverse</item>
+        <item name="bottomSheetHeaderHandlerColor">@color/bottom_sheet_header_handler_md3</item>
+        <item name="bottomSheetHeaderHandlerColorActivated">
+            @color/bottom_sheet_header_handler_activated_md3
+        </item>
     </style>
 
     <style name="AppTheme" parent="BaseAppTheme" />

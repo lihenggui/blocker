@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.data.component.OnlineComponentData
-import com.merxury.blocker.data.component.OnlineComponentDataFetcher
+import com.merxury.blocker.data.component.OnlineComponentDataRepository
 import com.merxury.blocker.databinding.ComponentItemBinding
 import com.merxury.libkit.entity.EComponentType
 import dagger.hilt.EntryPoint
@@ -27,7 +27,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface ComponentAdapterEntryPoint {
-        fun dataFetcher(): OnlineComponentDataFetcher
+        fun getDataRepository(): OnlineComponentDataRepository
     }
 
     private val logger = XLog.tag("ComponentAdapter")
@@ -36,6 +36,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
     var onSwitchClick: ((ComponentData, Boolean) -> Unit)? = null
     var onCopyClick: ((ComponentData) -> Unit)? = null
     var onLaunchClick: ((ComponentData) -> Unit)? = null
+    var onDetailClick: ((ComponentData) -> Unit)? = null
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
@@ -117,6 +118,9 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
                 }
             }
             binding.runningIndicator.isVisible = component.isRunning
+            binding.root.setOnClickListener {
+                onDetailClick?.invoke(component)
+            }
             binding.root.setOnLongClickListener {
                 contextMenuPosition = position
                 false
@@ -126,7 +130,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
                     context,
                     ComponentAdapterEntryPoint::class.java
                 )
-                val fetcher = entryPoint.dataFetcher()
+                val fetcher = entryPoint.getDataRepository()
                 val onlineData = fetcher.getComponentData(context, component.name)
                 withContext(Dispatchers.Main) {
                     if (recyclerView?.isComputingLayout == true) {

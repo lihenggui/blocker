@@ -2,14 +2,12 @@ package com.merxury.blocker.util
 
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager.ResolveInfoFlags
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-
 
 object BrowserUtil {
     private val logger = XLog.tag("BrowserUtil")
