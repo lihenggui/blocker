@@ -130,4 +130,5 @@
     <string name="copied_to_clipboard_template">Copied to clipboard: %1$s</string>
     <string name="submit_ideas">Submit Ideas</string>
     <string name="open_online_rules_repository">Open online rules repository</string>
+    <string name="component_info">Component info</string>
 </resources>

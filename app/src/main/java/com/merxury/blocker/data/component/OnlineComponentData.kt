@@ -13,4 +13,8 @@ data class OnlineComponentData(
     @SerializedName("disableEffect")
     var disableEffect: String? = null,
     var author: String? = null,
+    @SerializedName("added_version")
+    var addedVersion: String? = null,
+    @SerializedName("recommend_to_block")
+    var recommendToBlock: Boolean = false,
 )

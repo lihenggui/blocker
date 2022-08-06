@@ -15,4 +15,33 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:gravity">center_vertical</item>
     </style>
+
+    <!-- From LibChecker's repo, author: Absinthe, start-->
+    <style name="DialogAnimation">
+        <item name="android:windowEnterAnimation">@anim/anim_bottom_sheet_slide_up</item>
+        <item name="android:windowExitAnimation">@anim/anim_bottom_sheet_slide_down</item>
+    </style>
+
+    <style name="CustomShapeAppearanceBottomSheetDialog" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">16dp</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+    </style>
+
+    <style name="TextView.SansSerifMedium" parent="Widget.MaterialComponents.TextView">
+        <item name="fontFamily">sans-serif-medium</item>
+    </style>
+
+    <declare-styleable name="BottomSheetHeaderView">
+        <attr name="bottomSheetHeaderHandlerColor" format="color" />
+        <attr name="bottomSheetHeaderHandlerColorActivated" format="color" />
+    </declare-styleable>
+
+    <style name="TextView.SansSerifCondensedMedium" parent="Widget.MaterialComponents.TextView">
+        <item name="fontFamily">sans-serif-condensed-medium</item>
+    </style>
+
+    <!-- From LibChecker's repo, author: Absinthe, end-->
 </resources>
