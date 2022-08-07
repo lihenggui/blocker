@@ -120,7 +120,7 @@ object PreferenceUtil {
     fun getOnlineSourceType(context: Context): OnlineSourceType {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val value =
-            pref.getString(context.getString(R.string.key_pref_online_source_type), "CODING").orEmpty()
+            pref.getString(context.getString(R.string.key_pref_online_source_type), "GITLAB").orEmpty()
         return try {
             OnlineSourceType.valueOf(value)
         } catch (e: Exception) {
