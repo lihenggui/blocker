@@ -65,7 +65,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
             val type = if (newValue == "github") {
                 OnlineSourceType.GITHUB
             } else {
-                OnlineSourceType.CODING
+                OnlineSourceType.GITLAB
             }
             logger.i("Set online rule source to $type")
             PreferenceUtil.setOnlineSourceType(requireContext(), type)
