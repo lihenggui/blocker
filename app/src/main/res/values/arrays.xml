@@ -11,11 +11,11 @@
         <item>shizuku</item>
     </string-array>
     <string-array name="pref_online_rule_source_entries">
-        <item>Coding</item>
+        <item>GitLab</item>
         <item>GitHub</item>
     </string-array>
     <string-array name="pref_online_rule_source_value">
-        <item>coding</item>
+        <item>gitlab</item>
         <item>github</item>
     </string-array>
 </resources>
