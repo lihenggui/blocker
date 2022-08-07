@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.merxury.blocker.BuildConfig
 import com.merxury.blocker.data.app.AppComponentDao
 import com.merxury.blocker.data.app.InstalledAppDao
 import com.merxury.blocker.data.app.InstalledAppDatabase
@@ -37,22 +38,19 @@ object AppModule {
 
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-            .build()
+        val builder = OkHttpClient.Builder()
+        if (BuildConfig.DEBUG) {
+            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        }
+        return builder.build()
     }
 
     @Provides
     fun provideOnlineRuleRetrofit(
-        okHttpClient: OkHttpClient,
-        gson: Gson,
-        type: OnlineSourceType
+        okHttpClient: OkHttpClient, gson: Gson, type: OnlineSourceType
     ): Retrofit {
-        return Retrofit.Builder()
-            .client(okHttpClient)
-            .baseUrl(type.baseUrl)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
+        return Retrofit.Builder().client(okHttpClient).baseUrl(type.baseUrl)
+            .addConverterFactory(GsonConverterFactory.create(gson)).build()
     }
 
     @Provides
@@ -72,9 +70,7 @@ object AppModule {
 
     @Provides
     fun providesGson(): Gson {
-        return GsonBuilder()
-            .serializeNulls()
-            .create()
+        return GsonBuilder().serializeNulls().create()
     }
 
 
@@ -116,8 +112,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGeneralRuleRepository(
-        remoteDataSource: RuleRemoteDataSource,
-        localDataSource: GeneralRuleDao
+        remoteDataSource: RuleRemoteDataSource, localDataSource: GeneralRuleDao
     ): GeneralRuleRepository {
         return GeneralRuleRepository(remoteDataSource, localDataSource)
     }
