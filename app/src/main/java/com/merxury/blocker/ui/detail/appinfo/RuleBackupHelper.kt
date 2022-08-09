@@ -14,12 +14,12 @@ import com.merxury.blocker.util.StorageUtil
 import com.merxury.ifw.util.RuleSerializer
 import com.merxury.libkit.utils.FileUtils
 import com.merxury.libkit.utils.StorageUtils
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStreamReader
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
 
 object RuleBackupHelper {
     private val logger = XLog.tag("RuleBackupHelper")
@@ -74,23 +74,26 @@ object RuleBackupHelper {
         return withContext(dispatcher) {
             val baseUri = PreferenceUtil.getSavedRulePath(context) ?: return@withContext null
             val baseFolder = DocumentFile.fromTreeUri(context, baseUri) ?: return@withContext null
-            var ifwFolder = baseFolder.findFile("ifw")
-            if (ifwFolder == null) {
-                ifwFolder = baseFolder.createDirectory("ifw")
+            val ifwFolder = baseFolder.findFile("ifw")
+            val fileName = packageName + Rule.IFW_EXTENSION
+            // Find the file in ifw folder
+            var backupFile = ifwFolder?.findFile(fileName)
+            if (backupFile == null) {
+                logger.w("Backup file $fileName not found in folder ${ifwFolder?.uri}")
             }
-            if (ifwFolder == null) {
-                logger.e("Can not create ifw folder in $baseFolder")
-                return@withContext null
+            // Didn't find rules in ifw folder, try to find rules in root folder
+            if (backupFile == null) {
+                backupFile = baseFolder.findFile(packageName + Rule.IFW_EXTENSION)
             }
-            val backupFile = ifwFolder.findFile(packageName + Rule.IFW_EXTENSION) ?: run {
-                logger.e("Backup file $packageName not found in folder ${baseFolder.uri}")
+            if (backupFile == null) {
+                logger.e("Backup file $fileName not found in folder ${baseFolder.uri}")
                 return@withContext null
             }
             val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
             context.contentResolver.openInputStream(backupFile.uri)?.use { stream ->
                 val rule = RuleSerializer.deserialize(stream) ?: return@use
                 Rule.updateIfwState(rule, controller)
-                logger.i("Import ifw rule $packageName success")
+                logger.i("Import ifw rule ${backupFile.uri} success")
             }
             return@withContext backupFile.uri
         }
