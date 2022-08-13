@@ -131,4 +131,10 @@
     <string name="submit_ideas">Submit Ideas</string>
     <string name="open_online_rules_repository">Open online rules repository</string>
     <string name="component_info">Component info</string>
+    <string name="package_name">Package name</string>
+    <string name="name">Name</string>
+    <string name="sdk_name">SDK Name</string>
+    <string name="disabled_effect">Disabled effect</string>
+    <string name="pm_status">PM status</string>
+    <string name="ifw_status">IFW status</string>
 </resources>

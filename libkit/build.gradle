@@ -34,8 +34,8 @@ dependencies {
     api "dev.rikka.shizuku:api:12.1.0"
     api "dev.rikka.shizuku:provider:12.1.0"
     // Coroutine
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3'
-    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.3'
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+    api 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test:runner:1.4.0'
