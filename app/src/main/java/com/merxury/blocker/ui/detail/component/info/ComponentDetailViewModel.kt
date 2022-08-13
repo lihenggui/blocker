@@ -17,6 +17,10 @@ class ComponentDetailViewModel @Inject constructor(private val repository: Onlin
     ViewModel() {
     private val _onlineData: MutableStateFlow<OnlineComponentData?> = MutableStateFlow(null)
     val onlineData = _onlineData.asStateFlow()
+    private val _ifwState: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val ifwState = _ifwState.asStateFlow()
+    private val _pmState: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val pmState = _pmState.asStateFlow()
 
     fun getOnlineData(context: Context, component: ComponentData) {
         viewModelScope.launch {
