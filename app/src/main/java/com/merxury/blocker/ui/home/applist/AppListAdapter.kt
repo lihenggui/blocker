@@ -1,9 +1,7 @@
 package com.merxury.blocker.ui.home.applist
 
 import android.content.Context
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -31,6 +29,12 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     private var loadServiceStatusJob: Job? = null
     var onItemClick: ((Application) -> Unit)? = null
     var contextMenuPosition = -1
+    var onClearCacheClicked: ((Application) -> Unit)? = null
+    var onClearDataClicked: ((Application) -> Unit)? = null
+    var onForceStopClicked: ((Application) -> Unit)? = null
+    var onUninstallClicked: ((Application) -> Unit)? = null
+    var onEnableClicked: ((Application) -> Unit)? = null
+    var onDisableClicked: ((Application) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppListViewHolder {
         val context = parent.context
@@ -93,7 +97,52 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
         private val context: Context,
         private val binding: AppListItemBinding
     ) :
-        RecyclerView.ViewHolder(binding.root) {
+        RecyclerView.ViewHolder(binding.root), View.OnCreateContextMenuListener  {
+
+        init {
+            binding.root.setOnCreateContextMenuListener(this)
+        }
+        override fun onCreateContextMenu(
+            menu: ContextMenu?,
+            view: View?,
+            menuInfo: ContextMenu.ContextMenuInfo?
+        ) {
+            val item = currentList.getOrNull(contextMenuPosition)
+            if (item == null) {
+                logger.e("Can't find item in the list, position: $contextMenuPosition")
+                return
+            }
+            menu?.add(Menu.NONE, 0, 0, R.string.clear_cache)
+                ?.setOnMenuItemClickListener {
+                    onClearCacheClicked?.invoke(item)
+                    true
+                }
+            menu?.add(Menu.NONE, 1, 1, R.string.clear_data)
+                ?.setOnMenuItemClickListener {
+                    onClearDataClicked?.invoke(item)
+                    true
+                }
+            menu?.add(Menu.NONE, 2, 2, R.string.force_stop)
+                ?.setOnMenuItemClickListener {
+                    onForceStopClicked?.invoke(item)
+                    true
+                }
+            menu?.add(Menu.NONE, 3, 3, R.string.uninstall)
+                ?.setOnMenuItemClickListener {
+                    onUninstallClicked?.invoke(item)
+                    true
+                }
+            menu?.add(Menu.NONE, 4, 4, R.string.enable)
+                ?.setOnMenuItemClickListener {
+                    onEnableClicked?.invoke(item)
+                    true
+                }
+            menu?.add(Menu.NONE, 5, 5, R.string.disable)
+                ?.setOnMenuItemClickListener {
+                    onDisableClicked?.invoke(item)
+                    true
+                }
+        }
 
         fun bind(position: Int, app: Application) {
             binding.root.setOnClickListener {
