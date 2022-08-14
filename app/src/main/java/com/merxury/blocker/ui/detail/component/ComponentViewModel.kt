@@ -17,7 +17,7 @@ import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.EComponentType
 import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
-import com.merxury.libkit.utils.ManagerUtils
+import com.merxury.blocker.util.ManagerUtils
 import com.merxury.libkit.utils.ServiceHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher

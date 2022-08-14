@@ -12,6 +12,7 @@ import com.elvishew.xlog.printer.file.FilePrinter
 import com.elvishew.xlog.printer.file.backup.NeverBackupStrategy
 import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
 import com.google.android.material.color.DynamicColors
+import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import me.weishu.reflection.Reflection
 
@@ -22,6 +23,12 @@ class BlockerApplication : Application() {
         initLogger()
         context = this
         DynamicColors.applyToActivitiesIfAvailable(this)
+        Shell.enableVerboseLogging = BuildConfig.DEBUG
+        Shell.setDefaultBuilder(Shell.Builder.create()
+            .setFlags(Shell.FLAG_REDIRECT_STDERR)
+            .setFlags(Shell.FLAG_MOUNT_MASTER)
+            .setTimeout(10)
+        )
     }
 
     override fun attachBaseContext(base: Context?) {

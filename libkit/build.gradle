@@ -28,8 +28,8 @@ dependencies {
     api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     api "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
     api 'com.elvishew:xlog:1.10.1'
-    api 'com.github.topjohnwu.libsu:core:3.2.1'
-    api "com.github.topjohnwu.libsu:io:3.2.1"
+    api 'com.github.topjohnwu.libsu:core:5.0.2'
+    api "com.github.topjohnwu.libsu:io:5.0.2"
     api 'com.github.tiann:FreeReflection:3.1.0'
     api 'com.google.code.gson:gson:2.8.9'
     api "dev.rikka.shizuku:api:12.1.0"
