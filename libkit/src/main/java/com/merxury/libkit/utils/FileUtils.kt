@@ -76,4 +76,13 @@ object FileUtils {
             file.delete()
         }
     }
+
+    fun getFileSize(path: String): Long {
+        val file = SuFile(path)
+        return if (file.exists()) {
+            file.length()
+        } else {
+            0L
+        }
+    }
 }

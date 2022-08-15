@@ -128,6 +128,13 @@
     <string name="ok">OK</string>
     <string name="component_name">Component name</string>
     <string name="copied_to_clipboard_template">Copied to clipboard: %1$s</string>
+    <string name="clear_cache">Clear cache</string>
+    <string name="clear_data">Clear data</string>
+    <string name="force_stop">Force stop</string>
+    <string name="uninstall">Uninstall</string>
+    <string name="enable">Enable</string>
+    <string name="disable">Disable</string>
+    <string name="error_message_template">Error message: %1$s.</string>
     <string name="submit_ideas">Submit Ideas</string>
     <string name="open_online_rules_repository">Open online rules repository</string>
     <string name="component_info">Component info</string>

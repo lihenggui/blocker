@@ -2,13 +2,10 @@ package com.merxury.blocker.ui.home.applist
 
 import android.app.SearchManager
 import android.content.Context
+import android.content.DialogInterface
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -64,6 +61,11 @@ class AppListFragment : Fragment() {
             logger.i("SortType changed to ${it?.name}")
             PreferenceUtil.setSortType(requireContext(), it)
         }
+        lifecycleScope.launchWhenStarted {
+            viewModel?.error?.collect {
+                showErrorDialog(it)
+            }
+        }
         registerForContextMenu(binding.appListRecyclerView)
         loadData()
     }
@@ -114,8 +116,28 @@ class AppListFragment : Fragment() {
             val manager = LinearLayoutManager(context)
             layoutManager = manager
             addItemDecoration(DividerItemDecoration(requireContext(), manager.orientation))
-            this@AppListFragment.adapter.onItemClick = { app ->
-                AppDetailActivity.start(requireContext(), app)
+            this@AppListFragment.adapter.apply {
+                onItemClick = { app ->
+                    AppDetailActivity.start(requireContext(), app)
+                }
+                onClearCacheClicked = { app ->
+                    viewModel?.clearCache(app)
+                }
+                onClearDataClicked = { app ->
+                    viewModel?.clearData(app)
+                }
+                onForceStopClicked = { app ->
+                    viewModel?.forceStop(app)
+                }
+                onUninstallClicked = { app ->
+                    viewModel?.uninstallApp(app)
+                }
+                onEnableClicked = { app ->
+                    viewModel?.enableApp(app)
+                }
+                onDisableClicked = { app ->
+                    viewModel?.disableApp(app)
+                }
             }
         }
     }
@@ -193,5 +215,13 @@ class AppListFragment : Fragment() {
         binding.appListRefreshLayout.isRefreshing = true
         val shouldShowSystemApp = PreferenceUtil.getShowSystemApps(requireContext())
         viewModel?.loadData(requireContext(), shouldShowSystemApp)
+    }
+
+    private fun showErrorDialog(e: Exception) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(resources.getString(R.string.operation_failed))
+            .setMessage(getString(R.string.error_message_template, e.message))
+            .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+            .show()
     }
 }
