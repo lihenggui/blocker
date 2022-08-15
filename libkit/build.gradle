@@ -27,8 +27,8 @@ dependencies {
     api 'androidx.appcompat:appcompat:1.4.2'
     api "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
     api 'com.elvishew:xlog:1.10.1'
-    api 'com.github.topjohnwu.libsu:core:3.2.1'
-    api "com.github.topjohnwu.libsu:io:3.2.1"
+    api 'com.github.topjohnwu.libsu:core:5.0.2'
+    api "com.github.topjohnwu.libsu:io:5.0.2"
     api 'com.github.tiann:FreeReflection:3.1.0'
     api 'com.google.code.gson:gson:2.9.0'
     api "dev.rikka.shizuku:api:12.1.0"
