@@ -22,8 +22,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ComponentFragmentBinding
-import com.merxury.blocker.ui.detail.component.info.ComponentDetailBottomSheet
-import com.merxury.blocker.ui.detail.component.info.ComponentDetailDialogFragment
+import com.merxury.blocker.ui.detail.component.info.ComponentDetailBottomSheetFragment
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.unsafeLazy
 import com.merxury.libkit.entity.EComponentType
@@ -159,7 +158,7 @@ class ComponentFragment : Fragment() {
             ).show()
         }
         adapter.onDetailClick = { componentData ->
-            val fragment = ComponentDetailBottomSheet()
+            val fragment = ComponentDetailBottomSheetFragment.newInstance(componentData)
             fragment.show(requireActivity().supportFragmentManager, "ComponentDetailDialogFragment")
         }
         binding.recyclerView.apply {
