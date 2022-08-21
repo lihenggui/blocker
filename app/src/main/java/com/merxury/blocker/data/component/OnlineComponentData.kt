@@ -6,6 +6,8 @@ import com.google.gson.annotations.SerializedName
 @Keep
 data class OnlineComponentData(
     var name: String? = null,
+    @SerializedName("package_name")
+    var packageName: String? = null,
     var icon: String? = null,
     @SerializedName("sdk_name")
     var sdkName: String? = null,
