@@ -59,7 +59,7 @@ class ComponentDetailViewModel @Inject constructor(private val repository: Onlin
         viewModelScope.launch(Dispatchers.IO) {
             val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
             val blocked = controller.checkComponentEnableState(packageName, component)
-            _pmState.value = blocked
+            _pmState.value = !blocked
         }
     }
 }
