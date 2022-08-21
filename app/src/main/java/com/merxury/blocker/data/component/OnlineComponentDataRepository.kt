@@ -5,12 +5,16 @@ import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class OnlineComponentDataRepository @Inject constructor(private val service: OnlineComponentDataService) {
     private val logger = XLog.tag("OnlineComponentDataFetcher")
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        logger.e(throwable)
+    }
 
     // Read from local file first, if not found, read from remote file
     // If remote file is not found, return null
@@ -24,7 +28,7 @@ class OnlineComponentDataRepository @Inject constructor(private val service: Onl
         if (name.isEmpty()) {
             return null
         }
-        return withContext(dispatcher) {
+        return withContext(dispatcher + exceptionHandler) {
             val relativePath = name.replace(".", "/")
                 .plus(EXTENSION)
             val destination = context.cacheDir.resolve(ROOT_FOLDER + relativePath)
@@ -66,7 +70,7 @@ class OnlineComponentDataRepository @Inject constructor(private val service: Onl
         context: Context,
         name: String
     ): OnlineComponentData? {
-        return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO + exceptionHandler) {
             val folder = context.filesDir.resolve(USER_GENERATED_FOLDER)
             val relativePath = name.replace(".", "/")
                 .plus(".json")
@@ -84,7 +88,7 @@ class OnlineComponentDataRepository @Inject constructor(private val service: Onl
         context: Context,
         onlineComponentData: OnlineComponentData
     ): Boolean {
-        return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.IO + exceptionHandler) {
             // Make root folder first
             val rootFolder = context.filesDir.resolve(USER_GENERATED_FOLDER)
             if (!rootFolder.exists()) {

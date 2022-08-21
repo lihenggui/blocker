@@ -42,6 +42,10 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         listenControllerStateUpdate()
         listenLoadingUpdate()
         loadData()
+        initUiComponent()
+    }
+
+    private fun initUiComponent() {
         binding.editAndSaveButton.setOnClickListener {
             if (isInEditMode) {
                 saveData()
@@ -63,7 +67,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         val packageName = component?.packageName.orEmpty()
         val componentName = component?.name.orEmpty()
         viewModel.getOnlineData(requireContext(), component!!)
-        viewModel.loadIfwState(requireContext(), packageName, componentName)
+        viewModel.loadIfwState(packageName, componentName)
         viewModel.loadPmState(requireContext(), packageName, componentName)
     }
 
@@ -76,7 +80,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun saveData() {
-
+        //viewModel.saveUserRule(requireContext(), component)
     }
 
     private fun listenComponentInfoUpdate() {
@@ -84,8 +88,10 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
             viewModel.onlineData.collect {
                 binding.sdkName.editText?.setText(it?.sdkName.orEmpty())
                 binding.name.editText?.setText(it?.name.orEmpty())
+                binding.packageName.editText?.setText(it?.packageName.orEmpty())
                 binding.description.editText?.setText(it?.description.orEmpty())
                 binding.disabledEffect.editText?.setText(it?.disableEffect.orEmpty())
+                binding.recommendCheckbox.isChecked = it?.recommendToBlock ?: false
             }
         }
     }
@@ -110,6 +116,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         name.editText?.isEnabled = true
         description.editText?.isEnabled = true
         disabledEffect.editText?.isEnabled = true
+        recommendCheckbox.isEnabled = true
         editAndSaveButton.text = getString(R.string.save)
         editAndSaveButton.setIconResource(R.drawable.ic_save)
         exitButton.setIconResource(R.drawable.ic_back)
@@ -123,6 +130,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         disabledEffect.editText?.isEnabled = false
         editAndSaveButton.text = getString(R.string.edit)
         editAndSaveButton.setIconResource(R.drawable.ic_edit)
+        recommendCheckbox.isEnabled = false
         exitButton.setIconResource(R.drawable.ic_close)
     }
 

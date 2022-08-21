@@ -33,17 +33,25 @@ class ComponentDetailViewModel @Inject constructor(private val repository: Onlin
             isLoading.value = true
             _onlineData.value =
                 repository.getComponentData(context, component.name, loadFromCacheOnly = true)
-            _onlineData.value =
-                repository.getComponentData(context, component.name, loadFromCacheOnly = false)
+            val onlineData = repository.getComponentData(context, component.name, loadFromCacheOnly = false)
+            if (onlineData != null) {
+                _onlineData.value = onlineData
+            }
             isLoading.value = false
         }
     }
 
-    fun loadIfwState(context: Context, packageName: String, component: String) {
+    fun loadIfwState(packageName: String, component: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val controller = IntentFirewallImpl(packageName).load()
             val blocked = controller.getComponentEnableState(packageName, component)
             _ifwState.value = !blocked
+        }
+    }
+
+    fun saveUserRule(context: Context, data: OnlineComponentData) {
+        viewModelScope.launch {
+            repository.saveUserGeneratedComponentDetail(context, data)
         }
     }
 
