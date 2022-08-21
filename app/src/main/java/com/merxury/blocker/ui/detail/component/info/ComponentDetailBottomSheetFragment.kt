@@ -10,6 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.merxury.blocker.R
+import com.merxury.blocker.data.component.OnlineComponentData
 import com.merxury.blocker.databinding.ComponentDetailBottomSheetBinding
 import com.merxury.blocker.ui.detail.component.ComponentData
 import dagger.hilt.android.AndroidEntryPoint
@@ -80,7 +81,15 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun saveData() {
-        //viewModel.saveUserRule(requireContext(), component)
+        val userComponent = OnlineComponentData(
+            name = binding.name.editText?.text?.toString().orEmpty(),
+            packageName = binding.packageName.editText?.text?.toString().orEmpty(),
+            sdkName = binding.sdkName.editText?.text?.toString().orEmpty(),
+            description = binding.description.editText?.text?.toString().orEmpty(),
+            disableEffect = binding.disabledEffect.editText?.text?.toString().orEmpty(),
+            recommendToBlock = binding.recommendCheckbox.isChecked
+        )
+        viewModel.saveUserRule(requireContext(), userComponent)
     }
 
     private fun listenComponentInfoUpdate() {
@@ -113,7 +122,6 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     private fun enterEditMode() = with(binding) {
         isInEditMode = true
         sdkName.editText?.isEnabled = true
-        name.editText?.isEnabled = true
         description.editText?.isEnabled = true
         disabledEffect.editText?.isEnabled = true
         recommendCheckbox.isEnabled = true
@@ -125,7 +133,6 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     private fun quitEditMode() = with(binding) {
         isInEditMode = false
         sdkName.editText?.isEnabled = false
-        name.editText?.isEnabled = false
         description.editText?.isEnabled = false
         disabledEffect.editText?.isEnabled = false
         editAndSaveButton.text = getString(R.string.edit)
