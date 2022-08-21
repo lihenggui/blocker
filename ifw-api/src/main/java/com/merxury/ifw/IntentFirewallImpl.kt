@@ -22,7 +22,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     private var rule: Rules = Rules()
 
     override suspend fun load() = withContext(Dispatchers.IO) {
-        if (PermissionUtils.isRootAvailable && destFile.exists()) {
+        if (PermissionUtils.isRootAvailable() && destFile.exists()) {
             val serializer: Serializer = Persister()
             try {
                 val input = SuFileInputStream.open(destFile)
@@ -36,7 +36,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
 
     override suspend fun save() {
         withContext(Dispatchers.IO) {
-            if (!PermissionUtils.isRootAvailable) {
+            if (!PermissionUtils.isRootAvailable()) {
                 throw RootUnavailableException()
             }
             ensureNoEmptyTag()
@@ -56,7 +56,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
 
     override suspend fun clear() {
         withContext(Dispatchers.IO) {
-            if (!PermissionUtils.isRootAvailable) {
+            if (!PermissionUtils.isRootAvailable()) {
                 throw RootUnavailableException()
             }
             logger.d("Clear IFW rule $filename")
@@ -67,8 +67,12 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
         }
     }
 
-    override fun add(packageName: String, componentName: String, type: ComponentType?): Boolean {
-        if (!PermissionUtils.isRootAvailable) {
+    override suspend fun add(
+        packageName: String,
+        componentName: String,
+        type: ComponentType?
+    ): Boolean {
+        if (!PermissionUtils.isRootAvailable()) {
             logger.e("Root unavailable, cannot add rule")
             throw RootUnavailableException()
         }
@@ -97,8 +101,12 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
         return result
     }
 
-    override fun remove(packageName: String, componentName: String, type: ComponentType?): Boolean {
-        if (!PermissionUtils.isRootAvailable) {
+    override suspend fun remove(
+        packageName: String,
+        componentName: String,
+        type: ComponentType?
+    ): Boolean {
+        if (!PermissionUtils.isRootAvailable()) {
             logger.e("Root unavailable, cannot remove rule")
             throw RootUnavailableException()
         }

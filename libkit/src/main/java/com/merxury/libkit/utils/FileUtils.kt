@@ -23,20 +23,6 @@ object FileUtils {
     }
 
     @JvmStatic
-    fun isExist(path: String): Boolean {
-        val file = SuFile(path)
-        return try {
-            if (!PermissionUtils.isRootAvailable) {
-                return false
-            }
-            return file.exists()
-        } catch (e: Exception) {
-            logger.e("Can't check file $path exists", e)
-            false
-        }
-    }
-
-    @JvmStatic
     fun listFiles(path: String): List<String> {
         val file = SuFile(path)
         if (!file.exists()) {
