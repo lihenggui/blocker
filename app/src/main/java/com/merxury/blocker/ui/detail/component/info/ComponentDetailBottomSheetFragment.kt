@@ -44,6 +44,11 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         listenLoadingUpdate()
         loadData()
         initUiComponent()
+        showInfo()
+    }
+
+    private fun showInfo() {
+        binding.name.editText?.setText(component?.name)
     }
 
     private fun initUiComponent() {
@@ -83,7 +88,6 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     private fun saveData() {
         val userComponent = OnlineComponentData(
             name = binding.name.editText?.text?.toString().orEmpty(),
-            packageName = binding.packageName.editText?.text?.toString().orEmpty(),
             sdkName = binding.sdkName.editText?.text?.toString().orEmpty(),
             description = binding.description.editText?.text?.toString().orEmpty(),
             disableEffect = binding.disabledEffect.editText?.text?.toString().orEmpty(),
@@ -95,12 +99,12 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     private fun listenComponentInfoUpdate() {
         lifecycleScope.launchWhenStarted {
             viewModel.onlineData.collect {
-                binding.sdkName.editText?.setText(it?.sdkName.orEmpty())
-                binding.name.editText?.setText(it?.name.orEmpty())
-                binding.packageName.editText?.setText(it?.packageName.orEmpty())
-                binding.description.editText?.setText(it?.description.orEmpty())
-                binding.disabledEffect.editText?.setText(it?.disableEffect.orEmpty())
-                binding.recommendCheckbox.isChecked = it?.recommendToBlock ?: false
+                if (it == null) return@collect
+                binding.sdkName.editText?.setText(it.sdkName.orEmpty())
+                binding.name.editText?.setText(it.name.orEmpty())
+                binding.description.editText?.setText(it.description.orEmpty())
+                binding.disabledEffect.editText?.setText(it.disableEffect.orEmpty())
+                binding.recommendCheckbox.isChecked = it.recommendToBlock
             }
         }
     }
