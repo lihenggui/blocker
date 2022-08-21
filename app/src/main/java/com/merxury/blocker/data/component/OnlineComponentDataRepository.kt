@@ -95,16 +95,16 @@ class OnlineComponentDataRepository @Inject constructor(private val service: Onl
                 rootFolder.mkdirs()
             }
             // Make new directory according to package name
-            val packageNamePath = onlineComponentData.name?.split(".")
-                ?.dropLast(1)
-                ?.joinToString("/") ?: return@withContext false
+            val packageNamePath = onlineComponentData.packageName
+                ?.split(".")
+                ?.joinToString("/")
+                ?: return@withContext false
             val packageFolder = rootFolder.resolve(packageNamePath)
             if (!packageFolder.exists()) {
                 packageFolder.mkdirs()
             }
             // Decide file name
-            val fileName = onlineComponentData.name?.split(".")
-                ?.last()?.plus(EXTENSION) ?: return@withContext false
+            val fileName = onlineComponentData.name.plus(EXTENSION)
             val destination = packageFolder.resolve(fileName)
             val formatter = GsonBuilder().setPrettyPrinting().create()
             val json = formatter.toJson(onlineComponentData)
