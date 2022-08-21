@@ -10,8 +10,7 @@ object PermissionUtils {
         return when (Shell.isAppGrantedRoot()) {
             true -> true
             false -> false
-            else -> requestRootPermission(dispatcher
-            )
+            else -> requestRootPermission(dispatcher)
         }
     }
 
