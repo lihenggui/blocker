@@ -40,7 +40,6 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         listenComponentInfoUpdate()
-        listenControllerStateUpdate()
         listenLoadingUpdate()
         loadData()
         initUiComponent()
@@ -80,8 +79,6 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         val packageName = component?.packageName.orEmpty()
         val componentName = component?.name.orEmpty()
         viewModel.getOnlineData(requireContext(), component!!)
-        viewModel.loadIfwState(packageName, componentName)
-        viewModel.loadPmState(requireContext(), packageName, componentName)
     }
 
     private fun listenLoadingUpdate() {
@@ -126,19 +123,6 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun listenControllerStateUpdate() {
-        lifecycleScope.launchWhenStarted {
-            viewModel.ifwState.collect {
-                binding.ifwSwitch.isChecked = it
-            }
-        }
-
-        lifecycleScope.launchWhenStarted {
-            viewModel.pmState.collect {
-                binding.pmSwitch.isChecked = it
-            }
-        }
-    }
 
     private fun enterEditMode() = with(binding) {
         isInEditMode = true
