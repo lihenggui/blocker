@@ -150,43 +150,10 @@
             android:layout_marginVertical="8dp"
             android:enabled="false"
             android:text="@string/belongs_to_sdk"
-            app:layout_constraintBottom_toTopOf="@id/pm_switch"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/recommend_checkbox" />
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/pm_switch"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:text="@string/pm_applied"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/belongs_to_sdk_checkbox" />
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/ifw_switch"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:text="@string/ifw_applied"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/pm_switch" />
-
-        <TextView
-            android:id="@+id/controller_hint"
-            style="@style/TextAppearance.Material3.BodySmall"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:text="@string/controller_hint"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ifw_switch" />
-
+            app:layout_constraintTop_toBottomOf="@id/recommend_checkbox" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </ScrollView>

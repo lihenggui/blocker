@@ -21,10 +21,6 @@ class ComponentDetailViewModel @Inject constructor(private val repository: Onlin
     ViewModel() {
     private val _onlineData: MutableStateFlow<OnlineComponentData?> = MutableStateFlow(null)
     val onlineData = _onlineData.asStateFlow()
-    private val _ifwState: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val ifwState = _ifwState.asStateFlow()
-    private val _pmState: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val pmState = _pmState.asStateFlow()
     private val isLoading = MutableStateFlow(false)
     val loading = isLoading.asStateFlow()
 
@@ -41,25 +37,9 @@ class ComponentDetailViewModel @Inject constructor(private val repository: Onlin
         }
     }
 
-    fun loadIfwState(packageName: String, component: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val controller = IntentFirewallImpl(packageName).load()
-            val blocked = controller.getComponentEnableState(packageName, component)
-            _ifwState.value = !blocked
-        }
-    }
-
     fun saveUserRule(context: Context, data: OnlineComponentData) {
         viewModelScope.launch {
             repository.saveUserGeneratedComponentDetail(context, data)
-        }
-    }
-
-    fun loadPmState(context: Context, packageName: String, component: String) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
-            val blocked = controller.checkComponentEnableState(packageName, component)
-            _pmState.value = !blocked
         }
     }
 }
