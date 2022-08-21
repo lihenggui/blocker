@@ -8,8 +8,8 @@ interface IntentFirewall {
 
     @Throws(Exception::class)
     suspend fun load(): IntentFirewall
-    fun add(packageName: String, componentName: String, type: ComponentType?): Boolean
-    fun remove(packageName: String, componentName: String, type: ComponentType?): Boolean
+    suspend fun add(packageName: String, componentName: String, type: ComponentType?): Boolean
+    suspend fun remove(packageName: String, componentName: String, type: ComponentType?): Boolean
 
     /**
      * @return false if the component is blocked
