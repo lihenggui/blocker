@@ -29,10 +29,18 @@ class OnlineComponentDataRepository @Inject constructor(private val service: Onl
             return null
         }
         return withContext(dispatcher + exceptionHandler) {
+            // Load user generated rule first
+            if (loadFromCacheOnly) {
+                val userRule = getUserGeneratedComponentDetail(context, name)
+                if (userRule != null) {
+                    return@withContext userRule
+                }
+            }
+            // If there is no user generated rule, load from local cache
             val relativePath = name.replace(".", "/")
                 .plus(EXTENSION)
             val destination = context.cacheDir.resolve(ROOT_FOLDER + relativePath)
-            logger.d("local path = $destination")
+
             if (destination.exists() && loadFromCacheOnly) {
                 // Hit cache, return cached value
                 val content = destination.readText()
@@ -40,7 +48,7 @@ class OnlineComponentDataRepository @Inject constructor(private val service: Onl
             } else {
                 if (!loadFromCacheOnly) {
                     try {
-                        // Miss cache, fetch from remote
+                        // Cache missed, fetch from remote
                         val content =
                             service.getOnlineComponentData(relativePath) ?: return@withContext null
                         // Save to cache folder

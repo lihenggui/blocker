@@ -67,6 +67,13 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
                 dismiss()
             }
         }
+        binding.belongsToSdkCheckbox.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                showSdkName()
+            } else {
+                hideSdkName()
+            }
+        }
     }
 
     private fun loadData() {
@@ -100,7 +107,11 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         lifecycleScope.launchWhenStarted {
             viewModel.onlineData.collect {
                 if (it == null) return@collect
-                binding.sdkName.editText?.setText(it.sdkName.orEmpty())
+                if (!it.sdkName.isNullOrEmpty()) {
+                    binding.icon.isVisible = true
+                    binding.sdkName.isVisible = true
+                    binding.sdkName.editText?.setText(it.sdkName.orEmpty())
+                }
                 binding.name.editText?.setText(it.name.orEmpty())
                 binding.description.editText?.setText(it.description.orEmpty())
                 binding.disabledEffect.editText?.setText(it.disableEffect.orEmpty())
@@ -129,6 +140,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         description.editText?.isEnabled = true
         disabledEffect.editText?.isEnabled = true
         recommendCheckbox.isEnabled = true
+        belongsToSdkCheckbox.isEnabled = true
         editAndSaveButton.text = getString(R.string.save)
         editAndSaveButton.setIconResource(R.drawable.ic_save)
         exitButton.setIconResource(R.drawable.ic_back)
@@ -140,9 +152,20 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         description.editText?.isEnabled = false
         disabledEffect.editText?.isEnabled = false
         editAndSaveButton.text = getString(R.string.edit)
+        belongsToSdkCheckbox.isEnabled = false
         editAndSaveButton.setIconResource(R.drawable.ic_edit)
         recommendCheckbox.isEnabled = false
         exitButton.setIconResource(R.drawable.ic_close)
+    }
+
+    private fun hideSdkName() {
+        binding.sdkName.isVisible = false
+        binding.icon.isVisible = false
+    }
+
+    private fun showSdkName() {
+        binding.sdkName.isVisible = true
+        binding.icon.isVisible = true
     }
 
     override fun onDestroyView() {
