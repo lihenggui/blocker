@@ -93,9 +93,14 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun saveData() {
+        val sdkName = if (binding.belongsToSdkCheckbox.isChecked) {
+            binding.sdkName.editText?.text.toString()
+        } else {
+            ""
+        }
         val userComponent = OnlineComponentData(
             name = binding.name.editText?.text?.toString().orEmpty(),
-            sdkName = binding.sdkName.editText?.text?.toString().orEmpty(),
+            sdkName = sdkName,
             description = binding.description.editText?.text?.toString().orEmpty(),
             disableEffect = binding.disabledEffect.editText?.text?.toString().orEmpty(),
             recommendToBlock = binding.recommendCheckbox.isChecked
@@ -111,6 +116,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
                     binding.icon.isVisible = true
                     binding.sdkName.isVisible = true
                     binding.sdkName.editText?.setText(it.sdkName.orEmpty())
+                    binding.belongsToSdkCheckbox.isChecked = true
                 }
                 binding.name.editText?.setText(it.name.orEmpty())
                 binding.description.editText?.setText(it.description.orEmpty())
