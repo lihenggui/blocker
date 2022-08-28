@@ -12,18 +12,23 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.data.app.AppComponentRepository
+import com.merxury.blocker.data.component.OnlineComponentDataRepository
+import com.merxury.blocker.util.ManagerUtils
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.libkit.entity.EComponentType
 import com.merxury.libkit.entity.getSimpleName
 import com.merxury.libkit.utils.ApplicationUtil
-import com.merxury.blocker.util.ManagerUtils
+import com.merxury.libkit.utils.FileUtils
 import com.merxury.libkit.utils.ServiceHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,6 +48,8 @@ class ComponentViewModel @Inject constructor(
     private val _updatedItem = MutableLiveData<ComponentData>()
     val updatedItem: LiveData<ComponentData>
         get() = _updatedItem
+    private val _zippedRules = MutableSharedFlow<File?>()
+    val zippedRules = _zippedRules.asSharedFlow()
 
     fun load(context: Context, packageName: String, type: EComponentType) {
         logger.i("Load $packageName $type")
@@ -158,6 +165,14 @@ class ComponentViewModel @Inject constructor(
             it.simpleName.contains(clearedKeyword, true) || it.name.contains(clearedKeyword, true)
         }
         _data.value = filteredList
+    }
+
+    fun shareRule(context: Context) {
+        viewModelScope.launch {
+            val root = context.filesDir
+                .resolve(OnlineComponentDataRepository.USER_GENERATED_FOLDER)
+            _zippedRules.emit(FileUtils.zipFile("rule", root))
+        }
     }
 
     private suspend fun controlComponentInPmMode(
