@@ -4,8 +4,14 @@ import com.elvishew.xlog.XLog
 import com.merxury.libkit.RootCommand
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 object FileUtils {
     private val logger = XLog.tag("FileUtils").build()
@@ -69,6 +75,28 @@ object FileUtils {
             file.length()
         } else {
             0L
+        }
+    }
+
+    suspend fun zipFile(prefix: String, input: File): File? {
+        return withContext(Dispatchers.IO) {
+            if (!input.exists()) {
+                return@withContext null
+            }
+            val output = File.createTempFile(prefix, ".zip")
+            ZipOutputStream(BufferedOutputStream(FileOutputStream(output))).use { zos ->
+                input.walkTopDown().forEach { file ->
+                    val zipFileName = file.absolutePath
+                        .removePrefix(input.absolutePath)
+                        .removePrefix("/")
+                    val entry = ZipEntry("$zipFileName${(if (file.isDirectory) "/" else "")}")
+                    zos.putNextEntry(entry)
+                    if (file.isFile) {
+                        file.inputStream().copyTo(zos)
+                    }
+                }
+            }
+            return@withContext output
         }
     }
 }
