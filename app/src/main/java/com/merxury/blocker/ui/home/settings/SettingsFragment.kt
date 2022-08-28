@@ -6,7 +6,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
@@ -20,6 +19,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.*
 import kotlinx.coroutines.Dispatchers
@@ -288,18 +288,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
                 ToastUtil.showToast(R.string.failed_to_send_log, Toast.LENGTH_LONG)
                 return@launch
             }
-            val emailIntent = Intent(Intent.ACTION_SEND)
-                .setType("vnd.android.cursor.dir/email")
-                .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
-                .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
-                .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
-            val logUri = FileProvider.getUriForFile(
-                requireContext(),
-                "com.merxury.blocker.provider",
-                zippedLog
-            )
-            emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
-            startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)))
+            ShareUtil.shareFileToEmail(requireContext(), zippedLog)
         }
     }
 

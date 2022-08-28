@@ -23,10 +23,13 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ComponentFragmentBinding
 import com.merxury.blocker.ui.detail.component.info.ComponentDetailBottomSheetFragment
+import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.unsafeLazy
 import com.merxury.libkit.entity.EComponentType
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.File
 
 @AndroidEntryPoint
 class ComponentFragment : Fragment() {
@@ -101,9 +104,22 @@ class ComponentFragment : Fragment() {
                 load()
                 true
             }
-
+            R.id.open_repo -> {
+                openRepository()
+                true
+            }
+            R.id.share_rules -> {
+                shareRules()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun shareRules() = viewModel.shareRule(requireContext())
+
+    private fun openRepository() {
+        BrowserUtil.openUrl(requireContext(), "https://github.com/lihenggui/blocker-general-rules")
     }
 
     private fun initSearch(menu: Menu) {
@@ -211,6 +227,16 @@ class ComponentFragment : Fragment() {
                 .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
                 .show()
         }
+        lifecycleScope.launchWhenStarted {
+            viewModel.zippedRules.collect {
+                if (it == null) return@collect
+                showShareFile(it)
+            }
+        }
+    }
+
+    private fun showShareFile(file: File) {
+        ShareUtil.shareFileToEmail(requireContext(), file)
     }
 
     companion object {

@@ -149,4 +149,6 @@
     <string name="controller_hint">* Applied means that this component is blocked by a controller.</string>
     <string name="recommend_to_block">Recommend to block</string>
     <string name="belongs_to_sdk">Belongs to an SDK</string>
+    <string name="share_rules">Share rules</string>
+    <string name="open_online_repository">Open online repository</string>
 </resources>

@@ -76,8 +76,6 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun loadData() {
-        val packageName = component?.packageName.orEmpty()
-        val componentName = component?.name.orEmpty()
         viewModel.getOnlineData(requireContext(), component!!)
     }
 
