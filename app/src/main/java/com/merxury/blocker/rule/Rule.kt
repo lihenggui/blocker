@@ -156,6 +156,7 @@ object Rule {
             ComponentControllerProxy.getInstance(controllerType, context)
         }
         var ifwController: IntentFirewall? = null
+        val pm = context.packageManager
         // Detects if contains IFW rules, if exists, create a new controller.
         rule.components.forEach ifwDetection@{
             if (it.method == EControllerMethod.IFW) {
@@ -227,6 +228,8 @@ object Rule {
                     }
                     else -> {
                         // For PM controllers, state enabled means component is enabled
+                        val currentState = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))
+                        if (currentState == it.state) return@forEach
                         if (it.state) {
                             controller.enable(it.packageName, it.name)
                         } else {
