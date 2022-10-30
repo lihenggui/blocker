@@ -19,6 +19,9 @@ android {
         abortOnError false
     }
     namespace 'com.merxury.blocker.core'
+    buildFeatures {
+        aidl true
+    }
 }
 
 dependencies {
