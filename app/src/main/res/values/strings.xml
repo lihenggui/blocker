@@ -151,4 +151,9 @@
     <string name="belongs_to_sdk">Belongs to an SDK</string>
     <string name="share_rules">Share rules</string>
     <string name="open_online_repository">Open online repository</string>
+    <string name="update_rules_notification">Update rules notification</string>
+    <string name="checking_rules_updates">Checking rules updates</string>
+    <string name="fetching_online_repository">Fetching online repository…</string>
+    <string name="download_online_rules">Download online rules…</string>
+    <string name="updating_database">Updating database…</string>
 </resources>

@@ -10,6 +10,8 @@ import com.merxury.blocker.data.app.InstalledAppDao
 import com.merxury.blocker.data.app.InstalledAppDatabase
 import com.merxury.blocker.data.component.OnlineComponentDataRepository
 import com.merxury.blocker.data.component.OnlineComponentDataService
+import com.merxury.blocker.data.instantinfo.InstantComponentInfoDao
+import com.merxury.blocker.data.instantinfo.InstantComponentInfoDatabase
 import com.merxury.blocker.data.source.GeneralRuleRepository
 import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.data.source.local.GeneralRuleDao
@@ -115,6 +117,18 @@ object AppModule {
         remoteDataSource: RuleRemoteDataSource, localDataSource: GeneralRuleDao
     ): GeneralRuleRepository {
         return GeneralRuleRepository(remoteDataSource, localDataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideInstantComponentInfoDatabase(@ApplicationContext context: Context): InstantComponentInfoDatabase {
+        return InstantComponentInfoDatabase.getInstance(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideInstantComponentInfoDao(database: InstantComponentInfoDatabase): InstantComponentInfoDao {
+        return database.instantComponentInfoDao()
     }
 
     @Provides
