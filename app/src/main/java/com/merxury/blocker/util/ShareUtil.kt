@@ -24,11 +24,17 @@ object ShareUtil {
         val chooserIntent =
             Intent.createChooser(emailIntent, context.getString(R.string.send_email))
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // TODO: Deprecated in API 33, will fix later
-            val resInfoList = context.packageManager.queryIntentActivities(
-                chooserIntent,
-                PackageManager.MATCH_ALL
-            )
+            val resInfoList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.packageManager.queryIntentActivities(
+                    chooserIntent,
+                    PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_ALL.toLong())
+                )
+            } else {
+                @Suppress("DEPRECATION") context.packageManager.queryIntentActivities(
+                    chooserIntent,
+                    PackageManager.MATCH_ALL
+                )
+            }
             resInfoList.forEach {
                 val packageName = it.activityInfo.packageName
                 context.grantUriPermission(

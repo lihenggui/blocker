@@ -2,8 +2,10 @@ package com.merxury.blocker.util
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
+import android.os.Build
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService.ACTION_CUSTOM_TABS_CONNECTION
 import com.elvishew.xlog.XLog
@@ -44,14 +46,23 @@ object BrowserUtil {
             .setData(Uri.fromParts("http", "", null))
 
         // Get all apps that can handle VIEW intents.
-        val resolvedActivityList = pm.queryIntentActivities(activityIntent, 0)
+        val resolvedActivityList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.queryIntentActivities(activityIntent, PackageManager.ResolveInfoFlags.of(0))
+        } else {
+            @Suppress("DEPRECATION") pm.queryIntentActivities(activityIntent, 0)
+        }
         val packagesSupportingCustomTabs: ArrayList<ResolveInfo> = ArrayList()
         for (info in resolvedActivityList) {
             val serviceIntent = Intent()
             serviceIntent.action = ACTION_CUSTOM_TABS_CONNECTION
             serviceIntent.setPackage(info.activityInfo.packageName)
             // Check if this package also resolves the Custom Tabs service.
-            if (pm.resolveService(serviceIntent, 0) != null) {
+            val service = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.resolveService(serviceIntent, PackageManager.ResolveInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION") pm.resolveService(serviceIntent, 0)
+            }
+            if (service != null) {
                 packagesSupportingCustomTabs.add(info)
             }
         }

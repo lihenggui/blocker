@@ -21,6 +21,7 @@ import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.blocker.util.parcelable
 import com.merxury.libkit.entity.Application
 import java.io.File
 import java.text.DateFormat
@@ -51,7 +52,7 @@ class AppInfoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        app = arguments?.getParcelable("app")!!
+        app = arguments?.parcelable("app")!!
         showHeader()
         showInfo()
         initQuickActions()

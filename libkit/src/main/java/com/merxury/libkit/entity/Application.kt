@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import com.merxury.libkit.utils.ApkUtils.getMinSdkVersion
+import com.merxury.libkit.utils.readParcelableCompat
 import java.io.File
 import java.util.*
 
@@ -27,7 +28,7 @@ class Application() : Parcelable {
         versionName = parcel.readString()
         isEnabled = parcel.readByte() != 0.toByte()
         label = parcel.readString().orEmpty()
-        packageInfo = parcel.readParcelable(PackageInfo::class.java.classLoader)
+        packageInfo = parcel.readParcelableCompat(PackageInfo::class.java.classLoader)
         firstInstallTime = Date(parcel.readLong())
         lastUpdateTime = Date(parcel.readLong())
     }

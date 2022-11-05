@@ -26,6 +26,7 @@ import com.merxury.blocker.ui.detail.component.info.ComponentDetailBottomSheetFr
 import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
+import com.merxury.blocker.util.serializable
 import com.merxury.blocker.util.unsafeLazy
 import com.merxury.libkit.entity.EComponentType
 import dagger.hilt.android.AndroidEntryPoint
@@ -43,7 +44,7 @@ class ComponentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         packageName = arguments?.getString(KEY_PACKAGE_NAME).orEmpty()
-        type = arguments?.getSerializable(KEY_TYPE) as? EComponentType ?: EComponentType.RECEIVER
+        type = arguments?.serializable(KEY_TYPE) as? EComponentType ?: EComponentType.RECEIVER
         setHasOptionsMenu(true)
     }
 
