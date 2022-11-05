@@ -18,6 +18,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.databinding.ActivityAppDetailBinding
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.parcelable
 import com.merxury.blocker.util.reduceDragSensitivity
 import com.merxury.libkit.entity.Application
 import dagger.hilt.android.AndroidEntryPoint
@@ -62,7 +63,7 @@ class AppDetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAppDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        _app = intent?.getParcelableExtra(EXTRA_APP)
+        _app = intent?.parcelable(EXTRA_APP)
         if (_app == null) {
             logger.e("app is null")
             finish()
@@ -76,7 +77,7 @@ class AppDetailActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        onBackPressedDispatcher.onBackPressed()
         return true
     }
 
