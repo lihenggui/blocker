@@ -48,7 +48,6 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
         sp = PreferenceManager.getDefaultSharedPreferences(requireContext())
         findPreference()
         initPreference()
