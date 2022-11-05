@@ -4,10 +4,17 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
@@ -29,7 +36,6 @@ class AppListFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
         viewModel = ViewModelProvider(this)[AppListViewModel::class.java]
     }
 
@@ -44,6 +50,7 @@ class AppListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initMenu()
         initSwipeLayout()
         initRecyclerView()
         viewModel?.appList?.observe(viewLifecycleOwner) {
@@ -70,36 +77,6 @@ class AppListFragment : Fragment() {
         loadData()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        menu.clear()
-        inflater.inflate(R.menu.app_list_actions, menu)
-        initSearch(menu)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
-        initMenus(menu)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        logger.i("Menu item clicked: $item")
-        return when (item.itemId) {
-            R.id.action_show_system_apps -> {
-                handleShowSystemAppsClicked(item)
-                true
-            }
-            R.id.action_show_service_info -> {
-                handleShowServiceInfoClicked(item)
-                true
-            }
-            else -> {
-                handleSortAction(item)
-                true
-            }
-        }
-    }
-
     override fun onDestroy() {
         adapter.release()
         super.onDestroy()
@@ -108,6 +85,30 @@ class AppListFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    private fun initMenu() {
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menu.clear()
+                menuInflater.inflate(R.menu.app_list_actions, menu)
+                initSearch(menu)
+            }
+
+            override fun onPrepareMenu(menu: Menu) {
+                super.onPrepareMenu(menu)
+                initMenus(menu)
+            }
+
+            override fun onMenuItemSelected(item: MenuItem): Boolean {
+                when (item.itemId) {
+                    R.id.action_show_system_apps -> handleShowSystemAppsClicked(item)
+                    R.id.action_show_service_info -> handleShowServiceInfoClicked(item)
+                    else -> handleSortAction(item)
+                }
+                return true
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun initRecyclerView() {

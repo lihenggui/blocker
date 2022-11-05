@@ -4,13 +4,20 @@ import android.app.SearchManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
@@ -28,6 +35,31 @@ class LocalSearchFragment : Fragment() {
     private val adapter by unsafeLazy { ExpandableSearchAdapter(this.lifecycleScope) }
     private var searchView: SearchView? = null
     private var isLoading = false
+
+    private val menuProvider = object : MenuProvider {
+        override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+            menu.clear()
+            menuInflater.inflate(R.menu.adv_search_menu, menu)
+            initSearch(menu)
+        }
+
+        override fun onPrepareMenu(menu: Menu) {
+            super.onPrepareMenu(menu)
+            menu.findItem(R.id.action_show_system_apps)?.isChecked =
+                PreferenceUtil.getSearchSystemApps(requireContext())
+        }
+
+        override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+            when (menuItem.itemId) {
+                R.id.action_show_system_apps -> handleSearchSystemAppClicked(menuItem)
+                R.id.action_refresh -> viewModel.load(requireContext(), forceInit = true)
+                R.id.action_block_all -> batchDisable()
+                R.id.action_enable_all -> batchEnable()
+                else -> return false
+            }
+            return true
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,21 +101,24 @@ class LocalSearchFragment : Fragment() {
                     binding.searchHintGroup.visibility = View.VISIBLE
                     binding.searchNoResultHintGroup.visibility = View.GONE
                 }
+
                 is LocalSearchState.Loading -> {
+                    setSearchIconVisibility(false)
                     binding.searchNoResultHintGroup.visibility = View.GONE
                     binding.searchHintGroup.visibility = View.GONE
                     binding.loadingIndicatorGroup.visibility = View.VISIBLE
                     binding.list.visibility = View.GONE
                     binding.processingName.text = it.app?.packageName
                 }
+
                 is LocalSearchState.Finished -> {
                     binding.searchNoResultHintGroup.isVisible = (it.count == 0)
                     binding.list.isVisible = (it.count > 0)
                     binding.searchingHintGroup.visibility = View.GONE
                     binding.loadingIndicatorGroup.visibility = View.GONE
                     binding.searchHintGroup.visibility = View.GONE
-
                 }
+
                 is LocalSearchState.Searching -> {
                     binding.searchingHintGroup.visibility = View.VISIBLE
                     binding.searchNoResultHintGroup.visibility = View.GONE
@@ -91,6 +126,7 @@ class LocalSearchFragment : Fragment() {
                     binding.searchHintGroup.visibility = View.GONE
                     binding.list.visibility = View.GONE
                 }
+
                 is LocalSearchState.Error -> {
                     it.exception.getContentIfNotHandled()?.let { error ->
                         showErrorDialog(error)
@@ -99,30 +135,6 @@ class LocalSearchFragment : Fragment() {
                 }
             }
         }
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        menu.clear()
-        inflater.inflate(R.menu.adv_search_menu, menu)
-        initSearch(menu)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
-        menu.findItem(R.id.action_show_system_apps)?.isChecked =
-            PreferenceUtil.getSearchSystemApps(requireContext())
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.action_show_system_apps -> handleSearchSystemAppClicked(item)
-            R.id.action_refresh -> viewModel.load(requireContext(), forceInit = true)
-            R.id.action_block_all -> batchDisable()
-            R.id.action_enable_all -> batchEnable()
-            else -> return false
-        }
-        return true
     }
 
     fun search(keyword: String) {
@@ -212,7 +224,14 @@ class LocalSearchFragment : Fragment() {
     }
 
     private fun setSearchIconVisibility(enabled: Boolean) {
-        setHasOptionsMenu(enabled)
-        activity?.invalidateOptionsMenu()
+        if (enabled) {
+            requireActivity().addMenuProvider(
+                menuProvider,
+                viewLifecycleOwner,
+                Lifecycle.State.RESUMED
+            )
+        } else {
+            requireActivity().removeMenuProvider(menuProvider)
+        }
     }
 }
