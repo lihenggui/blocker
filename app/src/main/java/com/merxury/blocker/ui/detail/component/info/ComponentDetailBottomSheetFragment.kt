@@ -13,6 +13,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.data.component.OnlineComponentData
 import com.merxury.blocker.databinding.ComponentDetailBottomSheetBinding
 import com.merxury.blocker.ui.detail.component.ComponentData
+import com.merxury.blocker.util.parcelable
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -25,7 +26,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        component = arguments?.getParcelable(ARG_COMPONENT)
+        component = arguments?.parcelable(ARG_COMPONENT)
     }
 
     override fun onCreateView(
