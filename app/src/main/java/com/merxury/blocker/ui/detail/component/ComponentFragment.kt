@@ -11,11 +11,14 @@ import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -45,7 +48,6 @@ class ComponentFragment : Fragment() {
         super.onCreate(savedInstanceState)
         packageName = arguments?.getString(KEY_PACKAGE_NAME).orEmpty()
         type = arguments?.serializable(KEY_TYPE) as? EComponentType ?: EComponentType.RECEIVER
-        setHasOptionsMenu(true)
     }
 
     override fun onCreateView(
@@ -60,61 +62,72 @@ class ComponentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initView()
+        initMenu()
         observeData()
         load()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        menu.clear()
-        inflater.inflate(R.menu.component_fragment_menu, menu)
-        initSearch(menu)
-    }
+    private fun initMenu() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.component_fragment_menu, menu)
+                initSearch(menu)
+            }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_block_all -> {
-                Toast.makeText(
-                    requireContext(),
-                    R.string.disabling_components_please_wait,
-                    Toast.LENGTH_SHORT
-                ).show()
-                viewModel.disableAll(requireContext(), packageName, type)
-                true
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_block_all -> {
+                        Toast.makeText(
+                            requireContext(),
+                            R.string.disabling_components_please_wait,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        viewModel.disableAll(requireContext(), packageName, type)
+                        true
+                    }
+
+                    R.id.action_enable_all -> {
+                        Toast.makeText(
+                            requireContext(),
+                            R.string.enabling_components_please_wait,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        viewModel.enableAll(requireContext(), packageName, type)
+                        true
+                    }
+
+                    R.id.action_refresh -> {
+                        load()
+                        true
+                    }
+
+                    R.id.action_show_enabled_components_first -> {
+                        PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), true)
+                        load()
+                        true
+                    }
+
+                    R.id.action_show_disabled_components_first -> {
+                        PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), false)
+                        load()
+                        true
+                    }
+
+                    R.id.open_repo -> {
+                        openRepository()
+                        true
+                    }
+
+                    R.id.share_rules -> {
+                        shareRules()
+                        true
+                    }
+
+                    else -> false
+                }
             }
-            R.id.action_enable_all -> {
-                Toast.makeText(
-                    requireContext(),
-                    R.string.enabling_components_please_wait,
-                    Toast.LENGTH_SHORT
-                ).show()
-                viewModel.enableAll(requireContext(), packageName, type)
-                true
-            }
-            R.id.action_refresh -> {
-                load()
-                true
-            }
-            R.id.action_show_enabled_components_first -> {
-                PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), true)
-                load()
-                true
-            }
-            R.id.action_show_disabled_components_first -> {
-                PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), false)
-                load()
-                true
-            }
-            R.id.open_repo -> {
-                openRepository()
-                true
-            }
-            R.id.share_rules -> {
-                shareRules()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun shareRules() = viewModel.shareRule(requireContext())
