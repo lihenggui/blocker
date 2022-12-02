@@ -99,6 +99,10 @@
             app:icon="@drawable/ic_bug"
             app:key="@string/key_pref_report_issue"
             app:title="@string/report_issue" />
+        <Preference
+            app:icon="@drawable/ic_github"
+            app:key="@string/key_pref_update_online_db"
+            app:title="Update online db" />
     </PreferenceCategory>
 
 </PreferenceScreen>

@@ -23,10 +23,9 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.Okio
+import org.apache.commons.csv.CSVFormat
 import java.io.File
 import java.io.IOException
-import java.util.Scanner
-import javax.inject.Inject
 
 @HiltWorker
 class CheckRuleUpdateWork @AssistedInject constructor(
@@ -64,33 +63,37 @@ class CheckRuleUpdateWork @AssistedInject constructor(
                 return@withContext false
             }
             try {
-                val scanner = Scanner(file)
-                while (scanner.hasNextLine()) {
-                    val line = scanner.nextLine()
-                    importData(line)
-                }
+                importCSV(file)
             } catch (e: IOException) {
-                logger.e("Can't import rules to database")
+                logger.e("Can't import rules to database", e)
                 return@withContext false
             }
             true
         }
     }
 
-    private fun importData(line: String) {
-        // Parse CSV files directly
-        val (appId, packagePath, componentName, description, recommendToBlock) = line.split(
-            ",",
-            ignoreCase = false,
-            limit = 5
-        )
-        val result = dao.find(appId, packagePath, componentName)
-        if (result == null) {
-            val recommended = recommendToBlock.toIntOrNull() == 1
-            val component =
-                InstantComponentInfo(appId, packagePath, componentName, description, recommended)
-            dao.insert(component)
-        }
+    @Throws(IOException::class)
+    private fun importCSV(file: File) {
+        val reader = file.bufferedReader()
+        CSVFormat.Builder.create(CSVFormat.DEFAULT)
+            .apply { setIgnoreSurroundingSpaces(true) }
+            .build()
+            .parse(reader)
+            .drop(1)
+            .map {
+                InstantComponentInfo(
+                    packagePath = it[0],
+                    componentName = it[1],
+                    description = it[2],
+                    recommendToBlock = it[3].toBoolean()
+                )
+            }
+            .forEach {
+                if (dao.find(it.packagePath, it.componentName) == null) {
+                    dao.insert(it)
+                }
+            }
+        reader.close()
     }
 
     private fun updateNotification(@StringRes content: Int): ForegroundInfo {
@@ -114,7 +117,7 @@ class CheckRuleUpdateWork @AssistedInject constructor(
     private suspend fun getOnlineSetData(set: Set) {
         setForeground(updateNotification(R.string.download_online_rules))
         val onlineSource = PreferenceUtil.getOnlineSourceType(applicationContext)
-        val path = "online/components/zh-cn/${set.filename}"
+        val path = "components/zh-cn/${set.filename}"
         val url = onlineSource.baseUrl + path
         val request = Request.Builder()
             .url(url)
@@ -135,7 +138,7 @@ class CheckRuleUpdateWork @AssistedInject constructor(
 
     private fun getOnlineSetInfo(): Set? {
         val source = PreferenceUtil.getOnlineSourceType(applicationContext)
-        val path = "online/components/zh-cn/$SET_INFO_FILE_NAME"
+        val path = "components/zh-cn/$SET_INFO_FILE_NAME"
         val url = source.baseUrl + path
         try {
             // Get from online
