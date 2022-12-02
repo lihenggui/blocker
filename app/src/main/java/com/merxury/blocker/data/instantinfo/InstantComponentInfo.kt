@@ -5,9 +5,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 
 @Keep
-@Entity(primaryKeys = ["app_id", "package_path", "component_name"], tableName = "instant_component_info")
+@Entity(primaryKeys = ["package_path", "component_name"], tableName = "instant_component_info")
 data class InstantComponentInfo(
-    @ColumnInfo(name = "app_id") val appId: String,
     @ColumnInfo(name = "package_path") val packagePath: String,
     @ColumnInfo(name = "component_name") val componentName: String,
     @ColumnInfo(name = "description") val description: String,

@@ -45,6 +45,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     private var repoPreference: Preference? = null
     private var groupPreference: Preference? = null
     private var reportPreference: Preference? = null
+    private var updateRulePreference: Preference? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -86,6 +87,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
             groupPreference -> showDiscussionGroup()
             reportPreference -> reportIssue()
             repoPreference -> showRulesRepo()
+            updateRulePreference -> updateOnlineRule()
         }
         return true
     }
@@ -113,6 +115,13 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
             importMatRule(uri)
         }
 
+    private fun updateOnlineRule() {
+        val work = OneTimeWorkRequestBuilder<CheckRuleUpdateWork>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+        WorkManager.getInstance(requireContext())
+            .enqueueUniqueWork("UpdateRule", ExistingWorkPolicy.KEEP, work)
+    }
     private fun importBlockerRule() {
         val importWork = OneTimeWorkRequestBuilder<ImportBlockerRuleWork>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
@@ -189,6 +198,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         groupPreference = findPreference(getString(R.string.key_pref_group))
         reportPreference = findPreference(getString(R.string.key_pref_report_issue))
         repoPreference = findPreference(getString(R.string.key_pref_rules_repo))
+        updateRulePreference = findPreference(getString(R.string.key_pref_update_online_db))
     }
 
     private fun initPreference() {
@@ -233,6 +243,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         groupPreference?.onPreferenceClickListener = this
         reportPreference?.onPreferenceClickListener = this
         repoPreference?.onPreferenceClickListener = this
+        updateRulePreference?.onPreferenceClickListener = this
     }
 
     private fun selectFolder() {
