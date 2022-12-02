@@ -29,4 +29,5 @@
     <string name="key_pref_online_rule_source" translatable="false">key_pref_online_rule_source</string>
     <string name="key_pref_online_source_type" translatable="false">key_pref_online_source_type</string>
     <string name="key_pref_show_enabled_component_show_first" translatable="false">key_pref_show_enabled_component_show_first</string>
+    <string name="key_pref_update_online_db" translatable="false">pref_key_update_online_db</string>
 </resources>
