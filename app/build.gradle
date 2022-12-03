@@ -139,7 +139,7 @@ dependencies {
     kapt 'androidx.hilt:hilt-compiler:1.0.0'
     implementation project(':core:component-controller')
     // Project dependencies
-    implementation project(':ifw-api')
+    implementation project(':core:ifw-api')
     implementation project(':libkit')
     // 3rd party dependencies
     implementation 'me.zhanghai.android.appiconloader:appiconloader:1.5.0'
