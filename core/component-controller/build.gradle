@@ -26,7 +26,7 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation project(':ifw-api')
+    implementation project(':core:ifw-api')
     implementation project(':libkit')
 
     testImplementation 'junit:junit:4.13.2'

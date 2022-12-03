@@ -34,6 +34,6 @@ dependencyResolutionManagement {
 rootProject.name = "Blocker"
 include(":app")
 include(":core:component-controller")
-include(":ifw-api")
+include(":core:ifw-api")
 include(":libkit")
 include(":lint")
