@@ -22,9 +22,7 @@ android {
     namespace 'com.merxury.ifw'
 
 }
-repositories {
-    mavenCentral()
-}
+
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     // Simple Xml
