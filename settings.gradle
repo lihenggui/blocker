@@ -1,2 +1,0 @@
-include ':app', ':core:component-controller', ':ifw-api', ':libkit'
-include ':core'
