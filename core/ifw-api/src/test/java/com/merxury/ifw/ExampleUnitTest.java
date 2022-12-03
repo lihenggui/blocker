@@ -1,8 +1,8 @@
 package com.merxury.ifw;
 
-import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 /**
  * Example local unit test, which will execute on the development machine (host).
