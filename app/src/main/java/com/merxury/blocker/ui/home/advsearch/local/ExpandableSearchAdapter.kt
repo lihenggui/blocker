@@ -13,9 +13,8 @@ import com.google.android.material.switchmaterial.SwitchMaterial
 import com.merxury.blocker.R
 import com.merxury.blocker.data.app.AppComponent
 import com.merxury.blocker.data.app.InstalledApp
-import com.merxury.blocker.ui.detail.component.ComponentData
 import com.merxury.blocker.util.AppIconCache
-import com.merxury.libkit.entity.Application
+import com.merxury.libkit.utils.getPackageInfoCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -124,8 +123,9 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
     private fun loadIcon(context: Context, app: InstalledApp?, view: ImageView) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val packageInfo = context.packageManager.getPackageInfo(app?.packageName ?: "", 0)
-                val appInfo = packageInfo?.applicationInfo ?: run {
+                val packageInfo =
+                    context.packageManager.getPackageInfoCompat(app?.packageName ?: "", 0)
+                val appInfo = packageInfo.applicationInfo ?: run {
                     logger.e("Application info is null, packageName: ${app?.packageName}")
                     return@launch
                 }

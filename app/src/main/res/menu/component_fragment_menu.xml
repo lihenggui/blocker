@@ -9,6 +9,13 @@
         android:title="@string/search"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="collapseActionView|always" />
+
+    <item
+        android:id="@+id/share_rules"
+        android:icon="@drawable/ic_cloud_upload"
+        android:title="@string/share_rules"
+        app:showAsAction="ifRoom" />
+
     <item
         android:id="@+id/action_filter"
         android:icon="@drawable/ic_filter"
@@ -31,4 +38,8 @@
     <item
         android:id="@+id/action_refresh"
         android:title="@string/refresh" />
+
+    <item
+        android:id="@+id/open_repo"
+        android:title="@string/open_online_repository" />
 </menu>

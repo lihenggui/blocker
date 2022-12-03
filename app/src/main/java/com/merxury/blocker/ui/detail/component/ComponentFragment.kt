@@ -11,25 +11,35 @@ import android.view.*
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.ComponentFragmentBinding
+import com.merxury.blocker.ui.detail.component.info.ComponentDetailBottomSheetFragment
+import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.ShareUtil
+import com.merxury.blocker.util.serializable
+import com.merxury.blocker.util.unsafeLazy
 import com.merxury.libkit.entity.EComponentType
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.File
 
 @AndroidEntryPoint
 class ComponentFragment : Fragment() {
     private lateinit var binding: ComponentFragmentBinding
     private val viewModel: ComponentViewModel by viewModels()
-    private val adapter = ComponentAdapter()
+    private val adapter by unsafeLazy { ComponentAdapter(lifecycleScope) }
     private var packageName: String = ""
     private var type: EComponentType = EComponentType.RECEIVER
     private val logger = XLog.tag("ComponentFragment")
@@ -37,8 +47,7 @@ class ComponentFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         packageName = arguments?.getString(KEY_PACKAGE_NAME).orEmpty()
-        type = arguments?.getSerializable(KEY_TYPE) as? EComponentType ?: EComponentType.RECEIVER
-        setHasOptionsMenu(true)
+        type = arguments?.serializable(KEY_TYPE) as? EComponentType ?: EComponentType.RECEIVER
     }
 
     override fun onCreateView(
@@ -53,54 +62,78 @@ class ComponentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initView()
+        initMenu()
         observeData()
         load()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        menu.clear()
-        inflater.inflate(R.menu.component_fragment_menu, menu)
-        initSearch(menu)
+    private fun initMenu() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.component_fragment_menu, menu)
+                initSearch(menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_block_all -> {
+                        Toast.makeText(
+                            requireContext(),
+                            R.string.disabling_components_please_wait,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        viewModel.disableAll(requireContext(), packageName, type)
+                        true
+                    }
+
+                    R.id.action_enable_all -> {
+                        Toast.makeText(
+                            requireContext(),
+                            R.string.enabling_components_please_wait,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        viewModel.enableAll(requireContext(), packageName, type)
+                        true
+                    }
+
+                    R.id.action_refresh -> {
+                        load()
+                        true
+                    }
+
+                    R.id.action_show_enabled_components_first -> {
+                        PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), true)
+                        load()
+                        true
+                    }
+
+                    R.id.action_show_disabled_components_first -> {
+                        PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), false)
+                        load()
+                        true
+                    }
+
+                    R.id.open_repo -> {
+                        openRepository()
+                        true
+                    }
+
+                    R.id.share_rules -> {
+                        shareRules()
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_block_all -> {
-                Toast.makeText(
-                    requireContext(),
-                    R.string.disabling_components_please_wait,
-                    Toast.LENGTH_SHORT
-                ).show()
-                viewModel.disableAll(requireContext(), packageName, type)
-                true
-            }
-            R.id.action_enable_all -> {
-                Toast.makeText(
-                    requireContext(),
-                    R.string.enabling_components_please_wait,
-                    Toast.LENGTH_SHORT
-                ).show()
-                viewModel.enableAll(requireContext(), packageName, type)
-                true
-            }
-            R.id.action_refresh -> {
-                load()
-                true
-            }
-            R.id.action_show_enabled_components_first -> {
-                PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), true)
-                load()
-                true
-            }
-            R.id.action_show_disabled_components_first -> {
-                PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), false)
-                load()
-                true
-            }
+    private fun shareRules() = viewModel.shareRule(requireContext())
 
-            else -> super.onOptionsItemSelected(item)
-        }
+    private fun openRepository() {
+        BrowserUtil.openUrl(requireContext(), "https://github.com/lihenggui/blocker-general-rules")
     }
 
     private fun initSearch(menu: Menu) {
@@ -154,6 +187,10 @@ class ComponentFragment : Fragment() {
                 Toast.LENGTH_SHORT
             ).show()
         }
+        adapter.onDetailClick = { componentData ->
+            val fragment = ComponentDetailBottomSheetFragment.newInstance(componentData)
+            fragment.show(requireActivity().supportFragmentManager, "ComponentDetailDialogFragment")
+        }
         binding.recyclerView.apply {
             adapter = this@ComponentFragment.adapter
             val manager = LinearLayoutManager(context)
@@ -204,6 +241,16 @@ class ComponentFragment : Fragment() {
                 .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
                 .show()
         }
+        lifecycleScope.launchWhenStarted {
+            viewModel.zippedRules.collect {
+                if (it == null) return@collect
+                showShareFile(it)
+            }
+        }
+    }
+
+    private fun showShareFile(file: File) {
+        ShareUtil.shareFileToEmail(requireContext(), file)
     }
 
     companion object {

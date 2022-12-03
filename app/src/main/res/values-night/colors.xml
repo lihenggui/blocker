@@ -28,4 +28,6 @@
     <color name="md_theme_inversePrimary">#0161A3</color>
     <color name="md_theme_shadow">#000000</color>
     <color name="md_theme_primaryInverse">#0161A3</color>
+    <color name="bottom_sheet_header_handler_md3">#CCBBBBBB</color>
+    <color name="bottom_sheet_header_handler_activated_md3">#FFFFFFFF</color>
 </resources>

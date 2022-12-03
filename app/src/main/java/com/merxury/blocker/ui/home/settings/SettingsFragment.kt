@@ -6,31 +6,22 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.browser.customtabs.CustomTabsIntent
-import androidx.core.content.FileProvider
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.Data
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkManager
+import androidx.work.*
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.data.source.OnlineSourceType
+import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.work.ExportBlockerRulesWork
-import com.merxury.blocker.work.ExportIfwRulesWork
-import com.merxury.blocker.work.ImportBlockerRuleWork
-import com.merxury.blocker.work.ImportIfwRulesWork
-import com.merxury.blocker.work.ImportMatRulesWork
-import com.merxury.blocker.work.ResetIfwWork
+import com.merxury.blocker.work.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -47,16 +38,17 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     private var importIfwRulePreference: Preference? = null
     private var resetIfwPreference: Preference? = null
     private var importMatRulesPreference: Preference? = null
-    private var aboutPreference: Preference? = null
     private var storagePreference: Preference? = null
     private var backupSystemAppPreference: SwitchPreference? = null
     private var restoreSystemAppPreference: SwitchPreference? = null
+    private var aboutPreference: Preference? = null
+    private var repoPreference: Preference? = null
     private var groupPreference: Preference? = null
     private var reportPreference: Preference? = null
+    private var updateRulePreference: Preference? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
         sp = PreferenceManager.getDefaultSharedPreferences(requireContext())
         findPreference()
         initPreference()
@@ -94,6 +86,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
             aboutPreference -> showAbout()
             groupPreference -> showDiscussionGroup()
             reportPreference -> reportIssue()
+            repoPreference -> showRulesRepo()
+            updateRulePreference -> updateOnlineRule()
         }
         return true
     }
@@ -121,6 +115,13 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
             importMatRule(uri)
         }
 
+    private fun updateOnlineRule() {
+        val work = OneTimeWorkRequestBuilder<CheckRuleUpdateWork>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+        WorkManager.getInstance(requireContext())
+            .enqueueUniqueWork("UpdateRule", ExistingWorkPolicy.KEEP, work)
+    }
     private fun importBlockerRule() {
         val importWork = OneTimeWorkRequestBuilder<ImportBlockerRuleWork>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
@@ -192,9 +193,12 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         aboutPreference = findPreference(getString(R.string.key_pref_about))
         storagePreference = findPreference(getString(R.string.key_pref_save_folder_path))
         backupSystemAppPreference = findPreference(getString(R.string.key_pref_backup_system_apps))
-        restoreSystemAppPreference = findPreference(getString(R.string.key_pref_restore_system_apps))
+        restoreSystemAppPreference =
+            findPreference(getString(R.string.key_pref_restore_system_apps))
         groupPreference = findPreference(getString(R.string.key_pref_group))
         reportPreference = findPreference(getString(R.string.key_pref_report_issue))
+        repoPreference = findPreference(getString(R.string.key_pref_rules_repo))
+        updateRulePreference = findPreference(getString(R.string.key_pref_update_online_db))
     }
 
     private fun initPreference() {
@@ -238,6 +242,8 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         storagePreference?.onPreferenceChangeListener = this
         groupPreference?.onPreferenceClickListener = this
         reportPreference?.onPreferenceClickListener = this
+        repoPreference?.onPreferenceClickListener = this
+        updateRulePreference?.onPreferenceClickListener = this
     }
 
     private fun selectFolder() {
@@ -264,32 +270,15 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     }
 
     private fun showAbout() {
-        openUrl(ABOUT_URL)
+        BrowserUtil.openUrl(requireContext(), ABOUT_URL)
     }
 
     private fun showDiscussionGroup() {
-        openUrl(GROUP_URL)
+        BrowserUtil.openUrl(requireContext(), GROUP_URL)
     }
 
-    private fun openUrl(url: String) {
-        val chromeIntent = CustomTabsIntent.Builder()
-            .setShowTitle(true)
-            .build()
-        val resolveInfo =
-            requireContext().packageManager.queryIntentActivities(chromeIntent.intent, 0)
-        if (resolveInfo.isNotEmpty()) {
-            logger.i("Open url in Chrome Tabs $url")
-            chromeIntent.launchUrl(requireContext(), Uri.parse(url))
-        } else {
-            val browseIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            if (browseIntent.resolveActivity(requireContext().packageManager) != null) {
-                logger.i("Open url in default browser $url")
-                startActivity(browseIntent)
-            } else {
-                logger.w("No browser to open url $url")
-                ToastUtil.showToast(getString(R.string.browser_required))
-            }
-        }
+    private fun showRulesRepo() {
+        BrowserUtil.openUrl(requireContext(), RULE_REPO_URL)
     }
 
     private fun reportIssue() {
@@ -309,23 +298,13 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
                 ToastUtil.showToast(R.string.failed_to_send_log, Toast.LENGTH_LONG)
                 return@launch
             }
-            val emailIntent = Intent(Intent.ACTION_SEND)
-                .setType("vnd.android.cursor.dir/email")
-                .putExtra(Intent.EXTRA_EMAIL, arrayOf("mercuryleee@gmail.com"))
-                .putExtra(Intent.EXTRA_SUBJECT, getString(R.string.report_subject_template))
-                .putExtra(Intent.EXTRA_TEXT, getString(R.string.report_content_template))
-            val logUri = FileProvider.getUriForFile(
-                requireContext(),
-                "com.merxury.blocker.provider",
-                zippedLog
-            )
-            emailIntent.putExtra(Intent.EXTRA_STREAM, logUri)
-            startActivity(Intent.createChooser(emailIntent, getString(R.string.send_email)))
+            ShareUtil.shareFileToEmail(requireContext(), zippedLog)
         }
     }
 
     companion object {
         private const val ABOUT_URL = "https://github.com/lihenggui/blocker"
         private const val GROUP_URL = "https://t.me/blockerandroid"
+        private const val RULE_REPO_URL = "https://github.com/lihenggui/blocker-general-rules"
     }
 }

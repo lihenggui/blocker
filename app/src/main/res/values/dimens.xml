@@ -1,3 +1,4 @@
 <resources>
     <dimen name="app_icon_size">40dp</dimen>
+    <dimen name="dialog_handler_radius">2dp</dimen>
 </resources>

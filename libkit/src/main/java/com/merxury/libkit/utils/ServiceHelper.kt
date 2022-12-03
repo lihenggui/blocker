@@ -35,7 +35,7 @@ class ServiceHelper(private val packageName: String) {
         withContext(Dispatchers.IO) {
             serviceList.clear()
             serviceInfo = try {
-                if (PermissionUtils.isRootAvailable) {
+                if (PermissionUtils.isRootAvailable()) {
                     RootCommand.runBlockingCommand("dumpsys activity services -p $packageName")
                 } else {
                     ""
