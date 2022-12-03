@@ -8,7 +8,7 @@ import android.os.Parcelable
 import com.merxury.libkit.utils.ApkUtils.getMinSdkVersion
 import com.merxury.libkit.utils.readParcelableCompat
 import java.io.File
-import java.util.*
+import java.util.Date
 
 /**
  * Created by Mercury on 2017/12/30.

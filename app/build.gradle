@@ -140,7 +140,7 @@ dependencies {
     implementation project(':core:component-controller')
     // Project dependencies
     implementation project(':core:ifw-api')
-    implementation project(':libkit')
+    implementation project(':core:libkit')
     // 3rd party dependencies
     implementation 'me.zhanghai.android.appiconloader:appiconloader:1.5.0'
     implementation 'com.airbnb.android:lottie:5.2.0'
