@@ -33,7 +33,7 @@ echo "Installing build-tools..."
 echo y | ${ANDROID_HOME}/tools/bin/sdkmanager "build-tools;30.0.3" > /dev/null
 echo y | ${ANDROID_HOME}/tools/bin/sdkmanager --licenses
 
-cd $KOKORO_ARTIFACTS_DIR/git/nowinandroid
+cd $KOKORO_ARTIFACTS_DIR/git/blocker
 
 # The build needs Java 11, set it as the default Java version.
 sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
