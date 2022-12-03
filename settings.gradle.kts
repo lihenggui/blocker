@@ -35,5 +35,5 @@ rootProject.name = "Blocker"
 include(":app")
 include(":core:component-controller")
 include(":core:ifw-api")
-include(":libkit")
+include(":core:libkit")
 include(":lint")
