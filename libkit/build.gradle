@@ -19,10 +19,6 @@ android {
     namespace 'com.merxury.libkit'
 }
 
-repositories {
-    maven { url 'https://jitpack.io' }
-}
-
 dependencies {
     api 'androidx.appcompat:appcompat:1.5.1'
     api "androidx.coordinatorlayout:coordinatorlayout:1.2.0"
