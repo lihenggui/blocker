@@ -19,42 +19,14 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
--keep public class * extends android.app.Activity
--keep public class * extends android.app.Application
--keep public class * extends android.app.Service
--keep public class * extends android.content.BroadcastReceiver
--keep public class * extends android.content.ContentProvider
+
 -keep public class com.google.gson.**
--keep public class android.graphics.drawable.VectorDrawable
--keep public class * extends android.view.View {
-    public <init>(android.content.Context);
-    public <init>(android.content.Context, android.util.AttributeSet);
-    public <init>(android.content.Context, android.util.AttributeSet, int);
-    public void set*(...);
-}
--keepclasseswithmembers class * {
-    public <init>(android.content.Context, android.util.AttributeSet);
-}
-
--keepclasseswithmembers class * {
-    public <init>(android.content.Context, android.util.AttributeSet, int);
-}
-
--keepclassmembers class * extends android.content.Context {
-   public void *(android.view.View);
-   public void *(android.view.MenuItem);
-}
 
 -keepclassmembers class * implements android.os.Parcelable {
     static android.os.Parcelable$Creator CREATOR;
 }
 
--keepclassmembers class **.R$* {
-    public static <fields>;
-}
-
 -dontwarn javax.xml.stream.events.**
-
 -keep public class org.simpleframework.** { *; }
 -keep class org.simpleframework.xml.** { *; }
 -keep class org.simpleframework.xml.core.** { *; }
@@ -74,20 +46,43 @@
 # For using GSON @Expose annotation
 -keepattributes *Annotation*
 
-# Gson specific classes
--dontwarn sun.misc.**
-#-keep class com.google.gson.stream.** { *; }
+
 
 # Prevent proguard from stripping interface information from TypeAdapterFactory,
 # JsonSerializer, JsonDeserializer instances (so they can be used in @JsonAdapter)
 -keep class * implements com.google.gson.TypeAdapterFactory
 -keep class * implements com.google.gson.JsonSerializer
 -keep class * implements com.google.gson.JsonDeserializer
-
 ##---------------End: proguard configuration for Gson  ----------
+
 -keep class com.merxury.ifw.entity.** { *; }
 -keep class com.merxury.libkit.entity.** { *; }
 -keep class com.merxury.blocker.rule.entity.** { *; }
--keepclassmembers enum * { *; }
--keep class android.os.** { *; }
--keepclasseswithmembers class android.content.pm.** { *; }
+
+# Keep `Companion` object fields of serializable classes.
+# This avoids serializer lookup through `getDeclaredClasses` as done for named companion objects.
+-if @kotlinx.serialization.Serializable class **
+-keepclassmembers class <1> {
+    static <1>$Companion Companion;
+}
+
+# Keep `serializer()` on companion objects (both default and named) of serializable classes.
+-if @kotlinx.serialization.Serializable class ** {
+    static **$* *;
+}
+-keepclassmembers class <2>$<3> {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# Keep `INSTANCE.serializer()` of serializable objects.
+-if @kotlinx.serialization.Serializable class ** {
+    public static ** INSTANCE;
+}
+-keepclassmembers class <1> {
+    public static <1> INSTANCE;
+    kotlinx.serialization.KSerializer serializer(...);
+}
+
+# @Serializable and @Polymorphic are used at runtime for polymorphic serialization.
+-keepattributes RuntimeVisibleAnnotations,AnnotationDefault
+
