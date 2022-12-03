@@ -4,9 +4,14 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import com.merxury.blocker.BuildConfig
 import com.merxury.blocker.data.app.AppComponentDao
 import com.merxury.blocker.data.app.InstalledAppDao
 import com.merxury.blocker.data.app.InstalledAppDatabase
+import com.merxury.blocker.data.component.OnlineComponentDataRepository
+import com.merxury.blocker.data.component.OnlineComponentDataService
+import com.merxury.blocker.data.instantinfo.InstantComponentInfoDao
+import com.merxury.blocker.data.instantinfo.InstantComponentInfoDatabase
 import com.merxury.blocker.data.source.GeneralRuleRepository
 import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.data.source.local.GeneralRuleDao
@@ -19,6 +24,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -32,14 +39,20 @@ object AppModule {
     }
 
     @Provides
+    fun provideOkHttpClient(): OkHttpClient {
+        val builder = OkHttpClient.Builder()
+        if (BuildConfig.DEBUG) {
+            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+        }
+        return builder.build()
+    }
+
+    @Provides
     fun provideOnlineRuleRetrofit(
-        gson: Gson,
-        type: OnlineSourceType
+        okHttpClient: OkHttpClient, gson: Gson, type: OnlineSourceType
     ): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl(type.baseUrl)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
+        return Retrofit.Builder().client(okHttpClient).baseUrl(type.baseUrl)
+            .addConverterFactory(GsonConverterFactory.create(gson)).build()
     }
 
     @Provides
@@ -48,10 +61,18 @@ object AppModule {
     }
 
     @Provides
+    fun provideOnlineComponentDataService(retrofit: Retrofit): OnlineComponentDataService {
+        return retrofit.create(OnlineComponentDataService::class.java)
+    }
+
+    @Provides
+    fun provideOnlineComponentDataRepository(service: OnlineComponentDataService): OnlineComponentDataRepository {
+        return OnlineComponentDataRepository(service)
+    }
+
+    @Provides
     fun providesGson(): Gson {
-        return GsonBuilder()
-            .serializeNulls()
-            .create()
+        return GsonBuilder().serializeNulls().create()
     }
 
 
@@ -93,10 +114,21 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGeneralRuleRepository(
-        remoteDataSource: RuleRemoteDataSource,
-        localDataSource: GeneralRuleDao
+        remoteDataSource: RuleRemoteDataSource, localDataSource: GeneralRuleDao
     ): GeneralRuleRepository {
         return GeneralRuleRepository(remoteDataSource, localDataSource)
+    }
+
+    @Provides
+    @Singleton
+    fun provideInstantComponentInfoDatabase(@ApplicationContext context: Context): InstantComponentInfoDatabase {
+        return InstantComponentInfoDatabase.getInstance(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideInstantComponentInfoDao(database: InstantComponentInfoDatabase): InstantComponentInfoDao {
+        return database.instantComponentInfoDao()
     }
 
     @Provides

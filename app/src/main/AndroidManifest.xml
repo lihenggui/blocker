@@ -10,6 +10,12 @@
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
     <uses-permission android:name="moe.shizuku.manager.permission.API" />
 
+    <queries>
+        <intent>
+            <action android:name="android.support.customtabs.action.CustomTabsService" />
+        </intent>
+    </queries>
+
     <application
         android:name=".BlockerApplication"
         android:icon="@mipmap/ic_launcher"
@@ -47,9 +53,19 @@
         <provider
             android:name=".provider.ComponentProvider"
             android:authorities="${applicationId}.provider.ComponentProvider"
-            android:exported="true"
             android:enabled="true"
+            android:exported="true"
             tools:ignore="ExportedContentProvider" />
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 
 </manifest>

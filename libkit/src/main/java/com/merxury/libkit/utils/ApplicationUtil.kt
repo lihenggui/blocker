@@ -11,10 +11,10 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import com.elvishew.xlog.XLog
 import com.merxury.libkit.entity.Application
-import java.util.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.*
 
 /**
  * Created by Mercury on 2017/12/30.
@@ -37,8 +37,8 @@ object ApplicationUtil {
     ): MutableList<Application> {
         val pm = context.packageManager
         return withContext(dispatcher) {
-            pm.getInstalledPackages(0)
-                .asSequence()
+            val installedApp = pm.getInstalledPackagesCompat(0)
+            installedApp.asSequence()
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
                 .map { Application(pm, it) }
                 .toMutableList()
@@ -57,8 +57,12 @@ object ApplicationUtil {
     ): MutableList<Application> {
         val pm = context.packageManager
         return withContext(dispatcher) {
-            pm.getInstalledPackages(0)
-                .asSequence()
+            val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION") pm.getInstalledPackages(0)
+            }
+            installedPackages.asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
                 .map { Application(pm, it) }
@@ -78,8 +82,8 @@ object ApplicationUtil {
     ): MutableList<Application> {
         val pm = context.packageManager
         return withContext(dispatcher) {
-            pm.getInstalledPackages(0)
-                .asSequence()
+            val installedPackages = pm.getInstalledPackagesCompat(0)
+            installedPackages.asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
                 .map { Application(pm, it) }
                 .toMutableList()
@@ -93,7 +97,6 @@ object ApplicationUtil {
      * @param packageName package name
      * @return list of activity
      */
-    @Suppress("DEPRECATION")
     suspend fun getActivityList(
         pm: PackageManager,
         packageName: String,
@@ -104,11 +107,11 @@ object ApplicationUtil {
             try {
                 var flags = PackageManager.GET_ACTIVITIES
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or PackageManager.GET_DISABLED_COMPONENTS
+                    flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
-                val components = pm.getPackageInfo(packageName, flags).activities
+                val components = pm.getPackageInfoCompat(packageName, flags).activities
                 if (components != null && components.isNotEmpty()) {
                     Collections.addAll(activities, *components)
                 }
@@ -129,7 +132,6 @@ object ApplicationUtil {
      * @param packageName package name
      * @return list of receiver
      */
-    @Suppress("DEPRECATION")
     suspend fun getReceiverList(
         pm: PackageManager,
         packageName: String,
@@ -140,11 +142,11 @@ object ApplicationUtil {
             try {
                 var flags = PackageManager.GET_RECEIVERS
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or PackageManager.GET_DISABLED_COMPONENTS
+                    flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
-                val components = pm.getPackageInfo(packageName, flags).receivers
+                val components = pm.getPackageInfoCompat(packageName, flags).receivers
                 if (components != null && components.isNotEmpty()) {
                     Collections.addAll(receivers, *components)
                 }
@@ -163,7 +165,6 @@ object ApplicationUtil {
      * @return list of service
      */
 
-    @Suppress("DEPRECATION")
     suspend fun getServiceList(
         pm: PackageManager,
         packageName: String,
@@ -174,11 +175,11 @@ object ApplicationUtil {
             try {
                 var flags = PackageManager.GET_SERVICES
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or PackageManager.GET_DISABLED_COMPONENTS
+                    flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
-                val components = pm.getPackageInfo(packageName, flags).services
+                val components = pm.getPackageInfoCompat(packageName, flags).services
                 if (components != null && components.isNotEmpty()) {
                     Collections.addAll(services, *components)
                 }
@@ -199,7 +200,6 @@ object ApplicationUtil {
      * @param packageName package name
      * @return list of provider
      */
-    @Suppress("DEPRECATION")
     suspend fun getProviderList(
         pm: PackageManager,
         packageName: String,
@@ -210,11 +210,11 @@ object ApplicationUtil {
             try {
                 var flags = PackageManager.GET_PROVIDERS
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or PackageManager.GET_DISABLED_COMPONENTS
+                    flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
-                val components = pm.getPackageInfo(packageName, flags).providers
+                val components = pm.getPackageInfoCompat(packageName, flags).providers
                 if (components != null && components.isNotEmpty()) {
                     Collections.addAll(providers, *components)
                 }
@@ -245,7 +245,7 @@ object ApplicationUtil {
         return withContext(dispatcher) {
             var info: PackageInfo? = null
             try {
-                info = pm.getPackageInfo(packageName, flags)
+                info = pm.getPackageInfoCompat(packageName, flags)
             } catch (e: PackageManager.NameNotFoundException) {
                 logger.e("Cannot find specified package.")
             }
@@ -266,7 +266,7 @@ object ApplicationUtil {
      * @param packageName package name
      * @return a set of components
      */
-    @Suppress("DEPRECATION")
+
     suspend fun getApplicationComponents(
         pm: PackageManager,
         packageName: String,
@@ -275,17 +275,17 @@ object ApplicationUtil {
         return withContext(dispatcher) {
             var flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
                     PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
-                    PackageManager.GET_INTENT_FILTERS
+                    @Suppress("DEPRECATION") PackageManager.GET_INTENT_FILTERS
             flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or PackageManager.GET_DISABLED_COMPONENTS
+                flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
             } else {
                 flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
             var info = PackageInfo()
             try {
-                info = pm.getPackageInfo(packageName, flags)
+                info = pm.getPackageInfoCompat(packageName, flags)
             } catch (e: RuntimeException) {
-                logger.e(e.message)
+                logger.e("Can't get application components", e)
                 info = getPackageInfoFromManifest(pm, packageName)
             } catch (e: PackageManager.NameNotFoundException) {
                 logger.e("Cannot find specified package.")
@@ -337,7 +337,11 @@ object ApplicationUtil {
             return false
         }
         try {
-            pm.getApplicationInfo(packageName, 0)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(0))
+            } else {
+                @Suppress("DEPRECATION") pm.getApplicationInfo(packageName, 0)
+            }
             return true
         } catch (e: PackageManager.NameNotFoundException) {
             logger.d(packageName + "is not installed.")
@@ -350,7 +354,7 @@ object ApplicationUtil {
             return false
         }
         try {
-            val info = pm.getApplicationInfo(packageName, 0)
+            val info = pm.getApplicationInfoCompat(packageName, 0)
             return info.flags and ApplicationInfo.FLAG_SYSTEM != 0
         } catch (e: PackageManager.NameNotFoundException) {
             logger.d(packageName + "is not installed.")

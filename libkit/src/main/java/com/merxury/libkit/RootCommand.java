@@ -16,10 +16,11 @@ public class RootCommand {
 
     @NonNull
     public synchronized static String runBlockingCommand(final String comm) {
-        if (!Shell.rootAccess()) {
+        Boolean rootGranted = Shell.isAppGrantedRoot();
+        if (rootGranted == null || Boolean.FALSE.equals(rootGranted)) {
             throw new RuntimeException("Root unavailable");
         }
-        List<String> result = Shell.su(comm).exec().getOut();
+        List<String> result = Shell.cmd(comm).exec().getOut();
         return TextUtils.join("\n", result);
     }
 }
