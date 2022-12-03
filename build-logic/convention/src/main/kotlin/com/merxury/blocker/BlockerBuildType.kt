@@ -20,7 +20,7 @@ package com.merxury.blocker
  * This is shared between :app and :benchmarks module to provide configurations type safety.
  */
 @Suppress("unused")
-enum class NiaBuildType(val applicationIdSuffix: String? = null) {
+enum class BlockerBuildType(val applicationIdSuffix: String? = null) {
     DEBUG(".debug"),
     RELEASE,
     BENCHMARK(".benchmark")
