@@ -2,10 +2,10 @@ package com.merxury.libkit.utils;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-
-import androidx.annotation.NonNull;
 
 /*
  * Copyright (C) 2007 The Android Open Source Project
