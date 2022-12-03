@@ -3,6 +3,8 @@ package com.merxury.blocker
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import com.elvishew.xlog.LogConfiguration
 import com.elvishew.xlog.LogLevel
 import com.elvishew.xlog.XLog
@@ -15,19 +17,23 @@ import com.google.android.material.color.DynamicColors
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import me.weishu.reflection.Reflection
+import javax.inject.Inject
 
 @HiltAndroidApp
-class BlockerApplication : Application() {
+class BlockerApplication : Application(), Configuration.Provider {
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
     override fun onCreate() {
         super.onCreate()
         initLogger()
         context = this
         DynamicColors.applyToActivitiesIfAvailable(this)
         Shell.enableVerboseLogging = BuildConfig.DEBUG
-        Shell.setDefaultBuilder(Shell.Builder.create()
-            .setFlags(Shell.FLAG_REDIRECT_STDERR)
-            .setFlags(Shell.FLAG_MOUNT_MASTER)
-            .setTimeout(10)
+        Shell.setDefaultBuilder(
+            Shell.Builder.create()
+                .setFlags(Shell.FLAG_REDIRECT_STDERR)
+                .setFlags(Shell.FLAG_MOUNT_MASTER)
+                .setTimeout(10)
         )
     }
 
@@ -35,6 +41,12 @@ class BlockerApplication : Application() {
         super.attachBaseContext(base)
         Reflection.unseal(this) // bypass hidden api restriction, https://github.com/tiann/FreeReflection
     }
+
+    override fun getWorkManagerConfiguration(): Configuration =
+        Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
+
 
     private fun initLogger() {
         val logFolder = filesDir.resolve(LOG_PATH)

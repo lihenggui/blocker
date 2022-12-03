@@ -135,4 +135,25 @@
     <string name="enable">Enable</string>
     <string name="disable">Disable</string>
     <string name="error_message_template">Error message: %1$s.</string>
+    <string name="submit_ideas">Submit Ideas</string>
+    <string name="open_online_rules_repository">Open online rules repository</string>
+    <string name="component_info">Component info</string>
+    <string name="package_name">Package name</string>
+    <string name="name">Name</string>
+    <string name="sdk_name">SDK Name</string>
+    <string name="disabled_effect">Disabled effect</string>
+    <string name="pm_applied">PM applied</string>
+    <string name="ifw_applied">IFW applied</string>
+    <string name="edit">Edit</string>
+    <string name="save">Save</string>
+    <string name="controller_hint">* Applied means that this component is blocked by a controller.</string>
+    <string name="recommend_to_block">Recommend to block</string>
+    <string name="belongs_to_sdk">Belongs to an SDK</string>
+    <string name="share_rules">Share rules</string>
+    <string name="open_online_repository">Open online repository</string>
+    <string name="update_rules_notification">Update rules notification</string>
+    <string name="checking_rules_updates">Checking rules updates</string>
+    <string name="fetching_online_repository">Fetching online repository…</string>
+    <string name="download_online_rules">Download online rules…</string>
+    <string name="updating_database">Updating database…</string>
 </resources>

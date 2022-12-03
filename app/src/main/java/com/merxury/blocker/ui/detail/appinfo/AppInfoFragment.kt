@@ -10,7 +10,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
@@ -21,12 +24,13 @@ import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
+import com.merxury.blocker.util.parcelable
 import com.merxury.libkit.entity.Application
-import java.io.File
-import java.text.DateFormat
-import java.util.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.io.File
+import java.text.DateFormat
+import java.util.Date
 
 class AppInfoFragment : Fragment() {
     private var _binding: AppInfoFragmentBinding? = null
@@ -34,11 +38,6 @@ class AppInfoFragment : Fragment() {
     private var loadIconJob: Job? = null
     private lateinit var app: Application
     private val logger = XLog.tag("AppInfoFragment")
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,9 +50,10 @@ class AppInfoFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        app = arguments?.getParcelable("app")!!
+        app = arguments?.parcelable("app")!!
         showHeader()
         showInfo()
+        initMenu()
         initQuickActions()
     }
 
@@ -65,32 +65,24 @@ class AppInfoFragment : Fragment() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        menu.clear()
-        inflater.inflate(R.menu.app_info_actions, menu)
-    }
+    private fun initMenu() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.app_info_actions, menu)
+            }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_import_rule -> {
-                importRule()
-                true
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                when (menuItem.itemId) {
+                    R.id.action_import_rule -> importRule()
+                    R.id.action_export_rule -> exportRule()
+                    R.id.action_import_ifw_rule -> importIfwRule()
+                    R.id.action_export_ifw_rule -> exportIfwRule()
+                    else -> return false
+                }
+                return true
             }
-            R.id.action_export_rule -> {
-                exportRule()
-                true
-            }
-            R.id.action_import_ifw_rule -> {
-                importIfwRule()
-                true
-            }
-            R.id.action_export_ifw_rule -> {
-                exportIfwRule()
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun importRule() = lifecycleScope.launch {

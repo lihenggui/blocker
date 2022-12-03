@@ -88,6 +88,10 @@
             app:key="@string/key_pref_about"
             app:title="@string/about" />
         <Preference
+            app:icon="@drawable/ic_github"
+            app:key="@string/key_pref_rules_repo"
+            app:title="@string/open_online_rules_repository" />
+        <Preference
             app:icon="@drawable/ic_telegram"
             app:key="@string/key_pref_group"
             app:title="@string/discussion_group" />
@@ -95,6 +99,10 @@
             app:icon="@drawable/ic_bug"
             app:key="@string/key_pref_report_issue"
             app:title="@string/report_issue" />
+        <Preference
+            app:icon="@drawable/ic_github"
+            app:key="@string/key_pref_update_online_db"
+            app:title="Update online db" />
     </PreferenceCategory>
 
 </PreferenceScreen>
