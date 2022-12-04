@@ -32,9 +32,8 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
             }
             extensions.configure<LibraryExtension> {
                 defaultConfig {
-                    // TODO replace test runner
                     testInstrumentationRunner =
-                        "com.google.samples.apps.nowinandroid.core.testing.NiaTestRunner"
+                        "com.merxury.blocker.core.testing.BlockerTestRunner"
                 }
             }
 
