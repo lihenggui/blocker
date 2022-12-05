@@ -8,7 +8,11 @@ import androidx.documentfile.provider.DocumentFile
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.entity.EComponentType
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.core.utils.StorageUtils
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.rule.entity.ComponentRule
 import com.merxury.blocker.util.PreferenceUtil
@@ -18,10 +22,6 @@ import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.util.RuleSerializer
-import com.merxury.libkit.entity.EComponentType
-import com.merxury.libkit.utils.ApplicationUtil
-import com.merxury.libkit.utils.FileUtils
-import com.merxury.libkit.utils.StorageUtils
 
 object Rule {
     const val BLOCKER_RULE_MIME = "application/json"

@@ -7,7 +7,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.merxury.libkit.entity.EComponentType
+import com.merxury.blocker.core.entity.EComponentType
 
 @Dao
 interface AppComponentDao {

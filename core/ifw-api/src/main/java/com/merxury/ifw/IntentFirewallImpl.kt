@@ -1,6 +1,9 @@
 package com.merxury.ifw
 
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.core.utils.PermissionUtils
+import com.merxury.blocker.core.utils.StorageUtils
 import com.merxury.ifw.entity.Activity
 import com.merxury.ifw.entity.Broadcast
 import com.merxury.ifw.entity.Component
@@ -9,9 +12,6 @@ import com.merxury.ifw.entity.ComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.entity.Service
 import com.merxury.ifw.exception.RootUnavailableException
-import com.merxury.libkit.utils.FileUtils
-import com.merxury.libkit.utils.PermissionUtils
-import com.merxury.libkit.utils.StorageUtils
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
 import com.topjohnwu.superuser.io.SuFileOutputStream
@@ -90,18 +90,21 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
                 }
                 result = addComponentFilter(packageName, componentName, rule.activity)
             }
+
             ComponentType.BROADCAST -> {
                 if (rule.broadcast == null) {
                     rule.broadcast = Broadcast()
                 }
                 result = addComponentFilter(packageName, componentName, rule.broadcast)
             }
+
             ComponentType.SERVICE -> {
                 if (rule.service == null) {
                     rule.service = Service()
                 }
                 result = addComponentFilter(packageName, componentName, rule.service)
             }
+
             else -> {}
         }
         return result
@@ -122,16 +125,19 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
                 componentName,
                 rule.activity
             )
+
             ComponentType.BROADCAST -> removeComponentFilter(
                 packageName,
                 componentName,
                 rule.broadcast
             )
+
             ComponentType.SERVICE -> removeComponentFilter(
                 packageName,
                 componentName,
                 rule.service
             )
+
             else -> false
         }
     }

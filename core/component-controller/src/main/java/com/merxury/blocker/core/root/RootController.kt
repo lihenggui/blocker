@@ -6,8 +6,8 @@ import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.IController
-import com.merxury.libkit.RootCommand
-import com.merxury.libkit.utils.ApplicationUtil
+import com.merxury.blocker.core.RootCommand
+import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

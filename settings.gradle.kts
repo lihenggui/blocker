@@ -33,8 +33,13 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Blocker"
 include(":app")
+include(":core:common")
+include(":core:data")
+include(":core:model")
+include(":core:domain")
+include(":core:testing")
+include(":core:network")
+include(":core:database")
 include(":core:component-controller")
 include(":core:ifw-api")
-include(":core:libkit")
 include(":lint")
-include(":ui-test-hilt-manifest")

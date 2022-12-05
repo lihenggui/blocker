@@ -12,11 +12,11 @@ import androidx.work.WorkerParameters
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.core.ComponentControllerProxy
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.libkit.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

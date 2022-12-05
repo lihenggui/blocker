@@ -1,7 +1,7 @@
 package com.merxury.blocker.rule.entity
 
+import com.merxury.blocker.core.entity.EComponentType
 import com.merxury.blocker.core.root.EControllerMethod
-import com.merxury.libkit.entity.EComponentType
 
 data class ComponentRule(
     var packageName: String = "",

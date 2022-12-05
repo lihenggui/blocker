@@ -6,7 +6,7 @@ import android.content.pm.ComponentInfo
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.IController
-import com.merxury.libkit.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.ApplicationUtil
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 

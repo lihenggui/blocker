@@ -13,38 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-// TODO: Remove once https://youtrack.jetbrains.com/issue/KTIJ-19369 is fixed
-@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
     id("blocker.android.library")
     id("blocker.android.library.jacoco")
     id("blocker.android.hilt")
-    alias(libs.plugins.ksp)
+    id("kotlinx-serialization")
 }
 
 android {
-    defaultConfig {
-        // The schemas directory contains a schema file for each version of the Room database.
-        // This is required to enable Room auto migrations.
-        // See https://developer.android.com/reference/kotlin/androidx/room/AutoMigration.
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
+    namespace = "com.merxury.blocker.core.data"
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
         }
-
-        testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
     }
-    namespace = "com.merxury.blocker.core.database"
 }
-
 dependencies {
+    implementation(project(":core:common"))
     implementation(project(":core:model"))
+    implementation(project(":core:database"))
+    implementation(project(":core:network"))
 
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
+    testImplementation(project(":core:testing"))
 
-    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.core.ktx)
+
     implementation(libs.kotlinx.datetime)
-
-    androidTestImplementation(project(":core:testing"))
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.json)
 }
