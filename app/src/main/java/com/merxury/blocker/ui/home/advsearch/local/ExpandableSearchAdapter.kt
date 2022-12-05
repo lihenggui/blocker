@@ -11,10 +11,10 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.elvishew.xlog.XLog
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.merxury.blocker.R
+import com.merxury.blocker.core.utils.getPackageInfoCompat
 import com.merxury.blocker.data.app.AppComponent
 import com.merxury.blocker.data.app.InstalledApp
 import com.merxury.blocker.util.AppIconCache
-import com.merxury.libkit.utils.getPackageInfoCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

@@ -11,9 +11,9 @@ import com.google.gson.Gson
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.ifw.IfwController
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.data.app.AppComponentRepository
 import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.libkit.utils.ApplicationUtil
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
