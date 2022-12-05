@@ -10,7 +10,10 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.entity.EComponentType
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.data.Event
 import com.merxury.blocker.data.app.AppComponent
 import com.merxury.blocker.data.app.AppComponentRepository
@@ -18,9 +21,6 @@ import com.merxury.blocker.data.app.InstalledApp
 import com.merxury.blocker.data.app.InstalledAppRepository
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
-import com.merxury.libkit.entity.EComponentType
-import com.merxury.libkit.utils.ApplicationUtil
-import com.merxury.libkit.utils.ServiceHelper
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

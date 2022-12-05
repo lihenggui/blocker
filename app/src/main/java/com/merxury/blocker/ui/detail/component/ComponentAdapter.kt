@@ -9,10 +9,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.core.entity.EComponentType
 import com.merxury.blocker.data.component.OnlineComponentData
 import com.merxury.blocker.data.component.OnlineComponentDataRepository
 import com.merxury.blocker.databinding.ComponentItemBinding
-import com.merxury.libkit.entity.EComponentType
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

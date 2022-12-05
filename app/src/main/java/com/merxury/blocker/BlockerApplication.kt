@@ -28,7 +28,7 @@ class BlockerApplication : Application(), Configuration.Provider {
         initLogger()
         context = this
         DynamicColors.applyToActivitiesIfAvailable(this)
-        Shell.enableVerboseLogging = BuildConfig.DEBUG
+        Shell.enableVerboseLogging = true
         Shell.setDefaultBuilder(
             Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)
