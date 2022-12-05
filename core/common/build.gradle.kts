@@ -25,5 +25,8 @@ android {
 
 dependencies {
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.xlog)
+    implementation(libs.libsu.core)
+    implementation(libs.libsu.io)
     testImplementation(project(":core:testing"))
 }

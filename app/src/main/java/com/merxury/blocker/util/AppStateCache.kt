@@ -2,10 +2,10 @@ package com.merxury.blocker.util
 
 import android.content.ComponentName
 import android.content.Context
+import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.ui.home.applist.AppState
 import com.merxury.ifw.IntentFirewallImpl
-import com.merxury.libkit.utils.ApplicationUtil
-import com.merxury.libkit.utils.ServiceHelper
 
 object AppStateCache {
     private val cache = mutableMapOf<String, AppState>()

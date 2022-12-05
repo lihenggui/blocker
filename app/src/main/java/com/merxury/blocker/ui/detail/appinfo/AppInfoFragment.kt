@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.R
+import com.merxury.blocker.core.entity.Application
 import com.merxury.blocker.data.AndroidCodeName
 import com.merxury.blocker.databinding.AppInfoFragmentBinding
 import com.merxury.blocker.rule.Rule
@@ -25,7 +26,6 @@ import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.parcelable
-import com.merxury.libkit.entity.Application
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File

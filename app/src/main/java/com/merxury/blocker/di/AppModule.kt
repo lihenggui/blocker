@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.merxury.blocker.BuildConfig
 import com.merxury.blocker.data.app.AppComponentDao
 import com.merxury.blocker.data.app.InstalledAppDao
 import com.merxury.blocker.data.app.InstalledAppDatabase
@@ -25,7 +24,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -41,9 +39,6 @@ object AppModule {
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
         val builder = OkHttpClient.Builder()
-        if (BuildConfig.DEBUG) {
-            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-        }
         return builder.build()
     }
 
