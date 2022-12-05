@@ -13,10 +13,10 @@ app/release/
 bin/
 gen/
 out/
-
-# Gradle files
-.gradle/
 build/
+
+# Gradle cache
+.gradle
 
 # Local configuration file (sdk path, etc)
 local.properties
@@ -34,9 +34,16 @@ proguard/
 # Android Studio captures folder
 captures/
 
-# Intellij
+# IDEA/Android Studio project files, because
+# the project can be imported from settings.gradle.kts
 *.iml
 .idea/*
+!.idea/copyright
+# Keep the code styles.
+!/.idea/codeStyles
+/.idea/codeStyles/*
+!/.idea/codeStyles/Project.xml
+!/.idea/codeStyles/codeStyleConfig.xml
 
 # Keystore files
 *.jks

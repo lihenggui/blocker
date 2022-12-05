@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.merxury.blocker.BuildConfig
 import com.merxury.blocker.data.app.AppComponentDao
 import com.merxury.blocker.data.app.InstalledAppDao
 import com.merxury.blocker.data.app.InstalledAppDatabase
@@ -25,7 +24,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -41,9 +39,6 @@ object AppModule {
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
         val builder = OkHttpClient.Builder()
-        if (BuildConfig.DEBUG) {
-            builder.addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-        }
         return builder.build()
     }
 
@@ -66,7 +61,9 @@ object AppModule {
     }
 
     @Provides
-    fun provideOnlineComponentDataRepository(service: OnlineComponentDataService): OnlineComponentDataRepository {
+    fun provideOnlineComponentDataRepository(
+        service: OnlineComponentDataService
+    ): OnlineComponentDataRepository {
         return OnlineComponentDataRepository(service)
     }
 
@@ -74,7 +71,6 @@ object AppModule {
     fun providesGson(): Gson {
         return GsonBuilder().serializeNulls().create()
     }
-
 
     @Provides
     @Singleton
@@ -121,13 +117,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideInstantComponentInfoDatabase(@ApplicationContext context: Context): InstantComponentInfoDatabase {
+    fun provideInstantComponentInfoDatabase(
+        @ApplicationContext context: Context
+    ): InstantComponentInfoDatabase {
         return InstantComponentInfoDatabase.getInstance(context)
     }
 
     @Provides
     @Singleton
-    fun provideInstantComponentInfoDao(database: InstantComponentInfoDatabase): InstantComponentInfoDao {
+    fun provideInstantComponentInfoDao(
+        database: InstantComponentInfoDatabase
+    ): InstantComponentInfoDao {
         return database.instantComponentInfoDao()
     }
 
@@ -136,5 +136,4 @@ object AppModule {
     fun providePackageManager(@ApplicationContext context: Context): PackageManager {
         return context.packageManager
     }
-
 }

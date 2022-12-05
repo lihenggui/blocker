@@ -1,6 +1,6 @@
 package com.merxury.blocker.data.app
 
-import com.merxury.libkit.entity.EComponentType
+import com.merxury.blocker.core.entity.EComponentType
 import javax.inject.Inject
 import javax.inject.Singleton
 

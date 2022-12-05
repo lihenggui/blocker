@@ -28,7 +28,7 @@ class BlockerApplication : Application(), Configuration.Provider {
         initLogger()
         context = this
         DynamicColors.applyToActivitiesIfAvailable(this)
-        Shell.enableVerboseLogging = BuildConfig.DEBUG
+        Shell.enableVerboseLogging = true
         Shell.setDefaultBuilder(
             Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)
@@ -39,7 +39,8 @@ class BlockerApplication : Application(), Configuration.Provider {
 
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
-        Reflection.unseal(this) // bypass hidden api restriction, https://github.com/tiann/FreeReflection
+        // Bypass hidden api restriction, https://github.com/tiann/FreeReflection
+        Reflection.unseal(this)
     }
 
     override fun getWorkManagerConfiguration(): Configuration =

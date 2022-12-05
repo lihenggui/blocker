@@ -1,7 +1,7 @@
 package com.merxury.blocker.data.app
 
 import androidx.room.TypeConverter
-import java.util.*
+import java.util.Date
 
 object Converters {
     @TypeConverter
