@@ -4,8 +4,8 @@ import android.annotation.TargetApi
 import android.os.Build
 import android.util.Log
 import com.merxury.blocker.BlockerApplication
-import com.merxury.libkit.RootCommand
-import com.merxury.libkit.entity.ETrimMemoryLevel
+import com.merxury.blocker.core.RootCommand
+import com.merxury.blocker.core.entity.ETrimMemoryLevel
 import com.topjohnwu.superuser.io.SuFile
 
 object ManagerUtils {
@@ -52,6 +52,7 @@ object ManagerUtils {
     @Throws(RuntimeException::class)
     fun clearCache(packageName: String) {
         val context = BlockerApplication.context
+        // TODO API adaption
         val dataFolder = context.dataDir.parentFile?.resolve(packageName)?.resolve("cache")
         if (dataFolder == null) {
             Log.e("ManagerUtils", "Can't find cache folder for $packageName")

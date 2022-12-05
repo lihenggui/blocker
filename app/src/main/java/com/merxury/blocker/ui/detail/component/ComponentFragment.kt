@@ -7,7 +7,12 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
@@ -24,6 +29,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.core.entity.EComponentType
 import com.merxury.blocker.databinding.ComponentFragmentBinding
 import com.merxury.blocker.ui.detail.component.info.ComponentDetailBottomSheetFragment
 import com.merxury.blocker.util.BrowserUtil
@@ -31,7 +37,6 @@ import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.serializable
 import com.merxury.blocker.util.unsafeLazy
-import com.merxury.libkit.entity.EComponentType
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 

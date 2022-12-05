@@ -4,8 +4,11 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import com.merxury.blocker.data.source.local.ListConverters
 
-@Database(entities = [InstantComponentInfo::class], version = 1)
+@Database(entities = [InstantComponentInfo::class], version = 1, exportSchema = true)
+@TypeConverters(ListConverters::class)
 abstract class InstantComponentInfoDatabase : RoomDatabase() {
     abstract fun instantComponentInfoDao(): InstantComponentInfoDao
 

@@ -1,7 +1,11 @@
 package com.merxury.blocker.ui.detail.component
 
 import android.content.Context
-import android.view.*
+import android.view.ContextMenu
+import android.view.LayoutInflater
+import android.view.Menu
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.recyclerview.widget.DiffUtil
@@ -9,10 +13,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.core.entity.EComponentType
 import com.merxury.blocker.data.component.OnlineComponentData
 import com.merxury.blocker.data.component.OnlineComponentDataRepository
 import com.merxury.blocker.databinding.ComponentItemBinding
-import com.merxury.libkit.entity.EComponentType
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors

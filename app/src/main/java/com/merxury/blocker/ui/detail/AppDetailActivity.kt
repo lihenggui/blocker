@@ -15,12 +15,12 @@ import androidx.core.view.updateLayoutParams
 import com.elvishew.xlog.XLog
 import com.google.android.material.tabs.TabLayoutMediator
 import com.merxury.blocker.R
+import com.merxury.blocker.core.entity.Application
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.databinding.ActivityAppDetailBinding
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.parcelable
 import com.merxury.blocker.util.reduceDragSensitivity
-import com.merxury.libkit.entity.Application
 import dagger.hilt.android.AndroidEntryPoint
 import rikka.shizuku.Shizuku
 import rikka.shizuku.Shizuku.OnBinderDeadListener

@@ -22,7 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okio.Okio
+import okio.buffer
+import okio.sink
 import org.apache.commons.csv.CSVFormat
 import java.io.File
 import java.io.IOException
@@ -123,12 +124,12 @@ class CheckRuleUpdateWork @AssistedInject constructor(
             .url(url)
             .build()
         try {
-            val source = okHttpClient.newCall(request).execute().body()?.source() ?: run {
+            val source = okHttpClient.newCall(request).execute().body?.source() ?: run {
                 logger.e("Can't download online set content")
                 return
             }
             val downloadFile = File(applicationContext.cacheDir, set.filename)
-            val sink = Okio.buffer(Okio.sink(downloadFile))
+            val sink = downloadFile.sink().buffer()
             sink.writeAll(source)
             sink.close()
         } catch (e: IOException) {
@@ -147,7 +148,7 @@ class CheckRuleUpdateWork @AssistedInject constructor(
                 .build()
             val content = okHttpClient.newCall(request)
                 .execute()
-                .body()
+                .body
                 ?.string()
             // Save to local cache
             return Gson().fromJson(content, Set::class.java)
