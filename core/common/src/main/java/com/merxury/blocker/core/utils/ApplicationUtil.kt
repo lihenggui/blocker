@@ -14,7 +14,7 @@ import com.merxury.blocker.core.entity.Application
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
+import java.util.Collections
 
 /**
  * Created by Mercury on 2017/12/30.

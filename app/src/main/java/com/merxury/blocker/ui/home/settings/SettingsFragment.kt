@@ -12,7 +12,11 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.*
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
+import androidx.work.WorkManager
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
@@ -21,7 +25,13 @@ import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.ToastUtil
-import com.merxury.blocker.work.*
+import com.merxury.blocker.work.CheckRuleUpdateWork
+import com.merxury.blocker.work.ExportBlockerRulesWork
+import com.merxury.blocker.work.ExportIfwRulesWork
+import com.merxury.blocker.work.ImportBlockerRuleWork
+import com.merxury.blocker.work.ImportIfwRulesWork
+import com.merxury.blocker.work.ImportMatRulesWork
+import com.merxury.blocker.work.ResetIfwWork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
