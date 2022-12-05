@@ -42,7 +42,10 @@ object RuleBackupHelper {
                 val reader = BufferedReader(InputStreamReader(it))
                 val blockerRule = Gson().fromJson(reader, BlockerRule::class.java)
                 Rule.import(context, blockerRule)
-                logger.i("Import rule ${blockerRule.packageName} from ${backupFile.uri.path} successfully")
+                logger.i(
+                    "Import rule ${blockerRule.packageName} " +
+                        "from ${backupFile.uri.path} successfully"
+                )
             }
             return@withContext backupFile.uri
         }
@@ -123,7 +126,8 @@ object RuleBackupHelper {
                     return@withContext null
                 }
             }
-            return@withContext PreferenceUtil.getIfwRulePath(context)?.path + File.separator + ifwFile.firstOrNull()
+            return@withContext PreferenceUtil.getIfwRulePath(context)?.path +
+                File.separator + ifwFile.firstOrNull()
         }
     }
 }

@@ -323,7 +323,8 @@ object ApplicationUtil {
             logger.e(e.message)
             return false
         }
-        return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+        return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
     }
 
     /**
