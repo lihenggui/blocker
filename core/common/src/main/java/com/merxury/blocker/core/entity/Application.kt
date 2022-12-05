@@ -60,7 +60,9 @@ class Application() : Parcelable {
     }
 
     override fun toString(): String {
-        return "Application(packageName='$packageName', versionName='$versionName', isEnabled=$isEnabled, label='$label', firstInstallTime=$firstInstallTime, lastUpdateTime=$lastUpdateTime, packageInfo=$packageInfo)"
+        return "Application(packageName='$packageName', versionName='$versionName'," +
+            " isEnabled=$isEnabled, label='$label', firstInstallTime=$firstInstallTime," +
+            " lastUpdateTime=$lastUpdateTime, packageInfo=$packageInfo)"
     }
 
 

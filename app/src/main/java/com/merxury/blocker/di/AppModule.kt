@@ -61,7 +61,9 @@ object AppModule {
     }
 
     @Provides
-    fun provideOnlineComponentDataRepository(service: OnlineComponentDataService): OnlineComponentDataRepository {
+    fun provideOnlineComponentDataRepository(
+        service: OnlineComponentDataService
+    ): OnlineComponentDataRepository {
         return OnlineComponentDataRepository(service)
     }
 
@@ -69,7 +71,6 @@ object AppModule {
     fun providesGson(): Gson {
         return GsonBuilder().serializeNulls().create()
     }
-
 
     @Provides
     @Singleton
@@ -116,13 +117,17 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideInstantComponentInfoDatabase(@ApplicationContext context: Context): InstantComponentInfoDatabase {
+    fun provideInstantComponentInfoDatabase(
+        @ApplicationContext context: Context
+    ): InstantComponentInfoDatabase {
         return InstantComponentInfoDatabase.getInstance(context)
     }
 
     @Provides
     @Singleton
-    fun provideInstantComponentInfoDao(database: InstantComponentInfoDatabase): InstantComponentInfoDao {
+    fun provideInstantComponentInfoDao(
+        database: InstantComponentInfoDatabase
+    ): InstantComponentInfoDao {
         return database.instantComponentInfoDao()
     }
 
@@ -131,5 +136,4 @@ object AppModule {
     fun providePackageManager(@ApplicationContext context: Context): PackageManager {
         return context.packageManager
     }
-
 }
