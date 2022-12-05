@@ -39,7 +39,8 @@ class BlockerApplication : Application(), Configuration.Provider {
 
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
-        Reflection.unseal(this) // bypass hidden api restriction, https://github.com/tiann/FreeReflection
+        // Bypass hidden api restriction, https://github.com/tiann/FreeReflection
+        Reflection.unseal(this)
     }
 
     override fun getWorkManagerConfiguration(): Configuration =
