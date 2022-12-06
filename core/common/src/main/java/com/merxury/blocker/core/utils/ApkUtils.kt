@@ -7,14 +7,14 @@ import android.content.pm.ServiceInfo
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
 import com.elvishew.xlog.XLog
+import java.io.File
+import java.io.IOException
+import java.lang.reflect.InvocationTargetException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
-import java.io.File
-import java.io.IOException
-import java.lang.reflect.InvocationTargetException
 
 object ApkUtils {
     private val logger = XLog.tag("ApkUtils").build()
@@ -153,7 +153,6 @@ object ApkUtils {
         }
         return ""
     }
-
 
     /**
      * Tries to get the parser for the given apkFile from [AssetManager]

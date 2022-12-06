@@ -2,7 +2,6 @@ package com.merxury.blocker.data.source.local
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson
-
 import com.google.gson.reflect.TypeToken
 
 class ListConverters {

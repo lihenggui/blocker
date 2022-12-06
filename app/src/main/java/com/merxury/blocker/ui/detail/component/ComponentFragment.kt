@@ -74,71 +74,77 @@ class ComponentFragment : Fragment() {
 
     private fun initMenu() {
         val menuHost: MenuHost = requireActivity()
-        menuHost.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.component_fragment_menu, menu)
-                initSearch(menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                return when (menuItem.itemId) {
-                    R.id.action_block_all -> {
-                        Toast.makeText(
-                            requireContext(),
-                            R.string.disabling_components_please_wait,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        viewModel.disableAll(requireContext(), packageName, type)
-                        true
-                    }
-
-                    R.id.action_enable_all -> {
-                        Toast.makeText(
-                            requireContext(),
-                            R.string.enabling_components_please_wait,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        viewModel.enableAll(requireContext(), packageName, type)
-                        true
-                    }
-
-                    R.id.action_refresh -> {
-                        load()
-                        true
-                    }
-
-                    R.id.action_show_enabled_components_first -> {
-                        PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), true)
-                        load()
-                        true
-                    }
-
-                    R.id.action_show_disabled_components_first -> {
-                        PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), false)
-                        load()
-                        true
-                    }
-
-                    R.id.open_repo -> {
-                        openRepository()
-                        true
-                    }
-
-                    R.id.share_rules -> {
-                        shareRules()
-                        true
-                    }
-
-                    else -> false
+        menuHost.addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.component_fragment_menu, menu)
+                    initSearch(menu)
                 }
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    return when (menuItem.itemId) {
+                        R.id.action_block_all -> {
+                            Toast.makeText(
+                                requireContext(),
+                                R.string.disabling_components_please_wait,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            viewModel.disableAll(requireContext(), packageName, type)
+                            true
+                        }
+
+                        R.id.action_enable_all -> {
+                            Toast.makeText(
+                                requireContext(),
+                                R.string.enabling_components_please_wait,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            viewModel.enableAll(requireContext(), packageName, type)
+                            true
+                        }
+
+                        R.id.action_refresh -> {
+                            load()
+                            true
+                        }
+
+                        R.id.action_show_enabled_components_first -> {
+                            PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), true)
+                            load()
+                            true
+                        }
+
+                        R.id.action_show_disabled_components_first -> {
+                            PreferenceUtil.setShowEnabledComponentShowFirst(requireContext(), false)
+                            load()
+                            true
+                        }
+
+                        R.id.open_repo -> {
+                            openRepository()
+                            true
+                        }
+
+                        R.id.share_rules -> {
+                            shareRules()
+                            true
+                        }
+
+                        else -> false
+                    }
+                }
+            },
+            viewLifecycleOwner, Lifecycle.State.RESUMED
+        )
     }
 
     private fun shareRules() = viewModel.shareRule(requireContext())
 
     private fun openRepository() {
-        BrowserUtil.openUrl(requireContext(), "https://github.com/lihenggui/blocker-general-rules")
+        BrowserUtil.openUrl(
+            requireContext(),
+            "https://github.com/lihenggui/blocker-general-rules"
+        )
     }
 
     private fun initSearch(menu: Menu) {
@@ -146,7 +152,9 @@ class ComponentFragment : Fragment() {
         val searchView = searchItem?.actionView as? SearchView ?: return
         val searchManager =
             requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
+        searchView.setSearchableInfo(
+            searchManager.getSearchableInfo(requireActivity().componentName)
+        )
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
                 logger.i("onQueryTextSubmit: $query")
@@ -194,7 +202,10 @@ class ComponentFragment : Fragment() {
         }
         adapter.onDetailClick = { componentData ->
             val fragment = ComponentDetailBottomSheetFragment.newInstance(componentData)
-            fragment.show(requireActivity().supportFragmentManager, "ComponentDetailDialogFragment")
+            fragment.show(
+                requireActivity().supportFragmentManager,
+                "ComponentDetailDialogFragment"
+            )
         }
         binding.recyclerView.apply {
             adapter = this@ComponentFragment.adapter
@@ -236,14 +247,16 @@ class ComponentFragment : Fragment() {
             }
         }
         viewModel.updatedItem.observe(viewLifecycleOwner) {
-            logger.i("Received updated component info: ${it}, type = ${type.name}")
+            logger.i("Received updated component info: $it, type = ${type.name}")
             adapter.updateItem(it)
         }
         viewModel.error.observe(viewLifecycleOwner) {
             AlertDialog.Builder(requireContext())
                 .setTitle(resources.getString(R.string.oops))
                 .setMessage(getString(R.string.control_component_error_message, it.message))
-                .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+                .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int ->
+                    dialog.dismiss()
+                }
                 .show()
         }
         lifecycleScope.launchWhenStarted {

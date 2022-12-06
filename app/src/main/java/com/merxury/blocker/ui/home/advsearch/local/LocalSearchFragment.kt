@@ -191,7 +191,9 @@ class LocalSearchFragment : Fragment() {
         searchView = searchItem?.actionView as? SearchView ?: return
         val searchManager =
             requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
-        searchView?.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
+        searchView?.setSearchableInfo(
+            searchManager.getSearchableInfo(requireActivity().componentName)
+        )
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
@@ -218,7 +220,9 @@ class LocalSearchFragment : Fragment() {
             AlertDialog.Builder(context)
                 .setTitle(resources.getString(R.string.operation_failed))
                 .setMessage(getString(R.string.control_component_error_message, e.message))
-                .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+                .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int ->
+                    dialog.dismiss()
+                }
                 .show()
         }
     }

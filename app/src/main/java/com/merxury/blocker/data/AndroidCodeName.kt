@@ -3,7 +3,7 @@ package com.merxury.blocker.data
 import android.util.SparseArray
 
 object AndroidCodeName {
-    private val array: SparseArray<String> = SparseArray(32)
+    private val array: SparseArray<String> = SparseArray(64)
 
     init {
         array.put(1, "Android 1.0")

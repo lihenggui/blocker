@@ -26,11 +26,11 @@ import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.parcelable
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import java.io.File
 import java.text.DateFormat
 import java.util.Date
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 
 class AppInfoFragment : Fragment() {
     private var _binding: AppInfoFragmentBinding? = null
@@ -67,22 +67,25 @@ class AppInfoFragment : Fragment() {
 
     private fun initMenu() {
         val menuHost: MenuHost = requireActivity()
-        menuHost.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.app_info_actions, menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                when (menuItem.itemId) {
-                    R.id.action_import_rule -> importRule()
-                    R.id.action_export_rule -> exportRule()
-                    R.id.action_import_ifw_rule -> importIfwRule()
-                    R.id.action_export_ifw_rule -> exportIfwRule()
-                    else -> return false
+        menuHost.addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.app_info_actions, menu)
                 }
-                return true
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    when (menuItem.itemId) {
+                        R.id.action_import_rule -> importRule()
+                        R.id.action_export_rule -> exportRule()
+                        R.id.action_import_ifw_rule -> importIfwRule()
+                        R.id.action_export_ifw_rule -> exportIfwRule()
+                        else -> return false
+                    }
+                    return true
+                }
+            },
+            viewLifecycleOwner, Lifecycle.State.RESUMED
+        )
     }
 
     private fun importRule() = lifecycleScope.launch {
@@ -179,7 +182,6 @@ class AppInfoFragment : Fragment() {
                         Toast.LENGTH_LONG
                     ).show()
                 }
-
             }
         } catch (e: Exception) {
             logger.e("Can't export ifw rule for ${app.packageName}", e)
@@ -212,7 +214,9 @@ class AppInfoFragment : Fragment() {
             AlertDialog.Builder(context)
                 .setTitle(resources.getString(R.string.operation_failed))
                 .setMessage(getString(R.string.control_component_error_message, e.message))
-                .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+                .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int ->
+                    dialog.dismiss()
+                }
                 .show()
         }
     }
