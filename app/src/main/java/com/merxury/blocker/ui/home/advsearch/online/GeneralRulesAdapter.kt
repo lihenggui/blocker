@@ -21,8 +21,11 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
 
     override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): ViewHolder {
         val context = parent.context
-        val binding =
-            GeneralRulesCardItemBinding.inflate(LayoutInflater.from(context), parent, false)
+        val binding = GeneralRulesCardItemBinding.inflate(
+            LayoutInflater.from(context),
+            parent,
+            false
+        )
         return ViewHolder(context, binding)
     }
 

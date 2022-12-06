@@ -18,6 +18,8 @@ import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import java.io.File
+import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -25,8 +27,6 @@ import okhttp3.Request
 import okio.buffer
 import okio.sink
 import org.apache.commons.csv.CSVFormat
-import java.io.File
-import java.io.IOException
 
 @HiltWorker
 class CheckRuleUpdateWork @AssistedInject constructor(
