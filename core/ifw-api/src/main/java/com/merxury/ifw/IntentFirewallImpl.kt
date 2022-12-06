@@ -142,7 +142,6 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
         }
     }
 
-
     override suspend fun getComponentEnableState(
         packageName: String,
         componentName: String

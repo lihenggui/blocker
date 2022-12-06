@@ -11,7 +11,9 @@ import com.topjohnwu.superuser.io.SuFile
 object ManagerUtils {
     @Throws(RuntimeException::class)
     fun launchApplication(packageName: String) {
-        RootCommand.runBlockingCommand("monkey -p $packageName -c android.intent.category.LAUNCHER 1")
+        RootCommand.runBlockingCommand(
+            "monkey -p $packageName -c android.intent.category.LAUNCHER 1"
+        )
     }
 
     @Throws(RuntimeException::class)
@@ -53,14 +55,19 @@ object ManagerUtils {
     fun clearCache(packageName: String) {
         val context = BlockerApplication.context
         // TODO API adaption
-        val dataFolder = context.dataDir.parentFile?.resolve(packageName)?.resolve("cache")
-        if (dataFolder == null) {
-            Log.e("ManagerUtils", "Can't find cache folder for $packageName")
-            return
-        }
-        val cacheFolder = SuFile(dataFolder.absolutePath)
-        if (cacheFolder.exists()) {
-            cacheFolder.deleteRecursive()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val dataFolder = context.dataDir
+                .parentFile
+                ?.resolve(packageName)
+                ?.resolve("cache")
+            if (dataFolder == null) {
+                Log.e("ManagerUtils", "Can't find cache folder for $packageName")
+                return
+            }
+            val cacheFolder = SuFile(dataFolder.absolutePath)
+            if (cacheFolder.exists()) {
+                cacheFolder.deleteRecursive()
+            }
         }
     }
 
