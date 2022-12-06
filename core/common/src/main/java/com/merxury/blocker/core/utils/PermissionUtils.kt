@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object PermissionUtils {
-    suspend fun isRootAvailable(dispatcher: CoroutineDispatcher= Dispatchers.IO): Boolean {
+    suspend fun isRootAvailable(dispatcher: CoroutineDispatcher = Dispatchers.IO): Boolean {
         return when (Shell.isAppGrantedRoot()) {
             true -> true
             false -> false

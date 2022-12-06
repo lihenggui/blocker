@@ -42,11 +42,9 @@ object Rule {
         try {
             applicationInfo.receivers?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
-                val statePM =
-                    ApplicationUtil.checkComponentIsEnabled(
-                        pm,
-                        ComponentName(it.packageName, it.name)
-                    )
+                val statePM = ApplicationUtil.checkComponentIsEnabled(
+                    pm, ComponentName(it.packageName, it.name)
+                )
                 rule.components.add(
                     ComponentRule(
                         it.packageName,
@@ -68,11 +66,9 @@ object Rule {
             }
             applicationInfo.services?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
-                val statePM =
-                    ApplicationUtil.checkComponentIsEnabled(
-                        pm,
-                        ComponentName(it.packageName, it.name)
-                    )
+                val statePM = ApplicationUtil.checkComponentIsEnabled(
+                    pm, ComponentName(it.packageName, it.name)
+                )
                 rule.components.add(
                     ComponentRule(
                         it.packageName,
@@ -94,11 +90,9 @@ object Rule {
             }
             applicationInfo.activities?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
-                val statePM =
-                    ApplicationUtil.checkComponentIsEnabled(
-                        pm,
-                        ComponentName(it.packageName, it.name)
-                    )
+                val statePM = ApplicationUtil.checkComponentIsEnabled(
+                    pm, ComponentName(it.packageName, it.name)
+                )
                 rule.components.add(
                     ComponentRule(
                         it.packageName,
@@ -119,11 +113,9 @@ object Rule {
                 )
             }
             applicationInfo.providers?.forEach {
-                val statePM =
-                    ApplicationUtil.checkComponentIsEnabled(
-                        pm,
-                        ComponentName(it.packageName, it.name)
-                    )
+                val statePM = ApplicationUtil.checkComponentIsEnabled(
+                    pm, ComponentName(it.packageName, it.name)
+                )
                 rule.components.add(
                     ComponentRule(
                         it.packageName,
@@ -174,45 +166,35 @@ object Rule {
                             EComponentType.RECEIVER -> {
                                 if (!it.state) {
                                     ifwController?.add(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.BROADCAST
+                                        it.packageName, it.name, ComponentType.BROADCAST
                                     )
                                 } else {
                                     ifwController?.remove(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.BROADCAST
+                                        it.packageName, it.name, ComponentType.BROADCAST
                                     )
                                 }
                             }
+
                             EComponentType.SERVICE -> {
                                 if (!it.state) {
                                     ifwController?.add(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.SERVICE
+                                        it.packageName, it.name, ComponentType.SERVICE
                                     )
                                 } else {
                                     ifwController?.remove(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.SERVICE
+                                        it.packageName, it.name, ComponentType.SERVICE
                                     )
                                 }
                             }
+
                             EComponentType.ACTIVITY -> {
                                 if (!it.state) {
                                     ifwController?.add(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.ACTIVITY
+                                        it.packageName, it.name, ComponentType.ACTIVITY
                                     )
                                 } else {
                                     ifwController?.remove(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.ACTIVITY
+                                        it.packageName, it.name, ComponentType.ACTIVITY
                                     )
                                 }
                             }
@@ -226,9 +208,12 @@ object Rule {
                             }
                         }
                     }
+
                     else -> {
                         // For PM controllers, state enabled means component is enabled
-                        val currentState = ApplicationUtil.checkComponentIsEnabled(pm, ComponentName(it.packageName, it.name))
+                        val currentState = ApplicationUtil.checkComponentIsEnabled(
+                            pm, ComponentName(it.packageName, it.name)
+                        )
                         if (currentState == it.state) return@forEach
                         if (it.state) {
                             controller.enable(it.packageName, it.name)
@@ -277,36 +262,30 @@ object Rule {
         rule: Rules,
         controller: IController
     ) {
-        val activities = rule.activity?.componentFilters
-            ?.asSequence()
-            ?.map { filter -> filter.name.split("/") }
-            ?.map { names ->
-                val component = ComponentInfo()
-                component.packageName = names[0]
-                component.name = names[1]
-                component
-            }
-            ?.toList() ?: mutableListOf()
-        val broadcast = rule.broadcast?.componentFilters
-            ?.asSequence()
-            ?.map { filter -> filter.name.split("/") }
-            ?.map { names ->
-                val component = ComponentInfo()
-                component.packageName = names[0]
-                component.name = names[1]
-                component
-            }
-            ?.toList() ?: mutableListOf()
-        val service = rule.service?.componentFilters
-            ?.asSequence()
-            ?.map { filter -> filter.name.split("/") }
-            ?.map { names ->
-                val component = ComponentInfo()
-                component.packageName = names[0]
-                component.name = names[1]
-                component
-            }
-            ?.toList() ?: mutableListOf()
+        val activities =
+            rule.activity?.componentFilters?.asSequence()?.map { filter -> filter.name.split("/") }
+                ?.map { names ->
+                    val component = ComponentInfo()
+                    component.packageName = names[0]
+                    component.name = names[1]
+                    component
+                }?.toList() ?: mutableListOf()
+        val broadcast =
+            rule.broadcast?.componentFilters?.asSequence()?.map { filter -> filter.name.split("/") }
+                ?.map { names ->
+                    val component = ComponentInfo()
+                    component.packageName = names[0]
+                    component.name = names[1]
+                    component
+                }?.toList() ?: mutableListOf()
+        val service =
+            rule.service?.componentFilters?.asSequence()?.map { filter -> filter.name.split("/") }
+                ?.map { names ->
+                    val component = ComponentInfo()
+                    component.packageName = names[0]
+                    component.name = names[1]
+                    component
+                }?.toList() ?: mutableListOf()
         controller.batchDisable(activities) {}
         controller.batchDisable(broadcast) {}
         controller.batchDisable(service) {}
@@ -329,7 +308,6 @@ object Rule {
         }
         return result
     }
-
 
     fun isApplicationUninstalled(
         context: Context,

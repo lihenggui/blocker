@@ -13,8 +13,7 @@ abstract class GeneralRuleDatabase : RoomDatabase() {
     abstract fun generalRuleDao(): GeneralRuleDao
 
     companion object {
-        @Volatile
-        private var instance: GeneralRuleDatabase? = null
+        @Volatile private var instance: GeneralRuleDatabase? = null
 
         fun getInstance(context: Context): GeneralRuleDatabase {
             return instance ?: synchronized(this) {
@@ -24,8 +23,7 @@ abstract class GeneralRuleDatabase : RoomDatabase() {
 
         private fun buildDatabase(context: Context): GeneralRuleDatabase {
             return Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")
-                .fallbackToDestructiveMigration()
-                .build()
+                .fallbackToDestructiveMigration().build()
         }
     }
 }

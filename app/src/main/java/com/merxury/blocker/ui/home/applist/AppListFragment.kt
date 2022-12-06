@@ -88,27 +88,30 @@ class AppListFragment : Fragment() {
     }
 
     private fun initMenu() {
-        requireActivity().addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menu.clear()
-                menuInflater.inflate(R.menu.app_list_actions, menu)
-                initSearch(menu)
-            }
-
-            override fun onPrepareMenu(menu: Menu) {
-                super.onPrepareMenu(menu)
-                initMenus(menu)
-            }
-
-            override fun onMenuItemSelected(item: MenuItem): Boolean {
-                when (item.itemId) {
-                    R.id.action_show_system_apps -> handleShowSystemAppsClicked(item)
-                    R.id.action_show_service_info -> handleShowServiceInfoClicked(item)
-                    else -> handleSortAction(item)
+        requireActivity().addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menu.clear()
+                    menuInflater.inflate(R.menu.app_list_actions, menu)
+                    initSearch(menu)
                 }
-                return true
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+                override fun onPrepareMenu(menu: Menu) {
+                    super.onPrepareMenu(menu)
+                    initMenus(menu)
+                }
+
+                override fun onMenuItemSelected(item: MenuItem): Boolean {
+                    when (item.itemId) {
+                        R.id.action_show_system_apps -> handleShowSystemAppsClicked(item)
+                        R.id.action_show_service_info -> handleShowServiceInfoClicked(item)
+                        else -> handleSortAction(item)
+                    }
+                    return true
+                }
+            },
+            viewLifecycleOwner, Lifecycle.State.RESUMED
+        )
     }
 
     private fun initRecyclerView() {
@@ -162,7 +165,9 @@ class AppListFragment : Fragment() {
         val searchView = searchItem?.actionView as? SearchView ?: return
         val searchManager =
             requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(requireActivity().componentName))
+        searchView.setSearchableInfo(
+            searchManager.getSearchableInfo(requireActivity().componentName)
+        )
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 logger.i("onQueryTextSubmit: $query")
@@ -222,7 +227,9 @@ class AppListFragment : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle(resources.getString(R.string.operation_failed))
             .setMessage(getString(R.string.error_message_template, e.message))
-            .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+            .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int ->
+                dialog.dismiss()
+            }
             .show()
     }
 }

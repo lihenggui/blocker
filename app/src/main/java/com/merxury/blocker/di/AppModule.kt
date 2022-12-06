@@ -23,10 +23,10 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -44,10 +44,15 @@ object AppModule {
 
     @Provides
     fun provideOnlineRuleRetrofit(
-        okHttpClient: OkHttpClient, gson: Gson, type: OnlineSourceType
+        okHttpClient: OkHttpClient,
+        gson: Gson,
+        type: OnlineSourceType
     ): Retrofit {
-        return Retrofit.Builder().client(okHttpClient).baseUrl(type.baseUrl)
-            .addConverterFactory(GsonConverterFactory.create(gson)).build()
+        return Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl(type.baseUrl)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
     }
 
     @Provides
@@ -110,7 +115,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGeneralRuleRepository(
-        remoteDataSource: RuleRemoteDataSource, localDataSource: GeneralRuleDao
+        remoteDataSource: RuleRemoteDataSource,
+        localDataSource: GeneralRuleDao
     ): GeneralRuleRepository {
         return GeneralRuleRepository(remoteDataSource, localDataSource)
     }
