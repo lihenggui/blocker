@@ -65,7 +65,6 @@ class Application() : Parcelable {
             " lastUpdateTime=$lastUpdateTime, packageInfo=$packageInfo)"
     }
 
-
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(packageName)
         parcel.writeString(versionName)

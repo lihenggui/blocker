@@ -60,11 +60,13 @@ class GeneralRulesFragment : Fragment() {
                     }
                     adapter.updateData(data)
                 }
+
                 Resource.Status.ERROR -> {
                     logger.e("Can't fetch rules: ${it.message}")
                     showErrorDialog(it.message)
                     binding.swipeLayout.isRefreshing = false
                 }
+
                 Resource.Status.LOADING -> {
                     logger.d("Load rules")
                     binding.swipeLayout.isRefreshing = true
@@ -75,30 +77,35 @@ class GeneralRulesFragment : Fragment() {
 
     private fun initMenu() {
         val menuHost: MenuHost = requireActivity()
-        menuHost.addMenuProvider(object : MenuProvider {
-            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.online_search_menu, menu)
-            }
-
-            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                when (menuItem.itemId) {
-                    R.id.action_submit_ideas -> {
-                        BrowserUtil.openUrl(
-                            requireContext(),
-                            "https://github.com/lihenggui/blocker-general-rules/issues"
-                        )
-                    }
+        menuHost.addMenuProvider(
+            object : MenuProvider {
+                override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                    menuInflater.inflate(R.menu.online_search_menu, menu)
                 }
-                return true
-            }
-        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+
+                override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                    when (menuItem.itemId) {
+                        R.id.action_submit_ideas -> {
+                            BrowserUtil.openUrl(
+                                requireContext(),
+                                "https://github.com/lihenggui/blocker-general-rules/issues"
+                            )
+                        }
+                    }
+                    return true
+                }
+            },
+            viewLifecycleOwner, Lifecycle.State.RESUMED
+        )
     }
 
     private fun showErrorDialog(message: String?) {
         AlertDialog.Builder(requireContext())
             .setTitle(getString(R.string.oops))
             .setMessage(getString(R.string.error_occurred_with_message, message))
-            .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int -> dialog.dismiss() }
+            .setPositiveButton(R.string.close) { dialog: DialogInterface, _: Int ->
+                dialog.dismiss()
+            }
             .show()
     }
 

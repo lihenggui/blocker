@@ -14,7 +14,10 @@ class AppComponentRepository @Inject constructor(private val appComponentDao: Ap
         return appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
     }
 
-    suspend fun getAppComponentByType(packageName: String, type: EComponentType): List<AppComponent> {
+    suspend fun getAppComponentByType(
+        packageName: String,
+        type: EComponentType
+    ): List<AppComponent> {
         return appComponentDao.getByPackageNameAndType(packageName, type)
     }
 

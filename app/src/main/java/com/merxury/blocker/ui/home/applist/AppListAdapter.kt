@@ -101,11 +101,12 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
         private val context: Context,
         private val binding: AppListItemBinding
     ) :
-        RecyclerView.ViewHolder(binding.root), View.OnCreateContextMenuListener  {
+        RecyclerView.ViewHolder(binding.root), View.OnCreateContextMenuListener {
 
         init {
             binding.root.setOnCreateContextMenuListener(this)
         }
+
         override fun onCreateContextMenu(
             menu: ContextMenu?,
             view: View?,

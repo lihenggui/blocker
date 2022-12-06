@@ -1,3 +1,8 @@
+/**
+ * Created by Mercury on 2017/12/31.
+ * A class that controls the state of application components
+ */
+
 package com.merxury.blocker.core.root
 
 import android.content.ComponentName
@@ -10,12 +15,6 @@ import com.merxury.blocker.core.RootCommand
 import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-
-/**
- * Created by Mercury on 2017/12/31.
- * A class that controls the state of application components
- */
 
 class RootController(val context: Context) : IController {
     private val logger = XLog.tag("RootController").build()
@@ -33,6 +32,7 @@ class RootController(val context: Context) : IController {
                     componentName
                 )
             )
+
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> removeEscapeCharacter(
                 String.format(
                     DISABLE_COMPONENT_TEMPLATE,
@@ -40,6 +40,7 @@ class RootController(val context: Context) : IController {
                     componentName
                 )
             )
+
             else -> return false
         }
         logger.d("command:$comm, componentState is $state")
