@@ -10,6 +10,9 @@ import android.widget.ImageView
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.collection.LruCache
 import com.merxury.blocker.R
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -19,9 +22,6 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.appiconloader.AppIconLoader
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
-import kotlin.coroutines.CoroutineContext
 
 /**
  * @author Rikka
@@ -91,7 +91,7 @@ object AppIconCache : CoroutineScope {
         if (loader == null) {
             val shrinkNonAdaptiveIcons =
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-                        context.applicationInfo.loadIcon(context.packageManager) is AdaptiveIconDrawable
+                    context.applicationInfo.loadIcon(context.packageManager) is AdaptiveIconDrawable
             loader = AppIconLoader(size, shrinkNonAdaptiveIcons, context)
             appIconLoaders[size] = loader
         }

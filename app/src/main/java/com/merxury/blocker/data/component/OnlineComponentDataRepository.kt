@@ -4,13 +4,15 @@ import android.content.Context
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
-class OnlineComponentDataRepository @Inject constructor(private val service: OnlineComponentDataService) {
+class OnlineComponentDataRepository @Inject constructor(
+    private val service: OnlineComponentDataService
+) {
     private val logger = XLog.tag("OnlineComponentDataFetcher")
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         logger.e(throwable)

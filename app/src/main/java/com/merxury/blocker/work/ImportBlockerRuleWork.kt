@@ -18,9 +18,9 @@ import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
 import com.merxury.blocker.util.ToastUtil
+import java.io.InputStreamReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.InputStreamReader
 
 class ImportBlockerRuleWork(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {

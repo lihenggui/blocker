@@ -126,7 +126,7 @@ class ComponentProvider : ContentProvider() {
 
     private fun controlComponent(packageName: String?, data: Bundle?): Bundle? = runBlocking {
         if (packageName == null || data == null) return@runBlocking null
-        val rawString = data.getString("cmp_list")?: return@runBlocking null
+        val rawString = data.getString("cmp_list") ?: return@runBlocking null
         val context = context ?: return@runBlocking null
         val appContext = context.applicationContext ?: return@runBlocking null
         val hintEntryPoint = EntryPointAccessors.fromApplication(
