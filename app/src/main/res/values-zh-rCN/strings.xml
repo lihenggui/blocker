@@ -146,8 +146,8 @@
     <string name="save">保存</string>
     <string name="controller_hint">* 已应用代表组件已被禁用</string>
     <string name="recommend_to_block">推荐禁用</string>
-    <string name="belongs_to_sdk">SDK名称</string>
-    <string name="share_rules">保存规则</string>
+    <string name="belongs_to_sdk">属于SDK</string>
+    <string name="share_rules">分享规则</string>
     <string name="open_online_repository">打开在线规则</string>
     <string name="update_rules_notification">更新规则通知</string>
     <string name="checking_rules_updates">检查规则更新</string>
