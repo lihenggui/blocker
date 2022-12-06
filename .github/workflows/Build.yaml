@@ -43,7 +43,7 @@ jobs:
         run: ./gradlew assemble
 
       - name: Run local tests
-        run: ./gradlew testDemoDebug testProdDebug
+        run: ./gradlew testBasicDebug testProdDebug
 
       - name: Upload build outputs (APKs)
         uses: actions/upload-artifact@v3
