@@ -125,7 +125,7 @@
     <string name="copy_name">Copy name</string>
     <string name="root_required">Root required</string>
     <string name="cannot_launch_this_activity">Cannot launch this component without root permission.</string>
-    <string name="ok">OK</string>
+    <string name="ok" translatable="false">OK</string>
     <string name="component_name">Component name</string>
     <string name="copied_to_clipboard_template">Copied to clipboard: %1$s</string>
     <string name="clear_cache">Clear cache</string>
