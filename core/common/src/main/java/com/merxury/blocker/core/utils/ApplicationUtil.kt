@@ -1,3 +1,8 @@
+/**
+ * Created by Mercury on 2017/12/30.
+ * A class that gets activities, broadcasts, content providers, and services
+ */
+
 package com.merxury.blocker.core.utils
 
 import android.content.ComponentName
@@ -11,15 +16,10 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.entity.Application
+import java.util.Collections
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.Collections
-
-/**
- * Created by Mercury on 2017/12/30.
- * A class that gets activities, broadcasts, content providers, and services
- */
 
 object ApplicationUtil {
     private const val BLOCKER_PACKAGE_NAME = "com.merxury.blocker"
@@ -274,8 +274,8 @@ object ApplicationUtil {
     ): PackageInfo {
         return withContext(dispatcher) {
             var flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
-                    PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
-                    @Suppress("DEPRECATION") PackageManager.GET_INTENT_FILTERS
+                PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
+                @Suppress("DEPRECATION") PackageManager.GET_INTENT_FILTERS
             flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
                 flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
             } else {
@@ -323,8 +323,8 @@ object ApplicationUtil {
             logger.e(e.message)
             return false
         }
-        return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED
-            || state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+        return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED ||
+            state == PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
     }
 
     /**

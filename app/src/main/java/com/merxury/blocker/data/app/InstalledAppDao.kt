@@ -32,5 +32,4 @@ interface InstalledAppDao {
 
     @Query("SELECT COUNT(package_name) FROM installed_app")
     suspend fun getCount(): Int
-
 }

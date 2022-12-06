@@ -12,10 +12,12 @@ object PreferenceUtil {
     fun getControllerType(context: Context): EControllerMethod {
         // Magic value, but still use it.
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        return when (pref.getString(
-            context.getString(R.string.key_pref_controller_type),
-            context.getString(R.string.key_pref_controller_type_default_value)
-        )) {
+        return when (
+            pref.getString(
+                context.getString(R.string.key_pref_controller_type),
+                context.getString(R.string.key_pref_controller_type_default_value)
+            )
+        ) {
             "pm" -> EControllerMethod.PM
             "shizuku" -> EControllerMethod.SHIZUKU
             else -> EControllerMethod.IFW
@@ -30,18 +32,12 @@ object PreferenceUtil {
     }
 
     fun getIfwRulePath(context: Context): Uri? {
-        return getSavedRulePath(context)
-            ?.buildUpon()
-            ?.appendPath("ifw")
-            ?.build()
+        return getSavedRulePath(context)?.buildUpon()?.appendPath("ifw")?.build()
     }
 
     fun setRulePath(context: Context, uri: Uri?) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
-            .putString(context.getString(R.string.key_pref_rule_path), uri?.toString())
-            .apply()
-
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putString(context.getString(R.string.key_pref_rule_path), uri?.toString()).apply()
     }
 
     fun shouldBackupSystemApps(context: Context): Boolean {
@@ -55,10 +51,8 @@ object PreferenceUtil {
     }
 
     fun setShowSystemApps(context: Context, value: Boolean) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
-            .putBoolean(context.getString(R.string.key_pref_show_system_apps), value)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putBoolean(context.getString(R.string.key_pref_show_system_apps), value).apply()
     }
 
     fun getShowSystemApps(context: Context): Boolean {
@@ -67,8 +61,7 @@ object PreferenceUtil {
     }
 
     fun setShowServiceInfo(context: Context, value: Boolean) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
             .putBoolean(context.getString(R.string.key_pref_show_running_service_info), value)
             .apply()
     }
@@ -76,16 +69,13 @@ object PreferenceUtil {
     fun getShowServiceInfo(context: Context): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         return pref.getBoolean(
-            context.getString(R.string.key_pref_show_running_service_info),
-            false
+            context.getString(R.string.key_pref_show_running_service_info), false
         )
     }
 
     fun setSortType(context: Context, value: SortType?) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
-            .putString(context.getString(R.string.key_pref_sort_type), value?.name)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putString(context.getString(R.string.key_pref_sort_type), value?.name).apply()
     }
 
     fun getSortType(context: Context): SortType {
@@ -99,28 +89,27 @@ object PreferenceUtil {
     }
 
     fun setSearchSystemApps(context: Context, value: Boolean) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
-            .putBoolean(context.getString(R.string.key_pref_search_system_apps), value)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putBoolean(context.getString(R.string.key_pref_search_system_apps), value).apply()
     }
 
     fun getSearchSystemApps(context: Context): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        return pref.getBoolean(context.getString(R.string.key_pref_search_system_apps), false)
+        return pref.getBoolean(
+            context.getString(R.string.key_pref_search_system_apps), false
+        )
     }
 
     fun setOnlineSourceType(context: Context, type: OnlineSourceType) {
-        PreferenceManager.getDefaultSharedPreferences(context)
-            .edit()
-            .putString(context.getString(R.string.key_pref_online_source_type), type.name)
-            .apply()
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putString(context.getString(R.string.key_pref_online_source_type), type.name).apply()
     }
 
     fun getOnlineSourceType(context: Context): OnlineSourceType {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val value =
-            pref.getString(context.getString(R.string.key_pref_online_source_type), "GITLAB").orEmpty()
+        val value = pref.getString(
+            context.getString(R.string.key_pref_online_source_type), "GITLAB"
+        ).orEmpty()
         return try {
             OnlineSourceType.valueOf(value)
         } catch (e: Exception) {
@@ -134,8 +123,7 @@ object PreferenceUtil {
             .putBoolean(
                 context.getString(R.string.key_pref_show_enabled_component_show_first),
                 value
-            )
-            .apply()
+            ).apply()
     }
 
     fun getShowEnabledComponentShowFirst(context: Context): Boolean {

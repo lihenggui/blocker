@@ -29,8 +29,14 @@ interface AppComponentDao {
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName")
     suspend fun getByPackageName(packageName: String): List<AppComponent>
 
-    @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName AND component_name LIKE :componentName")
-    suspend fun getByPackageNameAndComponentName(packageName: String, componentName: String): AppComponent?
+    @Query(
+        "SELECT * FROM app_component WHERE package_name LIKE :packageName " +
+            "AND component_name LIKE :componentName"
+    )
+    suspend fun getByPackageNameAndComponentName(
+        packageName: String,
+        componentName: String
+    ): AppComponent?
 
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName AND type = :type")
     suspend fun getByPackageNameAndType(
@@ -41,5 +47,4 @@ interface AppComponentDao {
     @Transaction
     @Query("SELECT * FROM app_component WHERE component_name LIKE '%' || :searchKeyword || '%'")
     suspend fun getByName(searchKeyword: String): List<AppComponent>
-
 }

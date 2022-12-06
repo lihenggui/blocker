@@ -43,5 +43,4 @@ class DetailActionView : ConstraintLayout {
         set(value) {
             binding.icon.setImageResource(value)
         }
-
 }

@@ -51,10 +51,8 @@ class AppDetailActivity : AppCompatActivity() {
                     logger.i("Shizuku permission granted")
                 } else {
                     logger.e("Shizuku permission denied")
-                    AlertDialog.Builder(this)
-                        .setTitle(R.string.permission_required)
-                        .setMessage(R.string.shizuku_permission_required_message)
-                        .show()
+                    AlertDialog.Builder(this).setTitle(R.string.permission_required)
+                        .setMessage(R.string.shizuku_permission_required_message).show()
                 }
             }
         }
@@ -104,7 +102,7 @@ class AppDetailActivity : AppCompatActivity() {
                 }
                 true
             } else if (Shizuku.shouldShowRequestPermissionRationale()) {
-                logger.e("User denied Shizuku permission (shouldShowRequestPermissionRationale=true)")
+                logger.e("User denied Shizuku permission.")
                 false
             } else {
                 Shizuku.requestPermission(REQUEST_CODE_PERMISSION)
