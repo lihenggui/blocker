@@ -35,12 +35,10 @@ object AppStateCache {
         var running = 0
         var blocked = 0
         for (service in services) {
-            if (!ifwImpl.getComponentEnableState(packageName, service.name) ||
-                !ApplicationUtil.checkComponentIsEnabled(
-                    pm,
-                    ComponentName(packageName, service.name)
-                )
-            ) {
+            val component = ComponentName(packageName, service.name)
+            val ifwState = ifwImpl.getComponentEnableState(packageName, service.name)
+            val pmState = ApplicationUtil.checkComponentIsEnabled(pm, component)
+            if (!ifwState || !pmState) {
                 blocked++
             }
             if (serviceHelper.isServiceRunning(service.name)) {
