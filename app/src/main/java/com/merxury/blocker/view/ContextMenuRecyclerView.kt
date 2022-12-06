@@ -14,7 +14,11 @@ class ContextMenuRecyclerView : RecyclerView {
 
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
 
-    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(context, attrs, defStyle)
+    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(
+        context,
+        attrs,
+        defStyle
+    )
 
     override fun getContextMenuInfo(): ContextMenu.ContextMenuInfo? {
         return contextMenuInfo
@@ -33,5 +37,4 @@ class ContextMenuRecyclerView : RecyclerView {
     }
 
     class RecyclerContextMenuInfo(val position: Int, val id: Long) : ContextMenu.ContextMenuInfo
-
 }

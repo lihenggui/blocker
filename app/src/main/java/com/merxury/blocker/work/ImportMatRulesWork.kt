@@ -57,7 +57,9 @@ class ImportMatRulesWork(context: Context, params: WorkerParameters) :
                     if (Rule.isApplicationUninstalled(context, uninstalledAppList, packageName)) {
                         return@forEach
                     }
-                    val isSystemApp = ApplicationUtil.isSystemApp(context.packageManager, packageName)
+                    val isSystemApp = ApplicationUtil.isSystemApp(
+                        context.packageManager, packageName
+                    )
                     if (!shouldRestoreSystemApps && isSystemApp) {
                         return@forEach
                     }
@@ -90,7 +92,6 @@ class ImportMatRulesWork(context: Context, params: WorkerParameters) :
             .setSubText(name)
             .setSmallIcon(R.mipmap.ic_launcher)
             .setProgress(total, current, false)
-
             .setOngoing(true)
             .addAction(android.R.drawable.ic_delete, cancel, intent)
             .build()

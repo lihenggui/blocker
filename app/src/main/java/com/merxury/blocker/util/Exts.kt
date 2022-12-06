@@ -18,7 +18,7 @@ fun ViewPager2.reduceDragSensitivity(f: Int = 4) {
     val touchSlopField = RecyclerView::class.java.getDeclaredField("mTouchSlop")
     touchSlopField.isAccessible = true
     val touchSlop = touchSlopField.get(recyclerView) as Int
-    touchSlopField.set(recyclerView, touchSlop * f)       // "8" was obtained experimentally
+    touchSlopField.set(recyclerView, touchSlop * f) // "8" was obtained experimentally
 }
 
 inline fun <reified T : Parcelable> Intent.parcelable(key: String): T? = when {

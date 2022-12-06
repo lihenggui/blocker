@@ -64,8 +64,10 @@ class AppListViewModel : ViewModel() {
         // Ignore spaces
         val clearedKeyword = keyword.trim().replace(" ", "")
         _appList.value = originalList.filter {
-            it.label.replace(" ", "").contains(clearedKeyword, true) ||
-                    it.packageName.contains(keyword, true)
+            it.label.replace(" ", "").contains(clearedKeyword, true) || it.packageName.contains(
+                keyword,
+                true
+            )
         }
     }
 
@@ -138,7 +140,6 @@ class AppListViewModel : ViewModel() {
                 logger.e("Failed to force stop app", e)
                 _error.emit(e)
             }
-
         }
     }
 

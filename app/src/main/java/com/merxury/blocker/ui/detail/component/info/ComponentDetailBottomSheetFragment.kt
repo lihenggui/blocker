@@ -122,7 +122,6 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         }
     }
 
-
     private fun enterEditMode() = with(binding) {
         isInEditMode = true
         sdkName.editText?.isEnabled = true

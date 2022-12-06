@@ -7,7 +7,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.merxury.blocker.R
 
-
 object NotificationUtil {
     const val PROCESSING_INDICATOR_CHANNEL_ID = "processing_progress_indicator"
     const val PROCESSING_NOTIFICATION_ID = 10001
@@ -32,10 +31,11 @@ object NotificationUtil {
         val channelId = UPDATE_RULE_CHANNEL_ID
         val channelName = context.getString(R.string.update_rules_notification)
         val channel =
-            NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT).apply {
-                setSound(null, null)
-                vibrationPattern = null
-            }
+            NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_DEFAULT)
+                .apply {
+                    setSound(null, null)
+                    vibrationPattern = null
+                }
         val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
         manager?.createNotificationChannel(channel)
     }

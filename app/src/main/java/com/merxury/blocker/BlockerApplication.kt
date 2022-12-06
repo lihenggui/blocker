@@ -16,8 +16,8 @@ import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
 import com.google.android.material.color.DynamicColors
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
-import me.weishu.reflection.Reflection
 import javax.inject.Inject
+import me.weishu.reflection.Reflection
 
 @HiltAndroidApp
 class BlockerApplication : Application(), Configuration.Provider {
@@ -47,7 +47,6 @@ class BlockerApplication : Application(), Configuration.Provider {
         Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .build()
-
 
     private fun initLogger() {
         val logFolder = filesDir.resolve(LOG_PATH)
