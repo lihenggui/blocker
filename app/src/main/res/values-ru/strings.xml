@@ -124,7 +124,6 @@
     <string name="copy_name">Копировать имя</string>
     <string name="root_required">Требуются высшие привилегии</string>
     <string name="cannot_launch_this_activity">Невозможно запустить этот компонент без разрешения root.</string>
-    <string name="ok">ХОРОШО</string>
     <string name="component_name">Название компонента</string>
     <string name="copied_to_clipboard_template">Скопировано в буфер обмена: %1$s</string>
 </resources>
