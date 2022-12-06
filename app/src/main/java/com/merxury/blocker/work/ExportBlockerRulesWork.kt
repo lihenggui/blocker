@@ -64,7 +64,6 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
             logger.i("Backup app rules finished.")
             return@withContext Result.success()
         }
-
     }
 
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {

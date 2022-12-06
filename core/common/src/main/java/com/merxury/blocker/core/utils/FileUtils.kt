@@ -4,14 +4,14 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.RootCommand
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 object FileUtils {
     private val logger = XLog.tag("FileUtils").build()
@@ -44,7 +44,7 @@ object FileUtils {
             true -> "chmod $permission '$path'"
             false -> "chmod -R $permission '$path'"
         }
-        com.merxury.blocker.core.RootCommand.runBlockingCommand(comm)
+        RootCommand.runBlockingCommand(comm)
     }
 
     @JvmStatic

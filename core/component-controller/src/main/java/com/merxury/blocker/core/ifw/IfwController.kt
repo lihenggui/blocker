@@ -27,20 +27,28 @@ class IfwController(val context: Context) : IController {
         val type = getComponentType(componentName)
         if (type == ComponentType.PROVIDER) {
             return when (state) {
-                PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> ComponentControllerProxy.getInstance(
-                    EControllerMethod.PM,
-                    context
-                ).disable(packageName, componentName)
-                PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> ComponentControllerProxy.getInstance(
-                    EControllerMethod.PM,
-                    context
-                ).enable(packageName, componentName)
+                PackageManager.COMPONENT_ENABLED_STATE_DISABLED ->
+                    ComponentControllerProxy.getInstance(
+                        EControllerMethod.PM,
+                        context
+                    ).disable(packageName, componentName)
+
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED ->
+                    ComponentControllerProxy.getInstance(
+                        EControllerMethod.PM,
+                        context
+                    ).enable(packageName, componentName)
+
                 else -> false
             }
         }
         val result = when (state) {
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> controller.add(packageName, componentName, type)
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> controller.remove(packageName, componentName, type)
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED ->
+                controller.add(packageName, componentName, type)
+
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED ->
+                controller.remove(packageName, componentName, type)
+
             else -> false
         }
         if (result) {

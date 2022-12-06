@@ -11,7 +11,10 @@ import com.merxury.blocker.core.shizuku.ShizukuController
  * Created by Mercury on 2018/3/10.
  */
 
-class ComponentControllerProxy private constructor(method: EControllerMethod, context: Context) : IController {
+class ComponentControllerProxy private constructor(
+    method: EControllerMethod,
+    context: Context
+) : IController {
 
     private var controller: IController = when (method) {
         EControllerMethod.IFW -> IfwController(context)
@@ -62,15 +65,18 @@ class ComponentControllerProxy private constructor(method: EControllerMethod, co
         var controllerMethod: EControllerMethod? = null
 
         fun getInstance(method: EControllerMethod, context: Context): IController =
-                synchronized(this) {
-                    if (method != controllerMethod) {
-                        getComponentControllerProxy(method, context)
-                    } else {
-                        instance ?: getComponentControllerProxy(method, context)
-                    }
+            synchronized(this) {
+                if (method != controllerMethod) {
+                    getComponentControllerProxy(method, context)
+                } else {
+                    instance ?: getComponentControllerProxy(method, context)
                 }
+            }
 
-        private fun getComponentControllerProxy(method: EControllerMethod, context: Context): ComponentControllerProxy {
+        private fun getComponentControllerProxy(
+            method: EControllerMethod,
+            context: Context
+        ): ComponentControllerProxy {
             return ComponentControllerProxy(method, context).also {
                 controllerMethod = method
                 instance = it

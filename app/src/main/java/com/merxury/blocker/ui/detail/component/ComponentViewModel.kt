@@ -22,14 +22,14 @@ import com.merxury.blocker.util.ManagerUtils
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.io.File
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import javax.inject.Inject
 
 @HiltViewModel
 class ComponentViewModel @Inject constructor(
@@ -294,7 +294,8 @@ class ComponentViewModel @Inject constructor(
                                 !blocked
                             }
                         },
-                        { it.simpleName })
+                        { it.simpleName }
+                    )
                 )
                 .toMutableList()
         }

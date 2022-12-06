@@ -46,8 +46,8 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
                 return@withContext Result.failure()
             }
             val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
-            val files = ifwFolder.listFiles()
-                .filter { it.isFile && it.name?.endsWith(".xml") == true }
+            val files =
+                ifwFolder.listFiles().filter { it.isFile && it.name?.endsWith(".xml") == true }
             total = files.count()
             // Start importing files
             files.forEach { documentFile ->
@@ -56,40 +56,32 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
                 var packageName: String? = null
                 context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
                     val rule = RuleSerializer.deserialize(stream) ?: return@forEach
-                    val activities = rule.activity?.componentFilters
-                        ?.asSequence()
-                        ?.map { filter -> filter.name.split("/") }
-                        ?.map { names ->
+                    val activities = rule.activity?.componentFilters?.asSequence()
+                        ?.map { filter -> filter.name.split("/") }?.map { names ->
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
                             packageName = component.packageName
                             component
-                        }
-                        ?.toList() ?: mutableListOf()
-                    val broadcast = rule.broadcast?.componentFilters
-                        ?.asSequence()
-                        ?.map { filter -> filter.name.split("/") }
-                        ?.map { names ->
+                        }?.toList() ?: mutableListOf()
+                    val broadcast = rule.broadcast?.componentFilters?.asSequence()
+                        ?.map { filter -> filter.name.split("/") }?.map { names ->
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
                             packageName = component.packageName
                             component
-                        }
-                        ?.toList() ?: mutableListOf()
-                    val service = rule.service?.componentFilters
-                        ?.asSequence()
-                        ?.map { filter -> filter.name.split("/") }
-                        ?.map { names ->
+                        }?.toList() ?: mutableListOf()
+                    val service = rule.service?.componentFilters?.asSequence()
+                        ?.map { filter -> filter.name.split("/") }?.map { names ->
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
                             packageName = component.packageName
                             component
-                        }
-                        ?.toList() ?: mutableListOf()
-                    val isSystemApp = ApplicationUtil.isSystemApp(context.packageManager, packageName)
+                        }?.toList() ?: mutableListOf()
+                    val isSystemApp =
+                        ApplicationUtil.isSystemApp(context.packageManager, packageName)
                     if (!shouldRestoreSystemApps && isSystemApp) {
                         logger.i("Skipping system app $packageName")
                         return@forEach
@@ -115,17 +107,13 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
         val title = applicationContext.getString(R.string.import_ifw_please_wait)
         val cancel = applicationContext.getString(R.string.cancel)
         // This PendingIntent can be used to cancel the worker
-        val intent = WorkManager.getInstance(applicationContext)
-            .createCancelPendingIntent(getId())
+        val intent = WorkManager.getInstance(applicationContext).createCancelPendingIntent(getId())
         // Create a Notification channel if necessary
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationUtil.createProgressingNotificationChannel(applicationContext)
         }
-        val notification = NotificationCompat.Builder(applicationContext, id)
-            .setContentTitle(title)
-            .setTicker(title)
-            .setSubText(name)
-            .setSmallIcon(R.mipmap.ic_launcher)
+        val notification = NotificationCompat.Builder(applicationContext, id).setContentTitle(title)
+            .setTicker(title).setSubText(name).setSmallIcon(R.mipmap.ic_launcher)
             .setProgress(total, current, false)
             .setOngoing(true)
             .addAction(android.R.drawable.ic_delete, cancel, intent)

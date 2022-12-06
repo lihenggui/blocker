@@ -15,9 +15,9 @@ import com.merxury.blocker.core.utils.StorageUtils
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.StorageUtil
 import com.merxury.blocker.util.ToastUtil
+import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.File
 
 class ExportIfwRulesWork(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {

@@ -35,7 +35,9 @@ import com.merxury.blocker.work.ResetIfwWork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClickListener,
+class SettingsFragment :
+    PreferenceFragmentCompat(),
+    Preference.OnPreferenceClickListener,
     Preference.OnPreferenceChangeListener {
     private val logger = XLog.tag("PreferenceFragment")
     private lateinit var sp: SharedPreferences
@@ -132,6 +134,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("UpdateRule", ExistingWorkPolicy.KEEP, work)
     }
+
     private fun importBlockerRule() {
         val importWork = OneTimeWorkRequestBuilder<ImportBlockerRuleWork>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
@@ -192,8 +195,7 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
 
     private fun findPreference() {
         controllerTypePreference = findPreference(getString(R.string.key_pref_controller_type))
-        onlineRuleSourcePreference =
-            findPreference(getString(R.string.key_pref_online_rule_source))
+        onlineRuleSourcePreference = findPreference(getString(R.string.key_pref_online_rule_source))
         exportRulePreference = findPreference(getString(R.string.key_pref_export_rules))
         importRulePreference = findPreference(getString(R.string.key_pref_import_rules))
         importIfwRulePreference = findPreference(getString(R.string.key_pref_import_ifw_rules))
@@ -212,7 +214,9 @@ class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceClic
     }
 
     private fun initPreference() {
-        controllerTypePreference?.setDefaultValue(getString(R.string.key_pref_controller_type_default_value))
+        controllerTypePreference?.setDefaultValue(
+            getString(R.string.key_pref_controller_type_default_value)
+        )
         updateFolderSummary()
     }
 

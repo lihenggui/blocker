@@ -22,10 +22,10 @@ import com.merxury.blocker.data.app.InstalledAppRepository
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.util.regex.PatternSyntaxException
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class LocalSearchViewModel @Inject constructor(
@@ -277,7 +277,10 @@ class LocalSearchViewModel @Inject constructor(
         val componentList = data[app] ?: return
         val componentData =
             componentList.firstOrNull { it.componentName == component.name } ?: return
-        if (controllerType == EControllerMethod.IFW && componentData.type != EComponentType.PROVIDER) {
+        if (
+            controllerType == EControllerMethod.IFW &&
+            componentData.type != EComponentType.PROVIDER
+        ) {
             componentData.ifwBlocked = !enabled
         } else {
             componentData.pmBlocked = !enabled
