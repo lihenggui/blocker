@@ -76,7 +76,7 @@ run_firebase_test_lab() {
 
 
 # All modules with androidTest to run tests on.
-testApks=($(./gradlew -q demoDebugPrintTestApk))
+testApks=($(./gradlew -q basicDebugPrintTestApk))
 
 # Run all modules in parallel with Firebase Test Lab, and fail if any fail
 pids=""
