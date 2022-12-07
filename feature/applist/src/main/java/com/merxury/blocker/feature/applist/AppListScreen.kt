@@ -13,7 +13,6 @@ fun AppListRoute(
     navigateToAppDetail: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-
 }
 
 @Composable

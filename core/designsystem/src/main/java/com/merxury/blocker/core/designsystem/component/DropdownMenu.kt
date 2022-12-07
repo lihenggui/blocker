@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +30,7 @@ import androidx.compose.ui.Modifier
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 
 /**
- * Now in Android dropdown menu button with included trailing icon as well as text label and item
+ * Blocker dropdown menu button with included trailing icon as well as text label and item
  * content slots.
  *
  * @param items The list of items to display in the menu.
@@ -62,7 +63,11 @@ fun <T> BlockerDropdownMenuButton(
             text = text,
             trailingIcon = {
                 Icon(
-                    imageVector = if (expanded) BlockerIcons.ArrowDropUp else BlockerIcons.ArrowDropDown,
+                    imageVector = if (expanded) {
+                        BlockerIcons.ArrowDropUp
+                    } else {
+                        BlockerIcons.ArrowDropDown
+                    },
                     contentDescription = null
                 )
             }
@@ -81,7 +86,7 @@ fun <T> BlockerDropdownMenuButton(
 }
 
 /**
- * Now in Android dropdown menu with item content slots. Wraps Material 3 [DropdownMenu] and
+ * Blocker dropdown menu with item content slots. Wraps Material 3 [DropdownMenu] and
  * [DropdownMenuItem].
  *
  * @param expanded Whether the menu is currently open and visible to the user.
