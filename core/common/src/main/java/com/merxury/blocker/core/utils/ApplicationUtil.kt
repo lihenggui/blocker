@@ -32,6 +32,9 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.entity.Application
+import com.merxury.blocker.core.extension.getApplicationInfoCompat
+import com.merxury.blocker.core.extension.getInstalledPackagesCompat
+import com.merxury.blocker.core.extension.getPackageInfoCompat
 import java.util.Collections
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
