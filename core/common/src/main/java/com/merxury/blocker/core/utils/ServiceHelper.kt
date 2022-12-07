@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.utils
 
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.RootCommand
+import com.merxury.blocker.core.exec
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,7 +52,8 @@ class ServiceHelper(private val packageName: String) {
             serviceList.clear()
             serviceInfo = try {
                 if (PermissionUtils.isRootAvailable()) {
-                    RootCommand.runBlockingCommand("dumpsys activity services -p $packageName")
+                    "dumpsys activity services -p $packageName".exec()
+                        .orEmpty()
                 } else {
                     ""
                 }
