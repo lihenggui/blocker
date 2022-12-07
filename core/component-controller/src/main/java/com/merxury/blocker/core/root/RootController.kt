@@ -27,7 +27,7 @@ import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.exec
+import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
