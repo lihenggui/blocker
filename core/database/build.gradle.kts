@@ -31,7 +31,7 @@ android {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
 
-        testInstrumentationRunner = "com.merxury.blocker.core.testing.NiaTestRunner"
+        testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
     }
     namespace = "com.merxury.blocker.core.database"
 }
