@@ -16,5 +16,5 @@
      limitations under the License.
 -->
 <resources>
-    <string name="app_list">App list</string>
+    <string name="service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
 </resources>
