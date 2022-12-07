@@ -37,13 +37,13 @@ jobs:
         run: ./gradlew spotlessCheck --init-script gradle/init.gradle.kts --no-configuration-cache
 
       - name: Check lint
-        run: ./gradlew lintDemoDebug
+        run: ./gradlew lintBasicDebug
 
       - name: Build all build type and flavor permutations
         run: ./gradlew assemble
 
       - name: Run local tests
-        run: ./gradlew testDemoDebug testProdDebug
+        run: ./gradlew testBasicDebug testProdDebug
 
       - name: Upload build outputs (APKs)
         uses: actions/upload-artifact@v3
