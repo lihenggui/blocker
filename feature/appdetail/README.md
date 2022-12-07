@@ -1,1 +1,0 @@
-# :feature:appdetail module
