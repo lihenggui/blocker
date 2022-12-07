@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Blocker</string>
     <string name="settings">設定</string>
@@ -31,7 +30,7 @@
     <string name="import_rules">匯入規則</string>
     <string name="pref_ifw_settings">IFW 規則</string>
     <string name="about">關於</string>
-    <string name="export_rules">匯出規則</string>
+    <string name="export_rules">導出規則</string>
     <string name="reset_ifw">重設IFW</string>
     <string name="import_mat_rules">匯入MyAndroidTools規則</string>
     <string name="others">其他</string>
@@ -121,4 +120,37 @@
     <string name="filter">過濾</string>
     <string name="show_enabled_components_first">啟用組件優先顯示</string>
     <string name="show_disabled_components_first">禁用組件優先顯示</string>
+    <string name="copy_name">複製名稱</string>
+    <string name="root_required">需要根</string>
+    <string name="cannot_launch_this_activity">沒有 root 權限無法啟動此組件。</string>
+    <string name="component_name">組件名稱</string>
+    <string name="copied_to_clipboard_template">已復制： %1$s</string>
+    <string name="clear_cache">清理緩存</string>
+    <string name="clear_data">清除數據</string>
+    <string name="force_stop">強制停止</string>
+    <string name="uninstall">卸載</string>
+    <string name="enable">啟用</string>
+    <string name="disable">禁用</string>
+    <string name="error_message_template">錯誤信息：%1$s</string>
+    <string name="submit_ideas">分享點子</string>
+    <string name="open_online_rules_repository">打開在線規則庫</string>
+    <string name="component_info">組件信息</string>
+    <string name="package_name">包名</string>
+    <string name="name">名稱</string>
+    <string name="sdk_name">SDK名稱</string>
+    <string name="disabled_effect">禁用後效果</string>
+    <string name="pm_applied">PM控制器已應用</string>
+    <string name="ifw_applied">IFW應用</string>
+    <string name="edit">編輯</string>
+    <string name="save">保存</string>
+    <string name="controller_hint">* 已應用代表組件已被禁用</string>
+    <string name="recommend_to_block">推薦禁用</string>
+    <string name="belongs_to_sdk">屬於SDK</string>
+    <string name="share_rules">分享規則</string>
+    <string name="open_online_repository">打開在線規則</string>
+    <string name="update_rules_notification">更新規則通知</string>
+    <string name="checking_rules_updates">檢查規則更新</string>
+    <string name="fetching_online_repository">獲取在線規則…</string>
+    <string name="download_online_rules">下載在線規則…</string>
+    <string name="updating_database">更新數據庫…</string>
 </resources>
