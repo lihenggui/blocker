@@ -117,8 +117,10 @@ class ComponentViewModel @Inject constructor(
 
     @Throws(RuntimeException::class)
     fun launchActivity(component: ComponentData) {
-        logger.i("Launch ${component.packageName}/${component.name} without params")
-        ManagerUtils.launchActivity(component.packageName, component.name)
+        viewModelScope.launch {
+            logger.i("Launch ${component.packageName}/${component.name} without params")
+            ManagerUtils.launchActivity(component.packageName, component.name)
+        }
     }
 
     private fun doBatchOperation(
