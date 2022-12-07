@@ -142,6 +142,7 @@ simplexml = "org.simpleframework:simple-xml:2.7.1"
 retrofit-converter-gson = "com.squareup.retrofit2:converter-gson:2.9.0"
 glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 apache-commons-csv = "org.apache.commons:commons-csv:1.9.0"
+timber = "com.jakewharton.timber:timber:5.0.1"
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
