@@ -24,7 +24,7 @@ import com.google.gson.Gson
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.blocker.core.utils.StorageUtils
+import com.merxury.ifw.util.StorageUtils
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.util.PreferenceUtil

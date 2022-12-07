@@ -19,7 +19,7 @@ package com.merxury.ifw
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.PermissionUtils
-import com.merxury.blocker.core.utils.StorageUtils
+import com.merxury.ifw.util.StorageUtils
 import com.merxury.ifw.entity.Activity
 import com.merxury.ifw.entity.Broadcast
 import com.merxury.ifw.entity.Component
