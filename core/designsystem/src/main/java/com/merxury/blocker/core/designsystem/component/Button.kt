@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -37,7 +38,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Now in Android filled button with generic content slot. Wraps Material 3 [Button].
+ * Blocker filled button with generic content slot. Wraps Material 3 [Button].
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -79,7 +80,7 @@ fun BlockerFilledButton(
 }
 
 /**
- * Now in Android filled button with text and icon content slots.
+ * Blocker filled button with text and icon content slots.
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -124,7 +125,7 @@ fun BlockerFilledButton(
 }
 
 /**
- * Now in Android outlined button with generic content slot. Wraps Material 3 [OutlinedButton].
+ * Blocker outlined button with generic content slot. Wraps Material 3 [OutlinedButton].
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -169,7 +170,7 @@ fun BlockerOutlinedButton(
 }
 
 /**
- * Now in Android outlined button with text and icon content slots.
+ * Blocker outlined button with text and icon content slots.
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -217,7 +218,7 @@ fun BlockerOutlinedButton(
 }
 
 /**
- * Now in Android text button with generic content slot. Wraps Material 3 [TextButton].
+ * Blocker text button with generic content slot. Wraps Material 3 [TextButton].
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -259,7 +260,7 @@ fun BlockerTextButton(
 }
 
 /**
- * Now in Android text button with text and icon content slots.
+ * Blocker text button with text and icon content slots.
  *
  * @param onClick Will be called when the user clicks the button.
  * @param modifier Modifier to be applied to the button.
@@ -304,7 +305,7 @@ fun BlockerTextButton(
 }
 
 /**
- * Internal Now in Android button content layout for arranging the text label, leading icon and
+ * Internal Blocker button content layout for arranging the text label, leading icon and
  * trailing icon.
  *
  * @param text The button text label content.
@@ -347,7 +348,7 @@ private fun RowScope.BlockerButtonContent(
 }
 
 /**
- * Now in Android button default values.
+ * Blocker button default values.
  */
 object BlockerButtonDefaults {
     val SmallButtonHeight = 32.dp

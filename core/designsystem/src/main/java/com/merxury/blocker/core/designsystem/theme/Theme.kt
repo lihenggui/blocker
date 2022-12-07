@@ -172,7 +172,7 @@ val LightAndroidBackgroundTheme = BackgroundTheme(color = DarkGreenGray95)
 val DarkAndroidBackgroundTheme = BackgroundTheme(color = Color.Black)
 
 /**
- * Now in Android theme.
+ * Blocker theme.
  *
  * @param darkTheme Whether the theme should use a dark color scheme (follows system by default).
  * @param androidTheme Whether the theme should use the Android theme color scheme instead of the
@@ -191,7 +191,7 @@ fun BlockerTheme(
 )
 
 /**
- * Now in Android theme. This is an internal only version, to allow disabling dynamic theming
+ * Blocker theme. This is an internal only version, to allow disabling dynamic theming
  * in tests.
  *
  * @param darkTheme Whether the theme should use a dark color scheme (follows system by default).

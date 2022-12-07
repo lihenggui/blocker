@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +49,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.merxury.blocker.core.designsystem.R
 
 /**
- * Now in Android icons. Material icons are [ImageVector]s, custom icons are drawable resource IDs.
+ * Blocker icons. Material icons are [ImageVector]s, custom icons are drawable resource IDs.
  */
 object BlockerIcons {
     val List = Icons.Outlined.List

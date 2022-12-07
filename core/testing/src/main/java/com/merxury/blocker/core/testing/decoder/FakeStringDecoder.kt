@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.testing.decoder
 
-import com.google.samples.apps.nowinandroid.core.decoder.StringDecoder
+import com.merxury.blocker.core.decoder.StringDecoder
 import javax.inject.Inject
 
 class FakeStringDecoder @Inject constructor() : StringDecoder {

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 /**
- * Now in Android tab. Wraps Material 3 [Tab] and shifts text label down.
+ * Blocker tab. Wraps Material 3 [Tab] and shifts text label down.
  *
  * @param selected Whether this tab is selected or not.
  * @param onClick The callback to be invoked when this tab is selected.
@@ -68,7 +69,7 @@ fun BlockerTab(
 }
 
 /**
- * Now in Android tab row. Wraps Material 3 [TabRow].
+ * Blocker tab row. Wraps Material 3 [TabRow].
  *
  * @param selectedTabIndex The index of the currently selected tab.
  * @param modifier Modifier to be applied to the tab row.
