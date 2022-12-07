@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.core.designsystem
+package com.merxury.blocker.core.designsystem
 
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
@@ -26,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.theme.BackgroundTheme
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.DarkAndroidBackgroundTheme
 import com.merxury.blocker.core.designsystem.theme.DarkAndroidColorScheme
 import com.merxury.blocker.core.designsystem.theme.DarkDefaultColorScheme
@@ -36,10 +38,9 @@ import com.merxury.blocker.core.designsystem.theme.LightDefaultColorScheme
 import com.merxury.blocker.core.designsystem.theme.LightDefaultGradientColors
 import com.merxury.blocker.core.designsystem.theme.LocalBackgroundTheme
 import com.merxury.blocker.core.designsystem.theme.LocalGradientColors
-import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import kotlin.test.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 
 /**
  * Tests [BlockerTheme] using different combinations of the theme mode parameters:
@@ -219,7 +220,7 @@ class ThemeTest {
     }
 
     /**
-     * Workaround for the fact that the NiA design system specify all color scheme values.
+     * Workaround for the fact that the Blocker design system specify all color scheme values.
      */
     private fun assertColorSchemesEqual(
         expectedColorScheme: ColorScheme,
