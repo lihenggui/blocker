@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +23,7 @@ import androidx.compose.ui.Modifier
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 
 /**
- * Now in Android view toggle button with included trailing icon as well as compact and expanded
+ * Blocker view toggle button with included trailing icon as well as compact and expanded
  * text label content slots.
  *
  * @param expanded Whether the view toggle is currently in expanded mode or compact mode.

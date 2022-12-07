@@ -24,7 +24,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.google.samples.apps.nowinandroid.core.decoder.StringDecoder
+import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
 
 internal const val appIdArg = "appId"

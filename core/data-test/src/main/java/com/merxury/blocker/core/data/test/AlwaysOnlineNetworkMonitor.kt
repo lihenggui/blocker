@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.core.data.test
+package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.util.NetworkMonitor
 import javax.inject.Inject
