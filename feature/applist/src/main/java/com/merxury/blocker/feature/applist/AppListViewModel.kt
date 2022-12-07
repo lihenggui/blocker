@@ -2,8 +2,7 @@ package com.merxury.blocker.feature.applist
 
 import androidx.lifecycle.ViewModel
 
-class AppListViewModel : ViewModel() {
-}
+class AppListViewModel : ViewModel()
 
 data class AppStatus(
     var running: Int = 0,
