@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.core.testing.di
 
-import com.google.samples.apps.nowinandroid.core.decoder.StringDecoder
-import com.google.samples.apps.nowinandroid.core.decoder.di.StringDecoderModule
+import com.merxury.blocker.core.decoder.StringDecoder
+import com.merxury.blocker.core.decoder.di.StringDecoderModule
 import com.merxury.blocker.core.testing.decoder.FakeStringDecoder
 import dagger.Binds
 import dagger.Module
