@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.core.decoder
+package com.merxury.blocker.core.decoder
 
 import android.net.Uri
 import javax.inject.Inject
