@@ -24,12 +24,12 @@ import com.google.gson.Gson
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.ifw.util.StorageUtils
 import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
 import com.merxury.ifw.util.RuleSerializer
+import com.merxury.ifw.util.StorageUtils
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
