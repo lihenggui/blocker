@@ -27,7 +27,7 @@ import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.RootCommand
+import com.merxury.blocker.core.exec
 import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -62,7 +62,7 @@ class RootController(val context: Context) : IController {
         logger.d("command:$comm, componentState is $state")
         return withContext(Dispatchers.IO) {
             try {
-                val commandOutput = RootCommand.runBlockingCommand(comm)
+                val commandOutput = comm.exec().orEmpty()
                 logger.d("Command output: $commandOutput")
                 return@withContext !commandOutput.contains(FAILED_EXCEPTION_MSG)
             } catch (e: Exception) {
