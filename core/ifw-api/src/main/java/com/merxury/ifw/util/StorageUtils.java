@@ -16,12 +16,10 @@
 
 package com.merxury.ifw.util;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
-
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import timber.log.Timber;
 
 public class StorageUtils {
     private static final String IFW_FOLDER = "/ifw";
@@ -66,7 +64,7 @@ public class StorageUtils {
                     .getMethod("getBoolean", String.class, boolean.class)
                     .invoke(null, SYSTEM_PROPERTY_EFS_ENABLED, false);
         } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            Log.e("StorgeUtils", "Cannot access internal method", e);
+            Timber.e(e, "Cannot access internal method");
             return false;
         }
     }
