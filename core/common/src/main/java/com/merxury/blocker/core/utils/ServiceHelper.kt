@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.utils
 
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.exec
+import com.merxury.blocker.core.extension.exec
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

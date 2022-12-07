@@ -21,8 +21,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
+import com.merxury.blocker.core.extension.readParcelableCompat
 import com.merxury.blocker.core.utils.ApkUtils.getMinSdkVersion
-import com.merxury.blocker.core.utils.readParcelableCompat
 import java.io.File
 import java.util.Date
 

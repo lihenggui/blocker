@@ -13,11 +13,21 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package com.merxury.blocker.core.extension
 
-package com.merxury.blocker.core.entity
+import android.text.TextUtils
+import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-import android.content.pm.ComponentInfo
-
-fun ComponentInfo.getSimpleName(): String {
-    return name.split(".").last()
+/**
+ * Created by Mercury on 2018/2/4.
+ */
+suspend fun String.exec(): String? = withContext(Dispatchers.IO) {
+    val rootGranted = Shell.isAppGrantedRoot()
+    if (rootGranted == null || rootGranted == false) {
+        throw RuntimeException("Root unavailable")
+    }
+    val result = Shell.cmd(this@exec).exec().out
+    return@withContext TextUtils.join("\n", result)
 }

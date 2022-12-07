@@ -19,7 +19,7 @@ package com.merxury.blocker.util
 import android.os.Build
 import android.util.Log
 import com.merxury.blocker.BlockerApplication
-import com.merxury.blocker.core.exec
+import com.merxury.blocker.core.extension.exec
 import com.topjohnwu.superuser.io.SuFile
 
 object ManagerUtils {
