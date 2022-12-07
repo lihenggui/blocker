@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,7 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 /**
- * Now in Android navigation bar item with icon and label content slots. Wraps Material 3
+ * Blocker navigation bar item with icon and label content slots. Wraps Material 3
  * [NavigationBarItem].
  *
  * @param selected Whether this item is selected.
@@ -75,7 +76,7 @@ fun RowScope.BlockerNavigationBarItem(
 }
 
 /**
- * Now in Android navigation bar with content slot. Wraps Material 3 [NavigationBar].
+ * Blocker navigation bar with content slot. Wraps Material 3 [NavigationBar].
  *
  * @param modifier Modifier to be applied to the navigation bar.
  * @param content Destinations inside the navigation bar. This should contain multiple
@@ -95,7 +96,7 @@ fun BlockerNavigationBar(
 }
 
 /**
- * Now in Android navigation rail item with icon and label content slots. Wraps Material 3
+ * Blocker navigation rail item with icon and label content slots. Wraps Material 3
  * [NavigationRailItem].
  *
  * @param selected Whether this item is selected.
@@ -139,7 +140,7 @@ fun BlockerNavigationRailItem(
 }
 
 /**
- * Now in Android navigation rail with header and content slots. Wraps Material 3 [NavigationRail].
+ * Blocker navigation rail with header and content slots. Wraps Material 3 [NavigationRail].
  *
  * @param modifier Modifier to be applied to the navigation rail.
  * @param header Optional header that may hold a floating action button or a logo.
@@ -162,7 +163,7 @@ fun BlockerNavigationRail(
 }
 
 /**
- * Now in Android navigation default values.
+ * Blocker navigation default values.
  */
 object BlockerNavigationDefaults {
     @Composable

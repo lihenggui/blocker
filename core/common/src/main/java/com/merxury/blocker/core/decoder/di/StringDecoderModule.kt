@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.samples.apps.nowinandroid.core.decoder.di
+package com.merxury.blocker.core.decoder.di
 
-import com.google.samples.apps.nowinandroid.core.decoder.StringDecoder
-import com.google.samples.apps.nowinandroid.core.decoder.UriDecoder
+import com.merxury.blocker.core.decoder.StringDecoder
+import com.merxury.blocker.core.decoder.UriDecoder
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 
 /**
- * Now in Android filter chip with included leading checked icon as well as text content slot.
+ * Blocker filter chip with included leading checked icon as well as text content slot.
  *
  * @param selected Whether the chip is currently checked.
  * @param onSelectedChange Called when the user clicks the chip and toggles checked.
@@ -102,7 +103,7 @@ fun BlockerFilterChip(
 }
 
 /**
- * Now in Android chip default values.
+ * Blocker chip default values.
  */
 object BlockerChipDefaults {
     const val DisabledChipContainerAlpha = 0.12f
