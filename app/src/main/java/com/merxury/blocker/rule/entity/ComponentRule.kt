@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.rule.entity
 
-import com.merxury.blocker.core.entity.EComponentType
+import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.core.root.EControllerMethod
 
 data class ComponentRule(

@@ -26,7 +26,7 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.entity.EComponentType
+import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper

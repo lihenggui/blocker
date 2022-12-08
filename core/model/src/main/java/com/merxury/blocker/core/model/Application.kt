@@ -14,10 +14,24 @@
  *   limitations under the License.
  */
 
-package com.merxury.blocker.core.entity
+package com.merxury.blocker.core.model
 
-import android.content.pm.ComponentInfo
+import android.content.pm.PackageInfo
+import android.os.Parcelable
+import java.util.Date
+import kotlinx.parcelize.Parcelize
 
-fun ComponentInfo.getSimpleName(): String {
-    return name.split(".").last()
-}
+/**
+ * Created by Mercury on 2017/12/30.
+ * An entity class that describe simplified application information
+ */
+@Parcelize
+data class Application(
+    var packageName: String = "",
+    var versionName: String? = "",
+    var isEnabled: Boolean = false,
+    var label: String = "",
+    var firstInstallTime: Date? = null,
+    var lastUpdateTime: Date? = null,
+    var packageInfo: PackageInfo? = null,
+) : Parcelable

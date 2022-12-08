@@ -23,6 +23,7 @@ import android.content.pm.ServiceInfo
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.core.extension.getPackageInfoCompat
 import java.io.File
 import java.io.IOException
 import java.lang.reflect.InvocationTargetException
