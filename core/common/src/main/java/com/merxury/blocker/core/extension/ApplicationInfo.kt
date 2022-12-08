@@ -14,8 +14,9 @@
  *   limitations under the License.
  */
 
-package com.merxury.blocker.core.utils
+package com.merxury.blocker.core.extension
 
+import android.annotation.SuppressLint
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -48,6 +49,7 @@ fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int): Ap
         else -> @Suppress("DEPRECATION") getApplicationInfo(packageName, flags)
     }
 
+@SuppressLint("QueryPermissionsNeeded")
 fun PackageManager.getInstalledPackagesCompat(flags: Int): List<PackageInfo> = when {
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
         getInstalledPackages(PackageManager.PackageInfoFlags.of(flags.toLong()))

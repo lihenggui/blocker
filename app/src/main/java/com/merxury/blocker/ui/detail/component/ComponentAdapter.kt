@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.entity.EComponentType
+import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.data.component.OnlineComponentData
 import com.merxury.blocker.data.component.OnlineComponentDataRepository
 import com.merxury.blocker.databinding.ComponentItemBinding

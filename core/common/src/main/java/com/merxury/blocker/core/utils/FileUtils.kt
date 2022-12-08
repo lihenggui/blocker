@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.utils
 
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.RootCommand
+import com.merxury.blocker.core.extension.exec
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
 import java.io.BufferedOutputStream
@@ -40,8 +40,8 @@ object FileUtils {
     }
 
     @JvmStatic
-    fun cat(source: String, dest: String) {
-        RootCommand.runBlockingCommand("cat '$source' > '$dest'")
+    suspend fun cat(source: String, dest: String) {
+        "cat '$source' > '$dest'".exec()
     }
 
     @JvmStatic
@@ -55,12 +55,12 @@ object FileUtils {
     }
 
     @JvmStatic
-    fun chmod(path: String, permission: Int, recursively: Boolean) {
+    suspend fun chmod(path: String, permission: Int, recursively: Boolean) {
         val comm = when (recursively) {
             true -> "chmod $permission '$path'"
             false -> "chmod -R $permission '$path'"
         }
-        RootCommand.runBlockingCommand(comm)
+        comm.exec()
     }
 
     @JvmStatic

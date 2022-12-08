@@ -31,8 +31,12 @@ import android.content.pm.ProviderInfo
 import android.content.pm.ServiceInfo
 import android.os.Build
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.entity.Application
+import com.merxury.blocker.core.extension.getApplicationInfoCompat
+import com.merxury.blocker.core.extension.getInstalledPackagesCompat
+import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.Application
 import java.util.Collections
+import java.util.Date
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -56,7 +60,7 @@ object ApplicationUtil {
             val installedApp = pm.getInstalledPackagesCompat(0)
             installedApp.asSequence()
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
-                .map { Application(pm, it) }
+                .map { it.toApplication(pm) }
                 .toMutableList()
         }
     }
@@ -81,7 +85,7 @@ object ApplicationUtil {
             installedPackages.asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
                 .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
-                .map { Application(pm, it) }
+                .map { it.toApplication(pm) }
                 .toMutableList()
         }
     }
@@ -101,7 +105,7 @@ object ApplicationUtil {
             val installedPackages = pm.getInstalledPackagesCompat(0)
             installedPackages.asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
-                .map { Application(pm, it) }
+                .map { it.toApplication(pm) }
                 .toMutableList()
         }
     }
@@ -269,10 +273,13 @@ object ApplicationUtil {
         }
     }
 
-    suspend fun getApplicationInfo(context: Context, packageName: String): Application? {
+    suspend fun getApplicationInfo(
+        context: Context,
+        packageName: String
+    ): Application? {
         val pm = context.packageManager
         val info = getApplicationComponents(pm, packageName, 0) ?: return null
-        return Application(pm, info)
+        return info.toApplication(pm)
     }
 
     /**
@@ -394,4 +401,16 @@ object ApplicationUtil {
     ): Boolean {
         return getActivityList(pm, packageName).any { it.name == componentName }
     }
+}
+
+private fun PackageInfo.toApplication(pm: PackageManager): Application {
+    return Application(
+        packageName = packageName,
+        versionName = versionName,
+        isEnabled = applicationInfo?.enabled ?: false,
+        label = applicationInfo?.loadLabel(pm).toString(),
+        firstInstallTime = Date(firstInstallTime),
+        lastUpdateTime = Date(lastUpdateTime),
+        packageInfo = this,
+    )
 }

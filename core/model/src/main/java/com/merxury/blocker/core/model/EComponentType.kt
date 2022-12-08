@@ -14,14 +14,11 @@
  *   limitations under the License.
  */
 
-package com.merxury.blocker.core.entity
+package com.merxury.blocker.core.model
 
-enum class ETrimMemoryLevel {
-    HIDDEN,
-    RUNNING_MODERATE,
-    BACKGROUND,
-    RUNNING_LOW,
-    MODERATE,
-    RUNNING_CRITICAL,
-    COMPLETE
+enum class EComponentType {
+    RECEIVER,
+    ACTIVITY,
+    SERVICE,
+    PROVIDER
 }

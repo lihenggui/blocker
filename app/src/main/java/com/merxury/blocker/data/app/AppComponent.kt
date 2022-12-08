@@ -19,7 +19,7 @@ package com.merxury.blocker.data.app
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
-import com.merxury.blocker.core.entity.EComponentType
+import com.merxury.blocker.core.model.EComponentType
 
 @Entity(
     primaryKeys = ["package_name", "component_name"],

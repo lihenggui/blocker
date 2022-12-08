@@ -26,8 +26,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
-import com.merxury.blocker.core.entity.EComponentType
-import com.merxury.blocker.core.entity.getSimpleName
+import com.merxury.blocker.core.extension.getSimpleName
+import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
@@ -117,8 +117,10 @@ class ComponentViewModel @Inject constructor(
 
     @Throws(RuntimeException::class)
     fun launchActivity(component: ComponentData) {
-        logger.i("Launch ${component.packageName}/${component.name} without params")
-        ManagerUtils.launchActivity(component.packageName, component.name)
+        viewModelScope.launch {
+            logger.i("Launch ${component.packageName}/${component.name} without params")
+            ManagerUtils.launchActivity(component.packageName, component.name)
+        }
     }
 
     private fun doBatchOperation(
