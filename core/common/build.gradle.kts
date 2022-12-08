@@ -24,6 +24,7 @@ android {
 }
 
 dependencies {
+    api(project(":core:model"))
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.xlog)
     implementation(libs.libsu.core)
