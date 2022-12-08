@@ -414,4 +414,3 @@ private fun PackageInfo.toApplication(pm: PackageManager): Application {
         packageInfo = this,
     )
 }
-
