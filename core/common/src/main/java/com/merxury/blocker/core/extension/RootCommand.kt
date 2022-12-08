@@ -13,30 +13,21 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
+package com.merxury.blocker.core.extension
 
-package com.merxury.blocker.core;
-
-import android.text.TextUtils;
-
-import androidx.annotation.NonNull;
-
-import com.topjohnwu.superuser.Shell;
-
-import java.util.List;
+import android.text.TextUtils
+import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Created by Mercury on 2018/2/4.
  */
-
-public class RootCommand {
-
-    @NonNull
-    public synchronized static String runBlockingCommand(final String comm) {
-        Boolean rootGranted = Shell.isAppGrantedRoot();
-        if (rootGranted == null || Boolean.FALSE.equals(rootGranted)) {
-            throw new RuntimeException("Root unavailable");
-        }
-        List<String> result = Shell.cmd(comm).exec().getOut();
-        return TextUtils.join("\n", result);
+suspend fun String.exec(): String? = withContext(Dispatchers.IO) {
+    val rootGranted = Shell.isAppGrantedRoot()
+    if (rootGranted == null || rootGranted == false) {
+        throw RuntimeException("Root unavailable")
     }
+    val result = Shell.cmd(this@exec).exec().out
+    return@withContext TextUtils.join("\n", result)
 }

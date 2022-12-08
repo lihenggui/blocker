@@ -14,11 +14,10 @@
  *   limitations under the License.
  */
 
-package com.merxury.blocker.core.entity
+package com.merxury.blocker.core.extension
 
-enum class EComponentType {
-    RECEIVER,
-    ACTIVITY,
-    SERVICE,
-    PROVIDER
+import android.content.pm.ComponentInfo
+
+fun ComponentInfo.getSimpleName(): String {
+    return name.split(".").last()
 }

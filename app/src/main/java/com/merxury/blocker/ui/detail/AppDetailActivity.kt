@@ -31,7 +31,7 @@ import androidx.core.view.updateLayoutParams
 import com.elvishew.xlog.XLog
 import com.google.android.material.tabs.TabLayoutMediator
 import com.merxury.blocker.R
-import com.merxury.blocker.core.entity.Application
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.databinding.ActivityAppDetailBinding
 import com.merxury.blocker.util.PreferenceUtil

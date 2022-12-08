@@ -28,7 +28,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.entity.Application
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.databinding.AppListItemBinding
 import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.AppStateCache

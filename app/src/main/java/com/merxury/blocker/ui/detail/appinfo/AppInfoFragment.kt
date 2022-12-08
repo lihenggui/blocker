@@ -34,7 +34,7 @@ import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.R
-import com.merxury.blocker.core.entity.Application
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.data.AndroidCodeName
 import com.merxury.blocker.databinding.AppInfoFragmentBinding
 import com.merxury.blocker.rule.Rule
@@ -279,15 +279,16 @@ class AppInfoFragment : Fragment() {
                     targetSdkName
                 )
             )
-            val minSdkVersion = app.getMinSdkVersion()
-            val minSdkName = AndroidCodeName.getCodeName(minSdkVersion)
-            binding.itemMinSdkVersion.setSummary(
-                getString(
-                    R.string.sdk_version_with_name_template,
-                    minSdkVersion,
-                    minSdkName
-                )
-            )
+            // TODO Fix min SDK issues
+//            val minSdkVersion = app.getMinSdkVersion()
+//            val minSdkName = AndroidCodeName.getCodeName(minSdkVersion)
+//            binding.itemMinSdkVersion.setSummary(
+//                getString(
+//                    R.string.sdk_version_with_name_template,
+//                    minSdkVersion,
+//                    minSdkName
+//                )
+//            )
             val lastUpdateTime = app.lastUpdateTime ?: Date(0)
             val formatter = DateFormat.getDateTimeInstance()
             binding.itemLastUpdateTime.setSummary(formatter.format(lastUpdateTime))
