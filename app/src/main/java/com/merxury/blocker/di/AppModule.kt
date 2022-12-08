@@ -20,9 +20,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.merxury.blocker.data.app.AppComponentDao
-import com.merxury.blocker.data.app.InstalledAppDao
-import com.merxury.blocker.data.app.InstalledAppDatabase
 import com.merxury.blocker.data.component.OnlineComponentDataRepository
 import com.merxury.blocker.data.component.OnlineComponentDataService
 import com.merxury.blocker.data.instantinfo.InstantComponentInfoDao
@@ -91,23 +88,6 @@ object AppModule {
     @Provides
     fun providesGson(): Gson {
         return GsonBuilder().serializeNulls().create()
-    }
-
-    @Provides
-    @Singleton
-    fun provideInstalledAppDatabase(@ApplicationContext context: Context): InstalledAppDatabase {
-        return InstalledAppDatabase.getInstance(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideInstalledAppDao(database: InstalledAppDatabase): InstalledAppDao {
-        return database.installedAppDao()
-    }
-
-    @Provides
-    fun provideAppComponentDao(database: InstalledAppDatabase): AppComponentDao {
-        return database.appComponentDao()
     }
 
     @Provides

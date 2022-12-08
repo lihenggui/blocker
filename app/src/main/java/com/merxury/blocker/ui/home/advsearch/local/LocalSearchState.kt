@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.ui.home.advsearch.local
 
+import com.merxury.blocker.core.database.app.InstalledApp
 import com.merxury.blocker.data.Event
-import com.merxury.blocker.data.app.InstalledApp
 
 sealed class LocalSearchState {
     object NotStarted : LocalSearchState()
