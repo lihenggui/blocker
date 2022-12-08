@@ -90,6 +90,8 @@ android {
 }
 
 dependencies {
+    // TODO model should be removed
+    implementation(project(":core:model"))
     implementation(project(":core:component-controller"))
     implementation(project(":core:ifw-api"))
     implementation(project(":core:common"))

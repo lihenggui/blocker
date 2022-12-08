@@ -411,6 +411,7 @@ private fun PackageInfo.toApplication(pm: PackageManager): Application {
         label = applicationInfo?.loadLabel(pm).toString(),
         firstInstallTime = Date(firstInstallTime),
         lastUpdateTime = Date(lastUpdateTime),
+        packageInfo = this,
     )
 }
 

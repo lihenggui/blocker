@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.data.app
 
-import com.merxury.blocker.core.entity.EComponentType
+import com.merxury.blocker.core.model.EComponentType
 import javax.inject.Inject
 import javax.inject.Singleton
 
