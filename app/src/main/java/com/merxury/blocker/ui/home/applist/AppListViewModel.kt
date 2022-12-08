@@ -23,7 +23,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.entity.Application
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.util.ManagerUtils
 import com.merxury.blocker.util.PreferenceUtil
@@ -161,11 +161,11 @@ class AppListViewModel : ViewModel() {
 
     private fun sortList(list: List<Application>, sortType: SortType?): List<Application> {
         return when (sortType) {
-            SortType.NAME_ASC -> list.sortedBy { it.getLabel(pm!!) }
-            SortType.NAME_DESC -> list.sortedByDescending { it.getLabel(pm!!) }
+            SortType.NAME_ASC -> list.sortedBy { it.label }
+            SortType.NAME_DESC -> list.sortedByDescending { it.label }
             SortType.INSTALL_TIME -> list.sortedByDescending { it.firstInstallTime }
             SortType.LAST_UPDATE_TIME -> list.sortedByDescending { it.lastUpdateTime }
-            else -> list.sortedBy { it.getLabel(pm!!) }
+            else -> list.sortedBy { it.label }
         }
     }
 }

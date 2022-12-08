@@ -45,7 +45,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.entity.EComponentType
+import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.databinding.ComponentFragmentBinding
 import com.merxury.blocker.ui.detail.component.info.ComponentDetailBottomSheetFragment
 import com.merxury.blocker.util.BrowserUtil
