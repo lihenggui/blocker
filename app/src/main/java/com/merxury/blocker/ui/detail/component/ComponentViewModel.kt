@@ -26,13 +26,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
+import com.merxury.blocker.core.database.app.AppComponentRepository
 import com.merxury.blocker.core.extension.getSimpleName
 import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.ServiceHelper
-import com.merxury.blocker.data.app.AppComponentRepository
 import com.merxury.blocker.data.component.OnlineComponentDataRepository
 import com.merxury.blocker.util.ManagerUtils
 import com.merxury.blocker.util.PreferenceUtil

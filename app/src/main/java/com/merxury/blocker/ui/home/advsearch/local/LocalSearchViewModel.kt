@@ -26,15 +26,18 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.database.app.AppComponent
+import com.merxury.blocker.core.database.app.AppComponentRepository
+import com.merxury.blocker.core.database.app.InstalledApp
+import com.merxury.blocker.core.database.app.InstalledAppRepository
+import com.merxury.blocker.core.model.EComponentType.ACTIVITY
+import com.merxury.blocker.core.model.EComponentType.PROVIDER
+import com.merxury.blocker.core.model.EComponentType.RECEIVER
+import com.merxury.blocker.core.model.EComponentType.SERVICE
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.data.Event
-import com.merxury.blocker.data.app.AppComponent
-import com.merxury.blocker.data.app.AppComponentRepository
-import com.merxury.blocker.data.app.InstalledApp
-import com.merxury.blocker.data.app.InstalledAppRepository
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -51,7 +54,8 @@ class LocalSearchViewModel @Inject constructor(
     private val logger = XLog.tag("AdvSearchViewModel")
     private val _filteredData: MutableLiveData<Map<InstalledApp?, List<AppComponent>>> =
         MutableLiveData()
-    val filteredData: LiveData<Map<InstalledApp?, List<AppComponent>>> = _filteredData
+    val filteredData: LiveData<Map<InstalledApp?, List<AppComponent>>> =
+        _filteredData
     private val _error = MutableLiveData<Event<Exception>>()
     val error: LiveData<Event<Exception>> = _error
 
@@ -110,7 +114,10 @@ class LocalSearchViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateComponentInfo(context: Context, app: InstalledApp) {
+    private suspend fun updateComponentInfo(
+        context: Context,
+        app: InstalledApp
+    ) {
         val serviceHelper = ServiceHelper(app.packageName)
         serviceHelper.refresh()
         val ifwController = IntentFirewallImpl(app.packageName).load()
@@ -123,7 +130,7 @@ class LocalSearchViewModel @Inject constructor(
                     componentName = it.name,
                     ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
                     pmBlocked = !pmController.checkComponentEnableState(app.packageName, it.name),
-                    type = EComponentType.ACTIVITY,
+                    type = ACTIVITY,
                     exported = it.exported,
                 )
             }
@@ -135,7 +142,7 @@ class LocalSearchViewModel @Inject constructor(
                     componentName = it.name,
                     ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
                     pmBlocked = !pmController.checkComponentEnableState(app.packageName, it.name),
-                    type = EComponentType.SERVICE,
+                    type = SERVICE,
                     exported = it.exported,
                 )
             }
@@ -147,7 +154,7 @@ class LocalSearchViewModel @Inject constructor(
                     componentName = it.name,
                     ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
                     pmBlocked = !pmController.checkComponentEnableState(app.packageName, it.name),
-                    type = EComponentType.RECEIVER,
+                    type = RECEIVER,
                     exported = it.exported,
                 )
             }
@@ -159,7 +166,7 @@ class LocalSearchViewModel @Inject constructor(
                     componentName = it.name,
                     ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
                     pmBlocked = !pmController.checkComponentEnableState(app.packageName, it.name),
-                    type = EComponentType.PROVIDER,
+                    type = PROVIDER,
                     exported = it.exported,
                 )
             }
@@ -184,7 +191,8 @@ class LocalSearchViewModel @Inject constructor(
             .filterNot { it.trim().isEmpty() }
             .map { it.trim().lowercase() }
         viewModelScope.launch(Dispatchers.IO) {
-            val searchedComponents = mutableListOf<AppComponent>()
+            val searchedComponents =
+                mutableListOf<AppComponent>()
             keywords.forEach { keyword ->
                 val appComponents = appComponentRepository.getAppComponentByName(keyword)
                 searchedComponents.addAll(appComponents)
@@ -247,7 +255,10 @@ class LocalSearchViewModel @Inject constructor(
         }
     }
 
-    private suspend fun processProviders(list: List<AppComponent>, enabled: Boolean) {
+    private suspend fun processProviders(
+        list: List<AppComponent>,
+        enabled: Boolean
+    ) {
         val context = BlockerApplication.context
         val type = PreferenceUtil.getControllerType(context)
         if (type != EControllerMethod.IFW) {
@@ -255,7 +266,7 @@ class LocalSearchViewModel @Inject constructor(
             return
         }
         // IFW cannot handle providers, do extra logics
-        val providerList = list.filter { it.type == EComponentType.PROVIDER }
+        val providerList = list.filter { it.type == PROVIDER }
         if (providerList.isNotEmpty()) {
             val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
             providerList.forEach {
@@ -295,7 +306,7 @@ class LocalSearchViewModel @Inject constructor(
             componentList.firstOrNull { it.componentName == component.name } ?: return
         if (
             controllerType == EControllerMethod.IFW &&
-            componentData.type != EComponentType.PROVIDER
+            componentData.type != PROVIDER
         ) {
             componentData.ifwBlocked = !enabled
         } else {
