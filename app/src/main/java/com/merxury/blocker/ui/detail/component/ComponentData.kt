@@ -17,7 +17,7 @@
 package com.merxury.blocker.ui.detail.component
 
 import android.os.Parcelable
-import com.merxury.blocker.core.entity.EComponentType
+import com.merxury.blocker.core.model.EComponentType
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
