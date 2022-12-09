@@ -18,6 +18,7 @@ package com.merxury.blocker.core.database
 
 import android.content.Context
 import com.merxury.blocker.core.database.app.InstalledAppDatabase
+import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -34,5 +35,13 @@ object DatabaseModule {
         @ApplicationContext context: Context
     ): InstalledAppDatabase {
         return InstalledAppDatabase.getInstance(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideInstantComponentInfoDatabase(
+        @ApplicationContext context: Context
+    ): InstantComponentInfoDatabase {
+        return InstantComponentInfoDatabase.getInstance(context)
     }
 }
