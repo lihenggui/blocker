@@ -1,8 +1,18 @@
 package com.merxury.blocker.feature.applist
 
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
-class AppListViewModel : ViewModel()
+@HiltViewModel
+class AppListViewModel @Inject constructor() : ViewModel() {
+    private val _uiState: MutableStateFlow<AppListUiState> =
+        MutableStateFlow(AppListUiState.Loading)
+    val uiState: StateFlow<AppListUiState> = _uiState
+}
 
 data class AppStatus(
     var running: Int = 0,
@@ -17,3 +27,11 @@ data class AppInfo(
     var appIconUrl: String = "",
     var appStatus: AppStatus
 )
+
+sealed interface AppListUiState {
+    object Loading : AppListUiState
+    class Error(val errorMessage: String) : AppListUiState
+    data class Success(
+        val appList: SnapshotStateList<AppInfo>
+    ) : AppListUiState
+}

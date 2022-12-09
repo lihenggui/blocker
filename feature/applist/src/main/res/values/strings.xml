@@ -17,4 +17,5 @@
 -->
 <resources>
     <string name="service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
+    <string name="loading">Loading</string>
 </resources>
