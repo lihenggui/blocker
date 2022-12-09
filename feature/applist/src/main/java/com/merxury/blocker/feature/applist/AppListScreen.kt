@@ -4,6 +4,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -19,10 +21,14 @@ fun AppListRoute(
 fun AppListScreen(
     appInfo: List<AppInfo>,
     navigateToAppDetail: (String) -> Unit,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     modifier: Modifier
 ) {
     val listContent = remember { appInfo }
     val listState = rememberLazyListState()
+    val refreshing by remember { mutableStateOf(isRefreshing) }
+    val refreshingState = rememberPullRefreshState(refreshing, onRefresh)
     LazyColumn(
         modifier = modifier,
         state = listState
