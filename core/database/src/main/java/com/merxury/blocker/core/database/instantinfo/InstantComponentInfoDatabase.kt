@@ -21,7 +21,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.merxury.blocker.core.database.converter.ListConverter
+import com.merxury.blocker.core.database.util.ListConverter
 
 @Database(entities = [InstantComponentInfo::class], version = 1, exportSchema = true)
 @TypeConverters(ListConverter::class)
