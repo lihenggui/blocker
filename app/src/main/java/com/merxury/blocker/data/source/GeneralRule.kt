@@ -20,11 +20,11 @@ import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.merxury.blocker.data.source.local.ListConverters
+import com.merxury.blocker.core.database.converter.ListConverter
 
 @Keep
 @Entity(tableName = "general_rules")
-@TypeConverters(ListConverters::class)
+@TypeConverters(ListConverter::class)
 data class GeneralRule(
     @PrimaryKey val id: Int,
     var name: String? = null,
