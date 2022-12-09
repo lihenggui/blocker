@@ -22,3 +22,7 @@ plugins {
 android {
     namespace = "com.merxury.blocker.feature.applist"
 }
+dependencies {
+    api(libs.androidx.compose.material)
+}
+
