@@ -20,7 +20,7 @@ import androidx.annotation.Keep
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import com.merxury.blocker.core.database.converter.ListConverter
+import com.merxury.blocker.core.database.util.ListConverter
 
 @Keep
 @Entity(tableName = "general_rules")

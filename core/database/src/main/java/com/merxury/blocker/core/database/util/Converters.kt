@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.database.converter
+package com.merxury.blocker.core.database.util
 
 import androidx.room.TypeConverter
+import java.util.Date
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-object ListConverter {
+class ListConverter {
     @TypeConverter
     fun fromString(value: String): List<String> {
         return Json.decodeFromString(value)
@@ -30,5 +31,17 @@ object ListConverter {
     @TypeConverter
     fun fromArrayList(list: List<String>): String {
         return Json.encodeToString(list)
+    }
+}
+
+class TimeConverter {
+    @TypeConverter
+    fun fromTimeStamp(value: Long?): Date? {
+        return value?.let { Date(it) }
+    }
+
+    @TypeConverter
+    fun dateToTimestamp(date: Date?): Long? {
+        return date?.time
     }
 }
