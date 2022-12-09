@@ -21,7 +21,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.merxury.blocker.core.database.converter.TimeConverter
+import com.merxury.blocker.core.database.util.TimeConverter
 
 @Database(entities = [InstalledApp::class, AppComponent::class], version = 1)
 @TypeConverters(TimeConverter::class)
