@@ -19,10 +19,12 @@ plugins {
     id("blocker.android.library.compose")
     id("blocker.android.library.jacoco")
 }
+
 android {
     namespace = "com.merxury.blocker.feature.applist"
 }
+
 dependencies {
-    api(libs.androidx.compose.material)
+    implementation(libs.androidx.compose.material)
 }
 

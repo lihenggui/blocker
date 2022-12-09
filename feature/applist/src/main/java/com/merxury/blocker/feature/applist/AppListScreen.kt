@@ -3,6 +3,8 @@ package com.merxury.blocker.feature.applist
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +19,7 @@ fun AppListRoute(
 ) {
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppListScreen(
     appInfo: List<AppInfo>,
