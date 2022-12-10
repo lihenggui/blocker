@@ -28,13 +28,13 @@ import com.merxury.blocker.core.model.EComponentType
 @Dao
 interface AppComponentDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(vararg appComponents: AppComponent)
+    suspend fun insert(vararg appComponentEntities: AppComponentEntity)
 
     @Update
-    suspend fun update(appComponent: AppComponent): Int
+    suspend fun update(appComponentEntity: AppComponentEntity): Int
 
     @Delete
-    suspend fun delete(appComponent: AppComponent): Int
+    suspend fun delete(appComponentEntity: AppComponentEntity): Int
 
     @Query("DELETE FROM app_component WHERE package_name LIKE :packageName")
     suspend fun deleteByPackageName(packageName: String): Int
@@ -43,7 +43,7 @@ interface AppComponentDao {
     suspend fun deleteAll(): Int
 
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName")
-    suspend fun getByPackageName(packageName: String): List<AppComponent>
+    suspend fun getByPackageName(packageName: String): List<AppComponentEntity>
 
     @Query(
         "SELECT * FROM app_component WHERE package_name LIKE :packageName " +
@@ -52,15 +52,15 @@ interface AppComponentDao {
     suspend fun getByPackageNameAndComponentName(
         packageName: String,
         componentName: String
-    ): AppComponent?
+    ): AppComponentEntity?
 
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName AND type = :type")
     suspend fun getByPackageNameAndType(
         packageName: String,
         type: EComponentType
-    ): List<AppComponent>
+    ): List<AppComponentEntity>
 
     @Transaction
     @Query("SELECT * FROM app_component WHERE component_name LIKE '%' || :searchKeyword || '%'")
-    suspend fun getByName(searchKeyword: String): List<AppComponent>
+    suspend fun getByName(searchKeyword: String): List<AppComponentEntity>
 }

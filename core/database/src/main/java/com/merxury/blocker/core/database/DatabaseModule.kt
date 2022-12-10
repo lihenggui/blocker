@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.database
 
 import android.content.Context
+import androidx.room.Room
 import com.merxury.blocker.core.database.app.InstalledAppDatabase
 import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDatabase
 import dagger.Module
@@ -34,7 +35,13 @@ object DatabaseModule {
     fun provideInstalledAppDatabase(
         @ApplicationContext context: Context
     ): InstalledAppDatabase {
-        return InstalledAppDatabase.getInstance(context)
+        return Room.databaseBuilder(
+            context,
+            InstalledAppDatabase::class.java,
+            "installed_app"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides

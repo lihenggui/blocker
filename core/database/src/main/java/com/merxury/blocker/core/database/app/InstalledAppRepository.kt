@@ -30,11 +30,11 @@ class InstalledAppRepository @Inject constructor(
     suspend fun getByPackageName(packageName: String) =
         installedAppDao.getByPackageName(packageName)
 
-    suspend fun addInstalledAppList(list: Array<InstalledApp>) {
+    suspend fun addInstalledAppList(list: Array<InstalledAppEntity>) {
         installedAppDao.insertAll(*list)
     }
 
-    suspend fun addInstalledApp(app: InstalledApp) {
+    suspend fun addInstalledApp(app: InstalledAppEntity) {
         installedAppDao.insert(app)
     }
 

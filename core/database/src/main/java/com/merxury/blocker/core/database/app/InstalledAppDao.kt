@@ -26,25 +26,25 @@ import androidx.room.Update
 @Dao
 interface InstalledAppDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(vararg installedApp: InstalledApp)
+    suspend fun insertAll(vararg installedAppEntity: InstalledAppEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(installedApp: InstalledApp)
+    suspend fun insert(installedAppEntity: InstalledAppEntity)
 
     @Delete
-    suspend fun delete(installedApp: InstalledApp): Int
+    suspend fun delete(installedAppEntity: InstalledAppEntity): Int
 
     @Query("DELETE FROM installed_app")
     suspend fun deleteAll()
 
     @Update
-    suspend fun update(installedApp: InstalledApp): Int
+    suspend fun update(installedAppEntity: InstalledAppEntity): Int
 
     @Query("SELECT * FROM installed_app")
-    suspend fun getAll(): List<InstalledApp>
+    suspend fun getAll(): List<InstalledAppEntity>
 
     @Query("SELECT * FROM installed_app WHERE package_name = :packageName")
-    suspend fun getByPackageName(packageName: String): InstalledApp?
+    suspend fun getByPackageName(packageName: String): InstalledAppEntity?
 
     @Query("SELECT COUNT(package_name) FROM installed_app")
     suspend fun getCount(): Int

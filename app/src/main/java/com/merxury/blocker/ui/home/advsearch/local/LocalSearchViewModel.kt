@@ -26,9 +26,9 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.database.app.AppComponent
+import com.merxury.blocker.core.database.app.AppComponentEntity
 import com.merxury.blocker.core.database.app.AppComponentRepository
-import com.merxury.blocker.core.database.app.InstalledApp
+import com.merxury.blocker.core.database.app.InstalledAppEntity
 import com.merxury.blocker.core.database.app.InstalledAppRepository
 import com.merxury.blocker.core.model.EComponentType.ACTIVITY
 import com.merxury.blocker.core.model.EComponentType.PROVIDER
@@ -52,9 +52,9 @@ class LocalSearchViewModel @Inject constructor(
     private val installedAppRepository: InstalledAppRepository
 ) : ViewModel() {
     private val logger = XLog.tag("AdvSearchViewModel")
-    private val _filteredData: MutableLiveData<Map<InstalledApp?, List<AppComponent>>> =
+    private val _filteredData: MutableLiveData<Map<InstalledAppEntity?, List<AppComponentEntity>>> =
         MutableLiveData()
-    val filteredData: LiveData<Map<InstalledApp?, List<AppComponent>>> =
+    val filteredData: LiveData<Map<InstalledAppEntity?, List<AppComponentEntity>>> =
         _filteredData
     private val _error = MutableLiveData<Event<Exception>>()
     val error: LiveData<Event<Exception>> = _error
@@ -98,9 +98,9 @@ class LocalSearchViewModel @Inject constructor(
         val systemApp = ApplicationUtil.getSystemApplicationList(context)
         appList.map { app ->
             val isSystem = systemApp.any { it.packageName == app.packageName }
-            InstalledApp(
+            InstalledAppEntity(
                 packageName = app.packageName,
-                versionName = app.versionName,
+                versionName = app.versionName.orEmpty(),
                 firstInstallTime = app.firstInstallTime,
                 lastUpdateTime = app.lastUpdateTime,
                 isEnabled = app.isEnabled,
@@ -116,7 +116,7 @@ class LocalSearchViewModel @Inject constructor(
 
     private suspend fun updateComponentInfo(
         context: Context,
-        app: InstalledApp
+        app: InstalledAppEntity
     ) {
         val serviceHelper = ServiceHelper(app.packageName)
         serviceHelper.refresh()
@@ -125,7 +125,7 @@ class LocalSearchViewModel @Inject constructor(
         val activities = ApplicationUtil
             .getActivityList(context.packageManager, app.packageName)
             .map {
-                AppComponent(
+                AppComponentEntity(
                     packageName = app.packageName,
                     componentName = it.name,
                     ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
@@ -137,7 +137,7 @@ class LocalSearchViewModel @Inject constructor(
         val services = ApplicationUtil
             .getServiceList(context.packageManager, app.packageName)
             .map {
-                AppComponent(
+                AppComponentEntity(
                     packageName = app.packageName,
                     componentName = it.name,
                     ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
@@ -149,7 +149,7 @@ class LocalSearchViewModel @Inject constructor(
         val receivers = ApplicationUtil
             .getReceiverList(context.packageManager, app.packageName)
             .map {
-                AppComponent(
+                AppComponentEntity(
                     packageName = app.packageName,
                     componentName = it.name,
                     ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
@@ -161,7 +161,7 @@ class LocalSearchViewModel @Inject constructor(
         val providers = ApplicationUtil
             .getProviderList(context.packageManager, app.packageName)
             .map {
-                AppComponent(
+                AppComponentEntity(
                     packageName = app.packageName,
                     componentName = it.name,
                     ifwBlocked = !ifwController.getComponentEnableState(app.packageName, it.name),
@@ -170,7 +170,7 @@ class LocalSearchViewModel @Inject constructor(
                     exported = it.exported,
                 )
             }
-        val components = ArrayList<AppComponent>().apply {
+        val components = ArrayList<AppComponentEntity>().apply {
             addAll(activities)
             addAll(services)
             addAll(receivers)
@@ -192,7 +192,7 @@ class LocalSearchViewModel @Inject constructor(
             .map { it.trim().lowercase() }
         viewModelScope.launch(Dispatchers.IO) {
             val searchedComponents =
-                mutableListOf<AppComponent>()
+                mutableListOf<AppComponentEntity>()
             keywords.forEach { keyword ->
                 val appComponents = appComponentRepository.getAppComponentByName(keyword)
                 searchedComponents.addAll(appComponents)
@@ -256,7 +256,7 @@ class LocalSearchViewModel @Inject constructor(
     }
 
     private suspend fun processProviders(
-        list: List<AppComponent>,
+        list: List<AppComponentEntity>,
         enabled: Boolean
     ) {
         val context = BlockerApplication.context
