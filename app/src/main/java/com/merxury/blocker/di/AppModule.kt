@@ -22,8 +22,8 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.merxury.blocker.data.source.GeneralRuleRepository
 import com.merxury.blocker.data.source.OnlineSourceType
-import com.merxury.blocker.data.source.local.GeneralRuleDao
-import com.merxury.blocker.data.source.local.GeneralRuleDatabase
+import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
+import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
 import com.merxury.blocker.data.source.remote.GeneralRuleService
 import com.merxury.blocker.data.source.remote.RuleRemoteDataSource
 import com.merxury.blocker.util.PreferenceUtil
