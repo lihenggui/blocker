@@ -22,27 +22,27 @@ import javax.inject.Singleton
 
 @Singleton
 class AppComponentRepository @Inject constructor(private val appComponentDao: AppComponentDao) {
-    suspend fun getAppComponents(packageName: String): List<AppComponent> {
+    suspend fun getAppComponents(packageName: String): List<AppComponentEntity> {
         return appComponentDao.getByPackageName(packageName)
     }
 
-    suspend fun getAppComponent(packageName: String, componentName: String): AppComponent? {
+    suspend fun getAppComponent(packageName: String, componentName: String): AppComponentEntity? {
         return appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
     }
 
     suspend fun getAppComponentByType(
         packageName: String,
         type: EComponentType
-    ): List<AppComponent> {
+    ): List<AppComponentEntity> {
         return appComponentDao.getByPackageNameAndType(packageName, type)
     }
 
-    suspend fun getAppComponentByName(keyword: String): List<AppComponent> {
+    suspend fun getAppComponentByName(keyword: String): List<AppComponentEntity> {
         return appComponentDao.getByName(keyword)
     }
 
-    suspend fun addAppComponents(vararg appComponents: AppComponent) {
-        appComponentDao.insert(*appComponents)
+    suspend fun addAppComponents(vararg appComponentEntities: AppComponentEntity) {
+        appComponentDao.insert(*appComponentEntities)
     }
 
     suspend fun deleteAll() {

@@ -19,17 +19,18 @@ package com.merxury.blocker.core.database.app
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
-import androidx.room.PrimaryKey
-import java.util.Date
+import com.merxury.blocker.core.model.EComponentType
 
-@Entity(tableName = "installed_app", indices = [Index(value = ["package_name"])])
-data class InstalledApp(
-    @PrimaryKey
-    @ColumnInfo(name = "package_name") var packageName: String = "",
-    @ColumnInfo(name = "version_name") var versionName: String? = "",
-    @ColumnInfo(name = "first_install_time") var firstInstallTime: Date? = null,
-    @ColumnInfo(name = "last_update_time") var lastUpdateTime: Date? = null,
-    @ColumnInfo(name = "is_enabled") var isEnabled: Boolean = true,
-    @ColumnInfo(name = "is_system") var isSystem: Boolean = false,
-    @ColumnInfo var label: String = "",
+@Entity(
+    primaryKeys = ["package_name", "component_name"],
+    tableName = "app_component",
+    indices = [Index(value = ["package_name", "component_name"])],
+)
+data class AppComponentEntity(
+    @ColumnInfo(name = "package_name") val packageName: String,
+    @ColumnInfo(name = "component_name") val componentName: String,
+    @ColumnInfo(name = "ifw_blocked") var ifwBlocked: Boolean,
+    @ColumnInfo(name = "pm_blocked") var pmBlocked: Boolean,
+    val type: EComponentType,
+    val exported: Boolean,
 )

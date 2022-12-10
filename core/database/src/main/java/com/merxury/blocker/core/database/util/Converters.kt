@@ -18,6 +18,7 @@ package com.merxury.blocker.core.database.util
 
 import androidx.room.TypeConverter
 import java.util.Date
+import kotlinx.datetime.Instant
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -44,4 +45,14 @@ class TimeConverter {
     fun dateToTimestamp(date: Date?): Long? {
         return date?.time
     }
+}
+
+class InstantConverter {
+    @TypeConverter
+    fun longToInstant(value: Long?): Instant? =
+        value?.let(Instant::fromEpochMilliseconds)
+
+    @TypeConverter
+    fun instantToLong(instant: Instant?): Long? =
+        instant?.toEpochMilliseconds()
 }
