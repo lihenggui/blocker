@@ -20,8 +20,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.merxury.blocker.data.component.OnlineComponentDataRepository
-import com.merxury.blocker.data.component.OnlineComponentDataService
 import com.merxury.blocker.data.source.GeneralRuleRepository
 import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.data.source.local.GeneralRuleDao
@@ -69,18 +67,6 @@ object AppModule {
     @Provides
     fun provideGeneralRuleService(retrofit: Retrofit): GeneralRuleService {
         return retrofit.create(GeneralRuleService::class.java)
-    }
-
-    @Provides
-    fun provideOnlineComponentDataService(retrofit: Retrofit): OnlineComponentDataService {
-        return retrofit.create(OnlineComponentDataService::class.java)
-    }
-
-    @Provides
-    fun provideOnlineComponentDataRepository(
-        service: OnlineComponentDataService
-    ): OnlineComponentDataRepository {
-        return OnlineComponentDataRepository(service)
     }
 
     @Provides

@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.test
+package com.merxury.blocker.core.data.util
 
-import com.merxury.blocker.core.data.util.NetworkMonitor
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
 
-class AlwaysOnlineNetworkMonitor @Inject constructor() : NetworkMonitor {
-    override val isOnline: Flow<Boolean> = flowOf(true)
+/**
+ * Utility for reporting app connectivity status
+ */
+interface NetworkMonitor {
+    val isOnline: Flow<Boolean>
 }

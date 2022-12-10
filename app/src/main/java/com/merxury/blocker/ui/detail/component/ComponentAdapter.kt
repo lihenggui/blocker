@@ -29,9 +29,9 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
 import com.merxury.blocker.core.model.EComponentType
-import com.merxury.blocker.data.component.OnlineComponentData
-import com.merxury.blocker.data.component.OnlineComponentDataRepository
+import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.databinding.ComponentItemBinding
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -86,7 +86,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
         if (payloads.isEmpty()) {
             return super.onBindViewHolder(holder, position, payloads)
         }
-        val componentData = payloads[0] as OnlineComponentData?
+        val componentData = payloads[0] as NetworkComponentDetail?
         if (componentData == null) {
             logger.e("Component info is null, position: $position")
             return
@@ -163,7 +163,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
             }
         }
 
-        fun bindOnlineData(data: OnlineComponentData) {
+        fun bindOnlineData(data: NetworkComponentDetail) {
             binding.componentDescription.apply {
                 isVisible = true
                 text = data.description
