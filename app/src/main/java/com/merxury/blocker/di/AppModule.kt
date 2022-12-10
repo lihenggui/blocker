@@ -20,12 +20,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.merxury.blocker.data.source.GeneralRuleRepository
-import com.merxury.blocker.data.source.OnlineSourceType
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
-import com.merxury.blocker.data.source.remote.GeneralRuleService
-import com.merxury.blocker.data.source.remote.RuleRemoteDataSource
+import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.util.PreferenceUtil
 import dagger.Module
 import dagger.Provides
@@ -65,11 +62,6 @@ object AppModule {
     }
 
     @Provides
-    fun provideGeneralRuleService(retrofit: Retrofit): GeneralRuleService {
-        return retrofit.create(GeneralRuleService::class.java)
-    }
-
-    @Provides
     fun providesGson(): Gson {
         return GsonBuilder().serializeNulls().create()
     }
@@ -84,21 +76,6 @@ object AppModule {
     @Singleton
     fun provideGeneralRuleDao(database: GeneralRuleDatabase): GeneralRuleDao {
         return database.generalRuleDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideRuleRemoteDataSource(service: GeneralRuleService): RuleRemoteDataSource {
-        return RuleRemoteDataSource(service)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGeneralRuleRepository(
-        remoteDataSource: RuleRemoteDataSource,
-        localDataSource: GeneralRuleDao
-    ): GeneralRuleRepository {
-        return GeneralRuleRepository(remoteDataSource, localDataSource)
     }
 
     @Provides

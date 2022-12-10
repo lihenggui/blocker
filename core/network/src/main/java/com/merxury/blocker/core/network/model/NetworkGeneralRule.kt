@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network.datasource
+package com.merxury.blocker.core.network.model
 
-import com.merxury.blocker.core.network.BlockerNetworkDataSource
-import com.merxury.blocker.core.network.retrofit.RetrofitBlockerNetwork
-import dagger.Binds
-import dagger.Module
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.Serializable
 
-@Module
-@InstallIn(SingletonComponent::class)
-interface NetworkModule {
-
-    @Binds
-    fun RetrofitBlockerNetwork.binds(): BlockerNetworkDataSource
-}
+@Serializable
+data class NetworkGeneralRule(
+    val id: Int,
+    val name: String? = null,
+    val iconUrl: String? = null,
+    val company: String? = null,
+    val searchKeyword: List<String> = listOf(),
+    val useRegexSearch: Boolean? = null,
+    val description: String? = null,
+    val safeToBlock: Boolean? = null,
+    val sideEffect: String? = null,
+    val contributors: List<String> = listOf()
+)

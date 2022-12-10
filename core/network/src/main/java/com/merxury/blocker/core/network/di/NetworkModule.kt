@@ -17,6 +17,8 @@
 
 package com.merxury.blocker.core.network.di
 
+import com.merxury.blocker.core.network.BlockerNetworkDataSource
+import com.merxury.blocker.core.network.retrofit.RetrofitBlockerNetwork
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -33,4 +35,8 @@ object NetworkModule {
     fun providesNetworkJson(): Json = Json {
         ignoreUnknownKeys = true
     }
+
+    @Provides
+    fun RetrofitBlockerNetwork.binds(): BlockerNetworkDataSource =
+        RetrofitBlockerNetwork(providesNetworkJson())
 }

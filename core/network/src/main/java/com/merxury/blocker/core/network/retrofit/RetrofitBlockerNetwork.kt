@@ -21,6 +21,7 @@ import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFact
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.BuildConfig
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
+import com.merxury.blocker.core.network.model.NetworkGeneralRule
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -38,6 +39,9 @@ import retrofit2.http.Path
 interface BlockerNetworkApi {
     @GET("components/zh-cn/{path}")
     suspend fun getOnlineComponentData(@Path("path") relativePath: String): NetworkComponentDetail?
+
+    @GET("zh-cn/general.json")
+    suspend fun getGeneralRules(): List<NetworkGeneralRule>
 }
 
 private const val BlockerBaseUrl = BuildConfig.BACKEND_URL
@@ -71,4 +75,7 @@ class RetrofitBlockerNetwork @Inject constructor(
 
     override suspend fun getComponentData(path: String): NetworkComponentDetail? =
         networkApi.getOnlineComponentData(path)
+
+    override suspend fun getGeneralRule(): List<NetworkGeneralRule> =
+        networkApi.getGeneralRules()
 }

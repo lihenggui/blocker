@@ -36,7 +36,7 @@ import androidx.work.WorkManager
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.data.source.OnlineSourceType
+import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
