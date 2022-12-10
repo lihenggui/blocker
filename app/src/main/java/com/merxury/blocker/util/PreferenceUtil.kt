@@ -21,7 +21,7 @@ import android.net.Uri
 import androidx.preference.PreferenceManager
 import com.merxury.blocker.R
 import com.merxury.blocker.core.root.EControllerMethod
-import com.merxury.blocker.data.source.OnlineSourceType
+import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.ui.home.applist.SortType
 
 object PreferenceUtil {
