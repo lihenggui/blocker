@@ -1,37 +1,38 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.merxury.blocker.data.component
+package com.merxury.blocker.core.data.respository
 
 import android.content.Context
-import com.elvishew.xlog.XLog
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
+import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import timber.log.Timber
 
+// TODO rewrite
 class OnlineComponentDataRepository @Inject constructor(
-    private val service: OnlineComponentDataService
 ) {
-    private val logger = XLog.tag("OnlineComponentDataFetcher")
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
-        logger.e(throwable)
+        Timber.e(throwable)
     }
 
     // Read from local file first, if not found, read from remote file
@@ -42,7 +43,7 @@ class OnlineComponentDataRepository @Inject constructor(
         name: String,
         loadFromCacheOnly: Boolean = true,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): OnlineComponentData? {
+    ): NetworkComponentDetail? {
         if (name.isEmpty()) {
             return null
         }
@@ -62,26 +63,27 @@ class OnlineComponentDataRepository @Inject constructor(
             if (destination.exists() && loadFromCacheOnly) {
                 // Hit cache, return cached value
                 val content = destination.readText()
-                return@withContext Gson().fromJson(content, OnlineComponentData::class.java)
+                return@withContext Json{ ignoreUnknownKeys = true}.decodeFromString(content)
             } else {
                 if (!loadFromCacheOnly) {
                     try {
-                        // Cache missed, fetch from remote
-                        val content =
-                            service.getOnlineComponentData(relativePath) ?: return@withContext null
-                        // Save to cache folder
-                        val formatter = GsonBuilder().setPrettyPrinting().create()
-                        val json = formatter.toJson(content)
-                        if (!destination.exists()) {
-                            val folder = name.split(".")
-                                .dropLast(1)
-                                .joinToString("/")
-                            context.cacheDir.resolve(ROOT_FOLDER + folder).mkdirs()
-                        }
-                        destination.writeText(json)
-                        return@withContext content
+//                        // Cache missed, fetch from remote
+//                        val content =
+//                            service.getOnlineComponentData(relativePath) ?: return@withContext null
+//                        // Save to cache folder
+//                        val formatter = GsonBuilder().setPrettyPrinting().create()
+//                        val json = formatter.toJson(content)
+//                        if (!destination.exists()) {
+//                            val folder = name.split(".")
+//                                .dropLast(1)
+//                                .joinToString("/")
+//                            context.cacheDir.resolve(ROOT_FOLDER + folder).mkdirs()
+//                        }
+//                        destination.writeText(json)
+//                        return@withContext content
+                        return@withContext null
                     } catch (e: Exception) {
-                        logger.e("Failed to fetch online component data", e)
+                        Timber.e("Failed to fetch online component data", e)
                         return@withContext null
                     }
                 } else {
@@ -95,7 +97,7 @@ class OnlineComponentDataRepository @Inject constructor(
     suspend fun getUserGeneratedComponentDetail(
         context: Context,
         name: String
-    ): OnlineComponentData? {
+    ): NetworkComponentDetail? {
         return withContext(Dispatchers.IO + exceptionHandler) {
             val folder = context.filesDir.resolve(USER_GENERATED_FOLDER)
             val relativePath = name.replace(".", "/")
@@ -103,7 +105,7 @@ class OnlineComponentDataRepository @Inject constructor(
             val destination = folder.resolve(relativePath)
             if (destination.exists()) {
                 val content = destination.readText()
-                return@withContext Gson().fromJson(content, OnlineComponentData::class.java)
+                return@withContext Json.decodeFromString(content)
             } else {
                 return@withContext null
             }
@@ -112,7 +114,7 @@ class OnlineComponentDataRepository @Inject constructor(
 
     suspend fun saveUserGeneratedComponentDetail(
         context: Context,
-        onlineComponentData: OnlineComponentData
+        networkComponentDetail: NetworkComponentDetail
     ): Boolean {
         return withContext(Dispatchers.IO + exceptionHandler) {
             // Make root folder first
@@ -121,7 +123,7 @@ class OnlineComponentDataRepository @Inject constructor(
                 rootFolder.mkdirs()
             }
             // Make new directory according to package name
-            val packageNamePath = onlineComponentData.name?.split(".")
+            val packageNamePath = networkComponentDetail.name?.split(".")
                 ?.dropLast(1)
                 ?.joinToString("/") ?: return@withContext false
             val packageFolder = rootFolder.resolve(packageNamePath)
@@ -129,15 +131,14 @@ class OnlineComponentDataRepository @Inject constructor(
                 packageFolder.mkdirs()
             }
             // Decide file name
-            val fileName = onlineComponentData.name?.split(".")
+            val fileName = networkComponentDetail.name?.split(".")
                 ?.last()?.plus(EXTENSION) ?: return@withContext false
             val destination = packageFolder.resolve(fileName)
-            val formatter = GsonBuilder().setPrettyPrinting().create()
-            val json = formatter.toJson(onlineComponentData)
+            val content = Json.encodeToString(networkComponentDetail)
             try {
-                destination.writeText(json)
+                destination.writeText(content)
             } catch (e: Exception) {
-                logger.e("Failed to save user generated component data", e)
+                Timber.e("Failed to save user generated component data", e)
                 return@withContext false
             }
             return@withContext true

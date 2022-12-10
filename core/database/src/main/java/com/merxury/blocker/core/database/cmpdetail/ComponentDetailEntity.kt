@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2022 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.test
+package com.merxury.blocker.core.database.cmpdetail
 
-import com.merxury.blocker.core.data.util.NetworkMonitor
-import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-
-class AlwaysOnlineNetworkMonitor @Inject constructor() : NetworkMonitor {
-    override val isOnline: Flow<Boolean> = flowOf(true)
-}
+data class ComponentDetailEntity(
+    val name: String,
+    val icon: String? = null,
+    val sdkName: String? = null,
+    val description: String? = null,
+    val disableEffect: String? = null,
+    val author: String? = null,
+    val addedVersion: String? = null,
+    val recommendToBlock: Boolean = false,
+)

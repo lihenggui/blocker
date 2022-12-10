@@ -26,7 +26,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.merxury.blocker.R
-import com.merxury.blocker.data.component.OnlineComponentData
+import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.databinding.ComponentDetailBottomSheetBinding
 import com.merxury.blocker.ui.detail.component.ComponentData
 import com.merxury.blocker.util.parcelable
@@ -110,7 +110,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
         } else {
             ""
         }
-        val userComponent = OnlineComponentData(
+        val userComponent = NetworkComponentDetail(
             name = binding.name.editText?.text?.toString().orEmpty(),
             sdkName = sdkName,
             description = binding.description.editText?.text?.toString().orEmpty(),
