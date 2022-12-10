@@ -33,7 +33,7 @@ import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.ServiceHelper
-import com.merxury.blocker.data.component.OnlineComponentDataRepository
+import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
 import com.merxury.blocker.util.ManagerUtils
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl

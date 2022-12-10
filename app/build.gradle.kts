@@ -90,9 +90,10 @@ android {
 }
 
 dependencies {
-    // TODO model, database, datetime should be removed
+    // TODO model, database, datetime, network should be removed
     implementation(project(":core:model"))
     implementation(project(":core:database"))
+    implementation(project(":core:network"))
     implementation(libs.kotlinx.datetime)
     implementation(project(":core:component-controller"))
     implementation(project(":core:ifw-api"))

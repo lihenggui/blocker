@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +15,22 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.test
+package com.merxury.blocker.core.network.di
 
-import com.merxury.blocker.core.data.util.NetworkMonitor
-import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
+import kotlinx.serialization.json.Json
 
-class AlwaysOnlineNetworkMonitor @Inject constructor() : NetworkMonitor {
-    override val isOnline: Flow<Boolean> = flowOf(true)
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun providesNetworkJson(): Json = Json {
+        ignoreUnknownKeys = true
+    }
 }

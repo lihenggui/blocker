@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.testing.util
 
-import com.merxury.blocker.util.SyncStatusMonitor
+import com.merxury.blocker.core.data.util.SyncStatusMonitor
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
