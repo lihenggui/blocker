@@ -35,8 +35,8 @@ import com.merxury.blocker.core.extension.getApplicationInfoCompat
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.model.toApplication
 import java.util.Collections
-import java.util.Date
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -401,16 +401,4 @@ object ApplicationUtil {
     ): Boolean {
         return getActivityList(pm, packageName).any { it.name == componentName }
     }
-}
-
-private fun PackageInfo.toApplication(pm: PackageManager): Application {
-    return Application(
-        packageName = packageName,
-        versionName = versionName,
-        isEnabled = applicationInfo?.enabled ?: false,
-        label = applicationInfo?.loadLabel(pm).toString(),
-        firstInstallTime = Date(firstInstallTime),
-        lastUpdateTime = Date(lastUpdateTime),
-        packageInfo = this,
-    )
 }

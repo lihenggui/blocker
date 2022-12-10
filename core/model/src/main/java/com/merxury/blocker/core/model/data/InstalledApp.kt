@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.database.app
+package com.merxury.blocker.core.model.data
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import com.merxury.blocker.core.database.util.InstantConverter
+import kotlinx.datetime.Instant
 
-@Database(entities = [InstalledAppEntity::class, AppComponentEntity::class], version = 1)
-@TypeConverters(InstantConverter::class)
-abstract class InstalledAppDatabase : RoomDatabase() {
-    abstract fun installedAppDao(): InstalledAppDao
-    abstract fun appComponentDao(): AppComponentDao
-}
+/**
+ * External data layer representation of the installed app in the device
+ */
+data class InstalledApp(
+    val packageName: String = "",
+    val versionName: String = "",
+    val versionCode: Long = 0,
+    val firstInstallTime: Instant? = null,
+    val lastUpdateTime: Instant? = null,
+    val isEnabled: Boolean = true,
+    val isSystem: Boolean = false,
+    val label: String = "",
+)
