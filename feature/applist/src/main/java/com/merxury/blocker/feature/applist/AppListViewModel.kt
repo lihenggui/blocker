@@ -1,6 +1,7 @@
 package com.merxury.blocker.feature.applist
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -14,18 +15,18 @@ class AppListViewModel @Inject constructor() : ViewModel() {
     val uiState: StateFlow<AppListUiState> = _uiState
 }
 
-data class AppStatus(
+data class AppServiceStatus(
     var running: Int = 0,
     var blocked: Int = 0,
     var total: Int = 0,
-    var packageName: String
+    var packageName: String = ""
 )
 
 data class AppInfo(
     var packageName: String = "",
     var versionName: String? = "",
-    var appIconUrl: String = "",
-    var appStatus: AppStatus
+    var appIcon: ImageBitmap,
+    var appServiceStatus: AppServiceStatus
 )
 
 sealed interface AppListUiState {

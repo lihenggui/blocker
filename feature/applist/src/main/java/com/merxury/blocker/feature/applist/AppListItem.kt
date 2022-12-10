@@ -8,24 +8,27 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.feature.applist.R.string
 
 @Composable
 fun AppListItem(
-    appIconUrl: String,
+    appIcon: ImageBitmap,
     packageName: String,
     versionName: String?,
-    serviceStatus: String,
+    appServiceStatus: AppServiceStatus,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -34,36 +37,35 @@ fun AppListItem(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 12.dp, vertical = 8.dp)
-            .clickable { onClick },
+            .clickable { onClick(packageName) },
     ) {
-        AppIcon(appIconUrl = appIconUrl)
+        AppIcon(appIcon = appIcon)
         Spacer(modifier = Modifier.width(16.dp))
-        AppContent(appName = packageName, appVersion = versionName, serviceStatus = serviceStatus)
+        AppContent(
+            appName = packageName,
+            appVersion = versionName,
+            appServiceStatus = appServiceStatus
+        )
     }
 }
 
 @Composable
-private fun AppIcon(appIconUrl: String, modifier: Modifier = Modifier) {
-    if (appIconUrl.isEmpty()) {
-        Icon(
-            modifier = modifier.padding(4.dp),
-            imageVector = BlockerIcons.NoApp,
-            contentDescription = null, // decorative image
-        )
-    } else {
-        AsyncImage(
-            model = appIconUrl,
-            contentDescription = null,
-            modifier = modifier
-        )
-    }
+private fun AppIcon(
+    appIcon: ImageBitmap,
+    modifier: Modifier = Modifier
+) {
+    AsyncImage(
+        model = appIcon,
+        contentDescription = null,
+        modifier = modifier
+    )
 }
 
 @Composable
 private fun AppContent(
     appName: String,
     appVersion: String?,
-    serviceStatus: String,
+    appServiceStatus: AppServiceStatus,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
@@ -80,9 +82,14 @@ private fun AppContent(
                 )
             }
         }
-        if (serviceStatus.isNotEmpty()) {
+        if (appServiceStatus != AppServiceStatus()) {
             Text(
-                text = serviceStatus,
+                text = stringResource(
+                    id = string.service_status_template,
+                    appServiceStatus.running,
+                    appServiceStatus.blocked,
+                    appServiceStatus.total
+                ),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -93,12 +100,19 @@ private fun AppContent(
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppListItemPreview() {
+    val appServiceStatus = AppServiceStatus(
+        running = 1,
+        blocked = 2,
+        total = 10,
+        packageName = "com.merxury.blocker"
+    )
+    val icon = ImageBitmap.imageResource(BlockerIcons.Android)
     BlockerTheme {
         AppListItem(
-            appIconUrl = "",
-            packageName = "RC Downloader",
+            appIcon = icon,
+            packageName = "Blocker",
             versionName = "1.0.12",
-            serviceStatus = "服务：正在运行0个，已组织0个，共计11个.",
+            appServiceStatus = appServiceStatus,
             onClick = {}
         )
     }
@@ -107,12 +121,14 @@ fun AppListItemPreview() {
 @Composable
 @Preview("Item without service status")
 fun AppListItemWithoutServicePreview() {
+    val appServiceStatus = AppServiceStatus()
+    val icon = ImageBitmap.imageResource(BlockerIcons.Android)
     BlockerTheme {
         AppListItem(
-            appIconUrl = "",
-            packageName = "RC Downloader",
+            appIcon = icon,
+            packageName = "Blocker",
             versionName = "1.0.12",
-            serviceStatus = "",
+            appServiceStatus = appServiceStatus,
             onClick = {}
         )
     }
@@ -121,12 +137,19 @@ fun AppListItemWithoutServicePreview() {
 @Composable
 @Preview("Item without version")
 fun AppListItemWithoutVersionPreview() {
+    val appServiceStatus = AppServiceStatus(
+        running = 1,
+        blocked = 2,
+        total = 10,
+        packageName = "com.merxury.blocker"
+    )
+    val icon = ImageBitmap.imageResource(BlockerIcons.Android)
     BlockerTheme {
         AppListItem(
-            appIconUrl = "",
-            packageName = "RC Downloader",
+            appIcon = icon,
+            packageName = "Blocker",
             versionName = "",
-            serviceStatus = "服务：正在运行0个，已组织0个，共计11个.",
+            appServiceStatus = appServiceStatus,
             onClick = {}
         )
     }

@@ -104,15 +104,10 @@ fun AppListContent(
         ) {
             items(listContent, key = { it.packageName }) {
                 AppListItem(
-                    appIconUrl = it.appIconUrl,
+                    appIcon = it.appIcon,
                     packageName = it.packageName,
                     versionName = it.versionName,
-                    serviceStatus = stringResource(
-                        id = string.service_status_template,
-                        it.appStatus.running,
-                        it.appStatus.blocked,
-                        it.appStatus.total
-                    ),
+                    appServiceStatus = it.appServiceStatus,
                     onClick = navigateToAppDetail
                 )
             }
