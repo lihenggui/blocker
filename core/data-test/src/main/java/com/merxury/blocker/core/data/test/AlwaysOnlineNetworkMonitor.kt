@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.data.test
 
-import com.merxury.blocker.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.NetworkMonitor
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf

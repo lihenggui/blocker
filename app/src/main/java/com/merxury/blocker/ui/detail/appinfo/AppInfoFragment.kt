@@ -44,7 +44,6 @@ import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.parcelable
 import java.io.File
 import java.text.DateFormat
-import java.util.Date
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -289,9 +288,9 @@ class AppInfoFragment : Fragment() {
 //                    minSdkName
 //                )
 //            )
-            val lastUpdateTime = app.lastUpdateTime ?: Date(0)
+//            val lastUpdateTime = app.lastUpdateTime ?: Date(0)
             val formatter = DateFormat.getDateTimeInstance()
-            binding.itemLastUpdateTime.setSummary(formatter.format(lastUpdateTime))
+            binding.itemLastUpdateTime.setSummary(formatter.format(0))
             val dataDir = app.packageInfo?.applicationInfo?.dataDir
             binding.itemDataDir.setSummary(dataDir)
         }
