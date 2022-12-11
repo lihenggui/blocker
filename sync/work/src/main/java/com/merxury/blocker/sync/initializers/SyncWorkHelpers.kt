@@ -69,6 +69,7 @@ private fun Context.syncWorkNotification(): Notification {
         this,
         SyncNotificationChannelID
     )
+        .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
         .setContentTitle(getString(R.string.sync_notification_title))
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .build()
