@@ -26,8 +26,8 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
@@ -55,6 +55,8 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
         setForeground(updateNotification("", 0, 0))
         // Backup logic
         val shouldBackupSystemApp = PreferenceUtil.shouldBackupSystemApps(applicationContext)
+        val savedPath =
+            PreferenceUtil.getSavedRulePath(applicationContext) ?: return Result.failure()
         return withContext(Dispatchers.IO) {
             try {
                 val list = if (shouldBackupSystemApp) {
@@ -66,7 +68,7 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
                 var current = 1
                 list.forEach {
                     setForeground(updateNotification(it.packageName, current, total))
-                    Rule.export(applicationContext, it.packageName)
+                    Rule.export(applicationContext, it.packageName, savedPath)
                     current++
                 }
             } catch (e: Exception) {
