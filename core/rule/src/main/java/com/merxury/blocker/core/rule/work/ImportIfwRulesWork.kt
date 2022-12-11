@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package com.merxury.blocker.work
+package com.merxury.blocker.core.rule.work
 
 import android.content.Context
 import android.content.pm.ComponentInfo
