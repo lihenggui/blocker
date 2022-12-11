@@ -20,6 +20,6 @@ import com.merxury.blocker.core.data.Syncable
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import kotlinx.coroutines.flow.Flow
 
-interface ComponentDataRepository: Syncable {
+interface ComponentDataRepository : Syncable {
     suspend fun getComponentData(path: String): Flow<NetworkComponentDetail>
 }
