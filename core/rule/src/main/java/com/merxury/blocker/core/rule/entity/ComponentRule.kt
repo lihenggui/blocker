@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.database.app
+package com.merxury.blocker.core.rule.entity
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
-import com.merxury.blocker.core.database.util.InstantConverter
+import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.root.EControllerMethod
+import kotlinx.serialization.Serializable
 
-@Database(entities = [InstalledAppEntity::class, AppComponentEntity::class], version = 2)
-@TypeConverters(InstantConverter::class)
-abstract class InstalledAppDatabase : RoomDatabase() {
-    abstract fun installedAppDao(): InstalledAppDao
-    abstract fun appComponentDao(): AppComponentDao
-}
+@Serializable
+data class ComponentRule(
+    var packageName: String = "",
+    var name: String = "",
+    var state: Boolean = true,
+    var type: EComponentType = EComponentType.RECEIVER,
+    var method: EControllerMethod = EControllerMethod.PM
+)

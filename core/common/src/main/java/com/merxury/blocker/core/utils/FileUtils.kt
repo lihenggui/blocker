@@ -1,22 +1,21 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.merxury.blocker.core.utils
 
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.extension.exec
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
@@ -28,9 +27,9 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 object FileUtils {
-    private val logger = XLog.tag("FileUtils").build()
 
     @JvmStatic
     fun copy(source: String, dest: String): File {
@@ -48,7 +47,7 @@ object FileUtils {
     fun listFiles(path: String): List<String> {
         val file = SuFile(path)
         if (!file.exists()) {
-            logger.w("File $path not exists")
+            Timber.w("File $path not exists")
             return ArrayList()
         }
         return file.list()?.toList() ?: ArrayList()
@@ -75,7 +74,7 @@ object FileUtils {
     fun delete(path: String, recursively: Boolean): Boolean {
         val file = SuFile(path)
         if (!file.exists()) {
-            logger.e("Can't delete $path since it doesn't exist")
+            Timber.e("Can't delete $path since it doesn't exist")
             return false
         }
         return if (recursively) {
