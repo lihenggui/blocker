@@ -27,9 +27,9 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.elvishew.xlog.XLog
 import com.google.android.material.switchmaterial.SwitchMaterial
 import com.merxury.blocker.R
+import com.merxury.blocker.core.database.app.AppComponentEntity
+import com.merxury.blocker.core.database.app.InstalledAppEntity
 import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.data.app.AppComponent
-import com.merxury.blocker.data.app.InstalledApp
 import com.merxury.blocker.util.AppIconCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,12 +38,12 @@ import kotlinx.coroutines.launch
 class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScope) :
     BaseExpandableListAdapter() {
     private val logger = XLog.tag("ExpandableSearchAdapter")
-    private var appList = listOf<InstalledApp?>()
-    private var data = mapOf<InstalledApp?, List<AppComponent>>()
+    private var appList = listOf<InstalledAppEntity?>()
+    private var data = mapOf<InstalledAppEntity?, List<AppComponentEntity>>()
     private var loadIconJob: Job? = null
-    var onSwitchClick: ((AppComponent, Boolean) -> Unit)? = null
+    var onSwitchClick: ((AppComponentEntity, Boolean) -> Unit)? = null
 
-    fun updateData(newData: Map<InstalledApp?, List<AppComponent>>) {
+    fun updateData(newData: Map<InstalledAppEntity?, List<AppComponentEntity>>) {
         appList = newData.keys.toList()
         data = newData
         notifyDataSetChanged()
@@ -136,7 +136,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
         return view
     }
 
-    private fun loadIcon(context: Context, app: InstalledApp?, view: ImageView) {
+    private fun loadIcon(context: Context, app: InstalledAppEntity?, view: ImageView) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val packageInfo =
