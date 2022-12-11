@@ -1,6 +1,5 @@
 /*
  * Copyright 2022 Blocker
- * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 plugins {
     id("blocker.android.library")
     id("blocker.android.library.jacoco")
     id("blocker.android.hilt")
+    id("kotlinx-serialization")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
+    kotlin("kapt")
 }
 
 android {
-    namespace = "com.merxury.blocker.core.common"
+    namespace = "com.merxury.blocker.core.rule"
 }
 
 dependencies {
-    api(project(":core:model"))
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.libsu.core)
-    implementation(libs.libsu.io)
-    api(libs.timber)
-    testImplementation(project(":core:testing"))
+    implementation(project(":core:common"))
+    implementation(project(":core:component-controller"))
+    implementation(project(":core:ifw-api"))
+    implementation(libs.androidx.documentfile)
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.kotlinx.serialization.json)
 }

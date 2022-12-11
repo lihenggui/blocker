@@ -27,9 +27,9 @@ import androidx.work.WorkerParameters
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.merxury.blocker.R
+import com.merxury.blocker.core.rule.Rule
+import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.rule.Rule
-import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
@@ -52,6 +52,7 @@ class ImportBlockerRuleWork(context: Context, params: WorkerParameters) :
         try {
             val context = applicationContext
             val shouldRestoreSystemApp = PreferenceUtil.shouldRestoreSystemApps(context)
+            val controllerType = PreferenceUtil.getControllerType(context)
             val packageManager = context.packageManager
             val documentDir = StorageUtil.getSavedFolder(context)
             if (documentDir == null) {
@@ -81,7 +82,7 @@ class ImportBlockerRuleWork(context: Context, params: WorkerParameters) :
                     return@forEach
                 }
                 setForeground(updateNotification(rule.packageName ?: "", current, total))
-                val result = Rule.import(context, rule)
+                val result = Rule.import(context, rule, controllerType)
                 if (result) {
                     successCount++
                 }
