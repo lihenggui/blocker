@@ -42,7 +42,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object ApplicationUtil {
-    private const val BLOCKER_PACKAGE_NAME = "com.merxury.blocker"
     private val logger = XLog.tag("ApplicationUtil").build()
 
     /**
@@ -56,10 +55,11 @@ object ApplicationUtil {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): MutableList<Application> {
         val pm = context.packageManager
+        val blockerName = context.packageName
         return withContext(dispatcher) {
             val installedApp = pm.getInstalledPackagesCompat(0)
             installedApp.asSequence()
-                .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
+                .filterNot { it.packageName == blockerName }
                 .map { it.toApplication(pm) }
                 .toMutableList()
         }
@@ -76,6 +76,7 @@ object ApplicationUtil {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): MutableList<Application> {
         val pm = context.packageManager
+        val blockerName = context.packageName
         return withContext(dispatcher) {
             val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(0))
@@ -84,7 +85,7 @@ object ApplicationUtil {
             }
             installedPackages.asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
-                .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
+                .filterNot { it.packageName == blockerName }
                 .map { it.toApplication(pm) }
                 .toMutableList()
         }
