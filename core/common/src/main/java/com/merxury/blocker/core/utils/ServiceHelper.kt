@@ -16,14 +16,13 @@
 
 package com.merxury.blocker.core.utils
 
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.extension.exec
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class ServiceHelper(private val packageName: String) {
-    private val logger = XLog.tag("ServiceHelper").build()
     private var serviceInfo: String = ""
     private val serviceList: MutableList<String> = mutableListOf()
 
@@ -58,7 +57,7 @@ class ServiceHelper(private val packageName: String) {
                     ""
                 }
             } catch (e: Exception) {
-                logger.e("Cannot get running service list:", e)
+                Timber.e("Cannot get running service list:", e)
                 ""
             }
             parseServiceInfo()

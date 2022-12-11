@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.utils
 
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.extension.exec
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
@@ -28,9 +27,9 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 object FileUtils {
-    private val logger = XLog.tag("FileUtils").build()
 
     @JvmStatic
     fun copy(source: String, dest: String): File {
@@ -48,7 +47,7 @@ object FileUtils {
     fun listFiles(path: String): List<String> {
         val file = SuFile(path)
         if (!file.exists()) {
-            logger.w("File $path not exists")
+            Timber.w("File $path not exists")
             return ArrayList()
         }
         return file.list()?.toList() ?: ArrayList()
@@ -75,7 +74,7 @@ object FileUtils {
     fun delete(path: String, recursively: Boolean): Boolean {
         val file = SuFile(path)
         if (!file.exists()) {
-            logger.e("Can't delete $path since it doesn't exist")
+            Timber.e("Can't delete $path since it doesn't exist")
             return false
         }
         return if (recursively) {
