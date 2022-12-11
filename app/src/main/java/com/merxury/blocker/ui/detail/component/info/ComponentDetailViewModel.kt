@@ -19,8 +19,8 @@ package com.merxury.blocker.ui.detail.component.info
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.data.component.OnlineComponentData
-import com.merxury.blocker.data.component.OnlineComponentDataRepository
+import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
+import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.ui.detail.component.ComponentData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 class ComponentDetailViewModel @Inject constructor(
     private val repository: OnlineComponentDataRepository
 ) : ViewModel() {
-    private val _onlineData: MutableStateFlow<OnlineComponentData?> = MutableStateFlow(null)
+    private val _onlineData: MutableStateFlow<NetworkComponentDetail?> = MutableStateFlow(null)
     val onlineData = _onlineData.asStateFlow()
     private val isLoading = MutableStateFlow(false)
     val loading = isLoading.asStateFlow()
@@ -54,7 +54,7 @@ class ComponentDetailViewModel @Inject constructor(
         }
     }
 
-    fun saveUserRule(context: Context, data: OnlineComponentData) {
+    fun saveUserRule(context: Context, data: NetworkComponentDetail) {
         viewModelScope.launch {
             repository.saveUserGeneratedComponentDetail(context, data)
         }

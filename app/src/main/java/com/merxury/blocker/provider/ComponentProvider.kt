@@ -28,7 +28,6 @@ import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.ifw.IfwController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.data.app.AppComponentRepository
 import com.merxury.blocker.util.PreferenceUtil
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -41,7 +40,7 @@ class ComponentProvider : ContentProvider() {
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface AppComponentRepositoryEntryPoint {
-        fun appComponent(): AppComponentRepository
+        fun appComponent(): com.merxury.blocker.core.database.app.AppComponentRepository
     }
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
