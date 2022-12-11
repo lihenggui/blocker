@@ -23,9 +23,9 @@ import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.rule.Rule
+import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.blocker.rule.Rule
-import com.merxury.blocker.rule.entity.BlockerRule
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
 import com.merxury.ifw.util.RuleSerializer
@@ -47,6 +47,7 @@ object RuleBackupHelper {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): Uri? {
         return withContext(dispatcher) {
+            val controllerType = PreferenceUtil.getControllerType(context)
             val savedPath = PreferenceUtil.getSavedRulePath(context) ?: return@withContext null
             val backupName = packageName + Rule.EXTENSION
             val folder = DocumentFile.fromTreeUri(context, savedPath) ?: return@withContext null
@@ -56,8 +57,11 @@ object RuleBackupHelper {
             }
             context.contentResolver.openInputStream(backupFile.uri).use {
                 val reader = BufferedReader(InputStreamReader(it))
-                val blockerRule = Gson().fromJson(reader, BlockerRule::class.java)
-                Rule.import(context, blockerRule)
+                val blockerRule = Gson().fromJson(
+                    reader,
+                    BlockerRule::class.java
+                )
+                Rule.import(context, blockerRule, controllerType)
                 logger.i(
                     "Import rule ${blockerRule.packageName} " +
                         "from ${backupFile.uri.path} successfully"
@@ -73,8 +77,9 @@ object RuleBackupHelper {
         packageName: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): Boolean {
+        val savedPath = PreferenceUtil.getSavedRulePath(context) ?: return false
         return withContext(dispatcher) {
-            val result = Rule.export(context, packageName)
+            val result = Rule.export(context, packageName, savedPath)
             if (result) {
                 logger.i("Export rule $packageName successfully")
             } else {
@@ -129,7 +134,7 @@ object RuleBackupHelper {
             val files = FileUtils.listFiles(ifwFolder)
             val ifwFile = files.filter { it.contains(packageName) }
             if (ifwFile.isEmpty()) {
-                logger.e("Can't file IFW rule in $ifwFolder, package = $packageName")
+                logger.e("Can't find file IFW rule in $ifwFolder, package = $packageName")
                 return@withContext null
             }
             ifwFile.forEach {

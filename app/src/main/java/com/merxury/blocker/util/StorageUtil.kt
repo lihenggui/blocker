@@ -19,15 +19,12 @@ package com.merxury.blocker.util
 import android.content.Context
 import androidx.documentfile.provider.DocumentFile
 import com.elvishew.xlog.XLog
-import com.google.gson.GsonBuilder
-import com.merxury.blocker.rule.Rule
-import com.merxury.blocker.rule.entity.BlockerRule
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object StorageUtil {
-    const val IFW_RELATIVE_PATH = "ifw"
+    private const val IFW_RELATIVE_PATH = "ifw"
     private val logger = XLog.tag("StorageUtil").build()
 
     fun getSavedFolder(context: Context): DocumentFile? {
@@ -61,46 +58,6 @@ object StorageUtil {
         // Folder may be unreachable
         val isFolderUnreachable = (folder == null) || !folder.canRead() || !folder.canWrite()
         return !isFolderUnreachable
-    }
-
-    suspend fun saveRuleToStorage(
-        context: Context,
-        rule: BlockerRule,
-        packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): Boolean {
-        // Get base dir
-        val destUri = PreferenceUtil.getSavedRulePath(context)
-        if (destUri == null) {
-            logger.w("No dest folder defined")
-            return false
-        }
-        val dir = DocumentFile.fromTreeUri(context, destUri)
-        if (dir == null) {
-            logger.e("Cannot open $destUri")
-            return false
-        }
-        // Create blocker rule file
-        var file = dir.findFile(packageName + Rule.EXTENSION)
-        if (file == null) {
-            file = dir.createFile(Rule.BLOCKER_RULE_MIME, packageName)
-        }
-        if (file == null) {
-            logger.w("Cannot create rule $packageName")
-            return false
-        }
-        return withContext(dispatcher) {
-            try {
-                context.contentResolver.openOutputStream(file.uri, "rwt")?.use {
-                    val text = GsonBuilder().setPrettyPrinting().create().toJson(rule)
-                    it.write(text.toByteArray())
-                }
-                return@withContext true
-            } catch (e: Exception) {
-                logger.e("Cannot write rules for $packageName", e)
-                return@withContext false
-            }
-        }
     }
 
     suspend fun saveIfwToStorage(

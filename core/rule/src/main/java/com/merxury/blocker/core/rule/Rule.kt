@@ -1,52 +1,55 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.merxury.blocker.rule
+package com.merxury.blocker.core.rule
 
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
+import android.net.Uri
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.documentfile.provider.DocumentFile
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.rule.entity.BlockerRule
+import com.merxury.blocker.core.rule.entity.ComponentRule
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.blocker.rule.entity.BlockerRule
-import com.merxury.blocker.rule.entity.ComponentRule
-import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.blocker.util.StorageUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.util.RuleSerializer
 import com.merxury.ifw.util.StorageUtils
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import timber.log.Timber
 
 object Rule {
     const val BLOCKER_RULE_MIME = "application/json"
     const val EXTENSION = ".json"
     const val IFW_EXTENSION = ".xml"
-    private val logger = XLog.tag("Rule").build()
 
-    suspend fun export(context: Context, packageName: String): Boolean {
-        logger.i("Backup rules for $packageName")
+    suspend fun export(context: Context, packageName: String, destUri: Uri): Boolean {
+        Timber.i("Backup rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationUtil.getApplicationComponents(pm, packageName)
         val rule = BlockerRule(
@@ -143,20 +146,23 @@ object Rule {
                 )
             }
             val result = if (rule.components.isNotEmpty()) {
-                StorageUtil.saveRuleToStorage(context, rule, packageName)
+                saveRuleToStorage(context, rule, packageName, destUri)
             } else {
                 // No components exported, return true
                 true
             }
             return result
         } catch (e: RuntimeException) {
-            logger.e("Failed to export $packageName, ${e.message}")
+            Timber.e("Failed to export $packageName, ${e.message}")
             return false
         }
     }
 
-    suspend fun import(context: Context, rule: BlockerRule): Boolean {
-        val controllerType = PreferenceUtil.getControllerType(context)
+    suspend fun import(
+        context: Context,
+        rule: BlockerRule,
+        controllerType: EControllerMethod
+    ): Boolean {
         val controller = if (controllerType == EControllerMethod.IFW) {
             // Fallback to traditional controller
             ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
@@ -241,23 +247,18 @@ object Rule {
             }
             ifwController?.save()
         } catch (e: RuntimeException) {
-            logger.e("Failed to import Blocker rule ${rule.packageName}, ${e.message}")
+            Timber.e("Failed to import Blocker rule ${rule.packageName}, ${e.message}")
             return false
         }
         return true
     }
 
-    suspend fun importIfwRules(context: Context): Int {
-        val ifwBackupFolderUri = PreferenceUtil.getIfwRulePath(context)
-        if (ifwBackupFolderUri == null) {
-            logger.e("IFW folder hasn't been set yet.")
-            return 0
-        }
+    suspend fun importIfwRules(context: Context, importFolderUri: Uri): Int {
         val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
         var succeedCount = 0
-        val folder = DocumentFile.fromTreeUri(context, ifwBackupFolderUri)
+        val folder = DocumentFile.fromTreeUri(context, importFolderUri)
         if (folder == null) {
-            logger.e("Cannot open ifw backup folder")
+            Timber.e("Cannot open ifw backup folder")
             return 0
         }
         // { file -> file.isFile && file.name.endsWith(".xml") }
@@ -318,8 +319,7 @@ object Rule {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            logger.e(e.message)
+            Timber.e("Can't reset IFW", e)
             return false
         }
         return result
@@ -341,5 +341,40 @@ object Rule {
             return true
         }
         return false
+    }
+
+    private suspend fun saveRuleToStorage(
+        context: Context,
+        rule: BlockerRule,
+        packageName: String,
+        destUri: Uri,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): Boolean {
+        val dir = DocumentFile.fromTreeUri(context, destUri)
+        if (dir == null) {
+            Timber.e("Cannot open $destUri")
+            return false
+        }
+        // Create blocker rule file
+        var file = dir.findFile(packageName + EXTENSION)
+        if (file == null) {
+            file = dir.createFile(BLOCKER_RULE_MIME, packageName)
+        }
+        if (file == null) {
+            Timber.w("Cannot create rule $packageName")
+            return false
+        }
+        return withContext(dispatcher) {
+            try {
+                context.contentResolver.openOutputStream(file.uri, "rwt")?.use {
+                    val text = Json.encodeToString(rule)
+                    it.write(text.toByteArray())
+                }
+                return@withContext true
+            } catch (e: Exception) {
+                Timber.e("Cannot write rules for $packageName", e)
+                return@withContext false
+            }
+        }
     }
 }
