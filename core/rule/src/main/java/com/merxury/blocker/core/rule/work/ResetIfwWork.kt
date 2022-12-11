@@ -14,7 +14,7 @@
  *   limitations under the License.
  */
 
-package com.merxury.blocker.work
+package com.merxury.blocker.core.rule.work
 
 import android.content.Context
 import android.os.Build
@@ -28,55 +28,47 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.util.NotificationUtil
-import com.merxury.blocker.util.StorageUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.ifw.util.StorageUtils
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class ExportIfwRulesWork(context: Context, params: WorkerParameters) :
+class ResetIfwWork(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
-    private val logger = XLog.tag("ExportIfwRulesWork")
+    private val logger = XLog.tag("ResetIfwWork")
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return updateNotification("", 0, 0)
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        if (!StorageUtil.isSavedFolderReadable(applicationContext)) {
-            ToastUtil.showToast(R.string.export_ifw_failed_message, Toast.LENGTH_LONG)
-            return@withContext Result.failure()
-        }
-        logger.i("Start to export IFW rules.")
-        var current = 0
+        logger.i("Clear IFW rules")
+        var count = 0
+        val total: Int
         try {
             val ifwFolder = StorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
-            val total = files.count()
+            total = files.count()
             files.forEach {
-                logger.i("Export $it")
-                val filename = it.split(File.separator).last()
-                setForeground(updateNotification(filename, current, total))
-                val content = FileUtils.read(ifwFolder + it)
-                StorageUtil.saveIfwToStorage(applicationContext, filename, content)
-                current++
+                updateNotification(it, count, total)
+                logger.i("Delete $it")
+                FileUtils.delete(ifwFolder + it, false)
+                count++
             }
         } catch (e: Exception) {
-            logger.e("Failed to export IFW rules", e)
-            ToastUtil.showToast(R.string.export_ifw_failed_message, Toast.LENGTH_LONG)
+            logger.e("Failed to clear IFW rules", e)
             return@withContext Result.failure()
         }
-        logger.i("Export IFW rules finished, success count = $current.")
-        val message = applicationContext.getString(R.string.export_ifw_successful_message, current)
+        logger.i("Cleared $count IFW rules.")
+        val message = applicationContext.getString(R.string.clear_ifw_message, count)
         ToastUtil.showToast(message, Toast.LENGTH_LONG)
         return@withContext Result.success()
     }
 
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
         val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
-        val title = applicationContext.getString(R.string.backing_up_ifw_please_wait)
+        val title = applicationContext.getString(R.string.import_ifw_please_wait)
         val cancel = applicationContext.getString(R.string.cancel)
         // This PendingIntent can be used to cancel the worker
         val intent = WorkManager.getInstance(applicationContext)

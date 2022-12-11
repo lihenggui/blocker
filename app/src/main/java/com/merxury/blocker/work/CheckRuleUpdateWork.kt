@@ -30,7 +30,7 @@ import com.google.gson.JsonSyntaxException
 import com.merxury.blocker.R
 import com.merxury.blocker.core.database.instantinfo.InstantComponentInfo
 import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDao
-import com.merxury.blocker.util.NotificationUtil
+import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.util.PreferenceUtil
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject

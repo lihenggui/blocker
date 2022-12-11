@@ -42,12 +42,12 @@ import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.CheckRuleUpdateWork
-import com.merxury.blocker.work.ExportBlockerRulesWork
-import com.merxury.blocker.work.ExportIfwRulesWork
-import com.merxury.blocker.work.ImportBlockerRuleWork
-import com.merxury.blocker.work.ImportIfwRulesWork
-import com.merxury.blocker.work.ImportMatRulesWork
-import com.merxury.blocker.work.ResetIfwWork
+import com.merxury.blocker.core.rule.work.ExportBlockerRulesWork
+import com.merxury.blocker.core.rule.work.ExportIfwRulesWork
+import com.merxury.blocker.core.rule.work.ImportBlockerRuleWork
+import com.merxury.blocker.core.rule.work.ImportIfwRulesWork
+import com.merxury.blocker.core.rule.work.ImportMatRulesWork
+import com.merxury.blocker.core.rule.work.ResetIfwWork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
