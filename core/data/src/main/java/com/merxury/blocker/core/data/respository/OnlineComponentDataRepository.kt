@@ -29,8 +29,7 @@ import kotlinx.serialization.json.Json
 import timber.log.Timber
 
 // TODO rewrite
-class OnlineComponentDataRepository @Inject constructor(
-) {
+class OnlineComponentDataRepository @Inject constructor() {
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
     }
@@ -63,7 +62,7 @@ class OnlineComponentDataRepository @Inject constructor(
             if (destination.exists() && loadFromCacheOnly) {
                 // Hit cache, return cached value
                 val content = destination.readText()
-                return@withContext Json{ ignoreUnknownKeys = true}.decodeFromString(content)
+                return@withContext Json { ignoreUnknownKeys = true }.decodeFromString(content)
             } else {
                 if (!loadFromCacheOnly) {
                     try {
@@ -123,16 +122,16 @@ class OnlineComponentDataRepository @Inject constructor(
                 rootFolder.mkdirs()
             }
             // Make new directory according to package name
-            val packageNamePath = networkComponentDetail.name?.split(".")
-                ?.dropLast(1)
+            val packageNamePath = networkComponentDetail.name.split(".")
+                .dropLast(1)
                 ?.joinToString("/") ?: return@withContext false
             val packageFolder = rootFolder.resolve(packageNamePath)
             if (!packageFolder.exists()) {
                 packageFolder.mkdirs()
             }
             // Decide file name
-            val fileName = networkComponentDetail.name?.split(".")
-                ?.last()?.plus(EXTENSION) ?: return@withContext false
+            val fileName = networkComponentDetail.name.split(".")
+                .last()?.plus(EXTENSION) ?: return@withContext false
             val destination = packageFolder.resolve(fileName)
             val content = Json.encodeToString(networkComponentDetail)
             try {

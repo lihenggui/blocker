@@ -25,7 +25,7 @@ import androidx.core.app.NotificationCompat
 import androidx.work.Constraints
 import androidx.work.ForegroundInfo
 import androidx.work.NetworkType
-import com.google.samples.merxury.blocker.sync.R
+import com.merxury.blocker.sync.R
 
 private const val SyncNotificationId = 0
 private const val SyncNotificationChannelID = "SyncNotificationChannel"
@@ -69,9 +69,6 @@ private fun Context.syncWorkNotification(): Notification {
         this,
         SyncNotificationChannelID
     )
-        .setSmallIcon(
-            com.google.samples.merxury.blocker.core.common.R.drawable.ic_nia_notification
-        )
         .setContentTitle(getString(R.string.sync_notification_title))
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .build()
