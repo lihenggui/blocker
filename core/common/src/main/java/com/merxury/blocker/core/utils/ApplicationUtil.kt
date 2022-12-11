@@ -1,17 +1,17 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /**
@@ -30,7 +30,6 @@ import android.content.pm.PackageManager
 import android.content.pm.ProviderInfo
 import android.content.pm.ServiceInfo
 import android.os.Build
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.extension.getApplicationInfoCompat
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
@@ -40,10 +39,9 @@ import java.util.Collections
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 object ApplicationUtil {
-    private const val BLOCKER_PACKAGE_NAME = "com.merxury.blocker"
-    private val logger = XLog.tag("ApplicationUtil").build()
 
     /**
      * Get a list of installed applications on device
@@ -56,10 +54,11 @@ object ApplicationUtil {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): MutableList<Application> {
         val pm = context.packageManager
+        val blockerName = context.packageName
         return withContext(dispatcher) {
             val installedApp = pm.getInstalledPackagesCompat(0)
             installedApp.asSequence()
-                .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
+                .filterNot { it.packageName == blockerName }
                 .map { it.toApplication(pm) }
                 .toMutableList()
         }
@@ -76,6 +75,7 @@ object ApplicationUtil {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): MutableList<Application> {
         val pm = context.packageManager
+        val blockerName = context.packageName
         return withContext(dispatcher) {
             val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(0))
@@ -84,7 +84,7 @@ object ApplicationUtil {
             }
             installedPackages.asSequence()
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
-                .filterNot { it.packageName == BLOCKER_PACKAGE_NAME }
+                .filterNot { it.packageName == blockerName }
                 .map { it.toApplication(pm) }
                 .toMutableList()
         }
@@ -136,9 +136,9 @@ object ApplicationUtil {
                     Collections.addAll(activities, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.w("Cannot find specified package $packageName.")
+                Timber.w("Cannot find specified package $packageName.")
             } catch (e: RuntimeException) {
-                logger.e("Failed to fetch activity list for $packageName", e)
+                Timber.e("Failed to fetch activity list for $packageName", e)
                 return@withContext ApkUtils.getActivities(pm, packageName)
             }
             activities
@@ -171,7 +171,7 @@ object ApplicationUtil {
                     Collections.addAll(receivers, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.e("Cannot find specified package $packageName.")
+                Timber.e("Cannot find specified package $packageName.")
             }
             receivers
         }
@@ -204,9 +204,9 @@ object ApplicationUtil {
                     Collections.addAll(services, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.e("Cannot find specified package $packageName.")
+                Timber.e("Cannot find specified package $packageName.")
             } catch (e: RuntimeException) {
-                logger.e("Failed to fetch service list $packageName", e)
+                Timber.e("Failed to fetch service list $packageName", e)
                 return@withContext ApkUtils.getServices(pm, packageName)
             }
             services
@@ -239,7 +239,7 @@ object ApplicationUtil {
                     Collections.addAll(providers, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.e("Cannot find specified package $packageName.")
+                Timber.e("Cannot find specified package $packageName.")
             }
             providers
         }
@@ -267,7 +267,7 @@ object ApplicationUtil {
             try {
                 info = pm.getPackageInfoCompat(packageName, flags)
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.e("Cannot find specified package.")
+                Timber.e("Cannot find specified package.")
             }
             info
         }
@@ -308,10 +308,10 @@ object ApplicationUtil {
             try {
                 info = pm.getPackageInfoCompat(packageName, flags)
             } catch (e: RuntimeException) {
-                logger.e("Can't get application components", e)
+                Timber.e("Can't get application components", e)
                 info = getPackageInfoFromManifest(pm, packageName)
             } catch (e: PackageManager.NameNotFoundException) {
-                logger.e("Cannot find specified package.")
+                Timber.e("Cannot find specified package.")
             }
             info
         }
@@ -343,7 +343,7 @@ object ApplicationUtil {
             state = pm.getComponentEnabledSetting(componentName)
         } catch (e: Exception) {
             e.printStackTrace()
-            logger.e(e.message)
+            Timber.e(e.message)
             return false
         }
         return state == PackageManager.COMPONENT_ENABLED_STATE_ENABLED ||
@@ -368,7 +368,7 @@ object ApplicationUtil {
             }
             return true
         } catch (e: PackageManager.NameNotFoundException) {
-            logger.d(packageName + "is not installed.")
+            Timber.d(packageName + "is not installed.")
         }
         return false
     }
@@ -381,7 +381,7 @@ object ApplicationUtil {
             val info = pm.getApplicationInfoCompat(packageName, 0)
             return info.flags and ApplicationInfo.FLAG_SYSTEM != 0
         } catch (e: PackageManager.NameNotFoundException) {
-            logger.d(packageName + "is not installed.")
+            Timber.d(packageName + "is not installed.")
         }
         return false
     }

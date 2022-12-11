@@ -37,7 +37,6 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.data.AndroidCodeName
 import com.merxury.blocker.databinding.AppInfoFragmentBinding
-import com.merxury.blocker.rule.Rule
 import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
@@ -133,7 +132,7 @@ class AppInfoFragment : Fragment() {
                 val result = RuleBackupHelper.export(requireContext(), app.packageName)
                 if (result) {
                     val folder = PreferenceUtil.getSavedRulePath(requireContext())
-                    val fileName = app.packageName + Rule.EXTENSION
+                    val fileName = app.packageName + com.merxury.blocker.core.rule.Rule.EXTENSION
                     Toast.makeText(
                         requireContext(),
                         getString(
