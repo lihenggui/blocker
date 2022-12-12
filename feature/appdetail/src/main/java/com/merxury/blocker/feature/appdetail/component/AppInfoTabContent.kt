@@ -1,7 +1,5 @@
 package com.merxury.blocker.feature.appdetail.component
 
-import android.os.Build.VERSION_CODES
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -35,8 +33,6 @@ private data class ActionItems(
     val icon: ImageVector,
 )
 
-//TODO remove VERSION_CODES.N
-@RequiresApi(VERSION_CODES.N)
 @Composable
 fun AppInfoTabContent(
     appDetailInfo: AppDetailInfo,
@@ -51,7 +47,7 @@ fun AppInfoTabContent(
         ActionSection()
         MoreInfo(
             targetSdkVersion = appDetailInfo.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
-            miniSdkVersion = appDetailInfo.packageInfo?.applicationInfo?.minSdkVersion ?: 0,
+            miniSdkVersion = 23,
             lastUpdateTime = appDetailInfo.lastUpdateTime,
             dataDir = appDetailInfo.packageInfo?.applicationInfo?.dataDir
         )
@@ -114,7 +110,7 @@ fun MoreInfo(
     lastUpdateTime: Date?,
     dataDir: String?
 ) {
-    Column() {
+    Column {
         Text(
             text = stringResource(id = string.more_info),
             style = MaterialTheme.typography.titleMedium,
@@ -133,8 +129,7 @@ fun MoreInfo(
 fun ActionItem(
     actionIcon: ImageVector,
     actionId: Int,
-
-    ) {
+) {
     Column(
         modifier = Modifier
             .padding(12.dp)
@@ -165,7 +160,6 @@ fun MoreInfoItem(
     }
 }
 
-@RequiresApi(VERSION_CODES.N)
 @Composable
 @Preview
 fun PreviewAppInfoTabContent() {

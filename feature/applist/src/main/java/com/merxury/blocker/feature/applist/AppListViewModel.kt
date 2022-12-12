@@ -13,6 +13,10 @@ class AppListViewModel @Inject constructor() : ViewModel() {
     private val _uiState: MutableStateFlow<AppListUiState> =
         MutableStateFlow(AppListUiState.Loading)
     val uiState: StateFlow<AppListUiState> = _uiState
+
+    fun onRefresh() {
+        // TODO
+    }
 }
 
 data class AppServiceStatus(

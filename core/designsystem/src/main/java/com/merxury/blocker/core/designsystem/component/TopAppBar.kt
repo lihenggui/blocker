@@ -18,12 +18,11 @@ package com.merxury.blocker.core.designsystem.component
 
 import android.R.string
 import androidx.annotation.StringRes
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -31,23 +30,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerTopAppBar(
-    @StringRes titleRes: Int,
+    title: String,
     navigationIcon: ImageVector,
     navigationIconContentDescription: String?,
-    actionIcon: ImageVector,
-    actionIconContentDescription: String?,
+    actionIconFirst: ImageVector,
+    actionIconContentDescriptionFirst: String?,
+    actionIconSecond: ImageVector,
+    actionIconContentDescriptionSecond: String?,
     modifier: Modifier = Modifier,
-    colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(),
+    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
     onNavigationClick: () -> Unit = {},
-    onActionClick: () -> Unit = {}
+    onFirstActionClick: () -> Unit = {},
+    onSecondActionClick: () -> Unit = {}
 ) {
-    CenterAlignedTopAppBar(
-        title = { Text(text = stringResource(id = titleRes)) },
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            AutoResizeText(
+                text = title,
+                FontSizeRange(5.sp, 22.sp),
+                maxLines = 2
+            )
+        },
         navigationIcon = {
             IconButton(onClick = onNavigationClick) {
                 Icon(
@@ -58,57 +68,91 @@ fun BlockerTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = onActionClick) {
+            IconButton(onClick = onFirstActionClick) {
                 Icon(
-                    imageVector = actionIcon,
-                    contentDescription = actionIconContentDescription,
+                    imageVector = actionIconFirst,
+                    contentDescription = actionIconContentDescriptionFirst,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            IconButton(onClick = onSecondActionClick) {
+                Icon(
+                    imageVector = actionIconSecond,
+                    contentDescription = actionIconContentDescriptionSecond,
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
-        colors = colors,
-        modifier = modifier
+        colors = colors
     )
 }
 
-/**
- * Top app bar with action, displayed on the right
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerTopAppBar(
     @StringRes titleRes: Int,
-    actionIcon: ImageVector,
-    actionIconContentDescription: String?,
+    actionIconFirst: ImageVector,
+    actionIconContentDescriptionFirst: String?,
+    actionIconSecond: ImageVector,
+    actionIconContentDescriptionSecond: String?,
     modifier: Modifier = Modifier,
-    colors: TopAppBarColors = TopAppBarDefaults.centerAlignedTopAppBarColors(),
-    onActionClick: () -> Unit = {}
+    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
+    onFirstActionClick: () -> Unit = {},
+    onSecondActionClick: () -> Unit = {}
 ) {
-    CenterAlignedTopAppBar(
-        title = { Text(text = stringResource(id = titleRes)) },
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            AutoResizeText(
+                text = stringResource(id = titleRes),
+                FontSizeRange(5.sp, 22.sp),
+                maxLines = 2
+            )
+        },
         actions = {
-            IconButton(onClick = onActionClick) {
+            IconButton(onClick = onFirstActionClick) {
                 Icon(
-                    imageVector = actionIcon,
-                    contentDescription = actionIconContentDescription,
+                    imageVector = actionIconFirst,
+                    contentDescription = actionIconContentDescriptionFirst,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            IconButton(onClick = onSecondActionClick) {
+                Icon(
+                    imageVector = actionIconSecond,
+                    contentDescription = actionIconContentDescriptionSecond,
                     tint = MaterialTheme.colorScheme.onSurface
                 )
             }
         },
-        colors = colors,
-        modifier = modifier,
+        colors = colors
     )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview("Top App Bar")
+@Preview("Top App Bar with navigation icon")
 @Composable
 fun BlockerTopAppBarPreview() {
     BlockerTopAppBar(
-        titleRes = string.untitled,
-        navigationIcon = BlockerIcons.Search,
+        title = stringResource(id = string.untitled),
+        navigationIcon = BlockerIcons.Back,
         navigationIconContentDescription = "Navigation icon",
-        actionIcon = BlockerIcons.MoreVert,
-        actionIconContentDescription = "Action icon"
+        actionIconFirst = BlockerIcons.Search,
+        actionIconContentDescriptionFirst = "First action icon",
+        actionIconSecond = BlockerIcons.MoreVert,
+        actionIconContentDescriptionSecond = "Second action icon"
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Top App Bar without navigation icon")
+@Composable
+fun BlockerTopAppBarWithoutNavPreview() {
+    BlockerTopAppBar(
+        titleRes = string.untitled,
+        actionIconFirst = BlockerIcons.Search,
+        actionIconContentDescriptionFirst = "First action icon",
+        actionIconSecond = BlockerIcons.MoreVert,
+        actionIconContentDescriptionSecond = "Second action icon"
     )
 }
