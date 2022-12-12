@@ -42,7 +42,7 @@ fun AppInfoTabContent(
     appDetailInfo: AppDetailInfo,
     modifier: Modifier = Modifier
 ) {
-    Column {
+    Column(modifier = modifier) {
         AppBasicInfo(
             appName = appDetailInfo.appName,
             packageName = appDetailInfo.packageName,
@@ -114,10 +114,11 @@ fun MoreInfo(
     lastUpdateTime: Date?,
     dataDir: String?
 ) {
-    Column {
+    Column() {
         Text(
             text = stringResource(id = string.more_info),
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
         )
         MoreInfoItem(itemId = string.target_sdk_version, itemInfo = targetSdkVersion.toString())
         MoreInfoItem(itemId = string.minimum_sdk_version, itemInfo = miniSdkVersion.toString())
@@ -141,7 +142,7 @@ fun ActionItem(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(imageVector = actionIcon, contentDescription = null)
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(8.dp))
         Text(text = stringResource(id = actionId), style = MaterialTheme.typography.bodyMedium)
     }
 }
@@ -151,14 +152,15 @@ fun MoreInfoItem(
     itemId: Int,
     itemInfo: String
 ) {
-    Column(modifier = Modifier.padding(4.dp)) {
+    Column(modifier = Modifier.padding(12.dp)) {
         Text(
             text = stringResource(id = itemId),
-            style = MaterialTheme.typography.headlineSmall
+            style = MaterialTheme.typography.titleSmall
         )
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = itemInfo,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodyMedium
         )
     }
 }
