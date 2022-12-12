@@ -46,7 +46,7 @@ import timber.log.Timber
 
 @HiltWorker
 class ImportBlockerRuleWorker @AssistedInject constructor(
-    @Assisted private val context: Context, 
+    @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : CoroutineWorker(context, params) {
