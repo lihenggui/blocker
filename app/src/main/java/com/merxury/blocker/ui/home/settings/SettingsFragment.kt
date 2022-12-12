@@ -167,7 +167,7 @@ class SettingsFragment :
             .build()
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportWork)
-        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
+//        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
     }
 
     private fun exportIfwRule() {
@@ -335,7 +335,11 @@ class SettingsFragment :
 
     private fun setOnlineSourceType(context: Context, type: OnlineSourceType) {
         PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putString(context.getString(com.merxury.blocker.core.datastore.R.string.key_pref_online_source_type), type.name).apply()
+            .putString(
+                context.getString(R.string.key_pref_online_source_type),
+                type.name
+            )
+            .apply()
     }
 
     companion object {

@@ -17,4 +17,19 @@
 <resources>
     <string name="processing_progress_indicator">Индикатор прогресса обработки</string>
     <string name="update_rules_notification">Уведомление об обновлении правил</string>
+    <string name="backing_up_apps_please_wait">Резервное копирование правил приложения, подождите…</string>
+    <string name="backing_up_ifw_please_wait">Резервное копирование правил IFW, подождите…</string>
+    <string name="import_ifw_please_wait">Импорт правил IFW, пожалуйста, подождите…</string>
+    <string name="reset_ifw_please_wait">Сброс IFW, подождите…</string>
+    <string name="import_mat_rule_please_wait">Импорт правил MAT, подождите…</string>
+    <string name="import_failed_message">Сбой импортирования правил Blocker. Проверьте, есть ли у вас root права.</string>
+    <string name="no_rules_imported">Правила не импортированы, проверьте папку или разрешения.</string>
+    <string name="export_ifw_failed_message">Не удалось экспортировать правила IFW. Вы предоставили Blocker-у разрешения?</string>
+    <string name="export_ifw_successful_message">Успешно экспортировано %1$d правил IFW.</string>
+    <string name="import_ifw_failed_message">Сбой импортирования правил IFW. Вы предоставили Blocker-у разрешения?</string>
+    <string name="import_successfully">Правила успешно импортированы</string>
+    <string name="clear_ifw_message">Удалено %1$d правил IFW.</string>
+    <string name="import_mat_failed_message">Сбой импортирта правил MAT. Вы предоставили Blocker-у разрешения?</string>
+    <string name="import_app_rules_please_wait">Импорт правил приложения, подождите…</string>
+    <string name="cancel">Отмена</string>
 </resources>
