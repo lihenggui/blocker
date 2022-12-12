@@ -19,26 +19,37 @@ package com.merxury.blocker.core.rule.work
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.merxury.blocker.core.network.BlockerDispatchers.IO
+import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.util.StorageUtils
-import kotlinx.coroutines.Dispatchers
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-class ResetIfwWork(context: Context, params: WorkerParameters) :
-    CoroutineWorker(context, params) {
+@HiltWorker
+class ResetIfwWorker @AssistedInject constructor(
+    @Assisted private val context: Context,
+    @Assisted params: WorkerParameters,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+) : CoroutineWorker(context, params) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return updateNotification("", 0, 0)
     }
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withContext(ioDispatcher) {
         Timber.i("Clear IFW rules")
         var count = 0
         val total: Int
@@ -83,5 +94,11 @@ class ResetIfwWork(context: Context, params: WorkerParameters) :
             .addAction(android.R.drawable.ic_delete, cancel, intent)
             .build()
         return ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
+    }
+
+    companion object {
+        fun clearIfwWork() = OneTimeWorkRequestBuilder<ResetIfwWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
     }
 }

@@ -44,7 +44,7 @@ import com.merxury.blocker.core.rule.work.ExportIfwRulesWork
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWork
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWork
 import com.merxury.blocker.core.rule.work.ImportMatRulesWork
-import com.merxury.blocker.core.rule.work.ResetIfwWork
+import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.ToastUtil
@@ -190,9 +190,7 @@ class SettingsFragment :
 
     private fun resetIfw() {
         ToastUtil.showToast(R.string.reset_ifw_please_wait, Toast.LENGTH_LONG)
-        val exportWork = OneTimeWorkRequestBuilder<ResetIfwWork>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
+        val exportWork = ResetIfwWorker.clearIfwWork()
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("ResetIfw", ExistingWorkPolicy.KEEP, exportWork)
     }
