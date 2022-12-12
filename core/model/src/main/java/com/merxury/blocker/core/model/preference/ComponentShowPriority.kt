@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.model.preference
 
-/**
- * Model representation for the online data provider
- */
-enum class RuleServerProvider {
-    GITHUB,
-    GITLAB
+enum class ComponentShowPriority {
+    ENABLED_COMPONENTS_FIRST,
+    DISABLED_COMPONENTS_FIRST,
 }

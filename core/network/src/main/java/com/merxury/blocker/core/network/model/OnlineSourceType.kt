@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.core.network.model
 
-import com.merxury.blocker.core.model.data.RuleServerProvider
-import com.merxury.blocker.core.model.data.RuleServerProvider.GITHUB
+import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 
 enum class OnlineSourceType(val baseUrl: String) {
     GITHUB("https://raw.githubusercontent.com/lihenggui/blocker-general-rules/online/"),
