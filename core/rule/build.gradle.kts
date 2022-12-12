@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.androidx.documentfile)
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+    kapt(libs.hilt.ext.compiler)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.ext.work)
