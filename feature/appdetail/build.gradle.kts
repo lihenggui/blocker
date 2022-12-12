@@ -22,3 +22,6 @@ plugins {
 android {
     namespace = "com.merxury.blocker.feature.appdetail"
 }
+dependencies {
+    implementation(project(":core:model"))
+}
