@@ -33,14 +33,15 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.databinding.AppListFragmentBinding
 import com.merxury.blocker.ui.detail.AppDetailActivity
 import com.merxury.blocker.util.AppStateCache
-import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.unsafeLazy
 
 class AppListFragment : Fragment() {
@@ -82,7 +83,7 @@ class AppListFragment : Fragment() {
         }
         viewModel?.sortType?.observe(viewLifecycleOwner) {
             logger.i("SortType changed to ${it?.name}")
-            PreferenceUtil.setSortType(requireContext(), it)
+            setSortType(requireContext(), it)
         }
         lifecycleScope.launchWhenStarted {
             viewModel?.error?.collect {
@@ -247,5 +248,13 @@ class AppListFragment : Fragment() {
                 dialog.dismiss()
             }
             .show()
+    }
+
+    private fun setSortType(context: Context, value: SortType?) {
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putString(
+                context.getString(R.string.key_pref_sort_type),
+                value?.name
+            ).apply()
     }
 }

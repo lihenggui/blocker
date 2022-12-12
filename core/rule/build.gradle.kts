@@ -30,9 +30,12 @@ android {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:component-controller"))
+    implementation(project(":core:datastore"))
     implementation(project(":core:ifw-api"))
     implementation(libs.androidx.documentfile)
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.work.ktx)
+    implementation(libs.hilt.ext.work)
 }
