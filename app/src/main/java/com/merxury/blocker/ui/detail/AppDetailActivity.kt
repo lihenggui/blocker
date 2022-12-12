@@ -34,7 +34,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.databinding.ActivityAppDetailBinding
-import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.util.parcelable
 import com.merxury.blocker.util.reduceDragSensitivity
 import dagger.hilt.android.AndroidEntryPoint

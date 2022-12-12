@@ -23,7 +23,6 @@ import com.google.gson.GsonBuilder
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
 import com.merxury.blocker.core.network.model.OnlineSourceType
-import com.merxury.blocker.util.PreferenceUtil
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -37,11 +36,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-    @Provides
-    fun provideOnlineRuleSourceType(@ApplicationContext context: Context): OnlineSourceType {
-        return PreferenceUtil.getOnlineSourceType(context)
-    }
-
     @Provides
     fun provideOkHttpClient(): OkHttpClient {
         val builder = OkHttpClient.Builder()

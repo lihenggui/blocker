@@ -49,7 +49,7 @@ import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.databinding.ComponentFragmentBinding
 import com.merxury.blocker.ui.detail.component.info.ComponentDetailBottomSheetFragment
 import com.merxury.blocker.util.BrowserUtil
-import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.serializable
 import com.merxury.blocker.util.unsafeLazy

@@ -32,7 +32,7 @@ import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.databinding.AppListItemBinding
 import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.AppStateCache
-import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.core.PreferenceUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

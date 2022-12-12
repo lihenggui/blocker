@@ -26,7 +26,7 @@ import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.util.StorageUtil
 import com.merxury.ifw.util.RuleSerializer
 import com.merxury.ifw.util.StorageUtils

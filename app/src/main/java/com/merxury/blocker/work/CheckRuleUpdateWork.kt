@@ -21,6 +21,7 @@ import android.os.Build
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
+import androidx.preference.PreferenceManager
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
@@ -30,8 +31,8 @@ import com.google.gson.JsonSyntaxException
 import com.merxury.blocker.R
 import com.merxury.blocker.core.database.instantinfo.InstantComponentInfo
 import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDao
+import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.core.rule.util.NotificationUtil
-import com.merxury.blocker.util.PreferenceUtil
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.io.File
@@ -133,7 +134,7 @@ class CheckRuleUpdateWork @AssistedInject constructor(
 
     private suspend fun getOnlineSetData(set: Set) {
         setForeground(updateNotification(R.string.download_online_rules))
-        val onlineSource = PreferenceUtil.getOnlineSourceType(applicationContext)
+        val onlineSource = getOnlineSourceType(applicationContext)
         val path = "components/zh-cn/${set.filename}"
         val url = onlineSource.baseUrl + path
         val request = Request.Builder()
@@ -154,7 +155,7 @@ class CheckRuleUpdateWork @AssistedInject constructor(
     }
 
     private fun getOnlineSetInfo(): Set? {
-        val source = PreferenceUtil.getOnlineSourceType(applicationContext)
+        val source = getOnlineSourceType(applicationContext)
         val path = "components/zh-cn/$SET_INFO_FILE_NAME"
         val url = source.baseUrl + path
         try {
@@ -208,6 +209,19 @@ class CheckRuleUpdateWork @AssistedInject constructor(
 
     private fun isLocalSetExist(filename: String): Boolean {
         return applicationContext.cacheDir.resolve(filename).exists()
+    }
+
+    // TODO use DataStore instead
+    private fun getOnlineSourceType(context: Context): OnlineSourceType {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val value = pref.getString(
+            context.getString(com.merxury.blocker.core.datastore.R.string.key_pref_online_source_type), "GITLAB"
+        ).orEmpty()
+        return try {
+            OnlineSourceType.valueOf(value)
+        } catch (e: Exception) {
+            OnlineSourceType.GITHUB
+        }
     }
 
     companion object {
