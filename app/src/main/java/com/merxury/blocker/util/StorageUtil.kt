@@ -19,6 +19,7 @@ package com.merxury.blocker.util
 import android.content.Context
 import androidx.documentfile.provider.DocumentFile
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.core.PreferenceUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

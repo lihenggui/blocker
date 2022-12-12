@@ -38,7 +38,7 @@ import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.data.Event
-import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.regex.PatternSyntaxException

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.util
+package com.merxury.blocker.core
 
 import android.content.Context
 import android.net.Uri
 import androidx.preference.PreferenceManager
-import com.merxury.blocker.R
-import com.merxury.blocker.core.network.model.OnlineSourceType
+import com.merxury.blocker.core.datastore.R
 import com.merxury.blocker.core.root.EControllerMethod
-import com.merxury.blocker.ui.home.applist.SortType
 
+@Deprecated("Use Datastore implementation")
 object PreferenceUtil {
     fun getControllerType(context: Context): EControllerMethod {
         // Magic value, but still use it.
@@ -89,21 +88,6 @@ object PreferenceUtil {
         )
     }
 
-    fun setSortType(context: Context, value: SortType?) {
-        PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putString(context.getString(R.string.key_pref_sort_type), value?.name).apply()
-    }
-
-    fun getSortType(context: Context): SortType {
-        val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val value = pref.getString(context.getString(R.string.key_pref_sort_type), null).orEmpty()
-        return try {
-            SortType.valueOf(value)
-        } catch (e: Exception) {
-            SortType.NAME_ASC
-        }
-    }
-
     fun setSearchSystemApps(context: Context, value: Boolean) {
         PreferenceManager.getDefaultSharedPreferences(context).edit()
             .putBoolean(context.getString(R.string.key_pref_search_system_apps), value).apply()
@@ -114,23 +98,6 @@ object PreferenceUtil {
         return pref.getBoolean(
             context.getString(R.string.key_pref_search_system_apps), false
         )
-    }
-
-    fun setOnlineSourceType(context: Context, type: OnlineSourceType) {
-        PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putString(context.getString(R.string.key_pref_online_source_type), type.name).apply()
-    }
-
-    fun getOnlineSourceType(context: Context): OnlineSourceType {
-        val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val value = pref.getString(
-            context.getString(R.string.key_pref_online_source_type), "GITLAB"
-        ).orEmpty()
-        return try {
-            OnlineSourceType.valueOf(value)
-        } catch (e: Exception) {
-            OnlineSourceType.GITHUB
-        }
     }
 
     fun setShowEnabledComponentShowFirst(context: Context, value: Boolean) {

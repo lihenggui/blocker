@@ -25,10 +25,10 @@ import android.util.Log
 import androidx.core.os.bundleOf
 import com.google.gson.Gson
 import com.merxury.blocker.core.ComponentControllerProxy
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.ifw.IfwController
 import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.util.PreferenceUtil
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
