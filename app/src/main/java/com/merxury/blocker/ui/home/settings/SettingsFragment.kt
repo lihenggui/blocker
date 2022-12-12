@@ -39,7 +39,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.core.rule.work.ExportBlockerRulesWork
-import com.merxury.blocker.core.rule.work.ExportIfwRulesWork
+import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
@@ -173,11 +173,13 @@ class SettingsFragment :
 
     private fun exportIfwRule() {
         ToastUtil.showToast(R.string.backing_up_ifw_please_wait, Toast.LENGTH_LONG)
-        val exportWork = OneTimeWorkRequestBuilder<ExportIfwRulesWork>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-        WorkManager.getInstance(requireContext())
-            .enqueueUniqueWork("ExportIfwRule", ExistingWorkPolicy.KEEP, exportWork)
+        WorkManager.getInstance(requireContext()).apply {
+            enqueueUniqueWork(
+                "ExportIfwRule",
+                ExistingWorkPolicy.KEEP,
+                ExportIfwRulesWorker.exportWork()
+            )
+        }
     }
 
     private fun importIfwRule() {
