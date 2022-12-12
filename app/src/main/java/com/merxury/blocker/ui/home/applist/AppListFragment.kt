@@ -252,6 +252,9 @@ class AppListFragment : Fragment() {
 
     private fun setSortType(context: Context, value: SortType?) {
         PreferenceManager.getDefaultSharedPreferences(context).edit()
-            .putString(context.getString(com.merxury.blocker.core.datastore.R.string.key_pref_sort_type), value?.name).apply()
+            .putString(
+                context.getString(R.string.key_pref_sort_type),
+                value?.name
+            ).apply()
     }
 }

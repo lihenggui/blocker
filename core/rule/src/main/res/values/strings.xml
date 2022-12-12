@@ -17,4 +17,19 @@
 <resources>
     <string name="processing_progress_indicator">Processing Progress Indicator</string>
     <string name="update_rules_notification">Update rules notification</string>
+    <string name="backing_up_apps_please_wait">Backing up app rules, please wait…</string>
+    <string name="backing_up_ifw_please_wait">Backing up IFW rules, please wait…</string>
+    <string name="import_ifw_please_wait">Importing IFW rules, please wait…</string>
+    <string name="reset_ifw_please_wait">Resetting IFW, please wait…</string>
+    <string name="import_mat_rule_please_wait">Importing MAT rules, please wait…</string>
+    <string name="import_failed_message">Failed to import Blocker rules, please check if you have Super user permissions or not.</string>
+    <string name="no_rules_imported">No rules imported, please check the folder or the permission.</string>
+    <string name="export_ifw_failed_message">Failed to export IFW rules, did you grant permissions to Blocker?</string>
+    <string name="export_ifw_successful_message">Successfully export %1$d IFW rules.</string>
+    <string name="import_ifw_failed_message">Failed to import IFW rules, did you grant permissions to Blocker?</string>
+    <string name="import_successfully">Import rules successfully</string>
+    <string name="clear_ifw_message">Cleared %1$d IFW rules.</string>
+    <string name="import_mat_failed_message">Failed to import MAT rules, did you grant permissions to Blocker?</string>
+    <string name="import_app_rules_please_wait">Importing app rules, please wait…</string>
+    <string name="cancel">Cancel</string>
 </resources>
