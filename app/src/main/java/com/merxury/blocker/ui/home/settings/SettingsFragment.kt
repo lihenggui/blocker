@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.ui.home.settings
 
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -36,18 +37,18 @@ import androidx.work.WorkManager
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.network.model.OnlineSourceType
+import com.merxury.blocker.core.rule.work.ExportBlockerRulesWork
+import com.merxury.blocker.core.rule.work.ExportIfwRulesWork
+import com.merxury.blocker.core.rule.work.ImportBlockerRuleWork
+import com.merxury.blocker.core.rule.work.ImportIfwRulesWork
+import com.merxury.blocker.core.rule.work.ImportMatRulesWork
+import com.merxury.blocker.core.rule.work.ResetIfwWork
 import com.merxury.blocker.util.BrowserUtil
-import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.CheckRuleUpdateWork
-import com.merxury.blocker.work.ExportBlockerRulesWork
-import com.merxury.blocker.work.ExportIfwRulesWork
-import com.merxury.blocker.work.ImportBlockerRuleWork
-import com.merxury.blocker.work.ImportIfwRulesWork
-import com.merxury.blocker.work.ImportMatRulesWork
-import com.merxury.blocker.work.ResetIfwWork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -96,7 +97,7 @@ class SettingsFragment :
                 OnlineSourceType.GITLAB
             }
             logger.i("Set online rule source to $type")
-            PreferenceUtil.setOnlineSourceType(requireContext(), type)
+            setOnlineSourceType(requireContext(), type)
         }
         return true
     }
@@ -166,7 +167,7 @@ class SettingsFragment :
             .build()
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportWork)
-        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
+//        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
     }
 
     private fun exportIfwRule() {
@@ -330,6 +331,15 @@ class SettingsFragment :
             }
             ShareUtil.shareFileToEmail(requireContext(), zippedLog)
         }
+    }
+
+    private fun setOnlineSourceType(context: Context, type: OnlineSourceType) {
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putString(
+                context.getString(R.string.key_pref_online_source_type),
+                type.name
+            )
+            .apply()
     }
 
     companion object {

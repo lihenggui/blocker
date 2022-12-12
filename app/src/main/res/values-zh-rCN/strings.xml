@@ -19,7 +19,6 @@
     <string name="close">关闭</string>
     <string name="search">搜索</string>
     <string name="launch_activity">启动Activity</string>
-    <string name="cancel">取消</string>
     <string name="block_all">禁用全部</string>
     <string name="enable_all">启用全部</string>
     <string name="disabling_hint">禁用组件中…</string>
@@ -59,15 +58,7 @@
     <string name="failed_to_back_up">备份应用规则失败，请检查权限或者提交错误报告。</string>
     <string name="backup_finished">应用规则备份完毕。</string>
     <string name="dir_is_invalid">目录无效，请检查备份目录是否设置成功。</string>
-    <string name="import_failed_message">导入Blocker规则失败，请检查超级用户权限是否授予</string>
-    <string name="no_rules_imported">没有规则被导入，请检查目录是否正确设置或者权限是否被正确授予</string>
-    <string name="export_ifw_failed_message">导出IFW规则失败，请检查权限是否被正确授予。</string>
-    <string name="import_ifw_failed_message">导入IFW规则失败，请检查超级用户权限是否被正确授予。</string>
-    <string name="export_ifw_successful_message">成功导出%1$d个IFW规则</string>
-    <string name="import_successfully">导入规则成功</string>
-    <string name="clear_ifw_message">清除了%1$d个IFW规则</string>
     <string name="please_select_mat_files">请选择MyAndroidTools规则</string>
-    <string name="import_mat_failed_message">导入MAT规则失败，请检查超级用户权限是否被正确授予。</string>
     <string name="acquiring_service_status_please_wait">正在获取服务状态…</string>
     <string name="service_status_template">服务: 正在运行%1$d个, 已阻止%2$d个, 共计%3$d个.</string>
     <string name="show_system_apps">显示系统应用</string>
