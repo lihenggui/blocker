@@ -20,13 +20,14 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
+import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
+import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.databinding.GeneralRulesCardItemBinding
-import com.merxury.blocker.util.PreferenceUtil
 
 class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>() {
 
@@ -106,7 +107,7 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
             }
 
             if (!item.iconUrl.isNullOrEmpty()) {
-                val baseUrl = PreferenceUtil.getOnlineSourceType(context).baseUrl
+                val baseUrl = getOnlineSourceType(context).baseUrl
                 val iconUrl = baseUrl + item.iconUrl
                 Glide.with(context)
                     .load(iconUrl)
@@ -117,6 +118,19 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
             binding.searchButton.setOnClickListener {
                 onSearchClickListener?.invoke(item)
             }
+        }
+    }
+
+    // TODO use DataStore instead
+    private fun getOnlineSourceType(context: Context): OnlineSourceType {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val value = pref.getString(
+            context.getString(com.merxury.blocker.core.datastore.R.string.key_pref_online_source_type), "GITLAB"
+        ).orEmpty()
+        return try {
+            OnlineSourceType.valueOf(value)
+        } catch (e: Exception) {
+            OnlineSourceType.GITHUB
         }
     }
 }

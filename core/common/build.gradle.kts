@@ -26,9 +26,10 @@ android {
 
 dependencies {
     api(project(":core:model"))
+    api(libs.timber)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
-    api(libs.timber)
+
     testImplementation(project(":core:testing"))
 }
