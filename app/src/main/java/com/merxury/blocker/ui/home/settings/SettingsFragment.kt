@@ -38,7 +38,7 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.network.model.OnlineSourceType
-import com.merxury.blocker.core.rule.work.ExportBlockerRulesWork
+import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
@@ -163,11 +163,13 @@ class SettingsFragment :
     }
 
     private fun exportBlockerRule() {
-        val exportWork = OneTimeWorkRequestBuilder<ExportBlockerRulesWork>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-        WorkManager.getInstance(requireContext())
-            .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportWork)
+        WorkManager.getInstance(requireContext()).apply {
+            enqueueUniqueWork(
+                "ExportBlockerRule",
+                ExistingWorkPolicy.KEEP,
+                ExportBlockerRulesWorker.exportWork()
+            )
+        }
 //        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
     }
 

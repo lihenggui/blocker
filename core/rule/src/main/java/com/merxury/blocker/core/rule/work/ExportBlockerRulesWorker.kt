@@ -19,22 +19,33 @@ package com.merxury.blocker.core.rule.work
 import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.core.network.BlockerDispatchers.IO
+import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
-import kotlinx.coroutines.Dispatchers
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
-    CoroutineWorker(context, params) {
+@HiltWorker
+class ExportBlockerRulesWorker @AssistedInject constructor(
+    @Assisted private val context: Context,
+    @Assisted params: WorkerParameters,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+) : CoroutineWorker(context, params) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return updateNotification("", 0, 0)
@@ -42,7 +53,7 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
 
     override suspend fun doWork(): Result {
         // Check storage permission first
-        if (!StorageUtil.isSavedFolderReadable(applicationContext)) {
+        if (!StorageUtil.isSavedFolderReadable(context)) {
 //            ToastUtil.showToast(R.string.failed_to_back_up, Toast.LENGTH_LONG)
             return Result.failure()
         }
@@ -50,21 +61,20 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
         Timber.i("Start to backup app rules")
         setForeground(updateNotification("", 0, 0))
         // Backup logic
-        val shouldBackupSystemApp = PreferenceUtil.shouldBackupSystemApps(applicationContext)
-        val savedPath =
-            PreferenceUtil.getSavedRulePath(applicationContext) ?: return Result.failure()
-        return withContext(Dispatchers.IO) {
+        val shouldBackupSystemApp = PreferenceUtil.shouldBackupSystemApps(context)
+        val savedPath = PreferenceUtil.getSavedRulePath(context) ?: return Result.failure()
+        return withContext(ioDispatcher) {
             try {
                 val list = if (shouldBackupSystemApp) {
-                    ApplicationUtil.getApplicationList(applicationContext)
+                    ApplicationUtil.getApplicationList(context)
                 } else {
-                    ApplicationUtil.getThirdPartyApplicationList(applicationContext)
+                    ApplicationUtil.getThirdPartyApplicationList(context)
                 }
                 val total = list.count()
                 var current = 1
                 list.forEach {
                     setForeground(updateNotification(it.packageName, current, total))
-                    Rule.export(applicationContext, it.packageName, savedPath)
+                    Rule.export(context, it.packageName, savedPath)
                     current++
                 }
             } catch (e: Exception) {
@@ -82,16 +92,16 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
 
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
         val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
-        val title = applicationContext.getString(R.string.backing_up_apps_please_wait)
-        val cancel = applicationContext.getString(R.string.cancel)
+        val title = context.getString(R.string.backing_up_apps_please_wait)
+        val cancel = context.getString(R.string.cancel)
         // This PendingIntent can be used to cancel the worker
-        val intent = WorkManager.getInstance(applicationContext)
+        val intent = WorkManager.getInstance(context)
             .createCancelPendingIntent(getId())
         // Create a Notification channel if necessary
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationUtil.createProgressingNotificationChannel(applicationContext)
+            NotificationUtil.createProgressingNotificationChannel(context)
         }
-        val notification = NotificationCompat.Builder(applicationContext, id)
+        val notification = NotificationCompat.Builder(context, id)
             .setContentTitle(title)
             .setTicker(title)
             .setSubText(name)
@@ -101,5 +111,11 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
             .addAction(android.R.drawable.ic_delete, cancel, intent)
             .build()
         return ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
+    }
+
+    companion object {
+        fun exportWork() = OneTimeWorkRequestBuilder<ExportBlockerRulesWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
     }
 }
