@@ -1,54 +1,50 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.merxury.blocker.work
+package com.merxury.blocker.core.rule.work
 
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.os.Build
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.elvishew.xlog.XLog
-import com.merxury.blocker.R
 import com.merxury.blocker.core.ComponentControllerProxy
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.rule.R
+import com.merxury.blocker.core.rule.util.NotificationUtil
+import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.util.NotificationUtil
-import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.blocker.util.StorageUtil
-import com.merxury.blocker.util.ToastUtil
 import com.merxury.ifw.util.RuleSerializer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
-
-    private val logger = XLog.tag("ImportIfwRulesWork")
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return updateNotification("", 0, 0)
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        logger.i("Started to import IFW rules")
+        Timber.i("Started to import IFW rules")
         val context = applicationContext
         val total: Int
         var imported = 0
@@ -57,8 +53,8 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
             // Check directory is readable
             val ifwFolder = StorageUtil.getOrCreateIfwFolder(context)
             if (ifwFolder == null) {
-                logger.e("Folder hasn't been set yet.")
-                ToastUtil.showToast(R.string.import_ifw_failed_message, Toast.LENGTH_LONG)
+                Timber.e("Folder hasn't been set yet.")
+//                ToastUtil.showToast(R.string.import_ifw_failed_message, Toast.LENGTH_LONG)
                 return@withContext Result.failure()
             }
             val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
@@ -67,7 +63,7 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
             total = files.count()
             // Start importing files
             files.forEach { documentFile ->
-                logger.i("Importing ${documentFile.name}")
+                Timber.i("Importing ${documentFile.name}")
                 setForeground(updateNotification(documentFile.name ?: "", imported, total))
                 var packageName: String? = null
                 context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
@@ -99,7 +95,7 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
                     val isSystemApp =
                         ApplicationUtil.isSystemApp(context.packageManager, packageName)
                     if (!shouldRestoreSystemApps && isSystemApp) {
-                        logger.i("Skipping system app $packageName")
+                        Timber.i("Skipping system app $packageName")
                         return@forEach
                     }
                     controller.batchDisable(activities) {}
@@ -109,12 +105,12 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
                 }
             }
         } catch (e: Exception) {
-            logger.e("Cannot import IFW rules", e)
-            ToastUtil.showToast(R.string.import_ifw_failed_message, Toast.LENGTH_LONG)
+            Timber.e("Cannot import IFW rules", e)
+//            ToastUtil.showToast(R.string.import_ifw_failed_message, Toast.LENGTH_LONG)
             return@withContext Result.failure()
         }
-        logger.i("Imported $imported IFW rules.")
-        ToastUtil.showToast(R.string.import_successfully, Toast.LENGTH_LONG)
+        Timber.i("Imported $imported IFW rules.")
+//        ToastUtil.showToast(R.string.import_successfully, Toast.LENGTH_LONG)
         return@withContext Result.success()
     }
 
@@ -129,7 +125,9 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
             NotificationUtil.createProgressingNotificationChannel(applicationContext)
         }
         val notification = NotificationCompat.Builder(applicationContext, id).setContentTitle(title)
-            .setTicker(title).setSubText(name).setSmallIcon(R.mipmap.ic_launcher)
+            .setTicker(title)
+            .setSubText(name)
+            .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
             .setProgress(total, current, false)
             .setOngoing(true)
             .addAction(android.R.drawable.ic_delete, cancel, intent)

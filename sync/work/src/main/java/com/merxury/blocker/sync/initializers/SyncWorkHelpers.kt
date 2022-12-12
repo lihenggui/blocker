@@ -1,5 +1,6 @@
 /*
  * Copyright 2022 Blocker
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,6 +70,7 @@ private fun Context.syncWorkNotification(): Notification {
         this,
         SyncNotificationChannelID
     )
+        .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
         .setContentTitle(getString(R.string.sync_notification_title))
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .build()

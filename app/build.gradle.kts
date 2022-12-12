@@ -90,8 +90,9 @@ android {
 }
 
 dependencies {
-    // TODO database, rule, datetime, network should be removed
+    // TODO database, datastore, rule, datetime, network should be removed
     implementation(project(":core:database"))
+    implementation(project(":core:datastore"))
     implementation(project(":core:network"))
     implementation(project(":core:rule"))
     implementation(libs.kotlinx.datetime)
