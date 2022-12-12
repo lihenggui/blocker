@@ -36,7 +36,6 @@ fun ControllerItem() {
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(vertical = 4.dp, horizontal = 12.dp)
             )
-
         }
     }
 }

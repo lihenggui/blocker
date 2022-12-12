@@ -38,7 +38,7 @@ fun AppListRoute(
         uiState = uiState,
         navigateToAppDetail = navigateToAppDetail,
         isRefreshing = uiState is AppListUiState.Loading,
-        onRefresh = { /*TODO*/ },
+        onRefresh = { viewModel.onRefresh() },
         modifier = modifier
     )
 }

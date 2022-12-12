@@ -29,7 +29,7 @@ import com.merxury.blocker.feature.appdetail.AppDetailRoute
 
 internal const val appIdArg = "appId"
 
-internal class AppDetailArgs(val appId: String) {
+internal class AppDetailArgs(val appPackageName: String) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
         this(stringDecoder.decodeString(checkNotNull(savedStateHandle[appIdArg])))
 }
