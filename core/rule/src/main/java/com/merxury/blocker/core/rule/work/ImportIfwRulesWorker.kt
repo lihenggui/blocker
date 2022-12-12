@@ -20,8 +20,11 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.ComponentControllerProxy
@@ -32,12 +35,17 @@ import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.util.RuleSerializer
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
-    CoroutineWorker(context, params) {
+@HiltWorker
+class ImportIfwRulesWorker @AssistedInject constructor(
+    @Assisted private val context: Context,
+    @Assisted params: WorkerParameters
+) : CoroutineWorker(context, params) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
         return updateNotification("", 0, 0)
@@ -45,7 +53,6 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         Timber.i("Started to import IFW rules")
-        val context = applicationContext
         val total: Int
         var imported = 0
         try {
@@ -116,15 +123,15 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
 
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
         val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
-        val title = applicationContext.getString(R.string.import_ifw_please_wait)
-        val cancel = applicationContext.getString(R.string.cancel)
+        val title = context.getString(R.string.import_ifw_please_wait)
+        val cancel = context.getString(R.string.cancel)
         // This PendingIntent can be used to cancel the worker
-        val intent = WorkManager.getInstance(applicationContext).createCancelPendingIntent(getId())
+        val intent = WorkManager.getInstance(context).createCancelPendingIntent(getId())
         // Create a Notification channel if necessary
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationUtil.createProgressingNotificationChannel(applicationContext)
+            NotificationUtil.createProgressingNotificationChannel(context)
         }
-        val notification = NotificationCompat.Builder(applicationContext, id).setContentTitle(title)
+        val notification = NotificationCompat.Builder(context, id).setContentTitle(title)
             .setTicker(title)
             .setSubText(name)
             .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
@@ -133,5 +140,11 @@ class ImportIfwRulesWork(context: Context, params: WorkerParameters) :
             .addAction(android.R.drawable.ic_delete, cancel, intent)
             .build()
         return ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
+    }
+
+    companion object {
+        fun importIfwWork() = OneTimeWorkRequestBuilder<ImportIfwRulesWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
     }
 }
