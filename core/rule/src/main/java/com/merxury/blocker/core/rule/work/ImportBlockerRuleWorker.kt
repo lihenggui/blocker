@@ -27,6 +27,8 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.core.network.BlockerDispatchers.IO
+import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
@@ -35,7 +37,7 @@ import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -45,7 +47,8 @@ import timber.log.Timber
 @HiltWorker
 class ImportBlockerRuleWorker @AssistedInject constructor(
     @Assisted private val context: Context, 
-    @Assisted params: WorkerParameters
+    @Assisted params: WorkerParameters,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : CoroutineWorker(context, params) {
 
     override suspend fun getForegroundInfo(): ForegroundInfo {
@@ -53,7 +56,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withContext(ioDispatcher) {
         Timber.i("Start to import app rules")
         var successCount = 0
         try {

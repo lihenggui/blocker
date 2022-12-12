@@ -31,20 +31,23 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.core.network.BlockerDispatchers.IO
+import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 @HiltWorker
 class ImportMatRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
-    @Assisted params: WorkerParameters
+    @Assisted params: WorkerParameters,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : CoroutineWorker(context, params) {
 
     private val uriString = params.inputData.getString(KEY_FILE_URI)
@@ -53,7 +56,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
         return updateNotification("", 0, 0)
     }
 
-    override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+    override suspend fun doWork(): Result = withContext(ioDispatcher) {
         val uri = Uri.parse(uriString)
         if (uri == null) {
             Timber.e("File URI is null, cannot import MAT rules")
