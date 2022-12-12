@@ -29,7 +29,6 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
@@ -43,7 +42,7 @@ import com.merxury.blocker.core.rule.work.ExportBlockerRulesWork
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWork
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWork
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWork
-import com.merxury.blocker.core.rule.work.ImportMatRulesWork
+import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.ShareUtil
@@ -197,15 +196,13 @@ class SettingsFragment :
 
     private fun importMatRule(fileUri: Uri) {
         ToastUtil.showToast(R.string.import_mat_rule_please_wait, Toast.LENGTH_LONG)
-        val data = Data.Builder()
-            .putString(ImportMatRulesWork.KEY_FILE_URI, fileUri.toString())
-            .build()
-        val exportWork = OneTimeWorkRequestBuilder<ImportMatRulesWork>()
-            .setInputData(data)
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-        WorkManager.getInstance(requireContext())
-            .enqueueUniqueWork("ImportMatRule", ExistingWorkPolicy.KEEP, exportWork)
+        WorkManager.getInstance(requireContext()).apply {
+            enqueueUniqueWork(
+                "ImportMatRule",
+                ExistingWorkPolicy.KEEP,
+                ImportMatRulesWorker.importWork(fileUri)
+            )
+        }
     }
 
     private fun findPreference() {
