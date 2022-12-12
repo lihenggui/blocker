@@ -1,36 +1,35 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.merxury.blocker.util
+package com.merxury.blocker.core.rule.util
 
 import android.content.Context
 import androidx.documentfile.provider.DocumentFile
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.PreferenceUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 object StorageUtil {
     private const val IFW_RELATIVE_PATH = "ifw"
-    private val logger = XLog.tag("StorageUtil").build()
 
     fun getSavedFolder(context: Context): DocumentFile? {
         val savedUri = PreferenceUtil.getSavedRulePath(context) ?: run {
-            logger.e("Saved rule path is null")
+            Timber.e("Saved rule path is null")
             return null
         }
         return DocumentFile.fromTreeUri(context, savedUri)
@@ -40,7 +39,7 @@ object StorageUtil {
         val savedFolder = getSavedFolder(context) ?: return null
         val ifwFolder = savedFolder.findFile(IFW_RELATIVE_PATH) ?: run {
             savedFolder.createDirectory(IFW_RELATIVE_PATH) ?: run {
-                logger.e("Create ifw folder failed")
+                Timber.e("Create ifw folder failed")
                 return null
             }
         }
@@ -53,7 +52,7 @@ object StorageUtil {
         val folder = try {
             DocumentFile.fromTreeUri(context, uri)
         } catch (e: Exception) {
-            logger.e("Invalid Uri $uri", e)
+            Timber.e("Invalid Uri $uri", e)
             return false
         }
         // Folder may be unreachable
@@ -70,12 +69,12 @@ object StorageUtil {
         // Get base dir
         val destUri = PreferenceUtil.getSavedRulePath(context)
         if (destUri == null) {
-            logger.w("No dest folder defined")
+            Timber.w("No dest folder defined")
             return false
         }
         val dir = DocumentFile.fromTreeUri(context, destUri)
         if (dir == null) {
-            logger.e("Cannot open $destUri")
+            Timber.e("Cannot open $destUri")
             return false
         }
         // Find IFW folder
@@ -84,7 +83,7 @@ object StorageUtil {
             ifwDir = dir.createDirectory(IFW_RELATIVE_PATH)
         }
         if (ifwDir == null) {
-            logger.e("Cannot create ifw dir in $destUri")
+            Timber.e("Cannot create ifw dir in $destUri")
             return false
         }
         // Create IFW file
@@ -93,7 +92,7 @@ object StorageUtil {
             file = ifwDir.createFile("", filename)
         }
         if (file == null) {
-            logger.w("Cannot create ifw rule $filename")
+            Timber.w("Cannot create ifw rule $filename")
             return false
         }
         // Write file contents
@@ -104,7 +103,7 @@ object StorageUtil {
                 }
                 return@withContext true
             } catch (e: Exception) {
-                logger.e("Cannot write rules for $filename", e)
+                Timber.e("Cannot write rules for $filename", e)
                 return@withContext false
             }
         }

@@ -18,22 +18,17 @@ package com.merxury.blocker.core.rule.work
 
 import android.content.Context
 import android.os.Build
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.elvishew.xlog.XLog
-import com.merxury.blocker.R
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.util.NotificationUtil
+import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.util.NotificationUtil
-import com.merxury.blocker.util.PreferenceUtil
-import com.merxury.blocker.util.StorageUtil
-import com.merxury.blocker.util.ToastUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -48,7 +43,7 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result {
         // Check storage permission first
         if (!StorageUtil.isSavedFolderReadable(applicationContext)) {
-            ToastUtil.showToast(R.string.failed_to_back_up, Toast.LENGTH_LONG)
+//            ToastUtil.showToast(R.string.failed_to_back_up, Toast.LENGTH_LONG)
             return Result.failure()
         }
         // Notify users that work is being started
@@ -74,12 +69,12 @@ class ExportBlockerRulesWork(context: Context, params: WorkerParameters) :
                 }
             } catch (e: Exception) {
                 // Notify users that something bad happens
-                ToastUtil.showToast(R.string.failed_to_back_up, Toast.LENGTH_LONG)
+//                ToastUtil.showToast(R.string.failed_to_back_up, Toast.LENGTH_LONG)
                 Timber.e("Failed to export blocker rules", e)
                 return@withContext Result.failure()
             }
             // Success, show a toast then cancel notifications
-            ToastUtil.showToast(R.string.backup_finished, Toast.LENGTH_LONG)
+//            ToastUtil.showToast(R.string.backup_finished, Toast.LENGTH_LONG)
             Timber.i("Backup app rules finished.")
             return@withContext Result.success()
         }

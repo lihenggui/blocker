@@ -215,7 +215,7 @@ class CheckRuleUpdateWork @AssistedInject constructor(
     private fun getOnlineSourceType(context: Context): OnlineSourceType {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val value = pref.getString(
-            context.getString(com.merxury.blocker.core.datastore.R.string.key_pref_online_source_type), "GITLAB"
+            context.getString(R.string.key_pref_online_source_type), "GITLAB"
         ).orEmpty()
         return try {
             OnlineSourceType.valueOf(value)
