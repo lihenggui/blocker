@@ -22,7 +22,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
@@ -44,13 +44,13 @@ class IfwController(private val context: Context) : IController {
             return when (state) {
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED ->
                     ComponentControllerProxy.getInstance(
-                        EControllerMethod.PM,
+                        ControllerType.PM,
                         context
                     ).disable(packageName, componentName)
 
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED ->
                     ComponentControllerProxy.getInstance(
-                        EControllerMethod.PM,
+                        ControllerType.PM,
                         context
                     ).enable(packageName, componentName)
 

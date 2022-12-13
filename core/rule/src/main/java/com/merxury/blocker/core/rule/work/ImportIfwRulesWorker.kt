@@ -29,9 +29,9 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
-import com.merxury.blocker.core.root.EControllerMethod
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
@@ -67,7 +67,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
 //                ToastUtil.showToast(R.string.import_ifw_failed_message, Toast.LENGTH_LONG)
                 return@withContext Result.failure()
             }
-            val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
+            val controller = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
             val files =
                 ifwFolder.listFiles().filter { it.isFile && it.name?.endsWith(".xml") == true }
             total = files.count()
