@@ -25,15 +25,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 class RootController(val context: Context) : IController {
-    private val logger = XLog.tag("RootController").build()
 
     override suspend fun switchComponent(
         packageName: String,
@@ -59,11 +58,11 @@ class RootController(val context: Context) : IController {
 
             else -> return false
         }
-        logger.d("command:$comm, componentState is $state")
+        Timber.d("command:$comm, componentState is $state")
         return withContext(Dispatchers.IO) {
             try {
                 val commandOutput = comm.exec().orEmpty()
-                logger.d("Command output: $commandOutput")
+                Timber.d("Command output: $commandOutput")
                 return@withContext !commandOutput.contains(FAILED_EXCEPTION_MSG)
             } catch (e: Exception) {
                 throw e
