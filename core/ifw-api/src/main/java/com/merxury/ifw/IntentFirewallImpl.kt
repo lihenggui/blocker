@@ -1,22 +1,21 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.merxury.ifw
 
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.PermissionUtils
 import com.merxury.ifw.entity.Activity
@@ -35,10 +34,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.simpleframework.xml.Serializer
 import org.simpleframework.xml.core.Persister
+import timber.log.Timber
 
 class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
 
-    private val logger = XLog.tag("IntentFirewallImpl").build()
     private val filename: String = "$packageName$EXTENSION"
     private val destFile = SuFile(StorageUtils.getIfwFolder() + filename)
     private var rule: Rules = Rules()
@@ -50,7 +49,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
                 val input = SuFileInputStream.open(destFile)
                 rule = serializer.read(Rules::class.java, input)
             } catch (e: Exception) {
-                logger.e("Error reading rules file $destFile:", e)
+                Timber.e("Error reading rules file $destFile:", e)
             }
         }
         return@withContext this@IntentFirewallImpl
@@ -72,7 +71,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
                 serializer.write(rule, it)
             }
             FileUtils.chmod(destFile.absolutePath, 644, false)
-            logger.i("Saved $destFile")
+            Timber.i("Saved $destFile")
         }
     }
 
@@ -81,7 +80,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
             if (!PermissionUtils.isRootAvailable()) {
                 throw RootUnavailableException()
             }
-            logger.d("Clear IFW rule $filename")
+            Timber.d("Clear IFW rule $filename")
             if (destFile.exists()) {
                 destFile.delete()
             }
@@ -95,7 +94,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
         type: ComponentType?
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
-            logger.e("Root unavailable, cannot add rule")
+            Timber.e("Root unavailable, cannot add rule")
             throw RootUnavailableException()
         }
         var result = false
@@ -132,7 +131,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
         type: ComponentType?
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
-            logger.e("Root unavailable, cannot remove rule")
+            Timber.e("Root unavailable, cannot remove rule")
             throw RootUnavailableException()
         }
         return when (type) {
@@ -208,7 +207,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
             }
         }
         filters.add(ComponentFilter(filterRule))
-        logger.i("Added component:$packageName/$componentName")
+        Timber.i("Added component:$packageName/$componentName")
         return true
     }
 
