@@ -27,9 +27,12 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
+import javax.inject.Inject
 import timber.log.Timber
 
-class IfwController(private val context: Context) : IController {
+class IfwController @Inject constructor(
+    private val context: Context
+) : IController {
     private lateinit var controller: IntentFirewall
     private lateinit var packageInfo: PackageInfo
 
