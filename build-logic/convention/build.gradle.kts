@@ -73,5 +73,13 @@ gradlePlugin {
             id = "blocker.firebase-perf"
             implementationClass = "FirebasePerfConventionPlugin"
         }
+        register("firebase-crashlytics") {
+            id = "blocker.firebase-crashlytics"
+            implementationClass = "FirebaseCrashlyticsConventionPlugin"
+        }
+        register("gms") {
+            id = "blocker.gms"
+            implementationClass = "GmsConventionPlugin"
+        }
     }
 }
