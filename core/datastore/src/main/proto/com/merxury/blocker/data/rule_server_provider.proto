@@ -19,7 +19,7 @@ syntax = "proto3";
 option java_package = "com.merxury.blocker.core.datastore";
 option java_multiple_files = true;
 
-enum RuleServerProvider {
+enum RuleServerProviderProto {
   GITHUB = 0;
   GITLAB = 1;
 }
