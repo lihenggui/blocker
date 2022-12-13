@@ -35,7 +35,7 @@ import com.merxury.blocker.core.model.EComponentType.ACTIVITY
 import com.merxury.blocker.core.model.EComponentType.PROVIDER
 import com.merxury.blocker.core.model.EComponentType.RECEIVER
 import com.merxury.blocker.core.model.EComponentType.SERVICE
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.data.Event
@@ -67,7 +67,7 @@ class LocalSearchViewModel @Inject constructor(
     val loadingState: LiveData<LocalSearchState> = _loadingState
 
     private var controller: IController? = null
-    private var controllerType = EControllerMethod.IFW
+    private var controllerType = ControllerType.IFW
 
     fun load(context: Context, forceInit: Boolean = false) {
         // Clear filtered data when loading
@@ -121,7 +121,7 @@ class LocalSearchViewModel @Inject constructor(
         val serviceHelper = ServiceHelper(app.packageName)
         serviceHelper.refresh()
         val ifwController = IntentFirewallImpl(app.packageName).load()
-        val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+        val pmController = ComponentControllerProxy.getInstance(ControllerType.PM, context)
         val activities = ApplicationUtil
             .getActivityList(context.packageManager, app.packageName)
             .map {
@@ -261,14 +261,14 @@ class LocalSearchViewModel @Inject constructor(
     ) {
         val context = BlockerApplication.context
         val type = PreferenceUtil.getControllerType(context)
-        if (type != EControllerMethod.IFW) {
+        if (type != ControllerType.IFW) {
             // Other controllers can handle providers
             return
         }
         // IFW cannot handle providers, do extra logics
         val providerList = list.filter { it.type == PROVIDER }
         if (providerList.isNotEmpty()) {
-            val controller = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+            val controller = ComponentControllerProxy.getInstance(ControllerType.PM, context)
             providerList.forEach {
                 if (enabled) {
                     logger.i("Enable provider: ${it.packageName}/${it.componentName}")
@@ -290,7 +290,7 @@ class LocalSearchViewModel @Inject constructor(
             logger.e("Component not found: $packageName, $name")
             return
         }
-        if (controllerType == EControllerMethod.IFW) {
+        if (controllerType == ControllerType.IFW) {
             updatedComponent.ifwBlocked = !enabled
         } else {
             updatedComponent.pmBlocked = !enabled
@@ -305,7 +305,7 @@ class LocalSearchViewModel @Inject constructor(
         val componentData =
             componentList.firstOrNull { it.componentName == component.name } ?: return
         if (
-            controllerType == EControllerMethod.IFW &&
+            controllerType == ControllerType.IFW &&
             componentData.type != PROVIDER
         ) {
             componentData.ifwBlocked = !enabled

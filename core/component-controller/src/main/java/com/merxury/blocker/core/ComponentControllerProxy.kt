@@ -19,7 +19,7 @@ package com.merxury.blocker.core
 import android.content.Context
 import android.content.pm.ComponentInfo
 import com.merxury.blocker.core.ifw.IfwController
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.root.RootController
 import com.merxury.blocker.core.shizuku.ShizukuController
 
@@ -28,14 +28,14 @@ import com.merxury.blocker.core.shizuku.ShizukuController
  */
 
 class ComponentControllerProxy private constructor(
-    method: EControllerMethod,
+    method: ControllerType,
     context: Context
 ) : IController {
 
     private var controller: IController = when (method) {
-        EControllerMethod.IFW -> IfwController(context)
-        EControllerMethod.PM -> RootController(context)
-        EControllerMethod.SHIZUKU -> ShizukuController(context)
+        ControllerType.IFW -> IfwController(context)
+        ControllerType.PM -> RootController(context)
+        ControllerType.SHIZUKU -> ShizukuController(context)
     }
 
     override suspend fun switchComponent(
@@ -78,9 +78,9 @@ class ComponentControllerProxy private constructor(
     companion object {
         @Volatile
         private var instance: IController? = null
-        var controllerMethod: EControllerMethod? = null
+        var controllerMethod: ControllerType? = null
 
-        fun getInstance(method: EControllerMethod, context: Context): IController =
+        fun getInstance(method: ControllerType, context: Context): IController =
             synchronized(this) {
                 if (method != controllerMethod) {
                     getComponentControllerProxy(method, context)
@@ -90,7 +90,7 @@ class ComponentControllerProxy private constructor(
             }
 
         private fun getComponentControllerProxy(
-            method: EControllerMethod,
+            method: ControllerType,
             context: Context
         ): ComponentControllerProxy {
             return ComponentControllerProxy(method, context).also {
