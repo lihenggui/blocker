@@ -23,10 +23,13 @@ import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.utils.ApplicationUtil
+import javax.inject.Inject
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 
-class ShizukuController(private val context: Context) : IController {
+class ShizukuController @Inject constructor(
+    private val context: Context
+) : IController {
     private var pm: IPackageManager? = null
 
     override suspend fun switchComponent(
