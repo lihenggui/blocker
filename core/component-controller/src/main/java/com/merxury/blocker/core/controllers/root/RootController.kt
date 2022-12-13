@@ -14,36 +14,60 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.shizuku
+/**
+ * Created by Mercury on 2017/12/31.
+ * A class that controls the state of application components
+ */
+
+package com.merxury.blocker.core.controllers.root
 
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
-import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.utils.ApplicationUtil
-import rikka.shizuku.ShizukuBinderWrapper
-import rikka.shizuku.SystemServiceHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 
-class ShizukuController(private val context: Context) : IController {
-    private var pm: IPackageManager? = null
+class RootController(private val context: Context) : IController {
 
     override suspend fun switchComponent(
         packageName: String,
         componentName: String,
         state: Int
     ): Boolean {
-        if (pm == null) {
-            pm = IPackageManager.Stub.asInterface(
-                ShizukuBinderWrapper(
-                    SystemServiceHelper.getSystemService("package")
+        val comm: String = when (state) {
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> removeEscapeCharacter(
+                String.format(
+                    ENABLE_COMPONENT_TEMPLATE,
+                    packageName,
+                    componentName
                 )
             )
+
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> removeEscapeCharacter(
+                String.format(
+                    DISABLE_COMPONENT_TEMPLATE,
+                    packageName,
+                    componentName
+                )
+            )
+
+            else -> return false
         }
-        // 0 means kill the application
-        pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
-        return true
+        Timber.d("command:$comm, componentState is $state")
+        return withContext(Dispatchers.IO) {
+            try {
+                val commandOutput = comm.exec().orEmpty()
+                Timber.d("Command output: $commandOutput")
+                return@withContext !commandOutput.contains(FAILED_EXCEPTION_MSG)
+            } catch (e: Exception) {
+                throw e
+            }
+        }
     }
 
     override suspend fun enable(packageName: String, componentName: String): Boolean {
@@ -66,28 +90,32 @@ class ShizukuController(private val context: Context) : IController {
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit
     ): Int {
-        var successCount = 0
+        var succeededCount = 0
         componentList.forEach {
             if (enable(it.packageName, it.name)) {
-                successCount++
+                succeededCount++
             }
             action(it)
         }
-        return successCount
+        return succeededCount
     }
 
     override suspend fun batchDisable(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit
     ): Int {
-        var successCount = 0
+        var succeededCount = 0
         componentList.forEach {
             if (disable(it.packageName, it.name)) {
-                successCount++
+                succeededCount++
             }
             action(it)
         }
-        return successCount
+        return succeededCount
+    }
+
+    private fun removeEscapeCharacter(comm: String): String {
+        return comm.replace("$", "\\$")
     }
 
     override suspend fun checkComponentEnableState(
@@ -98,5 +126,11 @@ class ShizukuController(private val context: Context) : IController {
             context.packageManager,
             ComponentName(packageName, componentName)
         )
+    }
+
+    companion object {
+        private const val DISABLE_COMPONENT_TEMPLATE = "pm disable %s/%s"
+        private const val ENABLE_COMPONENT_TEMPLATE = "pm enable %s/%s"
+        private const val FAILED_EXCEPTION_MSG = "java.lang.IllegalArgumentException"
     }
 }

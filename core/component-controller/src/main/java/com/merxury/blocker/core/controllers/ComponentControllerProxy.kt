@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core
+package com.merxury.blocker.core.controllers
 
 import android.content.Context
 import android.content.pm.ComponentInfo
-import com.merxury.blocker.core.ifw.IfwController
+import com.merxury.blocker.core.controllers.ifw.IfwController
+import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.blocker.core.root.RootController
-import com.merxury.blocker.core.shizuku.ShizukuController
 
 /**
  * Created by Mercury on 2018/3/10.

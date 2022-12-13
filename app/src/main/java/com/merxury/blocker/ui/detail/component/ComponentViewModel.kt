@@ -25,8 +25,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
 import com.merxury.blocker.core.database.app.AppComponentRepository
 import com.merxury.blocker.core.extension.getSimpleName
