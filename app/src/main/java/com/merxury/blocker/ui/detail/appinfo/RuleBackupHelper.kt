@@ -23,7 +23,7 @@ import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.PreferenceUtil
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.util.StorageUtil
@@ -113,7 +113,7 @@ object RuleBackupHelper {
                 logger.e("Backup file $fileName not found in folder ${baseFolder.uri}")
                 return@withContext null
             }
-            val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
+            val controller = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
             context.contentResolver.openInputStream(backupFile.uri)?.use { stream ->
                 val rule = RuleSerializer.deserialize(stream) ?: return@use
                 Rule.updateIfwState(rule, controller)
