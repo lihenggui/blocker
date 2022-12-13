@@ -24,9 +24,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
-import com.merxury.blocker.core.ComponentControllerProxy
-import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.database.app.AppComponentEntity
 import com.merxury.blocker.core.database.app.AppComponentRepository
 import com.merxury.blocker.core.database.app.InstalledAppEntity

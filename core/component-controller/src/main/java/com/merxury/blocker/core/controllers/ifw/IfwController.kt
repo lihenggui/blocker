@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ifw
+package com.merxury.blocker.core.controllers.ifw
 
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.ComponentControllerProxy
-import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall

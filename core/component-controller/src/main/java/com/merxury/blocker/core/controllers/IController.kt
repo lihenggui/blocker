@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core
+package com.merxury.blocker.core.controllers
 
 import android.content.pm.ComponentInfo
 

@@ -22,8 +22,8 @@ import android.content.pm.ComponentInfo
 import android.net.Uri
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.documentfile.provider.DocumentFile
-import com.merxury.blocker.core.ComponentControllerProxy
-import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.entity.BlockerRule

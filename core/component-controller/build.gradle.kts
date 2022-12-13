@@ -22,7 +22,7 @@ plugins {
 }
 
 android {
-    namespace = "com.merxury.blocker.core.componentcontroller"
+    namespace = "com.merxury.blocker.core.controller"
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
