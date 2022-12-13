@@ -127,4 +127,89 @@ class BlockerPreferencesDataSource @Inject constructor(
             }
         }
     }
+
+    suspend fun setControllerType(controllerType: ControllerType) {
+        userPreferences.updateData {
+            it.copy {
+                this.controllerType = when (controllerType) {
+                    ControllerType.IFW -> ControllerTypeProto.IFW
+                    ControllerType.PM -> ControllerTypeProto.PM
+                    ControllerType.SHIZUKU -> ControllerTypeProto.SHIZUKU
+                }
+            }
+        }
+    }
+
+    suspend fun setRuleServerProvider(serverProvider: RuleServerProvider) {
+        userPreferences.updateData {
+            it.copy {
+                this.ruleServerProvider = when (serverProvider) {
+                    RuleServerProvider.GITHUB -> RuleServerProviderProto.GITHUB
+                    RuleServerProvider.GITLAB -> RuleServerProviderProto.GITLAB
+                }
+            }
+        }
+    }
+
+    suspend fun setRuleBackupFolder(folder: String) {
+        userPreferences.updateData {
+            it.copy { this.ruleBackupFolder = folder }
+        }
+    }
+
+    suspend fun setBackupSystemApp(shouldBackup: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.backupSystemApp = shouldBackup }
+        }
+    }
+
+    suspend fun setRestoreSystemApp(shouldRestore: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.restoreSystemApp = shouldRestore }
+        }
+    }
+
+    suspend fun setShowSystemApps(shouldShowSystemApps: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.showSystemApps = shouldShowSystemApps }
+        }
+    }
+
+    suspend fun setShowServiceInfo(shouldShowServiceInfo: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.showServiceInfo = shouldShowServiceInfo }
+        }
+    }
+
+    suspend fun setAppSorting(sorting: AppSorting) {
+        userPreferences.updateData {
+            it.copy {
+                this.appSorting = when (sorting) {
+                    AppSorting.NAME_ASCENDING -> AppSortingProto.APP_NAME_ASCENDING
+                    AppSorting.NAME_DESCENDING -> AppSortingProto.APP_NAME_DESCENDING
+                    AppSorting.FIRST_INSTALL_TIME_ASCENDING ->
+                        AppSortingProto.FIRST_INSTALL_TIME_ASCENDING
+                    AppSorting.FIRST_INSTALL_TIME_DESCENDING ->
+                        AppSortingProto.FIRST_INSTALL_TIME_DESCENDING
+                    AppSorting.LAST_UPDATE_TIME_ASCENDING ->
+                        AppSortingProto.LAST_UPDATE_TIME_ASCENDING
+                    AppSorting.LAST_UPDATE_TIME_DESCENDING ->
+                        AppSortingProto.LAST_UPDATE_TIME_DESCENDING
+                }
+            }
+        }
+    }
+
+    suspend fun setComponentShowPriority(priority: ComponentShowPriority) {
+        userPreferences.updateData {
+            it.copy {
+                this.componentShowPriority = when (priority) {
+                    ComponentShowPriority.ENABLED_COMPONENTS_FIRST ->
+                        ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST
+                    ComponentShowPriority.DISABLED_COMPONENTS_FIRST ->
+                        ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST
+                }
+            }
+        }
+    }
 }
