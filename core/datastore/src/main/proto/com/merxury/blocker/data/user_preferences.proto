@@ -30,14 +30,14 @@ option java_multiple_files = true;
 message UserPreferences {
     ThemeBrandProto theme_brand = 1;
     DarkThemeConfigProto dark_theme_config = 2;
-    ControllerType controller_type = 3;
-    RuleServerProvider rule_server_provider = 4;
+    ControllerTypeProto controller_type = 3;
+    RuleServerProviderProto rule_server_provider = 4;
     string rule_backup_folder = 5;
     bool backup_system_app = 6;
     bool restore_system_app = 7;
     bool show_system_apps = 8;
     bool show_service_info = 9;
-    AppSorting app_sorting = 10;
-    ComponentSorting component_sorting = 11;
-    ComponentShowPriority component_show_priority = 12;
+    AppSortingProto app_sorting = 10;
+    ComponentSortingProto component_sorting = 11;
+    ComponentShowPriorityProto component_show_priority = 12;
 }
