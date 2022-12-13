@@ -20,7 +20,6 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.IController
 import com.merxury.blocker.core.root.EControllerMethod
@@ -28,11 +27,11 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
+import timber.log.Timber
 
 class IfwController(val context: Context) : IController {
     private lateinit var controller: IntentFirewall
     private lateinit var packageInfo: PackageInfo
-    private val logger = XLog.tag("IfwController")
 
     override suspend fun switchComponent(
         packageName: String,
@@ -70,7 +69,7 @@ class IfwController(val context: Context) : IController {
         if (result) {
             try {
                 controller.save()
-                logger.i("Save rule for $packageName success")
+                Timber.i("Save rule for $packageName success")
             } catch (e: Exception) {
                 throw e
             }
@@ -108,7 +107,7 @@ class IfwController(val context: Context) : IController {
             if (controller.remove(it.packageName, it.name, type)) {
                 succeededCount++
             } else {
-                logger.w("Failed to remove in the ifw list: ${it.packageName}/${it.name}")
+                Timber.w("Failed to remove in the ifw list: ${it.packageName}/${it.name}")
             }
             action(it)
         }
@@ -130,7 +129,7 @@ class IfwController(val context: Context) : IController {
             if (controller.add(it.packageName, it.name, type)) {
                 succeededCount++
             } else {
-                logger.w("Failed to add in the ifw list: ${it.packageName}/${it.name}")
+                Timber.w("Failed to add in the ifw list: ${it.packageName}/${it.name}")
             }
             action(it)
         }
@@ -154,10 +153,10 @@ class IfwController(val context: Context) : IController {
     private suspend fun initController(packageName: String) {
         if (!::controller.isInitialized || controller.packageName != packageName) {
             if (::controller.isInitialized) {
-                logger.i("Save previous rule for ${controller.packageName}")
+                Timber.i("Save previous rule for ${controller.packageName}")
                 controller.save()
             }
-            logger.i("initController: $packageName")
+            Timber.i("initController: $packageName")
             controller = IntentFirewallImpl(packageName).load()
             return
         }
