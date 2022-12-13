@@ -29,8 +29,8 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R

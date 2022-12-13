@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
-package com.merxury.ifw.entity;
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 
-public class Activity extends Component {
+class FirebaseCrashlyticsConventionPlugin : Plugin<Project> {
+    override fun apply(target: Project) {
+        with(target) {
+            pluginManager.findPlugin("com.google.firebase:firebase-crashlytics-gradle").apply {
+                version = "2.9.2"
+            }
+        }
+    }
 
 }

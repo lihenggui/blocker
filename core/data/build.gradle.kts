@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,9 +33,11 @@ dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
     implementation(project(":core:database"))
+    implementation(project(":core:datastore"))
     implementation(project(":core:network"))
 
     testImplementation(project(":core:testing"))
+    testImplementation(project(":core:datastore-test"))
 
     implementation(libs.androidx.core.ktx)
 

@@ -1,38 +1,40 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
-package com.merxury.blocker.core.ifw
+package com.merxury.blocker.core.controllers.ifw
 
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.ComponentControllerProxy
-import com.merxury.blocker.core.IController
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
+import javax.inject.Inject
+import timber.log.Timber
 
-class IfwController(val context: Context) : IController {
+class IfwController @Inject constructor(
+    private val context: Context
+) : IController {
     private lateinit var controller: IntentFirewall
     private lateinit var packageInfo: PackageInfo
-    private val logger = XLog.tag("IfwController")
 
     override suspend fun switchComponent(
         packageName: String,
@@ -45,13 +47,13 @@ class IfwController(val context: Context) : IController {
             return when (state) {
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED ->
                     ComponentControllerProxy.getInstance(
-                        EControllerMethod.PM,
+                        ControllerType.PM,
                         context
                     ).disable(packageName, componentName)
 
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED ->
                     ComponentControllerProxy.getInstance(
-                        EControllerMethod.PM,
+                        ControllerType.PM,
                         context
                     ).enable(packageName, componentName)
 
@@ -70,7 +72,7 @@ class IfwController(val context: Context) : IController {
         if (result) {
             try {
                 controller.save()
-                logger.i("Save rule for $packageName success")
+                Timber.i("Save rule for $packageName success")
             } catch (e: Exception) {
                 throw e
             }
@@ -108,7 +110,7 @@ class IfwController(val context: Context) : IController {
             if (controller.remove(it.packageName, it.name, type)) {
                 succeededCount++
             } else {
-                logger.w("Failed to remove in the ifw list: ${it.packageName}/${it.name}")
+                Timber.w("Failed to remove in the ifw list: ${it.packageName}/${it.name}")
             }
             action(it)
         }
@@ -130,7 +132,7 @@ class IfwController(val context: Context) : IController {
             if (controller.add(it.packageName, it.name, type)) {
                 succeededCount++
             } else {
-                logger.w("Failed to add in the ifw list: ${it.packageName}/${it.name}")
+                Timber.w("Failed to add in the ifw list: ${it.packageName}/${it.name}")
             }
             action(it)
         }
@@ -154,10 +156,10 @@ class IfwController(val context: Context) : IController {
     private suspend fun initController(packageName: String) {
         if (!::controller.isInitialized || controller.packageName != packageName) {
             if (::controller.isInitialized) {
-                logger.i("Save previous rule for ${controller.packageName}")
+                Timber.i("Save previous rule for ${controller.packageName}")
                 controller.save()
             }
-            logger.i("initController: $packageName")
+            Timber.i("initController: $packageName")
             controller = IntentFirewallImpl(packageName).load()
             return
         }
