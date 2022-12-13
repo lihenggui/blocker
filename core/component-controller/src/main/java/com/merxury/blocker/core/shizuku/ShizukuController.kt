@@ -26,7 +26,7 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 
-class ShizukuController(val context: Context) : IController {
+class ShizukuController(private val context: Context) : IController {
     private var pm: IPackageManager? = null
 
     override suspend fun switchComponent(

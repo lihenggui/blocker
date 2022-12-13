@@ -29,7 +29,7 @@ import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import timber.log.Timber
 
-class IfwController(val context: Context) : IController {
+class IfwController(private val context: Context) : IController {
     private lateinit var controller: IntentFirewall
     private lateinit var packageInfo: PackageInfo
 
