@@ -33,8 +33,6 @@ dependencies {
     implementation(project(":core:common"))
     testImplementation(project(":core:testing"))
 
-    implementation(libs.androidx.core.ktx)
-    implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.simplexml) {
