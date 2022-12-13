@@ -44,5 +44,4 @@ dependencies {
     }
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
-    implementation(libs.xlog)
 }
