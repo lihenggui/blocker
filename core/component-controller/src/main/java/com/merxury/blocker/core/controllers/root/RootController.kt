@@ -28,11 +28,14 @@ import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.utils.ApplicationUtil
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-class RootController(private val context: Context) : IController {
+class RootController @Inject constructor(
+    private val context: Context
+) : IController {
 
     override suspend fun switchComponent(
         packageName: String,
