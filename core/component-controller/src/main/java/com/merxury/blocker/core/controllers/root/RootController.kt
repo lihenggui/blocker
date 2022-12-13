@@ -1,17 +1,17 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 /**
@@ -19,21 +19,23 @@
  * A class that controls the state of application components
  */
 
-package com.merxury.blocker.core.root
+package com.merxury.blocker.core.controllers.root
 
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.PackageManager
-import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.utils.ApplicationUtil
+import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
-class RootController(val context: Context) : IController {
-    private val logger = XLog.tag("RootController").build()
+class RootController @Inject constructor(
+    private val context: Context
+) : IController {
 
     override suspend fun switchComponent(
         packageName: String,
@@ -59,11 +61,11 @@ class RootController(val context: Context) : IController {
 
             else -> return false
         }
-        logger.d("command:$comm, componentState is $state")
+        Timber.d("command:$comm, componentState is $state")
         return withContext(Dispatchers.IO) {
             try {
                 val commandOutput = comm.exec().orEmpty()
-                logger.d("Command output: $commandOutput")
+                Timber.d("Command output: $commandOutput")
                 return@withContext !commandOutput.contains(FAILED_EXCEPTION_MSG)
             } catch (e: Exception) {
                 throw e
