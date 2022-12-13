@@ -32,7 +32,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-class RootController(val context: Context) : IController {
+class RootController(private val context: Context) : IController {
 
     override suspend fun switchComponent(
         packageName: String,
