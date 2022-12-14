@@ -68,11 +68,12 @@ fun AppInfoItem(
             Text(text = itemDetail, style = MaterialTheme.typography.bodyMedium)
         }
         Spacer(modifier = Modifier.weight(1f))
-        Switch(checked = itemValue, onCheckedChange = {
-            onClick(
-                ComponentInfo(itemName, itemDetail, itemValue)
-            )
-        }
+        Switch(
+            checked = itemValue, onCheckedChange = {
+                onClick(
+                    ComponentInfo(itemName, itemDetail, itemValue)
+                )
+            }
         )
     }
 }
