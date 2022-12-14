@@ -24,10 +24,10 @@ import android.os.Bundle
 import android.util.Log
 import androidx.core.os.bundleOf
 import com.google.gson.Gson
-import com.merxury.blocker.core.ComponentControllerProxy
 import com.merxury.blocker.core.PreferenceUtil
-import com.merxury.blocker.core.ifw.IfwController
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.controllers.ifw.IfwController
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -57,7 +57,7 @@ class ComponentProvider : ContentProvider() {
         val packageManager = context.packageManager ?: return@runBlocking null
         try {
             val ifwController = IfwController(context)
-            val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+            val pmController = ComponentControllerProxy.getInstance(ControllerType.PM, context)
             val blockedComponents = mutableListOf<ShareCmpInfo.Component>()
             ApplicationUtil.getActivityList(packageManager, packageName).filter {
                 !pmController.checkComponentEnableState(
@@ -161,7 +161,7 @@ class ComponentProvider : ContentProvider() {
                     controller.enable(packageName, component.name)
                 }
                 appComponentRepository.getAppComponent(packageName, component.name)?.let {
-                    if (controllerType == EControllerMethod.IFW && component.type != "provider") {
+                    if (controllerType == ControllerType.IFW && component.type != "provider") {
                         it.ifwBlocked = component.block
                     } else {
                         it.pmBlocked = component.block
