@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.applist
 
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,21 +30,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.res.imageResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import coil.compose.rememberAsyncImagePainter
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.applist.R.string
 
 @Composable
 fun AppListItem(
-    appIcon: ImageBitmap,
     packageName: String,
-    versionName: String?,
+    versionName: String,
     appServiceStatus: AppServiceStatus,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -55,7 +53,7 @@ fun AppListItem(
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .clickable { onClick(packageName) },
     ) {
-        AppIcon(appIcon = appIcon)
+        AppIcon(packageName)
         Spacer(modifier = Modifier.width(16.dp))
         AppContent(
             appName = packageName,
@@ -66,21 +64,20 @@ fun AppListItem(
 }
 
 @Composable
-private fun AppIcon(
-    appIcon: ImageBitmap,
-    modifier: Modifier = Modifier
-) {
-    AsyncImage(
-        model = appIcon,
-        contentDescription = null,
-        modifier = modifier
+private fun AppIcon(packageName: String, modifier: Modifier = Modifier) {
+    Image(
+        modifier = modifier,
+        painter = rememberAsyncImagePainter(
+            LocalContext.current.packageManager.getApplicationIcon(packageName)
+        ),
+        contentDescription = null
     )
 }
 
 @Composable
 private fun AppContent(
     appName: String,
-    appVersion: String?,
+    appVersion: String,
     appServiceStatus: AppServiceStatus,
     modifier: Modifier = Modifier
 ) {
@@ -90,25 +87,21 @@ private fun AppContent(
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(vertical = 4.dp)
         )
-        if (appVersion != null) {
-            if (appVersion.isNotEmpty()) {
-                Text(
-                    text = appVersion,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-        if (appServiceStatus != AppServiceStatus()) {
+        if (appVersion.isNotEmpty()) {
             Text(
-                text = stringResource(
-                    id = string.service_status_template,
-                    appServiceStatus.running,
-                    appServiceStatus.blocked,
-                    appServiceStatus.total
-                ),
+                text = appVersion,
                 style = MaterialTheme.typography.bodyMedium
             )
         }
+        Text(
+            text = stringResource(
+                id = string.service_status_template,
+                appServiceStatus.running,
+                appServiceStatus.blocked,
+                appServiceStatus.total
+            ),
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
 
@@ -122,11 +115,9 @@ fun AppListItemPreview() {
         total = 10,
         packageName = "com.merxury.blocker"
     )
-    val icon = ImageBitmap.imageResource(BlockerIcons.Android)
     BlockerTheme {
         AppListItem(
-            appIcon = icon,
-            packageName = "Blocker",
+            packageName = "com.merxury.blocker",
             versionName = "1.0.12",
             appServiceStatus = appServiceStatus,
             onClick = {}
@@ -137,12 +128,15 @@ fun AppListItemPreview() {
 @Composable
 @Preview("Item without service status")
 fun AppListItemWithoutServicePreview() {
-    val appServiceStatus = AppServiceStatus()
-    val icon = ImageBitmap.imageResource(BlockerIcons.Android)
+    val appServiceStatus = AppServiceStatus(
+        packageName = "com.merxury.blocker",
+        running = 8,
+        blocked = 2,
+        total = 13,
+    )
     BlockerTheme {
         AppListItem(
-            appIcon = icon,
-            packageName = "Blocker",
+            packageName = "com.merxury.blocker",
             versionName = "1.0.12",
             appServiceStatus = appServiceStatus,
             onClick = {}
@@ -159,12 +153,10 @@ fun AppListItemWithoutVersionPreview() {
         total = 10,
         packageName = "com.merxury.blocker"
     )
-    val icon = ImageBitmap.imageResource(BlockerIcons.Android)
     BlockerTheme {
         AppListItem(
-            appIcon = icon,
-            packageName = "Blocker",
-            versionName = "",
+            packageName = "com.merxury.blocker",
+            versionName = "0.0.13",
             appServiceStatus = appServiceStatus,
             onClick = {}
         )
