@@ -19,6 +19,7 @@ package com.merxury.blocker.core.database
 import android.content.Context
 import androidx.room.Room
 import com.merxury.blocker.core.database.app.InstalledAppDatabase
+import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
 import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDatabase
 import dagger.Module
 import dagger.Provides
@@ -50,5 +51,11 @@ object DatabaseModule {
         @ApplicationContext context: Context
     ): InstantComponentInfoDatabase {
         return InstantComponentInfoDatabase.getInstance(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase {
+        return GeneralRuleDatabase.getInstance(context)
     }
 }
