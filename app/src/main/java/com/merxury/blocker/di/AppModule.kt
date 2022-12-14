@@ -20,8 +20,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
-import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
 import com.merxury.blocker.core.network.model.OnlineSourceType
 import dagger.Module
 import dagger.Provides
@@ -58,18 +56,6 @@ object AppModule {
     @Provides
     fun providesGson(): Gson {
         return GsonBuilder().serializeNulls().create()
-    }
-
-    @Provides
-    @Singleton
-    fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase {
-        return GeneralRuleDatabase.getInstance(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGeneralRuleDao(database: GeneralRuleDatabase): GeneralRuleDao {
-        return database.generalRuleDao()
     }
 
     @Provides
