@@ -32,7 +32,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.data.Resource
 import com.merxury.blocker.databinding.GeneralRulesFragmentBinding
 import com.merxury.blocker.ui.home.advsearch.ILocalSearchHost
 import com.merxury.blocker.util.BrowserUtil
@@ -60,35 +59,31 @@ class GeneralRulesFragment : Fragment() {
         initRecyclerView()
         initSwipeLayout()
         initMenu()
-        viewModel.rules.observe(viewLifecycleOwner) {
-            if (it == null) {
-                logger.e("rules is null")
-                return@observe
-            }
-            when (it.status) {
-                Resource.Status.SUCCESS -> {
-                    logger.d("Load rules successfully")
-                    binding.swipeLayout.isRefreshing = false
-                    val data = it.data
-                    if (data == null) {
-                        logger.e("rules is null")
-                        return@observe
-                    }
-                    adapter.updateData(data)
-                }
-
-                Resource.Status.ERROR -> {
-                    logger.e("Can't fetch rules: ${it.message}")
-                    showErrorDialog(it.message)
-                    binding.swipeLayout.isRefreshing = false
-                }
-
-                Resource.Status.LOADING -> {
-                    logger.d("Load rules")
-                    binding.swipeLayout.isRefreshing = true
-                }
-            }
-        }
+//        viewModel.rules.observe(viewLifecycleOwner) {
+//            when (it.status) {
+//                Resource.Status.SUCCESS -> {
+//                    logger.d("Load rules successfully")
+//                    binding.swipeLayout.isRefreshing = false
+//                    val data = it.data
+//                    if (data == null) {
+//                        logger.e("rules is null")
+//                        return@observe
+//                    }
+//                    adapter.updateData(data)
+//                }
+//
+//                Resource.Status.ERROR -> {
+//                    logger.e("Can't fetch rules: ${it.message}")
+//                    showErrorDialog(it.message)
+//                    binding.swipeLayout.isRefreshing = false
+//                }
+//
+//                Resource.Status.LOADING -> {
+//                    logger.d("Load rules")
+//                    binding.swipeLayout.isRefreshing = true
+//                }
+//            }
+//        }
     }
 
     private fun initMenu() {

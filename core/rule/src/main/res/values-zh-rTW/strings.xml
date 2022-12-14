@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright 2022 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="processing_progress_indicator">進度指示條</string>
+    <string name="update_rules_notification">更新規則通知</string>
+    <string name="backing_up_apps_please_wait">正在導出應用規則，請稍等…</string>
+    <string name="backing_up_ifw_please_wait">正在導出IFW應用規則，請稍等…</string>
+    <string name="import_ifw_please_wait">正在導入IFW應用規則，請稍等…</string>
+    <string name="import_mat_rule_please_wait">正在導入MAT應用規則，請稍等…</string>
+    <string name="reset_ifw_please_wait">重置IFW中，請稍等…</string>
+    <string name="import_failed_message">導入Blocker規則失敗，請檢查超級用戶權限是否授予</string>
+    <string name="no_rules_imported">沒有規則被導入，請檢查目錄是否正確設置或者權限是否被正確授予</string>
+    <string name="export_ifw_failed_message">導出IFW規則失敗，請檢查權限是否被正確授予。</string>
+    <string name="import_ifw_failed_message">導入IFW規則失敗，請檢查超級用戶權限是否被正確授予。</string>
+    <string name="export_ifw_successful_message">成功導出%1$d個IFW規則</string>
+    <string name="import_successfully">導入規則成功</string>
+    <string name="clear_ifw_message">清除了%1$d個IFW規則</string>
+    <string name="import_mat_failed_message">導入MAT規則失敗，請檢查超級用戶權限是否授予</string>
+    <string name="import_app_rules_please_wait">正在導入應用規則，請稍等…</string>
+    <string name="cancel">取消</string>
+</resources>

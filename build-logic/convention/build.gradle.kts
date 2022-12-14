@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,6 +72,14 @@ gradlePlugin {
         register("firebase-perf") {
             id = "blocker.firebase-perf"
             implementationClass = "FirebasePerfConventionPlugin"
+        }
+        register("firebase-crashlytics") {
+            id = "blocker.firebase-crashlytics"
+            implementationClass = "FirebaseCrashlyticsConventionPlugin"
+        }
+        register("gms") {
+            id = "blocker.gms"
+            implementationClass = "GmsConventionPlugin"
         }
     }
 }

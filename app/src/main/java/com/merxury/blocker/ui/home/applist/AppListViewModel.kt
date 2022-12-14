@@ -22,11 +22,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.core.datastore.R
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.util.ManagerUtils
-import com.merxury.blocker.util.PreferenceUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -59,7 +60,7 @@ class AppListViewModel : ViewModel() {
                 ApplicationUtil.getThirdPartyApplicationList(context)
             }
             logger.i("loadData done, list size: ${list.size}")
-            val sortType = PreferenceUtil.getSortType(context)
+            val sortType = getSortType(context)
             val sortedList = sortList(list, sortType)
             originalList = sortedList
             _appList.value = sortedList
@@ -166,6 +167,16 @@ class AppListViewModel : ViewModel() {
             SortType.INSTALL_TIME -> list.sortedByDescending { it.firstInstallTime }
             SortType.LAST_UPDATE_TIME -> list.sortedByDescending { it.lastUpdateTime }
             else -> list.sortedBy { it.label }
+        }
+    }
+
+    private fun getSortType(context: Context): SortType {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val value = pref.getString(context.getString(R.string.key_pref_sort_type), null).orEmpty()
+        return try {
+            SortType.valueOf(value)
+        } catch (e: Exception) {
+            SortType.NAME_ASC
         }
     }
 }

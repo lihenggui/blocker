@@ -1,17 +1,17 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.merxury.blocker.ui.detail.component
@@ -25,17 +25,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.ComponentControllerProxy
+import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
+import com.merxury.blocker.core.database.app.AppComponentRepository
 import com.merxury.blocker.core.extension.getSimpleName
 import com.merxury.blocker.core.model.EComponentType
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.ServiceHelper
-import com.merxury.blocker.data.app.AppComponentRepository
-import com.merxury.blocker.data.component.OnlineComponentDataRepository
 import com.merxury.blocker.util.ManagerUtils
-import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
@@ -84,9 +84,9 @@ class ComponentViewModel @Inject constructor(
                 appComponentRepository.getAppComponent(component.packageName, component.name)
             val controllerType = PreferenceUtil.getControllerType(context)
             when (controllerType) {
-                EControllerMethod.PM -> controlComponentInPmMode(context, component, enabled)
-                EControllerMethod.IFW -> controlComponentInIfwMode(context, component, enabled)
-                EControllerMethod.SHIZUKU -> controlComponentInShizukuMode(
+                ControllerType.PM -> controlComponentInPmMode(context, component, enabled)
+                ControllerType.IFW -> controlComponentInIfwMode(context, component, enabled)
+                ControllerType.SHIZUKU -> controlComponentInShizukuMode(
                     context,
                     component,
                     enabled
@@ -95,7 +95,7 @@ class ComponentViewModel @Inject constructor(
             // Save the component status to database
             appComponent?.let {
                 logger.i("Save ${component.name} $enabled")
-                if (controllerType == EControllerMethod.IFW) {
+                if (controllerType == ControllerType.IFW) {
                     appComponent.ifwBlocked = !enabled
                 } else {
                     appComponent.pmBlocked = !enabled
@@ -163,11 +163,11 @@ class ComponentViewModel @Inject constructor(
         list: List<ComponentData>,
         component: ComponentInfo,
         status: Boolean,
-        controllerType: EControllerMethod
+        controllerType: ControllerType
     ) {
         val data = list.find { it.name == component.name }
         when (controllerType) {
-            EControllerMethod.IFW -> data?.ifwBlocked = !status
+            ControllerType.IFW -> data?.ifwBlocked = !status
             else -> data?.pmBlocked = !status
         }
     }
@@ -201,7 +201,7 @@ class ComponentViewModel @Inject constructor(
     ) = withContext(dispatcher) {
         try {
             // First we need to change IFW state if it's been blocked by IFW
-            val ifwController = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
+            val ifwController = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
             val blockedByIfw =
                 !ifwController.checkComponentEnableState(component.packageName, component.name)
             if (blockedByIfw && enabled) {
@@ -209,7 +209,7 @@ class ComponentViewModel @Inject constructor(
                 ifwController.enable(component.packageName, component.name)
             }
             // Use PM controller to control components
-            val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+            val pmController = ComponentControllerProxy.getInstance(ControllerType.PM, context)
             if (enabled) {
                 pmController.enable(component.packageName, component.name)
             } else {
@@ -235,11 +235,11 @@ class ComponentViewModel @Inject constructor(
                     ComponentName(component.packageName, component.name)
                 )
             ) {
-                ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+                ComponentControllerProxy.getInstance(ControllerType.PM, context)
                     .enable(component.packageName, component.name)
             }
             // Then use IFW controller to control the state
-            val ifwController = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
+            val ifwController = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
             if (enabled) {
                 ifwController.enable(component.packageName, component.name)
             } else {
@@ -261,7 +261,7 @@ class ComponentViewModel @Inject constructor(
         try {
             // In Shizuku mode, use root privileges as little as possible
             val controller =
-                ComponentControllerProxy.getInstance(EControllerMethod.SHIZUKU, context)
+                ComponentControllerProxy.getInstance(ControllerType.SHIZUKU, context)
             if (enabled) {
                 controller.enable(component.packageName, component.name)
             } else {
@@ -281,7 +281,7 @@ class ComponentViewModel @Inject constructor(
         type: EComponentType
     ): MutableList<ComponentData> {
         val ifwController = IntentFirewallImpl(packageName).load()
-        val pmController = ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+        val pmController = ComponentControllerProxy.getInstance(ControllerType.PM, context)
         val serviceHelper = if (type == EComponentType.SERVICE) {
             ServiceHelper(packageName).also { it.refresh() }
         } else {
