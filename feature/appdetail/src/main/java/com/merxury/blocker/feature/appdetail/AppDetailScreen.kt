@@ -85,7 +85,6 @@ fun AppDetailScreen(
 
             is AppDetailUiState.Error -> ErrorAppDetailScreen(uiState.errorMessage)
         }
-
     }
 }
 
