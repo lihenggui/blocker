@@ -20,11 +20,11 @@ import android.content.Context
 import android.net.Uri
 import androidx.preference.PreferenceManager
 import com.merxury.blocker.core.datastore.R
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.model.data.ControllerType
 
 @Deprecated("Use Datastore implementation")
 object PreferenceUtil {
-    fun getControllerType(context: Context): EControllerMethod {
+    fun getControllerType(context: Context): ControllerType {
         // Magic value, but still use it.
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         return when (
@@ -33,9 +33,9 @@ object PreferenceUtil {
                 context.getString(R.string.key_pref_controller_type_default_value)
             )
         ) {
-            "pm" -> EControllerMethod.PM
-            "shizuku" -> EControllerMethod.SHIZUKU
-            else -> EControllerMethod.IFW
+            "pm" -> ControllerType.PM
+            "shizuku" -> ControllerType.SHIZUKU
+            else -> ControllerType.IFW
         }
     }
 

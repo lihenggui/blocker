@@ -22,10 +22,10 @@ import android.content.pm.ComponentInfo
 import android.net.Uri
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.documentfile.provider.DocumentFile
-import com.merxury.blocker.core.ComponentControllerProxy
-import com.merxury.blocker.core.IController
+import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.model.EComponentType
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.entity.ComponentRule
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -70,7 +70,7 @@ object Rule {
                         it.name,
                         stateIFW,
                         EComponentType.RECEIVER,
-                        EControllerMethod.IFW
+                        ControllerType.IFW
                     )
                 )
                 rule.components.add(
@@ -79,7 +79,7 @@ object Rule {
                         it.name,
                         statePM,
                         EComponentType.RECEIVER,
-                        EControllerMethod.PM
+                        ControllerType.PM
                     )
                 )
             }
@@ -94,7 +94,7 @@ object Rule {
                         it.name,
                         stateIFW,
                         EComponentType.SERVICE,
-                        EControllerMethod.IFW
+                        ControllerType.IFW
                     )
                 )
                 rule.components.add(
@@ -103,7 +103,7 @@ object Rule {
                         it.name,
                         statePM,
                         EComponentType.SERVICE,
-                        EControllerMethod.PM
+                        ControllerType.PM
                     )
                 )
             }
@@ -118,7 +118,7 @@ object Rule {
                         it.name,
                         stateIFW,
                         EComponentType.ACTIVITY,
-                        EControllerMethod.IFW
+                        ControllerType.IFW
                     )
                 )
                 rule.components.add(
@@ -127,7 +127,7 @@ object Rule {
                         it.name,
                         statePM,
                         EComponentType.ACTIVITY,
-                        EControllerMethod.PM
+                        ControllerType.PM
                     )
                 )
             }
@@ -141,7 +141,7 @@ object Rule {
                         it.name,
                         statePM,
                         EComponentType.PROVIDER,
-                        EControllerMethod.PM
+                        ControllerType.PM
                     )
                 )
             }
@@ -161,11 +161,11 @@ object Rule {
     suspend fun import(
         context: Context,
         rule: BlockerRule,
-        controllerType: EControllerMethod
+        controllerType: ControllerType
     ): Boolean {
-        val controller = if (controllerType == EControllerMethod.IFW) {
+        val controller = if (controllerType == ControllerType.IFW) {
             // Fallback to traditional controller
-            ComponentControllerProxy.getInstance(EControllerMethod.PM, context)
+            ComponentControllerProxy.getInstance(ControllerType.PM, context)
         } else {
             ComponentControllerProxy.getInstance(controllerType, context)
         }
@@ -173,7 +173,7 @@ object Rule {
         val pm = context.packageManager
         // Detects if contains IFW rules, if exists, create a new controller.
         rule.components.forEach ifwDetection@{
-            if (it.method == EControllerMethod.IFW) {
+            if (it.method == ControllerType.IFW) {
                 ifwController = IntentFirewallImpl(it.packageName).load()
                 return@ifwDetection
             }
@@ -181,7 +181,7 @@ object Rule {
         try {
             rule.components.forEach {
                 when (it.method) {
-                    EControllerMethod.IFW -> {
+                    ControllerType.IFW -> {
                         when (it.type) {
                             // state == false means that IFW applied
                             // We should add in the IFW controller
@@ -254,7 +254,7 @@ object Rule {
     }
 
     suspend fun importIfwRules(context: Context, importFolderUri: Uri): Int {
-        val controller = ComponentControllerProxy.getInstance(EControllerMethod.IFW, context)
+        val controller = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
         var succeedCount = 0
         val folder = DocumentFile.fromTreeUri(context, importFolderUri)
         if (folder == null) {

@@ -33,7 +33,7 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.merxury.blocker.R
 import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.model.Application
-import com.merxury.blocker.core.root.EControllerMethod
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.databinding.ActivityAppDetailBinding
 import com.merxury.blocker.util.parcelable
 import com.merxury.blocker.util.reduceDragSensitivity
@@ -101,7 +101,7 @@ class AppDetailActivity : AppCompatActivity() {
     }
 
     private fun registerShizuku() {
-        if (PreferenceUtil.getControllerType(this) != EControllerMethod.SHIZUKU) return
+        if (PreferenceUtil.getControllerType(this) != ControllerType.SHIZUKU) return
         Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
         Shizuku.addBinderDeadListener(binderDeadListener)
         Shizuku.addRequestPermissionResultListener(requestPermissionResultListener)
@@ -131,7 +131,7 @@ class AppDetailActivity : AppCompatActivity() {
     }
 
     private fun unregisterShizuku() {
-        if (PreferenceUtil.getControllerType(this) != EControllerMethod.SHIZUKU) {
+        if (PreferenceUtil.getControllerType(this) != ControllerType.SHIZUKU) {
             return
         }
         Shizuku.removeBinderReceivedListener(binderReceivedListener)
