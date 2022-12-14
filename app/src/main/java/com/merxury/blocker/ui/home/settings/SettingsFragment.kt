@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.ui.home.settings
 
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
@@ -28,7 +29,6 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreference
-import androidx.work.Data
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
@@ -36,18 +36,18 @@ import androidx.work.WorkManager
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.data.source.OnlineSourceType
+import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.core.network.model.OnlineSourceType
+import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
+import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
+import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
+import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
+import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
+import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.util.BrowserUtil
-import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.CheckRuleUpdateWork
-import com.merxury.blocker.work.ExportBlockerRulesWork
-import com.merxury.blocker.work.ExportIfwRulesWork
-import com.merxury.blocker.work.ImportBlockerRuleWork
-import com.merxury.blocker.work.ImportIfwRulesWork
-import com.merxury.blocker.work.ImportMatRulesWork
-import com.merxury.blocker.work.ResetIfwWork
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -96,7 +96,7 @@ class SettingsFragment :
                 OnlineSourceType.GITLAB
             }
             logger.i("Set online rule source to $type")
-            PreferenceUtil.setOnlineSourceType(requireContext(), type)
+            setOnlineSourceType(requireContext(), type)
         }
         return true
     }
@@ -152,61 +152,65 @@ class SettingsFragment :
     }
 
     private fun importBlockerRule() {
-        val importWork = OneTimeWorkRequestBuilder<ImportBlockerRuleWork>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-        WorkManager.getInstance(requireContext())
-            .enqueueUniqueWork("ImportBlockerRule", ExistingWorkPolicy.KEEP, importWork)
+        WorkManager.getInstance(requireContext()).apply {
+            enqueueUniqueWork(
+                "ImportBlockerRule",
+                ExistingWorkPolicy.KEEP,
+                ImportBlockerRuleWorker.importWork()
+            )
+        }
         ToastUtil.showToast(R.string.import_app_rules_please_wait, Toast.LENGTH_LONG)
     }
 
     private fun exportBlockerRule() {
-        val exportWork = OneTimeWorkRequestBuilder<ExportBlockerRulesWork>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-        WorkManager.getInstance(requireContext())
-            .enqueueUniqueWork("ExportBlockerRule", ExistingWorkPolicy.KEEP, exportWork)
-        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
+        WorkManager.getInstance(requireContext()).apply {
+            enqueueUniqueWork(
+                "ExportBlockerRule",
+                ExistingWorkPolicy.KEEP,
+                ExportBlockerRulesWorker.exportWork()
+            )
+        }
+//        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
     }
 
     private fun exportIfwRule() {
         ToastUtil.showToast(R.string.backing_up_ifw_please_wait, Toast.LENGTH_LONG)
-        val exportWork = OneTimeWorkRequestBuilder<ExportIfwRulesWork>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-        WorkManager.getInstance(requireContext())
-            .enqueueUniqueWork("ExportIfwRule", ExistingWorkPolicy.KEEP, exportWork)
+        WorkManager.getInstance(requireContext()).apply {
+            enqueueUniqueWork(
+                "ExportIfwRule",
+                ExistingWorkPolicy.KEEP,
+                ExportIfwRulesWorker.exportWork()
+            )
+        }
     }
 
     private fun importIfwRule() {
         ToastUtil.showToast(R.string.import_ifw_please_wait, Toast.LENGTH_LONG)
-        val exportWork = OneTimeWorkRequestBuilder<ImportIfwRulesWork>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-        WorkManager.getInstance(requireContext())
-            .enqueueUniqueWork("ImportIfwRule", ExistingWorkPolicy.KEEP, exportWork)
+        WorkManager.getInstance(requireContext()).apply {
+            enqueueUniqueWork(
+                "ImportIfwRule",
+                ExistingWorkPolicy.KEEP,
+                ImportIfwRulesWorker.importIfwWork()
+            )
+        }
     }
 
     private fun resetIfw() {
         ToastUtil.showToast(R.string.reset_ifw_please_wait, Toast.LENGTH_LONG)
-        val exportWork = OneTimeWorkRequestBuilder<ResetIfwWork>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
+        val exportWork = ResetIfwWorker.clearIfwWork()
         WorkManager.getInstance(requireContext())
             .enqueueUniqueWork("ResetIfw", ExistingWorkPolicy.KEEP, exportWork)
     }
 
     private fun importMatRule(fileUri: Uri) {
         ToastUtil.showToast(R.string.import_mat_rule_please_wait, Toast.LENGTH_LONG)
-        val data = Data.Builder()
-            .putString(ImportMatRulesWork.KEY_FILE_URI, fileUri.toString())
-            .build()
-        val exportWork = OneTimeWorkRequestBuilder<ImportMatRulesWork>()
-            .setInputData(data)
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
-        WorkManager.getInstance(requireContext())
-            .enqueueUniqueWork("ImportMatRule", ExistingWorkPolicy.KEEP, exportWork)
+        WorkManager.getInstance(requireContext()).apply {
+            enqueueUniqueWork(
+                "ImportMatRule",
+                ExistingWorkPolicy.KEEP,
+                ImportMatRulesWorker.importWork(fileUri)
+            )
+        }
     }
 
     private fun findPreference() {
@@ -330,6 +334,15 @@ class SettingsFragment :
             }
             ShareUtil.shareFileToEmail(requireContext(), zippedLog)
         }
+    }
+
+    private fun setOnlineSourceType(context: Context, type: OnlineSourceType) {
+        PreferenceManager.getDefaultSharedPreferences(context).edit()
+            .putString(
+                context.getString(R.string.key_pref_online_source_type),
+                type.name
+            )
+            .apply()
     }
 
     companion object {

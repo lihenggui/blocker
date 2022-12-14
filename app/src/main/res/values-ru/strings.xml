@@ -19,7 +19,6 @@
     <string name="close">Закрыть</string>
     <string name="search">Поиск</string>
     <string name="launch_activity">Запуск активити</string>
-    <string name="cancel">Отмена</string>
     <string name="block_all">Блокировать все</string>
     <string name="enable_all">Разблокировать все</string>
     <string name="disabling_hint">Отключение компонентов…</string>
@@ -87,15 +86,7 @@
     <string name="failed_to_back_up">Сбой создания резервной копии правил для приложений. Проверьте разрешения или создайте отчет..</string>
     <string name="backup_finished">Резервное копирование правил завершено</string>
     <string name="dir_is_invalid">Папка недействительна, проверьте, установили ли вы папку для резервного копирования или нет.</string>
-    <string name="import_failed_message">Сбой импортирования правил Blocker. Проверьте, есть ли у вас root права.</string>
-    <string name="no_rules_imported">Правила не импортированы, проверьте папку или разрешения.</string>
-    <string name="export_ifw_failed_message">Не удалось экспортировать правила IFW. Вы предоставили Blocker-у разрешения?</string>
-    <string name="export_ifw_successful_message">Успешно экспортировано %1$d правил IFW.</string>
-    <string name="import_ifw_failed_message">Сбой импортирования правил IFW. Вы предоставили Blocker-у разрешения?</string>
-    <string name="import_successfully">Правила успешно импортированы</string>
-    <string name="clear_ifw_message">Удалено %1$d правил IFW.</string>
     <string name="please_select_mat_files">Выберите правила MyAndroidTools.</string>
-    <string name="import_mat_failed_message">Сбой импортирта правил MAT. Вы предоставили Blocker-у разрешения?</string>
     <string name="acquiring_service_status_please_wait">Получение статуса службы…</string>
     <string name="service_status_template">Службы: %1$d запущено, %2$d заблокировано, всего %3$d.</string>
     <string name="show_system_apps">Показать системные приложения</string>

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2021 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,11 +47,14 @@ include(":core:domain")
 include(":core:ifw-api")
 include(":core:model")
 include(":core:network")
+include(":core:rule")
 include(":core:testing")
 include(":core:ui")
-include(":lint")
 include(":feature:applist")
 include(":feature:appdetail")
 include(":feature:search")
 include(":feature:settings")
+include(":lint")
+include(":sync:work")
+include(":sync:sync-test")
 include(":ui-test-hilt-manifest")
