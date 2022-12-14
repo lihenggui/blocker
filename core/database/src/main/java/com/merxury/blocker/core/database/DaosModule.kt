@@ -19,12 +19,15 @@ package com.merxury.blocker.core.database
 import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.InstalledAppDao
 import com.merxury.blocker.core.database.app.InstalledAppDatabase
+import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
+import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
 import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDao
 import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -44,5 +47,11 @@ object DaosModule {
         database: InstantComponentInfoDatabase
     ): InstantComponentInfoDao {
         return database.instantComponentInfoDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideGeneralRuleDao(database: GeneralRuleDatabase): GeneralRuleDao {
+        return database.generalRuleDao()
     }
 }
