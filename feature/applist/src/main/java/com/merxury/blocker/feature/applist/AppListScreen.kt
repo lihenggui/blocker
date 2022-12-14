@@ -103,7 +103,7 @@ fun AppListScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppListContent(
-    appList: SnapshotStateList<AppInfo>,
+    appList: SnapshotStateList<AppItem>,
     navigateToAppDetail: (String) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
@@ -120,7 +120,6 @@ fun AppListContent(
         ) {
             items(listContent, key = { it.packageName }) {
                 AppListItem(
-                    appIcon = it.appIcon,
                     packageName = it.packageName,
                     versionName = it.versionName,
                     appServiceStatus = it.appServiceStatus,
