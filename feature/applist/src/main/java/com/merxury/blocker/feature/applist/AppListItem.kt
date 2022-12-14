@@ -24,8 +24,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,11 +42,13 @@ import com.merxury.blocker.feature.applist.R.string
 
 @Composable
 fun AppListItem(
+    label: String,
     packageName: String,
     versionName: String,
-    appServiceStatus: AppServiceStatus,
+    appServiceStatus: AppServiceStatus?,
     onClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconModifier: Modifier = Modifier,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -53,12 +57,12 @@ fun AppListItem(
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .clickable { onClick(packageName) },
     ) {
-        AppIcon(packageName)
+        AppIcon(packageName, iconModifier.size(48.dp))
         Spacer(modifier = Modifier.width(16.dp))
         AppContent(
-            appName = packageName,
-            appVersion = versionName,
-            appServiceStatus = appServiceStatus
+            label = label,
+            versionName = versionName,
+            serviceStatus = appServiceStatus
         )
     }
 }
@@ -76,32 +80,32 @@ private fun AppIcon(packageName: String, modifier: Modifier = Modifier) {
 
 @Composable
 private fun AppContent(
-    appName: String,
-    appVersion: String,
-    appServiceStatus: AppServiceStatus,
+    label: String,
+    versionName: String,
+    serviceStatus: AppServiceStatus?,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
         Text(
-            text = appName,
+            text = label,
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.padding(vertical = 4.dp)
         )
-        if (appVersion.isNotEmpty()) {
+        Text(
+            text = versionName,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        if (serviceStatus != null) {
             Text(
-                text = appVersion,
+                text = stringResource(
+                    id = string.service_status_template,
+                    serviceStatus.running,
+                    serviceStatus.blocked,
+                    serviceStatus.total
+                ),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-        Text(
-            text = stringResource(
-                id = string.service_status_template,
-                appServiceStatus.running,
-                appServiceStatus.blocked,
-                appServiceStatus.total
-            ),
-            style = MaterialTheme.typography.bodyMedium
-        )
     }
 }
 
@@ -116,49 +120,46 @@ fun AppListItemPreview() {
         packageName = "com.merxury.blocker"
     )
     BlockerTheme {
-        AppListItem(
-            packageName = "com.merxury.blocker",
-            versionName = "1.0.12",
-            appServiceStatus = appServiceStatus,
-            onClick = {}
-        )
+        Surface {
+            AppListItem(
+                label = "Blocker",
+                packageName = "com.merxury.blocker",
+                versionName = "1.0.12",
+                appServiceStatus = appServiceStatus,
+                onClick = {}
+            )
+        }
     }
 }
 
 @Composable
-@Preview("Item without service status")
+@Preview
 fun AppListItemWithoutServicePreview() {
-    val appServiceStatus = AppServiceStatus(
-        packageName = "com.merxury.blocker",
-        running = 8,
-        blocked = 2,
-        total = 13,
-    )
     BlockerTheme {
-        AppListItem(
-            packageName = "com.merxury.blocker",
-            versionName = "1.0.12",
-            appServiceStatus = appServiceStatus,
-            onClick = {}
-        )
+        Surface {
+            AppListItem(
+                label = "Blocker",
+                packageName = "com.merxury.blocker",
+                versionName = "1.0.12",
+                appServiceStatus = null,
+                onClick = {}
+            )
+        }
     }
 }
 
 @Composable
-@Preview("Item without version")
-fun AppListItemWithoutVersionPreview() {
-    val appServiceStatus = AppServiceStatus(
-        running = 1,
-        blocked = 2,
-        total = 10,
-        packageName = "com.merxury.blocker"
-    )
+@Preview
+fun AppListItemWithLongAppName() {
     BlockerTheme {
-        AppListItem(
-            packageName = "com.merxury.blocker",
-            versionName = "0.0.13",
-            appServiceStatus = appServiceStatus,
-            onClick = {}
-        )
+        Surface {
+            AppListItem(
+                label = "AppNameWithVeryLongLongLongLongLongLongName",
+                packageName = "com.merxury.blocker",
+                versionName = "1.0.12",
+                appServiceStatus = null,
+                onClick = {}
+            )
+        }
     }
 }
