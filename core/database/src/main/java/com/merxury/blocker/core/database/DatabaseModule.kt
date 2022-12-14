@@ -50,12 +50,20 @@ object DatabaseModule {
     fun provideInstantComponentInfoDatabase(
         @ApplicationContext context: Context
     ): InstantComponentInfoDatabase {
-        return InstantComponentInfoDatabase.getInstance(context)
+        return Room.databaseBuilder(
+            context,
+            InstantComponentInfoDatabase::class.java,
+            "instant_component_info"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     @Provides
     @Singleton
     fun provideGeneralRuleDatabase(@ApplicationContext context: Context): GeneralRuleDatabase {
-        return GeneralRuleDatabase.getInstance(context)
+        return Room.databaseBuilder(context, GeneralRuleDatabase::class.java, "general_rule")
+            .fallbackToDestructiveMigration()
+            .build()
     }
 }
