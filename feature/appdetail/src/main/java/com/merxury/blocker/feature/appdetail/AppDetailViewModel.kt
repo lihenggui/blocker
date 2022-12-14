@@ -62,6 +62,10 @@ class AppDetailViewModel @Inject constructor(
         }
         // TODO
     }
+
+    fun onRefresh() {
+        // TODO
+    }
 }
 
 data class TabState(
