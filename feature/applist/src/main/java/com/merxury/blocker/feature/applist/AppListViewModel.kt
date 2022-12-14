@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.applist
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -36,23 +35,30 @@ class AppListViewModel @Inject constructor() : ViewModel() {
 }
 
 data class AppServiceStatus(
-    var running: Int = 0,
-    var blocked: Int = 0,
-    var total: Int = 0,
-    var packageName: String = ""
+    val packageName: String,
+    val running: Int = 0,
+    val blocked: Int = 0,
+    val total: Int = 0,
 )
 
-data class AppInfo(
-    var packageName: String = "",
-    var versionName: String? = "",
-    var appIcon: ImageBitmap,
-    var appServiceStatus: AppServiceStatus
+/**
+ * Data representation for the installed application.
+ * App icon will be loaded by PackageName.
+ */
+data class AppItem(
+    val label: String,
+    val packageName: String,
+    val versionName: String,
+    val isSystem: Boolean,
+    val isRunning: Boolean,
+    val enabled: Boolean,
+    val appServiceStatus: AppServiceStatus,
 )
 
 sealed interface AppListUiState {
     object Loading : AppListUiState
     class Error(val errorMessage: String) : AppListUiState
     data class Success(
-        val appList: SnapshotStateList<AppInfo>
+        val appList: SnapshotStateList<AppItem>
     ) : AppListUiState
 }
