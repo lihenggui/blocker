@@ -15,6 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
-    <string name="loading">Loading</string>
+    <string name="service_status_template">服务: 正在运行%1$d个, 已阻止%2$d个, 共计%3$d个.</string>
+    <string name="loading">加载中</string>
 </resources>
