@@ -49,7 +49,7 @@ fun AppListScreen(
     navigateToAppDetail: (String) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
@@ -91,7 +91,7 @@ fun AppListContent(
     navigateToAppDetail: (String) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     val listContent = remember { appList }
     val listState = rememberLazyListState()
