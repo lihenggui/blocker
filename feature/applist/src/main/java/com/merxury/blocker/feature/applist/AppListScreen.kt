@@ -88,7 +88,7 @@ fun AppListScreen(
             is AppListUiState.Success -> {
                 AppListContent(
                     appList = uiState.appList,
-                    navigateToAppDetail = navigateToAppDetail,
+                    onAppItemClick = navigateToAppDetail,
                     isRefreshing = isRefreshing,
                     onRefresh = onRefresh,
                     modifier = modifier
@@ -104,7 +104,7 @@ fun AppListScreen(
 @Composable
 fun AppListContent(
     appList: SnapshotStateList<AppItem>,
-    navigateToAppDetail: (String) -> Unit,
+    onAppItemClick: (String) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
@@ -120,10 +120,11 @@ fun AppListContent(
         ) {
             items(listContent, key = { it.packageName }) {
                 AppListItem(
+                    label = it.label,
                     packageName = it.packageName,
                     versionName = it.versionName,
                     appServiceStatus = it.appServiceStatus,
-                    onClick = navigateToAppDetail
+                    onClick = onAppItemClick
                 )
             }
         }
