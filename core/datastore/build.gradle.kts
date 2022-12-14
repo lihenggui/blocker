@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,12 +58,13 @@ protobuf {
 dependencies {
     implementation(project(":core:common"))
     implementation(project(":core:model"))
+    implementation(project(":core:component-controller"))
 
     testImplementation(project(":core:testing"))
     testImplementation(project(":core:datastore-test"))
 
     implementation(libs.kotlinx.coroutines.android)
-
+    implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.dataStore.core)
     implementation(libs.protobuf.kotlin.lite)
 }

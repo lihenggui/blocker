@@ -25,6 +25,8 @@ plugins {
     id("blocker.android.hilt")
     id("jacoco")
     id("blocker.firebase-perf")
+    id("blocker.gms")
+    id("blocker.firebase-crashlytics")
     id("kotlin-parcelize")
     alias(libs.plugins.ksp)
 }
@@ -90,8 +92,12 @@ android {
 }
 
 dependencies {
-    // TODO model should be removed
-    implementation(project(":core:model"))
+    // TODO database, datastore, rule, datetime, network should be removed
+    implementation(project(":core:database"))
+    implementation(project(":core:datastore"))
+    implementation(project(":core:network"))
+    implementation(project(":core:rule"))
+    implementation(libs.kotlinx.datetime)
     implementation(project(":core:component-controller"))
     implementation(project(":core:ifw-api"))
     implementation(project(":core:common"))
@@ -99,6 +105,7 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":core:data"))
     implementation(project(":core:model"))
+    implementation(project(":sync:work"))
 
     androidTestImplementation(project(":core:testing"))
     androidTestImplementation(project(":core:datastore-test"))
@@ -126,7 +133,6 @@ dependencies {
 
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.svg)
-
     implementation(libs.material)
     implementation(libs.androidx.recyclerview)
     implementation(libs.androidx.swiperefreshlayout)
@@ -160,6 +166,10 @@ dependencies {
     implementation(libs.shizuku.provider)
     implementation(libs.glide)
     implementation(libs.apache.commons.csv)
+
+    prodImplementation(platform(libs.firebase.bom))
+    prodImplementation(libs.firebase.analytics)
+    prodImplementation(libs.firebase.crashlytics)
 }
 
 // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13

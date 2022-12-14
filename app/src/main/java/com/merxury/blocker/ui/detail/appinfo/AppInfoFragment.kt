@@ -34,17 +34,15 @@ import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.R
+import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.utils.AppIconCache
 import com.merxury.blocker.data.AndroidCodeName
 import com.merxury.blocker.databinding.AppInfoFragmentBinding
-import com.merxury.blocker.rule.Rule
-import com.merxury.blocker.util.AppIconCache
-import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.parcelable
 import java.io.File
 import java.text.DateFormat
-import java.util.Date
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -134,7 +132,7 @@ class AppInfoFragment : Fragment() {
                 val result = RuleBackupHelper.export(requireContext(), app.packageName)
                 if (result) {
                     val folder = PreferenceUtil.getSavedRulePath(requireContext())
-                    val fileName = app.packageName + Rule.EXTENSION
+                    val fileName = app.packageName + com.merxury.blocker.core.rule.Rule.EXTENSION
                     Toast.makeText(
                         requireContext(),
                         getString(
@@ -259,7 +257,10 @@ class AppInfoFragment : Fragment() {
         binding.packageName.text = app.packageName
         binding.versionName.text = app.versionName
         val appInfo = app.packageInfo?.applicationInfo!!
-        binding.appIcon.setTag(R.id.app_item_icon_id, app.packageName)
+        binding.appIcon.setTag(
+            com.merxury.blocker.core.common.R.id.app_item_icon_id,
+            app.packageName
+        )
         loadIconJob = AppIconCache.loadIconBitmapAsync(
             requireContext(),
             appInfo,
@@ -289,9 +290,9 @@ class AppInfoFragment : Fragment() {
 //                    minSdkName
 //                )
 //            )
-            val lastUpdateTime = app.lastUpdateTime ?: Date(0)
+//            val lastUpdateTime = app.lastUpdateTime ?: Date(0)
             val formatter = DateFormat.getDateTimeInstance()
-            binding.itemLastUpdateTime.setSummary(formatter.format(lastUpdateTime))
+            binding.itemLastUpdateTime.setSummary(formatter.format(0))
             val dataDir = app.packageInfo?.applicationInfo?.dataDir
             binding.itemDataDir.setSummary(dataDir)
         }
