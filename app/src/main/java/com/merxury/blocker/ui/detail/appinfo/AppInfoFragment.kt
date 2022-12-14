@@ -36,9 +36,9 @@ import com.merxury.blocker.BlockerApplication
 import com.merxury.blocker.R
 import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.utils.AppIconCache
 import com.merxury.blocker.data.AndroidCodeName
 import com.merxury.blocker.databinding.AppInfoFragmentBinding
-import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.parcelable
 import java.io.File
@@ -257,7 +257,10 @@ class AppInfoFragment : Fragment() {
         binding.packageName.text = app.packageName
         binding.versionName.text = app.versionName
         val appInfo = app.packageInfo?.applicationInfo!!
-        binding.appIcon.setTag(R.id.app_item_icon_id, app.packageName)
+        binding.appIcon.setTag(
+            com.merxury.blocker.core.common.R.id.app_item_icon_id,
+            app.packageName
+        )
         loadIconJob = AppIconCache.loadIconBitmapAsync(
             requireContext(),
             appInfo,

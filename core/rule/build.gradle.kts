@@ -19,7 +19,6 @@ plugins {
     id("blocker.android.library.jacoco")
     id("blocker.android.hilt")
     id("kotlinx-serialization")
-    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
     kotlin("kapt")
 }
 

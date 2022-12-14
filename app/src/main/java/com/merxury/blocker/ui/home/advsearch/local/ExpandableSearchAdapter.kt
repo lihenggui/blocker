@@ -30,7 +30,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.database.app.AppComponentEntity
 import com.merxury.blocker.core.database.app.InstalledAppEntity
 import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.util.AppIconCache
+import com.merxury.blocker.core.utils.AppIconCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -97,8 +97,8 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
             .inflate(R.layout.search_app_header, parent, false)
         view.findViewById<TextView>(R.id.app_name).text = app?.label
         view.findViewById<ImageView>(R.id.icon).apply {
-            if (getTag(R.id.app_item_icon_id) != app?.packageName) {
-                setTag(R.id.app_item_icon_id, app?.packageName)
+            if (getTag(com.merxury.blocker.core.common.R.id.app_item_icon_id) != app?.packageName) {
+                setTag(com.merxury.blocker.core.common.R.id.app_item_icon_id, app?.packageName)
                 loadIcon(context, app, this)
             }
         }

@@ -30,8 +30,8 @@ import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.utils.AppIconCache
 import com.merxury.blocker.databinding.AppListItemBinding
-import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.AppStateCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -174,7 +174,10 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
                 false
             }
             // Load icon
-            binding.appIcon.setTag(R.id.app_item_icon_id, app.packageName)
+            binding.appIcon.setTag(
+                com.merxury.blocker.core.common.R.id.app_item_icon_id,
+                app.packageName
+            )
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     val appInfo = app.packageInfo?.applicationInfo ?: run {
