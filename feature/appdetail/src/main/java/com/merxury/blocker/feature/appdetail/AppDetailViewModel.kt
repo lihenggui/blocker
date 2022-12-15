@@ -21,7 +21,6 @@ private const val SERVICE = "Service"
 private const val RECEIVER = "Receiver"
 private const val ACTIVITY = "Activity"
 private const val CONTENT_PROVIDER = "Content Provider"
-private const val TAG = "AppDetailViewModel"
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
@@ -52,14 +51,14 @@ class AppDetailViewModel @Inject constructor(
     fun onSwitch(componentInfo: ComponentInfo) {
         val uiState = _uiState.value
         if (uiState !is AppDetailUiState.Success) {
-            Timber.tag(TAG).e("Wrong type of UIState, return")
+            Timber.e("Wrong type of UIState, return")
             return
         }
         val matchedDevIndex = uiState.activity
-            .indexOfFirst { it.componentName == componentInfo.componentName }
+            .indexOfFirst { it.simpleName == componentInfo.simpleName }
         if (matchedDevIndex != -1) {
             uiState.activity[matchedDevIndex] =
-                uiState.activity[matchedDevIndex].copy(value = componentInfo.value)
+                uiState.activity[matchedDevIndex].copy(enabled = componentInfo.enabled)
         }
         // TODO
     }
@@ -81,9 +80,9 @@ data class AppDetailInfo(
 )
 
 data class ComponentInfo(
-    val componentName: String,
-    val componentDetail: String,
-    val value: Boolean
+    val simpleName: String,
+    val name: String,
+    val enabled: Boolean
 )
 
 sealed interface AppDetailUiState {
