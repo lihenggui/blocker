@@ -16,21 +16,75 @@
 
 package com.merxury.blocker.feature.applist
 
+import android.content.Context
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.UserDataRepository
+import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_DESCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
+import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class AppListViewModel @Inject constructor() : ViewModel() {
-    private val _uiState: MutableStateFlow<AppListUiState> =
-        MutableStateFlow(AppListUiState.Loading)
-    val uiState: StateFlow<AppListUiState> = _uiState
+class AppListViewModel @Inject constructor(
+    private val userDataRepository: UserDataRepository
+) : ViewModel() {
+    private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
+    val uiState = _uiState.asStateFlow()
 
-    fun onRefresh() {
-        // TODO
+    fun loadData(context: Context) = viewModelScope.launch {
+        _uiState.emit(AppListUiState.Loading)
+        val preference = userDataRepository.userData.first()
+        val sortType = preference.appSorting
+        val list = if (preference.showSystemApps) {
+            ApplicationUtil.getApplicationList(context)
+        } else {
+            ApplicationUtil.getThirdPartyApplicationList(context)
+        }
+        sortList(list, sortType)
+        val stateAppList = mutableStateListOf<AppItem>()
+        list.forEach {
+            val appItem = AppItem(
+                label = it.label,
+                packageName = it.packageName,
+                versionName = it.versionName.orEmpty(),
+                isSystem = ApplicationUtil.isSystemApp(context.packageManager, it.packageName),
+                // TODO detect if an app is running or not
+                isRunning = false,
+                enabled = it.isEnabled,
+                appServiceStatus = null
+            )
+            stateAppList.add(appItem)
+        }
+        _uiState.emit(AppListUiState.Success(stateAppList))
+    }
+
+    private fun sortList(
+        list: MutableList<Application>,
+        sorting: AppSorting
+    ) {
+        when (sorting) {
+            NAME_ASCENDING -> list.sortBy { it.label }
+            NAME_DESCENDING -> list.sortByDescending { it.label }
+            FIRST_INSTALL_TIME_ASCENDING -> list.sortBy { it.firstInstallTime }
+            FIRST_INSTALL_TIME_DESCENDING -> list.sortByDescending { it.firstInstallTime }
+            LAST_UPDATE_TIME_ASCENDING -> list.sortBy { it.lastUpdateTime }
+            LAST_UPDATE_TIME_DESCENDING -> list.sortByDescending { it.lastUpdateTime }
+        }
+        list.sortBy { it.isEnabled }
     }
 }
 
@@ -52,7 +106,7 @@ data class AppItem(
     val isSystem: Boolean,
     val isRunning: Boolean,
     val enabled: Boolean,
-    val appServiceStatus: AppServiceStatus,
+    val appServiceStatus: AppServiceStatus?,
 )
 
 sealed interface AppListUiState {
