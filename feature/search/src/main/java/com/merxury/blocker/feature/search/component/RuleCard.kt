@@ -53,7 +53,7 @@ fun RuleBasicInfo(
                 modifier = Modifier.size(48.dp)
             )
         } else {
-            //TODO
+            // TODO
         }
         Spacer(modifier = Modifier.width(12.dp))
         Column {
