@@ -31,6 +31,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASC
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
+import com.merxury.blocker.core.network.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -41,11 +42,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -60,20 +63,7 @@ class AppListViewModel @Inject constructor(
             ApplicationUtil.getThirdPartyApplicationList(context)
         }
         sortList(list, sortType)
-        val stateAppList = mutableStateListOf<AppItem>()
-        list.forEach {
-            val appItem = AppItem(
-                label = it.label,
-                packageName = it.packageName,
-                versionName = it.versionName.orEmpty(),
-                isSystem = ApplicationUtil.isSystemApp(context.packageManager, it.packageName),
-                // TODO detect if an app is running or not
-                isRunning = false,
-                enabled = it.isEnabled,
-                appServiceStatus = null
-            )
-            stateAppList.add(appItem)
-        }
+        val stateAppList = mapToSnapshotStateList(list, context)
         _uiState.emit(AppListUiState.Success(stateAppList))
     }
 
@@ -101,10 +91,10 @@ class AppListViewModel @Inject constructor(
         "pm disable $packageName".exec(ioDispatcher)
     }
 
-    private fun sortList(
+    private suspend fun sortList(
         list: MutableList<Application>,
         sorting: AppSorting
-    ) {
+    ) = withContext(cpuDispatcher) {
         when (sorting) {
             NAME_ASCENDING -> list.sortBy { it.label }
             NAME_DESCENDING -> list.sortByDescending { it.label }
@@ -114,6 +104,27 @@ class AppListViewModel @Inject constructor(
             LAST_UPDATE_TIME_DESCENDING -> list.sortByDescending { it.lastUpdateTime }
         }
         list.sortBy { it.isEnabled }
+    }
+
+    private suspend fun mapToSnapshotStateList(
+        list: MutableList<Application>,
+        context: Context
+    ): SnapshotStateList<AppItem> = withContext(cpuDispatcher) {
+        val stateAppList = mutableStateListOf<AppItem>()
+        list.forEach {
+            val appItem = AppItem(
+                label = it.label,
+                packageName = it.packageName,
+                versionName = it.versionName.orEmpty(),
+                isSystem = ApplicationUtil.isSystemApp(context.packageManager, it.packageName),
+                // TODO detect if an app is running or not
+                isRunning = false,
+                enabled = it.isEnabled,
+                appServiceStatus = null
+            )
+            stateAppList.add(appItem)
+        }
+        return@withContext stateAppList
     }
 }
 
