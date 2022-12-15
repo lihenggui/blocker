@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
 import com.merxury.blocker.core.network.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
+import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -151,7 +152,7 @@ data class AppItem(
 
 sealed interface AppListUiState {
     object Loading : AppListUiState
-    class Error(val message: String, val stackTrace: String? = null) : AppListUiState
+    class Error(val error: ErrorMessage) : AppListUiState
     data class Success(
         val appList: SnapshotStateList<AppItem>
     ) : AppListUiState

@@ -41,6 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.applist.R.string
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
@@ -97,7 +98,7 @@ fun AppListScreen(
                 )
             }
 
-            is AppListUiState.Error -> ErrorAppListScreen(uiState.message)
+            is AppListUiState.Error -> ErrorAppListScreen(uiState.error)
         }
     }
 }
@@ -140,6 +141,6 @@ fun AppListContent(
 }
 
 @Composable
-fun ErrorAppListScreen(message: String) {
-    Text(text = message)
+fun ErrorAppListScreen(message: ErrorMessage) {
+    Text(text = message.message)
 }
