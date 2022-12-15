@@ -122,40 +122,40 @@ fun AppDetailContent(
 
         1 -> {
             ComponentTabContent(
-                componentList = uiState.service,
+                components = uiState.service,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
-                onSwitch = onSwitch,
+                onSwitchClick = onSwitch,
                 modifier = modifier
             )
         }
 
         2 -> {
             ComponentTabContent(
-                componentList = uiState.receiver,
+                components = uiState.receiver,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
-                onSwitch = onSwitch,
+                onSwitchClick = onSwitch,
                 modifier = modifier
             )
         }
 
         3 -> {
             ComponentTabContent(
-                componentList = uiState.activity,
+                components = uiState.activity,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
-                onSwitch = onSwitch,
+                onSwitchClick = onSwitch,
                 modifier = modifier
             )
         }
 
         4 -> {
             ComponentTabContent(
-                componentList = uiState.contentProvider,
+                components = uiState.contentProvider,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
-                onSwitch = onSwitch,
+                onSwitchClick = onSwitch,
                 modifier = modifier
             )
         }

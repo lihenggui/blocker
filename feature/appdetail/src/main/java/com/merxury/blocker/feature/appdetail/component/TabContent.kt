@@ -18,6 +18,7 @@ import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,13 +36,13 @@ import com.merxury.blocker.feature.appdetail.ComponentInfo
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ComponentTabContent(
-    componentList: SnapshotStateList<ComponentInfo>,
+    components: SnapshotStateList<ComponentInfo>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onSwitch: (ComponentInfo) -> Unit,
+    onSwitchClick: (ComponentInfo) -> Unit,
     modifier: Modifier
 ) {
-    val listContent = remember { componentList }
+    val listContent = remember { components }
     val listState = rememberLazyListState()
     val refreshing by remember { mutableStateOf(isRefreshing) }
     val refreshingState = rememberPullRefreshState(refreshing, onRefresh)
@@ -51,10 +52,10 @@ fun ComponentTabContent(
         ) {
             items(listContent) {
                 AppInfoItem(
-                    itemName = it.componentName,
-                    itemDetail = it.componentDetail,
-                    itemValue = it.value,
-                    onClick = onSwitch
+                    itemName = it.simpleName,
+                    itemDetail = it.name,
+                    itemValue = it.enabled,
+                    onSwitchClick = onSwitchClick
                 )
             }
             item {
@@ -75,7 +76,7 @@ fun AppInfoItem(
     itemName: String,
     itemDetail: String,
     itemValue: Boolean,
-    onClick: (ComponentInfo) -> Unit
+    onSwitchClick: (ComponentInfo) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -91,7 +92,7 @@ fun AppInfoItem(
         Spacer(modifier = Modifier.weight(1f))
         Switch(
             checked = itemValue, onCheckedChange = {
-                onClick(
+                onSwitchClick(
                     ComponentInfo(itemName, itemDetail, itemValue)
                 )
             }
@@ -103,10 +104,13 @@ fun AppInfoItem(
 @Preview
 fun PreviewAppInfoItem() {
     BlockerTheme {
-        AppInfoItem(
-            itemName = "AccountAuthActivity",
-            itemDetail = "com.glip.foundation.settings.thirdaccount.auth.AccountAuthActivity",
-            itemValue = false
-        ) { }
+        Surface {
+            AppInfoItem(
+                itemName = "AccountAuthActivity",
+                itemDetail = "com.merxury.blocker.feature.appdetail.component.AccountAuthActivity",
+                itemValue = false,
+                onSwitchClick = {}
+            )
+        }
     }
 }
