@@ -39,7 +39,7 @@ fun ComponentTabContent(
     components: SnapshotStateList<ComponentInfo>,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    onSwitchClick: (ComponentInfo) -> Unit,
+    onSwitchClick: (String, String, Boolean) -> Boolean,
     modifier: Modifier
 ) {
     val listContent = remember { components }
@@ -51,10 +51,11 @@ fun ComponentTabContent(
             state = listState
         ) {
             items(listContent) {
-                AppInfoItem(
-                    itemName = it.simpleName,
-                    itemDetail = it.name,
-                    itemValue = it.enabled,
+                ComponentItem(
+                    simpleName = it.simpleName,
+                    name = it.name,
+                    packageName = it.packageName,
+                    enabled = it.enabled,
                     onSwitchClick = onSwitchClick
                 )
             }
@@ -72,11 +73,12 @@ fun ComponentTabContent(
 }
 
 @Composable
-fun AppInfoItem(
-    itemName: String,
-    itemDetail: String,
-    itemValue: Boolean,
-    onSwitchClick: (ComponentInfo) -> Unit
+fun ComponentItem(
+    simpleName: String,
+    name: String,
+    packageName: String,
+    enabled: Boolean,
+    onSwitchClick: (String, String, Boolean) -> Boolean
 ) {
     Row(
         modifier = Modifier
@@ -85,16 +87,15 @@ fun AppInfoItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.fillMaxWidth(0.8f)) {
-            Text(text = itemName, style = MaterialTheme.typography.titleMedium)
+            Text(text = simpleName, style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = itemDetail, style = MaterialTheme.typography.bodyMedium)
+            Text(text = name, style = MaterialTheme.typography.bodyMedium)
         }
         Spacer(modifier = Modifier.weight(1f))
         Switch(
-            checked = itemValue, onCheckedChange = {
-                onSwitchClick(
-                    ComponentInfo(itemName, itemDetail, itemValue)
-                )
+            checked = enabled,
+            onCheckedChange = {
+                onSwitchClick(packageName, name, !enabled)
             }
         )
     }
@@ -102,14 +103,15 @@ fun AppInfoItem(
 
 @Composable
 @Preview
-fun PreviewAppInfoItem() {
+fun ComponentItemPreview() {
     BlockerTheme {
         Surface {
-            AppInfoItem(
-                itemName = "AccountAuthActivity",
-                itemDetail = "com.merxury.blocker.feature.appdetail.component.AccountAuthActivity",
-                itemValue = false,
-                onSwitchClick = {}
+            ComponentItem(
+                simpleName = "AccountAuthActivity",
+                name = "com.merxury.blocker.feature.appdetail.component.AccountAuthActivity",
+                packageName = "com.merxury.blocker",
+                enabled = false,
+                onSwitchClick = { _, _, _ -> true }
             )
         }
     }
