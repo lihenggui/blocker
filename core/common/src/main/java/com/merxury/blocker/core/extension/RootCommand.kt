@@ -17,17 +17,19 @@ package com.merxury.blocker.core.extension
 
 import android.text.TextUtils
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
  * Created by Mercury on 2018/2/4.
  */
-suspend fun String.exec(): String? = withContext(Dispatchers.IO) {
-    val rootGranted = Shell.isAppGrantedRoot()
-    if (rootGranted == null || rootGranted == false) {
-        throw RuntimeException("Root unavailable")
+suspend fun String.exec(dispatcher: CoroutineDispatcher = Dispatchers.IO): String? =
+    withContext(dispatcher) {
+        val rootGranted = Shell.isAppGrantedRoot()
+        if (rootGranted == null || rootGranted == false) {
+            throw RuntimeException("Root unavailable")
+        }
+        val result = Shell.cmd(this@exec).exec().out
+        return@withContext TextUtils.join("\n", result)
     }
-    val result = Shell.cmd(this@exec).exec().out
-    return@withContext TextUtils.join("\n", result)
-}
