@@ -1,6 +1,5 @@
 /*
  * Copyright 2022 Blocker
- * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id("blocker.android.feature")
-    id("blocker.android.library.compose")
-    id("blocker.android.library.jacoco")
-}
 
-android {
-    namespace = "com.merxury.blocker.feature.applist"
-}
+package com.merxury.blocker.core.ui.data
 
-dependencies {
-    implementation(project(":core:ui"))
-    implementation(libs.androidx.compose.material)
-    implementation(libs.kotlinx.datetime)
-}
-
+data class ErrorMessage(
+    val message: String,
+    val stackTrace: String? = null
+)
