@@ -35,6 +35,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
@@ -50,11 +51,12 @@ fun AppListRoute(
     viewModel: AppListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
     AppListScreen(
         uiState = uiState,
-        navigateToAppDetail = navigateToAppDetail,
+        onAppItemClick = navigateToAppDetail,
         isRefreshing = uiState is AppListUiState.Loading,
-        onRefresh = { viewModel.onRefresh() },
+        onRefresh = { viewModel.loadData(context) },
         modifier = modifier
     )
 }
@@ -62,7 +64,7 @@ fun AppListRoute(
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
-    navigateToAppDetail: (String) -> Unit,
+    onAppItemClick: (String) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
@@ -88,7 +90,7 @@ fun AppListScreen(
             is AppListUiState.Success -> {
                 AppListContent(
                     appList = uiState.appList,
-                    onAppItemClick = navigateToAppDetail,
+                    onAppItemClick = onAppItemClick,
                     isRefreshing = isRefreshing,
                     onRefresh = onRefresh,
                     modifier = modifier
