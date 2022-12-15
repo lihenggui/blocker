@@ -24,6 +24,6 @@ android {
 }
 dependencies {
     implementation(project(":core:model"))
-    implementation(libs.androidx.compose.material)
     implementation(project(":core:database"))
+    implementation(libs.androidx.compose.material)
 }
