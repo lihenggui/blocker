@@ -51,7 +51,13 @@ class AppDetailViewModel @Inject constructor(
 
     private val _tabState = MutableStateFlow(
         TabState(
-            titles = listOf(APP_INFO, SERVICE, RECEIVER, ACTIVITY, CONTENT_PROVIDER),
+            titles = listOf(
+                R.string.app_info,
+                R.string.service,
+                R.string.service,
+                R.string.activity,
+                R.string.content_provider
+            ),
             currentIndex = 0
         )
     )

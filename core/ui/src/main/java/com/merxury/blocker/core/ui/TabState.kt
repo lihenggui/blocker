@@ -17,6 +17,6 @@
 package com.merxury.blocker.core.ui
 
 data class TabState(
-    val titles: List<String>,
+    val titles: List<Int>,
     val currentIndex: Int
 )

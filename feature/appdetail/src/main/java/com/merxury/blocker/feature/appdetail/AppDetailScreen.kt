@@ -66,7 +66,7 @@ fun AppDetailScreen(
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     switchTab: (Int) -> Unit,
-    onSwitch: (ComponentInfo) -> Unit,
+    onSwitchClick: (String, String, Boolean) -> Boolean,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -102,7 +102,7 @@ fun AppDetailScreen(
                     isRefreshing = isRefreshing,
                     onRefresh = onRefresh,
                     switchTab = switchTab,
-                    onSwitch = onSwitch,
+                    onSwitchClick = onSwitchClick,
                     modifier = modifier
                 )
             }
@@ -119,15 +119,15 @@ fun AppDetailContent(
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     switchTab: (Int) -> Unit,
-    onSwitch: (ComponentInfo) -> Unit,
+    onSwitchClick: (String, String, Boolean) -> Boolean,
     modifier: Modifier = Modifier
 ) {
     BlockerTabRow(selectedTabIndex = tabState.currentIndex) {
-        tabState.titles.forEachIndexed { index, title ->
+        tabState.titles.forEachIndexed { index, titleRes ->
             BlockerTab(
                 selected = index == tabState.currentIndex,
                 onClick = { switchTab(index) },
-                text = { Text(text = title) }
+                text = { Text(text = stringResource(id = titleRes)) }
             )
         }
     }
@@ -141,7 +141,7 @@ fun AppDetailContent(
                 components = uiState.service,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
-                onSwitchClick = onSwitch,
+                onSwitchClick = onSwitchClick,
                 modifier = modifier
             )
         }
@@ -151,7 +151,7 @@ fun AppDetailContent(
                 components = uiState.receiver,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
-                onSwitchClick = onSwitch,
+                onSwitchClick = onSwitchClick,
                 modifier = modifier
             )
         }
@@ -161,7 +161,7 @@ fun AppDetailContent(
                 components = uiState.activity,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
-                onSwitchClick = onSwitch,
+                onSwitchClick = onSwitchClick,
                 modifier = modifier
             )
         }
@@ -171,7 +171,7 @@ fun AppDetailContent(
                 components = uiState.contentProvider,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
-                onSwitchClick = onSwitch,
+                onSwitchClick = onSwitchClick,
                 modifier = modifier
             )
         }
