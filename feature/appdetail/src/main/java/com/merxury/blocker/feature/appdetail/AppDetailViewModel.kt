@@ -6,6 +6,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date
@@ -87,7 +88,7 @@ data class ComponentInfo(
 
 sealed interface AppDetailUiState {
     object Loading : AppDetailUiState
-    class Error(val errorMessage: String) : AppDetailUiState
+    class Error(val error: ErrorMessage) : AppDetailUiState
     data class Success(
         val appInfo: AppDetailInfo,
         val service: SnapshotStateList<ComponentInfo>,

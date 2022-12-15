@@ -91,7 +91,7 @@ fun AppDetailScreen(
                 )
             }
 
-            is AppDetailUiState.Error -> ErrorAppDetailScreen(uiState.errorMessage)
+            is AppDetailUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
         }
     }
 }
