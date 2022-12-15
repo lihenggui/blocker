@@ -18,6 +18,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.model.data.TabState
 import com.merxury.blocker.feature.appdetail.AppDetailUiState.Success
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
 import com.merxury.blocker.feature.appdetail.component.ComponentTabContent
