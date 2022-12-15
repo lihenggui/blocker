@@ -21,6 +21,7 @@
     <string name="activity">Activity</string>
     <string name="content_provider">Content Provider</string>
     <string name="launch_app">Launch app</string>
+    <string name="cannot_launch_this_app">Cannot launch this app</string>
     <string name="export_rules">Export Rules</string>
     <string name="import_rules">Import Rules</string>
     <string name="export_ifw_rules">Export IFW Rules</string>
