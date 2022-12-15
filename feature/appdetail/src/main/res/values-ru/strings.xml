@@ -32,5 +32,4 @@
     <string name="last_update_time">Время последнего обновления</string>
     <string name="data_dir">каталог данных</string>
     <string name="loading">Загрузка</string>
-    <string name="loading">Loading</string>
 </resources>
