@@ -97,7 +97,7 @@ fun AppListScreen(
                 )
             }
 
-            is AppListUiState.Error -> ErrorAppListScreen(uiState.errorMessage)
+            is AppListUiState.Error -> ErrorAppListScreen(uiState.message)
         }
     }
 }
