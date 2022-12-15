@@ -22,6 +22,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.UserDataRepository
+import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
@@ -30,9 +31,12 @@ import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASC
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
+import com.merxury.blocker.core.network.BlockerDispatchers.IO
+import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -40,7 +44,8 @@ import kotlinx.coroutines.launch
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
-    private val userDataRepository: UserDataRepository
+    private val userDataRepository: UserDataRepository,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -70,6 +75,30 @@ class AppListViewModel @Inject constructor(
             stateAppList.add(appItem)
         }
         _uiState.emit(AppListUiState.Success(stateAppList))
+    }
+
+    fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher) {
+        "pm clear $packageName".exec(ioDispatcher)
+    }
+
+    fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher) {
+        // TODO Add clear cache logic
+    }
+
+    fun uninstall(packageName: String) = viewModelScope.launch(ioDispatcher) {
+        "pm uninstall $packageName".exec(ioDispatcher)
+    }
+
+    fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher) {
+        "am force-stop $packageName".exec(ioDispatcher)
+    }
+
+    fun enable(packageName: String) = viewModelScope.launch(ioDispatcher) {
+        "pm enable $packageName".exec(ioDispatcher)
+    }
+
+    fun disable(packageName: String) = viewModelScope.launch(ioDispatcher) {
+        "pm disable $packageName".exec(ioDispatcher)
     }
 
     private fun sortList(
@@ -111,7 +140,7 @@ data class AppItem(
 
 sealed interface AppListUiState {
     object Loading : AppListUiState
-    class Error(val errorMessage: String) : AppListUiState
+    class Error(val message: String, val stackTrace: String? = null) : AppListUiState
     data class Success(
         val appList: SnapshotStateList<AppItem>
     ) : AppListUiState
