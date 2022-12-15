@@ -5,7 +5,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.decoder.StringDecoder
-import com.merxury.blocker.core.model.data.TabState
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Date

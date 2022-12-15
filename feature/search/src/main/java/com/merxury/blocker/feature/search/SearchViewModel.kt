@@ -2,7 +2,7 @@ package com.merxury.blocker.feature.search
 
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
-import com.merxury.blocker.core.model.data.TabState
+import com.merxury.blocker.core.ui.TabState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
