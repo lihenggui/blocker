@@ -133,7 +133,7 @@ fun AppDetailContent(
     }
     when (tabState.currentIndex) {
         0 -> {
-            AppInfoTabContent(appDetailInfo = uiState.appInfo)
+            AppInfoTabContent(app = uiState.appInfo)
         }
 
         1 -> {

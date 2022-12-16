@@ -40,9 +40,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.feature.appdetail.AppDetailInfo
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.feature.appdetail.R.string
-import java.util.Date
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 
 private data class ActionItems(
     val labelId: Int,
@@ -51,21 +52,21 @@ private data class ActionItems(
 
 @Composable
 fun AppInfoTabContent(
-    appDetailInfo: AppDetailInfo,
+    app: Application,
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier) {
         AppBasicInfo(
-            appName = appDetailInfo.appName,
-            packageName = appDetailInfo.packageName,
-            versionName = appDetailInfo.versionName
+            appName = app.label,
+            packageName = app.packageName,
+            versionName = app.versionName
         )
         ActionSection()
         MoreInfo(
-            targetSdkVersion = appDetailInfo.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
+            targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
             miniSdkVersion = 23,
-            lastUpdateTime = appDetailInfo.lastUpdateTime,
-            dataDir = appDetailInfo.packageInfo?.applicationInfo?.dataDir
+            lastUpdateTime = app.lastUpdateTime,
+            dataDir = app.packageInfo?.applicationInfo?.dataDir
         )
     }
 }
@@ -123,7 +124,7 @@ fun ActionSection() {
 fun MoreInfo(
     targetSdkVersion: Int,
     miniSdkVersion: Int,
-    lastUpdateTime: Date?,
+    lastUpdateTime: Instant?,
     dataDir: String?
 ) {
     Column {
@@ -179,17 +180,16 @@ fun MoreInfoItem(
 @Composable
 @Preview
 fun PreviewAppInfoTabContent() {
-    val appDetailInfo = AppDetailInfo(
-        appName = "Blocker",
+    val app = Application(
+        label = "Blocker",
         packageName = "com.mercury.blocker",
         versionName = "1.2.69-alpha",
         isEnabled = false,
-        label = "label",
-        firstInstallTime = null,
-        lastUpdateTime = Date(),
+        firstInstallTime = Clock.System.now(),
+        lastUpdateTime = Clock.System.now(),
         packageInfo = null,
     )
     BlockerTheme {
-        AppInfoTabContent(appDetailInfo = appDetailInfo)
+        AppInfoTabContent(app = app)
     }
 }
