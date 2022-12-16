@@ -153,7 +153,6 @@ fun BlockerApp(
             }
 
             if (appState.shouldShowSettingsDialog) {
-
             }
 
             Row(
