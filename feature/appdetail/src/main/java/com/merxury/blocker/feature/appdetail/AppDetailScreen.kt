@@ -53,7 +53,7 @@ fun AppDetailRoute(
         isRefreshing = uiState is AppDetailUiState.Loading,
         onRefresh = { viewModel.onRefresh() },
         switchTab = viewModel::switchTab,
-        onSwitchClick = { _, _, _ -> true } ,
+        onSwitchClick = { _, _, _ -> true },
         onBackClick = onBackClick
     )
 }
