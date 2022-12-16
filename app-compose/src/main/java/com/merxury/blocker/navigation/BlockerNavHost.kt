@@ -23,7 +23,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.navigation.appListGraph
-import com.merxury.blocker.feature.applist.navigation.appListRoute
+import com.merxury.blocker.feature.applist.navigation.appListGraphRoutePattern
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
 
@@ -39,7 +39,7 @@ fun BlockerNavHost(
     navController: NavHostController,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
-    startDestination: String = appListRoute
+    startDestination: String = appListGraphRoutePattern
 ) {
     NavHost(
         navController = navController,
