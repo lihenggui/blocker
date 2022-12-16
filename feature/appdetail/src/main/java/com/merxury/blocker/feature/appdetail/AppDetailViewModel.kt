@@ -16,28 +16,21 @@
 
 package com.merxury.blocker.feature.appdetail
 
-import android.content.pm.PackageInfo
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.decoder.StringDecoder
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Date
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import timber.log.Timber
-
-private const val APP_INFO = "App info"
-private const val SERVICE = "Service"
-private const val RECEIVER = "Receiver"
-private const val ACTIVITY = "Activity"
-private const val CONTENT_PROVIDER = "Content Provider"
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
@@ -91,17 +84,6 @@ class AppDetailViewModel @Inject constructor(
     }
 }
 
-data class AppDetailInfo(
-    var appName: String = "",
-    var packageName: String = "",
-    var versionName: String? = "",
-    var isEnabled: Boolean = false,
-    var label: String = "",
-    var firstInstallTime: Date? = null,
-    var lastUpdateTime: Date? = null,
-    var packageInfo: PackageInfo? = null,
-)
-
 data class ComponentInfo(
     val simpleName: String,
     val name: String,
@@ -113,7 +95,7 @@ sealed interface AppDetailUiState {
     object Loading : AppDetailUiState
     class Error(val error: ErrorMessage) : AppDetailUiState
     data class Success(
-        val appInfo: AppDetailInfo,
+        val appInfo: Application,
         val service: SnapshotStateList<ComponentInfo>,
         val receiver: SnapshotStateList<ComponentInfo>,
         val activity: SnapshotStateList<ComponentInfo>,

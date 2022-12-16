@@ -53,7 +53,7 @@ fun AppDetailRoute(
         isRefreshing = uiState is AppDetailUiState.Loading,
         onRefresh = { viewModel.onRefresh() },
         switchTab = viewModel::switchTab,
-        onSwitch = viewModel::onSwitch,
+        onSwitchClick = { _, _, _ -> true } ,
         onBackClick = onBackClick
     )
 }
@@ -87,7 +87,7 @@ fun AppDetailScreen(
 
             is Success -> {
                 BlockerTopAppBar(
-                    title = uiState.appInfo.appName,
+                    title = uiState.appInfo.label,
                     navigationIcon = BlockerIcons.Back,
                     navigationIconContentDescription = null,
                     actionIconFirst = BlockerIcons.Search,
