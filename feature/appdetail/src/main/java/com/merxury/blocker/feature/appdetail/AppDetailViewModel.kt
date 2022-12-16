@@ -30,7 +30,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import timber.log.Timber
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
@@ -65,17 +64,6 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun onSwitch(componentInfo: ComponentInfo) {
-        val uiState = _uiState.value
-        if (uiState !is AppDetailUiState.Success) {
-            Timber.e("Wrong type of UIState, return")
-            return
-        }
-        val matchedDevIndex = uiState.activity
-            .indexOfFirst { it.simpleName == componentInfo.simpleName }
-        if (matchedDevIndex != -1) {
-            uiState.activity[matchedDevIndex] =
-                uiState.activity[matchedDevIndex].copy(enabled = componentInfo.enabled)
-        }
         // TODO
     }
 
