@@ -1,6 +1,5 @@
 /*
  * Copyright 2022 Blocker
- * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +26,15 @@ import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
 
-internal const val appIdArg = "appId"
+internal const val packageNameArg = "appId"
 
-internal class AppDetailArgs(val appId: String) {
+internal class AppDetailArgs(val packageName: String) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
-        this(stringDecoder.decodeString(checkNotNull(savedStateHandle[appIdArg])))
+        this(stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])))
 }
 
-fun NavController.navigateToAppDetail(appId: String) {
-    val encodedId = Uri.encode(appId)
+fun NavController.navigateToAppDetail(packageName: String) {
+    val encodedId = Uri.encode(packageName)
     this.navigate("app_detail_route/$encodedId")
 }
 
@@ -43,9 +42,9 @@ fun NavGraphBuilder.appDetailScreen(
     onBackClick: () -> Unit
 ) {
     composable(
-        route = "app_detail_route/{$appIdArg}",
+        route = "app_detail_route/{$packageNameArg}",
         arguments = listOf(
-            navArgument(appIdArg) { type = NavType.StringType }
+            navArgument(packageNameArg) { type = NavType.StringType }
         )
     ) {
         AppDetailRoute(onBackClick = onBackClick)
