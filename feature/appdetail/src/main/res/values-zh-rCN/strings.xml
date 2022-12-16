@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2022 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <string name="app_info">应用信息</string>
+    <string name="receiver">广播接收器</string>
+    <string name="content_provider">内容提供者</string>
+    <string name="activity">活动</string>
+    <string name="service">服务</string>
+    <string name="launch_app">启动应用</string>
+    <string name="cannot_launch_this_app">无法启动这个应用</string>
+    <string name="export_rules">导出规则</string>
+    <string name="import_rules">导入规则</string>
+    <string name="export_ifw_rules">导出IFW规则</string>
+    <string name="import_ifw_rules">导入IFW规则</string>
+    <string name="more_info">更多信息</string>
+    <string name="target_sdk_version">目标SDK版本</string>
+    <string name="minimum_sdk_version">最低SDK版本</string>
+    <string name="last_update_time">最后更新时间</string>
+    <string name="data_dir">数据目录</string>
+    <string name="loading">加载中</string>
+</resources>
