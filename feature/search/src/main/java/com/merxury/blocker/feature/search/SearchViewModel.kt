@@ -10,14 +10,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-private const val LOCAL_SEARCH = "Local search"
-private const val ONLINE_SEARCH = "Online search"
-
 @HiltViewModel
 class SearchViewModel @Inject constructor() : ViewModel() {
     private val _tabState = MutableStateFlow(
         TabState(
-            titles = listOf(LOCAL_SEARCH, ONLINE_SEARCH),
+            titles = listOf(R.string.local_search, R.string.online_rules),
             currentIndex = 0
         )
     )
