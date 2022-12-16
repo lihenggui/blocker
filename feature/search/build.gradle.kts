@@ -22,3 +22,8 @@ plugins {
 android {
     namespace = "com.merxury.blocker.feature.search"
 }
+dependencies {
+    implementation(project(":core:model"))
+    implementation(project(":core:database"))
+    implementation(libs.androidx.compose.material)
+}
