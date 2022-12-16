@@ -15,8 +15,8 @@
      limitations under the License.
 -->
 <resources>
-    <string name="local_search">Local search</string>
-    <string name="online_rules">Online rules</string>
-    <string name="search">Search</string>
-    <string name="icon">Icon</string>
+    <string name="local_search">локальный поиск</string>
+    <string name="online_rules">онлайн правила</string>
+    <string name="search">Поиск</string>
+    <string name="icon">Значок</string>
 </resources>
