@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail.component
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +30,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -46,7 +48,7 @@ import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
 private data class ActionItems(
-    val labelId: Int,
+    @StringRes val label: Int,
     val icon: ImageVector,
 )
 
@@ -64,6 +66,7 @@ fun AppInfoTabContent(
         ActionSection()
         MoreInfo(
             targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
+            // TODO add min SDK detection
             miniSdkVersion = 23,
             lastUpdateTime = app.lastUpdateTime,
             dataDir = app.packageInfo?.applicationInfo?.dataDir
@@ -114,7 +117,7 @@ fun ActionSection() {
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         actionItems.forEach {
-            ActionItem(actionIcon = it.icon, actionId = it.labelId)
+            ActionItem(actionIcon = it.icon, actionId = it.label)
         }
     }
     Divider()
@@ -190,6 +193,8 @@ fun PreviewAppInfoTabContent() {
         packageInfo = null,
     )
     BlockerTheme {
-        AppInfoTabContent(app = app)
+        Surface {
+            AppInfoTabContent(app = app)
+        }
     }
 }
