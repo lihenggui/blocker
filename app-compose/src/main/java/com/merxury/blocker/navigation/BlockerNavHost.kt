@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.navigation.appListGraph
 import com.merxury.blocker.feature.applist.navigation.appListGraphRoutePattern
@@ -50,7 +51,9 @@ fun BlockerNavHost(
             navigateToAppDetail = { packageName ->
                 navController.navigateToAppDetail(packageName)
             },
-            nestedGraphs = {}
+            nestedGraphs = {
+                appDetailScreen(onBackClick)
+            }
         )
         searchScreen()
         settingsScreen()
