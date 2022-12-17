@@ -19,7 +19,7 @@ package com.merxury.blocker.feature.applist
 import android.content.Context
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.UserDataRepository
 import com.merxury.blocker.core.extension.exec
@@ -47,24 +47,29 @@ import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
+    app: android.app.Application,
     private val userDataRepository: UserDataRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher
-) : ViewModel() {
+) : AndroidViewModel(app) {
     private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
     val uiState = _uiState.asStateFlow()
 
-    fun loadData(context: Context) = viewModelScope.launch {
+    init {
+        loadData()
+    }
+
+    fun loadData() = viewModelScope.launch {
         _uiState.emit(AppListUiState.Loading)
         val preference = userDataRepository.userData.first()
         val sortType = preference.appSorting
         val list = if (preference.showSystemApps) {
-            ApplicationUtil.getApplicationList(context)
+            ApplicationUtil.getApplicationList(getApplication())
         } else {
-            ApplicationUtil.getThirdPartyApplicationList(context)
+            ApplicationUtil.getThirdPartyApplicationList(getApplication())
         }
         sortList(list, sortType)
-        val stateAppList = mapToSnapshotStateList(list, context)
+        val stateAppList = mapToSnapshotStateList(list, getApplication())
         _uiState.emit(AppListUiState.Success(stateAppList))
     }
 
