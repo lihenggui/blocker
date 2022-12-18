@@ -54,8 +54,8 @@ fun AppListItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
+            .clickable { onClick(packageName) }
             .padding(horizontal = 12.dp, vertical = 8.dp)
-            .clickable { onClick(packageName) },
     ) {
         AppIcon(packageName, iconModifier.size(48.dp))
         Spacer(modifier = Modifier.width(16.dp))
