@@ -47,7 +47,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.feature.appdetail.ComponentInfo
+import com.merxury.blocker.core.model.data.ComponentInfo
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -56,7 +56,7 @@ fun ComponentTabContent(
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onSwitchClick: (String, String, Boolean) -> Boolean,
-    modifier: Modifier
+    modifier: Modifier = Modifier
 ) {
     val listContent = remember { components }
     val listState = rememberLazyListState()
