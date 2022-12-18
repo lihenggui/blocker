@@ -49,7 +49,7 @@ fun RuleBasicInfo(
         if (item.iconUrl == null) {
             Icon(
                 painter = painterResource(id = BlockerIcons.Android),
-                contentDescription = stringResource(id = string.icon),
+                contentDescription = stringResource(id = string.rule_icon),
                 modifier = Modifier.size(48.dp)
             )
         } else {

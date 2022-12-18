@@ -35,14 +35,19 @@ import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.feature.appdetail.AppDetailUiState.Success
+import com.merxury.blocker.feature.appdetail.component.AppActivityTabContentRoute
+import com.merxury.blocker.feature.appdetail.component.AppContentProviderTabContentRoute
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
-import com.merxury.blocker.feature.appdetail.component.ComponentTabContent
+import com.merxury.blocker.feature.appdetail.component.AppReceiverTabContentRoute
+import com.merxury.blocker.feature.appdetail.component.AppServiceTabContentRoute
+import com.merxury.blocker.feature.appdetail.model.AppInfoUiState
+import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.model.AppInfoViewModel
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun AppDetailRoute(
-    viewModel: AppDetailViewModel = hiltViewModel(),
+    viewModel: AppInfoViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -50,10 +55,9 @@ fun AppDetailRoute(
     AppDetailScreen(
         uiState = uiState,
         tabState = tabState,
-        isRefreshing = uiState is AppDetailUiState.Loading,
+        isRefreshing = uiState is AppInfoUiState.Loading,
         onRefresh = { viewModel.onRefresh() },
         switchTab = viewModel::switchTab,
-        onSwitchClick = { _, _, _ -> true },
         onBackClick = onBackClick
     )
 }
@@ -61,18 +65,17 @@ fun AppDetailRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailScreen(
-    uiState: AppDetailUiState,
+    uiState: AppInfoUiState,
     tabState: TabState,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     switchTab: (Int) -> Unit,
-    onSwitchClick: (String, String, Boolean) -> Boolean,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
         when (uiState) {
-            AppDetailUiState.Loading -> {
+            AppInfoUiState.Loading -> {
                 Column(
                     modifier = modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -101,13 +104,11 @@ fun AppDetailScreen(
                     tabState = tabState,
                     isRefreshing = isRefreshing,
                     onRefresh = onRefresh,
-                    switchTab = switchTab,
-                    onSwitchClick = onSwitchClick,
-                    modifier = modifier
+                    switchTab = switchTab
                 )
             }
 
-            is AppDetailUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
+            is AppInfoUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
         }
     }
 }
@@ -118,9 +119,7 @@ fun AppDetailContent(
     tabState: TabState,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    switchTab: (Int) -> Unit,
-    onSwitchClick: (String, String, Boolean) -> Boolean,
-    modifier: Modifier = Modifier
+    switchTab: (Int) -> Unit
 ) {
     BlockerTabRow(selectedTabIndex = tabState.currentIndex) {
         tabState.titles.forEachIndexed { index, titleRes ->
@@ -133,47 +132,27 @@ fun AppDetailContent(
     }
     when (tabState.currentIndex) {
         0 -> {
-            AppInfoTabContent(app = uiState.appInfo)
+            AppInfoTabContent(
+                app = uiState.appInfo,
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh
+            )
         }
 
         1 -> {
-            ComponentTabContent(
-                components = uiState.service,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                onSwitchClick = onSwitchClick,
-                modifier = modifier
-            )
+            AppServiceTabContentRoute()
         }
 
         2 -> {
-            ComponentTabContent(
-                components = uiState.receiver,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                onSwitchClick = onSwitchClick,
-                modifier = modifier
-            )
+            AppReceiverTabContentRoute()
         }
 
         3 -> {
-            ComponentTabContent(
-                components = uiState.activity,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                onSwitchClick = onSwitchClick,
-                modifier = modifier
-            )
+            AppActivityTabContentRoute()
         }
 
         4 -> {
-            ComponentTabContent(
-                components = uiState.contentProvider,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                onSwitchClick = onSwitchClick,
-                modifier = modifier
-            )
+            AppContentProviderTabContentRoute()
         }
     }
 }
