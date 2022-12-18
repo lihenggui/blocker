@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel
-class SearchViewModel @Inject constructor() : ViewModel() {
+class OnlineSearchViewModel @Inject constructor() : ViewModel() {
     private val _tabState = MutableStateFlow(
         TabState(
             titles = listOf(R.string.local_search, R.string.online_rules),
@@ -29,9 +29,8 @@ class SearchViewModel @Inject constructor() : ViewModel() {
     }
 }
 
-sealed interface SearchUiState {
-    object Loading : SearchUiState
-    class OnlineRules(val list: List<GeneralRuleEntity>) : SearchUiState
-    class LocalSearchResult(val filter: List<GeneralRuleEntity>) : SearchUiState
-    class Error(val message: String) : SearchUiState
+sealed interface OnlineSearchUiState {
+    object Loading : OnlineSearchUiState
+    class OnlineRules(val list: List<GeneralRuleEntity>) : OnlineSearchUiState
+    class Error(val message: String) : OnlineSearchUiState
 }
