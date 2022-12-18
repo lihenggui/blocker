@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail
+package com.merxury.blocker.feature.appdetail.model
 
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -32,23 +32,23 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel
-class AppDetailViewModel @Inject constructor(
+class AppInfoViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder
 ) : ViewModel() {
     private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
-    private val _uiState: MutableStateFlow<AppDetailUiState> =
-        MutableStateFlow(AppDetailUiState.Loading)
-    val uiState: StateFlow<AppDetailUiState> = _uiState
+    private val _uiState: MutableStateFlow<AppInfoUiState> =
+        MutableStateFlow(AppInfoUiState.Loading)
+    val uiState: StateFlow<AppInfoUiState> = _uiState
 
     private val _tabState = MutableStateFlow(
         TabState(
             titles = listOf(
-                R.string.app_info,
-                R.string.service,
-                R.string.service,
-                R.string.activity,
-                R.string.content_provider
+                string.app_info,
+                string.service,
+                string.service,
+                string.activity,
+                string.content_provider
             ),
             currentIndex = 0
         )
@@ -63,30 +63,15 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun onSwitch(componentInfo: ComponentInfo) {
-        // TODO
-    }
-
     fun onRefresh() {
         // TODO
     }
 }
 
-data class ComponentInfo(
-    val simpleName: String,
-    val name: String,
-    val packageName: String,
-    val enabled: Boolean
-)
-
-sealed interface AppDetailUiState {
-    object Loading : AppDetailUiState
-    class Error(val error: ErrorMessage) : AppDetailUiState
+sealed interface AppInfoUiState {
+    object Loading : AppInfoUiState
+    class Error(val error: ErrorMessage) : AppInfoUiState
     data class Success(
-        val appInfo: Application,
-        val service: SnapshotStateList<ComponentInfo>,
-        val receiver: SnapshotStateList<ComponentInfo>,
-        val activity: SnapshotStateList<ComponentInfo>,
-        val contentProvider: SnapshotStateList<ComponentInfo>
-    ) : AppDetailUiState
+        val appInfo: Application
+    ) : AppInfoUiState
 }

@@ -21,6 +21,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,12 +30,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -56,24 +64,37 @@ private data class ActionItems(
     val icon: ImageVector,
 )
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppInfoTabContent(
     app: Application,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
-        AppBasicInfo(
-            appName = app.label,
-            packageName = app.packageName,
-            versionName = app.versionName
-        )
-        ActionSection()
-        MoreInfo(
-            targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
-            // TODO add min SDK detection
-            miniSdkVersion = 23,
-            lastUpdateTime = app.lastUpdateTime,
-            dataDir = app.packageInfo?.applicationInfo?.dataDir
+    val refreshing by remember { mutableStateOf(isRefreshing) }
+    val refreshingState = rememberPullRefreshState(refreshing, onRefresh)
+    Box(modifier.pullRefresh(refreshingState)) {
+        Column(modifier = modifier) {
+            AppBasicInfo(
+                appName = app.label,
+                packageName = app.packageName,
+                versionName = app.versionName
+            )
+            ActionSection()
+            MoreInfo(
+                targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
+                // TODO add min SDK detection
+                miniSdkVersion = 23,
+                lastUpdateTime = app.lastUpdateTime,
+                dataDir = app.packageInfo?.applicationInfo?.dataDir
+            )
+        }
+        PullRefreshIndicator(
+            refreshing = refreshing,
+            state = refreshingState,
+            modifier = Modifier.align(Alignment.TopCenter),
+            scale = true
         )
     }
 }
@@ -205,7 +226,11 @@ fun PreviewAppInfoTabContent() {
     )
     BlockerTheme {
         Surface {
-            AppInfoTabContent(app = app)
+            AppInfoTabContent(
+                app = app,
+                isRefreshing = false,
+                onRefresh = {}
+            )
         }
     }
 }
