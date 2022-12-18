@@ -46,4 +46,6 @@ dependencies {
     api(libs.androidx.compose.runtime.livedata)
     api(libs.androidx.metrics)
     api(libs.androidx.tracing.ktx)
+    api(libs.appiconloader)
+    api(libs.appiconloader.coil)
 }

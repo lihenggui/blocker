@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.applist
 
 import android.content.Context
+import android.content.pm.PackageInfo
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
@@ -126,7 +127,8 @@ class AppListViewModel @Inject constructor(
                 // TODO detect if an app is running or not
                 isRunning = false,
                 enabled = it.isEnabled,
-                appServiceStatus = null
+                appServiceStatus = null,
+                packageInfo = it.packageInfo
             )
             stateAppList.add(appItem)
         }
@@ -153,6 +155,7 @@ data class AppItem(
     val isRunning: Boolean,
     val enabled: Boolean,
     val appServiceStatus: AppServiceStatus?,
+    val packageInfo: PackageInfo?,
 )
 
 sealed interface AppListUiState {

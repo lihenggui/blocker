@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.feature.applist
 
+import android.content.pm.PackageInfo
 import android.content.res.Configuration
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,7 +36,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.applist.R.string
 
@@ -45,6 +46,7 @@ fun AppListItem(
     label: String,
     packageName: String,
     versionName: String,
+    packageInfo: PackageInfo?,
     appServiceStatus: AppServiceStatus?,
     onClick: (String) -> Unit,
     modifier: Modifier = Modifier,
@@ -57,7 +59,7 @@ fun AppListItem(
             .clickable { onClick(packageName) }
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
-        AppIcon(packageName, iconModifier.size(48.dp))
+        AppIcon(packageInfo, iconModifier.size(48.dp))
         Spacer(modifier = Modifier.width(16.dp))
         AppContent(
             label = label,
@@ -68,12 +70,13 @@ fun AppListItem(
 }
 
 @Composable
-private fun AppIcon(packageName: String, modifier: Modifier = Modifier) {
-    Image(
+private fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
+    AsyncImage(
         modifier = modifier,
-        painter = rememberAsyncImagePainter(
-            LocalContext.current.packageManager.getApplicationIcon(packageName)
-        ),
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(info)
+            .crossfade(true)
+            .build(),
         contentDescription = null
     )
 }
@@ -125,6 +128,7 @@ fun AppListItemPreview() {
                 label = "Blocker",
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
+                packageInfo = PackageInfo(),
                 appServiceStatus = appServiceStatus,
                 onClick = {}
             )
@@ -141,6 +145,7 @@ fun AppListItemWithoutServicePreview() {
                 label = "Blocker",
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
+                packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = {}
             )
@@ -157,6 +162,7 @@ fun AppListItemWithLongAppName() {
                 label = "AppNameWithVeryLongLongLongLongLongLongName",
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
+                packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = {}
             )
