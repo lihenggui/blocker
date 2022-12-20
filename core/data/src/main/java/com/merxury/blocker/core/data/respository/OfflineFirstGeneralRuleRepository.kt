@@ -42,8 +42,8 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean =
         synchronizer.changeListSync(
             versionReader = ChangeListVersions::generalRuleVersion,
-            changeListFetcher = { currentVersion ->
-                network.getGeneralRuleChangeList(after = currentVersion)
+            changeListFetcher = {
+                network.getGeneralRuleChangeList()
             },
             versionUpdater = { latestVersion ->
                 copy(generalRuleVersion = latestVersion)

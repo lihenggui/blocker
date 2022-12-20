@@ -33,7 +33,6 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Path
-import retrofit2.http.Query
 
 /**
  * Retrofit API declaration for Blocker Network API
@@ -45,10 +44,8 @@ interface BlockerNetworkApi {
     @GET("zh-cn/general.json")
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
 
-    @GET(value = "zh-cn/changelists/generalRules")
-    suspend fun getGeneralRuleChangeList(
-        @Query("after") after: Int?,
-    ): List<NetworkChangeList>
+    @GET(value = "zh-cn/changeList")
+    suspend fun getGeneralRuleChangeList(): List<NetworkChangeList>
 }
 
 private const val BlockerBaseUrl = BuildConfig.BACKEND_URL
@@ -86,6 +83,6 @@ class RetrofitBlockerNetwork @Inject constructor(
     override suspend fun getGeneralRules(): List<NetworkGeneralRule> =
         networkApi.getGeneralRules()
 
-    override suspend fun getGeneralRuleChangeList(after: Int?): List<NetworkChangeList> =
-        networkApi.getGeneralRuleChangeList(after)
+    override suspend fun getGeneralRuleChangeList(): List<NetworkChangeList> =
+        networkApi.getGeneralRuleChangeList()
 }
