@@ -60,8 +60,8 @@ class GeneralRulesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initRecyclerView()
-        initSwipeLayout()
         initMenu()
+        binding.swipeLayout.isEnabled = false
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
@@ -83,31 +83,6 @@ class GeneralRulesFragment : Fragment() {
                 }
             }
         }
-//        viewModel.rules.observe(viewLifecycleOwner) {
-//            when (it.status) {
-//                Resource.Status.SUCCESS -> {
-//                    logger.d("Load rules successfully")
-//                    binding.swipeLayout.isRefreshing = false
-//                    val data = it.data
-//                    if (data == null) {
-//                        logger.e("rules is null")
-//                        return@observe
-//                    }
-//                    adapter.updateData(data)
-//                }
-//
-//                Resource.Status.ERROR -> {
-//                    logger.e("Can't fetch rules: ${it.message}")
-//                    showErrorDialog(it.message)
-//                    binding.swipeLayout.isRefreshing = false
-//                }
-//
-//                Resource.Status.LOADING -> {
-//                    logger.d("Load rules")
-//                    binding.swipeLayout.isRefreshing = true
-//                }
-//            }
-//        }
     }
 
     private fun initMenu() {
@@ -150,12 +125,6 @@ class GeneralRulesFragment : Fragment() {
             logger.d("rule is clicked: $rule")
             val keyword = rule.searchKeyword.joinToString()
             (parentFragment as? ILocalSearchHost)?.searchLocal(keyword)
-        }
-    }
-
-    private fun initSwipeLayout() {
-        binding.swipeLayout.setOnRefreshListener {
-            viewModel.refresh()
         }
     }
 }
