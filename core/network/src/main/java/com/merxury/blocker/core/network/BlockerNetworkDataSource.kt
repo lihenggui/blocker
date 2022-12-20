@@ -25,5 +25,5 @@ interface BlockerNetworkDataSource {
 
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
 
-    suspend fun getGeneralRuleChangeList(after: Int? = null): List<NetworkChangeList>
+    suspend fun getGeneralRuleChangeList(): List<NetworkChangeList>
 }
