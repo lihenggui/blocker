@@ -42,6 +42,15 @@ interface GeneralRuleDao {
     @Query("SELECT * FROM general_rules")
     fun getGeneralRuleEntities(): Flow<List<GeneralRuleEntity>>
 
+    /**
+     * Deletes rows in the db matching the specified [ids]
+     */
+    @Query(
+        value = """
+            DELETE FROM general_rules
+            WHERE id in (:ids)
+        """
+    )
     suspend fun deleteGeneralRules(ids: List<Int>)
 
     @Upsert
