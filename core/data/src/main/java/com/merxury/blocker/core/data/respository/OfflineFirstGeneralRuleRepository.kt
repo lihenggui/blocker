@@ -50,7 +50,7 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
             },
             modelDeleter = generalRuleDao::deleteGeneralRules,
             modelUpdater = {
-                val networkGeneralRules = network.getGeneralRule()
+                val networkGeneralRules = network.getGeneralRules()
                 generalRuleDao.upsertGeneralRule(
                     entities = networkGeneralRules.map(NetworkGeneralRule::asEntity)
                 )
