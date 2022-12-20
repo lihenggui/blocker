@@ -16,13 +16,14 @@
 
 package com.merxury.blocker.core.database.generalrule
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface GeneralRuleDao {
@@ -39,5 +40,10 @@ interface GeneralRuleDao {
     suspend fun update(generalRule: GeneralRuleEntity)
 
     @Query("SELECT * FROM general_rules")
-    fun getAll(): LiveData<List<GeneralRuleEntity>>
+    fun getGeneralRuleEntities(): Flow<List<GeneralRuleEntity>>
+
+    suspend fun deleteGeneralRules(ids: List<Int>)
+
+    @Upsert
+    suspend fun upsertGeneralRule(entities: List<GeneralRuleEntity>)
 }
