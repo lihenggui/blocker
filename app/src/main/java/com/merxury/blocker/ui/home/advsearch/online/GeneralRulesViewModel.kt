@@ -18,24 +18,70 @@ package com.merxury.blocker.ui.home.advsearch.online
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
+import com.merxury.blocker.core.data.respository.GeneralRuleRepository
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.asResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 
 @HiltViewModel
-class GeneralRulesViewModel @Inject constructor() :
+class GeneralRulesViewModel @Inject constructor(
+    private val generalRuleRepository: GeneralRuleRepository
+) :
     ViewModel() {
     private val logger = XLog.tag("GeneralRulesViewModel")
     private val reloadTrigger = MutableLiveData<Boolean>()
-    val rules = listOf<GeneralRule>()
+    val generalRuleUiState = generalRulesUiState(generalRuleRepository)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = GeneralRuleUiState.Loading
+        )
 
     init {
         reloadTrigger.value = true
+        generalRuleRepository.getGeneralRules()
     }
 
     fun refresh() {
         logger.i("Refresh data")
         reloadTrigger.value = true
     }
+}
+
+private fun generalRulesUiState(
+    generalRuleRepository: GeneralRuleRepository
+): Flow<GeneralRuleUiState> {
+    return generalRuleRepository.getGeneralRules()
+        .asResult()
+        .map { result ->
+            when (result) {
+                is Result.Success -> {
+                    GeneralRuleUiState.Success(result.data)
+                }
+
+                is Result.Loading -> {
+                    GeneralRuleUiState.Loading
+                }
+
+                is Result.Error -> {
+                    GeneralRuleUiState.Error(result.exception?.message)
+                }
+            }
+        }
+}
+
+sealed interface GeneralRuleUiState {
+    data class Success(val generalRules: List<GeneralRule>) : GeneralRuleUiState
+
+    data class Error(val message: String?) : GeneralRuleUiState
+
+    object Loading : GeneralRuleUiState
 }

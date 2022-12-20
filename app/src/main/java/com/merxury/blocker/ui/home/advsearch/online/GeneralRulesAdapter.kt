@@ -25,16 +25,16 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.databinding.GeneralRulesCardItemBinding
 
 class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>() {
 
-    private val list = mutableListOf<GeneralRuleEntity>()
+    private val list = mutableListOf<GeneralRule>()
     private val logger = XLog.tag("GeneralRulesAdapter")
-    var onItemClickListener: ((GeneralRuleEntity) -> Unit)? = null
-    var onSearchClickListener: ((GeneralRuleEntity) -> Unit)? = null
+    var onItemClickListener: ((GeneralRule) -> Unit)? = null
+    var onSearchClickListener: ((GeneralRule) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): ViewHolder {
         val context = parent.context
@@ -60,7 +60,7 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    fun updateData(data: List<GeneralRuleEntity>) {
+    fun updateData(data: List<GeneralRule>) {
         list.clear()
         list.addAll(data)
         notifyDataSetChanged()
@@ -72,7 +72,7 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
     ) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(item: GeneralRuleEntity) {
+        fun bind(item: GeneralRule) {
             binding.name.text = item.name
             binding.company.text = item.company
             if (item.description.isNullOrEmpty()) {

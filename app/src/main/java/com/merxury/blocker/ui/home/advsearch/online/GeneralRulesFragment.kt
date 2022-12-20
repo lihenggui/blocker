@@ -30,6 +30,8 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.databinding.GeneralRulesFragmentBinding
@@ -37,6 +39,7 @@ import com.merxury.blocker.ui.home.advsearch.ILocalSearchHost
 import com.merxury.blocker.util.BrowserUtil
 import com.merxury.blocker.util.unsafeLazy
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class GeneralRulesFragment : Fragment() {
@@ -59,6 +62,27 @@ class GeneralRulesFragment : Fragment() {
         initRecyclerView()
         initSwipeLayout()
         initMenu()
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.generalRuleUiState.collect { uiState ->
+                        when (uiState) {
+                            is GeneralRuleUiState.Loading -> {
+                                binding.swipeLayout.isRefreshing = true
+                            }
+                            is GeneralRuleUiState.Error -> {
+                                showErrorDialog(uiState.message)
+                                binding.swipeLayout.isRefreshing = false
+                            }
+                            is GeneralRuleUiState.Success -> {
+                                binding.swipeLayout.isRefreshing = false
+                                adapter.updateData(uiState.generalRules)
+                            }
+                        }
+                    }
+                }
+            }
+        }
 //        viewModel.rules.observe(viewLifecycleOwner) {
 //            when (it.status) {
 //                Resource.Status.SUCCESS -> {
