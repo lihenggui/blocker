@@ -20,6 +20,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import com.merxury.blocker.core.database.util.ListConverter
+import com.merxury.blocker.core.model.data.GeneralRule
 
 @Entity(tableName = "general_rules")
 @TypeConverters(ListConverter::class)
@@ -34,4 +35,17 @@ data class GeneralRuleEntity(
     val safeToBlock: Boolean? = null,
     val sideEffect: String? = null,
     val contributors: List<String> = listOf()
+)
+
+fun GeneralRuleEntity.asExternalModel() = GeneralRule(
+    id = id,
+    name = name,
+    iconUrl = iconUrl,
+    company = company,
+    searchKeyword = searchKeyword,
+    useRegexSearch = useRegexSearch,
+    description = description,
+    safeToBlock = safeToBlock,
+    sideEffect = sideEffect,
+    contributors = contributors,
 )
