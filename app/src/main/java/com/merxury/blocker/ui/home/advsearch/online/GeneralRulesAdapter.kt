@@ -1,17 +1,17 @@
 /*
  * Copyright 2022 Blocker
  *
- *   Licensed under the Apache License, Version 2.0 (the "License");
- *   you may not use this file except in compliance with the License.
- *   You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *       https://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
- *   Unless required by applicable law or agreed to in writing, software
- *   distributed under the License is distributed on an "AS IS" BASIS,
- *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *   See the License for the specific language governing permissions and
- *   limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package com.merxury.blocker.ui.home.advsearch.online
@@ -23,16 +23,15 @@ import android.view.View
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.databinding.GeneralRulesCardItemBinding
+import timber.log.Timber
 
 class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>() {
 
     private val list = mutableListOf<GeneralRule>()
-    private val logger = XLog.tag("GeneralRulesAdapter")
     var onItemClickListener: ((GeneralRule) -> Unit)? = null
     var onSearchClickListener: ((GeneralRule) -> Unit)? = null
 
@@ -53,7 +52,7 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = list.getOrNull(position)
         if (item == null) {
-            logger.e("Item at position $position is null")
+            Timber.e("Item at position $position is null")
             return
         }
         holder.bind(item)
