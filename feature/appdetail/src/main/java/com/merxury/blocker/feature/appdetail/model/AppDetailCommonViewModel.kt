@@ -29,16 +29,41 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 @HiltViewModel
-class AppContentProviderViewModel @Inject constructor(
+class AppDetailCommonViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder
 ) : ViewModel() {
     private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
-    private val _uiState: MutableStateFlow<AppContentProviderUiState> =
-        MutableStateFlow(AppContentProviderUiState.Loading)
-    val uiState: StateFlow<AppContentProviderUiState> = _uiState
+    private val _uiState: MutableStateFlow<AppDetailCommonUiState> =
+        MutableStateFlow(AppDetailCommonUiState.Loading)
+    val uiState: StateFlow<AppDetailCommonUiState> = _uiState
 
-    fun onSwitch(componentInfo: ComponentInfo) {
+    init {
+//        when (eComponentType) {
+//            ACTIVITY -> getActivityList()
+//            RECEIVER -> getReceiverList()
+//            PROVIDER -> getProviderList()
+//            SERVICE -> getServiceList()
+//        }
+    }
+
+    private fun getActivityList() {
+        // TODO
+    }
+
+    private fun getReceiverList() {
+        // TODO
+    }
+
+    private fun getProviderList() {
+        // TODO
+    }
+
+    private fun getServiceList() {
+        // TODO
+    }
+
+    fun onSwitch(simpleName: String, name: String, enabled: Boolean) {
         // TODO
     }
 
@@ -47,10 +72,10 @@ class AppContentProviderViewModel @Inject constructor(
     }
 }
 
-sealed interface AppContentProviderUiState {
-    object Loading : AppContentProviderUiState
-    class Error(val error: ErrorMessage) : AppContentProviderUiState
+sealed interface AppDetailCommonUiState {
+    object Loading : AppDetailCommonUiState
+    class Error(val error: ErrorMessage) : AppDetailCommonUiState
     data class Success(
-        val contentProvider: SnapshotStateList<ComponentInfo>
-    ) : AppContentProviderUiState
+        val eComponentList: SnapshotStateList<ComponentInfo>
+    ) : AppDetailCommonUiState
 }
