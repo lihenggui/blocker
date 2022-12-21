@@ -54,7 +54,7 @@ object ApplicationUtil {
     suspend fun getApplicationList(
         context: Context,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): MutableList<Application> {
+    ): List<Application> {
         val pm = context.packageManager
         val blockerName = context.packageName
         return withContext(dispatcher) {
@@ -63,7 +63,6 @@ object ApplicationUtil {
                 .filterNot { it.packageName == blockerName }
                 .map { async { it.toApplication(pm) } }
                 .awaitAll()
-                .toMutableList()
         }
     }
 
@@ -76,7 +75,7 @@ object ApplicationUtil {
     suspend fun getThirdPartyApplicationList(
         context: Context,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): MutableList<Application> {
+    ): List<Application> {
         val pm = context.packageManager
         val blockerName = context.packageName
         return withContext(dispatcher) {
@@ -90,7 +89,6 @@ object ApplicationUtil {
                 .filterNot { it.packageName == blockerName }
                 .map { async { it.toApplication(pm) } }
                 .awaitAll()
-                .toMutableList()
         }
     }
 
@@ -103,7 +101,7 @@ object ApplicationUtil {
     suspend fun getSystemApplicationList(
         context: Context,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): MutableList<Application> {
+    ): List<Application> {
         val pm = context.packageManager
         return withContext(dispatcher) {
             val installedPackages = pm.getInstalledPackagesCompat(0)
@@ -111,7 +109,6 @@ object ApplicationUtil {
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
                 .map { async { it.toApplication(pm) } }
                 .awaitAll()
-                .toMutableList()
         }
     }
 
@@ -126,9 +123,9 @@ object ApplicationUtil {
         pm: PackageManager,
         packageName: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): MutableList<ActivityInfo> {
+    ): List<ActivityInfo> {
         return withContext(dispatcher) {
-            val activities = ArrayList<ActivityInfo>()
+            val activities = mutableListOf<ActivityInfo>()
             try {
                 var flags = PackageManager.GET_ACTIVITIES
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -161,9 +158,9 @@ object ApplicationUtil {
         pm: PackageManager,
         packageName: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): MutableList<ActivityInfo> {
+    ): List<ActivityInfo> {
         return withContext(dispatcher) {
-            val receivers = ArrayList<ActivityInfo>()
+            val receivers = mutableListOf<ActivityInfo>()
             try {
                 var flags = PackageManager.GET_RECEIVERS
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -194,9 +191,9 @@ object ApplicationUtil {
         pm: PackageManager,
         packageName: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): MutableList<ServiceInfo> {
+    ): List<ServiceInfo> {
         return withContext(dispatcher) {
-            val services = ArrayList<ServiceInfo>()
+            val services = mutableListOf<ServiceInfo>()
             try {
                 var flags = PackageManager.GET_SERVICES
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
@@ -229,9 +226,9 @@ object ApplicationUtil {
         pm: PackageManager,
         packageName: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): MutableList<ProviderInfo> {
+    ): List<ProviderInfo> {
         return withContext(dispatcher) {
-            val providers = ArrayList<ProviderInfo>()
+            val providers = mutableListOf<ProviderInfo>()
             try {
                 var flags = PackageManager.GET_PROVIDERS
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
