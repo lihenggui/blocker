@@ -13,19 +13,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.model.AppReceiverUiState
-import com.merxury.blocker.feature.appdetail.model.AppReceiverViewModel
+import com.merxury.blocker.feature.appdetail.model.AppDetailCommonUiState
+import com.merxury.blocker.feature.appdetail.model.AppDetailCommonViewModel
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-fun AppReceiverTabContentRoute(
+fun AppDetailCommonTabContentRoute(
     modifier: Modifier = Modifier,
-    viewModel: AppReceiverViewModel = hiltViewModel()
+    viewModel: AppDetailCommonViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    AppReceiverTabContent(
+    AppDetailCommonTabContent(
         uiState = uiState,
-        isRefreshing = uiState is AppReceiverUiState.Loading,
+        isRefreshing = uiState is AppDetailCommonUiState.Loading,
         onRefresh = { viewModel.onRefresh() },
         onSwitch = { _, _, _ -> true },
         modifier = modifier
@@ -33,15 +33,15 @@ fun AppReceiverTabContentRoute(
 }
 
 @Composable
-fun AppReceiverTabContent(
-    uiState: AppReceiverUiState,
+fun AppDetailCommonTabContent(
+    uiState: AppDetailCommonUiState,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onSwitch: (String, String, Boolean) -> Boolean,
     modifier: Modifier = Modifier
 ) {
     when (uiState) {
-        AppReceiverUiState.Loading -> {
+        AppDetailCommonUiState.Loading -> {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -52,9 +52,9 @@ fun AppReceiverTabContent(
             }
         }
 
-        is AppReceiverUiState.Success -> {
+        is AppDetailCommonUiState.Success -> {
             ComponentTabContent(
-                components = uiState.receiver,
+                components = uiState.eComponentList,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
                 onSwitchClick = onSwitch,
@@ -62,6 +62,6 @@ fun AppReceiverTabContent(
             )
         }
 
-        is AppReceiverUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
+        is AppDetailCommonUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
     }
 }
