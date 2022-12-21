@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
      Copyright 2022 Blocker
-     Copyright 2022 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -16,5 +15,8 @@
      limitations under the License.
 -->
 <resources>
+    <string name="local_search">Local search</string>
+    <string name="online_rules">Online rules</string>
     <string name="search">Search</string>
+    <string name="icon">Icon</string>
 </resources>

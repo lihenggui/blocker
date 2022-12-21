@@ -24,5 +24,6 @@ import kotlin.annotation.AnnotationRetention.RUNTIME
 annotation class Dispatcher(val dispatcher: BlockerDispatchers)
 
 enum class BlockerDispatchers {
-    IO
+    IO,
+    DEFAULT
 }

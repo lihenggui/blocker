@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
      Copyright 2022 Blocker
-     Copyright 2022 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
      you may not use this file except in compliance with the License.
@@ -16,6 +15,21 @@
      limitations under the License.
 -->
 <resources>
-    <string name="app_detail">App detail</string>
-
+    <string name="app_info">App info</string>
+    <string name="service">Service</string>
+    <string name="receiver">Receiver</string>
+    <string name="activity">Activity</string>
+    <string name="content_provider">Content Provider</string>
+    <string name="launch_app">Launch app</string>
+    <string name="cannot_launch_this_app">Cannot launch this app</string>
+    <string name="export_rules">Export Rules</string>
+    <string name="import_rules">Import Rules</string>
+    <string name="export_ifw_rules">Export IFW Rules</string>
+    <string name="import_ifw_rules">Import IFW Rules</string>
+    <string name="more_info">More info</string>
+    <string name="target_sdk_version">Target SDK version</string>
+    <string name="minimum_sdk_version">Minimum SDK version</string>
+    <string name="last_update_time">Last update time</string>
+    <string name="data_dir">Data dir</string>
+    <string name="loading">Loading</string>
 </resources>

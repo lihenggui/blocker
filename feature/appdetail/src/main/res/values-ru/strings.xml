@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2022 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <string name="app_info">Информация о приложении</string>
+    <string name="service">Службы</string>
+    <string name="receiver">Приемники</string>
+    <string name="activity">Активити</string>
+    <string name="content_provider">Поставщики</string>
+    <string name="launch_app">запустить приложение</string>
+    <string name="cannot_launch_this_app">Не удалось запустить это приложение</string>
+    <string name="export_rules">Экспорт правил</string>
+    <string name="import_rules">Импорт правил</string>
+    <string name="export_ifw_rules">Экспорт правил IFW</string>
+    <string name="import_ifw_rules">Импорт правил IFW</string>
+    <string name="more_info">Больше информации</string>
+    <string name="target_sdk_version">Целевая версия SDK</string>
+    <string name="minimum_sdk_version">Минимальная версия SDK</string>
+    <string name="last_update_time">Время последнего обновления</string>
+    <string name="data_dir">каталог данных</string>
+    <string name="loading">Загрузка</string>
+</resources>
