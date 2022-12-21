@@ -26,18 +26,43 @@ import com.merxury.blocker.core.datastore.ChangeListVersions
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
+import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.asResult
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 
 class OfflineFirstGeneralRuleRepository @Inject constructor(
     private val generalRuleDao: GeneralRuleDao,
     private val network: BlockerNetworkDataSource
 ) : GeneralRuleRepository {
 
-    override fun getGeneralRules(): Flow<List<GeneralRule>> =
+    override fun getGeneralRules(): Flow<List<GeneralRule>> = flow {
         generalRuleDao.getGeneralRuleEntities()
             .map { it.map(GeneralRuleEntity::asExternalModel) }
+            .collect { emit(it) }
+        val networkFlow = flow<List<NetworkGeneralRule>> { network.getGeneralRules() }
+        networkFlow.asResult()
+            .map { result ->
+                when (result) {
+                    is Result.Success -> {
+                        val entities = result.data.map { it.asEntity() }
+                        generalRuleDao.upsertGeneralRule(entities)
+                        val uiData = entities.map { it.asExternalModel() }
+                        emit(uiData)
+                    }
+                    is Result.Error -> {
+                        Timber.e("Can't fetch network rules", result.exception)
+                    }
+                    is Result.Loading -> {
+                        Timber.d("Loading network rules")
+                    }
+                }
+            }
+    }
+
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean =
         synchronizer.changeListSync(
