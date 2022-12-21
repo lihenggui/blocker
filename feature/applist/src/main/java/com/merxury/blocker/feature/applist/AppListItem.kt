@@ -18,7 +18,8 @@ package com.merxury.blocker.feature.applist
 
 import android.content.pm.PackageInfo
 import android.content.res.Configuration
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,6 +42,7 @@ import coil.request.ImageRequest
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.applist.R.string
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppListItem(
     label: String,
@@ -49,6 +51,7 @@ fun AppListItem(
     packageInfo: PackageInfo?,
     appServiceStatus: AppServiceStatus?,
     onClick: (String) -> Unit,
+    longClick: () -> Unit,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
 ) {
@@ -56,8 +59,11 @@ fun AppListItem(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick(packageName) }
             .padding(horizontal = 12.dp, vertical = 8.dp)
+            .combinedClickable(
+                onClick = { onClick(packageName) },
+                onLongClick = { longClick() }
+            )
     ) {
         AppIcon(packageInfo, iconModifier.size(48.dp))
         Spacer(modifier = Modifier.width(16.dp))
@@ -130,7 +136,8 @@ fun AppListItemPreview() {
                 versionName = "1.0.12",
                 packageInfo = PackageInfo(),
                 appServiceStatus = appServiceStatus,
-                onClick = {}
+                onClick = {},
+                longClick = {}
             )
         }
     }
@@ -147,7 +154,8 @@ fun AppListItemWithoutServicePreview() {
                 versionName = "1.0.12",
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
-                onClick = {}
+                onClick = {},
+                longClick = {}
             )
         }
     }
@@ -164,7 +172,8 @@ fun AppListItemWithLongAppName() {
                 versionName = "1.0.12",
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
-                onClick = {}
+                onClick = {},
+                longClick = {}
             )
         }
     }
