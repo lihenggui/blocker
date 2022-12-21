@@ -35,11 +35,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.feature.appdetail.component.AppActivityTabContentRoute
-import com.merxury.blocker.feature.appdetail.component.AppContentProviderTabContentRoute
+import com.merxury.blocker.feature.appdetail.component.AppDetailCommonTabContentRoute
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
-import com.merxury.blocker.feature.appdetail.component.AppReceiverTabContentRoute
-import com.merxury.blocker.feature.appdetail.component.AppServiceTabContentRoute
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.model.AppInfoViewModel
@@ -140,19 +137,19 @@ fun AppDetailContent(
         }
 
         1 -> {
-            AppServiceTabContentRoute()
+            AppDetailCommonTabContentRoute()
         }
 
         2 -> {
-            AppReceiverTabContentRoute()
+            AppDetailCommonTabContentRoute()
         }
 
         3 -> {
-            AppActivityTabContentRoute()
+            AppDetailCommonTabContentRoute()
         }
 
         4 -> {
-            AppContentProviderTabContentRoute()
+            AppDetailCommonTabContentRoute()
         }
     }
 }
