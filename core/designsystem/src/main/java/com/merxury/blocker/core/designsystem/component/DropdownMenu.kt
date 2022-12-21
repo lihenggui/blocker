@@ -17,73 +17,10 @@
 
 package com.merxury.blocker.core.designsystem.component
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
-
-/**
- * Blocker dropdown menu button with included trailing icon as well as text label and item
- * content slots.
- *
- * @param items The list of items to display in the menu.
- * @param onItemClick Called when the user clicks on a menu item.
- * @param modifier Modifier to be applied to the button.
- * @param enabled Controls the enabled state of the button. When `false`, this button will not be
- * clickable and will appear disabled to accessibility services.
- * @param dismissOnItemClick Whether the menu should be dismissed when an item is clicked.
- * @param itemText The text label content for a given item.
- * @param itemLeadingIcon The leading icon content for a given item.
- * @param itemTrailingIcon The trailing icon content for a given item.
- */
-@Composable
-fun <T> BlockerDropdownMenuButton(
-    items: List<T>,
-    onItemClick: (item: T) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    dismissOnItemClick: Boolean = true,
-    text: @Composable () -> Unit,
-    itemText: @Composable (item: T) -> Unit,
-    itemLeadingIcon: @Composable ((item: T) -> Unit)? = null,
-    itemTrailingIcon: @Composable ((item: T) -> Unit)? = null
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(modifier = modifier) {
-        BlockerOutlinedButton(
-            onClick = { expanded = true },
-            enabled = enabled,
-            text = text,
-            trailingIcon = {
-                Icon(
-                    imageVector = if (expanded) {
-                        BlockerIcons.ArrowDropUp
-                    } else {
-                        BlockerIcons.ArrowDropDown
-                    },
-                    contentDescription = null
-                )
-            }
-        )
-        BlockerDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            items = items,
-            onItemClick = onItemClick,
-            dismissOnItemClick = dismissOnItemClick,
-            itemText = itemText,
-            itemLeadingIcon = itemLeadingIcon,
-            itemTrailingIcon = itemTrailingIcon
-        )
-    }
-}
+import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
  * Blocker dropdown menu with item content slots. Wraps Material 3 [DropdownMenu] and
@@ -93,22 +30,14 @@ fun <T> BlockerDropdownMenuButton(
  * @param onDismissRequest Called when the user requests to dismiss the menu, such as by
  * tapping outside the menu's bounds.
  * @param items The list of items to display in the menu.
- * @param onItemClick Called when the user clicks on a menu item.
  * @param dismissOnItemClick Whether the menu should be dismissed when an item is clicked.
- * @param itemText The text label content for a given item.
- * @param itemLeadingIcon The leading icon content for a given item.
- * @param itemTrailingIcon The trailing icon content for a given item.
  */
 @Composable
-fun <T> BlockerDropdownMenu(
+fun BlockerDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
-    items: List<T>,
-    onItemClick: (item: T) -> Unit,
-    dismissOnItemClick: Boolean = true,
-    itemText: @Composable (item: T) -> Unit,
-    itemLeadingIcon: @Composable ((item: T) -> Unit)? = null,
-    itemTrailingIcon: @Composable ((item: T) -> Unit)? = null
+    items: List<DropDownMenuItem>,
+    dismissOnItemClick: Boolean = true
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -116,18 +45,13 @@ fun <T> BlockerDropdownMenu(
     ) {
         items.forEach { item ->
             DropdownMenuItem(
-                text = { itemText(item) },
+                text = { item.text },
                 onClick = {
-                    onItemClick(item)
+                    item.onClick
                     if (dismissOnItemClick) onDismissRequest()
                 },
-                leadingIcon = if (itemLeadingIcon != null) {
-                    { itemLeadingIcon(item) }
-                } else {
-                    null
-                },
-                trailingIcon = if (itemTrailingIcon != null) {
-                    { itemTrailingIcon(item) }
+                trailingIcon = if (item.trailingIcon != null) {
+                    { item.trailingIcon }
                 } else {
                     null
                 }
@@ -135,3 +59,9 @@ fun <T> BlockerDropdownMenu(
         }
     }
 }
+
+data class DropDownMenuItem(
+    val text: String,
+    val trailingIcon: ImageVector? = null,
+    val onClick: () -> Unit
+)
