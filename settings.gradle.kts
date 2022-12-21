@@ -34,6 +34,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Blocker"
 include(":app")
+include(":app-compose")
 include(":benchmarks")
 include(":core:common")
 include(":core:component-controller")

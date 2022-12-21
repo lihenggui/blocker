@@ -31,4 +31,8 @@ object DispatchersModule {
     @Provides
     @Dispatcher(BlockerDispatchers.IO)
     fun providesIODispatcher(): CoroutineDispatcher = Dispatchers.IO
+
+    @Provides
+    @Dispatcher(BlockerDispatchers.DEFAULT)
+    fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
 }
