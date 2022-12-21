@@ -17,4 +17,5 @@
 <resources>
     <string name="service_status_template">服务: 正在运行%1$d个, 已阻止%2$d个, 共计%3$d个.</string>
     <string name="loading">加载中</string>
+    <string name="show_system_apps">显示系统应用</string>
 </resources>

@@ -27,4 +27,5 @@ android {
 
 dependencies {
     implementation(libs.kotlinx.datetime)
+    implementation("androidx.compose.ui:ui:1.3.2")
 }

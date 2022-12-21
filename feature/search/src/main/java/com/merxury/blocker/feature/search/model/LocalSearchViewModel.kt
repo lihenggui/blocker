@@ -1,4 +1,4 @@
-package com.merxury.blocker.feature.search
+package com.merxury.blocker.feature.search.model
 
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
