@@ -6,8 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class LocalSearchViewModel @Inject constructor() : ViewModel() {
-}
+class LocalSearchViewModel @Inject constructor() : ViewModel()
 
 sealed interface LocalSearchUiState {
     object Loading : LocalSearchUiState
