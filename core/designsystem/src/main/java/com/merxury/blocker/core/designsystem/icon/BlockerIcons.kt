@@ -23,6 +23,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.CheckBox
+import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.CloudUpload
@@ -72,6 +74,8 @@ object BlockerIcons {
     val PlayCircle = Icons.Outlined.PlayCircle
     val Restart = Icons.Outlined.RestartAlt
     val Save = Icons.Outlined.Save
+    val CheckBox = Icons.Outlined.CheckBox
+    val CheckBoxBlank = Icons.Outlined.CheckBoxOutlineBlank
     val Export = R.drawable.ic_export
     val Import = R.drawable.ic_import
     val Android = R.drawable.ic_android

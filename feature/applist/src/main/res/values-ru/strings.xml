@@ -17,4 +17,5 @@
 <resources>
     <string name="service_status_template">Службы: %1$d запущено, %2$d заблокировано, всего %3$d.</string>
     <string name="loading">Загрузка</string>
+    <string name="show_system_apps">Показать системные приложения</string>
 </resources>

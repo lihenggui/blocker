@@ -128,7 +128,8 @@ fun AppListContent(
                     versionName = it.versionName,
                     packageInfo = it.packageInfo,
                     appServiceStatus = it.appServiceStatus,
-                    onClick = onAppItemClick
+                    onClick = onAppItemClick,
+                    longClick = { }
                 )
             }
         }
