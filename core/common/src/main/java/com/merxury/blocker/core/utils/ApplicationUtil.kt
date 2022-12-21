@@ -38,6 +38,8 @@ import com.merxury.blocker.core.model.toApplication
 import java.util.Collections
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -57,9 +59,10 @@ object ApplicationUtil {
         val blockerName = context.packageName
         return withContext(dispatcher) {
             val installedApp = pm.getInstalledPackagesCompat(0)
-            installedApp.asSequence()
+            installedApp
                 .filterNot { it.packageName == blockerName }
-                .map { it.toApplication(pm) }
+                .map { async { it.toApplication(pm) } }
+                .awaitAll()
                 .toMutableList()
         }
     }
@@ -82,10 +85,11 @@ object ApplicationUtil {
             } else {
                 @Suppress("DEPRECATION") pm.getInstalledPackages(0)
             }
-            installedPackages.asSequence()
+            installedPackages
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
                 .filterNot { it.packageName == blockerName }
-                .map { it.toApplication(pm) }
+                .map { async { it.toApplication(pm) } }
+                .awaitAll()
                 .toMutableList()
         }
     }
@@ -103,9 +107,10 @@ object ApplicationUtil {
         val pm = context.packageManager
         return withContext(dispatcher) {
             val installedPackages = pm.getInstalledPackagesCompat(0)
-            installedPackages.asSequence()
+            installedPackages
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0 }
-                .map { it.toApplication(pm) }
+                .map { async { it.toApplication(pm) } }
+                .awaitAll()
                 .toMutableList()
         }
     }
