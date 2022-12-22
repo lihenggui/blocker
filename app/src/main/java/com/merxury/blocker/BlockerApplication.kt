@@ -34,6 +34,7 @@ import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
 import me.weishu.reflection.Reflection
+import timber.log.Timber
 
 @HiltAndroidApp
 class BlockerApplication : Application(), Configuration.Provider {
@@ -51,6 +52,7 @@ class BlockerApplication : Application(), Configuration.Provider {
                 .setFlags(Shell.FLAG_MOUNT_MASTER)
                 .setTimeout(10)
         )
+        Timber.plant(Timber.DebugTree())
     }
 
     override fun attachBaseContext(base: Context?) {
