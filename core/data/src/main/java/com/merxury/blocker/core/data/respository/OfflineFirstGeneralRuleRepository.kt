@@ -17,72 +17,45 @@
 package com.merxury.blocker.core.data.respository
 
 import com.merxury.blocker.core.data.Synchronizer
-import com.merxury.blocker.core.data.changeListSync
 import com.merxury.blocker.core.data.model.asEntity
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
 import com.merxury.blocker.core.database.generalrule.asExternalModel
-import com.merxury.blocker.core.datastore.ChangeListVersions
+import com.merxury.blocker.core.database.generalrule.fromExternalModel
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
-import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.asResult
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import timber.log.Timber
 
 class OfflineFirstGeneralRuleRepository @Inject constructor(
     private val generalRuleDao: GeneralRuleDao,
     private val network: BlockerNetworkDataSource
 ) : GeneralRuleRepository {
 
-    override fun getGeneralRules(): Flow<List<GeneralRule>> = flow {
-        val localFlow = generalRuleDao.getGeneralRuleEntities()
-        val networkFlow = flow<List<NetworkGeneralRule>> { network.getGeneralRules() }
-            .asResult()
-            .map { result ->
-                when (result) {
-                    is Result.Success -> {
-                        result.data.map(NetworkGeneralRule::asEntity)
-                    }
+    override fun getCacheGeneralRules(): Flow<List<GeneralRule>> =
+        generalRuleDao.getGeneralRuleEntities()
+            .map { it.map(GeneralRuleEntity::asExternalModel) }
 
-                    is Result.Error -> {
-                        Timber.e("Can't fetch network rules", result.exception)
-                        listOf()
-                    }
+    override fun getNetworkGeneralRules() = flow<List<NetworkGeneralRule>> {
+        emit(network.getGeneralRules())
+    }
+        .map { it.map(NetworkGeneralRule::asEntity) }
+        .map { it.map(GeneralRuleEntity::asExternalModel) }
+        .asResult()
 
-                    is Result.Loading -> {
-                        listOf()
-                    }
-                } }
-            flowOf(localFlow, networkFlow)
-                .flattenMerge()
-                .collect {
-                    val uiData = it.map(GeneralRuleEntity::asExternalModel)
-                    emit(uiData)
-                }
+    override suspend fun updateGeneralRules(list: List<GeneralRule>) {
+        generalRuleDao.upsertGeneralRule(
+            list.map(GeneralRule::fromExternalModel)
+        )
     }
 
-    override suspend fun syncWith(synchronizer: Synchronizer): Boolean =
-        synchronizer.changeListSync(
-            versionReader = ChangeListVersions::generalRuleVersion,
-            changeListFetcher = {
-                network.getGeneralRuleChangeList()
-            },
-            versionUpdater = { latestVersion ->
-                copy(generalRuleVersion = latestVersion)
-            },
-            modelDeleter = generalRuleDao::deleteGeneralRules,
-            modelUpdater = {
-                val networkGeneralRules = network.getGeneralRules()
-                generalRuleDao.upsertGeneralRule(
-                    entities = networkGeneralRules.map(NetworkGeneralRule::asEntity)
-                )
-            }
-        )
+    override suspend fun clearCacheData() {
+        generalRuleDao.deleteAll()
+    }
+
+    override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
 }

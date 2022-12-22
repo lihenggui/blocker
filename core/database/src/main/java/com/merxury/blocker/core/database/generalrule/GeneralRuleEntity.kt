@@ -49,3 +49,16 @@ fun GeneralRuleEntity.asExternalModel() = GeneralRule(
     sideEffect = sideEffect,
     contributors = contributors,
 )
+
+fun GeneralRule.fromExternalModel() = GeneralRuleEntity(
+    id = id,
+    name = name,
+    iconUrl = iconUrl,
+    company = company,
+    searchKeyword = searchKeyword,
+    useRegexSearch = useRegexSearch,
+    description = description,
+    safeToBlock = safeToBlock,
+    sideEffect = sideEffect,
+    contributors = contributors,
+)
