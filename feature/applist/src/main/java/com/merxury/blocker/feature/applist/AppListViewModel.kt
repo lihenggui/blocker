@@ -68,6 +68,7 @@ class AppListViewModel @Inject constructor(
         } else {
             ApplicationUtil.getThirdPartyApplicationList(getApplication())
         }
+            .toMutableList()
         sortList(list, sortType)
         val stateAppList = mapToSnapshotStateList(list, getApplication())
         _uiState.emit(AppListUiState.Success(stateAppList))
