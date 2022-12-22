@@ -6,7 +6,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.merxury.blocker.feature.settings.SettingsRoute
 
-const val settingsRoute = "search_route"
+const val settingsRoute = "settings_route"
 
 fun NavController.navigateToSettings(navOptions: NavOptions? = null) {
     this.navigate(settingsRoute, navOptions)

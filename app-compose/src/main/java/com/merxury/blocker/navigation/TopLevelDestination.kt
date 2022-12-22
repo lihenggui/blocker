@@ -36,19 +36,19 @@ enum class TopLevelDestination(
     APP_LIST(
         selectedIcon = ImageVectorIcon(BlockerIcons.List),
         unselectedIcon = ImageVectorIcon(BlockerIcons.List),
-        iconTextId = R.string.app_name,
+        iconTextId = R.string.application_list,
         titleTextId = R.string.app_name
     ),
     SEARCH(
         selectedIcon = ImageVectorIcon(BlockerIcons.Search),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
-        iconTextId = R.string.app_name,
+        iconTextId = R.string.advanced_search,
         titleTextId = R.string.app_name
     ),
     SETTINGS(
         selectedIcon = ImageVectorIcon(BlockerIcons.Settings),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Settings),
-        iconTextId = R.string.app_name,
+        iconTextId = R.string.settings,
         titleTextId = R.string.app_name
     )
 }
