@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network
+package com.merxury.blocker.core.datastore
 
-import com.merxury.blocker.core.network.model.NetworkChangeList
-import com.merxury.blocker.core.network.model.NetworkComponentDetail
-import com.merxury.blocker.core.network.model.NetworkGeneralRule
-
-interface BlockerNetworkDataSource {
-    suspend fun getComponentData(path: String): NetworkComponentDetail?
-
-    suspend fun getGeneralRules(): List<NetworkGeneralRule>
-
-    suspend fun getGeneralRuleChangeList(): List<NetworkChangeList>
-}
+/**
+ * Class summarizing the local version of each model for sync
+ */
+data class ChangeListVersions(
+    val generalRuleVersion: Int = -1,
+    val onlineComponentVersion: Int = -1,
+)
