@@ -30,7 +30,9 @@ import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.asResult
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flattenMerge
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
@@ -40,29 +42,31 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
 ) : GeneralRuleRepository {
 
     override fun getGeneralRules(): Flow<List<GeneralRule>> = flow {
-        generalRuleDao.getGeneralRuleEntities()
-            .map { it.map(GeneralRuleEntity::asExternalModel) }
-            .collect { emit(it) }
+        val localFlow = generalRuleDao.getGeneralRuleEntities()
         val networkFlow = flow<List<NetworkGeneralRule>> { network.getGeneralRules() }
-        networkFlow.asResult()
+            .asResult()
             .map { result ->
                 when (result) {
                     is Result.Success -> {
-                        val entities = result.data.map { it.asEntity() }
-                        generalRuleDao.upsertGeneralRule(entities)
-                        val uiData = entities.map { it.asExternalModel() }
-                        emit(uiData)
+                        result.data.map(NetworkGeneralRule::asEntity)
                     }
+
                     is Result.Error -> {
                         Timber.e("Can't fetch network rules", result.exception)
+                        listOf()
                     }
-                    is Result.Loading -> {
-                        Timber.d("Loading network rules")
-                    }
-                }
-            }
-    }
 
+                    is Result.Loading -> {
+                        listOf()
+                    }
+                } }
+            flowOf(localFlow, networkFlow)
+                .flattenMerge()
+                .collect {
+                    val uiData = it.map(GeneralRuleEntity::asExternalModel)
+                    emit(uiData)
+                }
+    }
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean =
         synchronizer.changeListSync(
