@@ -64,7 +64,7 @@ class GeneralRulesFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.generalRuleUiState.collect { uiState ->
+                    viewModel.uiState.collect { uiState ->
                         when (uiState) {
                             is GeneralRuleUiState.Loading -> {
                                 binding.swipeLayout.isRefreshing = true
