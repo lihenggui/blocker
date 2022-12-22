@@ -18,4 +18,10 @@
     <string name="service_status_template">Службы: %1$d запущено, %2$d заблокировано, всего %3$d.</string>
     <string name="loading">Загрузка</string>
     <string name="show_system_apps">Показать системные приложения</string>
+    <string name="clear_cache">Очистить кэш</string>
+    <string name="clear_data">Очистить данные</string>
+    <string name="force_stop">Принудительная остановка</string>
+    <string name="uninstall">Удалить</string>
+    <string name="enable">включить</string>
+    <string name="disable">Запрещать</string>
 </resources>

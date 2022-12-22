@@ -17,4 +17,7 @@
 <resources>
     <string name="app_name">Blocker</string>
     <string name="not_connected">⚠️ You aren’t connected to the internet</string>
+    <string name="application_list">Application list</string>
+    <string name="advanced_search">Advanced search</string>
+    <string name="settings">Settings</string>
 </resources>
