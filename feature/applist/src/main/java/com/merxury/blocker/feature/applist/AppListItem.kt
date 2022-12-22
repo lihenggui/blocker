@@ -31,6 +31,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +45,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.applist.R.string
+import com.merxury.blocker.feature.applist.component.AppListItemMenuList
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -51,17 +56,17 @@ fun AppListItem(
     packageInfo: PackageInfo?,
     appServiceStatus: AppServiceStatus?,
     onClick: (String) -> Unit,
-    onLongClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
 ) {
+    var expanded by remember { mutableStateOf(false) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = { onClick(packageName) },
-                onLongClick = { onLongClick(packageName) },
+                onLongClick = { expanded = true },
             )
             .padding(horizontal = 12.dp, vertical = 8.dp)
     ) {
@@ -73,6 +78,10 @@ fun AppListItem(
             serviceStatus = appServiceStatus
         )
     }
+    AppListItemMenuList(
+        expanded = expanded,
+        onDismissRequest = { expanded = false }
+    )
 }
 
 @Composable
@@ -137,7 +146,6 @@ fun AppListItemPreview() {
                 packageInfo = PackageInfo(),
                 appServiceStatus = appServiceStatus,
                 onClick = {},
-                onLongClick = {},
             )
         }
     }
@@ -155,7 +163,6 @@ fun AppListItemWithoutServicePreview() {
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = {},
-                onLongClick = {},
             )
         }
     }
@@ -173,7 +180,6 @@ fun AppListItemWithLongAppName() {
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = {},
-                onLongClick = {},
             )
         }
     }
