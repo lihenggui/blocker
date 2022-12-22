@@ -26,8 +26,11 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.model.preference.UserPreferenceData
+import java.io.IOException
 import javax.inject.Inject
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 
 class BlockerPreferencesDataSource @Inject constructor(
     private val userPreferences: DataStore<UserPreferences>
@@ -210,6 +213,35 @@ class BlockerPreferencesDataSource @Inject constructor(
                         ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST
                 }
             }
+        }
+    }
+
+    suspend fun getChangeListVersions() = userPreferences.data
+        .map {
+            ChangeListVersions(
+                generalRuleVersion = it.generalRuleChangeListVersion,
+                onlineComponentVersion = it.onlineComponentChangeListVersion,
+            )
+        }
+        .firstOrNull() ?: ChangeListVersions()
+
+    suspend fun updateChangeListVersion(update: ChangeListVersions.() -> ChangeListVersions) {
+        try {
+            userPreferences.updateData { currentPreferences ->
+                val updatedChangeListVersions = update(
+                    ChangeListVersions(
+                        generalRuleVersion = currentPreferences.generalRuleChangeListVersion,
+                        onlineComponentVersion = currentPreferences.onlineComponentChangeListVersion
+                    )
+                )
+                currentPreferences.copy {
+                    generalRuleChangeListVersion = updatedChangeListVersions.generalRuleVersion
+                    onlineComponentChangeListVersion =
+                        updatedChangeListVersions.onlineComponentVersion
+                }
+            }
+        } catch (ioException: IOException) {
+            Timber.e("Failed to update user preferences", ioException)
         }
     }
 }
