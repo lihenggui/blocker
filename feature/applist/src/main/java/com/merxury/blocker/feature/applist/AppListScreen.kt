@@ -56,7 +56,6 @@ fun AppListRoute(
     AppListScreen(
         uiState = uiState,
         onAppItemClick = navigateToAppDetail,
-        onAppItemLongClick = {},
         isRefreshing = uiState is AppListUiState.Loading,
         onRefresh = viewModel::loadData,
         modifier = modifier
@@ -67,7 +66,6 @@ fun AppListRoute(
 fun AppListScreen(
     uiState: AppListUiState,
     onAppItemClick: (String) -> Unit,
-    onAppItemLongClick: (String) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
@@ -94,7 +92,6 @@ fun AppListScreen(
                 AppListContent(
                     appList = uiState.appList,
                     onAppItemClick = onAppItemClick,
-                    onAppItemLongClick = onAppItemLongClick,
                     isRefreshing = isRefreshing,
                     onRefresh = onRefresh,
                     modifier = modifier
@@ -111,7 +108,6 @@ fun AppListScreen(
 fun AppListContent(
     appList: SnapshotStateList<AppItem>,
     onAppItemClick: (String) -> Unit,
-    onAppItemLongClick: (String) -> Unit,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
@@ -133,7 +129,6 @@ fun AppListContent(
                     packageInfo = it.packageInfo,
                     appServiceStatus = it.appServiceStatus,
                     onClick = onAppItemClick,
-                    onLongClick = onAppItemLongClick,
                 )
             }
         }
