@@ -26,6 +26,9 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.data.Synchronizer
+import com.merxury.blocker.core.data.respository.GeneralRuleRepository
+import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
+import com.merxury.blocker.core.datastore.ChangeListVersions
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.sync.initializers.SyncConstraints
@@ -33,6 +36,8 @@ import com.merxury.blocker.sync.initializers.syncForegroundInfo
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 
 /**
@@ -43,7 +48,8 @@ import kotlinx.coroutines.withContext
 class SyncWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
-
+    private val blockerPreferences: BlockerPreferencesDataSource,
+    private val generalRuleRepository: GeneralRuleRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : CoroutineWorker(appContext, workerParams), Synchronizer {
 
@@ -52,9 +58,22 @@ class SyncWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         traceAsync("Sync", 0) {
-            Result.success()
+            // First sync the repositories in parallel
+            val syncedSuccessfully = awaitAll(
+                async { generalRuleRepository.sync() },
+            ).all { it }
+
+            if (syncedSuccessfully) Result.success()
+            else Result.retry()
         }
     }
+
+    override suspend fun getChangeListVersions(): ChangeListVersions =
+        blockerPreferences.getChangeListVersions()
+
+    override suspend fun updateChangeListVersions(
+        update: ChangeListVersions.() -> ChangeListVersions
+    ) = blockerPreferences.updateChangeListVersion(update)
 
     companion object {
         /**
