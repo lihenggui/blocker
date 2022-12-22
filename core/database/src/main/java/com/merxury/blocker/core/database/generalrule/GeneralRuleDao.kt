@@ -55,4 +55,7 @@ interface GeneralRuleDao {
 
     @Upsert
     suspend fun upsertGeneralRule(entities: List<GeneralRuleEntity>)
+
+    @Query("DELETE FROM general_rules")
+    suspend fun deleteAll()
 }

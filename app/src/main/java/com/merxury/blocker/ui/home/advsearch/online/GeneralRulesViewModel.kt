@@ -21,46 +21,61 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.GeneralRuleRepository
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.result.asResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
-    generalRuleRepository: GeneralRuleRepository
+    private val generalRuleRepository: GeneralRuleRepository
 ) : ViewModel() {
-    val generalRuleUiState = generalRulesUiState(generalRuleRepository)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = GeneralRuleUiState.Loading
-        )
-}
+    private val _uiState = MutableStateFlow<GeneralRuleUiState>(GeneralRuleUiState.Loading)
+    val uiState = _uiState.asStateFlow()
 
-private fun generalRulesUiState(
-    generalRuleRepository: GeneralRuleRepository
-): Flow<GeneralRuleUiState> {
-    return generalRuleRepository.getGeneralRules()
-        .asResult()
-        .map { result ->
-            when (result) {
-                is Result.Success -> {
-                    GeneralRuleUiState.Success(result.data)
-                }
+    init {
+        loadRuleFromCache()
+        loadRuleFromNetwork()
+    }
 
-                is Result.Loading -> {
-                    GeneralRuleUiState.Loading
-                }
-
-                is Result.Error -> {
-                    GeneralRuleUiState.Error(result.exception?.message)
+    private fun loadRuleFromCache() = viewModelScope.launch {
+        generalRuleRepository.getCacheGeneralRules()
+            .collect { list ->
+                if (list.isEmpty()) {
+                    Timber.d("No cache data in the db")
+                } else {
+                    _uiState.emit(GeneralRuleUiState.Success(list))
                 }
             }
-        }
+    }
+
+    private fun loadRuleFromNetwork() = viewModelScope.launch {
+        generalRuleRepository.getNetworkGeneralRules()
+            .collect { result ->
+                when (result) {
+                    is Result.Success -> {
+                        Timber.d("Load online rules from network successfully.")
+                        _uiState.emit(GeneralRuleUiState.Success(result.data))
+                        generalRuleRepository.clearCacheData()
+                        generalRuleRepository.updateGeneralRules(result.data)
+                    }
+
+                    is Result.Error -> {
+                        Timber.e("Can't fetch network rules", result.exception)
+                        val currentState = _uiState.value
+                        if (currentState is GeneralRuleUiState.Loading) {
+                            _uiState.emit(GeneralRuleUiState.Error(result.exception?.message))
+                        }
+                    }
+
+                    is Result.Loading -> {
+                        Timber.d("Start to load rules data from the network.")
+                    }
+                }
+            }
+    }
 }
 
 sealed interface GeneralRuleUiState {
