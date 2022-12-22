@@ -4,10 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
@@ -15,8 +11,10 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 
 @Composable
-fun AppListMenuList() {
-    var expanded by remember { mutableStateOf(false) }
+fun AppMoreMenuList(
+    expanded: Boolean = false,
+    onDismissRequest: () -> Unit,
+) {
     val items = listOf(
         DropDownMenuItem(
             "Show system app",
@@ -41,15 +39,17 @@ fun AppListMenuList() {
     ) {
         BlockerDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onDismissRequest = onDismissRequest,
             items = items
         )
     }
 }
 
 @Composable
-fun AppListItemMenuList() {
-    var expanded by remember { mutableStateOf(false) }
+fun AppListItemMenuList(
+    expanded: Boolean = false,
+    onDismissRequest: () -> Unit,
+) {
     val items = listOf(
         DropDownMenuItem(
             text = "Clear cache",
@@ -83,7 +83,7 @@ fun AppListItemMenuList() {
     ) {
         BlockerDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
+            onDismissRequest = onDismissRequest,
             items = items
         )
     }
