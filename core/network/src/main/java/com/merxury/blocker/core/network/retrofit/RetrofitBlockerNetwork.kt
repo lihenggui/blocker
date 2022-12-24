@@ -20,6 +20,7 @@ package com.merxury.blocker.core.network.retrofit
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.BuildConfig
+import com.merxury.blocker.core.network.model.NetworkChangeList
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
 import javax.inject.Inject
@@ -42,6 +43,9 @@ interface BlockerNetworkApi {
 
     @GET("zh-cn/general.json")
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
+
+    @GET(value = "zh-cn/changeList")
+    suspend fun getGeneralRuleChangeList(): List<NetworkChangeList>
 }
 
 private const val BlockerBaseUrl = BuildConfig.BACKEND_URL
@@ -76,6 +80,9 @@ class RetrofitBlockerNetwork @Inject constructor(
     override suspend fun getComponentData(path: String): NetworkComponentDetail? =
         networkApi.getOnlineComponentData(path)
 
-    override suspend fun getGeneralRule(): List<NetworkGeneralRule> =
+    override suspend fun getGeneralRules(): List<NetworkGeneralRule> =
         networkApi.getGeneralRules()
+
+    override suspend fun getGeneralRuleChangeList(): List<NetworkChangeList> =
+        networkApi.getGeneralRuleChangeList()
 }

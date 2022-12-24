@@ -42,7 +42,6 @@ import com.merxury.blocker.databinding.AppInfoFragmentBinding
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.parcelable
 import java.io.File
-import java.text.DateFormat
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
@@ -280,19 +279,17 @@ class AppInfoFragment : Fragment() {
                     targetSdkName
                 )
             )
-            // TODO Fix min SDK issues
-//            val minSdkVersion = app.getMinSdkVersion()
-//            val minSdkName = AndroidCodeName.getCodeName(minSdkVersion)
-//            binding.itemMinSdkVersion.setSummary(
-//                getString(
-//                    R.string.sdk_version_with_name_template,
-//                    minSdkVersion,
-//                    minSdkName
-//                )
-//            )
-//            val lastUpdateTime = app.lastUpdateTime ?: Date(0)
-            val formatter = DateFormat.getDateTimeInstance()
-            binding.itemLastUpdateTime.setSummary(formatter.format(0))
+            val minSdkVersion = app.minSdkVersion
+            val minSdkName = AndroidCodeName.getCodeName(minSdkVersion)
+            binding.itemMinSdkVersion.setSummary(
+                getString(
+                    R.string.sdk_version_with_name_template,
+                    minSdkVersion,
+                    minSdkName
+                )
+            )
+            val lastUpdateTime = app.lastUpdateTime
+            binding.itemLastUpdateTime.setSummary(lastUpdateTime.toString())
             val dataDir = app.packageInfo?.applicationInfo?.dataDir
             binding.itemDataDir.setSummary(dataDir)
         }
