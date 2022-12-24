@@ -34,21 +34,21 @@ enum class TopLevelDestination(
     val titleTextId: Int
 ) {
     APP_LIST(
-        selectedIcon = ImageVectorIcon(BlockerIcons.List),
-        unselectedIcon = ImageVectorIcon(BlockerIcons.List),
+        selectedIcon = ImageVectorIcon(BlockerIcons.Apps),
+        unselectedIcon = ImageVectorIcon(BlockerIcons.Apps),
         iconTextId = R.string.application_list,
         titleTextId = R.string.app_name
     ),
-    SEARCH(
-        selectedIcon = ImageVectorIcon(BlockerIcons.Search),
-        unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
-        iconTextId = R.string.advanced_search,
+    ONLINE_RULES(
+        selectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
+        unselectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
+        iconTextId = R.string.online_rules,
         titleTextId = R.string.app_name
     ),
-    SETTINGS(
+    GLOBAL_SEARCH(
         selectedIcon = ImageVectorIcon(BlockerIcons.Settings),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Settings),
-        iconTextId = R.string.settings,
+        iconTextId = R.string.global_search,
         titleTextId = R.string.app_name
     )
 }

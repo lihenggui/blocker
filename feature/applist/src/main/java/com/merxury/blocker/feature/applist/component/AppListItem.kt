@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.applist
+package com.merxury.blocker.feature.applist.component
 
 import android.content.pm.PackageInfo
 import android.content.res.Configuration
@@ -44,8 +44,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.feature.applist.AppServiceStatus
 import com.merxury.blocker.feature.applist.R.string
-import com.merxury.blocker.feature.applist.component.AppListItemMenuList
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -68,9 +68,9 @@ fun AppListItem(
                 onClick = { onClick(packageName) },
                 onLongClick = { expanded = true },
             )
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        AppIcon(packageInfo, iconModifier.size(48.dp))
+        AppIcon(packageInfo, iconModifier.size(40.dp))
         Spacer(modifier = Modifier.width(16.dp))
         AppContent(
             label = label,

@@ -69,7 +69,7 @@ import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.navigation.BlockerNavHost
 import com.merxury.blocker.navigation.TopLevelDestination
-import com.merxury.blocker.navigation.TopLevelDestination.SETTINGS
+import com.merxury.blocker.navigation.TopLevelDestination.GLOBAL_SEARCH
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -111,7 +111,7 @@ fun BlockerApp(
                 // Show the top app bar on top level destinations.
                 val destination = appState.currentTopLevelDestination
                 if (destination != null) {
-                    if (destination != SETTINGS) {
+                    if (destination != GLOBAL_SEARCH) {
                         BlockerTopAppBar(
                             // When the nav rail is displayed, the top app bar will, by default
                             // overlap it. This means that the top most item in the nav rail
@@ -119,7 +119,7 @@ fun BlockerApp(
                             // behind the nav rail using zIndex.
                             modifier = Modifier.zIndex(-1F),
                             titleRes = destination.titleTextId,
-                            actionIconFirst = BlockerIcons.Search,
+                            actionIconFirst = BlockerIcons.Sort,
                             actionIconContentDescriptionFirst = null,
                             colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                                 containerColor = Color.Transparent
