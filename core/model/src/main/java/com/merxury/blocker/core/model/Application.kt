@@ -16,11 +16,14 @@
 
 package com.merxury.blocker.core.model
 
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
+import com.merxury.blocker.core.model.util.ApkParser
+import java.io.File
 import kotlinx.datetime.Instant
 import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
@@ -32,13 +35,15 @@ import kotlinx.parcelize.RawValue
  */
 @Parcelize
 data class Application(
-    var packageName: String = "",
-    var versionName: String? = "",
-    var isEnabled: Boolean = false,
-    var label: String = "",
-    var firstInstallTime: @RawValue Instant? = null,
-    var lastUpdateTime: @RawValue Instant? = null,
-    var packageInfo: PackageInfo? = null,
+    val packageName: String = "",
+    val versionName: String? = "",
+    val isEnabled: Boolean = false,
+    val label: String = "",
+    val minSdkVersion: Int = 0,
+    val targetSdkVersion: Int = 0,
+    val firstInstallTime: @RawValue Instant? = null,
+    val lastUpdateTime: @RawValue Instant? = null,
+    val packageInfo: PackageInfo? = null,
 ) : Parcelable {
     // TODO customized parceler should be removed
     private companion object : Parceler<Application> {
@@ -48,6 +53,8 @@ data class Application(
                 versionName = parcel.readString(),
                 isEnabled = parcel.readInt() == 1,
                 label = parcel.readString().orEmpty(),
+                minSdkVersion = parcel.readInt(),
+                targetSdkVersion = parcel.readInt(),
                 firstInstallTime = Instant.fromEpochMilliseconds(parcel.readLong()),
                 lastUpdateTime = Instant.fromEpochMilliseconds(parcel.readLong()),
                 packageInfo = parcel.readParcelableCompat(PackageInfo::class.java.classLoader)
@@ -59,6 +66,8 @@ data class Application(
             parcel.writeString(versionName)
             parcel.writeByte(if (isEnabled) 1 else 0)
             parcel.writeString(label)
+            parcel.writeInt(minSdkVersion)
+            parcel.writeInt(targetSdkVersion)
             parcel.writeLong(firstInstallTime?.toEpochMilliseconds() ?: 0)
             parcel.writeLong(lastUpdateTime?.toEpochMilliseconds() ?: 0)
             parcel.writeParcelable(packageInfo, flags)
@@ -66,16 +75,26 @@ data class Application(
     }
 }
 
-fun PackageInfo.toApplication(pm: PackageManager): Application {
+suspend fun PackageInfo.toApplication(pm: PackageManager): Application {
     return Application(
         packageName = packageName,
         versionName = versionName,
         isEnabled = applicationInfo?.enabled ?: false,
         label = applicationInfo?.loadLabel(pm).toString(),
+        minSdkVersion = applicationInfo.minSdkVersionCompat(),
+        targetSdkVersion = applicationInfo?.targetSdkVersion ?: 0,
         firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
         lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
         packageInfo = this,
     )
+}
+
+suspend fun ApplicationInfo.minSdkVersionCompat(): Int {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        minSdkVersion
+    } else {
+        ApkParser.getMinSdkVersion(File(publicSourceDir))
+    }
 }
 
 inline fun <reified T : Parcelable> Parcel.readParcelableCompat(classLoader: ClassLoader?): T? =
