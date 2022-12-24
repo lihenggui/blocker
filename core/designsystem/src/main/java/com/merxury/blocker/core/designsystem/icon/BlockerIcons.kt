@@ -20,18 +20,24 @@ package com.merxury.blocker.core.designsystem.icon
 import androidx.annotation.DrawableRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.AutoFixHigh
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.CloudUpload
+import androidx.compose.material.icons.outlined.CollectionsBookmark
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EventBusy
+import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material.icons.outlined.FindInPage
+import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.MoreVert
@@ -41,7 +47,11 @@ import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.RocketLaunch
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.Sort
+import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material.icons.rounded.Check
@@ -54,11 +64,21 @@ import com.merxury.blocker.core.designsystem.R
  * Blocker icons. Material icons are [ImageVector]s, custom icons are drawable resource IDs.
  */
 object BlockerIcons {
-    val List = Icons.Outlined.List
+    val Apps = Icons.Outlined.Apps
+    val OnlineRules = Icons.Outlined.CollectionsBookmark
+    val Sort = Icons.Outlined.Sort
+    val Share = Icons.Outlined.Share
+    val Find = Icons.Outlined.FindInPage
+    val SelectAll = Icons.Outlined.SelectAll
+    val ExpandMore = Icons.Outlined.ExpandMore
+    val Tune = Icons.Outlined.Tune
+    val Block = Icons.Outlined.Block
+    val Folder = Icons.Outlined.Folder
     val Search = Icons.Outlined.Search
+    val BugReport = Icons.Outlined.BugReport
+    val List = Icons.Outlined.List
     val Settings = Icons.Outlined.Settings
     val More = Icons.Outlined.MoreVert
-    val BugReport = Icons.Outlined.BugReport
     val AutoFix = Icons.Outlined.AutoFixHigh
     val Back = Icons.Outlined.ArrowBack
     val Close = Icons.Outlined.Close
