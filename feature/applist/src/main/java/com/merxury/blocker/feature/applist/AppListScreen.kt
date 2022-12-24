@@ -44,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.applist.R.string
+import com.merxury.blocker.feature.applist.component.AppListItem
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable

@@ -45,8 +45,8 @@ import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsRoute
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
-import com.merxury.blocker.navigation.TopLevelDestination.SEARCH
-import com.merxury.blocker.navigation.TopLevelDestination.SETTINGS
+import com.merxury.blocker.navigation.TopLevelDestination.GLOBAL_SEARCH
+import com.merxury.blocker.navigation.TopLevelDestination.ONLINE_RULES
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -79,8 +79,8 @@ class BlockerAppState(
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() = when (currentDestination?.route) {
             appListRoute -> APP_LIST
-            searchRoute -> SEARCH
-            settingsRoute -> SETTINGS
+            searchRoute -> ONLINE_RULES
+            settingsRoute -> GLOBAL_SEARCH
             else -> null
         }
 
@@ -133,8 +133,8 @@ class BlockerAppState(
 
             when (topLevelDestination) {
                 APP_LIST -> navController.navigateToAppListGraph(topLevelNavOptions)
-                SEARCH -> navController.navigateToSearch(topLevelNavOptions)
-                SETTINGS -> navController.navigateToSettings(topLevelNavOptions)
+                ONLINE_RULES -> navController.navigateToSearch(topLevelNavOptions)
+                GLOBAL_SEARCH -> navController.navigateToSettings(topLevelNavOptions)
             }
         }
     }
