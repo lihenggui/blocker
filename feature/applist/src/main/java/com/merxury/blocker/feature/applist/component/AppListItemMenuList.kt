@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
+import com.merxury.blocker.feature.applist.R
 
 @Composable
 fun AppListItemMenuList(
@@ -16,27 +17,27 @@ fun AppListItemMenuList(
 ) {
     val items = listOf(
         DropDownMenuItem(
-            text = "Clear cache",
+            textRes = R.string.loading,
             onClick = {}
         ),
         DropDownMenuItem(
-            text = "Clear data",
+            textRes = R.string.loading,
             onClick = {}
         ),
         DropDownMenuItem(
-            text = "Force stop",
+            textRes = R.string.loading,
             onClick = {}
         ),
         DropDownMenuItem(
-            text = "Uninstall",
+            textRes = R.string.loading,
             onClick = {}
         ),
         DropDownMenuItem(
-            text = "Enable",
+            textRes = R.string.loading,
             onClick = {}
         ),
         DropDownMenuItem(
-            text = "Disable",
+            textRes = R.string.loading,
             onClick = {}
         )
     )

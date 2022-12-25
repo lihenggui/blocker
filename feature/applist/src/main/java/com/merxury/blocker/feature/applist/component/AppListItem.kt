@@ -68,7 +68,7 @@ fun AppListItem(
                 onClick = { onClick(packageName) },
                 onLongClick = { expanded = true },
             )
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
         AppIcon(packageInfo, iconModifier.size(40.dp))
         Spacer(modifier = Modifier.width(16.dp))
@@ -106,8 +106,7 @@ private fun AppContent(
     Column(modifier) {
         Text(
             text = label,
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(vertical = 4.dp)
+            style = MaterialTheme.typography.bodyLarge
         )
         Text(
             text = versionName,
