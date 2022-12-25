@@ -92,15 +92,16 @@ fun AppListScreen(
         }
     ) { padding ->
         Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(padding),
+            modifier = modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (uiState) {
                 AppListUiState.Loading -> {
                     Column(
-                        modifier = modifier.fillMaxSize(),
+                        modifier = modifier
+                            .fillMaxSize()
+                            .padding(padding),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
