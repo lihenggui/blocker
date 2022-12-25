@@ -24,4 +24,10 @@
     <string name="uninstall">Удалить</string>
     <string name="enable">включить</string>
     <string name="disable">Запрещать</string>
+    <string name="name_asc">Название ↑</string>
+    <string name="name_desc">Название ↓</string>
+    <string name="installation_date">Дата первой установки</string>
+    <string name="last_update_time">Время последнего обновления</string>
+    <string name="settings">Настройки</string>
+    <string name="support_and_feedback">поддержка и обратная связь</string>
 </resources>
