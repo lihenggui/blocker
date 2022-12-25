@@ -43,8 +43,8 @@ enum class TopLevelDestination(
         iconTextId = R.string.online_rules,
     ),
     GLOBAL_SEARCH(
-        selectedIcon = ImageVectorIcon(BlockerIcons.Settings),
-        unselectedIcon = ImageVectorIcon(BlockerIcons.Settings),
+        selectedIcon = ImageVectorIcon(BlockerIcons.Search),
+        unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
         iconTextId = R.string.global_search
     )
 }

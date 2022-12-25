@@ -25,8 +25,8 @@ import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.navigation.appListGraph
 import com.merxury.blocker.feature.applist.navigation.appListGraphRoutePattern
-import com.merxury.blocker.feature.search.navigation.searchScreen
-import com.merxury.blocker.feature.settings.navigation.settingsScreen
+import com.merxury.blocker.feature.globalSearch.navigation.globalSearchScreen
+import com.merxury.blocker.feature.onlineRules.navigation.onlineRulesScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
@@ -56,7 +56,7 @@ fun BlockerNavHost(
                 appDetailScreen(onBackClick)
             }
         )
-        searchScreen()
-        settingsScreen()
+        onlineRulesScreen()
+        globalSearchScreen()
     }
 }
