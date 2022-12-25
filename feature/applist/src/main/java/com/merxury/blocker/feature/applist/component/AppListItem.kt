@@ -68,7 +68,7 @@ fun AppListItem(
                 onClick = { onClick(packageName) },
                 onLongClick = { expanded = true },
             )
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         AppIcon(packageInfo, iconModifier.size(40.dp))
         Spacer(modifier = Modifier.width(16.dp))

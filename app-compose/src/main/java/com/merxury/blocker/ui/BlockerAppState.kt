@@ -36,10 +36,10 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppListGraph
-import com.merxury.blocker.feature.search.navigation.navigateToSearch
-import com.merxury.blocker.feature.search.navigation.searchRoute
-import com.merxury.blocker.feature.settings.navigation.navigateToSettings
-import com.merxury.blocker.feature.settings.navigation.settingsRoute
+import com.merxury.blocker.feature.globalSearch.navigation.globalSearchRoute
+import com.merxury.blocker.feature.globalSearch.navigation.navigateToGlobalSearch
+import com.merxury.blocker.feature.onlineRules.navigation.navigateToOnlineRules
+import com.merxury.blocker.feature.onlineRules.navigation.onlineRulesRoute
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
 import com.merxury.blocker.navigation.TopLevelDestination.GLOBAL_SEARCH
@@ -76,8 +76,8 @@ class BlockerAppState(
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() = when (currentDestination?.route) {
             appListRoute -> APP_LIST
-            searchRoute -> ONLINE_RULES
-            settingsRoute -> GLOBAL_SEARCH
+            onlineRulesRoute -> ONLINE_RULES
+            globalSearchRoute -> GLOBAL_SEARCH
             else -> null
         }
 
@@ -130,8 +130,8 @@ class BlockerAppState(
 
             when (topLevelDestination) {
                 APP_LIST -> navController.navigateToAppListGraph(topLevelNavOptions)
-                ONLINE_RULES -> navController.navigateToSearch(topLevelNavOptions)
-                GLOBAL_SEARCH -> navController.navigateToSettings(topLevelNavOptions)
+                ONLINE_RULES -> navController.navigateToOnlineRules(topLevelNavOptions)
+                GLOBAL_SEARCH -> navController.navigateToGlobalSearch(topLevelNavOptions)
             }
         }
     }
