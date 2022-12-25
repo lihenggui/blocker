@@ -24,4 +24,10 @@
     <string name="uninstall">Uninstall</string>
     <string name="enable">Enable</string>
     <string name="disable">Disable</string>
+    <string name="name_asc">Name (Ascending)</string>
+    <string name="name_desc">Name (Descending)</string>
+    <string name="installation_date">First Install Date</string>
+    <string name="last_update_date">Last Update Time</string>
+    <string name="settings">Settings</string>
+    <string name="support_and_feedback">Support and feedback</string>
 </resources>

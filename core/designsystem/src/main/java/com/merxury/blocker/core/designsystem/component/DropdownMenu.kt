@@ -17,21 +17,44 @@
 
 package com.merxury.blocker.core.designsystem.component
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 
-/**
- * Blocker dropdown menu with item content slots. Wraps Material 3 [DropdownMenu] and
- * [DropdownMenuItem].
- *
- * @param expanded Whether the menu is currently open and visible to the user.
- * @param onDismissRequest Called when the user requests to dismiss the menu, such as by
- * tapping outside the menu's bounds.
- * @param items The list of items to display in the menu.
- * @param dismissOnItemClick Whether the menu should be dismissed when an item is clicked.
- */
+@Composable
+fun BlockerAppTopBarMenu(
+    menuIcon: ImageVector,
+    menuIconDesc: Int,
+    items: List<DropDownMenuItem>
+) {
+    val expanded = remember { mutableStateOf(false) }
+    Box(Modifier.wrapContentSize(Alignment.TopEnd)) {
+        IconButton(onClick = {
+            expanded.value = true
+        }) {
+            Icon(
+                imageVector = menuIcon,
+                contentDescription = stringResource(id = menuIconDesc)
+            )
+        }
+    }
+    BlockerDropdownMenu(
+        expanded = expanded.value,
+        onDismissRequest = { expanded.value = false },
+        items = items
+    )
+}
+
 @Composable
 fun BlockerDropdownMenu(
     expanded: Boolean,
@@ -45,7 +68,7 @@ fun BlockerDropdownMenu(
     ) {
         items.forEach { item ->
             DropdownMenuItem(
-                text = { item.text },
+                text = { stringResource(id = item.textRes) },
                 onClick = {
                     item.onClick
                     if (dismissOnItemClick) onDismissRequest()
@@ -61,7 +84,7 @@ fun BlockerDropdownMenu(
 }
 
 data class DropDownMenuItem(
-    val text: String,
+    val textRes: Int,
     val trailingIcon: ImageVector? = null,
     val onClick: () -> Unit
 )

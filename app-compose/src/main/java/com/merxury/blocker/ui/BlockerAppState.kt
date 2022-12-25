@@ -22,11 +22,8 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -84,8 +81,8 @@ class BlockerAppState(
             else -> null
         }
 
-    var shouldShowSettingsDialog by mutableStateOf(false)
-        private set
+    val isExpandedScreen: Boolean
+        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
 
     val shouldShowBottomBar: Boolean
         get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact ||
@@ -141,10 +138,6 @@ class BlockerAppState(
 
     fun onBackClick() {
         navController.popBackStack()
-    }
-
-    fun setShowSettingsDialog(shouldShow: Boolean) {
-        shouldShowSettingsDialog = shouldShow
     }
 }
 

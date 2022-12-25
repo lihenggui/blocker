@@ -24,4 +24,10 @@
     <string name="uninstall">卸載</string>
     <string name="enable">啟用</string>
     <string name="disable">禁用</string>
+    <string name="name_asc">名稱（升序）</string>
+    <string name="name_desc">名稱（降序）</string>
+    <string name="installation_date">安裝日期</string>
+    <string name="last_update_date">最後更新時間</string>
+    <string name="settings">設置</string>
+    <string name="support_and_feedback">幫助與反饋</string>
 </resources>
