@@ -26,7 +26,7 @@ import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.navigation.appListGraph
 import com.merxury.blocker.feature.applist.navigation.appListGraphRoutePattern
 import com.merxury.blocker.feature.globalSearch.navigation.globalSearchScreen
-import com.merxury.blocker.feature.onlineRules.navigation.onlineRulesScreen
+import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
