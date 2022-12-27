@@ -1,7 +1,6 @@
 package com.merxury.blocker.feature.applist.component
 
 import androidx.compose.runtime.Composable
-import com.merxury.blocker.core.designsystem.R.string
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -11,19 +10,25 @@ import com.merxury.blocker.feature.applist.R
 fun TopAppBarSortMenu() {
     val items = listOf(
         DropDownMenuItem(
-            R.string.loading,
-            BlockerIcons.CheckBox,
+            R.string.name_asc,
             {}
         ),
         DropDownMenuItem(
-            R.string.loading,
-            BlockerIcons.CheckBox,
+            R.string.name_desc,
+            {}
+        ),
+        DropDownMenuItem(
+            R.string.installation_date,
+            {}
+        ),
+        DropDownMenuItem(
+            R.string.last_update_date,
             {}
         )
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.Sort,
-        menuIconDesc = string.sort_menu,
+        menuIconDesc = R.string.sort_menu,
         items = items
     )
 }

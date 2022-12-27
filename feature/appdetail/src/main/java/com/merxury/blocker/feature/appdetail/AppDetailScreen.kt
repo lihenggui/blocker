@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,12 +35,17 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.component.AppBasicInfoCard
 import com.merxury.blocker.feature.appdetail.component.AppDetailCommonTabContentRoute
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.model.AppInfoViewModel
+import kotlinx.datetime.Clock.System
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
@@ -80,7 +86,7 @@ fun AppDetailScreen(
                 ) {
                     BlockerLoadingWheel(
                         modifier = modifier,
-                        contentDesc = stringResource(id = R.string.loading),
+                        contentDesc = stringResource(id = string.loading),
                     )
                 }
             }
@@ -118,6 +124,7 @@ fun AppDetailContent(
     onRefresh: () -> Unit,
     switchTab: (Int) -> Unit
 ) {
+    AppBasicInfoCard(app = uiState.appInfo)
     BlockerTabRow(selectedTabIndex = tabState.currentIndex) {
         tabState.titles.forEachIndexed { index, titleRes ->
             BlockerTab(
@@ -157,4 +164,38 @@ fun AppDetailContent(
 @Composable
 fun ErrorAppDetailScreen(message: String) {
     Text(text = message)
+}
+
+@Composable
+@Preview
+fun AppDetailScreenPreview() {
+    val app = Application(
+        label = "Blocker",
+        packageName = "com.mercury.blocker",
+        versionName = "1.2.69-alpha",
+        isEnabled = false,
+        firstInstallTime = System.now(),
+        lastUpdateTime = System.now(),
+        packageInfo = null,
+    )
+    val tabState = TabState(
+        titles = listOf(
+            string.app_info,
+            string.service,
+            string.service,
+            string.activity,
+            string.content_provider
+        ),
+        currentIndex = 0
+    )
+    BlockerTheme {
+        AppDetailScreen(
+            uiState = Success(appInfo = app),
+            tabState = tabState,
+            isRefreshing = false,
+            onRefresh = {},
+            switchTab = {},
+            onBackClick = {}
+        )
+    }
 }

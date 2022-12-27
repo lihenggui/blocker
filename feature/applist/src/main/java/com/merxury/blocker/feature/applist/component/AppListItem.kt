@@ -20,9 +20,11 @@ import android.content.pm.PackageInfo
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -60,28 +62,37 @@ fun AppListItem(
     iconModifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                onClick = { onClick(packageName) },
-                onLongClick = { expanded = true },
+    Box(contentAlignment = Alignment.Center) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = modifier
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = { onClick(packageName) },
+                    onLongClick = { expanded = true },
+                )
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            AppIcon(packageInfo, iconModifier.size(40.dp))
+            Spacer(modifier = Modifier.width(16.dp))
+            AppContent(
+                label = label,
+                versionName = versionName,
+                serviceStatus = appServiceStatus
             )
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        AppIcon(packageInfo, iconModifier.size(40.dp))
-        Spacer(modifier = Modifier.width(16.dp))
-        AppContent(
-            label = label,
-            versionName = versionName,
-            serviceStatus = appServiceStatus
-        )
+        }
+        Box(
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.BottomCenter),
+            contentAlignment = Alignment.TopEnd
+        ) {
+            AppListItemMenuList(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            )
+        }
     }
-    AppListItemMenuList(
-        expanded = expanded,
-        onDismissRequest = { expanded = false }
-    )
 }
 
 @Composable

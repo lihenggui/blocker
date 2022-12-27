@@ -1,6 +1,7 @@
 package com.merxury.blocker.feature.appdetail.component
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,21 +24,21 @@ import kotlinx.datetime.Clock.System
 
 @Composable
 fun AppBasicInfoCard(
-    appName: String,
-    packageName: String,
-    versionName: String?,
+    app: Application,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier
 ) {
+    val versionName = app.versionName
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .background(color = MaterialTheme.colorScheme.secondaryContainer)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text(text = appName, style = MaterialTheme.typography.headlineMedium)
-            Text(text = packageName, style = MaterialTheme.typography.bodyMedium)
+            Text(text = app.label, style = MaterialTheme.typography.headlineMedium)
+            Text(text = app.packageName, style = MaterialTheme.typography.bodyMedium)
             if (versionName != null) {
                 Text(text = versionName, style = MaterialTheme.typography.bodyMedium)
             }
@@ -46,9 +47,9 @@ fun AppBasicInfoCard(
         Image(
             modifier = iconModifier
                 .size(80.dp)
-                .padding(20.dp),
+                .padding(vertical = 40.dp),
             painter = rememberAsyncImagePainter(
-                LocalContext.current.packageManager.getApplicationIcon(packageName)
+                LocalContext.current.packageManager.getApplicationIcon(app.packageName)
             ),
             contentDescription = null
         )
@@ -70,9 +71,7 @@ fun PreviewAppBasicInfoCard() {
     BlockerTheme {
         Surface {
             AppBasicInfoCard(
-                appName = app.label,
-                packageName = app.packageName,
-                versionName = app.versionName
+                app = app
             )
         }
     }

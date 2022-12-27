@@ -22,9 +22,12 @@
     <string name="service">服務</string>
     <string name="launch_app">啟動應用</string>
     <string name="cannot_launch_this_app">無法啟動這個應用</string>
+    <string name="blocker_rules">Blocker規則</string>
     <string name="export_rules">導出規則</string>
+    <string name="ifw_rules">IFW規則</string>
     <string name="export_ifw_rules">匯出IFW規則</string>
     <string name="import_ifw_rules">匯入IFW規則</string>
+    <string name="reset_ifw">重置IFW</string>
     <string name="more_info">更多信息</string>
     <string name="target_sdk_version">目標SDK版本</string>
     <string name="minimum_sdk_version">最低SDK版本</string>
