@@ -17,7 +17,10 @@
 
 <vector android:height="108.0dip" android:width="108.0dip" android:viewportWidth="108.0" android:viewportHeight="108.0"
   xmlns:android="http://schemas.android.com/apk/res/android">
-    <path android:fillColor="#ff3ddc84" android:pathData="M 0 0 H 108 V 108 H 0 z" />
-    <path android:fillColor="#ffffffff" android:pathData="M 36 38 A 4 4 0 0 0 44 38 A 4 4 0 0 0 36 38 z" />
-    <path android:fillColor="#ffffffff" android:pathData="M 64 38 A 4 4 0 0 0 72 38 A 4 4 0 0 0 64 38 z" />
+    <path android:fillColor="#ffeff7cf" android:pathData="M 0 54 H 108 v 24 H 0 z" />
+    <path android:fillColor="#ff073042" android:pathData="M -2 54 h 12 l 8 24 h -12 z" />
+    <path android:fillColor="#ff073042" android:pathData="M 22 54 h 12 l 8 24 h -12 z" />
+    <path android:fillColor="#ff073042" android:pathData="M 46 54 h 12 l 8 24 h -12 z" />
+    <path android:fillColor="#ff073042" android:pathData="M 70 54 h 12 l 8 24 h -12 z" />
+    <path android:fillColor="#ff073042" android:pathData="M 94 54 h 12 l 8 24 h -12 z" />
 </vector>

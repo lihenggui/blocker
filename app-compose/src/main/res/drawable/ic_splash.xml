@@ -1,39 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-     Copyright 2022 The Android Open Source Project
+  ~ Copyright 2022 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 
-     Licensed under the Apache License, Version 2.0 (the "License");
-     you may not use this file except in compliance with the License.
-     You may obtain a copy of the License at
-
-          http://www.apache.org/licenses/LICENSE-2.0
-
-     Unless required by applicable law or agreed to in writing, software
-     distributed under the License is distributed on an "AS IS" BASIS,
-     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-     See the License for the specific language governing permissions and
-     limitations under the License.
--->
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="108dp"
-    android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-
-    <path
-        android:pathData="M0,0h108v54H0V0z"
-        android:fillColor="#8BC34A" />
-    <path
-        android:pathData="M0,54h108v54H0V54z"
-        android:fillColor="#40C4FF" />
-    <path
-        android:pathData="M0,54h54v54H0V54z"
-        android:fillColor="#80D8FF" />
-    <path
-        android:pathData="M38.6,34.4c2.4,0,4.3,1.9,4.3,4.3s-1.9,4.3-4.3,4.3s-4.3-1.9-4.3-4.3S36.2,34.4,38.6,34.4z"
-        android:fillColor="#FAFAFA" />
-    <path
-        android:pathData="M69.4,34.4c2.4,0,4.3,1.9,4.3,4.3s-1.9,4.3-4.3,4.3s-4.3-1.9-4.3-4.3S67.1,34.4,69.4,34.4z"
-        android:fillColor="#FAFAFA" />
-
-</vector>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_launcher_background" />
+    <item android:drawable="@drawable/ic_launcher_foreground" />
+</layer-list>
