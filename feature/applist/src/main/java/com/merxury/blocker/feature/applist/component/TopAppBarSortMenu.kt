@@ -22,7 +22,7 @@ fun TopAppBarSortMenu() {
             {}
         ),
         DropDownMenuItem(
-            R.string.last_update_date,
+            R.string.last_update_time,
             {}
         )
     )
