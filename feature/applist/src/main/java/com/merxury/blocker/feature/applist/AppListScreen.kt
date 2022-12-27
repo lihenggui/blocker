@@ -84,7 +84,10 @@ fun AppListScreen(
                 },
                 actions = {
                     TopAppBarSortMenu()
-                    TopAppBarMoreMenu()
+                    TopAppBarMoreMenu(
+                        navigateToSettings = {},
+                        navigateToFeedback = {},
+                    )
                 },
             )
         }
