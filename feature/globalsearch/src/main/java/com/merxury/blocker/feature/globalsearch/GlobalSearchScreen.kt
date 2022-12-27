@@ -1,4 +1,4 @@
-package com.merxury.blocker.feature.globalSearch
+package com.merxury.blocker.feature.globalsearch
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable

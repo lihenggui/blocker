@@ -20,7 +20,7 @@ plugins {
     id("blocker.android.library.jacoco")
 }
 android {
-    namespace = "com.merxury.blocker.feature.globalSearch"
+    namespace = "com.merxury.blocker.feature.globalsearch"
 }
 dependencies {
     implementation(project(":core:model"))
