@@ -1,6 +1,5 @@
 /*
  * Copyright 2022 Blocker
- * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +16,15 @@
 
 package com.merxury.blocker.core.designsystem.component
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.merxury.blocker.core.designsystem.R
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun BlockerAppTopBarMenu(
@@ -68,9 +73,9 @@ fun BlockerDropdownMenu(
     ) {
         items.forEach { item ->
             DropdownMenuItem(
-                text = { stringResource(id = item.textRes) },
+                text = { Text(stringResource(id = item.textRes)) },
                 onClick = {
-                    item.onClick
+                    item.onClick()
                     if (dismissOnItemClick) onDismissRequest()
                 }
             )
@@ -82,3 +87,24 @@ data class DropDownMenuItem(
     val textRes: Int,
     val onClick: () -> Unit
 )
+
+@Preview
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun DropDownMenuPreview() {
+    val menuItems = listOf(
+        DropDownMenuItem(R.string.more_menu) {},
+        DropDownMenuItem(R.string.more_menu) {},
+        DropDownMenuItem(R.string.more_menu) {},
+        DropDownMenuItem(R.string.more_menu) {},
+    )
+    BlockerTheme {
+        Surface {
+            BlockerDropdownMenu(
+                expanded = true,
+                onDismissRequest = {},
+                items = menuItems,
+            )
+        }
+    }
+}
