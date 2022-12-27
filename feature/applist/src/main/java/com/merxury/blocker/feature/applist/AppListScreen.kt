@@ -31,10 +31,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -42,7 +38,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -70,8 +65,6 @@ fun AppListRoute(
     AppListScreen(
         uiState = uiState,
         onAppItemClick = navigateToAppDetail,
-        isRefreshing = uiState is AppListUiState.Loading,
-        onRefresh = viewModel::loadData,
         modifier = modifier
     )
 }
@@ -81,8 +74,6 @@ fun AppListRoute(
 fun AppListScreen(
     uiState: AppListUiState,
     onAppItemClick: (String) -> Unit,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -130,8 +121,6 @@ fun AppListScreen(
                     AppListContent(
                         appList = uiState.appList,
                         onAppItemClick = onAppItemClick,
-                        isRefreshing = isRefreshing,
-                        onRefresh = onRefresh,
                         modifier = modifier
                     )
                 }
@@ -142,20 +131,15 @@ fun AppListScreen(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppListContent(
     appList: SnapshotStateList<AppItem>,
     onAppItemClick: (String) -> Unit,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listContent = remember { appList }
     val listState = rememberLazyListState()
-    val refreshing by remember { mutableStateOf(isRefreshing) }
-    val refreshingState = rememberPullRefreshState(refreshing, onRefresh)
-    Box(modifier.pullRefresh(refreshingState)) {
+    Box(modifier) {
         LazyColumn(
             modifier = modifier,
             state = listState
@@ -171,12 +155,6 @@ fun AppListContent(
                 )
             }
         }
-        PullRefreshIndicator(
-            refreshing = refreshing,
-            state = refreshingState,
-            modifier = Modifier.align(Alignment.TopCenter),
-            scale = true
-        )
     }
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo }
