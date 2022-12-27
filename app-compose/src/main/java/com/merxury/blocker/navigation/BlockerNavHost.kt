@@ -25,7 +25,7 @@ import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.navigation.appListGraph
 import com.merxury.blocker.feature.applist.navigation.appListGraphRoutePattern
-import com.merxury.blocker.feature.globalSearch.navigation.globalSearchScreen
+import com.merxury.blocker.feature.globalsearch.navigation.globalSearchScreen
 import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesScreen
 
 /**

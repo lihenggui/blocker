@@ -1,4 +1,4 @@
-package com.merxury.blocker.feature.globalSearch.component
+package com.merxury.blocker.feature.globalsearch.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
