@@ -38,7 +38,7 @@ fun BlockerAppTopBarMenu(
     items: List<DropDownMenuItem>
 ) {
     val expanded = remember { mutableStateOf(false) }
-    Box(Modifier.wrapContentSize(Alignment.TopEnd)) {
+    Box(Modifier.wrapContentSize(Alignment.TopStart)) {
         IconButton(onClick = {
             expanded.value = true
         }) {
@@ -47,12 +47,12 @@ fun BlockerAppTopBarMenu(
                 contentDescription = stringResource(id = menuIconDesc)
             )
         }
+        BlockerDropdownMenu(
+            expanded = expanded.value,
+            onDismissRequest = { expanded.value = false },
+            items = items
+        )
     }
-    BlockerDropdownMenu(
-        expanded = expanded.value,
-        onDismissRequest = { expanded.value = false },
-        items = items
-    )
 }
 
 @Composable
@@ -72,11 +72,6 @@ fun BlockerDropdownMenu(
                 onClick = {
                     item.onClick
                     if (dismissOnItemClick) onDismissRequest()
-                },
-                trailingIcon = if (item.trailingIcon != null) {
-                    { item.trailingIcon }
-                } else {
-                    null
                 }
             )
         }
@@ -85,6 +80,5 @@ fun BlockerDropdownMenu(
 
 data class DropDownMenuItem(
     val textRes: Int,
-    val trailingIcon: ImageVector? = null,
     val onClick: () -> Unit
 )

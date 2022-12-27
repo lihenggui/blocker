@@ -124,7 +124,7 @@ fun BlockerRuleItem() {
             .padding(16.dp)
     ) {
         Text(
-            text = "Blocker rules",
+            text = stringResource(id = string.blocker_rules),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -149,7 +149,7 @@ fun IfwRuleItem() {
             .padding(16.dp)
     ) {
         Text(
-            text = "IFW rules",
+            text = stringResource(id = string.ifw_rules),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary
         )
@@ -165,7 +165,7 @@ fun IfwRuleItem() {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(
-            text = "Reset IFW",
+            text = stringResource(id = string.reset_ifw),
             style = MaterialTheme.typography.bodyMedium
         )
     }

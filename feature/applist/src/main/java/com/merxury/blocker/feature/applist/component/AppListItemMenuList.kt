@@ -1,11 +1,6 @@
 package com.merxury.blocker.feature.applist.component
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.feature.applist.R
@@ -17,39 +12,33 @@ fun AppListItemMenuList(
 ) {
     val items = listOf(
         DropDownMenuItem(
-            textRes = R.string.loading,
+            textRes = R.string.clear_cache,
             onClick = {}
         ),
         DropDownMenuItem(
-            textRes = R.string.loading,
+            textRes = R.string.clear_data,
             onClick = {}
         ),
         DropDownMenuItem(
-            textRes = R.string.loading,
+            textRes = R.string.force_stop,
             onClick = {}
         ),
         DropDownMenuItem(
-            textRes = R.string.loading,
+            textRes = R.string.uninstall,
             onClick = {}
         ),
         DropDownMenuItem(
-            textRes = R.string.loading,
+            textRes = R.string.enable,
             onClick = {}
         ),
         DropDownMenuItem(
-            textRes = R.string.loading,
+            textRes = R.string.disable,
             onClick = {}
         )
     )
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
-    ) {
-        BlockerDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = onDismissRequest,
-            items = items
-        )
-    }
+    BlockerDropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismissRequest,
+        items = items
+    )
 }
