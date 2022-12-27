@@ -65,6 +65,12 @@ fun AppListRoute(
     AppListScreen(
         uiState = uiState,
         onAppItemClick = navigateToAppDetail,
+        onClearCacheClick = viewModel::clearCache,
+        onClearDataClick = viewModel::clearData,
+        onForceStopClick = viewModel::forceStop,
+        onUninstallClick = viewModel::uninstall,
+        onEnableClick = viewModel::enable,
+        onDisableClick = viewModel::disable,
         modifier = modifier
     )
 }
@@ -74,6 +80,12 @@ fun AppListRoute(
 fun AppListScreen(
     uiState: AppListUiState,
     onAppItemClick: (String) -> Unit,
+    onClearCacheClick: (String) -> Unit,
+    onClearDataClick: (String) -> Unit,
+    onForceStopClick: (String) -> Unit,
+    onUninstallClick: (String) -> Unit,
+    onEnableClick: (String) -> Unit,
+    onDisableClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -124,6 +136,12 @@ fun AppListScreen(
                     AppListContent(
                         appList = uiState.appList,
                         onAppItemClick = onAppItemClick,
+                        onClearCacheClick = onClearCacheClick,
+                        onClearDataClick = onClearDataClick,
+                        onForceStopClick = onForceStopClick,
+                        onUninstallClick = onUninstallClick,
+                        onEnableClick = onEnableClick,
+                        onDisableClick = onDisableClick,
                         modifier = modifier
                     )
                 }
@@ -138,6 +156,12 @@ fun AppListScreen(
 fun AppListContent(
     appList: SnapshotStateList<AppItem>,
     onAppItemClick: (String) -> Unit,
+    onClearCacheClick: (String) -> Unit,
+    onClearDataClick: (String) -> Unit,
+    onForceStopClick: (String) -> Unit,
+    onUninstallClick: (String) -> Unit,
+    onEnableClick: (String) -> Unit,
+    onDisableClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listContent = remember { appList }
@@ -155,6 +179,12 @@ fun AppListContent(
                     packageInfo = it.packageInfo,
                     appServiceStatus = it.appServiceStatus,
                     onClick = onAppItemClick,
+                    onClearCacheClick = onClearCacheClick,
+                    onClearDataClick = onClearDataClick,
+                    onForceStopClick = onForceStopClick,
+                    onUninstallClick = onUninstallClick,
+                    onEnableClick = onEnableClick,
+                    onDisableClick = onDisableClick,
                 )
             }
         }
