@@ -20,7 +20,7 @@ plugins {
     id("blocker.android.library.jacoco")
 }
 android {
-    namespace = "com.merxury.blocker.feature.onlineRules"
+    namespace = "com.merxury.blocker.feature.onlinerules"
 }
 dependencies {
     implementation(project(":core:model"))
