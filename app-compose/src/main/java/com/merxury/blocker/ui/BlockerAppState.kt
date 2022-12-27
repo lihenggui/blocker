@@ -36,8 +36,8 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppListGraph
-import com.merxury.blocker.feature.globalSearch.navigation.globalSearchRoute
-import com.merxury.blocker.feature.globalSearch.navigation.navigateToGlobalSearch
+import com.merxury.blocker.feature.globalsearch.navigation.globalSearchRoute
+import com.merxury.blocker.feature.globalsearch.navigation.navigateToGlobalSearch
 import com.merxury.blocker.feature.onlinerules.navigation.navigateToOnlineRules
 import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesRoute
 import com.merxury.blocker.navigation.TopLevelDestination
