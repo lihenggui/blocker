@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -58,11 +57,17 @@ fun AppListItem(
     packageInfo: PackageInfo?,
     appServiceStatus: AppServiceStatus?,
     onClick: (String) -> Unit,
+    onClearCacheClick: (String) -> Unit,
+    onClearDataClick: (String) -> Unit,
+    onForceStopClick: (String) -> Unit,
+    onUninstallClick: (String) -> Unit,
+    onEnableClick: (String) -> Unit,
+    onDisableClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
-    Box(contentAlignment = Alignment.Center) {
+    Box {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
@@ -83,12 +88,17 @@ fun AppListItem(
         }
         Box(
             modifier = Modifier
-                .fillMaxHeight()
                 .align(Alignment.BottomCenter),
             contentAlignment = Alignment.TopEnd
         ) {
             AppListItemMenuList(
                 expanded = expanded,
+                onClearCacheClick = { onClearCacheClick(packageName) },
+                onClearDataClick = { onClearDataClick(packageName) },
+                onForceStopClick = { onForceStopClick(packageName) },
+                onUninstallClick = { onUninstallClick(packageName) },
+                onEnableClick = { onEnableClick(packageName) },
+                onDisableClick = { onDisableClick(packageName) },
                 onDismissRequest = { expanded = false }
             )
         }
@@ -156,6 +166,12 @@ fun AppListItemPreview() {
                 packageInfo = PackageInfo(),
                 appServiceStatus = appServiceStatus,
                 onClick = {},
+                onClearCacheClick = { },
+                onClearDataClick = { },
+                onForceStopClick = { },
+                onUninstallClick = { },
+                onEnableClick = { },
+                onDisableClick = { },
             )
         }
     }
@@ -173,6 +189,12 @@ fun AppListItemWithoutServicePreview() {
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = {},
+                onClearCacheClick = { },
+                onClearDataClick = { },
+                onForceStopClick = { },
+                onUninstallClick = { },
+                onEnableClick = { },
+                onDisableClick = { },
             )
         }
     }
@@ -190,6 +212,12 @@ fun AppListItemWithLongAppName() {
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = {},
+                onClearCacheClick = { },
+                onClearDataClick = { },
+                onForceStopClick = { },
+                onUninstallClick = { },
+                onEnableClick = { },
+                onDisableClick = { },
             )
         }
     }
