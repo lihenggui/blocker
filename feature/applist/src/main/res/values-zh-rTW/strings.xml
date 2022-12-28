@@ -17,4 +17,19 @@
 <resources>
     <string name="service_status_template">服務: 正在運行%1$d個, 已阻止%2$d個, 共計%3$d個.</string>
     <string name="loading">加載中</string>
+    <string name="show_system_apps">顯示系統應用</string>
+    <string name="clear_cache">清理緩存</string>
+    <string name="clear_data">清除數據</string>
+    <string name="force_stop">強制停止</string>
+    <string name="uninstall">卸載</string>
+    <string name="enable">啟用</string>
+    <string name="disable">禁用</string>
+    <string name="sort_menu">排序菜單</string>
+    <string name="name_asc">名稱（升序）</string>
+    <string name="name_desc">名稱（降序）</string>
+    <string name="installation_date">安裝日期</string>
+    <string name="last_update_time">最後更新時間</string>
+    <string name="more_menu">更多菜單</string>
+    <string name="settings">設置</string>
+    <string name="support_and_feedback">幫助與反饋</string>
 </resources>

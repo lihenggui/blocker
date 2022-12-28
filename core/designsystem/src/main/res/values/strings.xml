@@ -18,4 +18,6 @@
     <string name="follow">Follow</string>
     <string name="unfollow">Unfollow</string>
     <string name="browse_topic">Browse topic</string>
+    <string name="more_menu">More menu</string>
+    <string name="sort_menu">Sort menu</string>
 </resources>

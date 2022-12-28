@@ -19,19 +19,26 @@ package com.merxury.blocker.feature.applist
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumedWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -42,8 +49,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.applist.R.string
+import com.merxury.blocker.feature.applist.component.AppListItem
+import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
+import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
@@ -53,70 +64,131 @@ fun AppListRoute(
     viewModel: AppListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val errorState by remember { viewModel.errorState }
     AppListScreen(
         uiState = uiState,
         onAppItemClick = navigateToAppDetail,
-        isRefreshing = uiState is AppListUiState.Loading,
-        onRefresh = viewModel::loadData,
+        onClearCacheClick = viewModel::clearCache,
+        onClearDataClick = viewModel::clearData,
+        onForceStopClick = viewModel::forceStop,
+        onUninstallClick = viewModel::uninstall,
+        onEnableClick = viewModel::enable,
+        onDisableClick = viewModel::disable,
         modifier = modifier
     )
+    if (errorState != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDialog() },
+            title = {
+                Text(errorState?.message.orEmpty())
+            },
+            text = {
+                Text(errorState?.stackTrace.orEmpty())
+            },
+            confirmButton = {
+                BlockerTextButton(
+                    onClick = { viewModel.dismissDialog() }
+                ) {
+                    Text(stringResource(id = android.R.string.ok))
+                }
+            }
+        )
+    }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
     onAppItemClick: (String) -> Unit,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
+    onClearCacheClick: (String) -> Unit,
+    onClearDataClick: (String) -> Unit,
+    onForceStopClick: (String) -> Unit,
+    onUninstallClick: (String) -> Unit,
+    onEnableClick: (String) -> Unit,
+    onDisableClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        when (uiState) {
-            AppListUiState.Loading -> {
-                Column(
-                    modifier = modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    BlockerLoadingWheel(
-                        modifier = modifier,
-                        contentDesc = stringResource(id = string.loading),
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(text = "Blocker")
+                },
+                actions = {
+                    TopAppBarSortMenu()
+                    TopAppBarMoreMenu(
+                        navigateToSettings = {},
+                        navigateToFeedback = {},
+                    )
+                },
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .consumedWindowInsets(padding)
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Horizontal
+                    )
+                ),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            when (uiState) {
+                AppListUiState.Loading -> {
+                    Column(
+                        modifier = modifier
+                            .fillMaxSize()
+                            .padding(padding),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        BlockerLoadingWheel(
+                            modifier = modifier,
+                            contentDesc = stringResource(id = string.loading),
+                        )
+                    }
+                }
+
+                is AppListUiState.Success -> {
+                    AppListContent(
+                        appList = uiState.appList,
+                        onAppItemClick = onAppItemClick,
+                        onClearCacheClick = onClearCacheClick,
+                        onClearDataClick = onClearDataClick,
+                        onForceStopClick = onForceStopClick,
+                        onUninstallClick = onUninstallClick,
+                        onEnableClick = onEnableClick,
+                        onDisableClick = onDisableClick,
+                        modifier = modifier
                     )
                 }
-            }
 
-            is AppListUiState.Success -> {
-                AppListContent(
-                    appList = uiState.appList,
-                    onAppItemClick = onAppItemClick,
-                    isRefreshing = isRefreshing,
-                    onRefresh = onRefresh,
-                    modifier = modifier
-                )
+                is AppListUiState.Error -> ErrorAppListScreen(uiState.error)
             }
-
-            is AppListUiState.Error -> ErrorAppListScreen(uiState.error)
         }
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppListContent(
     appList: SnapshotStateList<AppItem>,
     onAppItemClick: (String) -> Unit,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
+    onClearCacheClick: (String) -> Unit,
+    onClearDataClick: (String) -> Unit,
+    onForceStopClick: (String) -> Unit,
+    onUninstallClick: (String) -> Unit,
+    onEnableClick: (String) -> Unit,
+    onDisableClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listContent = remember { appList }
     val listState = rememberLazyListState()
-    val refreshing by remember { mutableStateOf(isRefreshing) }
-    val refreshingState = rememberPullRefreshState(refreshing, onRefresh)
-    Box(modifier.pullRefresh(refreshingState)) {
+    Box(modifier) {
         LazyColumn(
             modifier = modifier,
             state = listState
@@ -126,17 +198,18 @@ fun AppListContent(
                     label = it.label,
                     packageName = it.packageName,
                     versionName = it.versionName,
+                    packageInfo = it.packageInfo,
                     appServiceStatus = it.appServiceStatus,
-                    onClick = onAppItemClick
+                    onClick = onAppItemClick,
+                    onClearCacheClick = onClearCacheClick,
+                    onClearDataClick = onClearDataClick,
+                    onForceStopClick = onForceStopClick,
+                    onUninstallClick = onUninstallClick,
+                    onEnableClick = onEnableClick,
+                    onDisableClick = onDisableClick,
                 )
             }
         }
-        PullRefreshIndicator(
-            refreshing = refreshing,
-            state = refreshingState,
-            modifier = Modifier.align(Alignment.TopCenter),
-            scale = true
-        )
     }
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo }

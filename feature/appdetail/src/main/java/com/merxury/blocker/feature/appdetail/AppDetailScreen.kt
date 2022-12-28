@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -34,15 +35,22 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.feature.appdetail.AppDetailUiState.Success
+import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.component.AppBasicInfoCard
+import com.merxury.blocker.feature.appdetail.component.AppDetailCommonTabContentRoute
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
-import com.merxury.blocker.feature.appdetail.component.ComponentTabContent
+import com.merxury.blocker.feature.appdetail.model.AppInfoUiState
+import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.model.AppInfoViewModel
+import kotlinx.datetime.Clock.System
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun AppDetailRoute(
-    viewModel: AppDetailViewModel = hiltViewModel(),
+    viewModel: AppInfoViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -50,10 +58,9 @@ fun AppDetailRoute(
     AppDetailScreen(
         uiState = uiState,
         tabState = tabState,
-        isRefreshing = uiState is AppDetailUiState.Loading,
+        isRefreshing = uiState is AppInfoUiState.Loading,
         onRefresh = { viewModel.onRefresh() },
         switchTab = viewModel::switchTab,
-        onSwitchClick = { _, _, _ -> true },
         onBackClick = onBackClick
     )
 }
@@ -61,18 +68,17 @@ fun AppDetailRoute(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailScreen(
-    uiState: AppDetailUiState,
+    uiState: AppInfoUiState,
     tabState: TabState,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     switchTab: (Int) -> Unit,
-    onSwitchClick: (String, String, Boolean) -> Boolean,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
         when (uiState) {
-            AppDetailUiState.Loading -> {
+            AppInfoUiState.Loading -> {
                 Column(
                     modifier = modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -80,7 +86,7 @@ fun AppDetailScreen(
                 ) {
                     BlockerLoadingWheel(
                         modifier = modifier,
-                        contentDesc = stringResource(id = R.string.loading),
+                        contentDesc = stringResource(id = string.loading),
                     )
                 }
             }
@@ -101,13 +107,11 @@ fun AppDetailScreen(
                     tabState = tabState,
                     isRefreshing = isRefreshing,
                     onRefresh = onRefresh,
-                    switchTab = switchTab,
-                    onSwitchClick = onSwitchClick,
-                    modifier = modifier
+                    switchTab = switchTab
                 )
             }
 
-            is AppDetailUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
+            is AppInfoUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
         }
     }
 }
@@ -118,10 +122,9 @@ fun AppDetailContent(
     tabState: TabState,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    switchTab: (Int) -> Unit,
-    onSwitchClick: (String, String, Boolean) -> Boolean,
-    modifier: Modifier = Modifier
+    switchTab: (Int) -> Unit
 ) {
+    AppBasicInfoCard(app = uiState.appInfo)
     BlockerTabRow(selectedTabIndex = tabState.currentIndex) {
         tabState.titles.forEachIndexed { index, titleRes ->
             BlockerTab(
@@ -133,47 +136,27 @@ fun AppDetailContent(
     }
     when (tabState.currentIndex) {
         0 -> {
-            AppInfoTabContent(app = uiState.appInfo)
+            AppInfoTabContent(
+                app = uiState.appInfo,
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh
+            )
         }
 
         1 -> {
-            ComponentTabContent(
-                components = uiState.service,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                onSwitchClick = onSwitchClick,
-                modifier = modifier
-            )
+            AppDetailCommonTabContentRoute()
         }
 
         2 -> {
-            ComponentTabContent(
-                components = uiState.receiver,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                onSwitchClick = onSwitchClick,
-                modifier = modifier
-            )
+            AppDetailCommonTabContentRoute()
         }
 
         3 -> {
-            ComponentTabContent(
-                components = uiState.activity,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                onSwitchClick = onSwitchClick,
-                modifier = modifier
-            )
+            AppDetailCommonTabContentRoute()
         }
 
         4 -> {
-            ComponentTabContent(
-                components = uiState.contentProvider,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
-                onSwitchClick = onSwitchClick,
-                modifier = modifier
-            )
+            AppDetailCommonTabContentRoute()
         }
     }
 }
@@ -181,4 +164,38 @@ fun AppDetailContent(
 @Composable
 fun ErrorAppDetailScreen(message: String) {
     Text(text = message)
+}
+
+@Composable
+@Preview
+fun AppDetailScreenPreview() {
+    val app = Application(
+        label = "Blocker",
+        packageName = "com.mercury.blocker",
+        versionName = "1.2.69-alpha",
+        isEnabled = false,
+        firstInstallTime = System.now(),
+        lastUpdateTime = System.now(),
+        packageInfo = null,
+    )
+    val tabState = TabState(
+        titles = listOf(
+            string.app_info,
+            string.service,
+            string.service,
+            string.activity,
+            string.content_provider
+        ),
+        currentIndex = 0
+    )
+    BlockerTheme {
+        AppDetailScreen(
+            uiState = Success(appInfo = app),
+            tabState = tabState,
+            isRefreshing = false,
+            onRefresh = {},
+            switchTab = {},
+            onBackClick = {}
+        )
+    }
 }

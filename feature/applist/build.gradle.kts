@@ -26,7 +26,6 @@ android {
 
 dependencies {
     implementation(project(":core:ui"))
-    implementation(libs.androidx.compose.material)
     implementation(libs.kotlinx.datetime)
 }
 
