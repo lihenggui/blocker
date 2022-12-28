@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.applist
 import android.content.Context
 import android.content.pm.PackageInfo
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -40,11 +41,13 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
@@ -55,6 +58,11 @@ class AppListViewModel @Inject constructor(
 ) : AndroidViewModel(app) {
     private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
     val uiState = _uiState.asStateFlow()
+    var errorState = mutableStateOf<ErrorMessage?>(null)
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Timber.e(throwable)
+        errorState.value = ErrorMessage(throwable.message.orEmpty(), throwable.stackTraceToString())
+    }
 
     init {
         loadData()
@@ -75,27 +83,31 @@ class AppListViewModel @Inject constructor(
         _uiState.emit(AppListUiState.Success(stateAppList))
     }
 
-    fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher) {
+    fun dismissDialog() {
+        errorState.value = null
+    }
+
+    fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm clear $packageName".exec(ioDispatcher)
     }
 
-    fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher) {
+    fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         // TODO Add clear cache logic
     }
 
-    fun uninstall(packageName: String) = viewModelScope.launch(ioDispatcher) {
+    fun uninstall(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm uninstall $packageName".exec(ioDispatcher)
     }
 
-    fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher) {
+    fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "am force-stop $packageName".exec(ioDispatcher)
     }
 
-    fun enable(packageName: String) = viewModelScope.launch(ioDispatcher) {
+    fun enable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm enable $packageName".exec(ioDispatcher)
     }
 
-    fun disable(packageName: String) = viewModelScope.launch(ioDispatcher) {
+    fun disable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm disable $packageName".exec(ioDispatcher)
     }
 
@@ -163,6 +175,6 @@ sealed interface AppListUiState {
     object Loading : AppListUiState
     class Error(val error: ErrorMessage) : AppListUiState
     data class Success(
-        val appList: SnapshotStateList<AppItem>
+        val appList: SnapshotStateList<AppItem>,
     ) : AppListUiState
 }
