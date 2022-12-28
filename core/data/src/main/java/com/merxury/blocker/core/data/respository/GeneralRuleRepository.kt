@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network
+package com.merxury.blocker.core.data.respository
 
-import com.merxury.blocker.core.network.model.NetworkChangeList
-import com.merxury.blocker.core.network.model.NetworkComponentDetail
-import com.merxury.blocker.core.network.model.NetworkGeneralRule
+import com.merxury.blocker.core.data.Syncable
+import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.result.Result
+import kotlinx.coroutines.flow.Flow
 
-interface BlockerNetworkDataSource {
-    suspend fun getComponentData(path: String): NetworkComponentDetail?
+interface GeneralRuleRepository : Syncable {
+    /**
+     * Gets the general rule as a stream
+     */
+    fun getCacheGeneralRules(): Flow<List<GeneralRule>>
 
-    suspend fun getGeneralRules(): List<NetworkGeneralRule>
+    fun getNetworkGeneralRules(): Flow<Result<List<GeneralRule>>>
 
-    suspend fun getGeneralRuleChangeList(): List<NetworkChangeList>
+    suspend fun updateGeneralRules(list: List<GeneralRule>)
+
+    suspend fun clearCacheData()
 }
