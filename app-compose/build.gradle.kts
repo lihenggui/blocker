@@ -94,8 +94,8 @@ android {
 dependencies {
     implementation(project(":feature:appdetail"))
     implementation(project(":feature:applist"))
-    implementation(project(":feature:search"))
-    implementation(project(":feature:settings"))
+    implementation(project(":feature:onlinerules"))
+    implementation(project(":feature:globalsearch"))
     // TODO database, datastore, rule, datetime, network should be removed
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))

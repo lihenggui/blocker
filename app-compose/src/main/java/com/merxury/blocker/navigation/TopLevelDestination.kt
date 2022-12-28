@@ -30,25 +30,21 @@ import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 enum class TopLevelDestination(
     val selectedIcon: Icon,
     val unselectedIcon: Icon,
-    val iconTextId: Int,
-    val titleTextId: Int
+    val iconTextId: Int
 ) {
     APP_LIST(
-        selectedIcon = ImageVectorIcon(BlockerIcons.List),
-        unselectedIcon = ImageVectorIcon(BlockerIcons.List),
-        iconTextId = R.string.app_name,
-        titleTextId = R.string.app_name
+        selectedIcon = ImageVectorIcon(BlockerIcons.Apps),
+        unselectedIcon = ImageVectorIcon(BlockerIcons.Apps),
+        iconTextId = R.string.application_list
     ),
-    SEARCH(
+    ONLINE_RULES(
+        selectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
+        unselectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
+        iconTextId = R.string.online_rules,
+    ),
+    GLOBAL_SEARCH(
         selectedIcon = ImageVectorIcon(BlockerIcons.Search),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
-        iconTextId = R.string.app_name,
-        titleTextId = R.string.app_name
-    ),
-    SETTINGS(
-        selectedIcon = ImageVectorIcon(BlockerIcons.Settings),
-        unselectedIcon = ImageVectorIcon(BlockerIcons.Settings),
-        iconTextId = R.string.app_name,
-        titleTextId = R.string.app_name
+        iconTextId = R.string.global_search
     )
 }

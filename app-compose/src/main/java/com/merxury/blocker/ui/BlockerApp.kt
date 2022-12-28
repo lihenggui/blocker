@@ -36,7 +36,6 @@ import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
@@ -63,12 +61,11 @@ import com.merxury.blocker.core.designsystem.component.BlockerNavigationBar
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationBarItem
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationRail
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationRailItem
-import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.navigation.BlockerNavHost
 import com.merxury.blocker.navigation.TopLevelDestination
+import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -87,7 +84,7 @@ fun BlockerApp(
 ) {
     val background: @Composable (@Composable () -> Unit) -> Unit =
         when (appState.currentTopLevelDestination) {
-            TopLevelDestination.APP_LIST -> { content ->
+            APP_LIST -> { content ->
                 BlockerGradientBackground(content = content)
             }
 
@@ -106,29 +103,6 @@ fun BlockerApp(
             contentColor = MaterialTheme.colorScheme.onBackground,
             contentWindowInsets = WindowInsets(0, 0, 0, 0),
             snackbarHost = { SnackbarHost(snackbarHostState) },
-            topBar = {
-                // Show the top app bar on top level destinations.
-                val destination = appState.currentTopLevelDestination
-                if (destination != null) {
-                    BlockerTopAppBar(
-                        // When the nav rail is displayed, the top app bar will, by default
-                        // overlap it. This means that the top most item in the nav rail
-                        // won't be tappable. A workaround is to position the top app bar
-                        // behind the nav rail using zIndex.
-                        modifier = Modifier.zIndex(-1F),
-                        titleRes = destination.titleTextId,
-                        actionIconFirst = BlockerIcons.Settings,
-                        actionIconContentDescriptionFirst = null,
-                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                            containerColor = Color.Transparent
-                        ),
-                        onFirstActionClick = { appState.setShowSettingsDialog(true) },
-                        actionIconSecond = BlockerIcons.Settings,
-                        onSecondActionClick = { },
-                        actionIconContentDescriptionSecond = null,
-                    )
-                }
-            },
             bottomBar = {
                 if (appState.shouldShowBottomBar) {
                     BlockerBottomBar(
@@ -150,9 +124,6 @@ fun BlockerApp(
                     message = notConnected,
                     duration = Indefinite
                 )
-            }
-
-            if (appState.shouldShowSettingsDialog) {
             }
 
             Row(
@@ -178,7 +149,7 @@ fun BlockerApp(
                 BlockerNavHost(
                     navController = appState.navController,
                     onBackClick = appState::onBackClick,
-
+                    isExpandedScreen = appState.isExpandedScreen,
                     modifier = Modifier
                         .padding(padding)
                         .consumedWindowInsets(padding)

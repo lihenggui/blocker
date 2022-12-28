@@ -130,6 +130,26 @@ fun BlockerTopAppBar(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BlockerTopAppBar(
+    @StringRes titleRes: Int,
+    modifier: Modifier = Modifier,
+    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
+) {
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            AutoResizeText(
+                text = stringResource(id = titleRes),
+                FontSizeRange(5.sp, 22.sp),
+                maxLines = 2
+            )
+        },
+        colors = colors
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview("Top App Bar with navigation icon")
 @Composable
 fun BlockerTopAppBarPreview() {

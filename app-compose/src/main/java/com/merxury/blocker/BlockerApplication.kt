@@ -23,6 +23,9 @@ import coil.ImageLoaderFactory
 import coil.decode.SvgDecoder
 import com.merxury.blocker.sync.initializers.Sync
 import dagger.hilt.android.HiltAndroidApp
+import me.zhanghai.android.appiconloader.coil.AppIconFetcher
+import me.zhanghai.android.appiconloader.coil.AppIconKeyer
+import timber.log.Timber
 
 /**
  * [Application] class for Blocker
@@ -33,19 +36,23 @@ class BlockerApplication : Application(), ImageLoaderFactory {
         super.onCreate()
         // Initialize Sync; the system responsible for keeping data in the app up to date.
         Sync.initialize(context = this)
+        Timber.plant(Timber.DebugTree())
     }
 
     /**
-     * Since we're displaying SVGs in the app, Coil needs an ImageLoader which supports this
-     * format. During Coil's initialization it will call `applicationContext.newImageLoader()` to
-     * obtain an ImageLoader.
+     * Since we're displaying SVGs and application icons in the app, Coil needs an ImageLoader
+     * which supports this format. During Coil's initialization it will call
+     * `applicationContext.newImageLoader()` to obtain an ImageLoader.
      *
      * @see https://github.com/coil-kt/coil/blob/main/coil-singleton/src/main/java/coil/Coil.kt#L63
      */
     override fun newImageLoader(): ImageLoader {
+        val iconSize = resources.getDimensionPixelSize(R.dimen.app_icon_size)
         return ImageLoader.Builder(this)
             .components {
                 add(SvgDecoder.Factory())
+                add(AppIconKeyer())
+                add(AppIconFetcher.Factory(iconSize, false, this@BlockerApplication))
             }
             .build()
     }

@@ -17,4 +17,19 @@
 <resources>
     <string name="service_status_template">服务: 正在运行%1$d个, 已阻止%2$d个, 共计%3$d个.</string>
     <string name="loading">加载中</string>
+    <string name="show_system_apps">显示系统应用</string>
+    <string name="clear_cache">清理缓存</string>
+    <string name="clear_data">清除数据</string>
+    <string name="force_stop">强制停止</string>
+    <string name="uninstall">卸载</string>
+    <string name="enable">启用</string>
+    <string name="disable">禁用</string>
+    <string name="sort_menu">排序菜单</string>
+    <string name="name_asc">名称（升序）</string>
+    <string name="name_desc">名称（降序）</string>
+    <string name="installation_date">安装日期</string>
+    <string name="last_update_time">最后更新时间</string>
+    <string name="more_menu">更多菜单</string>
+    <string name="settings">设置</string>
+    <string name="support_and_feedback">帮助与反馈</string>
 </resources>
