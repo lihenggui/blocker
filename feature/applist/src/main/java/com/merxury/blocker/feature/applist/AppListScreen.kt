@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.applist
 
+import android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -48,6 +50,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.AppListItem
@@ -62,6 +65,7 @@ fun AppListRoute(
     viewModel: AppListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val errorState by remember { viewModel.errorState }
     AppListScreen(
         uiState = uiState,
         onAppItemClick = navigateToAppDetail,
@@ -73,6 +77,24 @@ fun AppListRoute(
         onDisableClick = viewModel::disable,
         modifier = modifier
     )
+    if (errorState != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.dismissDialog() },
+            title = {
+                Text(errorState?.message.orEmpty())
+            },
+            text = {
+                Text(errorState?.stackTrace.orEmpty())
+            },
+            confirmButton = {
+                BlockerTextButton(
+                    onClick = { viewModel.dismissDialog() }
+                ) {
+                    Text(stringResource(id = R.string.ok))
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -105,7 +127,8 @@ fun AppListScreen(
         }
     ) { padding ->
         Column(
-            modifier = modifier.fillMaxSize()
+            modifier = modifier
+                .fillMaxSize()
                 .padding(padding)
                 .consumedWindowInsets(padding)
                 .windowInsetsPadding(
