@@ -22,11 +22,8 @@ import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -39,14 +36,14 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppListGraph
-import com.merxury.blocker.feature.search.navigation.navigateToSearch
-import com.merxury.blocker.feature.search.navigation.searchRoute
-import com.merxury.blocker.feature.settings.navigation.navigateToSettings
-import com.merxury.blocker.feature.settings.navigation.settingsRoute
+import com.merxury.blocker.feature.globalsearch.navigation.globalSearchRoute
+import com.merxury.blocker.feature.globalsearch.navigation.navigateToGlobalSearch
+import com.merxury.blocker.feature.onlinerules.navigation.navigateToOnlineRules
+import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesRoute
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
-import com.merxury.blocker.navigation.TopLevelDestination.SEARCH
-import com.merxury.blocker.navigation.TopLevelDestination.SETTINGS
+import com.merxury.blocker.navigation.TopLevelDestination.GLOBAL_SEARCH
+import com.merxury.blocker.navigation.TopLevelDestination.ONLINE_RULES
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -79,13 +76,13 @@ class BlockerAppState(
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() = when (currentDestination?.route) {
             appListRoute -> APP_LIST
-            searchRoute -> SEARCH
-            settingsRoute -> SETTINGS
+            onlineRulesRoute -> ONLINE_RULES
+            globalSearchRoute -> GLOBAL_SEARCH
             else -> null
         }
 
-    var shouldShowSettingsDialog by mutableStateOf(false)
-        private set
+    val isExpandedScreen: Boolean
+        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
 
     val shouldShowBottomBar: Boolean
         get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact ||
@@ -133,18 +130,14 @@ class BlockerAppState(
 
             when (topLevelDestination) {
                 APP_LIST -> navController.navigateToAppListGraph(topLevelNavOptions)
-                SEARCH -> navController.navigateToSearch(topLevelNavOptions)
-                SETTINGS -> navController.navigateToSettings(topLevelNavOptions)
+                ONLINE_RULES -> navController.navigateToOnlineRules(topLevelNavOptions)
+                GLOBAL_SEARCH -> navController.navigateToGlobalSearch(topLevelNavOptions)
             }
         }
     }
 
     fun onBackClick() {
         navController.popBackStack()
-    }
-
-    fun setShowSettingsDialog(shouldShow: Boolean) {
-        shouldShowSettingsDialog = shouldShow
     }
 }
 

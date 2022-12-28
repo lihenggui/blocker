@@ -28,6 +28,7 @@ androidxTestRules = "1.5.0"
 androidxTracing = "1.1.0"
 androidxUiAutomator = "2.2.0"
 androidxWork = "2.7.1"
+appiconloader = "1.5.0"
 coil = "2.2.2"
 firebase = "31.1.1"
 hilt = "2.44.2"
@@ -99,6 +100,8 @@ androidx-test-uiautomator = { group = "androidx.test.uiautomator", name = "uiaut
 androidx-tracing-ktx = { group = "androidx.tracing", name = "tracing-ktx", version.ref = "androidxTracing" }
 androidx-work-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "androidxWork" }
 androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "androidxWork" }
+appiconloader = { group = "me.zhanghai.android.appiconloader", name = "appiconloader", version.ref = "appiconloader" }
+appiconloader-coil = { group = "me.zhanghai.android.appiconloader", name = "appiconloader-coil", version.ref = "appiconloader" }
 coil-kt = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
@@ -131,13 +134,14 @@ material = "com.google.android.material:material:1.7.0"
 androidx-recyclerview = "androidx.recyclerview:recyclerview:1.2.1"
 androidx-swiperefreshlayout = "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 androidx-constraintlayout = "androidx.constraintlayout:constraintlayout:2.1.4"
+androidx-constraintlayout-compose = "androidx.constraintlayout:constraintlayout-compose:1.0.1"
 androidx-documentfile = "androidx.documentfile:documentfile:1.0.1"
 androidx-preference-ktx = "androidx.preference:preference-ktx:1.2.0"
 androidx-annotation = "androidx.annotation:annotation:1.5.0"
 androidx-cardview = "androidx.cardview:cardview:1.0.0"
 androidx-fragment-ktx = "androidx.fragment:fragment-ktx:1.5.5"
 lottie = "com.airbnb.android:lottie:5.2.0"
-appiconloader = "me.zhanghai.android.appiconloader:appiconloader:1.5.0"
+
 libsu-core = { group = "com.github.topjohnwu.libsu", name = "core", version.ref = "libsu" }
 libsu-io = { group = "com.github.topjohnwu.libsu", name = "io", version.ref = "libsu" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
