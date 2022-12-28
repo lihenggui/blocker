@@ -25,6 +25,7 @@ import com.merxury.blocker.sync.initializers.Sync
 import dagger.hilt.android.HiltAndroidApp
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
 import me.zhanghai.android.appiconloader.coil.AppIconKeyer
+import timber.log.Timber
 
 /**
  * [Application] class for Blocker
@@ -35,6 +36,7 @@ class BlockerApplication : Application(), ImageLoaderFactory {
         super.onCreate()
         // Initialize Sync; the system responsible for keeping data in the app up to date.
         Sync.initialize(context = this)
+        Timber.plant(Timber.DebugTree())
     }
 
     /**
