@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.applist
 
-import android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -90,7 +89,7 @@ fun AppListRoute(
                 BlockerTextButton(
                     onClick = { viewModel.dismissDialog() }
                 ) {
-                    Text(stringResource(id = R.string.ok))
+                    Text(stringResource(id = android.R.string.ok))
                 }
             }
         )
