@@ -9,6 +9,7 @@
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
     <uses-permission android:name="moe.shizuku.manager.permission.API" />
+
     <uses-sdk tools:overrideLibrary="rikka.shizuku.provider,rikka.shizuku.api,rikka.shizuku.shared,rikka.shizuku.aidl" />
 
     <queries>
@@ -19,11 +20,15 @@
 
     <application
         android:name=".BlockerApplication"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Blocker.Splash">
-        <profileable android:shell="true" tools:targetApi="q" />
+        <profileable
+            android:shell="true"
+            tools:targetApi="q" />
 
         <activity
             android:name=".MainActivity"
