@@ -50,6 +50,7 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
+import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.AppListItem
@@ -74,6 +75,7 @@ fun AppListRoute(
         onUninstallClick = viewModel::uninstall,
         onEnableClick = viewModel::enable,
         onDisableClick = viewModel::disable,
+        onSortingUpdate = viewModel::updateSorting,
         modifier = modifier
     )
     if (errorState != null) {
@@ -107,6 +109,7 @@ fun AppListScreen(
     onUninstallClick: (String) -> Unit,
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
+    onSortingUpdate: (AppSorting) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -116,7 +119,7 @@ fun AppListScreen(
                     Text(text = "Blocker")
                 },
                 actions = {
-                    TopAppBarSortMenu()
+                    TopAppBarSortMenu(onSortingUpdate)
                     TopAppBarMoreMenu(
                         navigateToSettings = {},
                         navigateToFeedback = {},

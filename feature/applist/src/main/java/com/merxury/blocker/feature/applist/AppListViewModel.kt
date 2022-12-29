@@ -45,7 +45,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
@@ -68,6 +70,7 @@ class AppListViewModel @Inject constructor(
 
     init {
         loadData()
+        listenSortingChanges()
     }
 
     fun loadData() = viewModelScope.launch {
@@ -83,6 +86,22 @@ class AppListViewModel @Inject constructor(
         val stateAppList = mapToSnapshotStateList(list, getApplication())
         sortList(stateAppList, sortType)
         _uiState.emit(AppListUiState.Success(stateAppList))
+    }
+
+    private fun listenSortingChanges() = viewModelScope.launch {
+        userDataRepository.userData
+            .map { it.appSorting }
+            .distinctUntilChanged()
+            .collect {
+                val uiState = _uiState.value
+                if (uiState is AppListUiState.Success) {
+                    sortList(uiState.appList, it)
+                }
+            }
+    }
+
+    fun updateSorting(sorting: AppSorting) = viewModelScope.launch {
+        userDataRepository.setAppSorting(sorting)
     }
 
     fun dismissDialog() {
