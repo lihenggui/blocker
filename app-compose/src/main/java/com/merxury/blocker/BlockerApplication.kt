@@ -60,7 +60,7 @@ class BlockerApplication : Application(), ImageLoaderFactory {
             .components {
                 add(SvgDecoder.Factory())
                 add(AppIconKeyer())
-                add(AppIconFetcher.Factory(iconSize, false, this@BlockerApplication))
+                add(AppIconFetcher.Factory(iconSize, true, this@BlockerApplication))
             }
             .build()
     }
