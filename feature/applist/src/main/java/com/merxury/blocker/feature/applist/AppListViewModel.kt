@@ -38,6 +38,7 @@ import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.FileUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -92,7 +93,18 @@ class AppListViewModel @Inject constructor(
     }
 
     fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        // TODO Add clear cache logic
+        val context: Context = getApplication()
+        val cacheFolder = context.filesDir
+            ?.parentFile
+            ?.parentFile
+            ?.resolve(packageName)
+            ?.resolve("cache")
+            ?: run {
+                Timber.e("Can't resolve cache path for $packageName")
+                return@launch
+            }
+        Timber.d("Delete cache folder: $cacheFolder")
+        FileUtils.delete(cacheFolder.absolutePath, recursively = true, ioDispatcher)
     }
 
     fun uninstall(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
