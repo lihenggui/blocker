@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.datetime.Instant
 import timber.log.Timber
 
 @HiltViewModel
@@ -79,8 +80,8 @@ class AppListViewModel @Inject constructor(
             ApplicationUtil.getThirdPartyApplicationList(getApplication())
         }
             .toMutableList()
-        sortList(list, sortType)
         val stateAppList = mapToSnapshotStateList(list, getApplication())
+        sortList(stateAppList, sortType)
         _uiState.emit(AppListUiState.Success(stateAppList))
     }
 
@@ -124,18 +125,18 @@ class AppListViewModel @Inject constructor(
     }
 
     private suspend fun sortList(
-        list: MutableList<Application>,
+        list: SnapshotStateList<AppItem>,
         sorting: AppSorting
     ) = withContext(cpuDispatcher) {
         when (sorting) {
-            NAME_ASCENDING -> list.sortBy { it.label }
-            NAME_DESCENDING -> list.sortByDescending { it.label }
+            NAME_ASCENDING -> list.sortBy { it.label.lowercase() }
+            NAME_DESCENDING -> list.sortByDescending { it.label.lowercase() }
             FIRST_INSTALL_TIME_ASCENDING -> list.sortBy { it.firstInstallTime }
             FIRST_INSTALL_TIME_DESCENDING -> list.sortByDescending { it.firstInstallTime }
             LAST_UPDATE_TIME_ASCENDING -> list.sortBy { it.lastUpdateTime }
             LAST_UPDATE_TIME_DESCENDING -> list.sortByDescending { it.lastUpdateTime }
         }
-        list.sortBy { it.isEnabled }
+        list.sortBy { it.enabled }
     }
 
     private suspend fun mapToSnapshotStateList(
@@ -152,6 +153,9 @@ class AppListViewModel @Inject constructor(
                 // TODO detect if an app is running or not
                 isRunning = false,
                 enabled = it.isEnabled,
+                firstInstallTime = it.firstInstallTime,
+                lastUpdateTime = it.lastUpdateTime,
+                // TODO get service status
                 appServiceStatus = null,
                 packageInfo = it.packageInfo
             )
@@ -179,6 +183,8 @@ data class AppItem(
     val isSystem: Boolean,
     val isRunning: Boolean,
     val enabled: Boolean,
+    val firstInstallTime: Instant?,
+    val lastUpdateTime: Instant?,
     val appServiceStatus: AppServiceStatus?,
     val packageInfo: PackageInfo?,
 )
