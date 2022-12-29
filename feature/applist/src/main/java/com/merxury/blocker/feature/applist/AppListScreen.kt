@@ -40,7 +40,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,6 +75,7 @@ fun AppListRoute(
         onEnableClick = viewModel::enable,
         onDisableClick = viewModel::disable,
         onSortingUpdate = viewModel::updateSorting,
+        onServiceStateUpdate = viewModel::updateServiceStatus,
         modifier = modifier
     )
     if (errorState != null) {
@@ -109,6 +109,7 @@ fun AppListScreen(
     onUninstallClick: (String) -> Unit,
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
+    onServiceStateUpdate: (String) -> Unit,
     onSortingUpdate: (AppSorting) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -167,6 +168,7 @@ fun AppListScreen(
                         onUninstallClick = onUninstallClick,
                         onEnableClick = onEnableClick,
                         onDisableClick = onDisableClick,
+                        onServiceStateUpdate = onServiceStateUpdate,
                         modifier = modifier
                     )
                 }
@@ -187,6 +189,7 @@ fun AppListContent(
     onUninstallClick: (String) -> Unit,
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
+    onServiceStateUpdate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listContent = remember { appList }
@@ -211,14 +214,11 @@ fun AppListContent(
                     onEnableClick = onEnableClick,
                     onDisableClick = onDisableClick,
                 )
+                LaunchedEffect(true) {
+                    onServiceStateUpdate(it.packageName)
+                }
             }
         }
-    }
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo }
-            .collect {
-                // TODO show service info
-            }
     }
 }
 
