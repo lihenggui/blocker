@@ -18,6 +18,8 @@ package com.merxury.blocker.feature.settings
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -28,8 +30,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.feature.settings.R.string
-import com.merxury.blocker.feature.settings.component.SettingsItemComponent
+import com.merxury.blocker.feature.settings.SettingsUiState.Loading
+import com.merxury.blocker.feature.settings.SettingsUiState.Success
+import com.merxury.blocker.feature.settings.item.SettingsItem
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
@@ -48,25 +54,29 @@ fun SettingsScreen(
     uiState: SettingsUiState,
     modifier: Modifier = Modifier
 ) {
-    Column {
-        BlockerTopAppBar(
-            titleRes = string.settings,
-            onNavigationClick = onNavigationClick
-        )
-        SettingsItemComponent(
-            icon = BlockerIcons.AutoFix,
-            itemRes = string.controller_type,
-            itemValue = uiState.controllerType.type,
-            onItemClick = {},
-            modifier = modifier
-        )
-        SettingsItemComponent(
-            icon = BlockerIcons.Block,
-            itemRes = string.online_rule_source,
-            itemValue = uiState.onlineRulesSource.source,
-            onItemClick = {},
-            modifier = modifier
-        )
+    if (uiState is Loading) {
+        Text("Loading")
+    } else if (uiState is Success) {
+        Column {
+            BlockerTopAppBar(
+                titleRes = string.settings,
+                onNavigationClick = onNavigationClick
+            )
+            SettingsItem(
+                icon = BlockerIcons.AutoFix,
+                itemRes = string.controller_type,
+                itemValue = uiState.settings.controllerType.toString(),
+                onItemClick = {},
+                modifier = modifier
+            )
+            SettingsItem(
+                icon = BlockerIcons.Block,
+                itemRes = string.online_rule_source,
+                itemValue = uiState.settings.ruleServerProvider.toString(),
+                onItemClick = {},
+                modifier = modifier
+            )
+        }
     }
 }
 
@@ -74,9 +84,19 @@ fun SettingsScreen(
 @Preview
 fun SettingsScreenPreview() {
     BlockerTheme {
-        SettingsScreen(
-            onNavigationClick = {},
-            uiState = SettingsUiState()
-        )
+        Surface {
+            SettingsScreen(
+                onNavigationClick = {},
+                uiState = Success(
+                    UserEditableSettings(
+                        controllerType = IFW,
+                        ruleServerProvider = GITHUB,
+                        ruleBackupFolder = "/emulated/0/Blocker",
+                        backupSystemApp = true,
+                        restoreSystemApp = false,
+                    )
+                )
+            )
+        }
     }
 }
