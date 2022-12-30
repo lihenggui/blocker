@@ -38,8 +38,8 @@ import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppListGraph
 import com.merxury.blocker.feature.globalsearch.navigation.globalSearchRoute
 import com.merxury.blocker.feature.globalsearch.navigation.navigateToGlobalSearch
-import com.merxury.blocker.feature.onlinerules.navigation.navigateToOnlineRules
-import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesRoute
+import com.merxury.blocker.feature.onlineRules.navigation.navigateToOnlineRules
+import com.merxury.blocker.feature.onlineRules.navigation.onlineRulesRoute
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
 import com.merxury.blocker.navigation.TopLevelDestination.GLOBAL_SEARCH

@@ -1,10 +1,10 @@
-package com.merxury.blocker.feature.onlinerules.navigation
+package com.merxury.blocker.feature.onlineRules.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.merxury.blocker.feature.onlinerules.OnlineRulesRoute
+import com.merxury.blocker.feature.onlineRules.OnlineRulesRoute
 
 const val onlineRulesRoute = "online_rules_route"
 

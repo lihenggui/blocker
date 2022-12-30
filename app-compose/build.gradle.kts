@@ -96,6 +96,7 @@ dependencies {
     implementation(project(":feature:applist"))
     implementation(project(":feature:onlinerules"))
     implementation(project(":feature:globalsearch"))
+    implementation(project(":feature:settings"))
     // TODO database, datastore, rule, datetime, network should be removed
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))
