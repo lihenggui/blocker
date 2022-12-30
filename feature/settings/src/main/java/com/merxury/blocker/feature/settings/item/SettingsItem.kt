@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.settings.component
+package com.merxury.blocker.feature.settings.item
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,7 +39,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R
 
 @Composable
-fun SettingsItemComponent(
+fun SettingsItem(
     icon: ImageVector,
     itemRes: Int,
     itemValue: String,
@@ -68,11 +69,13 @@ fun SettingsItemComponent(
 @Preview
 fun SettingsItemPreview() {
     BlockerTheme {
-        SettingsItemComponent(
-            icon = BlockerIcons.AutoFix,
-            itemRes = R.string.controller_type,
-            itemValue = "IFW",
-            onItemClick = {}
-        )
+        Surface {
+            SettingsItem(
+                icon = BlockerIcons.AutoFix,
+                itemRes = R.string.controller_type,
+                itemValue = "IFW",
+                onItemClick = {}
+            )
+        }
     }
 }
