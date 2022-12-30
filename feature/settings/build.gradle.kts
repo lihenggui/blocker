@@ -23,5 +23,6 @@ android {
     namespace = "com.merxury.blocker.feature.settings"
 }
 dependencies {
+    implementation(project(":core:datastore"))
     implementation(project(":core:model"))
 }

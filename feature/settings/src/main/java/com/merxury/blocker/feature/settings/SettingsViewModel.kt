@@ -17,27 +17,86 @@
 package com.merxury.blocker.feature.settings
 
 import androidx.lifecycle.ViewModel
-import com.merxury.blocker.core.ui.data.ControllerType
-import com.merxury.blocker.core.ui.data.ControllerType.IFW
-import com.merxury.blocker.core.ui.data.OnlineRulesSource
-import com.merxury.blocker.core.ui.data.OnlineRulesSource.GITLAB
+import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.UserDataRepository
+import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.feature.settings.SettingsUiState.Loading
+import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.io.File
 import javax.inject.Inject
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @HiltViewModel
-class SettingsViewModel @Inject constructor() : ViewModel() {
-    private val _settingsUiState: MutableStateFlow<SettingsUiState> =
-        MutableStateFlow(SettingsUiState())
-    val settingsUiState: StateFlow<SettingsUiState> = _settingsUiState
+class SettingsViewModel @Inject constructor(
+    private val userDataRepository: UserDataRepository
+) : ViewModel() {
+    val settingsUiState: StateFlow<SettingsUiState> =
+        userDataRepository.userData
+            .map { userData ->
+                Success(
+                    settings = UserEditableSettings(
+                        controllerType = userData.controllerType,
+                        ruleServerProvider = userData.ruleServerProvider,
+                        ruleBackupFolder = userData.ruleBackupFolder,
+                        backupSystemApp = userData.backupSystemApp,
+                        restoreSystemApp = userData.restoreSystemApp
+                    )
+                )
+            }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5_000),
+                initialValue = Loading
+            )
+
+    fun updateControllerType(type: ControllerType) {
+        viewModelScope.launch {
+            userDataRepository.setControllerType(type)
+        }
+    }
+
+    fun updateRuleServerProvider(provider: RuleServerProvider) {
+        viewModelScope.launch {
+            userDataRepository.setRuleServerProvider(provider)
+        }
+    }
+
+    fun updateRuleBackupFolder(path: String) {
+        viewModelScope.launch {
+            userDataRepository.setRuleBackupFolder(path)
+        }
+    }
+
+    fun updateBackupSystemApp(shouldBackup: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setBackupSystemApp(shouldBackup)
+        }
+    }
+
+    fun updateRestoreSystemApp(shouldRestore: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setRestoreSystemApp(shouldRestore)
+        }
+    }
 }
 
-data class SettingsUiState(
+data class UserEditableSettings(
     val controllerType: ControllerType = IFW,
-    val onlineRulesSource: OnlineRulesSource = GITLAB,
-    val folderToSave: File = File(""),
-    val backupSystemApps: Boolean = false,
-    val restoreSystemApps: Boolean = false,
+    val ruleServerProvider: RuleServerProvider = GITLAB,
+    val ruleBackupFolder: String? = null,
+    val backupSystemApp: Boolean = false,
+    val restoreSystemApp: Boolean = false,
 )
+
+sealed interface SettingsUiState {
+    object Loading : SettingsUiState
+
+    data class Success(val settings: UserEditableSettings) : SettingsUiState
+}
