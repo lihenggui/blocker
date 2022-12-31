@@ -22,7 +22,7 @@
     <string name="service">服务</string>
     <string name="launch_app">启动应用</string>
     <string name="cannot_launch_this_app">无法启动这个应用</string>
-    <string name="blocker_rules">Blocker 规则</string>
+    <string name="blocker_rules">Blocker规则</string>
     <string name="export_rules">导出规则</string>
     <string name="import_rules">导入规则</string>
     <string name="ifw_rules">IFW规则</string>

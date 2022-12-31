@@ -27,6 +27,7 @@ import com.merxury.blocker.feature.applist.navigation.appListGraph
 import com.merxury.blocker.feature.applist.navigation.appListGraphRoutePattern
 import com.merxury.blocker.feature.globalsearch.navigation.globalSearchScreen
 import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesScreen
+import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
 
 /**
@@ -53,6 +54,7 @@ fun BlockerNavHost(
             navigateToAppDetail = { packageName ->
                 navController.navigateToAppDetail(packageName)
             },
+            navigateToSettings = { navController.navigateToSettings() },
             nestedGraphs = {
                 appDetailScreen(onBackClick)
             }

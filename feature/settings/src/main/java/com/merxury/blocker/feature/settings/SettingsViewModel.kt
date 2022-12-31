@@ -46,7 +46,9 @@ class SettingsViewModel @Inject constructor(
                         ruleServerProvider = userData.ruleServerProvider,
                         ruleBackupFolder = userData.ruleBackupFolder,
                         backupSystemApp = userData.backupSystemApp,
-                        restoreSystemApp = userData.restoreSystemApp
+                        restoreSystemApp = userData.restoreSystemApp,
+                        showSystemApps = userData.showSystemApps,
+                        showServiceInfo = userData.showServiceInfo
                     )
                 )
             }
@@ -59,6 +61,18 @@ class SettingsViewModel @Inject constructor(
     fun updateControllerType(type: ControllerType) {
         viewModelScope.launch {
             userDataRepository.setControllerType(type)
+        }
+    }
+
+    fun updateShowSystemApp(shouldShow: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setShowSystemApps(shouldShow)
+        }
+    }
+
+    fun updateShowServiceInfo(shouldShow: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setShowServiceInfo(shouldShow)
         }
     }
 
@@ -85,6 +99,30 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setRestoreSystemApp(shouldRestore)
         }
     }
+
+    fun importBlockerRules() {
+        //TODO
+    }
+
+    fun exportBlockerRules() {
+        //TODO
+    }
+
+    fun exportIfwRules() {
+        //TODO
+    }
+
+    fun importIfwRules() {
+        //TODO
+    }
+
+    fun resetIfwRules() {
+        //TODO
+    }
+
+    fun importMyAndroidToolsRules() {
+        //TODO
+    }
 }
 
 data class UserEditableSettings(
@@ -93,6 +131,8 @@ data class UserEditableSettings(
     val ruleBackupFolder: String? = null,
     val backupSystemApp: Boolean = false,
     val restoreSystemApp: Boolean = false,
+    val showSystemApps: Boolean = false,
+    val showServiceInfo: Boolean = false
 )
 
 sealed interface SettingsUiState {
