@@ -17,6 +17,9 @@
 package com.merxury.blocker.feature.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,6 +38,11 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
+import com.merxury.blocker.feature.settings.item.AppListSettings
+import com.merxury.blocker.feature.settings.item.BackupSettings
+import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
+import com.merxury.blocker.feature.settings.item.IfwRulesSettings
+import com.merxury.blocker.feature.settings.item.SettingItem
 import com.merxury.blocker.feature.settings.item.SettingsItem
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
@@ -44,7 +52,20 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
-    SettingsScreen(onNavigationClick = onNavigationClick, uiState = settingsUiState)
+    SettingsScreen(
+        onNavigationClick = onNavigationClick,
+        uiState = settingsUiState,
+        updateShowSystemApps = viewModel::updateShowSystemApp,
+        updateShowServiceInfo = viewModel::updateShowServiceInfo,
+        updateBackupSystemApp = viewModel::updateBackupSystemApp,
+        updateRestoreSystemApp = viewModel::updateRestoreSystemApp,
+        updateRuleBackupFolder = viewModel::updateRuleBackupFolder,
+        importRules = viewModel::importBlockerRules,
+        exportRules = viewModel::exportBlockerRules,
+        importIfwRules = viewModel::importIfwRules,
+        exportIfwRules = viewModel::exportIfwRules,
+        resetIfwRules = viewModel::resetIfwRules
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,29 +73,67 @@ fun SettingsRoute(
 fun SettingsScreen(
     onNavigationClick: () -> Unit,
     uiState: SettingsUiState,
+    updateShowSystemApps: (Boolean) -> Unit,
+    updateShowServiceInfo: (Boolean) -> Unit,
+    updateBackupSystemApp: (Boolean) -> Unit,
+    updateRestoreSystemApp: (Boolean) -> Unit,
+    updateRuleBackupFolder: (String) -> Unit,
+    exportRules: () -> Unit,
+    importRules: () -> Unit,
+    exportIfwRules: () -> Unit,
+    importIfwRules: () -> Unit,
+    resetIfwRules: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (uiState is Loading) {
         Text("Loading")
     } else if (uiState is Success) {
-        Column {
+        Column(modifier = modifier.verticalScroll(rememberScrollState())) {
             BlockerTopAppBar(
                 titleRes = string.settings,
                 onNavigationClick = onNavigationClick
             )
-            SettingsItem(
+            SettingItem(
                 icon = BlockerIcons.AutoFix,
                 itemRes = string.controller_type,
                 itemValue = uiState.settings.controllerType.toString(),
                 onItemClick = {},
                 modifier = modifier
             )
-            SettingsItem(
+            SettingItem(
                 icon = BlockerIcons.Block,
                 itemRes = string.online_rule_source,
                 itemValue = uiState.settings.ruleServerProvider.toString(),
                 onItemClick = {},
                 modifier = modifier
+            )
+            SettingsItem(
+                itemRes = string.import_mat_rules,
+                onItemClick = {}
+            )
+            Divider()
+            AppListSettings(
+                showSystemApps = uiState.settings.showSystemApps,
+                showServiceInfo = uiState.settings.showServiceInfo,
+                updateShowSystemApps = updateShowSystemApps,
+                updateShowServiceInfo = updateShowServiceInfo
+            )
+            Divider()
+            BackupSettings(
+                backupSystemApps = uiState.settings.backupSystemApp,
+                restoreSystemApp = uiState.settings.restoreSystemApp,
+                ruleBackupFolder = uiState.settings.ruleBackupFolder,
+                updateBackupSystemApp = updateBackupSystemApp,
+                updateRestoreSystemApp = updateRestoreSystemApp,
+                updateRuleBackupFolder = updateRuleBackupFolder
+            )
+            Divider()
+            BlockerRulesSettings(exportRules = exportRules, importRules = importRules)
+            Divider()
+            IfwRulesSettings(
+                exportIfwRules = exportIfwRules,
+                importIfwRules = importIfwRules,
+                resetIfwRules = resetIfwRules
             )
         }
     }
@@ -94,8 +153,20 @@ fun SettingsScreenPreview() {
                         ruleBackupFolder = "/emulated/0/Blocker",
                         backupSystemApp = true,
                         restoreSystemApp = false,
+                        showSystemApps = false,
+                        showServiceInfo = true
                     )
-                )
+                ),
+                updateShowSystemApps = {},
+                updateShowServiceInfo = {},
+                updateBackupSystemApp = {},
+                updateRestoreSystemApp = {},
+                updateRuleBackupFolder = {},
+                importRules = {},
+                exportRules = {},
+                importIfwRules = {},
+                exportIfwRules = {},
+                resetIfwRules = {}
             )
         }
     }
