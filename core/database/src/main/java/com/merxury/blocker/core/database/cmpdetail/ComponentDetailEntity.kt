@@ -18,6 +18,7 @@ package com.merxury.blocker.core.database.cmpdetail
 
 data class ComponentDetailEntity(
     val name: String,
+    val packageName: String,
     val icon: String? = null,
     val sdkName: String? = null,
     val description: String? = null,

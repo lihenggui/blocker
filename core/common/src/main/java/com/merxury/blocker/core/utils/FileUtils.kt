@@ -25,6 +25,7 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -71,13 +72,17 @@ object FileUtils {
 
     @JvmStatic
     @Throws(IOException::class)
-    fun delete(path: String, recursively: Boolean): Boolean {
+    suspend fun delete(
+        path: String,
+        recursively: Boolean,
+        dispatcher: CoroutineDispatcher = Dispatchers.IO
+    ): Boolean = withContext(dispatcher) {
         val file = SuFile(path)
         if (!file.exists()) {
             Timber.e("Can't delete $path since it doesn't exist")
-            return false
+            return@withContext false
         }
-        return if (recursively) {
+        return@withContext if (recursively) {
             file.deleteRecursive()
         } else {
             file.delete()

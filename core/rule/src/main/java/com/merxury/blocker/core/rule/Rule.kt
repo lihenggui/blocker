@@ -308,7 +308,7 @@ object Rule {
         controller.batchDisable(service) {}
     }
 
-    fun resetIfw(): Boolean {
+    suspend fun resetIfw(): Boolean {
         var result = true
         try {
             val ifwFolder = StorageUtils.getIfwFolder()

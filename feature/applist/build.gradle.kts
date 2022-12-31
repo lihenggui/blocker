@@ -26,6 +26,7 @@ android {
 
 dependencies {
     implementation(project(":core:ui"))
+    implementation(project(":core:ifw-api"))
     implementation(libs.kotlinx.datetime)
 }
 

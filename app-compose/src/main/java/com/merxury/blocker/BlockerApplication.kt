@@ -22,6 +22,7 @@ import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.SvgDecoder
 import com.merxury.blocker.sync.initializers.Sync
+import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
 import me.zhanghai.android.appiconloader.coil.AppIconKeyer
@@ -37,6 +38,13 @@ class BlockerApplication : Application(), ImageLoaderFactory {
         // Initialize Sync; the system responsible for keeping data in the app up to date.
         Sync.initialize(context = this)
         Timber.plant(Timber.DebugTree())
+        Shell.enableVerboseLogging = true
+        Shell.setDefaultBuilder(
+            Shell.Builder.create()
+                .setFlags(Shell.FLAG_REDIRECT_STDERR)
+                .setFlags(Shell.FLAG_MOUNT_MASTER)
+                .setTimeout(10)
+        )
     }
 
     /**
@@ -52,7 +60,7 @@ class BlockerApplication : Application(), ImageLoaderFactory {
             .components {
                 add(SvgDecoder.Factory())
                 add(AppIconKeyer())
-                add(AppIconFetcher.Factory(iconSize, false, this@BlockerApplication))
+                add(AppIconFetcher.Factory(iconSize, true, this@BlockerApplication))
             }
             .build()
     }
