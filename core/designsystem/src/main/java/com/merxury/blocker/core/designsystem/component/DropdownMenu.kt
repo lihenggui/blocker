@@ -33,6 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
@@ -40,7 +42,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 fun BlockerAppTopBarMenu(
     menuIcon: ImageVector,
     menuIconDesc: Int,
-    items: List<DropDownMenuItem>
+    menuList: List<DropDownMenuItem>
 ) {
     val expanded = remember { mutableStateOf(false) }
     Box(Modifier.wrapContentSize(Alignment.TopStart)) {
@@ -55,7 +57,7 @@ fun BlockerAppTopBarMenu(
         BlockerDropdownMenu(
             expanded = expanded.value,
             onDismissRequest = { expanded.value = false },
-            items = items
+            menuList = menuList
         )
     }
 }
@@ -64,18 +66,43 @@ fun BlockerAppTopBarMenu(
 fun BlockerDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
-    items: List<DropDownMenuItem>,
+    menuList: List<DropDownMenuItem>,
     dismissOnItemClick: Boolean = true
 ) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest
     ) {
-        items.forEach { item ->
+        menuList.forEach { item ->
             DropdownMenuItem(
                 text = { Text(stringResource(id = item.textRes)) },
                 onClick = {
                     item.onClick()
+                    if (dismissOnItemClick) onDismissRequest()
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun BlockerDropdownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    menuList: List<Any>,
+    onClick: (Any) -> Unit,
+    dismissOnItemClick: Boolean = true
+) {
+    DropdownMenu(
+        offset = DpOffset(x = 56.dp, y = 0.dp),
+        expanded = expanded,
+        onDismissRequest = onDismissRequest
+    ) {
+        menuList.forEach { item ->
+            DropdownMenuItem(
+                text = { Text(item.toString()) },
+                onClick = {
+                    onClick(item)
                     if (dismissOnItemClick) onDismissRequest()
                 }
             )
@@ -103,7 +130,7 @@ fun DropDownMenuPreview() {
             BlockerDropdownMenu(
                 expanded = true,
                 onDismissRequest = {},
-                items = menuItems,
+                menuList = menuItems,
             )
         }
     }

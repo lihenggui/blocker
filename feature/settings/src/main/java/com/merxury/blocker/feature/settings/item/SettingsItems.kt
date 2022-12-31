@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.settings.item
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,15 +30,57 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R
+
+@Composable
+fun SettingItem(
+    icon: ImageVector,
+    itemRes: Int,
+    itemValue: String,
+    menuList: List<Any>,
+    onMenuClick: (Any) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Box(modifier = modifier) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .clickable { expanded = true }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = icon, contentDescription = stringResource(id = itemRes))
+            Spacer(modifier = Modifier.width(16.dp))
+            Column {
+                Text(
+                    text = stringResource(id = itemRes),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(text = itemValue, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
+        BlockerDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            menuList = menuList,
+            onClick = onMenuClick
+        )
+    }
+}
 
 @Composable
 fun SettingItem(
@@ -126,7 +169,8 @@ fun SettingsItemPreview() {
                 icon = BlockerIcons.AutoFix,
                 itemRes = R.string.controller_type,
                 itemValue = "IFW",
-                onItemClick = {}
+                menuList = listOf("IFW", "Package Manager", "Shizuku"),
+                onMenuClick = {}
             )
         }
     }

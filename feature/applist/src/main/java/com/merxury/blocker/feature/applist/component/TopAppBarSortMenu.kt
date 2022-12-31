@@ -44,6 +44,6 @@ fun TopAppBarSortMenu(onSortingUpdate: (AppSorting) -> Unit) {
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.Sort,
         menuIconDesc = R.string.sort_menu,
-        items = items
+        menuList = items
     )
 }

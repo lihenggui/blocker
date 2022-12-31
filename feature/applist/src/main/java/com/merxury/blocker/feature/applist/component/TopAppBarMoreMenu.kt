@@ -28,7 +28,7 @@ fun TopAppBarMoreMenu(
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
         menuIconDesc = R.string.more_menu,
-        items = items
+        menuList = items
     )
 }
 
