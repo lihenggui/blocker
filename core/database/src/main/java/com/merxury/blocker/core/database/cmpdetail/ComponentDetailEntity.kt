@@ -16,14 +16,31 @@
 
 package com.merxury.blocker.core.database.cmpdetail
 
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import javax.annotation.Nonnull
+
+@Entity(tableName = "component_detail")
 data class ComponentDetailEntity(
-    val name: String,
+    @Nonnull
+    @PrimaryKey @ColumnInfo(name = "full_name")
+    val fullName: String,
+    @Nonnull
+    @ColumnInfo(name = "simple_name")
+    val simpleName: String,
+    @Nonnull
+    @ColumnInfo(name = "package_name")
     val packageName: String,
     val icon: String? = null,
+    @ColumnInfo(name = "sdk_name")
     val sdkName: String? = null,
     val description: String? = null,
+    @ColumnInfo(name = "disable_effect")
     val disableEffect: String? = null,
     val author: String? = null,
+    @ColumnInfo(name = "added_version")
     val addedVersion: String? = null,
+    @ColumnInfo(name = "recommend_to_block")
     val recommendToBlock: Boolean = false,
 )

@@ -3,7 +3,8 @@ package com.merxury.blocker.core.data.model
 import com.merxury.blocker.core.database.cmpdetail.ComponentDetailEntity
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 fun NetworkComponentDetail.asEntity() = ComponentDetailEntity(
-    name = name,
+    fullName = fullName,
+    simpleName = simpleName,
     packageName = packageName,
     icon = icon,
     sdkName = sdkName,
