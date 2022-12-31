@@ -17,6 +17,8 @@
 package com.merxury.blocker.core.data.respository
 
 import android.content.Context
+import com.merxury.blocker.core.database.cmpdetail.ComponentDetailDao
+import com.merxury.blocker.core.database.cmpdetail.ComponentDetailEntity
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.Dispatcher
@@ -37,10 +39,10 @@ import timber.log.Timber
 
 const val FILE_EXTENSION = ".json"
 const val USER_GENERATED_FOLDER = "user_generated_components/"
-const val ROOT_FOLDER = "components/"
 
 class OnlineComponentRepository @Inject constructor(
     private val network: BlockerNetworkDataSource,
+    private val componentDetailDao: ComponentDetailDao,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDataRepository {
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -54,6 +56,13 @@ class OnlineComponentRepository @Inject constructor(
             .plus(FILE_EXTENSION)
         return flow<NetworkComponentDetail> { network.getComponentData(relativePath) }
             .asResult()
+    }
+
+    override suspend fun getLocalComponentData(
+        fullName: String
+    ): ComponentDetailEntity? {
+        return componentDetailDao.getComponentDetail(fullName)
+            .firstOrNull()
     }
 
     override suspend fun getUserGeneratedComponentDetail(
