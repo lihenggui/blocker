@@ -33,8 +33,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType.PM
+import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
@@ -64,7 +69,9 @@ fun SettingsRoute(
         exportRules = viewModel::exportBlockerRules,
         importIfwRules = viewModel::importIfwRules,
         exportIfwRules = viewModel::exportIfwRules,
-        resetIfwRules = viewModel::resetIfwRules
+        resetIfwRules = viewModel::resetIfwRules,
+        updateControllerType = viewModel::updateControllerType,
+        updateRuleServerProvider = viewModel::updateRuleServerProvider
     )
 }
 
@@ -78,6 +85,8 @@ fun SettingsScreen(
     updateBackupSystemApp: (Boolean) -> Unit,
     updateRestoreSystemApp: (Boolean) -> Unit,
     updateRuleBackupFolder: (String) -> Unit,
+    updateControllerType: (ControllerType) -> Unit,
+    updateRuleServerProvider: (RuleServerProvider) -> Unit,
     exportRules: () -> Unit,
     importRules: () -> Unit,
     exportIfwRules: () -> Unit,
@@ -97,14 +106,16 @@ fun SettingsScreen(
                 icon = BlockerIcons.AutoFix,
                 itemRes = string.controller_type,
                 itemValue = uiState.settings.controllerType.toString(),
-                onItemClick = {},
+                menuList = listOf(IFW, PM, SHIZUKU),
+                onMenuClick = updateControllerType as (Any) -> Unit,
                 modifier = modifier
             )
             SettingItem(
                 icon = BlockerIcons.Block,
                 itemRes = string.online_rule_source,
                 itemValue = uiState.settings.ruleServerProvider.toString(),
-                onItemClick = {},
+                menuList = listOf(GITHUB, GITLAB),
+                onMenuClick = updateRuleServerProvider as (Any) -> Unit,
                 modifier = modifier
             )
             SettingsItem(
@@ -166,7 +177,9 @@ fun SettingsScreenPreview() {
                 exportRules = {},
                 importIfwRules = {},
                 exportIfwRules = {},
-                resetIfwRules = {}
+                resetIfwRules = {},
+                updateControllerType = {},
+                updateRuleServerProvider = {}
             )
         }
     }
