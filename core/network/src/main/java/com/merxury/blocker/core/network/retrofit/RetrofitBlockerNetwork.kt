@@ -39,7 +39,7 @@ import retrofit2.http.Path
  */
 interface BlockerNetworkApi {
     @GET("components/zh-cn/{path}")
-    suspend fun getOnlineComponentData(@Path("path") relativePath: String): NetworkComponentDetail?
+    suspend fun getOnlineComponentData(@Path("path") relativePath: String): NetworkComponentDetail
 
     @GET("zh-cn/general.json")
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
@@ -77,7 +77,7 @@ class RetrofitBlockerNetwork @Inject constructor(
         .build()
         .create(BlockerNetworkApi::class.java)
 
-    override suspend fun getComponentData(path: String): NetworkComponentDetail? =
+    override suspend fun getComponentData(path: String): NetworkComponentDetail =
         networkApi.getOnlineComponentData(path)
 
     override suspend fun getGeneralRules(): List<NetworkGeneralRule> =

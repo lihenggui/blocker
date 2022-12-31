@@ -29,9 +29,10 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
+import com.merxury.blocker.core.data.respository.OnlineComponentRepository
 import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.databinding.ComponentItemBinding
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -47,7 +48,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface ComponentAdapterEntryPoint {
-        fun getDataRepository(): OnlineComponentDataRepository
+        fun getDataRepository(): OnlineComponentRepository
     }
 
     private val logger = XLog.tag("ComponentAdapter")
@@ -150,16 +151,18 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
                     context,
                     ComponentAdapterEntryPoint::class.java
                 )
-                val fetcher = entryPoint.getDataRepository()
-                val onlineData = fetcher.getComponentData(context, component.name)
-                withContext(Dispatchers.Main) {
-                    if (recyclerView?.isComputingLayout == true) {
-                        return@withContext
+                entryPoint.getDataRepository()
+                    .getNetworkComponentData(component.name)
+                    .collect {
+                        if (it is Result.Success) {
+                            withContext(Dispatchers.Main) {
+                                if (recyclerView?.isComputingLayout == true) {
+                                    return@withContext
+                                }
+                                notifyItemChanged(position, it.data)
+                            }
+                        }
                     }
-                    if (onlineData != null) {
-                        notifyItemChanged(position, onlineData)
-                    }
-                }
             }
         }
 

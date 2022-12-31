@@ -27,7 +27,7 @@ import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
-import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
+import com.merxury.blocker.core.data.respository.USER_GENERATED_FOLDER
 import com.merxury.blocker.core.database.app.AppComponentRepository
 import com.merxury.blocker.core.extension.getSimpleName
 import com.merxury.blocker.core.model.EComponentType
@@ -188,7 +188,7 @@ class ComponentViewModel @Inject constructor(
     fun shareRule(context: Context) {
         viewModelScope.launch {
             val root = context.filesDir
-                .resolve(OnlineComponentDataRepository.USER_GENERATED_FOLDER)
+                .resolve(USER_GENERATED_FOLDER)
             _zippedRules.emit(FileUtils.zipFile("rule", root))
         }
     }

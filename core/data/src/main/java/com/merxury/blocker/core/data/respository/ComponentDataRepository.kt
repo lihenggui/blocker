@@ -16,10 +16,20 @@
 
 package com.merxury.blocker.core.data.respository
 
-import com.merxury.blocker.core.data.Syncable
+import android.content.Context
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
+import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
-interface ComponentDataRepository : Syncable {
-    suspend fun getComponentData(path: String): Flow<NetworkComponentDetail>
+interface ComponentDataRepository {
+    suspend fun getNetworkComponentData(fullName: String): Flow<Result<NetworkComponentDetail>>
+    suspend fun getUserGeneratedComponentDetail(
+        context: Context,
+        name: String
+    ): NetworkComponentDetail?
+
+    suspend fun saveUserGeneratedComponentDetail(
+        context: Context,
+        networkComponentDetail: NetworkComponentDetail
+    ): Boolean
 }
