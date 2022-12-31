@@ -48,7 +48,7 @@ fun AppListItemMenuList(
     BlockerDropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
-        items = items
+        menuList = items
     )
 }
 
