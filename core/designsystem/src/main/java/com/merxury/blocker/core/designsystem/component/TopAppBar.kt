@@ -1,4 +1,5 @@
 /*
+ * Copyright 2022 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -133,6 +134,7 @@ fun BlockerTopAppBar(
 @Composable
 fun BlockerTopAppBar(
     @StringRes titleRes: Int,
+    onNavigationClick: () -> Unit,
     modifier: Modifier = Modifier,
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
 ) {
@@ -144,6 +146,15 @@ fun BlockerTopAppBar(
                 FontSizeRange(5.sp, 22.sp),
                 maxLines = 2
             )
+        },
+        navigationIcon = {
+            IconButton(onClick = onNavigationClick) {
+                Icon(
+                    imageVector = BlockerIcons.Back,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
         },
         colors = colors
     )
@@ -174,5 +185,15 @@ fun BlockerTopAppBarWithoutNavPreview() {
         actionIconContentDescriptionFirst = "First action icon",
         actionIconSecond = BlockerIcons.MoreVert,
         actionIconContentDescriptionSecond = "Second action icon"
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Top App Bar only with navigation icon")
+@Composable
+fun BlockerTopAppBarWithNavPreview() {
+    BlockerTopAppBar(
+        titleRes = string.untitled,
+        onNavigationClick = {}
     )
 }

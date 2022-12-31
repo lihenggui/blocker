@@ -96,12 +96,12 @@ dependencies {
     implementation(project(":feature:applist"))
     implementation(project(":feature:onlinerules"))
     implementation(project(":feature:globalsearch"))
+    implementation(project(":feature:settings"))
     // TODO database, datastore, rule, datetime, network should be removed
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))
     implementation(project(":core:network"))
     implementation(project(":core:rule"))
-    implementation(libs.kotlinx.datetime)
     implementation(project(":core:component-controller"))
     implementation(project(":core:ifw-api"))
     implementation(project(":core:common"))
@@ -134,9 +134,10 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.window.manager)
     implementation(libs.androidx.profileinstaller)
-
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.svg)
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.libsu.core)
 }
 
 // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13
