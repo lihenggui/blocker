@@ -40,7 +40,7 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
         generalRuleDao.getGeneralRuleEntities()
             .map { it.map(GeneralRuleEntity::asExternalModel) }
 
-    override fun getNetworkGeneralRules() = flow<List<NetworkGeneralRule>> {
+    override fun getNetworkGeneralRules() = flow {
         emit(network.getGeneralRules())
     }
         .map { it.map(NetworkGeneralRule::asEntity) }
