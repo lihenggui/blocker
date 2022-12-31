@@ -17,12 +17,16 @@
 package com.merxury.blocker.core.data.respository
 
 import android.content.Context
+import com.merxury.blocker.core.database.cmpdetail.ComponentDetailEntity
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
 interface ComponentDataRepository {
     suspend fun getNetworkComponentData(fullName: String): Flow<Result<NetworkComponentDetail>>
+
+    suspend fun getLocalComponentData(fullName: String): ComponentDetailEntity?
+
     suspend fun getUserGeneratedComponentDetail(
         context: Context,
         name: String
