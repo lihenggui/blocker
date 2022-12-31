@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.network.model
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 /**
@@ -25,15 +24,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class NetworkComponentDetail(
     val name: String,
+    val packageName: String,
     val icon: String? = null,
-    @SerialName("sdk_name")
     val sdkName: String? = null,
     val description: String? = null,
-    @SerialName("disable_effect")
     val disableEffect: String? = null,
     val author: String? = null,
-    @SerialName("added_version")
     val addedVersion: String? = null,
-    @SerialName("recommend_to_block")
     val recommendToBlock: Boolean = false,
 )
