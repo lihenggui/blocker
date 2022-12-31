@@ -92,7 +92,7 @@ class OnlineComponentRepository @Inject constructor(
                 packageFolder.mkdirs()
             }
             // Decide file name
-            val fileName = networkComponentDetail.name
+            val fileName = networkComponentDetail.simpleName
                 .plus(FILE_EXTENSION)
             val destination = packageFolder.resolve(fileName)
             val content = Json.encodeToString(networkComponentDetail)
