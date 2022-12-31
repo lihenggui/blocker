@@ -78,7 +78,7 @@ fun AppListItem(
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            AppIcon(packageInfo, iconModifier.size(40.dp))
+            AppIcon(packageInfo, iconModifier.size(48.dp))
             Spacer(modifier = Modifier.width(16.dp))
             AppContent(
                 label = label,
