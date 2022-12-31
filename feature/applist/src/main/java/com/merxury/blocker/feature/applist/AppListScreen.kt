@@ -60,6 +60,7 @@ import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
 @Composable
 fun AppListRoute(
     navigateToAppDetail: (String) -> Unit,
+    navigateToSettings: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AppListViewModel = hiltViewModel()
 ) {
@@ -76,6 +77,7 @@ fun AppListRoute(
         onDisableClick = viewModel::disable,
         onSortingUpdate = viewModel::updateSorting,
         onServiceStateUpdate = viewModel::updateServiceStatus,
+        navigateToSettings = navigateToSettings,
         modifier = modifier
     )
     if (errorState != null) {
@@ -111,6 +113,7 @@ fun AppListScreen(
     onDisableClick: (String) -> Unit,
     onServiceStateUpdate: (String) -> Unit,
     onSortingUpdate: (AppSorting) -> Unit,
+    navigateToSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -122,7 +125,7 @@ fun AppListScreen(
                 actions = {
                     TopAppBarSortMenu(onSortingUpdate)
                     TopAppBarMoreMenu(
-                        navigateToSettings = {},
+                        navigateToSettings = navigateToSettings,
                         navigateToFeedback = {},
                     )
                 },

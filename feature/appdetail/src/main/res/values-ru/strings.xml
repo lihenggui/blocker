@@ -22,10 +22,10 @@
     <string name="content_provider">Поставщики</string>
     <string name="launch_app">запустить приложение</string>
     <string name="cannot_launch_this_app">Не удалось запустить это приложение</string>
-    <string name="blocker_rules">правил Blocker</string>
+    <string name="blocker_rules">правилBlocker</string>
     <string name="export_rules">Экспорт правил</string>
     <string name="import_rules">Импорт правил</string>
-    <string name="ifw_rules">правил IFW</string>
+    <string name="ifw_rules">правилIFW</string>
     <string name="export_ifw_rules">Экспорт правил IFW</string>
     <string name="import_ifw_rules">Импорт правил IFW</string>
     <string name="reset_ifw">Сбросить IFW</string>

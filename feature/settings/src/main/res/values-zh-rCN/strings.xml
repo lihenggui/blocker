@@ -52,4 +52,6 @@
     <string name="failed_to_back_up">备份应用规则失败，请检查权限或者提交错误报告。</string>
     <string name="backup_finished">应用规则备份完毕。</string>
     <string name="dir_is_invalid">目录无效，请检查备份目录是否设置成功。</string>
+    <string name="blocker_rules">Blocker规则</string>
+    <string name="ifw_rules">IFW规则</string>
 </resources>

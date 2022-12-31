@@ -52,5 +52,7 @@
     <string name="failed_to_back_up">Сбой создания резервной копии правил для приложений. Проверьте разрешения или создайте отчет..</string>
     <string name="backup_finished">Резервное копирование правил завершено</string>
     <string name="dir_is_invalid">Папка недействительна, проверьте, установили ли вы папку для резервного копирования или нет.</string>
+    <string name="blocker_rules">правилBlocker</string>
+    <string name="ifw_rules">правилIFW</string>
 
 </resources>
