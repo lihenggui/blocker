@@ -20,6 +20,7 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import androidx.room.Update
 
 @Dao
@@ -35,4 +36,7 @@ interface ComponentDetailDao {
 
     @Update
     suspend fun update(entity: ComponentDetailEntity)
+
+    @Query("SELECT * FROM component_detail WHERE full_name = :fullName")
+    suspend fun getComponentDetail(fullName: String): List<ComponentDetailEntity>
 }
