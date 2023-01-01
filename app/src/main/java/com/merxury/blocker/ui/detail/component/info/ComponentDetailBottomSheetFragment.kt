@@ -119,7 +119,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
             disableEffect = binding.disabledEffect.editText?.text?.toString().orEmpty(),
             recommendToBlock = binding.recommendCheckbox.isChecked
         )
-        viewModel.saveUserRule(requireContext(), userComponent)
+        viewModel.saveUserRule(userComponent)
     }
 
     private fun listenComponentInfoUpdate() {

@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.ui.detail.component.info
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.OnlineComponentRepository
@@ -56,7 +55,7 @@ class ComponentDetailViewModel @Inject constructor(
         }
     }
 
-    fun saveUserRule(context: Context, data: NetworkComponentDetail) {
+    fun saveUserRule(data: NetworkComponentDetail) {
         viewModelScope.launch {
             repository.saveUserGeneratedComponentDetail(data)
         }
