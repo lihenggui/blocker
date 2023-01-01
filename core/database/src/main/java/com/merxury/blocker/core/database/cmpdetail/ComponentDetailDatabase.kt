@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network.model
+package com.merxury.blocker.core.database.cmpdetail
 
-import kotlinx.serialization.Serializable
+import androidx.room.Database
+import androidx.room.RoomDatabase
 
-/**
- * Network representation for the component data stored in the server
- */
-@Serializable
-data class NetworkComponentDetail(
-    val fullName: String,
-    val simpleName: String,
-    val packageName: String,
-    val icon: String? = null,
-    val sdkName: String? = null,
-    val description: String? = null,
-    val disableEffect: String? = null,
-    val author: String? = null,
-    val addedVersion: String? = null,
-    val recommendToBlock: Boolean = false,
-)
+@Database(entities = [ComponentDetailEntity::class], version = 1)
+abstract class ComponentDetailDatabase : RoomDatabase() {
+    abstract fun componentDetailDao(): ComponentDetailDao
+}

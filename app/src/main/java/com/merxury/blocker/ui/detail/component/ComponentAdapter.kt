@@ -29,26 +29,12 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
 import com.merxury.blocker.core.model.EComponentType
-import com.merxury.blocker.core.network.model.NetworkComponentDetail
+import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.databinding.ComponentItemBinding
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) :
     ListAdapter<ComponentData, ComponentAdapter.ComponentViewHolder>(DiffCallback()) {
-
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface ComponentAdapterEntryPoint {
-        fun getDataRepository(): OnlineComponentDataRepository
-    }
 
     private val logger = XLog.tag("ComponentAdapter")
     private var recyclerView: RecyclerView? = null
@@ -57,6 +43,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
     var onCopyClick: ((ComponentData) -> Unit)? = null
     var onLaunchClick: ((ComponentData) -> Unit)? = null
     var onDetailClick: ((ComponentData) -> Unit)? = null
+    var onComponentBind: ((String) -> Unit)? = null
 
     override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
         super.onAttachedToRecyclerView(recyclerView)
@@ -86,7 +73,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
         if (payloads.isEmpty()) {
             return super.onBindViewHolder(holder, position, payloads)
         }
-        val componentData = payloads[0] as NetworkComponentDetail?
+        val componentData = payloads[0] as? ComponentDetail
         if (componentData == null) {
             logger.e("Component info is null, position: $position")
             return
@@ -107,6 +94,16 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
             return
         }
         notifyItemChanged(index)
+    }
+
+    fun updateItemDetail(componentDetail: ComponentDetail) {
+        val name = componentDetail.fullName
+        val index = currentList.indexOfFirst { it.name == name }
+        if (index == -1) {
+            logger.e("Can't find updated item in the list, name: $name")
+            return
+        }
+        notifyItemChanged(index, componentDetail)
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<ComponentData>() {
@@ -145,25 +142,10 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
                 contextMenuPosition = position
                 false
             }
-            lifecycleScope.launch(Dispatchers.IO) {
-                val entryPoint = EntryPointAccessors.fromApplication(
-                    context,
-                    ComponentAdapterEntryPoint::class.java
-                )
-                val fetcher = entryPoint.getDataRepository()
-                val onlineData = fetcher.getComponentData(context, component.name)
-                withContext(Dispatchers.Main) {
-                    if (recyclerView?.isComputingLayout == true) {
-                        return@withContext
-                    }
-                    if (onlineData != null) {
-                        notifyItemChanged(position, onlineData)
-                    }
-                }
-            }
+            onComponentBind?.invoke(component.name)
         }
 
-        fun bindOnlineData(data: NetworkComponentDetail) {
+        fun bindOnlineData(data: ComponentDetail) {
             binding.componentDescription.apply {
                 isVisible = true
                 text = data.description
