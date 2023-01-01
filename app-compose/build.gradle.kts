@@ -97,6 +97,7 @@ dependencies {
     implementation(project(":feature:onlinerules"))
     implementation(project(":feature:globalsearch"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:supportandfeedback"))
     // TODO database, datastore, rule, datetime, network should be removed
     implementation(project(":core:database"))
     implementation(project(":core:datastore"))
