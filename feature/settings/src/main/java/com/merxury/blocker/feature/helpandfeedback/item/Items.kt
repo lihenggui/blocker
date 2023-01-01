@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.feature.supportandfeedback.R.string
+import com.merxury.blocker.feature.settings.R
 
 @Composable
 fun Item(
@@ -73,7 +73,7 @@ fun ItemWithIconPreview() {
         Surface {
             Item(
                 icon = BlockerIcons.BugReport,
-                itemRes = string.export_error_log,
+                itemRes = R.string.export_error_log,
                 onClick = {}
             )
         }
@@ -86,7 +86,7 @@ fun ItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
             Item(
-                itemRes = string.github,
+                itemRes = R.string.github,
                 onClick = {}
             )
         }
