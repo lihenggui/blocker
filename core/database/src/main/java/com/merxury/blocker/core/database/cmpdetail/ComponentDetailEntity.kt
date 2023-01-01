@@ -19,6 +19,7 @@ package com.merxury.blocker.core.database.cmpdetail
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.merxury.blocker.core.model.data.ComponentDetail
 import javax.annotation.Nonnull
 
 @Entity(tableName = "component_detail")
@@ -43,4 +44,17 @@ data class ComponentDetailEntity(
     val addedVersion: String? = null,
     @ColumnInfo(name = "recommend_to_block")
     val recommendToBlock: Boolean = false,
+)
+
+fun ComponentDetailEntity.asExternalModel() = ComponentDetail(
+    fullName = fullName,
+    simpleName = simpleName,
+    packageName = packageName,
+    icon = icon,
+    sdkName = sdkName,
+    description = description,
+    disableEffect = disableEffect,
+    author = author,
+    addedVersion = addedVersion,
+    recommendToBlock = recommendToBlock
 )

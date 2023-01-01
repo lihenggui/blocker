@@ -28,6 +28,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @HiltViewModel
 class ComponentDetailViewModel @Inject constructor(
@@ -38,24 +39,26 @@ class ComponentDetailViewModel @Inject constructor(
     private val isLoading = MutableStateFlow(false)
     val loading = isLoading.asStateFlow()
 
-    fun getOnlineData(context: Context, component: ComponentData) {
+    fun getOnlineData(component: ComponentData) {
         viewModelScope.launch {
             isLoading.value = true
             _onlineData.value =
-                repository.getUserGeneratedComponentDetail(context, component.name)
+                repository.getUserGeneratedComponentDetail(component.name)
             val onlineData = repository.getNetworkComponentData(component.name,)
             onlineData.collect {
+                Timber.d("Get online data $it")
                 if (it is Result.Success) {
                     _onlineData.value = it.data
+                    repository.saveComponentAsCache(it.data)
                 }
+                isLoading.value = false
             }
-            isLoading.value = false
         }
     }
 
     fun saveUserRule(context: Context, data: NetworkComponentDetail) {
         viewModelScope.launch {
-            repository.saveUserGeneratedComponentDetail(context, data)
+            repository.saveUserGeneratedComponentDetail(data)
         }
     }
 }

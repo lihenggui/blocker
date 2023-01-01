@@ -40,7 +40,9 @@ import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Lifecycle.State
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
@@ -55,6 +57,7 @@ import com.merxury.blocker.util.serializable
 import com.merxury.blocker.util.unsafeLazy
 import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ComponentFragment : Fragment() {
@@ -222,6 +225,16 @@ class ComponentFragment : Fragment() {
                 requireActivity().supportFragmentManager,
                 "ComponentDetailDialogFragment"
             )
+        }
+        adapter.onComponentBind = { fullName ->
+            viewLifecycleOwner.lifecycleScope.launch {
+                viewLifecycleOwner.repeatOnLifecycle(State.STARTED) {
+                    viewModel.loadComponentDetail(fullName)
+                        .collect {
+                            adapter.updateItemDetail(it)
+                        }
+                }
+            }
         }
         binding.recyclerView.apply {
             adapter = this@ComponentFragment.adapter
