@@ -93,7 +93,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun loadData() {
-        viewModel.getOnlineData(requireContext(), component!!)
+        viewModel.getOnlineData(component!!)
     }
 
     private fun listenLoadingUpdate() {

@@ -17,7 +17,9 @@
 package com.merxury.blocker.core.model.data
 
 data class ComponentDetail(
-    val name: String,
+    val fullName: String,
+    val simpleName: String,
+    val packageName: String,
     val icon: String? = null,
     val sdkName: String? = null,
     val description: String? = null,

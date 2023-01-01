@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.respository
 
 import android.content.Context
+import com.merxury.blocker.core.data.model.asEntity
 import com.merxury.blocker.core.database.cmpdetail.ComponentDetailDao
 import com.merxury.blocker.core.database.cmpdetail.ComponentDetailEntity
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
@@ -25,6 +26,7 @@ import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.asResult
+import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -41,6 +43,7 @@ const val FILE_EXTENSION = ".json"
 const val USER_GENERATED_FOLDER = "user_generated_components/"
 
 class OnlineComponentRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val network: BlockerNetworkDataSource,
     private val componentDetailDao: ComponentDetailDao,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -54,7 +57,9 @@ class OnlineComponentRepository @Inject constructor(
     ): Flow<Result<NetworkComponentDetail>> {
         val relativePath = fullName.replace(".", "/")
             .plus(FILE_EXTENSION)
-        return flow<NetworkComponentDetail> { network.getComponentData(relativePath) }
+        return flow {
+            emit(network.getComponentData(relativePath))
+        }
             .asResult()
     }
 
@@ -66,12 +71,11 @@ class OnlineComponentRepository @Inject constructor(
     }
 
     override suspend fun getUserGeneratedComponentDetail(
-        context: Context,
-        name: String
+        fullName: String
     ): NetworkComponentDetail? {
         return withContext(ioDispatcher + exceptionHandler) {
             val folder = context.filesDir.resolve(USER_GENERATED_FOLDER)
-            val relativePath = name.replace(".", "/")
+            val relativePath = fullName.replace(".", "/")
                 .plus(FILE_EXTENSION)
             val destination = folder.resolve(relativePath)
             if (destination.exists()) {
@@ -83,9 +87,15 @@ class OnlineComponentRepository @Inject constructor(
         }
     }
 
+    override suspend fun saveComponentAsCache(
+        component: NetworkComponentDetail
+    ) {
+        Timber.d("Save network component info to db: ${component.fullName}")
+        componentDetailDao.insertComponentDetail(component.asEntity())
+    }
+
     override suspend fun saveUserGeneratedComponentDetail(
-        context: Context,
-        networkComponentDetail: NetworkComponentDetail
+        componentDetail: NetworkComponentDetail
     ): Boolean {
         return withContext(ioDispatcher + exceptionHandler) {
             // Make root folder first
@@ -94,17 +104,17 @@ class OnlineComponentRepository @Inject constructor(
                 rootFolder.mkdirs()
             }
             // Make new directory according to package name
-            val packageNamePath = networkComponentDetail.packageName
+            val packageNamePath = componentDetail.packageName
                 .replace(".", "/")
             val packageFolder = rootFolder.resolve(packageNamePath)
             if (!packageFolder.exists()) {
                 packageFolder.mkdirs()
             }
             // Decide file name
-            val fileName = networkComponentDetail.simpleName
+            val fileName = componentDetail.simpleName
                 .plus(FILE_EXTENSION)
             val destination = packageFolder.resolve(fileName)
-            val content = Json.encodeToString(networkComponentDetail)
+            val content = Json.encodeToString(componentDetail)
             try {
                 destination.writeText(content)
             } catch (e: IOException) {
