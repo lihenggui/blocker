@@ -21,8 +21,10 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -48,7 +50,9 @@ class SettingsViewModel @Inject constructor(
                         backupSystemApp = userData.backupSystemApp,
                         restoreSystemApp = userData.restoreSystemApp,
                         showSystemApps = userData.showSystemApps,
-                        showServiceInfo = userData.showServiceInfo
+                        showServiceInfo = userData.showServiceInfo,
+                        themeBrand = userData.themeBrand,
+                        darkThemeConfig = userData.darkThemeConfig
                     )
                 )
             }
@@ -123,6 +127,18 @@ class SettingsViewModel @Inject constructor(
     fun importMyAndroidToolsRules() {
         //TODO
     }
+
+    fun updateThemeBrand(themeBrand: ThemeBrand) {
+        viewModelScope.launch {
+            userDataRepository.setThemeBrand(themeBrand)
+        }
+    }
+
+    fun updateDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
+        viewModelScope.launch {
+            userDataRepository.setDarkThemeConfig(darkThemeConfig)
+        }
+    }
 }
 
 data class UserEditableSettings(
@@ -132,7 +148,9 @@ data class UserEditableSettings(
     val backupSystemApp: Boolean = false,
     val restoreSystemApp: Boolean = false,
     val showSystemApps: Boolean = false,
-    val showServiceInfo: Boolean = false
+    val showServiceInfo: Boolean = false,
+    val themeBrand: ThemeBrand,
+    val darkThemeConfig: DarkThemeConfig
 )
 
 sealed interface SettingsUiState {
