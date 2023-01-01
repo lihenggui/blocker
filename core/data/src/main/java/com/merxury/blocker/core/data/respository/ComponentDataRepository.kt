@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.data.respository
 
-import android.content.Context
 import com.merxury.blocker.core.database.cmpdetail.ComponentDetailEntity
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.result.Result
@@ -27,13 +26,9 @@ interface ComponentDataRepository {
 
     suspend fun getLocalComponentData(fullName: String): ComponentDetailEntity?
 
-    suspend fun getUserGeneratedComponentDetail(
-        context: Context,
-        name: String
-    ): NetworkComponentDetail?
+    suspend fun getUserGeneratedComponentDetail(fullName: String): NetworkComponentDetail?
 
-    suspend fun saveUserGeneratedComponentDetail(
-        context: Context,
-        networkComponentDetail: NetworkComponentDetail
-    ): Boolean
+    suspend fun saveComponentAsCache(component: NetworkComponentDetail)
+
+    suspend fun saveUserGeneratedComponentDetail(componentDetail: NetworkComponentDetail): Boolean
 }
