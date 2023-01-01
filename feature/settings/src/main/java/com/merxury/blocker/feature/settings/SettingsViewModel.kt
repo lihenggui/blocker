@@ -105,27 +105,27 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun importBlockerRules() {
-        //TODO
+        // TODO
     }
 
     fun exportBlockerRules() {
-        //TODO
+        // TODO
     }
 
     fun exportIfwRules() {
-        //TODO
+        // TODO
     }
 
     fun importIfwRules() {
-        //TODO
+        // TODO
     }
 
     fun resetIfwRules() {
-        //TODO
+        // TODO
     }
 
     fun importMyAndroidToolsRules() {
-        //TODO
+        // TODO
     }
 
     fun updateThemeBrand(themeBrand: ThemeBrand) {
