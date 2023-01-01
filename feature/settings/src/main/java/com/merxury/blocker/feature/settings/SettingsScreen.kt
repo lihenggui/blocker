@@ -107,7 +107,7 @@ fun SettingsScreen(
                 itemRes = string.controller_type,
                 itemValue = uiState.settings.controllerType.toString(),
                 menuList = listOf(IFW, PM, SHIZUKU),
-                onMenuClick = updateControllerType as (Any) -> Unit,
+                onMenuClick = updateControllerType,
                 modifier = modifier
             )
             SettingItem(
@@ -115,7 +115,7 @@ fun SettingsScreen(
                 itemRes = string.online_rule_source,
                 itemValue = uiState.settings.ruleServerProvider.toString(),
                 menuList = listOf(GITHUB, GITLAB),
-                onMenuClick = updateRuleServerProvider as (Any) -> Unit,
+                onMenuClick = updateRuleServerProvider,
                 modifier = modifier
             )
             SettingsItem(

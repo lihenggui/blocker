@@ -46,12 +46,12 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R
 
 @Composable
-fun SettingItem(
+fun <T> SettingItem(
     icon: ImageVector,
     itemRes: Int,
     itemValue: String,
-    menuList: List<Any>,
-    onMenuClick: (Any) -> Unit,
+    menuList: List<T>,
+    onMenuClick: (item: T) -> Unit,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
