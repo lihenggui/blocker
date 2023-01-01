@@ -16,8 +16,10 @@
 
 package com.merxury.blocker.feature.settings.item
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -45,7 +47,7 @@ fun BackupSettings(
         SettingItem(
             icon = BlockerIcons.Folder,
             itemRes = string.folder_to_save,
-            itemValue = ruleBackupFolder ?: stringResource(id = string.dir_not_set),
+            itemValue = ruleBackupFolder ?: stringResource(id = string.directory_invalid_or_not_set),
             onItemClick = {}
         )
         SwitchSettingItem(
@@ -63,15 +65,18 @@ fun BackupSettings(
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun BackupSettingsPreview() {
     BlockerTheme {
-        BackupSettings(
-            backupSystemApps = false,
-            restoreSystemApp = true,
-            ruleBackupFolder = "undefine",
-            updateBackupSystemApp = {},
-            updateRestoreSystemApp = {},
-            updateRuleBackupFolder = {}
-        )
+        Surface {
+            BackupSettings(
+                backupSystemApps = false,
+                restoreSystemApp = true,
+                ruleBackupFolder = "/emulated/0/Blocker",
+                updateBackupSystemApp = {},
+                updateRestoreSystemApp = {},
+                updateRuleBackupFolder = {}
+            )
+        }
     }
 }
