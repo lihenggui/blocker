@@ -16,10 +16,19 @@
 
 package com.merxury.blocker.core.data.respository
 
-import com.merxury.blocker.core.data.Syncable
+import com.merxury.blocker.core.database.cmpdetail.ComponentDetailEntity
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
+import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
-interface ComponentDataRepository : Syncable {
-    suspend fun getComponentData(path: String): Flow<NetworkComponentDetail>
+interface ComponentDataRepository {
+    suspend fun getNetworkComponentData(fullName: String): Flow<Result<NetworkComponentDetail>>
+
+    suspend fun getLocalComponentData(fullName: String): ComponentDetailEntity?
+
+    suspend fun getUserGeneratedComponentDetail(fullName: String): NetworkComponentDetail?
+
+    suspend fun saveComponentAsCache(component: NetworkComponentDetail)
+
+    suspend fun saveUserGeneratedComponentDetail(componentDetail: NetworkComponentDetail): Boolean
 }

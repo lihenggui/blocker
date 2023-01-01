@@ -28,5 +28,5 @@ data class ComponentData(
     var type: EComponentType = EComponentType.RECEIVER,
     var ifwBlocked: Boolean = false,
     var pmBlocked: Boolean = false,
-    var isRunning: Boolean = false
+    var isRunning: Boolean = false,
 ) : Parcelable
