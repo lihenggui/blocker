@@ -64,4 +64,8 @@
     <string name="light">Light</string>
     <string name="dark">Dark</string>
     <string name="ok">OK</string>
+    <string name="support_and_feedback">Support and feedback</string>
+    <string name="github">GitHub</string>
+    <string name="telegram_group">Telegram group</string>
+    <string name="export_error_log">Export error log</string>
 </resources>
