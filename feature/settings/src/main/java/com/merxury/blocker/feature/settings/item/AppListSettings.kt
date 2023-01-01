@@ -35,7 +35,7 @@ fun AppListSettings(
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 8.dp)
+            .padding(vertical = 4.dp)
     ) {
         SettingItemHead(itemRes = string.application_list)
         SwitchSettingItem(

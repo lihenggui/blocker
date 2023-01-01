@@ -33,7 +33,7 @@ fun BlockerRulesSettings(
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 8.dp)
+            .padding(vertical = 4.dp)
     ) {
         SettingItemHead(itemRes = string.blocker_rules)
         SettingsItem(itemRes = string.export_rules, onItemClick = exportRules)
@@ -50,7 +50,7 @@ fun IfwRulesSettings(
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 8.dp)
+            .padding(vertical = 4.dp)
     ) {
         SettingItemHead(itemRes = string.ifw_rules)
         SettingsItem(itemRes = string.export_ifw_rules, onItemClick = exportIfwRules)
