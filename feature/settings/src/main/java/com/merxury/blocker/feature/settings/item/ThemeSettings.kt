@@ -135,7 +135,7 @@ fun <T> SettingDialog(
         },
         confirmButton = {
             Text(
-                text = stringResource(string.ok),
+                text = stringResource(android.R.string.ok),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier

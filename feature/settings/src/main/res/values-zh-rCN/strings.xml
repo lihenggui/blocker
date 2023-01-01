@@ -58,4 +58,13 @@
     <string name="github">GitHub</string>
     <string name="telegram_group">Telegram 群组</string>
     <string name="export_error_log">导出错误日志</string>
+    <string name="dir_not_set">目录未设置或不可读</string>
+    <string name="loading">Loading</string>
+    <string name="theme">主题</string>
+    <string name="theme_default">默认</string>
+    <string name="theme_Android">Android</string>
+    <string name="dark_mode_preference">暗色主题设置</string>
+    <string name="system_default">系统默认</string>
+    <string name="light">日间模式</string>
+    <string name="dark">暗黑模式</string>
 </resources>
