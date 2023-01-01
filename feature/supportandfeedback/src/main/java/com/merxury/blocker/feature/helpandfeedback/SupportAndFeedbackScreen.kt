@@ -76,7 +76,8 @@ fun SupportAndFeedbackScreenPreview() {
         Surface {
             SupportAndFeedbackScreen(
                 onClickGithub = {},
-                onClickTelegramGroup = {}) {
+                onClickTelegramGroup = {}
+            ) {
             }
         }
     }

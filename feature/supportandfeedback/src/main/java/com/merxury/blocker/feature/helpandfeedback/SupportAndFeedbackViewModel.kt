@@ -21,19 +21,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class SupportAndFeedbackViewModel @Inject constructor(
-) : ViewModel() {
+class SupportAndFeedbackViewModel @Inject constructor() : ViewModel() {
 
     fun onClickGithub() {
-        //TODO
+        // TODO
     }
 
     fun onClickTelegramGroup() {
-        //TODO
+        // TODO
     }
 
     fun onClickExportErrorLog() {
-        //TODO
+        // TODO
     }
 }
-
