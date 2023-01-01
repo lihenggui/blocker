@@ -55,5 +55,5 @@
     <string name="dir_not_set">Directory not set or unreadable</string>
     <string name="blocker_rules">Blocker rules</string>
     <string name="ifw_rules">IFW rules</string>
-
+    <string name="loading">Loading</string>
 </resources>
