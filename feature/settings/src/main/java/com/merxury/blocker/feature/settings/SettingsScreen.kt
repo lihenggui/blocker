@@ -35,15 +35,15 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.model.data.ControllerType.PM
-import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.preference.DarkThemeConfig
+import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.core.model.preference.ThemeBrand
+import com.merxury.blocker.core.model.preference.ThemeBrand.ANDROID
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
@@ -51,8 +51,8 @@ import com.merxury.blocker.feature.settings.item.AppListSettings
 import com.merxury.blocker.feature.settings.item.BackupSettings
 import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
-import com.merxury.blocker.feature.settings.item.SettingItem
-import com.merxury.blocker.feature.settings.item.SettingsItem
+import com.merxury.blocker.feature.settings.item.OthersSettings
+import com.merxury.blocker.feature.settings.item.ThemeSettings
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
@@ -75,7 +75,9 @@ fun SettingsRoute(
         exportIfwRules = viewModel::exportIfwRules,
         resetIfwRules = viewModel::resetIfwRules,
         updateControllerType = viewModel::updateControllerType,
-        updateRuleServerProvider = viewModel::updateRuleServerProvider
+        updateRuleServerProvider = viewModel::updateRuleServerProvider,
+        updateThemeBrand = viewModel::updateThemeBrand,
+        updateDarkThemeConfig = viewModel::updateDarkThemeConfig
     )
 }
 
@@ -91,6 +93,8 @@ fun SettingsScreen(
     updateRuleBackupFolder: (String) -> Unit,
     updateControllerType: (ControllerType) -> Unit,
     updateRuleServerProvider: (RuleServerProvider) -> Unit,
+    updateThemeBrand: (ThemeBrand) -> Unit,
+    updateDarkThemeConfig: (DarkThemeConfig) -> Unit,
     exportRules: () -> Unit,
     importRules: () -> Unit,
     exportIfwRules: () -> Unit,
@@ -131,7 +135,9 @@ fun SettingsScreen(
                     importRules = importRules,
                     exportIfwRules = exportIfwRules,
                     importIfwRules = importIfwRules,
-                    resetIfwRules = resetIfwRules
+                    resetIfwRules = resetIfwRules,
+                    updateThemeBrand = updateThemeBrand,
+                    updateDarkThemeConfig = updateDarkThemeConfig
                 )
             }
         }
@@ -148,6 +154,8 @@ fun SettingsContent(
     updateRuleBackupFolder: (String) -> Unit,
     updateControllerType: (ControllerType) -> Unit,
     updateRuleServerProvider: (RuleServerProvider) -> Unit,
+    updateThemeBrand: (ThemeBrand) -> Unit,
+    updateDarkThemeConfig: (DarkThemeConfig) -> Unit,
     exportRules: () -> Unit,
     importRules: () -> Unit,
     exportIfwRules: () -> Unit,
@@ -156,25 +164,10 @@ fun SettingsContent(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-        SettingItem(
-            icon = BlockerIcons.AutoFix,
-            itemRes = string.controller_type,
-            itemValue = uiState.settings.controllerType.toString(),
-            menuList = listOf(IFW, PM, SHIZUKU),
-            onMenuClick = updateControllerType,
-            modifier = modifier
-        )
-        SettingItem(
-            icon = BlockerIcons.Block,
-            itemRes = string.online_rule_source,
-            itemValue = uiState.settings.ruleServerProvider.toString(),
-            menuList = listOf(GITHUB, GITLAB),
-            onMenuClick = updateRuleServerProvider,
-            modifier = modifier
-        )
-        SettingsItem(
-            itemRes = string.import_mat_rules,
-            onItemClick = {}
+        OthersSettings(
+            uiState = uiState,
+            updateControllerType = updateControllerType,
+            updateRuleServerProvider = updateRuleServerProvider
         )
         Divider()
         AppListSettings(
@@ -200,6 +193,13 @@ fun SettingsContent(
             importIfwRules = importIfwRules,
             resetIfwRules = resetIfwRules
         )
+        Divider()
+        ThemeSettings(
+            modifier = modifier,
+            uiState = uiState,
+            updateThemeBrand = updateThemeBrand,
+            updateDarkThemeConfig = updateDarkThemeConfig
+        )
     }
 }
 
@@ -218,7 +218,9 @@ fun SettingsScreenPreview() {
                         backupSystemApp = true,
                         restoreSystemApp = false,
                         showSystemApps = false,
-                        showServiceInfo = true
+                        showServiceInfo = true,
+                        themeBrand = ANDROID,
+                        darkThemeConfig = FOLLOW_SYSTEM
                     )
                 ),
                 updateShowSystemApps = {},
@@ -232,7 +234,9 @@ fun SettingsScreenPreview() {
                 exportIfwRules = {},
                 resetIfwRules = {},
                 updateControllerType = {},
-                updateRuleServerProvider = {}
+                updateRuleServerProvider = {},
+                updateThemeBrand = {},
+                updateDarkThemeConfig = {}
             )
         }
     }

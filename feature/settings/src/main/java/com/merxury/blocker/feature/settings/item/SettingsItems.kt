@@ -47,12 +47,12 @@ import com.merxury.blocker.feature.settings.R
 
 @Composable
 fun <T> SettingItem(
+    modifier: Modifier = Modifier,
     icon: ImageVector,
     itemRes: Int,
     itemValue: String,
     menuList: List<T>,
     onMenuClick: (item: T) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
     Box(modifier = modifier) {
@@ -79,6 +79,32 @@ fun <T> SettingItem(
             menuList = menuList,
             onClick = onMenuClick
         )
+    }
+}
+
+@Composable
+fun SettingItem(
+    modifier: Modifier = Modifier,
+    itemRes: Int,
+    itemValue: String,
+    onClick: () -> Unit
+) {
+    Box(modifier = modifier) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .clickable { onClick() }
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = modifier.padding(start = 40.dp)) {
+                Text(
+                    text = stringResource(id = itemRes),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(text = itemValue, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
     }
 }
 
@@ -171,6 +197,20 @@ fun SettingsItemPreview() {
                 itemValue = "IFW",
                 menuList = listOf("IFW", "Package Manager", "Shizuku"),
                 onMenuClick = {}
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun SettingsItemWithoutIconPreview() {
+    BlockerTheme {
+        Surface {
+            SettingItem(
+                itemRes = R.string.theme,
+                itemValue = "Default",
+                onClick = {}
             )
         }
     }
