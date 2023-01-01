@@ -27,10 +27,14 @@ import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
-import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
+import com.merxury.blocker.core.data.model.asEntity
+import com.merxury.blocker.core.data.respository.ComponentDataRepository
+import com.merxury.blocker.core.data.respository.USER_GENERATED_FOLDER
 import com.merxury.blocker.core.database.app.AppComponentRepository
+import com.merxury.blocker.core.database.cmpdetail.asExternalModel
 import com.merxury.blocker.core.extension.getSimpleName
 import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
@@ -42,15 +46,19 @@ import java.io.File
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 @HiltViewModel
 class ComponentViewModel @Inject constructor(
     private val pm: PackageManager,
-    private val appComponentRepository: AppComponentRepository
+    private val appComponentRepository: AppComponentRepository,
+    private val componentDetailRepository: ComponentDataRepository,
 ) : ViewModel() {
     private val logger = XLog.tag("ComponentViewModel")
 
@@ -74,6 +82,20 @@ class ComponentViewModel @Inject constructor(
             val data = convertToComponentData(context, packageName, origList, type)
             originalList = data
             _data.value = data
+        }
+    }
+
+    fun loadComponentDetail(fullName: String): Flow<ComponentDetail> = flow {
+        val userGenerated = componentDetailRepository.getUserGeneratedComponentDetail(fullName)
+        if (userGenerated != null) {
+            Timber.d("Hit user generated info for $fullName")
+            emit(userGenerated.asEntity().asExternalModel())
+            return@flow
+        }
+        val localDetail = componentDetailRepository.getLocalComponentData(fullName)
+        if (localDetail != null) {
+            Timber.d("Hit db cache for $fullName")
+            emit(localDetail.asExternalModel())
         }
     }
 
@@ -188,7 +210,7 @@ class ComponentViewModel @Inject constructor(
     fun shareRule(context: Context) {
         viewModelScope.launch {
             val root = context.filesDir
-                .resolve(OnlineComponentDataRepository.USER_GENERATED_FOLDER)
+                .resolve(USER_GENERATED_FOLDER)
             _zippedRules.emit(FileUtils.zipFile("rule", root))
         }
     }
