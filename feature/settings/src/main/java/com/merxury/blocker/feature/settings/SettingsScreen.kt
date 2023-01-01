@@ -16,20 +16,24 @@
 
 package com.merxury.blocker.feature.settings
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -94,59 +98,108 @@ fun SettingsScreen(
     resetIfwRules: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (uiState is Loading) {
-        Text("Loading")
-    } else if (uiState is Success) {
-        Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-            BlockerTopAppBar(
-                titleRes = string.settings,
-                onNavigationClick = onNavigationClick
-            )
-            SettingItem(
-                icon = BlockerIcons.AutoFix,
-                itemRes = string.controller_type,
-                itemValue = uiState.settings.controllerType.toString(),
-                menuList = listOf(IFW, PM, SHIZUKU),
-                onMenuClick = updateControllerType,
-                modifier = modifier
-            )
-            SettingItem(
-                icon = BlockerIcons.Block,
-                itemRes = string.online_rule_source,
-                itemValue = uiState.settings.ruleServerProvider.toString(),
-                menuList = listOf(GITHUB, GITLAB),
-                onMenuClick = updateRuleServerProvider,
-                modifier = modifier
-            )
-            SettingsItem(
-                itemRes = string.import_mat_rules,
-                onItemClick = {}
-            )
-            Divider()
-            AppListSettings(
-                showSystemApps = uiState.settings.showSystemApps,
-                showServiceInfo = uiState.settings.showServiceInfo,
-                updateShowSystemApps = updateShowSystemApps,
-                updateShowServiceInfo = updateShowServiceInfo
-            )
-            Divider()
-            BackupSettings(
-                backupSystemApps = uiState.settings.backupSystemApp,
-                restoreSystemApp = uiState.settings.restoreSystemApp,
-                ruleBackupFolder = uiState.settings.ruleBackupFolder,
-                updateBackupSystemApp = updateBackupSystemApp,
-                updateRestoreSystemApp = updateRestoreSystemApp,
-                updateRuleBackupFolder = updateRuleBackupFolder
-            )
-            Divider()
-            BlockerRulesSettings(exportRules = exportRules, importRules = importRules)
-            Divider()
-            IfwRulesSettings(
-                exportIfwRules = exportIfwRules,
-                importIfwRules = importIfwRules,
-                resetIfwRules = resetIfwRules
-            )
+    Column(modifier) {
+        when (uiState) {
+            Loading -> {
+                Column(
+                    modifier = modifier.fillMaxSize(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    BlockerLoadingWheel(
+                        modifier = modifier,
+                        contentDesc = stringResource(id = string.loading),
+                    )
+                }
+            }
+
+            is Success -> {
+                BlockerTopAppBar(
+                    titleRes = string.settings,
+                    onNavigationClick = onNavigationClick
+                )
+                SettingsContent(
+                    uiState = uiState,
+                    updateShowSystemApps = updateShowSystemApps,
+                    updateShowServiceInfo = updateShowServiceInfo,
+                    updateBackupSystemApp = updateBackupSystemApp,
+                    updateRestoreSystemApp = updateRestoreSystemApp,
+                    updateRuleBackupFolder = updateRuleBackupFolder,
+                    updateControllerType = updateControllerType,
+                    updateRuleServerProvider = updateRuleServerProvider,
+                    exportRules = exportRules,
+                    importRules = importRules,
+                    exportIfwRules = exportIfwRules,
+                    importIfwRules = importIfwRules,
+                    resetIfwRules = resetIfwRules
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun SettingsContent(
+    uiState: Success,
+    updateShowSystemApps: (Boolean) -> Unit,
+    updateShowServiceInfo: (Boolean) -> Unit,
+    updateBackupSystemApp: (Boolean) -> Unit,
+    updateRestoreSystemApp: (Boolean) -> Unit,
+    updateRuleBackupFolder: (String) -> Unit,
+    updateControllerType: (ControllerType) -> Unit,
+    updateRuleServerProvider: (RuleServerProvider) -> Unit,
+    exportRules: () -> Unit,
+    importRules: () -> Unit,
+    exportIfwRules: () -> Unit,
+    importIfwRules: () -> Unit,
+    resetIfwRules: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+        SettingItem(
+            icon = BlockerIcons.AutoFix,
+            itemRes = string.controller_type,
+            itemValue = uiState.settings.controllerType.toString(),
+            menuList = listOf(IFW, PM, SHIZUKU),
+            onMenuClick = updateControllerType,
+            modifier = modifier
+        )
+        SettingItem(
+            icon = BlockerIcons.Block,
+            itemRes = string.online_rule_source,
+            itemValue = uiState.settings.ruleServerProvider.toString(),
+            menuList = listOf(GITHUB, GITLAB),
+            onMenuClick = updateRuleServerProvider,
+            modifier = modifier
+        )
+        SettingsItem(
+            itemRes = string.import_mat_rules,
+            onItemClick = {}
+        )
+        Divider()
+        AppListSettings(
+            showSystemApps = uiState.settings.showSystemApps,
+            showServiceInfo = uiState.settings.showServiceInfo,
+            updateShowSystemApps = updateShowSystemApps,
+            updateShowServiceInfo = updateShowServiceInfo
+        )
+        Divider()
+        BackupSettings(
+            backupSystemApps = uiState.settings.backupSystemApp,
+            restoreSystemApp = uiState.settings.restoreSystemApp,
+            ruleBackupFolder = uiState.settings.ruleBackupFolder,
+            updateBackupSystemApp = updateBackupSystemApp,
+            updateRestoreSystemApp = updateRestoreSystemApp,
+            updateRuleBackupFolder = updateRuleBackupFolder
+        )
+        Divider()
+        BlockerRulesSettings(exportRules = exportRules, importRules = importRules)
+        Divider()
+        IfwRulesSettings(
+            exportIfwRules = exportIfwRules,
+            importIfwRules = importIfwRules,
+            resetIfwRules = resetIfwRules
+        )
     }
 }
 
