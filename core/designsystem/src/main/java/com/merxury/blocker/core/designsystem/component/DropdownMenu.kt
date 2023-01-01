@@ -81,11 +81,11 @@ fun BlockerDropdownMenu(
 }
 
 @Composable
-fun BlockerDropdownMenu(
+fun <T> BlockerDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
-    menuList: List<Any>,
-    onClick: (Any) -> Unit,
+    menuList: List<T>,
+    onClick: (item: T) -> Unit,
     dismissOnItemClick: Boolean = true
 ) {
     DropdownMenu(
