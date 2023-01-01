@@ -54,4 +54,8 @@
     <string name="dir_is_invalid">目录无效，请检查备份目录是否设置成功。</string>
     <string name="blocker_rules">Blocker规则</string>
     <string name="ifw_rules">IFW规则</string>
+    <string name="support_and_feedback">帮助与反馈</string>
+    <string name="github">GitHub</string>
+    <string name="telegram_group">Telegram 群组</string>
+    <string name="export_error_log">导出错误日志</string>
 </resources>

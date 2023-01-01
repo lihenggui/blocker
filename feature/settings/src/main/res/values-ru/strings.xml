@@ -54,5 +54,8 @@
     <string name="dir_is_invalid">Папка недействительна, проверьте, установили ли вы папку для резервного копирования или нет.</string>
     <string name="blocker_rules">правилBlocker</string>
     <string name="ifw_rules">правилIFW</string>
-
+    <string name="support_and_feedback">Поддержка и отзывы</string>
+    <string name="github">GitHub</string>
+    <string name="telegram_group">группа Telegram</string>
+    <string name="export_error_log">Экспорт журнала ошибок</string>
 </resources>
