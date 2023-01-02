@@ -153,7 +153,7 @@ object Rule {
             }
             return result
         } catch (e: RuntimeException) {
-            Timber.e("Failed to export $packageName, ${e.message}")
+            Timber.e("Failed to export $packageName", e)
             return false
         }
     }

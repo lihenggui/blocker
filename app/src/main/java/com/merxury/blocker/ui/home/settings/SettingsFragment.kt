@@ -163,14 +163,19 @@ class SettingsFragment :
     }
 
     private fun exportBlockerRule() {
+        val savedFolder = PreferenceUtil.getSavedRulePath(requireContext())
+        val backupSystemApps = PreferenceUtil.shouldBackupSystemApps(requireContext())
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ExportBlockerRule",
                 ExistingWorkPolicy.KEEP,
-                ExportBlockerRulesWorker.exportWork()
+                ExportBlockerRulesWorker.exportWork(
+                    folderPath = savedFolder?.toString().orEmpty(),
+                    backupSystemApps = backupSystemApps
+                )
             )
         }
-//        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
+        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
     }
 
     private fun exportIfwRule() {

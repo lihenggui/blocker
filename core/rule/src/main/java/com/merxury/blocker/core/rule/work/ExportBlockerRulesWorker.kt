@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.rule.work
 
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
@@ -26,11 +27,12 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.merxury.blocker.core.PreferenceUtil
+import androidx.work.workDataOf
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
+import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -53,17 +55,24 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         // Check storage permission first
-        if (!StorageUtil.isSavedFolderReadable(context)) {
-//            ToastUtil.showToast(R.string.failed_to_back_up, Toast.LENGTH_LONG)
-            return Result.failure()
+        val backupPath = inputData.getString(PARAM_FOLDER_PATH)
+        if (backupPath.isNullOrEmpty()) {
+            return Result.failure(
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED)
+            )
+        }
+        if (!StorageUtil.isFolderReadable(context, backupPath)) {
+            return Result.failure(
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION)
+            )
         }
         // Notify users that work is being started
         Timber.i("Start to backup app rules")
         setForeground(updateNotification("", 0, 0))
         // Backup logic
-        val shouldBackupSystemApp = PreferenceUtil.shouldBackupSystemApps(context)
-        val savedPath = PreferenceUtil.getSavedRulePath(context) ?: return Result.failure()
+        val shouldBackupSystemApp = inputData.getBoolean(PARAM_BACKUP_SYSTEM_APPS, false)
         return withContext(ioDispatcher) {
+            var current = 1
             try {
                 val list = if (shouldBackupSystemApp) {
                     ApplicationUtil.getApplicationList(context)
@@ -71,22 +80,22 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                     ApplicationUtil.getThirdPartyApplicationList(context)
                 }
                 val total = list.count()
-                var current = 1
                 list.forEach {
                     setForeground(updateNotification(it.packageName, current, total))
-                    Rule.export(context, it.packageName, savedPath)
+                    Rule.export(context, it.packageName, Uri.parse(backupPath))
                     current++
                 }
             } catch (e: Exception) {
-                // Notify users that something bad happens
-//                ToastUtil.showToast(R.string.failed_to_back_up, Toast.LENGTH_LONG)
                 Timber.e("Failed to export blocker rules", e)
-                return@withContext Result.failure()
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION)
+                )
             }
             // Success, show a toast then cancel notifications
-//            ToastUtil.showToast(R.string.backup_finished, Toast.LENGTH_LONG)
             Timber.i("Backup app rules finished.")
-            return@withContext Result.success()
+            return@withContext Result.success(
+                workDataOf(PARAM_BACKUP_COUNT to current)
+            )
         }
     }
 
@@ -114,8 +123,20 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
     }
 
     companion object {
-        fun exportWork() = OneTimeWorkRequestBuilder<ExportBlockerRulesWorker>()
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
+        const val PARAM_BACKUP_COUNT = "param_backup_count"
+        const val PARAM_WORK_RESULT = "param_work_result"
+        private const val PARAM_FOLDER_PATH = "param_folder_path"
+        private const val PARAM_BACKUP_SYSTEM_APPS = "param_restore_system_apps"
+
+        fun exportWork(folderPath: String?, backupSystemApps: Boolean) =
+            OneTimeWorkRequestBuilder<ExportBlockerRulesWorker>()
+                .setInputData(
+                    workDataOf(
+                        PARAM_FOLDER_PATH to folderPath,
+                        PARAM_BACKUP_SYSTEM_APPS to backupSystemApps
+                    )
+                )
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                .build()
     }
 }
