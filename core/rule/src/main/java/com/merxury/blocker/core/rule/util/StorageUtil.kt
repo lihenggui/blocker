@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.rule.util
 
 import android.content.Context
+import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.merxury.blocker.core.PreferenceUtil
 import kotlinx.coroutines.CoroutineDispatcher
@@ -44,6 +45,23 @@ object StorageUtil {
             }
         }
         return ifwFolder
+    }
+
+    fun isFolderReadable(context: Context, path: String): Boolean {
+        val uri = Uri.parse(path)
+        // Hasn't set the dir to store
+        val folder = try {
+            DocumentFile.fromTreeUri(context, uri)
+        } catch (e: Exception) {
+            Timber.e("Uri $uri is not readable.", e)
+            return false
+        }
+        // Folder may be unreachable
+        val isFolderUnreachable = (folder == null) || !folder.canRead() || !folder.canWrite()
+        if (isFolderUnreachable) {
+            Timber.w("Uri $uri is not reachable.")
+        }
+        return !isFolderUnreachable
     }
 
     fun isSavedFolderReadable(context: Context): Boolean {
