@@ -179,12 +179,13 @@ class SettingsFragment :
     }
 
     private fun exportIfwRule() {
+        val savedFolder = PreferenceUtil.getSavedRulePath(requireContext())
         ToastUtil.showToast(R.string.backing_up_ifw_please_wait, Toast.LENGTH_LONG)
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ExportIfwRule",
                 ExistingWorkPolicy.KEEP,
-                ExportIfwRulesWorker.exportWork()
+                ExportIfwRulesWorker.exportWork(savedFolder?.toString().orEmpty())
             )
         }
     }
