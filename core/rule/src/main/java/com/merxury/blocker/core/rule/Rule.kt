@@ -28,6 +28,7 @@ import com.merxury.blocker.core.model.EComponentType
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.entity.ComponentRule
+import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.IntentFirewall
@@ -36,11 +37,6 @@ import com.merxury.ifw.entity.ComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.util.RuleSerializer
 import com.merxury.ifw.util.StorageUtils
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import timber.log.Timber
 
 object Rule {
@@ -146,7 +142,7 @@ object Rule {
                 )
             }
             val result = if (rule.components.isNotEmpty()) {
-                saveRuleToStorage(context, rule, packageName, destUri)
+                StorageUtil.saveRuleToStorage(context, rule, packageName, destUri)
             } else {
                 // No components exported, return true
                 true
@@ -341,40 +337,5 @@ object Rule {
             return true
         }
         return false
-    }
-
-    private suspend fun saveRuleToStorage(
-        context: Context,
-        rule: BlockerRule,
-        packageName: String,
-        destUri: Uri,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): Boolean {
-        val dir = DocumentFile.fromTreeUri(context, destUri)
-        if (dir == null) {
-            Timber.e("Cannot open $destUri")
-            return false
-        }
-        // Create blocker rule file
-        var file = dir.findFile(packageName + EXTENSION)
-        if (file == null) {
-            file = dir.createFile(BLOCKER_RULE_MIME, packageName)
-        }
-        if (file == null) {
-            Timber.w("Cannot create rule $packageName")
-            return false
-        }
-        return withContext(dispatcher) {
-            try {
-                context.contentResolver.openOutputStream(file.uri, "rwt")?.use {
-                    val text = Json.encodeToString(rule)
-                    it.write(text.toByteArray())
-                }
-                return@withContext true
-            } catch (e: Exception) {
-                Timber.e("Cannot write rules for $packageName", e)
-                return@withContext false
-            }
-        }
     }
 }
