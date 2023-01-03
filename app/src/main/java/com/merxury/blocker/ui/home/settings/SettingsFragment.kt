@@ -199,11 +199,16 @@ class SettingsFragment :
 
     private fun importIfwRule() {
         ToastUtil.showToast(R.string.import_ifw_please_wait, Toast.LENGTH_LONG)
+        val backupPath = PreferenceUtil.getSavedRulePath(requireContext())
+        val restoreSystemApps = PreferenceUtil.shouldRestoreSystemApps(requireContext())
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ImportIfwRule",
                 ExistingWorkPolicy.KEEP,
-                ImportIfwRulesWorker.importIfwWork()
+                ImportIfwRulesWorker.importIfwWork(
+                    backupPath = backupPath.toString(),
+                    restoreSystemApps = restoreSystemApps,
+                )
             )
         }
     }

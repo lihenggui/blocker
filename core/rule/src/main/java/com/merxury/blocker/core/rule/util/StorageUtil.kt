@@ -32,18 +32,14 @@ import timber.log.Timber
 object StorageUtil {
     private const val IFW_RELATIVE_PATH = "ifw"
 
-    fun getSavedFolder(context: Context): DocumentFile? {
-        val savedUri = PreferenceUtil.getSavedRulePath(context) ?: run {
-            Timber.e("Saved rule path is null")
+    fun getOrCreateIfwFolder(context: Context, baseFolder: String): DocumentFile? {
+        val baseDocument = DocumentFile.fromTreeUri(context, Uri.parse(baseFolder))
+        if (baseDocument == null) {
+            Timber.e("Can't parse the path of the base folder.")
             return null
         }
-        return DocumentFile.fromTreeUri(context, savedUri)
-    }
-
-    fun getOrCreateIfwFolder(context: Context): DocumentFile? {
-        val savedFolder = getSavedFolder(context) ?: return null
-        val ifwFolder = savedFolder.findFile(IFW_RELATIVE_PATH) ?: run {
-            savedFolder.createDirectory(IFW_RELATIVE_PATH) ?: run {
+        val ifwFolder = baseDocument.findFile(IFW_RELATIVE_PATH) ?: run {
+            baseDocument.createDirectory(IFW_RELATIVE_PATH) ?: run {
                 Timber.e("Create ifw folder failed")
                 return null
             }
