@@ -68,8 +68,6 @@ class ResetIfwWorker @AssistedInject constructor(
             return@withContext Result.failure()
         }
         Timber.i("Cleared $count IFW rules.")
-        val message = applicationContext.getString(R.string.clear_ifw_message, count)
-//        ToastUtil.showToast(message, Toast.LENGTH_LONG)
         return@withContext Result.success()
     }
 
