@@ -19,7 +19,6 @@ package com.merxury.blocker.core.rule.util
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import java.io.IOException
@@ -64,21 +63,6 @@ object StorageUtil {
         }
         return !isFolderUnreachable
     }
-
-    fun isSavedFolderReadable(context: Context): Boolean {
-        val uri = PreferenceUtil.getSavedRulePath(context) ?: return false
-        // Hasn't set the dir to store
-        val folder = try {
-            DocumentFile.fromTreeUri(context, uri)
-        } catch (e: Exception) {
-            Timber.e("Invalid Uri $uri", e)
-            return false
-        }
-        // Folder may be unreachable
-        val isFolderUnreachable = (folder == null) || !folder.canRead() || !folder.canWrite()
-        return !isFolderUnreachable
-    }
-
     suspend fun saveIfwToStorage(
         context: Context,
         baseFolder: String,
