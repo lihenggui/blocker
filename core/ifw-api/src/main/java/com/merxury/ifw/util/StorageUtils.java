@@ -58,6 +58,7 @@ public class StorageUtils {
      * @return <code>true</code> if Encrypted File System feature is enabled, <code>false</code>
      * if disabled.
      */
+    @SuppressWarnings("ConstantConditions")
     public static boolean isEncryptedFilesystemEnabled() {
         try {
             return (boolean) Class.forName("android.os.SystemProperties")
