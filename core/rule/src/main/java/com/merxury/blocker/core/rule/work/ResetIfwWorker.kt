@@ -26,14 +26,18 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.util.StorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -60,15 +64,28 @@ class ResetIfwWorker @AssistedInject constructor(
             files.forEach {
                 updateNotification(it, count, total)
                 Timber.i("Delete $it")
-                FileUtils.delete(ifwFolder + it, false)
+                FileUtils.delete(
+                    path = ifwFolder + it,
+                    recursively = false,
+                    dispatcher = ioDispatcher
+                )
                 count++
             }
-        } catch (e: Exception) {
+        } catch (e: RuntimeException) {
             Timber.e("Failed to clear IFW rules", e)
-            return@withContext Result.failure()
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION)
+            )
+        } catch (e: IOException) {
+            Timber.e("Failed to clear IFW rules, IO exception occured", e)
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION)
+            )
         }
         Timber.i("Cleared $count IFW rules.")
-        return@withContext Result.success()
+        return@withContext Result.success(
+            workDataOf(PARAM_CLEAR_COUNT to count)
+        )
     }
 
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
@@ -95,6 +112,9 @@ class ResetIfwWorker @AssistedInject constructor(
     }
 
     companion object {
+        const val PARAM_CLEAR_COUNT = "param_clear_count"
+        const val PARAM_WORK_RESULT = "param_work_result"
+
         fun clearIfwWork() = OneTimeWorkRequestBuilder<ResetIfwWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
