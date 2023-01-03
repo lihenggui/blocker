@@ -35,8 +35,8 @@ import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
 import com.merxury.ifw.entity.Rules
+import com.merxury.ifw.util.IfwStorageUtils
 import com.merxury.ifw.util.RuleSerializer
-import com.merxury.ifw.util.StorageUtils
 import timber.log.Timber
 
 object Rule {
@@ -307,7 +307,7 @@ object Rule {
     suspend fun resetIfw(): Boolean {
         var result = true
         try {
-            val ifwFolder = StorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
             files.forEach {
                 if (!FileUtils.delete(it, false)) {

@@ -28,8 +28,8 @@ import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.ifw.util.IfwStorageUtils
 import com.merxury.ifw.util.RuleSerializer
-import com.merxury.ifw.util.StorageUtils
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -131,7 +131,7 @@ object RuleBackupHelper {
     ): String? {
         return withContext(dispatcher) {
             val backupFolder = PreferenceUtil.getSavedRulePath(context)
-            val ifwFolder = StorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
             val ifwFile = files.filter { it.contains(packageName) }
             if (ifwFile.isEmpty()) {
