@@ -34,7 +34,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSI
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.ifw.util.StorageUtils
+import com.merxury.ifw.util.IfwStorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.io.IOException
@@ -58,7 +58,7 @@ class ResetIfwWorker @AssistedInject constructor(
         var count = 0
         val total: Int
         try {
-            val ifwFolder = StorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
             total = files.count()
             files.forEach {
