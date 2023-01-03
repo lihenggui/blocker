@@ -36,7 +36,6 @@ import androidx.work.WorkManager
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
@@ -45,6 +44,7 @@ import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.util.BrowserUtil
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.CheckRuleUpdateWork
