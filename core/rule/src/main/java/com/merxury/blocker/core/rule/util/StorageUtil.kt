@@ -22,6 +22,7 @@ import androidx.documentfile.provider.DocumentFile
 import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
+import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -80,20 +81,21 @@ object StorageUtil {
 
     suspend fun saveIfwToStorage(
         context: Context,
+        baseFolder: String,
         filename: String,
         content: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO
-    ): Boolean {
+    ): Boolean = withContext(dispatcher) {
         // Get base dir
-        val destUri = PreferenceUtil.getSavedRulePath(context)
+        val destUri = Uri.parse(baseFolder)
         if (destUri == null) {
             Timber.w("No dest folder defined")
-            return false
+            return@withContext false
         }
         val dir = DocumentFile.fromTreeUri(context, destUri)
         if (dir == null) {
             Timber.e("Cannot open $destUri")
-            return false
+            return@withContext false
         }
         // Find IFW folder
         var ifwDir = dir.findFile(IFW_RELATIVE_PATH)
@@ -102,7 +104,7 @@ object StorageUtil {
         }
         if (ifwDir == null) {
             Timber.e("Cannot create ifw dir in $destUri")
-            return false
+            return@withContext false
         }
         // Create IFW file
         var file = ifwDir.findFile(filename)
@@ -111,19 +113,17 @@ object StorageUtil {
         }
         if (file == null) {
             Timber.w("Cannot create ifw rule $filename")
-            return false
+            return@withContext false
         }
         // Write file contents
-        return withContext(dispatcher) {
-            try {
-                context.contentResolver.openOutputStream(file.uri, "rwt")?.use {
-                    it.write(content.toByteArray())
-                }
-                return@withContext true
-            } catch (e: Exception) {
-                Timber.e("Cannot write rules for $filename", e)
-                return@withContext false
+        return@withContext try {
+            context.contentResolver.openOutputStream(file.uri, "rwt")?.use {
+                it.write(content.toByteArray())
             }
+            true
+        } catch (e: IOException) {
+            Timber.e("Cannot write rules for $filename", e)
+            false
         }
     }
 

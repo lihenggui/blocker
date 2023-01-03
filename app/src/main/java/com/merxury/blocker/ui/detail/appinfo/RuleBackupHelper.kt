@@ -130,6 +130,7 @@ object RuleBackupHelper {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): String? {
         return withContext(dispatcher) {
+            val backupFolder = PreferenceUtil.getSavedRulePath(context)
             val ifwFolder = StorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
             val ifwFile = files.filter { it.contains(packageName) }
@@ -141,7 +142,13 @@ object RuleBackupHelper {
                 logger.i("Export $it")
                 val filename = it.split(File.separator).last()
                 val content = FileUtils.read(ifwFolder + it)
-                val result = StorageUtil.saveIfwToStorage(context, filename, content)
+                val result = StorageUtil.saveIfwToStorage(
+                    context,
+                    backupFolder.toString(),
+                    filename,
+                    content,
+                    dispatcher
+                )
                 if (!result) {
                     logger.i("Export $it failed")
                     return@withContext null

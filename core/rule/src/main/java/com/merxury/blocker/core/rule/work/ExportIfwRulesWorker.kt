@@ -77,7 +77,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
                 val filename = it.split(File.separator).last()
                 setForeground(updateNotification(filename, current, total))
                 val content = FileUtils.read(ifwFolder + it)
-                StorageUtil.saveIfwToStorage(context, filename, content)
+                StorageUtil.saveIfwToStorage(context, folderPath, filename, content, ioDispatcher)
                 current++
             }
         } catch (e: RuntimeException) {
