@@ -24,7 +24,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.core.os.bundleOf
 import com.google.gson.Gson
-import com.merxury.blocker.core.PreferenceUtil
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.controllers.ifw.IfwController
 import com.merxury.blocker.core.model.data.ControllerType
