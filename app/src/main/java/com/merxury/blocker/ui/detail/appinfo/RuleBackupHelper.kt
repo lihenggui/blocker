@@ -21,13 +21,13 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
-import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.util.RuleSerializer
 import com.merxury.ifw.util.StorageUtils
 import java.io.BufferedReader
