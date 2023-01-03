@@ -221,12 +221,14 @@ class SettingsFragment :
     }
 
     private fun importMatRule(fileUri: Uri) {
+        val controllerType = PreferenceUtil.getControllerType(requireContext())
+        val restoreSystemApps = PreferenceUtil.shouldRestoreSystemApps(requireContext())
         ToastUtil.showToast(R.string.import_mat_rule_please_wait, Toast.LENGTH_LONG)
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ImportMatRule",
                 ExistingWorkPolicy.KEEP,
-                ImportMatRulesWorker.importWork(fileUri)
+                ImportMatRulesWorker.importWork(fileUri, controllerType, restoreSystemApps)
             )
         }
     }
