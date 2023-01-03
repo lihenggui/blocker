@@ -21,7 +21,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import timber.log.Timber;
 
-public class StorageUtils {
+public class IfwStorageUtils {
     private static final String IFW_FOLDER = "/ifw";
     private static final File DATA_DIRECTORY
             = getDirectory("ANDROID_DATA", "/data");
@@ -72,6 +72,6 @@ public class StorageUtils {
 
     @NonNull
     public static String getIfwFolder() {
-        return StorageUtils.getSystemSecureDirectory() + IFW_FOLDER + File.separator;
+        return IfwStorageUtils.getSystemSecureDirectory() + IFW_FOLDER + File.separator;
     }
 }

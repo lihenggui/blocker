@@ -34,7 +34,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.ifw.util.StorageUtils
+import com.merxury.ifw.util.IfwStorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.io.File
@@ -69,7 +69,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         Timber.i("Start to export IFW rules.")
         var current = 0
         try {
-            val ifwFolder = StorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
             val total = files.count()
             files.forEach {
