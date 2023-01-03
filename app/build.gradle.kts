@@ -92,9 +92,8 @@ android {
 }
 
 dependencies {
-    // TODO database, datastore, rule, datetime, network should be removed
+    // TODO database, rule, datetime, network should be removed
     implementation(project(":core:database"))
-    implementation(project(":core:datastore"))
     implementation(project(":core:network"))
     implementation(project(":core:rule"))
     implementation(libs.kotlinx.datetime)
@@ -108,7 +107,6 @@ dependencies {
     implementation(project(":sync:work"))
 
     androidTestImplementation(project(":core:testing"))
-    androidTestImplementation(project(":core:datastore-test"))
     androidTestImplementation(project(":core:data-test"))
     androidTestImplementation(project(":core:network"))
     androidTestImplementation(libs.androidx.navigation.testing)
