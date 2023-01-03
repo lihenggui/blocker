@@ -37,8 +37,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.databinding.LocalSearchFragmentBinding
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.unsafeLazy
 import dagger.hilt.android.AndroidEntryPoint
