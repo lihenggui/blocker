@@ -141,7 +141,7 @@ object ApplicationUtil {
                 Timber.w("Cannot find specified package $packageName.")
             } catch (e: RuntimeException) {
                 Timber.e("Failed to fetch activity list for $packageName", e)
-                return@withContext ApkUtils.getActivities(pm, packageName)
+                return@withContext ApkParser.getActivities(pm, packageName)
             }
             activities
         }
@@ -209,7 +209,7 @@ object ApplicationUtil {
                 Timber.e("Cannot find specified package $packageName.")
             } catch (e: RuntimeException) {
                 Timber.e("Failed to fetch service list $packageName", e)
-                return@withContext ApkUtils.getServices(pm, packageName)
+                return@withContext ApkParser.getServices(pm, packageName)
             }
             services
         }
