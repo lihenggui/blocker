@@ -16,11 +16,11 @@
 
 package com.merxury.blocker.core.rule.entity
 
-enum class RuleWorkResult {
-    STARTED,
-    FINISHED,
-    FOLDER_NOT_DEFINED,
-    MISSING_ROOT_PERMISSION,
-    MISSING_STORAGE_PERMISSION,
-    UNEXPECTED_EXCEPTION,
+object RuleWorkResult {
+    const val STARTED = 0
+    const val FINISHED = 1
+    const val FOLDER_NOT_DEFINED = 2
+    const val MISSING_ROOT_PERMISSION = 3
+    const val MISSING_STORAGE_PERMISSION = 4
+    const val UNEXPECTED_EXCEPTION = 5
 }
