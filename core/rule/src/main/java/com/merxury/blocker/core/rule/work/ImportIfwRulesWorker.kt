@@ -75,7 +75,6 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         val total: Int
         var importedCount = 0
         try {
-            val baseFolder = inputData.getString(PARAM_FOLDER_PATH)
             val shouldRestoreSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
             // Check directory is readable
             val ifwFolder = StorageUtil.getOrCreateIfwFolder(context, folderPath)
