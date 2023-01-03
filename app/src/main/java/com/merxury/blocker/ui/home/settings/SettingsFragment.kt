@@ -152,11 +152,18 @@ class SettingsFragment :
     }
 
     private fun importBlockerRule() {
+        val backupPath = PreferenceUtil.getSavedRulePath(requireContext())
+        val restoreSystemApps = PreferenceUtil.shouldRestoreSystemApps(requireContext())
+        val controllerType = PreferenceUtil.getControllerType(requireContext())
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ImportBlockerRule",
                 ExistingWorkPolicy.KEEP,
-                ImportBlockerRuleWorker.importWork()
+                ImportBlockerRuleWorker.importWork(
+                    backupPath = backupPath?.toString(),
+                    restoreSystemApps = restoreSystemApps,
+                    controllerType = controllerType,
+                )
             )
         }
         ToastUtil.showToast(R.string.import_app_rules_please_wait, Toast.LENGTH_LONG)
