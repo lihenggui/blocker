@@ -171,6 +171,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         const val PARAM_WORK_RESULT = "param_work_result"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"
+
         fun importIfwWork(
             backupPath: String?,
             restoreSystemApps: Boolean,
