@@ -24,7 +24,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.preference.PreferenceManager
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.datastore.R
+import com.merxury.blocker.R
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.util.ManagerUtils

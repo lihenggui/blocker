@@ -32,6 +32,8 @@ fun NavController.navigateToAppListGraph(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.appListGraph(
     navigateToAppDetail: (String) -> Unit,
+    navigateToSettings: () -> Unit,
+    navigateToSupportAndFeedback: () -> Unit,
     nestedGraphs: NavGraphBuilder.() -> Unit
 ) {
     navigation(
@@ -39,7 +41,11 @@ fun NavGraphBuilder.appListGraph(
         startDestination = appListRoute
     ) {
         composable(route = appListRoute) {
-            AppListRoute(navigateToAppDetail = navigateToAppDetail)
+            AppListRoute(
+                navigateToAppDetail = navigateToAppDetail,
+                navigateToSettings = navigateToSettings,
+                navigateToSupportAndFeedback = navigateToSupportAndFeedback
+            )
         }
         nestedGraphs()
     }

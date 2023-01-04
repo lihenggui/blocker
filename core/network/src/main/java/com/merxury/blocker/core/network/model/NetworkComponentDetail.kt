@@ -23,7 +23,8 @@ import kotlinx.serialization.Serializable
  */
 @Serializable
 data class NetworkComponentDetail(
-    val name: String,
+    val fullName: String,
+    val simpleName: String,
     val packageName: String,
     val icon: String? = null,
     val sdkName: String? = null,

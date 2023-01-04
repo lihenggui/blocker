@@ -52,5 +52,19 @@
     <string name="failed_to_back_up">Failed to back up app rules, please check your permission or create feedback.</string>
     <string name="backup_finished">Backup app rules finished.</string>
     <string name="dir_is_invalid">Directory is invalid, please check if you have set the backup directory or not.</string>
-
+    <string name="dir_not_set">Directory not set or unreadable</string>
+    <string name="blocker_rules">Blocker rules</string>
+    <string name="ifw_rules">IFW rules</string>
+    <string name="loading">Loading</string>
+    <string name="theme">Theme</string>
+    <string name="theme_default">Default</string>
+    <string name="theme_Android">Android</string>
+    <string name="dark_mode_preference">Dark mode preference</string>
+    <string name="system_default">System default</string>
+    <string name="light">Light</string>
+    <string name="dark">Dark</string>
+    <string name="support_and_feedback">Support and feedback</string>
+    <string name="github">GitHub</string>
+    <string name="telegram_group">Telegram group</string>
+    <string name="export_error_log">Export error log</string>
 </resources>

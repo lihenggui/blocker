@@ -27,18 +27,23 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.merxury.blocker.core.PreferenceUtil
+import androidx.work.workDataOf
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.util.RuleSerializer
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -55,26 +60,35 @@ class ImportIfwRulesWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
+        val folderPath = inputData.getString(PARAM_FOLDER_PATH)
+        if (folderPath.isNullOrEmpty()) {
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to FOLDER_NOT_DEFINED)
+            )
+        }
+        if (!StorageUtil.isFolderReadable(context, folderPath)) {
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to MISSING_STORAGE_PERMISSION)
+            )
+        }
         Timber.i("Started to import IFW rules")
         val total: Int
-        var imported = 0
+        var importedCount = 0
         try {
-            val shouldRestoreSystemApps = PreferenceUtil.shouldRestoreSystemApps(context)
+            val shouldRestoreSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
             // Check directory is readable
-            val ifwFolder = StorageUtil.getOrCreateIfwFolder(context)
-            if (ifwFolder == null) {
-                Timber.e("Folder hasn't been set yet.")
-//                ToastUtil.showToast(R.string.import_ifw_failed_message, Toast.LENGTH_LONG)
-                return@withContext Result.failure()
-            }
+            val ifwFolder = StorageUtil.getOrCreateIfwFolder(context, folderPath)
+                ?: return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION)
+                )
             val controller = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
-            val files =
-                ifwFolder.listFiles().filter { it.isFile && it.name?.endsWith(".xml") == true }
+            val files = ifwFolder.listFiles()
+                .filter { it.isFile && it.name?.endsWith(".xml") == true }
             total = files.count()
             // Start importing files
             files.forEach { documentFile ->
                 Timber.i("Importing ${documentFile.name}")
-                setForeground(updateNotification(documentFile.name ?: "", imported, total))
+                setForeground(updateNotification(documentFile.name ?: "", importedCount, total))
                 var packageName: String? = null
                 context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
                     val rule = RuleSerializer.deserialize(stream) ?: return@forEach
@@ -111,17 +125,24 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                     controller.batchDisable(activities) {}
                     controller.batchDisable(broadcast) {}
                     controller.batchDisable(service) {}
-                    imported++
+                    importedCount++
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: RuntimeException) {
             Timber.e("Cannot import IFW rules", e)
-//            ToastUtil.showToast(R.string.import_ifw_failed_message, Toast.LENGTH_LONG)
-            return@withContext Result.failure()
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION)
+            )
+        } catch (e: IOException) {
+            Timber.e("Cannot read IFW rules", e)
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION)
+            )
         }
-        Timber.i("Imported $imported IFW rules.")
-//        ToastUtil.showToast(R.string.import_successfully, Toast.LENGTH_LONG)
-        return@withContext Result.success()
+        Timber.i("Imported $importedCount IFW rules.")
+        return@withContext Result.success(
+            workDataOf(PARAM_IMPORT_COUNT to importedCount)
+        )
     }
 
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
@@ -146,7 +167,21 @@ class ImportIfwRulesWorker @AssistedInject constructor(
     }
 
     companion object {
-        fun importIfwWork() = OneTimeWorkRequestBuilder<ImportIfwRulesWorker>()
+        const val PARAM_IMPORT_COUNT = "param_import_count"
+        const val PARAM_WORK_RESULT = "param_work_result"
+        private const val PARAM_FOLDER_PATH = "param_folder_path"
+        private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"
+
+        fun importIfwWork(
+            backupPath: String?,
+            restoreSystemApps: Boolean,
+        ) = OneTimeWorkRequestBuilder<ImportIfwRulesWorker>()
+            .setInputData(
+                workDataOf(
+                    PARAM_FOLDER_PATH to backupPath,
+                    PARAM_RESTORE_SYS_APPS to restoreSystemApps,
+                )
+            )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
     }

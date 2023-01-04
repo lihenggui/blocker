@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.settings.item
+package com.merxury.blocker.feature.helpandfeedback.item
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,42 +38,56 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R
 
 @Composable
-fun SettingsItem(
-    icon: ImageVector,
+fun Item(
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
     itemRes: Int,
-    itemValue: String,
-    onItemClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit,
 ) {
+    var padding = 0.dp
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onItemClick() }
-            .padding(vertical = 8.dp, horizontal = 16.dp),
+            .clickable { onClick() }
+            .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = icon, contentDescription = stringResource(id = itemRes))
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(
-                text = stringResource(id = itemRes),
-                style = MaterialTheme.typography.bodyLarge
+        if (icon != null) {
+            Icon(imageVector = icon, contentDescription = stringResource(id = itemRes))
+            Spacer(modifier = Modifier.width(16.dp))
+        } else {
+            padding = 40.dp
+        }
+        Text(
+            modifier = modifier.padding(start = padding),
+            text = stringResource(id = itemRes),
+            style = MaterialTheme.typography.bodyLarge
+        )
+    }
+}
+
+@Composable
+@Preview
+fun ItemWithIconPreview() {
+    BlockerTheme {
+        Surface {
+            Item(
+                icon = BlockerIcons.BugReport,
+                itemRes = R.string.export_error_log,
+                onClick = {}
             )
-            Text(text = itemValue, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
 
 @Composable
 @Preview
-fun SettingsItemPreview() {
+fun ItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
-            SettingsItem(
-                icon = BlockerIcons.AutoFix,
-                itemRes = R.string.controller_type,
-                itemValue = "IFW",
-                onItemClick = {}
+            Item(
+                itemRes = R.string.github,
+                onClick = {}
             )
         }
     }
