@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
+import com.merxury.blocker.BlockerFlavor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 class GmsConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            pluginManager.findPlugin("com.google.gms:google-services").apply {
-                version = "4.3.14"
+            configurations.forEach {
+                if (it.isCanBeConsumed && it.name.contains(BlockerFlavor.prod.name)) {
+                    pluginManager.findPlugin("com.google.gms:google-services")
+                        .apply { version = "4.3.14" }
+                }
             }
         }
     }
-
 }
