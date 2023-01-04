@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
+import com.merxury.blocker.BlockerFlavor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 class FirebaseCrashlyticsConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            pluginManager.findPlugin("com.google.firebase:firebase-crashlytics-gradle").apply {
-                version = "2.9.2"
+            configurations.forEach {
+                if (it.isCanBeConsumed && it.name.contains(BlockerFlavor.prod.name)) {
+                    pluginManager.findPlugin("com.google.firebase:firebase-crashlytics-gradle")
+                        .apply { version = "2.9.2" }
+                }
             }
         }
     }
-
 }
