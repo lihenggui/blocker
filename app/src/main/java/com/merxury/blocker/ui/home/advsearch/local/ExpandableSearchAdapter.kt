@@ -30,7 +30,7 @@ import com.merxury.blocker.R
 import com.merxury.blocker.core.database.app.AppComponentEntity
 import com.merxury.blocker.core.database.app.InstalledAppEntity
 import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.utils.AppIconCache
+import com.merxury.blocker.util.AppIconCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
