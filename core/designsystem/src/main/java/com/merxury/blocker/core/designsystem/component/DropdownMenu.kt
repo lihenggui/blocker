@@ -16,14 +16,12 @@
 
 package com.merxury.blocker.core.designsystem.component
 
-import android.content.res.Configuration
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -32,15 +30,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import com.merxury.blocker.core.designsystem.R
-import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun BlockerAppTopBarMenu(
     menuIcon: ImageVector,
     menuIconDesc: Int,
-    items: List<DropDownMenuItem>
+    menuList: List<DropDownMenuItem>
 ) {
     val expanded = remember { mutableStateOf(false) }
     Box(Modifier.wrapContentSize(Alignment.TopStart)) {
@@ -55,7 +52,7 @@ fun BlockerAppTopBarMenu(
         BlockerDropdownMenu(
             expanded = expanded.value,
             onDismissRequest = { expanded.value = false },
-            items = items
+            menuList = menuList
         )
     }
 }
@@ -64,14 +61,14 @@ fun BlockerAppTopBarMenu(
 fun BlockerDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
-    items: List<DropDownMenuItem>,
+    menuList: List<DropDownMenuItem>,
     dismissOnItemClick: Boolean = true
 ) {
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest
     ) {
-        items.forEach { item ->
+        menuList.forEach { item ->
             DropdownMenuItem(
                 text = { Text(stringResource(id = item.textRes)) },
                 onClick = {
@@ -83,28 +80,32 @@ fun BlockerDropdownMenu(
     }
 }
 
-data class DropDownMenuItem(
-    val textRes: Int,
-    val onClick: () -> Unit
-)
-
-@Preview
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun DropDownMenuPreview() {
-    val menuItems = listOf(
-        DropDownMenuItem(R.string.more_menu) {},
-        DropDownMenuItem(R.string.more_menu) {},
-        DropDownMenuItem(R.string.more_menu) {},
-        DropDownMenuItem(R.string.more_menu) {},
-    )
-    BlockerTheme {
-        Surface {
-            BlockerDropdownMenu(
-                expanded = true,
-                onDismissRequest = {},
-                items = menuItems,
+fun <T> BlockerDropdownMenu(
+    expanded: Boolean,
+    onDismissRequest: () -> Unit,
+    menuList: List<T>,
+    onClick: (item: T) -> Unit,
+    dismissOnItemClick: Boolean = true
+) {
+    DropdownMenu(
+        offset = DpOffset(x = 56.dp, y = (-16).dp),
+        expanded = expanded,
+        onDismissRequest = onDismissRequest
+    ) {
+        menuList.forEach { item ->
+            DropdownMenuItem(
+                text = { Text(item.toString()) },
+                onClick = {
+                    onClick(item)
+                    if (dismissOnItemClick) onDismissRequest()
+                }
             )
         }
     }
 }
+
+data class DropDownMenuItem(
+    val textRes: Int,
+    val onClick: () -> Unit
+)

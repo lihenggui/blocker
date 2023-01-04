@@ -52,5 +52,19 @@
     <string name="failed_to_back_up">Сбой создания резервной копии правил для приложений. Проверьте разрешения или создайте отчет..</string>
     <string name="backup_finished">Резервное копирование правил завершено</string>
     <string name="dir_is_invalid">Папка недействительна, проверьте, установили ли вы папку для резервного копирования или нет.</string>
-
+    <string name="blocker_rules">правилBlocker</string>
+    <string name="ifw_rules">правилIFW</string>
+    <string name="support_and_feedback">Поддержка и отзывы</string>
+    <string name="github">GitHub</string>
+    <string name="telegram_group">группа Telegram</string>
+    <string name="export_error_log">Экспорт журнала ошибок</string>
+    <string name="dir_not_set">Каталог не установлен или не читается</string>
+    <string name="loading">Загрузка</string>
+    <string name="theme">Тема</string>
+    <string name="theme_default">По умолчанию</string>
+    <string name="theme_Android">Android</string>
+    <string name="dark_mode_preference">Темный режим</string>
+    <string name="system_default">Системные установки по умолчанию</string>
+    <string name="light">Свет</string>
+    <string name="dark">Dark</string>
 </resources>
