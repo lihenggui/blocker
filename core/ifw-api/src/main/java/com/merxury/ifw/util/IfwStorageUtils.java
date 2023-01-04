@@ -21,7 +21,7 @@ import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import timber.log.Timber;
 
-public class StorageUtils {
+public class IfwStorageUtils {
     private static final String IFW_FOLDER = "/ifw";
     private static final File DATA_DIRECTORY
             = getDirectory("ANDROID_DATA", "/data");
@@ -58,6 +58,7 @@ public class StorageUtils {
      * @return <code>true</code> if Encrypted File System feature is enabled, <code>false</code>
      * if disabled.
      */
+    @SuppressWarnings("ConstantConditions")
     public static boolean isEncryptedFilesystemEnabled() {
         try {
             return (boolean) Class.forName("android.os.SystemProperties")
@@ -71,6 +72,6 @@ public class StorageUtils {
 
     @NonNull
     public static String getIfwFolder() {
-        return StorageUtils.getSystemSecureDirectory() + IFW_FOLDER + File.separator;
+        return IfwStorageUtils.getSystemSecureDirectory() + IFW_FOLDER + File.separator;
     }
 }

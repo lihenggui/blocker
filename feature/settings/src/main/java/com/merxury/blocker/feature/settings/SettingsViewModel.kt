@@ -21,8 +21,10 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -46,7 +48,11 @@ class SettingsViewModel @Inject constructor(
                         ruleServerProvider = userData.ruleServerProvider,
                         ruleBackupFolder = userData.ruleBackupFolder,
                         backupSystemApp = userData.backupSystemApp,
-                        restoreSystemApp = userData.restoreSystemApp
+                        restoreSystemApp = userData.restoreSystemApp,
+                        showSystemApps = userData.showSystemApps,
+                        showServiceInfo = userData.showServiceInfo,
+                        themeBrand = userData.themeBrand,
+                        darkThemeConfig = userData.darkThemeConfig
                     )
                 )
             }
@@ -59,6 +65,18 @@ class SettingsViewModel @Inject constructor(
     fun updateControllerType(type: ControllerType) {
         viewModelScope.launch {
             userDataRepository.setControllerType(type)
+        }
+    }
+
+    fun updateShowSystemApp(shouldShow: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setShowSystemApps(shouldShow)
+        }
+    }
+
+    fun updateShowServiceInfo(shouldShow: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setShowServiceInfo(shouldShow)
         }
     }
 
@@ -85,6 +103,42 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setRestoreSystemApp(shouldRestore)
         }
     }
+
+    fun importBlockerRules() {
+        // TODO
+    }
+
+    fun exportBlockerRules() {
+        // TODO
+    }
+
+    fun exportIfwRules() {
+        // TODO
+    }
+
+    fun importIfwRules() {
+        // TODO
+    }
+
+    fun resetIfwRules() {
+        // TODO
+    }
+
+    fun importMyAndroidToolsRules() {
+        // TODO
+    }
+
+    fun updateThemeBrand(themeBrand: ThemeBrand) {
+        viewModelScope.launch {
+            userDataRepository.setThemeBrand(themeBrand)
+        }
+    }
+
+    fun updateDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
+        viewModelScope.launch {
+            userDataRepository.setDarkThemeConfig(darkThemeConfig)
+        }
+    }
 }
 
 data class UserEditableSettings(
@@ -93,6 +147,10 @@ data class UserEditableSettings(
     val ruleBackupFolder: String? = null,
     val backupSystemApp: Boolean = false,
     val restoreSystemApp: Boolean = false,
+    val showSystemApps: Boolean = false,
+    val showServiceInfo: Boolean = false,
+    val themeBrand: ThemeBrand,
+    val darkThemeConfig: DarkThemeConfig
 )
 
 sealed interface SettingsUiState {

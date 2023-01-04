@@ -16,47 +16,48 @@
 
 package com.merxury.blocker.ui.detail.component.info
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.OnlineComponentDataRepository
+import com.merxury.blocker.core.data.respository.OnlineComponentRepository
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.ui.detail.component.ComponentData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @HiltViewModel
 class ComponentDetailViewModel @Inject constructor(
-    private val repository: OnlineComponentDataRepository
+    private val repository: OnlineComponentRepository
 ) : ViewModel() {
     private val _onlineData: MutableStateFlow<NetworkComponentDetail?> = MutableStateFlow(null)
     val onlineData = _onlineData.asStateFlow()
     private val isLoading = MutableStateFlow(false)
     val loading = isLoading.asStateFlow()
 
-    fun getOnlineData(context: Context, component: ComponentData) {
+    fun getOnlineData(component: ComponentData) {
         viewModelScope.launch {
             isLoading.value = true
             _onlineData.value =
-                repository.getComponentData(context, component.name, loadFromCacheOnly = true)
-            val onlineData = repository.getComponentData(
-                context,
-                component.name,
-                loadFromCacheOnly = false
-            )
-            if (onlineData != null) {
-                _onlineData.value = onlineData
+                repository.getUserGeneratedComponentDetail(component.name)
+            val onlineData = repository.getNetworkComponentData(component.name,)
+            onlineData.collect {
+                Timber.d("Get online data $it")
+                if (it is Result.Success) {
+                    _onlineData.value = it.data
+                    repository.saveComponentAsCache(it.data)
+                }
+                isLoading.value = false
             }
-            isLoading.value = false
         }
     }
 
-    fun saveUserRule(context: Context, data: NetworkComponentDetail) {
+    fun saveUserRule(data: NetworkComponentDetail) {
         viewModelScope.launch {
-            repository.saveUserGeneratedComponentDetail(context, data)
+            repository.saveUserGeneratedComponentDetail(data)
         }
     }
 }
