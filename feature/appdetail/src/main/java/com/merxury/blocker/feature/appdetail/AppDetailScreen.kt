@@ -19,29 +19,40 @@ package com.merxury.blocker.feature.appdetail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
-import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.component.AppBasicInfoCard
 import com.merxury.blocker.feature.appdetail.component.AppDetailCommonTabContentRoute
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
+import com.merxury.blocker.feature.appdetail.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.model.AppInfoViewModel
@@ -61,11 +72,15 @@ fun AppDetailRoute(
         isRefreshing = uiState is AppInfoUiState.Loading,
         onRefresh = { viewModel.onRefresh() },
         switchTab = viewModel::switchTab,
-        onBackClick = onBackClick
+        onBackClick = onBackClick,
+        onShare = viewModel::onShare,
+        onFindInPage = viewModel::onFindInPage,
+        onEnableApp = viewModel::onEnableApp,
+        onEnableAll = viewModel::onEnableAll,
+        onBlockAll = viewModel::onBlockAll
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailScreen(
     uiState: AppInfoUiState,
@@ -74,6 +89,11 @@ fun AppDetailScreen(
     onRefresh: () -> Unit,
     switchTab: (Int) -> Unit,
     onBackClick: () -> Unit,
+    onShare: () -> Unit,
+    onFindInPage: () -> Unit,
+    onEnableApp: () -> Unit,
+    onEnableAll: () -> Unit,
+    onBlockAll: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
@@ -92,22 +112,19 @@ fun AppDetailScreen(
             }
 
             is Success -> {
-                BlockerTopAppBar(
-                    title = uiState.appInfo.label,
-                    navigationIcon = BlockerIcons.Back,
-                    navigationIconContentDescription = null,
-                    actionIconFirst = BlockerIcons.Search,
-                    actionIconContentDescriptionFirst = null,
-                    actionIconSecond = BlockerIcons.MoreVert,
-                    actionIconContentDescriptionSecond = null,
-                    onNavigationClick = onBackClick
-                )
                 AppDetailContent(
                     uiState = uiState,
                     tabState = tabState,
                     isRefreshing = isRefreshing,
                     onRefresh = onRefresh,
-                    switchTab = switchTab
+                    switchTab = switchTab,
+                    onBackClick = onBackClick,
+                    onShare = onShare,
+                    onFindInPage = onFindInPage,
+                    onEnableApp = onEnableApp,
+                    onEnableAll = onEnableAll,
+                    onBlockAll = onBlockAll,
+                    modifier = modifier
                 )
             }
 
@@ -116,47 +133,117 @@ fun AppDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailContent(
     uiState: Success,
     tabState: TabState,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
-    switchTab: (Int) -> Unit
+    switchTab: (Int) -> Unit,
+    onBackClick: () -> Unit,
+    onShare: () -> Unit,
+    onFindInPage: () -> Unit,
+    onEnableApp: () -> Unit,
+    onEnableAll: () -> Unit,
+    onBlockAll: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    AppBasicInfoCard(app = uiState.appInfo)
-    BlockerTabRow(selectedTabIndex = tabState.currentIndex) {
-        tabState.titles.forEachIndexed { index, titleRes ->
-            BlockerTab(
-                selected = index == tabState.currentIndex,
-                onClick = { switchTab(index) },
-                text = { Text(text = stringResource(id = titleRes)) }
-            )
-        }
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val isCollapsed by remember { derivedStateOf { scrollBehavior.state.collapsedFraction > 0.5 } }
+    val collapsed = 22
+    val expanded = 28
+    val topAppBarTextSize =
+        (collapsed + (expanded - collapsed) * (1 - scrollBehavior.state.collapsedFraction)).sp
+
+    val topAppBarStyle = if (isCollapsed) {
+        MaterialTheme.typography.headlineSmall
+    } else {
+        MaterialTheme.typography.headlineMedium
     }
-    when (tabState.currentIndex) {
-        0 -> {
-            AppInfoTabContent(
-                app = uiState.appInfo,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh
+    Scaffold(
+        topBar = {
+            LargeTopAppBar(
+                title = {
+                    Text(
+                        text = uiState.appInfo.label,
+                        fontSize = topAppBarTextSize,
+                        style = topAppBarStyle
+                    )
+                },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = BlockerIcons.Back,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onShare) {
+                        Icon(
+                            imageVector = BlockerIcons.Share,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    IconButton(onClick = onFindInPage) {
+                        Icon(
+                            imageVector = BlockerIcons.Find,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    TopAppBarMoreMenu(
+                        onEnableApp = onEnableApp,
+                        onRefresh = onRefresh,
+                        onEnableAll = onEnableAll,
+                        onBlockAll = onBlockAll
+                    )
+                },
+                scrollBehavior = scrollBehavior
             )
+        },
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+    ) { padding ->
+        BlockerTabRow(
+            modifier = Modifier.padding(padding),
+            selectedTabIndex = tabState.currentIndex
+        ) {
+            tabState.titles.forEachIndexed { index, titleRes ->
+                BlockerTab(
+                    selected = index == tabState.currentIndex,
+                    onClick = { switchTab(index) },
+                    text = { Text(text = stringResource(id = titleRes)) }
+                )
+            }
         }
+        when (tabState.currentIndex) {
+            0 -> {
+                AppInfoTabContent(
+                    app = uiState.appInfo,
+                    isRefreshing = isRefreshing,
+                    onRefresh = onRefresh
+                )
+            }
 
-        1 -> {
-            AppDetailCommonTabContentRoute()
-        }
+            1 -> {
+                AppDetailCommonTabContentRoute()
+            }
 
-        2 -> {
-            AppDetailCommonTabContentRoute()
-        }
+            2 -> {
+                AppDetailCommonTabContentRoute()
+            }
 
-        3 -> {
-            AppDetailCommonTabContentRoute()
-        }
+            3 -> {
+                AppDetailCommonTabContentRoute()
+            }
 
-        4 -> {
-            AppDetailCommonTabContentRoute()
+            4 -> {
+                AppDetailCommonTabContentRoute()
+            }
         }
     }
 }
@@ -195,7 +282,12 @@ fun AppDetailScreenPreview() {
             isRefreshing = false,
             onRefresh = {},
             switchTab = {},
-            onBackClick = {}
+            onBackClick = {},
+            onShare = {},
+            onFindInPage = {},
+            onEnableApp = {},
+            onEnableAll = {},
+            onBlockAll = {}
         )
     }
 }
