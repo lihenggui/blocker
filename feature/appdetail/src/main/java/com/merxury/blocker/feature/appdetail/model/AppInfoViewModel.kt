@@ -66,6 +66,26 @@ class AppInfoViewModel @Inject constructor(
     fun onRefresh() {
         // TODO
     }
+
+    fun onShare() {
+        // TODO
+    }
+
+    fun onFindInPage() {
+        // TODO
+    }
+
+    fun onEnableApp() {
+        // TODO
+    }
+
+    fun onEnableAll() {
+        // TODO
+    }
+
+    fun onBlockAll() {
+        // TODO
+    }
 }
 
 sealed interface AppInfoUiState {
