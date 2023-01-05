@@ -35,4 +35,11 @@
     <string name="last_update_time">Время последнего обновления</string>
     <string name="data_dir">каталог данных</string>
     <string name="loading">Загрузка</string>
+    <string name="enable_application">Включить приложение</string>
+    <string name="refresh">Обновить</string>
+    <string name="block_all_of_this_page">Заблокировать всю эту страницу</string>
+    <string name="enable_all_of_this_page">Включить всю эту страницу</string>
+    <string name="disabling_hint">Отключение подсказки…</string>
+    <string name="enabling_hint">Включение подсказки…</string>
+    <string name="more_menu">больше меню</string>
 </resources>
