@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-import com.merxury.blocker.BlockerFlavor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
-class GmsConventionPlugin : Plugin<Project> {
+class FirebaseConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            configurations.forEach {
-                if (it.isCanBeConsumed && it.name.contains(BlockerFlavor.prod.name)) {
-                    pluginManager.findPlugin("com.google.gms:google-services")
-                        .apply { version = "4.3.14" }
-                }
+            with(pluginManager) {
+                apply("com.google.gms.google-services")
+                apply("com.google.firebase.crashlytics")
+                apply("com.google.firebase.firebase-perf")
             }
         }
     }
