@@ -23,10 +23,8 @@ plugins {
     id("blocker.android.application.compose")
     id("blocker.android.application.jacoco")
     id("blocker.android.hilt")
+    id("blocker.firebase")
     id("jacoco")
-    id("blocker.firebase-perf")
-    id("blocker.gms")
-    id("blocker.firebase-crashlytics")
     id("kotlin-parcelize")
     alias(libs.plugins.ksp)
 }
@@ -165,10 +163,10 @@ dependencies {
     implementation(libs.shizuku.provider)
     implementation(libs.glide)
     implementation(libs.apache.commons.csv)
-
     prodImplementation(platform(libs.firebase.bom))
     prodImplementation(libs.firebase.analytics)
     prodImplementation(libs.firebase.crashlytics)
+    prodImplementation(libs.firebase.perf)
 }
 
 // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13

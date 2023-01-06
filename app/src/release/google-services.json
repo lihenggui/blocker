@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "681673891811",
+    "project_id": "blocker-android",
+    "storage_bucket": "blocker-android.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:681673891811:android:3069fdd75b5977aaa1cad6",
+        "android_client_info": {
+          "package_name": "com.merxury.blocker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "681673891811-18igmfhog1b0uvm4jdqqicsura06p5da.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDL5zgJDeveuvKGegZfFZgkgtlXAfGIZyU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "681673891811-18igmfhog1b0uvm4jdqqicsura06p5da.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
