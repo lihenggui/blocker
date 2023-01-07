@@ -16,10 +16,11 @@
 
 package com.merxury.blocker.feature.helpandfeedback.navigation
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
+import com.google.accompanist.navigation.animation.composable
 import com.merxury.blocker.feature.helpandfeedback.SupportAndFeedbackRoute
 
 const val supportAndFeedbackRoute = "support_and_feedback_route"
@@ -28,6 +29,7 @@ fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) {
     this.navigate(supportAndFeedbackRoute, navOptions)
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.supportAndFeedbackScreen(onBackClick: () -> Unit) {
     composable(route = supportAndFeedbackRoute) {
         SupportAndFeedbackRoute(

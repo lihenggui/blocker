@@ -17,10 +17,14 @@
 
 package com.merxury.blocker.navigation
 
+import androidx.compose.animation.AnimatedContentScope
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
+import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.google.accompanist.navigation.animation.composable
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.navigation.appListGraph
@@ -39,6 +43,7 @@ import com.merxury.blocker.feature.settings.navigation.settingsScreen
  * The navigation graph defined in this file defines the different top level routes. Navigation
  * within each route is handled using state and Back Handlers.
  */
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun BlockerNavHost(
     navController: NavHostController,
@@ -47,7 +52,7 @@ fun BlockerNavHost(
     modifier: Modifier = Modifier,
     startDestination: String = appListGraphRoutePattern
 ) {
-    NavHost(
+    AnimatedNavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
@@ -64,7 +69,23 @@ fun BlockerNavHost(
         )
         onlineRulesScreen()
         globalSearchScreen()
-        settingsScreen(onBackClick)
+        composable(
+            "settings_route",
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentScope.SlideDirection.Left,
+                    animationSpec = tween(700)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentScope.SlideDirection.Left,
+                    animationSpec = tween(700)
+                )
+            }
+        ) {
+            settingsScreen(onBackClick)
+        }
         supportAndFeedbackScreen(onBackClick)
     }
 }
