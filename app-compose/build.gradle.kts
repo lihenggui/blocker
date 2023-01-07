@@ -122,11 +122,13 @@ dependencies {
     debugImplementation(project(":ui-test-hilt-manifest"))
 
     implementation(libs.accompanist.systemuicontroller)
+    implementation(libs.accompanist.navigation.animation)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.compose.animation)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation(libs.androidx.compose.runtime.tracing)
     implementation(libs.androidx.compose.material3.windowSizeClass)

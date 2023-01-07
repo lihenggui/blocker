@@ -16,11 +16,12 @@
 
 package com.merxury.blocker.feature.applist.navigation
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
 import androidx.navigation.navigation
+import com.google.accompanist.navigation.animation.composable
 import com.merxury.blocker.feature.applist.AppListRoute
 
 const val appListGraphRoutePattern = "app_list_graph"
@@ -30,6 +31,7 @@ fun NavController.navigateToAppListGraph(navOptions: NavOptions? = null) {
     this.navigate(appListGraphRoutePattern, navOptions)
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.appListGraph(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
