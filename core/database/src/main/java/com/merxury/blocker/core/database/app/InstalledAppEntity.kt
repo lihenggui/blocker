@@ -28,7 +28,7 @@ data class InstalledAppEntity(
     @PrimaryKey
     @ColumnInfo(name = "package_name") val packageName: String = "",
     @ColumnInfo(name = "version_name") val versionName: String = "",
-//    @ColumnInfo(name = "version_code") val versionCode: Long = 0,
+    @ColumnInfo(name = "version_code") val versionCode: Long = 0,
     @ColumnInfo(name = "first_install_time") val firstInstallTime: Instant? = null,
     @ColumnInfo(name = "last_update_time") val lastUpdateTime: Instant? = null,
     @ColumnInfo(name = "is_enabled") val isEnabled: Boolean = true,
@@ -38,7 +38,7 @@ data class InstalledAppEntity(
 
 fun InstalledAppEntity.asExternalModel() = InstalledApp(
     packageName = packageName,
-//    versionCode = versionCode,
+    versionCode = versionCode,
     versionName = versionName,
     firstInstallTime = firstInstallTime,
     lastUpdateTime = lastUpdateTime,
