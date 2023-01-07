@@ -1,6 +1,6 @@
 package com.merxury.blocker.feature.appdetail.component
 
-import androidx.compose.foundation.Image
+import android.content.pm.PackageInfo
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,7 +18,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImage
+import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import kotlinx.datetime.Clock.System
@@ -51,16 +52,25 @@ fun AppCollapseTopBar(
             }
         }
         Spacer(modifier = Modifier.weight(1f))
-        Image(
+        AppIcon(
+            info = app.packageInfo,
             modifier = iconModifier
                 .size(80.dp)
                 .padding(vertical = 40.dp),
-            painter = rememberAsyncImagePainter(
-                LocalContext.current.packageManager.getApplicationIcon(app.packageName)
-            ),
-            contentDescription = null
         )
     }
+}
+
+@Composable
+private fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
+    AsyncImage(
+        modifier = modifier,
+        model = Builder(LocalContext.current)
+            .data(info)
+            .crossfade(true)
+            .build(),
+        contentDescription = null
+    )
 }
 
 @Composable
