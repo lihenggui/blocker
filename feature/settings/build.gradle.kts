@@ -25,4 +25,5 @@ android {
 dependencies {
     implementation(project(":core:datastore"))
     implementation(project(":core:model"))
+    implementation(libs.accompanist.navigation.animation)
 }

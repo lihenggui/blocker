@@ -16,10 +16,11 @@
 
 package com.merxury.blocker.feature.settings.navigation
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.compose.composable
+import com.google.accompanist.navigation.animation.composable
 import com.merxury.blocker.feature.settings.SettingsRoute
 
 const val settingsRoute = "settings_route"
@@ -28,6 +29,7 @@ fun NavController.navigateToSettings(navOptions: NavOptions? = null) {
     this.navigate(settingsRoute, navOptions)
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.settingsScreen(onBackClick: () -> Unit) {
     composable(route = settingsRoute) {
         SettingsRoute(

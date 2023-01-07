@@ -27,4 +27,5 @@ dependencies {
     implementation(libs.androidx.compose.material)
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.accompanist.navigation.animation)
 }
