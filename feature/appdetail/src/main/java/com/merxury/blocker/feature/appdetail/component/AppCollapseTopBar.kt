@@ -1,7 +1,6 @@
 package com.merxury.blocker.feature.appdetail.component
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,15 +15,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import kotlinx.datetime.Clock.System
 
 @Composable
-fun AppBasicInfoCard(
+fun AppCollapseTopBar(
     app: Application,
+    topAppBarTextSize: TextUnit,
+    isCollapsed: Boolean,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier
 ) {
@@ -32,15 +35,19 @@ fun AppBasicInfoCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .background(color = MaterialTheme.colorScheme.secondaryContainer)
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column {
-            Text(text = app.label, style = MaterialTheme.typography.headlineMedium)
-            Text(text = app.packageName, style = MaterialTheme.typography.bodyMedium)
-            if (versionName != null) {
-                Text(text = versionName, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = app.label,
+                fontSize = topAppBarTextSize
+            )
+            if (!isCollapsed) {
+                Text(text = app.packageName, style = MaterialTheme.typography.bodyMedium)
+                if (versionName != null) {
+                    Text(text = versionName, style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -70,8 +77,10 @@ fun PreviewAppBasicInfoCard() {
     )
     BlockerTheme {
         Surface {
-            AppBasicInfoCard(
-                app = app
+            AppCollapseTopBar(
+                app = app,
+                topAppBarTextSize = 28.sp,
+                isCollapsed = false
             )
         }
     }

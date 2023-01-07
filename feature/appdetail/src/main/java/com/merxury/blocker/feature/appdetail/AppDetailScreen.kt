@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,9 +28,11 @@ import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -51,6 +54,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.component.AppCollapseTopBar
 import com.merxury.blocker.feature.appdetail.component.AppDetailCommonTabContentRoute
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
 import com.merxury.blocker.feature.appdetail.component.TopAppBarMoreMenu
@@ -82,10 +86,12 @@ fun AppDetailRoute(
         onEnableApp = viewModel::onEnableApp,
         onEnableAll = viewModel::onEnableAll,
         onBlockAll = viewModel::onBlockAll,
-        isCollapsed = isCollapsed
+        isCollapsed = isCollapsed,
+        scrollBehavior = scrollBehavior
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailScreen(
     uiState: AppInfoUiState,
@@ -100,6 +106,7 @@ fun AppDetailScreen(
     onEnableAll: () -> Unit,
     onBlockAll: () -> Unit,
     isCollapsed: Boolean,
+    scrollBehavior: TopAppBarScrollBehavior,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
@@ -131,6 +138,7 @@ fun AppDetailScreen(
                     onEnableAll = onEnableAll,
                     onBlockAll = onBlockAll,
                     isCollapsed = isCollapsed,
+                    scrollBehavior = scrollBehavior,
                     modifier = modifier
                 )
             }
@@ -154,29 +162,22 @@ fun AppDetailContent(
     onEnableApp: () -> Unit,
     onEnableAll: () -> Unit,
     onBlockAll: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior,
     isCollapsed: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val collapsed = 22
     val expanded = 28
     val topAppBarTextSize =
         (collapsed + (expanded - collapsed) * (1 - scrollBehavior.state.collapsedFraction)).sp
-
-    val topAppBarStyle = if (isCollapsed) {
-        MaterialTheme.typography.headlineSmall
-    } else {
-        MaterialTheme.typography.headlineMedium
-    }
     Scaffold(
         topBar = {
             LargeTopAppBar(
                 title = {
-                    Text(
-                        text = uiState.appInfo.label,
-                        fontSize = topAppBarTextSize,
-                        style = topAppBarStyle
+                    AppCollapseTopBar(
+                        app = uiState.appInfo,
+                        topAppBarTextSize = topAppBarTextSize,
+                        isCollapsed = isCollapsed
                     )
                 },
                 navigationIcon = {
@@ -262,6 +263,7 @@ fun ErrorAppDetailScreen(message: String) {
     Text(text = message)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun AppDetailScreenPreview() {
@@ -284,26 +286,32 @@ fun AppDetailScreenPreview() {
         ),
         currentIndex = 0
     )
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     BlockerTheme {
-        AppDetailScreen(
-            uiState = Success(appInfo = app),
-            tabState = tabState,
-            isRefreshing = false,
-            onRefresh = {},
-            switchTab = {},
-            onBackClick = {},
-            onShare = {},
-            onFindInPage = {},
-            onEnableApp = {},
-            onEnableAll = {},
-            onBlockAll = {},
-            isCollapsed = false
-        )
+        Surface {
+            AppDetailScreen(
+                uiState = Success(appInfo = app),
+                tabState = tabState,
+                isRefreshing = false,
+                onRefresh = {},
+                switchTab = {},
+                onBackClick = {},
+                onShare = {},
+                onFindInPage = {},
+                onEnableApp = {},
+                onEnableAll = {},
+                onBlockAll = {},
+                isCollapsed = false,
+                scrollBehavior = scrollBehavior,
+            )
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppDetailScreenCollapsedPreview() {
     val app = Application(
         label = "Blocker",
@@ -324,20 +332,25 @@ fun AppDetailScreenCollapsedPreview() {
         ),
         currentIndex = 0
     )
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     BlockerTheme {
-        AppDetailScreen(
-            uiState = Success(appInfo = app),
-            tabState = tabState,
-            isRefreshing = false,
-            onRefresh = {},
-            switchTab = {},
-            onBackClick = {},
-            onShare = {},
-            onFindInPage = {},
-            onEnableApp = {},
-            onEnableAll = {},
-            onBlockAll = {},
-            isCollapsed = true
-        )
+        Surface {
+            AppDetailScreen(
+                uiState = Success(appInfo = app),
+                tabState = tabState,
+                isRefreshing = false,
+                onRefresh = {},
+                switchTab = {},
+                onBackClick = {},
+                onShare = {},
+                onFindInPage = {},
+                onEnableApp = {},
+                onEnableAll = {},
+                onBlockAll = {},
+                isCollapsed = true,
+                scrollBehavior = scrollBehavior,
+            )
+        }
     }
 }
