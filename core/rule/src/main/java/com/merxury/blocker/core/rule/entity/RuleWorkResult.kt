@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+package com.merxury.blocker.core.rule.entity
 
-class GmsConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        with(target) {
-            pluginManager.findPlugin("com.google.gms:google-services").apply {
-                version = "4.3.14"
-            }
-        }
-    }
-
+object RuleWorkResult {
+    const val STARTED = 0
+    const val FINISHED = 1
+    const val FOLDER_NOT_DEFINED = 2
+    const val MISSING_ROOT_PERMISSION = 3
+    const val MISSING_STORAGE_PERMISSION = 4
+    const val UNEXPECTED_EXCEPTION = 5
 }

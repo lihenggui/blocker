@@ -31,6 +31,9 @@ androidxWork = "2.7.1"
 appiconloader = "1.5.0"
 coil = "2.2.2"
 firebase = "31.1.1"
+firebaseCrashlytics = "2.9.2"
+firebasePerf = "1.4.2"
+googleServices = "4.3.14"
 hilt = "2.44.2"
 hiltExt = "1.0.0"
 jacoco = "0.8.7"
@@ -107,6 +110,10 @@ appiconloader-coil = { group = "me.zhanghai.android.appiconloader", name = "appi
 coil-kt = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase"}
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
+firebase-perf = { group = "com.google.firebase", name = "firebase-perf-ktx"}
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
@@ -128,9 +135,6 @@ retrofit-kotlin-serialization = { group = "com.jakewharton.retrofit", name = "re
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase"}
-firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
-firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
 
 material = "com.google.android.material:material:1.7.0"
 androidx-recyclerview = "androidx.recyclerview:recyclerview:1.2.1"
@@ -165,6 +169,9 @@ kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-pl
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics"}
+firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "firebasePerf"}
+google-services = {id = "com.google.gms.google-services", version.ref = "googleServices"}
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

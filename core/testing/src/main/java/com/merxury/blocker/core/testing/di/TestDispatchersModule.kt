@@ -35,4 +35,9 @@ object TestDispatchersModule {
     @Provides
     @Dispatcher(BlockerDispatchers.IO)
     fun providesIODispatcher(testDispatcher: TestDispatcher): CoroutineDispatcher = testDispatcher
+
+    @Provides
+    @Dispatcher(BlockerDispatchers.DEFAULT)
+    fun providesDefaultDispatcher(testDispatcher: TestDispatcher): CoroutineDispatcher =
+        testDispatcher
 }

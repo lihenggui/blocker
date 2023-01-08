@@ -25,7 +25,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
-import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.data.model.asEntity
 import com.merxury.blocker.core.data.respository.ComponentDataRepository
@@ -40,6 +39,7 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.util.ManagerUtils
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.File
