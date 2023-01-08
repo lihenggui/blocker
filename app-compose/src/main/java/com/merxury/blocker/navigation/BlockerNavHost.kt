@@ -17,14 +17,11 @@
 
 package com.merxury.blocker.navigation
 
-import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.google.accompanist.navigation.animation.composable
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.navigation.appListGraph
@@ -34,7 +31,6 @@ import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportA
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
 import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
-import com.merxury.blocker.feature.settings.navigation.settingsRoute
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
 
 /**
@@ -68,23 +64,7 @@ fun BlockerNavHost(
         )
         onlineRulesScreen()
         globalSearchScreen()
-        composable(
-            route = settingsRoute,
-            enterTransition = {
-                slideIntoContainer(
-                    AnimatedContentScope.SlideDirection.Left,
-                    animationSpec = tween(700)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    AnimatedContentScope.SlideDirection.Left,
-                    animationSpec = tween(700)
-                )
-            }
-        ) {
-            settingsScreen(onBackClick)
-        }
+        settingsScreen(onBackClick)
         supportAndFeedbackScreen(onBackClick)
     }
 }
