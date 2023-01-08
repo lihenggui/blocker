@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.appdetail.component
 
 import android.content.pm.PackageInfo
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -91,6 +92,7 @@ private fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun PreviewAppBasicInfoCard() {
     val app = Application(
         label = "Blocker",
