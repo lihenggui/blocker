@@ -16,7 +16,9 @@
 
 package com.merxury.blocker.feature.settings.navigation
 
+import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -31,9 +33,21 @@ fun NavController.navigateToSettings(navOptions: NavOptions? = null) {
 
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.settingsScreen(onBackClick: () -> Unit) {
-    composable(route = settingsRoute) {
-        SettingsRoute(
-            onNavigationClick = onBackClick
-        )
+    composable(
+        route = settingsRoute,
+        enterTransition = {
+            slideIntoContainer(
+                AnimatedContentScope.SlideDirection.Left,
+                animationSpec = tween(700)
+            )
+        },
+        exitTransition = {
+            slideOutOfContainer(
+                AnimatedContentScope.SlideDirection.Left,
+                animationSpec = tween(700)
+            )
+        }
+    ) {
+        SettingsRoute(onNavigationClick = onBackClick)
     }
 }

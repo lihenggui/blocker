@@ -25,4 +25,5 @@ android {
 dependencies {
     implementation(project(":core:model"))
     implementation(libs.androidx.compose.material)
+    implementation(libs.accompanist.navigation.animation)
 }
