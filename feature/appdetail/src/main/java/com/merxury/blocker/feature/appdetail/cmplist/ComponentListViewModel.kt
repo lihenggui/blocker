@@ -17,8 +17,8 @@
 package com.merxury.blocker.feature.appdetail.cmplist
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
@@ -31,9 +31,10 @@ import kotlinx.coroutines.flow.StateFlow
 
 @HiltViewModel
 class ComponentListViewModel @Inject constructor(
+    app: android.app.Application,
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder
-) : ViewModel() {
+) : AndroidViewModel(app) {
     private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _uiState: MutableStateFlow<ComponentListUiState> =
         MutableStateFlow(Loading)
@@ -64,7 +65,7 @@ class ComponentListViewModel @Inject constructor(
         // TODO
     }
 
-    fun onSwitch(simpleName: String, name: String, enabled: Boolean) {
+    fun controlComponent(packageName: String, componentName: String, enabled: Boolean) {
         // TODO
     }
 
