@@ -19,11 +19,18 @@ buildscript {
         google()
         mavenCentral()
     }
-
+    dependencies {
+        classpath("com.google.gms:google-services:4.3.14")
+        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.2")
+        classpath("com.google.firebase:perf-plugin:1.4.2")
+    }
 }
 
 plugins {
     alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.firebase.crashlytics) apply false
+    alias(libs.plugins.firebase.perf) apply false
+    alias(libs.plugins.google.services) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.hilt) apply false
