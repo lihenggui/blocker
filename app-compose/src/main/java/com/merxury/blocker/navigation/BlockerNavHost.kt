@@ -34,6 +34,7 @@ import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportA
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
 import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
+import com.merxury.blocker.feature.settings.navigation.settingsRoute
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
 
 /**
@@ -58,11 +59,9 @@ fun BlockerNavHost(
         modifier = modifier,
     ) {
         appListGraph(
-            navigateToAppDetail = { packageName ->
-                navController.navigateToAppDetail(packageName)
-            },
-            navigateToSettings = { navController.navigateToSettings() },
-            navigateToSupportAndFeedback = { navController.navigateToSupportAndFeedback() },
+            navigateToAppDetail = navController::navigateToAppDetail,
+            navigateToSettings = navController::navigateToSettings,
+            navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
             nestedGraphs = {
                 appDetailScreen(onBackClick)
             }
@@ -70,7 +69,7 @@ fun BlockerNavHost(
         onlineRulesScreen()
         globalSearchScreen()
         composable(
-            "settings_route",
+            route = settingsRoute,
             enterTransition = {
                 slideIntoContainer(
                     AnimatedContentScope.SlideDirection.Left,
