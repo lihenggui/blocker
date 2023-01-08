@@ -22,14 +22,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -43,20 +37,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
+import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
-import com.merxury.blocker.feature.appdetail.component.AppCollapseTopBar
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
+import com.merxury.blocker.feature.appdetail.component.CollapseImageSection
+import com.merxury.blocker.feature.appdetail.component.CollapseTextSection
 import com.merxury.blocker.feature.appdetail.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
@@ -162,63 +158,37 @@ fun AppDetailContent(
     isCollapsed: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val collapsed = 22
-    val expanded = 28
-    val topAppBarTextSize =
-        (collapsed + (expanded - collapsed) * (1 - scrollBehavior.state.collapsedFraction)).sp
     Scaffold(
         topBar = {
-            LargeTopAppBar(
-                title = {
-                    AppCollapseTopBar(
-                        app = uiState.appInfo,
-                        topAppBarTextSize = topAppBarTextSize,
-                        isCollapsed = isCollapsed
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = BlockerIcons.Back,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = onShare) {
-                        Icon(
-                            imageVector = BlockerIcons.Share,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                    IconButton(onClick = onFindInPage) {
-                        Icon(
-                            imageVector = BlockerIcons.Find,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
+            BlockerCollapsingTopAppBar(
+                title = uiState.appInfo.label,
+                collapseTextSection = { CollapseTextSection(app = uiState.appInfo) },
+                collapseImageSection = { CollapseImageSection(info = uiState.appInfo.packageInfo) },
+                isCollapsed = isCollapsed,
+                scrollBehavior = scrollBehavior,
+                actionIconFirst = BlockerIcons.Share,
+                actionIconSecond = BlockerIcons.Find,
+                onFirstActionClick = onShare,
+                onSecondActionClick = onFindInPage,
+                onNavigationClick = onBackClick,
+                moreMenu = {
                     TopAppBarMoreMenu(
                         onEnableApp = onEnableApp,
                         onRefresh = onRefresh,
                         onEnableAll = onEnableAll,
                         onBlockAll = onBlockAll
                     )
-                },
-                scrollBehavior = scrollBehavior
+                }
             )
         },
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            ScrollableTabRow(
+            BlockerScrollableTabRow(
                 selectedTabIndex = tabState.currentIndex,
-                edgePadding = 16.dp
             ) {
                 tabState.titles.forEachIndexed { index, titleRes ->
-                    Tab(
+                    BlockerTab(
                         selected = index == tabState.currentIndex,
                         onClick = { switchTab(index) },
                         text = { Text(text = stringResource(id = titleRes)) }

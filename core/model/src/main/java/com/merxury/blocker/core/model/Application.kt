@@ -45,7 +45,7 @@ data class Application(
     val lastUpdateTime: @RawValue Instant? = null,
     val packageInfo: PackageInfo? = null,
 ) : Parcelable {
-    // TODO customized parceler should be removed
+    // TODO customized parcelApplicationer should be removed
     private companion object : Parceler<Application> {
         override fun create(parcel: Parcel): Application {
             return Application(
