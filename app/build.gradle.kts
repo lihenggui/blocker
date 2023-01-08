@@ -23,10 +23,8 @@ plugins {
     id("blocker.android.application.compose")
     id("blocker.android.application.jacoco")
     id("blocker.android.hilt")
+    id("blocker.firebase")
     id("jacoco")
-    id("blocker.firebase-perf")
-    id("blocker.gms")
-    id("blocker.firebase-crashlytics")
     id("kotlin-parcelize")
     alias(libs.plugins.ksp)
 }
@@ -92,9 +90,8 @@ android {
 }
 
 dependencies {
-    // TODO database, datastore, rule, datetime, network should be removed
+    // TODO database, rule, datetime, network should be removed
     implementation(project(":core:database"))
-    implementation(project(":core:datastore"))
     implementation(project(":core:network"))
     implementation(project(":core:rule"))
     implementation(libs.kotlinx.datetime)
@@ -108,7 +105,6 @@ dependencies {
     implementation(project(":sync:work"))
 
     androidTestImplementation(project(":core:testing"))
-    androidTestImplementation(project(":core:datastore-test"))
     androidTestImplementation(project(":core:data-test"))
     androidTestImplementation(project(":core:network"))
     androidTestImplementation(libs.androidx.navigation.testing)
@@ -167,10 +163,10 @@ dependencies {
     implementation(libs.shizuku.provider)
     implementation(libs.glide)
     implementation(libs.apache.commons.csv)
-
     prodImplementation(platform(libs.firebase.bom))
     prodImplementation(libs.firebase.analytics)
     prodImplementation(libs.firebase.crashlytics)
+    prodImplementation(libs.firebase.perf)
 }
 
 // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13

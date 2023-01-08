@@ -36,7 +36,6 @@ import androidx.work.WorkManager
 import com.elvishew.xlog.LogUtils
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
@@ -45,6 +44,7 @@ import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.util.BrowserUtil
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.work.CheckRuleUpdateWork
@@ -152,45 +152,63 @@ class SettingsFragment :
     }
 
     private fun importBlockerRule() {
+        val backupPath = PreferenceUtil.getSavedRulePath(requireContext())
+        val restoreSystemApps = PreferenceUtil.shouldRestoreSystemApps(requireContext())
+        val controllerType = PreferenceUtil.getControllerType(requireContext())
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ImportBlockerRule",
                 ExistingWorkPolicy.KEEP,
-                ImportBlockerRuleWorker.importWork()
+                ImportBlockerRuleWorker.importWork(
+                    backupPath = backupPath?.toString(),
+                    restoreSystemApps = restoreSystemApps,
+                    controllerType = controllerType,
+                )
             )
         }
         ToastUtil.showToast(R.string.import_app_rules_please_wait, Toast.LENGTH_LONG)
     }
 
     private fun exportBlockerRule() {
+        val savedFolder = PreferenceUtil.getSavedRulePath(requireContext())
+        val backupSystemApps = PreferenceUtil.shouldBackupSystemApps(requireContext())
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ExportBlockerRule",
                 ExistingWorkPolicy.KEEP,
-                ExportBlockerRulesWorker.exportWork()
+                ExportBlockerRulesWorker.exportWork(
+                    folderPath = savedFolder?.toString().orEmpty(),
+                    backupSystemApps = backupSystemApps
+                )
             )
         }
-//        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
+        ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
     }
 
     private fun exportIfwRule() {
+        val savedFolder = PreferenceUtil.getSavedRulePath(requireContext())
         ToastUtil.showToast(R.string.backing_up_ifw_please_wait, Toast.LENGTH_LONG)
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ExportIfwRule",
                 ExistingWorkPolicy.KEEP,
-                ExportIfwRulesWorker.exportWork()
+                ExportIfwRulesWorker.exportWork(savedFolder?.toString().orEmpty())
             )
         }
     }
 
     private fun importIfwRule() {
         ToastUtil.showToast(R.string.import_ifw_please_wait, Toast.LENGTH_LONG)
+        val backupPath = PreferenceUtil.getSavedRulePath(requireContext())
+        val restoreSystemApps = PreferenceUtil.shouldRestoreSystemApps(requireContext())
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ImportIfwRule",
                 ExistingWorkPolicy.KEEP,
-                ImportIfwRulesWorker.importIfwWork()
+                ImportIfwRulesWorker.importIfwWork(
+                    backupPath = backupPath.toString(),
+                    restoreSystemApps = restoreSystemApps,
+                )
             )
         }
     }
@@ -203,12 +221,14 @@ class SettingsFragment :
     }
 
     private fun importMatRule(fileUri: Uri) {
+        val controllerType = PreferenceUtil.getControllerType(requireContext())
+        val restoreSystemApps = PreferenceUtil.shouldRestoreSystemApps(requireContext())
         ToastUtil.showToast(R.string.import_mat_rule_please_wait, Toast.LENGTH_LONG)
         WorkManager.getInstance(requireContext()).apply {
             enqueueUniqueWork(
                 "ImportMatRule",
                 ExistingWorkPolicy.KEEP,
-                ImportMatRulesWorker.importWork(fileUri)
+                ImportMatRulesWorker.importWork(fileUri, controllerType, restoreSystemApps)
             )
         }
     }

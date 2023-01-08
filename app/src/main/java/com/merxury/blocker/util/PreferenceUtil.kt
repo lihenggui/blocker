@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core
+package com.merxury.blocker.util
 
 import android.content.Context
 import android.net.Uri
 import androidx.preference.PreferenceManager
-import com.merxury.blocker.core.datastore.R
+import com.merxury.blocker.R
 import com.merxury.blocker.core.model.data.ControllerType
 
-@Deprecated("Use Datastore implementation")
 object PreferenceUtil {
     fun getControllerType(context: Context): ControllerType {
         // Magic value, but still use it.

@@ -17,8 +17,10 @@
 package com.merxury.blocker.core.rule.work
 
 import android.content.Context
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -26,12 +28,14 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import com.merxury.blocker.core.PreferenceUtil
+import androidx.work.workDataOf
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
+import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -60,13 +64,26 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         Timber.i("Start to import app rules")
         var successCount = 0
         try {
-            val shouldRestoreSystemApp = PreferenceUtil.shouldRestoreSystemApps(context)
-            val controllerType = PreferenceUtil.getControllerType(context)
+            // Check storage permission first
+            val backupPath = inputData.getString(PARAM_FOLDER_PATH)
+            if (backupPath.isNullOrEmpty()) {
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED)
+                )
+            }
+            if (!StorageUtil.isFolderReadable(context, backupPath)) {
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION)
+                )
+            }
+            val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
+            val controllerOrdinal =
+                inputData.getInt(PARAM_CONTROLLER_TYPE, ControllerType.IFW.ordinal)
+            val controllerType = ControllerType.values()[controllerOrdinal]
             val packageManager = context.packageManager
-            val documentDir = StorageUtil.getSavedFolder(context)
+            val documentDir = DocumentFile.fromTreeUri(context, Uri.parse(backupPath))
             if (documentDir == null) {
                 Timber.e("Cannot create DocumentFile")
-//                ToastUtil.showToast(R.string.dir_is_invalid, Toast.LENGTH_LONG)
                 return@withContext Result.failure()
             }
             val files = documentDir.listFiles()
@@ -99,20 +116,16 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                 }
             }
             Timber.i("Import rules finished.")
-        } catch (e: Exception) {
+        } catch (e: RuntimeException) {
             Timber.e("Failed to import blocker rules", e)
-//            ToastUtil.showToast(R.string.import_failed_message, Toast.LENGTH_LONG)
-            return@withContext Result.failure()
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION)
+            )
         }
-        if (successCount == 0) {
-            Timber.i("No rules were imported.")
-//            ToastUtil.showToast(R.string.no_rules_imported, Toast.LENGTH_LONG)
-            return@withContext Result.failure()
-        } else {
-            Timber.i("Imported $successCount rules.")
-//            ToastUtil.showToast(R.string.import_successfully, Toast.LENGTH_LONG)
-            return@withContext Result.success()
-        }
+        Timber.i("Imported $successCount rules.")
+        return@withContext Result.success(
+            workDataOf(PARAM_IMPORT_COUNT to successCount)
+        )
     }
 
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
@@ -139,7 +152,24 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     }
 
     companion object {
-        fun importWork() = OneTimeWorkRequestBuilder<ImportBlockerRuleWorker>()
+        const val PARAM_IMPORT_COUNT = "param_import_count"
+        const val PARAM_WORK_RESULT = "param_work_result"
+        private const val PARAM_FOLDER_PATH = "param_folder_path"
+        private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"
+        private const val PARAM_CONTROLLER_TYPE = "param_controller_type"
+
+        fun importWork(
+            backupPath: String?,
+            restoreSystemApps: Boolean,
+            controllerType: ControllerType
+        ) = OneTimeWorkRequestBuilder<ImportBlockerRuleWorker>()
+            .setInputData(
+                workDataOf(
+                    PARAM_FOLDER_PATH to backupPath,
+                    PARAM_RESTORE_SYS_APPS to restoreSystemApps,
+                    PARAM_CONTROLLER_TYPE to controllerType.ordinal
+                )
+            )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
     }
