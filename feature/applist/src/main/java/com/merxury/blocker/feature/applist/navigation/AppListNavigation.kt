@@ -17,38 +17,48 @@
 package com.merxury.blocker.feature.applist.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import androidx.navigation.navigation
 import com.google.accompanist.navigation.animation.composable
 import com.merxury.blocker.feature.applist.AppListRoute
 
-const val appListGraphRoutePattern = "app_list_graph"
 const val appListRoute = "app_list_route"
 
-fun NavController.navigateToAppListGraph(navOptions: NavOptions? = null) {
-    this.navigate(appListGraphRoutePattern, navOptions)
+fun NavController.navigateToAppList(navOptions: NavOptions? = null) {
+    this.navigate(appListRoute, navOptions)
 }
 
 @OptIn(ExperimentalAnimationApi::class)
-fun NavGraphBuilder.appListGraph(
+fun NavGraphBuilder.appListScreen(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
-    navigateToSupportAndFeedback: () -> Unit,
-    nestedGraphs: NavGraphBuilder.() -> Unit
+    navigateToSupportAndFeedback: () -> Unit
 ) {
-    navigation(
-        route = appListGraphRoutePattern,
-        startDestination = appListRoute
-    ) {
-        composable(route = appListRoute) {
-            AppListRoute(
-                navigateToAppDetail = navigateToAppDetail,
-                navigateToSettings = navigateToSettings,
-                navigateToSupportAndFeedback = navigateToSupportAndFeedback
-            )
+    composable(
+        route = appListRoute,
+        exitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { -300 },
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        },
+        popEnterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { -300 },
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
         }
-        nestedGraphs()
+    ) {
+        AppListRoute(
+            navigateToAppDetail = navigateToAppDetail,
+            navigateToSettings = navigateToSettings,
+            navigateToSupportAndFeedback = navigateToSupportAndFeedback
+        )
     }
 }
