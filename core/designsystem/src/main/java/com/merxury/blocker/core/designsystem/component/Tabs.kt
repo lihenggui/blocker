@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
@@ -68,6 +69,20 @@ fun BlockerTab(
     )
 }
 
+@Composable
+fun BlockerScrollableTabRow(
+    selectedTabIndex: Int,
+    modifier: Modifier = Modifier,
+    tabs: @Composable () -> Unit
+) {
+    ScrollableTabRow(
+        selectedTabIndex = selectedTabIndex,
+        edgePadding = 16.dp,
+        modifier = modifier,
+        tabs = tabs
+    )
+}
+
 /**
  * Blocker tab row. Wraps Material 3 [TabRow].
  *
@@ -99,5 +114,5 @@ fun BlockerTabRow(
 }
 
 object BlockerTabDefaults {
-    val TabTopPadding = 7.dp
+    val TabTopPadding = 2.dp
 }

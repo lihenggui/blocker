@@ -35,7 +35,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,6 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -121,17 +121,15 @@ fun AppListScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(text = "Blocker")
-                },
+            BlockerHomeTopAppBar(
+                titleRes = string.app_name,
                 actions = {
                     TopAppBarSortMenu(onSortingUpdate)
                     TopAppBarMoreMenu(
                         navigateToSettings = navigateToSettings,
                         navigateToFeedback = navigateToSupportAndFeedback,
                     )
-                },
+                }
             )
         }
     ) { padding ->
