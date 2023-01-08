@@ -24,7 +24,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.BlockerApplication
-import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.database.app.AppComponentEntity
@@ -39,6 +38,7 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.data.Event
+import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.regex.PatternSyntaxException

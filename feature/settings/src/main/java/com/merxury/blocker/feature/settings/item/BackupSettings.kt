@@ -47,7 +47,8 @@ fun BackupSettings(
         SettingItem(
             icon = BlockerIcons.Folder,
             itemRes = string.folder_to_save,
-            itemValue = ruleBackupFolder ?: stringResource(id = string.directory_invalid_or_not_set),
+            itemValue = ruleBackupFolder
+                ?: stringResource(id = string.directory_invalid_or_not_set),
             onItemClick = {}
         )
         SwitchSettingItem(

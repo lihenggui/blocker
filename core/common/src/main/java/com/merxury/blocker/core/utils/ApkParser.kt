@@ -33,7 +33,7 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import timber.log.Timber
 
-object ApkUtils {
+object ApkParser {
 
     /**
      * Get [AssetManager] using reflection

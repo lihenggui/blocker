@@ -21,15 +21,15 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.elvishew.xlog.XLog
 import com.google.gson.Gson
-import com.merxury.blocker.core.PreferenceUtil
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.util.PreferenceUtil
+import com.merxury.ifw.util.IfwStorageUtils
 import com.merxury.ifw.util.RuleSerializer
-import com.merxury.ifw.util.StorageUtils
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -130,7 +130,8 @@ object RuleBackupHelper {
         dispatcher: CoroutineDispatcher = Dispatchers.IO
     ): String? {
         return withContext(dispatcher) {
-            val ifwFolder = StorageUtils.getIfwFolder()
+            val backupFolder = PreferenceUtil.getSavedRulePath(context)
+            val ifwFolder = IfwStorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
             val ifwFile = files.filter { it.contains(packageName) }
             if (ifwFile.isEmpty()) {
@@ -141,7 +142,13 @@ object RuleBackupHelper {
                 logger.i("Export $it")
                 val filename = it.split(File.separator).last()
                 val content = FileUtils.read(ifwFolder + it)
-                val result = StorageUtil.saveIfwToStorage(context, filename, content)
+                val result = StorageUtil.saveIfwToStorage(
+                    context,
+                    backupFolder.toString(),
+                    filename,
+                    content,
+                    dispatcher
+                )
                 if (!result) {
                     logger.i("Export $it failed")
                     return@withContext null

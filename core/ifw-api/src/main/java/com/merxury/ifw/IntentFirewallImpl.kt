@@ -26,7 +26,7 @@ import com.merxury.ifw.entity.ComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.entity.Service
 import com.merxury.ifw.exception.RootUnavailableException
-import com.merxury.ifw.util.StorageUtils
+import com.merxury.ifw.util.IfwStorageUtils
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
 import com.topjohnwu.superuser.io.SuFileOutputStream
@@ -39,7 +39,7 @@ import timber.log.Timber
 class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
 
     private val filename: String = "$packageName$EXTENSION"
-    private val destFile = SuFile(StorageUtils.getIfwFolder() + filename)
+    private val destFile = SuFile(IfwStorageUtils.getIfwFolder() + filename)
     private var rule: Rules = Rules()
 
     override suspend fun load() = withContext(Dispatchers.IO) {
