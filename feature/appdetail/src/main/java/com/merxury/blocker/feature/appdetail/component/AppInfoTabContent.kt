@@ -22,19 +22,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.pullrefresh.PullRefreshIndicator
-import androidx.compose.material.pullrefresh.pullRefresh
-import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,17 +37,12 @@ import com.merxury.blocker.feature.appdetail.R.string
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppInfoTabContent(
     app: Application,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val refreshing by remember { mutableStateOf(isRefreshing) }
-    val refreshingState = rememberPullRefreshState(refreshing, onRefresh)
-    Box(modifier.pullRefresh(refreshingState)) {
+    Box(modifier) {
         Column(modifier = Modifier.fillMaxWidth()) {
             MoreInfo(
                 targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
@@ -65,12 +52,6 @@ fun AppInfoTabContent(
                 dataDir = app.packageInfo?.applicationInfo?.dataDir
             )
         }
-        PullRefreshIndicator(
-            refreshing = refreshing,
-            state = refreshingState,
-            modifier = Modifier.align(Alignment.TopCenter),
-            scale = true
-        )
     }
 }
 
@@ -187,8 +168,6 @@ fun PreviewAppInfoTabContent() {
         Surface {
             AppInfoTabContent(
                 app = app,
-                isRefreshing = false,
-                onRefresh = {}
             )
         }
     }
