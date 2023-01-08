@@ -69,17 +69,9 @@ gradlePlugin {
             id = "blocker.android.hilt"
             implementationClass = "AndroidHiltConventionPlugin"
         }
-        register("firebase-perf") {
-            id = "blocker.firebase-perf"
-            implementationClass = "FirebasePerfConventionPlugin"
-        }
-        register("firebase-crashlytics") {
-            id = "blocker.firebase-crashlytics"
-            implementationClass = "FirebaseCrashlyticsConventionPlugin"
-        }
-        register("gms") {
-            id = "blocker.gms"
-            implementationClass = "GmsConventionPlugin"
+        register("firebase") {
+            id = "blocker.firebase"
+            implementationClass = "FirebaseConventionPlugin"
         }
     }
 }
