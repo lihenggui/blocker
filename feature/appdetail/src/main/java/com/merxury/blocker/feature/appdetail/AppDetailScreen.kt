@@ -325,7 +325,7 @@ fun AppDetailScreenCollapsedPreview() {
     val tabState = TabState(
         titles = listOf(
             string.app_info,
-            string.service,
+            string.receiver,
             string.service,
             string.activity,
             string.content_provider
