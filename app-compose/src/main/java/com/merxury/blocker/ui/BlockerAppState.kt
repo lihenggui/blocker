@@ -36,7 +36,7 @@ import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
-import com.merxury.blocker.feature.applist.navigation.navigateToAppListGraph
+import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.globalsearch.navigation.globalSearchRoute
 import com.merxury.blocker.feature.globalsearch.navigation.navigateToGlobalSearch
 import com.merxury.blocker.feature.onlinerules.navigation.navigateToOnlineRules
@@ -131,7 +131,7 @@ class BlockerAppState(
             }
 
             when (topLevelDestination) {
-                APP_LIST -> navController.navigateToAppListGraph(topLevelNavOptions)
+                APP_LIST -> navController.navigateToAppList(topLevelNavOptions)
                 ONLINE_RULES -> navController.navigateToOnlineRules(topLevelNavOptions)
                 GLOBAL_SEARCH -> navController.navigateToGlobalSearch(topLevelNavOptions)
             }

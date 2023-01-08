@@ -24,8 +24,8 @@ import androidx.navigation.NavHostController
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
-import com.merxury.blocker.feature.applist.navigation.appListGraph
-import com.merxury.blocker.feature.applist.navigation.appListGraphRoutePattern
+import com.merxury.blocker.feature.applist.navigation.appListRoute
+import com.merxury.blocker.feature.applist.navigation.appListScreen
 import com.merxury.blocker.feature.globalsearch.navigation.globalSearchScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
@@ -47,21 +47,19 @@ fun BlockerNavHost(
     onBackClick: () -> Unit,
     isExpandedScreen: Boolean,
     modifier: Modifier = Modifier,
-    startDestination: String = appListGraphRoutePattern
+    startDestination: String = appListRoute
 ) {
     AnimatedNavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
     ) {
-        appListGraph(
+        appListScreen(
             navigateToAppDetail = navController::navigateToAppDetail,
             navigateToSettings = navController::navigateToSettings,
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
-            nestedGraphs = {
-                appDetailScreen(onBackClick)
-            }
         )
+        appDetailScreen(onBackClick)
         onlineRulesScreen()
         globalSearchScreen()
         settingsScreen(onBackClick)
