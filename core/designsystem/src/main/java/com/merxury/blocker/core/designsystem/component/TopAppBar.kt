@@ -174,6 +174,11 @@ fun BlockerCollapsingTopAppBar(
     val expanded = 28
     val topAppBarTextSize =
         (collapsed + (expanded - collapsed) * (1 - scrollBehavior.state.collapsedFraction)).sp
+    val topAppBarTextStyle = if (isCollapsed) {
+        MaterialTheme.typography.bodyLarge
+    } else {
+        MaterialTheme.typography.headlineMedium
+    }
     LargeTopAppBar(
         title = {
             Row(
@@ -185,7 +190,9 @@ fun BlockerCollapsingTopAppBar(
                 Column {
                     Text(
                         text = title,
-                        fontSize = topAppBarTextSize
+                        fontSize = topAppBarTextSize,
+                        style = topAppBarTextStyle,
+                        maxLines = 2
                     )
                     if (!isCollapsed) {
                         collapseTextSection()
