@@ -54,8 +54,8 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
 import com.merxury.blocker.feature.appdetail.component.AppCollapseTopBar
-import com.merxury.blocker.feature.appdetail.component.AppDetailCommonTabContentRoute
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
 import com.merxury.blocker.feature.appdetail.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState
@@ -239,19 +239,19 @@ fun AppDetailContent(
                 }
 
                 1 -> {
-                    AppDetailCommonTabContentRoute()
+                    ComponentListContentRoute()
                 }
 
                 2 -> {
-                    AppDetailCommonTabContentRoute()
+                    ComponentListContentRoute()
                 }
 
                 3 -> {
-                    AppDetailCommonTabContentRoute()
+                    ComponentListContentRoute()
                 }
 
                 4 -> {
-                    AppDetailCommonTabContentRoute()
+                    ComponentListContentRoute()
                 }
             }
         }
