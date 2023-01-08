@@ -18,6 +18,11 @@ package com.merxury.blocker.feature.appdetail.navigation
 
 import android.net.Uri
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -47,7 +52,19 @@ fun NavGraphBuilder.appDetailScreen(
         route = "app_detail_route/{$packageNameArg}",
         arguments = listOf(
             navArgument(packageNameArg) { type = NavType.StringType }
-        )
+        ),
+        enterTransition = {
+            slideInHorizontally(
+                initialOffsetX = { 300 },
+                animationSpec = tween(300)
+            ) + fadeIn(animationSpec = tween(300))
+        },
+        popExitTransition = {
+            slideOutHorizontally(
+                targetOffsetX = { 300 },
+                animationSpec = tween(300)
+            ) + fadeOut(animationSpec = tween(300))
+        }
     ) {
         AppDetailRoute(onBackClick = onBackClick)
     }
