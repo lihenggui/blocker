@@ -42,4 +42,11 @@
     <string name="disabling_hint">Disabling hint…</string>
     <string name="enabling_hint">Enabling hint…</string>
     <string name="more_menu">more menu</string>
+    <string name="analyze_service">Analyze service</string>
+    <string name="description">Description</string>
+    <string name="blocking_effect">Blocking effect</string>
+    <string name="recommended_blocking">Recommended blocking</string>
+    <string name="belonging_sdk">Belonging SDK</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
 </resources>
