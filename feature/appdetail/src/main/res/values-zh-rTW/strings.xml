@@ -41,4 +41,11 @@
     <string name="disabling_hint">禁用組件中…</string>
     <string name="enabling_hint">啟用組件中…</string>
     <string name="more_menu">更多菜單</string>
+    <string name="analyze_service">分析服務</string>
+    <string name="description">描述</string>
+    <string name="blocking_effect">阻止效果</string>
+    <string name="recommended_blocking">推薦阻止</string>
+    <string name="belonging_sdk">歸屬SDK</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
 </resources>
