@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.component
+package com.merxury.blocker.feature.appdetail.cmplist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,19 +29,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.model.AppDetailCommonUiState
-import com.merxury.blocker.feature.appdetail.model.AppDetailCommonViewModel
+import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
+import com.merxury.blocker.feature.appdetail.component.ComponentTabContent
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
-fun AppDetailCommonTabContentRoute(
+fun ComponentListContentRoute(
     modifier: Modifier = Modifier,
-    viewModel: AppDetailCommonViewModel = hiltViewModel()
+    viewModel: ComponentListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    AppDetailCommonTabContent(
+    ComponentListTabContent(
         uiState = uiState,
-        isRefreshing = uiState is AppDetailCommonUiState.Loading,
+        isRefreshing = uiState is Loading,
         onRefresh = { viewModel.onRefresh() },
         onSwitch = { _, _, _ -> true },
         modifier = modifier
@@ -49,15 +49,15 @@ fun AppDetailCommonTabContentRoute(
 }
 
 @Composable
-fun AppDetailCommonTabContent(
-    uiState: AppDetailCommonUiState,
+fun ComponentListTabContent(
+    uiState: ComponentListUiState,
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
     onSwitch: (String, String, Boolean) -> Boolean,
     modifier: Modifier = Modifier
 ) {
     when (uiState) {
-        AppDetailCommonUiState.Loading -> {
+        ComponentListUiState.Loading -> {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
@@ -68,9 +68,9 @@ fun AppDetailCommonTabContent(
             }
         }
 
-        is AppDetailCommonUiState.Success -> {
+        is ComponentListUiState.Success -> {
             ComponentTabContent(
-                components = uiState.eComponentList,
+                components = uiState.list,
                 isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
                 onSwitchClick = onSwitch,
@@ -78,6 +78,6 @@ fun AppDetailCommonTabContent(
             )
         }
 
-        is AppDetailCommonUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
+        is ComponentListUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
     }
 }
