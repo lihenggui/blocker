@@ -29,8 +29,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
-import com.merxury.blocker.feature.appdetail.component.ComponentTabContent
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
@@ -41,8 +39,6 @@ fun ComponentListContentRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ComponentListTabContent(
         uiState = uiState,
-        isRefreshing = uiState is Loading,
-        onRefresh = { viewModel.onRefresh() },
         onSwitch = { _, _, _ -> true },
         modifier = modifier
     )
@@ -51,8 +47,6 @@ fun ComponentListContentRoute(
 @Composable
 fun ComponentListTabContent(
     uiState: ComponentListUiState,
-    isRefreshing: Boolean,
-    onRefresh: () -> Unit,
     onSwitch: (String, String, Boolean) -> Boolean,
     modifier: Modifier = Modifier
 ) {
@@ -71,8 +65,6 @@ fun ComponentListTabContent(
         is ComponentListUiState.Success -> {
             ComponentTabContent(
                 components = uiState.list,
-                isRefreshing = isRefreshing,
-                onRefresh = onRefresh,
                 onSwitchClick = onSwitch,
                 modifier = modifier
             )

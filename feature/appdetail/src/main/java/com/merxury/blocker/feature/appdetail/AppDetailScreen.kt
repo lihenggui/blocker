@@ -77,7 +77,6 @@ fun AppDetailRoute(
     AppDetailScreen(
         uiState = uiState,
         tabState = tabState,
-        isRefreshing = uiState is AppInfoUiState.Loading,
         onRefresh = { viewModel.onRefresh() },
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
@@ -96,7 +95,6 @@ fun AppDetailRoute(
 fun AppDetailScreen(
     uiState: AppInfoUiState,
     tabState: TabState,
-    isRefreshing: Boolean,
     onRefresh: () -> Unit,
     switchTab: (Int) -> Unit,
     onBackClick: () -> Unit,
@@ -128,7 +126,6 @@ fun AppDetailScreen(
                 AppDetailContent(
                     uiState = uiState,
                     tabState = tabState,
-                    isRefreshing = isRefreshing,
                     onRefresh = onRefresh,
                     switchTab = switchTab,
                     onBackClick = onBackClick,
@@ -153,7 +150,6 @@ fun AppDetailScreen(
 fun AppDetailContent(
     uiState: Success,
     tabState: TabState,
-    isRefreshing: Boolean,
     onRefresh: () -> Unit,
     switchTab: (Int) -> Unit,
     onBackClick: () -> Unit,
@@ -230,29 +226,11 @@ fun AppDetailContent(
                 }
             }
             when (tabState.currentIndex) {
-                0 -> {
-                    AppInfoTabContent(
-                        app = uiState.appInfo,
-                        isRefreshing = isRefreshing,
-                        onRefresh = onRefresh
-                    )
-                }
-
-                1 -> {
-                    ComponentListContentRoute()
-                }
-
-                2 -> {
-                    ComponentListContentRoute()
-                }
-
-                3 -> {
-                    ComponentListContentRoute()
-                }
-
-                4 -> {
-                    ComponentListContentRoute()
-                }
+                0 -> AppInfoTabContent(app = uiState.appInfo)
+                1 -> ComponentListContentRoute()
+                2 -> ComponentListContentRoute()
+                3 -> ComponentListContentRoute()
+                4 -> ComponentListContentRoute()
             }
         }
     }
@@ -293,7 +271,6 @@ fun AppDetailScreenPreview() {
             AppDetailScreen(
                 uiState = Success(appInfo = app),
                 tabState = tabState,
-                isRefreshing = false,
                 onRefresh = {},
                 switchTab = {},
                 onBackClick = {},
@@ -339,7 +316,6 @@ fun AppDetailScreenCollapsedPreview() {
             AppDetailScreen(
                 uiState = Success(appInfo = app),
                 tabState = tabState,
-                isRefreshing = false,
                 onRefresh = {},
                 switchTab = {},
                 onBackClick = {},
