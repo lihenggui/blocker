@@ -16,12 +16,14 @@
 
 package com.merxury.blocker.feature.appdetail.model
 
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,12 +32,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @HiltViewModel
 class AppInfoViewModel @Inject constructor(
+    app: android.app.Application,
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder
-) : ViewModel() {
+) : AndroidViewModel(app) {
     private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _uiState: MutableStateFlow<AppInfoUiState> =
         MutableStateFlow(AppInfoUiState.Loading)
@@ -45,7 +50,7 @@ class AppInfoViewModel @Inject constructor(
         TabState(
             titles = listOf(
                 string.app_info,
-                string.service,
+                string.receiver,
                 string.service,
                 string.activity,
                 string.content_provider
@@ -55,11 +60,27 @@ class AppInfoViewModel @Inject constructor(
     )
     val tabState: StateFlow<TabState> = _tabState.asStateFlow()
 
+    init {
+        load()
+    }
+
     fun switchTab(newIndex: Int) {
         if (newIndex != tabState.value.currentIndex) {
             _tabState.update {
                 it.copy(currentIndex = newIndex)
             }
+        }
+    }
+
+    private fun load() = viewModelScope.launch {
+        val packageName = appPackageNameArgs.packageName
+        val app = ApplicationUtil.getApplicationInfo(getApplication(), packageName)
+        if (app == null) {
+            val error = ErrorMessage("Can't find $packageName in this device.")
+            Timber.e(error.message)
+            _uiState.emit(AppInfoUiState.Error(error))
+        } else {
+            _uiState.emit(AppInfoUiState.Success(app))
         }
     }
 
