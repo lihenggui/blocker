@@ -37,17 +37,17 @@ fun ComponentListContentRoute(
     viewModel: ComponentListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    ComponentListTabContent(
+    ComponentListContent(
         uiState = uiState,
-        onSwitch = { _, _, _ -> true },
+        onSwitch = viewModel::controlComponent,
         modifier = modifier
     )
 }
 
 @Composable
-fun ComponentListTabContent(
+fun ComponentListContent(
     uiState: ComponentListUiState,
-    onSwitch: (String, String, Boolean) -> Boolean,
+    onSwitch: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     when (uiState) {

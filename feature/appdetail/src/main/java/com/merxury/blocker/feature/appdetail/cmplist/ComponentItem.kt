@@ -46,7 +46,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 @Composable
 fun ComponentTabContent(
     components: SnapshotStateList<ComponentInfo>,
-    onSwitchClick: (String, String, Boolean) -> Boolean,
+    onSwitchClick: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val listContent = remember { components }
@@ -77,7 +77,7 @@ fun ComponentItem(
     name: String,
     packageName: String,
     enabled: Boolean,
-    onSwitchClick: (String, String, Boolean) -> Boolean
+    onSwitchClick: (String, String, Boolean) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -113,7 +113,7 @@ fun ComponentItemPreview() {
                 name = "com.merxury.blocker.feature.appdetail.component.AccountAuthActivity",
                 packageName = "com.merxury.blocker",
                 enabled = false,
-                onSwitchClick = { _, _, _ -> true }
+                onSwitchClick = { _, _, _ -> }
             )
         }
     }
