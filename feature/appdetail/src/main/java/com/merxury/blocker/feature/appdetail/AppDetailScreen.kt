@@ -20,6 +20,7 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -183,7 +184,11 @@ fun AppDetailContent(
         },
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
+        Column(
+            modifier = modifier
+                .padding(padding)
+                .fillMaxWidth()
+        ) {
             BlockerScrollableTabRow(
                 selectedTabIndex = tabState.currentIndex,
             ) {

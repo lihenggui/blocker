@@ -19,6 +19,7 @@ package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.ScrollableTabRow
@@ -78,7 +79,7 @@ fun BlockerScrollableTabRow(
     ScrollableTabRow(
         selectedTabIndex = selectedTabIndex,
         edgePadding = 16.dp,
-        modifier = modifier,
+        modifier = modifier.wrapContentWidth(),
         tabs = tabs
     )
 }
