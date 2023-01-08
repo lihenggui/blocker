@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.model
+package com.merxury.blocker.feature.appdetail.cmplist
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.SavedStateHandle
@@ -22,6 +22,7 @@ import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -29,14 +30,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 @HiltViewModel
-class AppDetailCommonViewModel @Inject constructor(
+class ComponentListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder
 ) : ViewModel() {
     private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
-    private val _uiState: MutableStateFlow<AppDetailCommonUiState> =
-        MutableStateFlow(AppDetailCommonUiState.Loading)
-    val uiState: StateFlow<AppDetailCommonUiState> = _uiState
+    private val _uiState: MutableStateFlow<ComponentListUiState> =
+        MutableStateFlow(Loading)
+    val uiState: StateFlow<ComponentListUiState> = _uiState
 
     init {
 //        when (eComponentType) {
@@ -72,10 +73,10 @@ class AppDetailCommonViewModel @Inject constructor(
     }
 }
 
-sealed interface AppDetailCommonUiState {
-    object Loading : AppDetailCommonUiState
-    class Error(val error: ErrorMessage) : AppDetailCommonUiState
+sealed interface ComponentListUiState {
+    object Loading : ComponentListUiState
+    class Error(val error: ErrorMessage) : ComponentListUiState
     data class Success(
-        val eComponentList: SnapshotStateList<ComponentInfo>
-    ) : AppDetailCommonUiState
+        val list: SnapshotStateList<ComponentInfo>
+    ) : ComponentListUiState
 }
