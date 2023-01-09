@@ -52,15 +52,10 @@ fun BlockerTopAppBar(
     title: String,
     navigationIcon: ImageVector,
     navigationIconContentDescription: String?,
-    actionIconFirst: ImageVector,
-    actionIconContentDescriptionFirst: String?,
-    actionIconSecond: ImageVector,
-    actionIconContentDescriptionSecond: String?,
+    actions: @Composable () -> Unit,
     modifier: Modifier = Modifier,
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
     onNavigationClick: () -> Unit = {},
-    onFirstActionClick: () -> Unit = {},
-    onSecondActionClick: () -> Unit = {}
 ) {
     TopAppBar(
         modifier = modifier,
@@ -81,20 +76,7 @@ fun BlockerTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = onFirstActionClick) {
-                Icon(
-                    imageVector = actionIconFirst,
-                    contentDescription = actionIconContentDescriptionFirst,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            IconButton(onClick = onSecondActionClick) {
-                Icon(
-                    imageVector = actionIconSecond,
-                    contentDescription = actionIconContentDescriptionSecond,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
+            actions()
         },
         colors = colors
     )
@@ -163,12 +145,8 @@ fun BlockerCollapsingTopAppBar(
     collapseImageSection: @Composable () -> Unit = {},
     isCollapsed: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
-    actionIconFirst: ImageVector,
-    actionIconSecond: ImageVector,
-    onFirstActionClick: () -> Unit = {},
-    onSecondActionClick: () -> Unit = {},
-    onNavigationClick: () -> Unit = {},
-    moreMenu: @Composable () -> Unit = {},
+    actions: @Composable () -> Unit,
+    onNavigationClick: () -> Unit = {}
 ) {
     val collapsed = 22
     val expanded = 28
@@ -214,21 +192,7 @@ fun BlockerCollapsingTopAppBar(
             }
         },
         actions = {
-            IconButton(onClick = onFirstActionClick) {
-                Icon(
-                    imageVector = actionIconFirst,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            IconButton(onClick = onSecondActionClick) {
-                Icon(
-                    imageVector = actionIconSecond,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            moreMenu()
+            actions()
         },
         scrollBehavior = scrollBehavior
     )
@@ -243,10 +207,15 @@ fun BlockerTopAppBarPreview() {
             title = stringResource(id = string.untitled),
             navigationIcon = BlockerIcons.Back,
             navigationIconContentDescription = "Navigation icon",
-            actionIconFirst = BlockerIcons.Search,
-            actionIconContentDescriptionFirst = "First action icon",
-            actionIconSecond = BlockerIcons.MoreVert,
-            actionIconContentDescriptionSecond = "Second action icon"
+            actions = {
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = BlockerIcons.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         )
     }
 }
@@ -286,8 +255,22 @@ fun BlockerCollapsingTopAppBarPreview() {
             title = "Blocker",
             isCollapsed = false,
             scrollBehavior = scrollBehavior,
-            actionIconFirst = BlockerIcons.Share,
-            actionIconSecond = BlockerIcons.Find,
+            actions = {
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = BlockerIcons.Share,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = BlockerIcons.Find,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         )
     }
 }
