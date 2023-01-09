@@ -23,6 +23,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -167,12 +170,22 @@ fun AppDetailContent(
                 collapseImageSection = { CollapseImageSection(info = uiState.appInfo.packageInfo) },
                 isCollapsed = isCollapsed,
                 scrollBehavior = scrollBehavior,
-                actionIconFirst = BlockerIcons.Share,
-                actionIconSecond = BlockerIcons.Find,
-                onFirstActionClick = onShare,
-                onSecondActionClick = onFindInPage,
                 onNavigationClick = onBackClick,
-                moreMenu = {
+                actions = {
+                    IconButton(onClick = onShare) {
+                        Icon(
+                            imageVector = BlockerIcons.Share,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    IconButton(onClick = onFindInPage) {
+                        Icon(
+                            imageVector = BlockerIcons.Find,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                     TopAppBarMoreMenu(
                         onEnableApp = onEnableApp,
                         onRefresh = onRefresh,
