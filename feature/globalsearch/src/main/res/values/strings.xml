@@ -16,35 +16,12 @@
      limitations under the License.
 -->
 <resources>
-    <string name="settings">Settings</string>
-    <string name="key_pref_controller_settings" translatable="false">pref_key_controller_settings</string>
-    <string name="key_pref_controller_type" translatable="false">pref_controllerType</string>
-    <string name="key_pref_controller_type_default_value" translatable="false">ifw</string>
-    <string name="key_pref_rule_path" translatable="false">pref_key_rule_path</string>
-    <string name="key_pref_rules" translatable="false">pref_key_rules</string>
-    <string name="key_pref_ifw" translatable="false">pref_key_ifw</string>
-    <string name="key_pref_export_rules" translatable="false">pref_key_export_rules</string>
-    <string name="key_pref_import_rules" translatable="false">pref_key_import_rules</string>
-    <string name="key_pref_export_ifw_rules" translatable="false">pref_key_export_ifw_rules</string>
-    <string name="key_pref_import_ifw_rules" translatable="false">pref_key_import_ifw_rules</string>
-    <string name="key_pref_reset_ifw_rules" translatable="false">pref_key_reset_ifw_rules</string>
-    <string name="key_pref_import_mat_rules" translatable="false">pref_key_import_mat_rules</string>
-    <string name="key_pref_other" translatable="false">pref_key_other</string>
-    <string name="key_pref_about_category" translatable="false">pref_key_about_category</string>
-    <string name="key_pref_about" translatable="false">pref_key_about</string>
-    <string name="key_pref_rules_repo" translatable="false">pref_key_rules_repo</string>
-    <string name="key_pref_save_folder_path" translatable="false">key_pref_save_folder_path</string>
-    <string name="key_pref_backup_system_apps" translatable="false">key_pref_backup_system_apps</string>
-    <string name="key_pref_restore_system_apps" translatable="false">key_pref_restore_system_apps</string>
-    <string name="key_pref_show_system_apps" translatable="false">key_pref_show_system_apps</string>
-    <string name="key_pref_show_running_service_info" translatable="false">key_pref_show_running_service_info</string>
-    <string name="key_pref_group" translatable="false">key_pref_group</string>
-    <string name="key_pref_report_issue" translatable="false">key_pref_report_issue</string>
-    <string name="key_pref_sort_type" translatable="false">key_pref_sort_type</string>
-    <string name="key_pref_search_system_apps" translatable="false">key_pref_search_system_apps</string>
-    <string name="key_pref_use_regex_search" translatable="false">key_pref_use_regex_search</string>
-    <string name="key_pref_online_rule_source" translatable="false">key_pref_online_rule_source</string>
-    <string name="key_pref_online_source_type" translatable="false">key_pref_online_source_type</string>
-    <string name="key_pref_show_enabled_component_show_first" translatable="false">key_pref_show_enabled_component_show_first</string>
-    <string name="key_pref_update_online_db" translatable="false">pref_key_update_online_db</string>
+    <string name="application">Application ( %1$d )</string>
+    <string name="component">Component ( %1$d )</string>
+    <string name="online_rule">Online rule ( %1$d )</string>
+    <string name="searching">searching</string>
+    <string name="activity_count">%1$d Activity</string>
+    <string name="content_provider_count">%1$d Content provider</string>
+    <string name="broadcast_count">%1$d Broadcast</string>
+    <string name="service_count">%1$d Service</string>
 </resources>
