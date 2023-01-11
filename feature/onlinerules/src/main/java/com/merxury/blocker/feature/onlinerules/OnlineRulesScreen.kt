@@ -25,8 +25,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.onlineRules.component.RuleCard
-import com.merxury.blocker.feature.onlineRules.model.OnlineRulesUiState
-import com.merxury.blocker.feature.onlineRules.model.OnlineRulesViewModel
+import com.merxury.blocker.feature.onlinerules.model.OnlineRulesUiState
+import com.merxury.blocker.feature.onlinerules.model.OnlineRulesViewModel
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
