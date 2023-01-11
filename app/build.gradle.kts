@@ -99,7 +99,6 @@ dependencies {
     implementation(project(":core:ifw-api"))
     implementation(project(":core:common"))
     implementation(project(":core:ui"))
-    implementation(project(":core:designsystem"))
     implementation(project(":core:data"))
     implementation(project(":core:model"))
     implementation(project(":sync:work"))
@@ -163,10 +162,6 @@ dependencies {
     implementation(libs.shizuku.provider)
     implementation(libs.glide)
     implementation(libs.apache.commons.csv)
-    prodImplementation(platform(libs.firebase.bom))
-    prodImplementation(libs.firebase.analytics)
-    prodImplementation(libs.firebase.crashlytics)
-    prodImplementation(libs.firebase.perf)
 }
 
 // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13
