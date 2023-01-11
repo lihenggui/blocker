@@ -14,17 +14,30 @@
  * limitations under the License.
  */
 
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
+import com.android.build.gradle.AppPlugin
+import com.merxury.blocker.BlockerFlavor
+import com.merxury.blocker.configureFirebase
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.getByType
 
 class FirebaseConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            with(pluginManager) {
-                apply("com.google.gms.google-services")
-                apply("com.google.firebase.crashlytics")
-                apply("com.google.firebase.firebase-perf")
+            plugins.withType(AppPlugin::class.java) {
+                val extension =
+                    extensions.getByName("androidComponents") as ApplicationAndroidComponentsExtension
+                extension.beforeVariants {
+                    if (it.flavorName?.contains(BlockerFlavor.prod.name) == true) {
+                        pluginManager.apply("com.google.gms.google-services")
+                        pluginManager.apply("com.google.firebase.crashlytics")
+                    }
+                }
             }
+            val extension = extensions.getByType<ApplicationExtension>()
+            configureFirebase(extension)
         }
     }
 }
