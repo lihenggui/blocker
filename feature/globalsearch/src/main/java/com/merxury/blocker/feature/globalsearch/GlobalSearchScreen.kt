@@ -102,7 +102,6 @@ fun GlobalSearchScreen(
                 ErrorScreen(localSearchUiState.message)
             }
         }
-
     }
 }
 

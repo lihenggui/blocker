@@ -138,7 +138,6 @@ private fun AppContent(
                 )
             }
         }
-
     }
 }
 
