@@ -69,6 +69,7 @@ android {
 
     testOptions {
         managedDevices {
+            // TODO: Convert it as a convention plugin once Flamingo goes out (https://github.com/android/nowinandroid/issues/523)
             devices {
                 create<ManagedVirtualDevice>("pixel6Api31") {
                     device = "Pixel 6"
