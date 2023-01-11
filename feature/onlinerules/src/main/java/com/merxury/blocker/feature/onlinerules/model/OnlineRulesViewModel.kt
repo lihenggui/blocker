@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.onlineRules.model
+package com.merxury.blocker.feature.onlinerules.model
 
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.feature.onlinerules.model.OnlineRulesUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 @HiltViewModel
 class OnlineRulesViewModel @Inject constructor() : ViewModel() {
-    private val _onlineRulesUiState = MutableStateFlow(OnlineRulesUiState.Loading)
+    private val _onlineRulesUiState = MutableStateFlow(Loading)
     val onlineRulesUiState: StateFlow<OnlineRulesUiState> = _onlineRulesUiState.asStateFlow()
 }
 
