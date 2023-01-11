@@ -136,10 +136,6 @@ dependencies {
     implementation(libs.coil.kt.svg)
     implementation(libs.kotlinx.datetime)
     implementation(libs.libsu.core)
-    prodImplementation(platform(libs.firebase.bom))
-    prodImplementation(libs.firebase.analytics)
-    prodImplementation(libs.firebase.crashlytics)
-    prodImplementation(libs.firebase.perf)
 }
 
 // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13
