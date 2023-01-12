@@ -17,14 +17,15 @@
 
 package com.merxury.blocker.navigation
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
+import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
-import com.merxury.blocker.feature.applist.navigation.appListGraph
-import com.merxury.blocker.feature.applist.navigation.appListGraphRoutePattern
+import com.merxury.blocker.feature.applist.navigation.appListRoute
+import com.merxury.blocker.feature.applist.navigation.appListScreen
 import com.merxury.blocker.feature.globalsearch.navigation.globalSearchScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
@@ -39,29 +40,26 @@ import com.merxury.blocker.feature.settings.navigation.settingsScreen
  * The navigation graph defined in this file defines the different top level routes. Navigation
  * within each route is handled using state and Back Handlers.
  */
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun BlockerNavHost(
     navController: NavHostController,
     onBackClick: () -> Unit,
     isExpandedScreen: Boolean,
     modifier: Modifier = Modifier,
-    startDestination: String = appListGraphRoutePattern
+    startDestination: String = appListRoute
 ) {
-    NavHost(
+    AnimatedNavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
     ) {
-        appListGraph(
-            navigateToAppDetail = { packageName ->
-                navController.navigateToAppDetail(packageName)
-            },
-            navigateToSettings = { navController.navigateToSettings() },
-            navigateToSupportAndFeedback = { navController.navigateToSupportAndFeedback() },
-            nestedGraphs = {
-                appDetailScreen(onBackClick)
-            }
+        appListScreen(
+            navigateToAppDetail = navController::navigateToAppDetail,
+            navigateToSettings = navController::navigateToSettings,
+            navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
         )
+        appDetailScreen(onBackClick)
         onlineRulesScreen()
         globalSearchScreen()
         settingsScreen(onBackClick)

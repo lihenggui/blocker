@@ -17,6 +17,7 @@
 
 package com.merxury.blocker.ui
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -29,13 +30,13 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import androidx.tracing.trace
+import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
-import com.merxury.blocker.feature.applist.navigation.navigateToAppListGraph
+import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.globalsearch.navigation.globalSearchRoute
 import com.merxury.blocker.feature.globalsearch.navigation.navigateToGlobalSearch
 import com.merxury.blocker.feature.onlinerules.navigation.navigateToOnlineRules
@@ -49,12 +50,13 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberAnimatedNavController()
 ): BlockerAppState {
     NavigationTrackingSideEffect(navController)
     return remember(navController, coroutineScope, windowSizeClass, networkMonitor) {
@@ -129,7 +131,7 @@ class BlockerAppState(
             }
 
             when (topLevelDestination) {
-                APP_LIST -> navController.navigateToAppListGraph(topLevelNavOptions)
+                APP_LIST -> navController.navigateToAppList(topLevelNavOptions)
                 ONLINE_RULES -> navController.navigateToOnlineRules(topLevelNavOptions)
                 GLOBAL_SEARCH -> navController.navigateToGlobalSearch(topLevelNavOptions)
             }

@@ -1,6 +1,5 @@
 /*
- * Copyright 2022 Blocker
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +20,22 @@ plugins {
 }
 android {
     namespace = "com.merxury.blocker.feature.settings"
+
+    testOptions {
+        // TODO: Convert it as a convention plugin once Flamingo goes out (https://github.com/android/nowinandroid/issues/523)
+        managedDevices {
+            devices {
+                maybeCreate<com.android.build.api.dsl.ManagedVirtualDevice>("pixel4api30").apply {
+                    device = "Pixel 4"
+                    apiLevel = 30
+                    // ATDs currently support only API level 30.
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
+    }
 }
 dependencies {
     implementation(project(":core:datastore"))
-    implementation(project(":core:model"))
+    implementation(libs.accompanist.navigation.animation)
 }
