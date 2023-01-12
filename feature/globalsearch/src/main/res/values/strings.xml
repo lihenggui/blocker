@@ -24,4 +24,5 @@
     <string name="content_provider_count">%1$d Content provider</string>
     <string name="broadcast_count">%1$d Broadcast</string>
     <string name="service_count">%1$d Service</string>
+    <string name="delimiter"> / </string>
 </resources>
