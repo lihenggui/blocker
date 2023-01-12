@@ -31,5 +31,4 @@ class AndroidApplicationJacocoConventionPlugin : Plugin<Project> {
             configureJacoco(extension)
         }
     }
-
 }
