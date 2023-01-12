@@ -19,4 +19,5 @@
     <string name="online_rules">онлайн правила</string>
     <string name="search">Поиск</string>
     <string name="icon">Значок</string>
+    <string name="loading">Загрузка</string>
 </resources>
