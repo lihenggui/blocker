@@ -34,4 +34,18 @@
     <string name="last_update_time">最後更新時間</string>
     <string name="data_dir">數據目錄</string>
     <string name="loading">加載中</string>
+    <string name="enable_application">啟用應用</string>
+    <string name="refresh">刷新</string>
+    <string name="block_all_of_this_page">禁用該頁全部</string>
+    <string name="enable_all_of_this_page">啟用該頁全部</string>
+    <string name="disabling_hint">禁用組件中…</string>
+    <string name="enabling_hint">啟用組件中…</string>
+    <string name="more_menu">更多菜單</string>
+    <string name="analyze_service">分析服務</string>
+    <string name="description">描述</string>
+    <string name="blocking_effect">阻止效果</string>
+    <string name="recommended_blocking">推薦阻止</string>
+    <string name="belonging_sdk">歸屬SDK</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
 </resources>

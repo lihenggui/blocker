@@ -80,6 +80,17 @@ android {
         unitTests {
             isIncludeAndroidResources = true
         }
+        // TODO: Convert it as a convention plugin once Flamingo goes out (https://github.com/android/nowinandroid/issues/523)
+        managedDevices {
+            devices {
+                maybeCreate<com.android.build.api.dsl.ManagedVirtualDevice>("pixel4api30").apply {
+                    device = "Pixel 4"
+                    apiLevel = 30
+                    // ATDs currently support only API level 30.
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
     }
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
@@ -99,7 +110,6 @@ dependencies {
     implementation(project(":core:ifw-api"))
     implementation(project(":core:common"))
     implementation(project(":core:ui"))
-    implementation(project(":core:designsystem"))
     implementation(project(":core:data"))
     implementation(project(":core:model"))
     implementation(project(":sync:work"))
@@ -163,10 +173,6 @@ dependencies {
     implementation(libs.shizuku.provider)
     implementation(libs.glide)
     implementation(libs.apache.commons.csv)
-    prodImplementation(platform(libs.firebase.bom))
-    prodImplementation(libs.firebase.analytics)
-    prodImplementation(libs.firebase.crashlytics)
-    prodImplementation(libs.firebase.perf)
 }
 
 // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13
