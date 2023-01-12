@@ -37,7 +37,6 @@ android {
     }
 }
 dependencies {
-    implementation(project(":core:model"))
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.accompanist.navigation.animation)
