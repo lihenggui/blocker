@@ -92,6 +92,7 @@ private fun AppContent(
     appItem: FilterAppItem,
     modifier: Modifier = Modifier
 ) {
+    var count = 0
     Column(modifier) {
         Text(
             text = appItem.label,
@@ -109,8 +110,15 @@ private fun AppContent(
                     ),
                     style = MaterialTheme.typography.bodyMedium
                 )
+                count++
             }
             if (appItem.broadcastCount != 0) {
+                if (count != 0) {
+                    Text(
+                        text = stringResource(id = R.string.delimiter),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
                 Text(
                     text = stringResource(
                         id = R.string.broadcast_count,
@@ -118,8 +126,16 @@ private fun AppContent(
                     ),
                     style = MaterialTheme.typography.bodyMedium
                 )
+
+                count++
             }
             if (appItem.activityCount != 0) {
+                if (count != 0) {
+                    Text(
+                        text = stringResource(id = R.string.delimiter),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
                 Text(
                     text = stringResource(
                         id = R.string.activity_count,
@@ -129,6 +145,12 @@ private fun AppContent(
                 )
             }
             if (appItem.contentProviderCount != 0) {
+                if (count != 0) {
+                    Text(
+                        text = stringResource(id = R.string.delimiter),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
                 Text(
                     text = stringResource(
                         id = R.string.content_provider_count,
@@ -167,9 +189,9 @@ fun AppListItemWithoutServicePreview() {
         label = "Blocker",
         packageInfo = null,
         activityCount = 0,
-        broadcastCount = 2,
+        broadcastCount = 0,
         serviceCount = 0,
-        contentProviderCount = 0
+        contentProviderCount = 9
     )
     BlockerTheme {
         Surface {
