@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2022 Blocker
+  ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -32,4 +32,5 @@
     <string name="more_menu">更多菜單</string>
     <string name="settings">設置</string>
     <string name="support_and_feedback">幫助與反饋</string>
+    <string name="app_name">Blocker</string>
 </resources>

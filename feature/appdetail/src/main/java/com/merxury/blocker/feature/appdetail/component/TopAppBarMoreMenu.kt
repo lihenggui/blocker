@@ -14,31 +14,37 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.applist.component
+package com.merxury.blocker.feature.appdetail.component
 
-import android.content.res.Configuration
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
-import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.feature.applist.R
+import com.merxury.blocker.feature.appdetail.R
 
 @Composable
 fun TopAppBarMoreMenu(
-    navigateToSettings: () -> Unit,
-    navigateToFeedback: () -> Unit,
+    onEnableApp: () -> Unit,
+    onRefresh: () -> Unit,
+    onEnableAll: () -> Unit,
+    onBlockAll: () -> Unit
 ) {
     val items = listOf(
         DropDownMenuItem(
-            R.string.settings,
-            navigateToSettings
+            R.string.enable_application,
+            onEnableApp
         ),
         DropDownMenuItem(
-            R.string.support_and_feedback,
-            navigateToFeedback
+            R.string.refresh,
+            onRefresh
+        ),
+        DropDownMenuItem(
+            R.string.enable_all_of_this_page,
+            onEnableAll
+        ),
+        DropDownMenuItem(
+            R.string.block_all_of_this_page,
+            onBlockAll
         )
     )
     BlockerAppTopBarMenu(
@@ -46,15 +52,4 @@ fun TopAppBarMoreMenu(
         menuIconDesc = R.string.more_menu,
         menuList = items
     )
-}
-
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun MoreMenuPreview() {
-    BlockerTheme {
-        Surface {
-            TopAppBarMoreMenu(navigateToSettings = {}, navigateToFeedback = {})
-        }
-    }
 }

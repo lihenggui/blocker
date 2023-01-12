@@ -35,4 +35,18 @@
     <string name="last_update_time">Last update time</string>
     <string name="data_dir">Data dir</string>
     <string name="loading">Loading</string>
+    <string name="enable_application">Enable application</string>
+    <string name="refresh">Refresh</string>
+    <string name="block_all_of_this_page">Block all of this page</string>
+    <string name="enable_all_of_this_page">Enable all of this page</string>
+    <string name="disabling_hint">Disabling hint…</string>
+    <string name="enabling_hint">Enabling hint…</string>
+    <string name="more_menu">more menu</string>
+    <string name="analyze_service">Analyze service</string>
+    <string name="description">Description</string>
+    <string name="blocking_effect">Blocking effect</string>
+    <string name="recommended_blocking">Recommended blocking</string>
+    <string name="belonging_sdk">Belonging SDK</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
 </resources>
