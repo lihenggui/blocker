@@ -19,4 +19,5 @@
     <string name="online_rules">線上規則</string>
     <string name="search">搜索</string>
     <string name="icon">圖標</string>
+    <string name="loading">加載中</string>
 </resources>
