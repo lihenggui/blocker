@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.AppPlugin
 import com.merxury.blocker.BlockerFlavor
-import com.merxury.blocker.configureFirebase
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
 
 class FirebaseConventionPlugin : Plugin<Project> {
@@ -36,8 +36,13 @@ class FirebaseConventionPlugin : Plugin<Project> {
                     }
                 }
             }
-            val extension = extensions.getByType<ApplicationExtension>()
-            configureFirebase(extension)
+            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
+            dependencies {
+                val bom = libs.findLibrary("firebase-bom").get()
+                add("prodImplementation", platform(bom))
+                add("prodImplementation", libs.findLibrary("firebase-analytics").get())
+                add("prodImplementation", libs.findLibrary("firebase-crashlytics").get())
+            }
         }
     }
 }
