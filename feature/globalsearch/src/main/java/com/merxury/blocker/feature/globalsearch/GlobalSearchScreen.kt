@@ -40,8 +40,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
-import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.data.ErrorMessage
@@ -60,8 +60,7 @@ fun GlobalSearchRoute(
         searchBoxUiState = searchBoxUiState,
         localSearchUiState = localSearchUiState,
         onSearchTextChanged = viewModel::onSearchTextChanged,
-        onClearClick = viewModel::onClearClick,
-        onNavigateBack = viewModel::onNavigationBack
+        onClearClick = viewModel::onClearClick
     )
 }
 
@@ -71,16 +70,14 @@ fun GlobalSearchScreen(
     searchBoxUiState: SearchBoxUiState,
     localSearchUiState: LocalSearchUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit,
-    onClearClick: () -> Unit,
-    onNavigateBack: () -> Unit
+    onClearClick: () -> Unit
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         SearchBar(
             modifier = modifier,
             uiState = searchBoxUiState,
             onSearchTextChanged = onSearchTextChanged,
-            onClearClick = onClearClick,
-            onNavigateBack = onNavigateBack
+            onClearClick = onClearClick
         )
         when (localSearchUiState) {
             LocalSearchUiState.Loading -> {
@@ -148,31 +145,25 @@ fun GlobalSearchContent(
 fun SearchBar(
     modifier: Modifier = Modifier,
     uiState: SearchBoxUiState,
-    placeholderText: String = "",
     onSearchTextChanged: (TextFieldValue) -> Unit,
-    onClearClick: () -> Unit,
-    onNavigateBack: () -> Unit
+    onClearClick: () -> Unit
 ) {
     var showClearButton by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
-    BlockerTopAppBar(
-        title = "",
-        navigationIcon = BlockerIcons.Back,
-        navigationIconContentDescription = null,
-        onNavigationClick = onNavigateBack,
+    BlockerHomeTopAppBar(
+        titleRes = R.string.searching,
         actions = {
             TextField(
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(start = 56.dp, end = 4.dp)
-                    .padding(vertical = 4.dp)
+                    .padding(4.dp)
                     .onFocusChanged { focusState ->
                         showClearButton = (focusState.isFocused)
                     },
                 value = uiState.keyword,
                 onValueChange = onSearchTextChanged,
                 placeholder = {
-                    Text(text = placeholderText)
+                    Text(text = stringResource(id = R.string.search_label))
                 },
                 trailingIcon = {
                     AnimatedVisibility(
@@ -220,7 +211,6 @@ fun GlobalSearchScreenPreview() {
                 searchBoxUiState = searchBoxUiState,
                 localSearchUiState = localSearchUiState,
                 onSearchTextChanged = {},
-                onNavigateBack = {},
                 onClearClick = {}
             )
         }
