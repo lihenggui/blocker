@@ -9,6 +9,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class LocalSearchViewModel @Inject constructor() : ViewModel() {
@@ -16,6 +17,18 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
     private val _localSearchUiState = MutableStateFlow(LocalSearchUiState.Loading)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
+
+    fun onSearchTextChanged(changedSearchText: TextFieldValue) {
+        _searchBoxUiState.update { it.copy(keyword = changedSearchText) }
+    }
+
+    fun onClearClick() {
+        _searchBoxUiState.update { SearchBoxUiState() }
+    }
+
+    fun onNavigationBack() {
+        // TODO
+    }
 }
 
 sealed interface LocalSearchUiState {

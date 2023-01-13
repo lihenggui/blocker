@@ -58,7 +58,10 @@ fun GlobalSearchRoute(
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
     GlobalSearchScreen(
         searchBoxUiState = searchBoxUiState,
-        localSearchUiState = localSearchUiState
+        localSearchUiState = localSearchUiState,
+        onSearchTextChanged = viewModel::onSearchTextChanged,
+        onClearClick = viewModel::onClearClick,
+        onNavigateBack = viewModel::onNavigationBack
     )
 }
 
@@ -66,12 +69,18 @@ fun GlobalSearchRoute(
 fun GlobalSearchScreen(
     modifier: Modifier = Modifier,
     searchBoxUiState: SearchBoxUiState,
-    localSearchUiState: LocalSearchUiState
+    localSearchUiState: LocalSearchUiState,
+    onSearchTextChanged: (TextFieldValue) -> Unit,
+    onClearClick: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         SearchBar(
             modifier = modifier,
-            uiState = searchBoxUiState
+            uiState = searchBoxUiState,
+            onSearchTextChanged = onSearchTextChanged,
+            onClearClick = onClearClick,
+            onNavigateBack = onNavigateBack
         )
         when (localSearchUiState) {
             LocalSearchUiState.Loading -> {
@@ -140,9 +149,9 @@ fun SearchBar(
     modifier: Modifier = Modifier,
     uiState: SearchBoxUiState,
     placeholderText: String = "",
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
-    onClearClick: () -> Unit = {},
-    onNavigateBack: () -> Unit = {}
+    onSearchTextChanged: (TextFieldValue) -> Unit,
+    onClearClick: () -> Unit,
+    onNavigateBack: () -> Unit
 ) {
     var showClearButton by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -209,7 +218,10 @@ fun GlobalSearchScreenPreview() {
         Surface {
             GlobalSearchScreen(
                 searchBoxUiState = searchBoxUiState,
-                localSearchUiState = localSearchUiState
+                localSearchUiState = localSearchUiState,
+                onSearchTextChanged = {},
+                onNavigateBack = {},
+                onClearClick = {}
             )
         }
     }
