@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.update
 class LocalSearchViewModel @Inject constructor() : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
-    private val _localSearchUiState = MutableStateFlow(LocalSearchUiState.Loading)
+    private val _localSearchUiState = MutableStateFlow(LocalSearchUiState.NoSearch)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
 
     fun onSearchTextChanged(changedSearchText: TextFieldValue) {
@@ -32,6 +32,7 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
 }
 
 sealed interface LocalSearchUiState {
+    object NoSearch : LocalSearchUiState
     object Loading : LocalSearchUiState
     class LocalSearchResult(
         val filter: List<FilterAppItem>,
