@@ -107,6 +107,26 @@ class AppInfoViewModel @Inject constructor(
     fun onBlockAll() {
         // TODO
     }
+
+    fun onExportRules() {
+        // TODO
+    }
+
+    fun onImportRules() {
+        // TODO
+    }
+
+    fun onExportIfw() {
+        // TODO
+    }
+
+    fun onImportIfw() {
+        // TODO
+    }
+
+    fun onResetIfw() {
+        // TODO
+    }
 }
 
 sealed interface AppInfoUiState {

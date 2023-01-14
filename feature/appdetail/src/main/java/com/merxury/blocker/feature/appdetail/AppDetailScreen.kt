@@ -86,7 +86,12 @@ fun AppDetailRoute(
         onEnableAll = viewModel::onEnableAll,
         onBlockAll = viewModel::onBlockAll,
         isCollapsed = isCollapsed,
-        scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior,
+        onExportRules = viewModel::onExportRules,
+        onImportRules = viewModel::onImportRules,
+        onExportIfw = viewModel::onExportIfw,
+        onImportIfw = viewModel::onImportIfw,
+        onResetIfw = viewModel::onResetIfw
     )
 }
 
@@ -105,7 +110,12 @@ fun AppDetailScreen(
     onBlockAll: () -> Unit,
     isCollapsed: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onExportRules: () -> Unit,
+    onImportRules: () -> Unit,
+    onExportIfw: () -> Unit,
+    onImportIfw: () -> Unit,
+    onResetIfw: () -> Unit
 ) {
     Column(modifier) {
         when (uiState) {
@@ -136,7 +146,12 @@ fun AppDetailScreen(
                     onBlockAll = onBlockAll,
                     isCollapsed = isCollapsed,
                     scrollBehavior = scrollBehavior,
-                    modifier = modifier
+                    modifier = modifier,
+                    onExportRules = onExportRules,
+                    onImportRules = onImportRules,
+                    onExportIfw = onExportIfw,
+                    onImportIfw = onImportIfw,
+                    onResetIfw = onResetIfw
                 )
             }
 
@@ -160,7 +175,12 @@ fun AppDetailContent(
     onBlockAll: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
     isCollapsed: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onExportRules: () -> Unit,
+    onImportRules: () -> Unit,
+    onExportIfw: () -> Unit,
+    onImportIfw: () -> Unit,
+    onResetIfw: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -214,7 +234,15 @@ fun AppDetailContent(
                 }
             }
             when (tabState.currentIndex) {
-                0 -> AppInfoTabContent(app = uiState.appInfo)
+                0 -> AppInfoTabContent(
+                    app = uiState.appInfo,
+                    onExportRules = onExportRules,
+                    onImportRules = onImportRules,
+                    onExportIfw = onExportIfw,
+                    onImportIfw = onImportIfw,
+                    onResetIfw = onResetIfw
+                )
+
                 1 -> ComponentListContentRoute()
                 2 -> ComponentListContentRoute()
                 3 -> ComponentListContentRoute()
@@ -269,6 +297,11 @@ fun AppDetailScreenPreview() {
                 onBlockAll = {},
                 isCollapsed = false,
                 scrollBehavior = scrollBehavior,
+                onExportRules = {},
+                onImportRules = {},
+                onExportIfw = {},
+                onImportIfw = {},
+                onResetIfw = {}
             )
         }
     }
@@ -314,6 +347,11 @@ fun AppDetailScreenCollapsedPreview() {
                 onBlockAll = {},
                 isCollapsed = true,
                 scrollBehavior = scrollBehavior,
+                onExportRules = {},
+                onImportRules = {},
+                onExportIfw = {},
+                onImportIfw = {},
+                onResetIfw = {}
             )
         }
     }
