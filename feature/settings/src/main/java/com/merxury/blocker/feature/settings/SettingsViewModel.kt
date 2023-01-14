@@ -18,7 +18,7 @@ package com.merxury.blocker.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.UserDataRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
