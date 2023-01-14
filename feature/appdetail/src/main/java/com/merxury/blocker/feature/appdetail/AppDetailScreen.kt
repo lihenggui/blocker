@@ -206,12 +206,14 @@ fun AppDetailContent(
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
-                    TopAppBarMoreMenu(
-                        onEnableApp = onEnableApp,
-                        onRefresh = onRefresh,
-                        onEnableAll = onEnableAll,
-                        onBlockAll = onBlockAll
-                    )
+                    if (tabState.currentIndex != 0) {
+                        TopAppBarMoreMenu(
+                            onEnableApp = onEnableApp,
+                            onRefresh = onRefresh,
+                            onEnableAll = onEnableAll,
+                            onBlockAll = onBlockAll
+                        )
+                    }
                 }
             )
         },
