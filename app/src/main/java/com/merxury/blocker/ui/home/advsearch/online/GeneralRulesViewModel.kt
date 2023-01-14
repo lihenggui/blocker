@@ -18,7 +18,7 @@ package com.merxury.blocker.ui.home.advsearch.online
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
