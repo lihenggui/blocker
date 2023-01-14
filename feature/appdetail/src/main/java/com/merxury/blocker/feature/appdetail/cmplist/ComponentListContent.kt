@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.appdetail.cmplist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -53,10 +54,13 @@ fun ComponentListContent(
     when (uiState) {
         ComponentListUiState.Loading -> {
             Column(
+                modifier = modifier
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 BlockerLoadingWheel(
+                    modifier = modifier,
                     contentDesc = stringResource(id = string.loading),
                 )
             }
