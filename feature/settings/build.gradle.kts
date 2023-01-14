@@ -37,5 +37,7 @@ android {
 }
 dependencies {
     implementation(project(":core:datastore"))
+    implementation(project(":core:rule"))
     implementation(libs.accompanist.navigation.animation)
+    implementation(libs.androidx.work.ktx)
 }
