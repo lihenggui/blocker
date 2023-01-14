@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository
+package com.merxury.blocker.core.data.respository.userdata
 
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting

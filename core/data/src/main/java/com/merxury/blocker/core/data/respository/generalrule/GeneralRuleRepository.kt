@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository
+package com.merxury.blocker.core.data.respository.generalrule
 
 import com.merxury.blocker.core.data.Syncable
 import com.merxury.blocker.core.model.data.GeneralRule

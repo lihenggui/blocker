@@ -26,7 +26,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.data.Synchronizer
-import com.merxury.blocker.core.data.respository.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.datastore.ChangeListVersions
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
