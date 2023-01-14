@@ -16,8 +16,12 @@
 
 package com.merxury.blocker.feature.settings
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.net.Uri
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkManager
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
@@ -25,20 +29,28 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.model.preference.ThemeBrand
+import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
+import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
+import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
+import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
+import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
+import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
+    appContext: Application,
     private val userDataRepository: UserDataRepository
-) : ViewModel() {
+) : AndroidViewModel(appContext) {
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData
             .map { userData ->
@@ -104,28 +116,78 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun importBlockerRules() {
-        // TODO
+    fun importBlockerRules() = viewModelScope.launch {
+        val userData = userDataRepository.userData.first()
+        WorkManager.getInstance(getApplication()).apply {
+            enqueueUniqueWork(
+                "ImportBlockerRule",
+                ExistingWorkPolicy.REPLACE,
+                ImportBlockerRuleWorker.importWork(
+                    backupPath = userData.ruleBackupFolder,
+                    restoreSystemApps = userData.restoreSystemApp,
+                    controllerType = userData.controllerType,
+                )
+            )
+        }
     }
 
-    fun exportBlockerRules() {
-        // TODO
+    fun exportBlockerRules() = viewModelScope.launch {
+        val userData = userDataRepository.userData.first()
+        WorkManager.getInstance(getApplication()).apply {
+            enqueueUniqueWork(
+                "ExportBlockerRule",
+                ExistingWorkPolicy.REPLACE,
+                ExportBlockerRulesWorker.exportWork(
+                    folderPath = userData.ruleBackupFolder,
+                    backupSystemApps = userData.backupSystemApp
+                )
+            )
+        }
     }
 
-    fun exportIfwRules() {
-        // TODO
+    fun exportIfwRules() = viewModelScope.launch {
+        val userData = userDataRepository.userData.first()
+        WorkManager.getInstance(getApplication()).apply {
+            enqueueUniqueWork(
+                "ExportIfwRule",
+                ExistingWorkPolicy.KEEP,
+                ExportIfwRulesWorker.exportWork(userData.ruleBackupFolder)
+            )
+        }
     }
 
-    fun importIfwRules() {
-        // TODO
+    fun importIfwRules() = viewModelScope.launch {
+        val userData = userDataRepository.userData.first()
+        WorkManager.getInstance(getApplication()).apply {
+            enqueueUniqueWork(
+                "ImportIfwRule",
+                ExistingWorkPolicy.KEEP,
+                ImportIfwRulesWorker.importIfwWork(
+                    backupPath = userData.ruleBackupFolder,
+                    restoreSystemApps = userData.restoreSystemApp,
+                )
+            )
+        }
     }
 
     fun resetIfwRules() {
-        // TODO
+        WorkManager.getInstance(getApplication())
+            .enqueueUniqueWork("ResetIfw", ExistingWorkPolicy.KEEP, ResetIfwWorker.clearIfwWork())
     }
 
-    fun importMyAndroidToolsRules() {
-        // TODO
+    fun importMyAndroidToolsRules(fileUri: Uri) = viewModelScope.launch {
+        val userData = userDataRepository.userData.first()
+        WorkManager.getInstance(getApplication()).apply {
+            enqueueUniqueWork(
+                "ImportMatRule",
+                ExistingWorkPolicy.KEEP,
+                ImportMatRulesWorker.importWork(
+                    fileUri,
+                    userData.controllerType,
+                    userData.restoreSystemApp
+                )
+            )
+        }
     }
 
     fun updateThemeBrand(themeBrand: ThemeBrand) {
