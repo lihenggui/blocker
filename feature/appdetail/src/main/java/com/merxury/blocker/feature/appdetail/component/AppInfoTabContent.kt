@@ -16,11 +16,11 @@
 
 package com.merxury.blocker.feature.appdetail.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -29,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,7 +43,12 @@ import kotlinx.datetime.Instant
 @Composable
 fun AppInfoTabContent(
     app: Application,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onExportRules: () -> Unit,
+    onImportRules: () -> Unit,
+    onExportIfw: () -> Unit,
+    onImportIfw: () -> Unit,
+    onResetIfw: () -> Unit
 ) {
     Box(modifier) {
         Column(
@@ -57,7 +63,12 @@ fun AppInfoTabContent(
                 // TODO add min SDK detection
                 miniSdkVersion = 23,
                 lastUpdateTime = app.lastUpdateTime,
-                dataDir = app.packageInfo?.applicationInfo?.dataDir
+                dataDir = app.packageInfo?.applicationInfo?.dataDir,
+                onExportRules = onExportRules,
+                onImportRules = onImportRules,
+                onExportIfw = onExportIfw,
+                onImportIfw = onImportIfw,
+                onResetIfw = onResetIfw
             )
         }
     }
@@ -68,7 +79,12 @@ fun MoreInfo(
     targetSdkVersion: Int,
     miniSdkVersion: Int,
     lastUpdateTime: Instant?,
-    dataDir: String?
+    dataDir: String?,
+    onExportRules: () -> Unit,
+    onImportRules: () -> Unit,
+    onExportIfw: () -> Unit,
+    onImportIfw: () -> Unit,
+    onResetIfw: () -> Unit
 ) {
     Column {
         MoreInfoItem(itemId = string.target_sdk_version, itemInfo = targetSdkVersion.toString())
@@ -78,9 +94,9 @@ fun MoreInfo(
             MoreInfoItem(itemId = string.data_dir, itemInfo = dataDir)
         }
         Divider()
-        BlockerRuleItem()
+        BlockerRuleItem(onExportRules = onExportRules, onImportRules = onImportRules)
         Divider()
-        IfwRuleItem()
+        IfwRuleItem(onExportIfw = onExportIfw, onImportIfw = onImportIfw, onResetIfw = onResetIfw)
     }
 }
 
@@ -106,55 +122,64 @@ fun MoreInfoItem(
 }
 
 @Composable
-fun BlockerRuleItem() {
+fun BlockerRuleItem(
+    onExportRules: () -> Unit,
+    onImportRules: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
     ) {
+        ItemHead(itemRes = string.blocker_rules)
+        Item(itemRes = string.export_rules, onItemClick = onExportRules)
+        Item(itemRes = string.import_rules, onItemClick = onImportRules)
+    }
+}
+
+@Composable
+fun IfwRuleItem(
+    onExportIfw: () -> Unit,
+    onImportIfw: () -> Unit,
+    onResetIfw: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        ItemHead(itemRes = string.ifw_rules)
+        Item(itemRes = string.export_ifw_rules, onItemClick = onExportIfw)
+        Item(itemRes = string.import_ifw_rules, onItemClick = onImportIfw)
+        Item(itemRes = string.reset_ifw, onItemClick = onResetIfw)
+    }
+}
+
+@Composable
+fun ItemHead(itemRes: Int) {
+    Row(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(id = string.blocker_rules),
+            text = stringResource(id = itemRes),
             style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(id = string.export_rules),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(id = string.import_rules),
-            style = MaterialTheme.typography.bodyMedium
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(16.dp)
         )
     }
 }
 
 @Composable
-fun IfwRuleItem() {
-    Column(
-        modifier = Modifier
+fun Item(
+    itemRes: Int,
+    onItemClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .clickable { onItemClick() }
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = stringResource(id = string.ifw_rules),
-            style = MaterialTheme.typography.titleSmall,
-            color = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(id = string.export_ifw_rules),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(id = string.import_ifw_rules),
-            style = MaterialTheme.typography.bodyMedium
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(id = string.reset_ifw),
+            text = stringResource(id = itemRes),
             style = MaterialTheme.typography.bodyMedium
         )
     }
@@ -176,6 +201,11 @@ fun PreviewAppInfoTabContent() {
         Surface {
             AppInfoTabContent(
                 app = app,
+                onExportRules = {},
+                onImportRules = {},
+                onExportIfw = {},
+                onImportIfw = {},
+                onResetIfw = {}
             )
         }
     }
