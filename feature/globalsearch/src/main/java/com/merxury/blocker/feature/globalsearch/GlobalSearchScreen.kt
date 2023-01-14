@@ -165,6 +165,12 @@ fun SearchBar(
                 placeholder = {
                     Text(text = stringResource(id = R.string.search_label))
                 },
+                leadingIcon = {
+                    Icon(
+                        imageVector = BlockerIcons.Search,
+                        contentDescription = null
+                    )
+                },
                 trailingIcon = {
                     AnimatedVisibility(
                         visible = showClearButton,
