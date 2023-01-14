@@ -24,4 +24,6 @@
     <string name="broadcast_count">%1$d Broadcast</string>
     <string name="service_count">%1$d Service</string>
     <string name="delimiter"> / </string>
+    <string name="selected_app">%1$d apps selected</string>
+    <string name="search_label">Enter to search</string>
 </resources>
