@@ -6,12 +6,19 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumedWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,7 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -64,6 +71,7 @@ fun GlobalSearchRoute(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun GlobalSearchScreen(
     modifier: Modifier = Modifier,
@@ -72,37 +80,54 @@ fun GlobalSearchScreen(
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        SearchBar(
-            modifier = modifier,
-            uiState = searchBoxUiState,
-            onSearchTextChanged = onSearchTextChanged,
-            onClearClick = onClearClick
-        )
-        when (localSearchUiState) {
-            LocalSearchUiState.Loading -> {
-                Column(
-                    modifier = modifier
-                        .fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    BlockerLoadingWheel(
+    Scaffold(
+        topBar = {
+            SearchBar(
+                modifier = modifier,
+                uiState = searchBoxUiState,
+                onSearchTextChanged = onSearchTextChanged,
+                onClearClick = onClearClick
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .consumedWindowInsets(padding)
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Horizontal
+                    )
+                ),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            when (localSearchUiState) {
+                LocalSearchUiState.Loading -> {
+                    Column(
+                        modifier = modifier
+                            .fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        BlockerLoadingWheel(
+                            modifier = modifier,
+                            contentDesc = stringResource(id = R.string.searching),
+                        )
+                    }
+                }
+
+                is LocalSearchUiState.LocalSearchResult -> {
+                    GlobalSearchContent(
                         modifier = modifier,
-                        contentDesc = stringResource(id = R.string.searching),
+                        localSearchUiState = localSearchUiState
                     )
                 }
-            }
 
-            is LocalSearchUiState.LocalSearchResult -> {
-                GlobalSearchContent(
-                    modifier = modifier,
-                    localSearchUiState = localSearchUiState
-                )
-            }
-
-            is LocalSearchUiState.Error -> {
-                ErrorScreen(localSearchUiState.message)
+                is LocalSearchUiState.Error -> {
+                    ErrorScreen(localSearchUiState.message)
+                }
             }
         }
     }
@@ -212,13 +237,11 @@ fun GlobalSearchScreenPreview() {
         onlineRuleCount = 6
     )
     BlockerTheme {
-        Surface {
-            GlobalSearchScreen(
-                searchBoxUiState = searchBoxUiState,
-                localSearchUiState = localSearchUiState,
-                onSearchTextChanged = {},
-                onClearClick = {}
-            )
-        }
+        GlobalSearchScreen(
+            searchBoxUiState = searchBoxUiState,
+            localSearchUiState = localSearchUiState,
+            onSearchTextChanged = {},
+            onClearClick = {}
+        )
     }
 }
