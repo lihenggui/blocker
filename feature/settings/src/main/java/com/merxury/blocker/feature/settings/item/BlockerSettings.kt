@@ -33,7 +33,7 @@ import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 
 @Composable
-fun OthersSettings(
+fun BlockerSettings(
     modifier: Modifier = Modifier,
     uiState: Success,
     updateControllerType: (ControllerType) -> Unit,
@@ -58,10 +58,6 @@ fun OthersSettings(
             menuList = listOf(GITHUB, GITLAB),
             onMenuClick = updateRuleServerProvider,
             modifier = modifier
-        )
-        SettingsItem(
-            itemRes = string.import_mat_rules,
-            onItemClick = {}
         )
     }
 }
