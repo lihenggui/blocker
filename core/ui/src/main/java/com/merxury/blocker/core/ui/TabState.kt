@@ -20,3 +20,8 @@ data class TabState(
     val titles: List<Int>,
     val currentIndex: Int
 )
+
+data class TabStrState(
+    val titles: List<String>,
+    val currentIndex: Int
+)
