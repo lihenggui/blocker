@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
@@ -16,6 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -53,6 +57,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.feature.globalsearch.component.AppListItem
+import com.merxury.blocker.feature.globalsearch.model.FilterAppItem
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchUiState
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchViewModel
 import com.merxury.blocker.feature.globalsearch.model.SearchBoxUiState
@@ -138,48 +144,12 @@ fun GlobalSearchScreen(
                 }
 
                 is LocalSearchUiState.LocalSearchResult -> {
-                    BlockerScrollableTabRow(
-                        selectedTabIndex = tabState.currentIndex,
-                    ) {
-                        BlockerTab(
-                            selected = 0 == tabState.currentIndex,
-                            onClick = { switchTab(0) },
-                            text = {
-                                Text(
-                                    text = stringResource(
-                                        id = tabState.titles[0],
-                                        tabState.appCount
-                                    )
-                                )
-                            }
-                        )
-                        BlockerTab(
-                            selected = 1 == tabState.currentIndex,
-                            onClick = { switchTab(1) },
-                            text = {
-                                Text(
-                                    text = stringResource(
-                                        id = tabState.titles[1],
-                                        tabState.componentCount
-                                    )
-                                )
-                            }
-                        )
-                        BlockerTab(
-                            selected = 2 == tabState.currentIndex,
-                            onClick = { switchTab(2) },
-                            text = {
-                                Text(
-                                    text = stringResource(
-                                        id = tabState.titles[2],
-                                        tabState.rulesCount
-                                    )
-                                )
-                            }
-                        )
-                    }
+                    SearchResultTabRow(tabState = tabState, switchTab = switchTab)
                     when (tabState.currentIndex) {
-                        0 -> {}
+                        0 -> {
+                            SearchResultContent(appList = localSearchUiState.filter)
+                        }
+
                         1 -> {}
                         2 -> {}
                     }
@@ -253,6 +223,53 @@ fun SearchBar(
 }
 
 @Composable
+fun SearchResultTabRow(
+    tabState: SearchTabState,
+    switchTab: (Int) -> Unit
+) {
+    BlockerScrollableTabRow(
+        selectedTabIndex = tabState.currentIndex,
+    ) {
+        BlockerTab(
+            selected = 0 == tabState.currentIndex,
+            onClick = { switchTab(0) },
+            text = {
+                Text(
+                    text = stringResource(
+                        id = tabState.titles[0],
+                        tabState.appCount
+                    )
+                )
+            }
+        )
+        BlockerTab(
+            selected = 1 == tabState.currentIndex,
+            onClick = { switchTab(1) },
+            text = {
+                Text(
+                    text = stringResource(
+                        id = tabState.titles[1],
+                        tabState.componentCount
+                    )
+                )
+            }
+        )
+        BlockerTab(
+            selected = 2 == tabState.currentIndex,
+            onClick = { switchTab(2) },
+            text = {
+                Text(
+                    text = stringResource(
+                        id = tabState.titles[2],
+                        tabState.rulesCount
+                    )
+                )
+            }
+        )
+    }
+}
+
+@Composable
 fun ErrorScreen(message: ErrorMessage) {
     Text(text = message.message)
 }
@@ -273,6 +290,25 @@ fun NoSearchScreen() {
             color = MaterialTheme.colorScheme.outline,
             style = MaterialTheme.typography.bodyLarge
         )
+    }
+}
+
+@Composable
+fun SearchResultContent(
+    modifier: Modifier = Modifier,
+    appList: List<FilterAppItem>
+) {
+    val listContent = remember { appList }
+    val listState = rememberLazyListState()
+    Box(modifier) {
+        LazyColumn(
+            modifier = modifier,
+            state = listState
+        ) {
+            items(listContent, key = { it.label }) {
+                AppListItem(filterAppItem = it)
+            }
+        }
     }
 }
 
@@ -304,9 +340,17 @@ fun GlobalSearchScreenEmptyPreview() {
 @Composable
 @Preview
 fun GlobalSearchScreenPreview() {
+    val filterAppItem = FilterAppItem(
+        label = "Blocker",
+        packageInfo = null,
+        activityCount = 0,
+        broadcastCount = 1,
+        serviceCount = 0,
+        contentProviderCount = 9
+    )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.LocalSearchResult(
-        filter = listOf()
+        filter = listOf(filterAppItem)
     )
     val tabState = SearchTabState(
         titles = listOf(
