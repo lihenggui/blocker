@@ -37,6 +37,7 @@ import kotlinx.parcelize.RawValue
 data class Application(
     val packageName: String = "",
     val versionName: String? = "",
+    val versionCode: Long = 0L,
     val isEnabled: Boolean = false,
     val label: String = "",
     val minSdkVersion: Int = 0,
@@ -51,6 +52,7 @@ data class Application(
             return Application(
                 packageName = parcel.readString().orEmpty(),
                 versionName = parcel.readString(),
+                versionCode = parcel.readLong(),
                 isEnabled = parcel.readInt() == 1,
                 label = parcel.readString().orEmpty(),
                 minSdkVersion = parcel.readInt(),
@@ -64,6 +66,7 @@ data class Application(
         override fun Application.write(parcel: Parcel, flags: Int) {
             parcel.writeString(packageName)
             parcel.writeString(versionName)
+            parcel.writeLong(versionCode)
             parcel.writeByte(if (isEnabled) 1 else 0)
             parcel.writeString(label)
             parcel.writeInt(minSdkVersion)
@@ -79,6 +82,7 @@ suspend fun PackageInfo.toApplication(pm: PackageManager): Application {
     return Application(
         packageName = packageName,
         versionName = versionName,
+        versionCode = getVersionCode(),
         isEnabled = applicationInfo?.enabled ?: false,
         label = applicationInfo?.loadLabel(pm).toString(),
         minSdkVersion = applicationInfo.minSdkVersionCompat(),
@@ -87,6 +91,15 @@ suspend fun PackageInfo.toApplication(pm: PackageManager): Application {
         lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
         packageInfo = this,
     )
+}
+
+@Suppress("DEPRECATION")
+private fun PackageInfo.getVersionCode(): Long {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        longVersionCode
+    } else {
+        versionCode.toLong()
+    }
 }
 
 suspend fun ApplicationInfo.minSdkVersionCompat(): Int {

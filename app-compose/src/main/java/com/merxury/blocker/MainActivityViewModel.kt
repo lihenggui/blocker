@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.MainActivityUiState.Loading
 import com.merxury.blocker.MainActivityUiState.Success
-import com.merxury.blocker.core.data.respository.UserDataRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject

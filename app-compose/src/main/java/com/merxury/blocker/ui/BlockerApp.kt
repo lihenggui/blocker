@@ -49,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -71,7 +70,6 @@ import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
     ExperimentalMaterial3Api::class,
     ExperimentalLayoutApi::class,
     ExperimentalComposeUiApi::class,
-    ExperimentalLifecycleComposeApi::class
 )
 @Composable
 fun BlockerApp(

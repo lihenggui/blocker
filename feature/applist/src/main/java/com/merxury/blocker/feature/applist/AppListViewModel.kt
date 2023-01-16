@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.UserDataRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -88,6 +88,7 @@ class AppListViewModel @Inject constructor(
     init {
         loadData()
         listenSortingChanges()
+        listenShowSystemAppsChanges()
     }
 
     fun loadData() = viewModelScope.launch {
@@ -117,6 +118,15 @@ class AppListViewModel @Inject constructor(
             }
     }
 
+    private fun listenShowSystemAppsChanges() = viewModelScope.launch {
+        userDataRepository.userData
+            .map { it.showSystemApps }
+            .distinctUntilChanged()
+            .collect {
+                loadData()
+            }
+    }
+
     fun updateSorting(sorting: AppSorting) = viewModelScope.launch {
         userDataRepository.setAppSorting(sorting)
     }
@@ -127,6 +137,10 @@ class AppListViewModel @Inject constructor(
                 start = CoroutineStart.LAZY,
                 context = ioDispatcher + exceptionHandler
             ) {
+                val userData = userDataRepository.userData.first()
+                if (!userData.showServiceInfo) {
+                    return@launch
+                }
                 Timber.d("Get service status for $packageName")
                 val currentUiState = _uiState.value
                 if (currentUiState !is AppListUiState.Success) {
@@ -217,6 +231,7 @@ class AppListViewModel @Inject constructor(
                 label = it.label,
                 packageName = it.packageName,
                 versionName = it.versionName.orEmpty(),
+                versionCode = it.versionCode,
                 isSystem = ApplicationUtil.isSystemApp(context.packageManager, it.packageName),
                 // TODO detect if an app is running or not
                 isRunning = false,
@@ -248,6 +263,7 @@ data class AppItem(
     val label: String,
     val packageName: String,
     val versionName: String,
+    val versionCode: Long,
     val isSystem: Boolean,
     val isRunning: Boolean,
     val enabled: Boolean,

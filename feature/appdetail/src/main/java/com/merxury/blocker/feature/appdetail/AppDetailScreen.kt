@@ -42,7 +42,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
@@ -63,7 +62,7 @@ import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.model.AppInfoViewModel
 import kotlinx.datetime.Clock.System
 
-@OptIn(ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailRoute(
     viewModel: AppInfoViewModel = hiltViewModel(),

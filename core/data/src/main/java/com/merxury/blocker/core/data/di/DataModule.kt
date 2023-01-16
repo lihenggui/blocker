@@ -16,12 +16,12 @@
 
 package com.merxury.blocker.core.data.di
 
-import com.merxury.blocker.core.data.respository.ComponentDataRepository
-import com.merxury.blocker.core.data.respository.GeneralRuleRepository
-import com.merxury.blocker.core.data.respository.LocalUserDataRepository
-import com.merxury.blocker.core.data.respository.OfflineFirstGeneralRuleRepository
-import com.merxury.blocker.core.data.respository.OnlineComponentRepository
-import com.merxury.blocker.core.data.respository.UserDataRepository
+import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
+import com.merxury.blocker.core.data.respository.onlinecomponent.ComponentDataRepository
+import com.merxury.blocker.core.data.respository.onlinecomponent.OnlineComponentRepository
+import com.merxury.blocker.core.data.respository.userdata.LocalUserDataRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.ConnectivityManagerNetworkMonitor
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import dagger.Binds

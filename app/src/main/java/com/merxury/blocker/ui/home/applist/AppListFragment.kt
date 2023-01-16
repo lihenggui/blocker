@@ -33,6 +33,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -43,6 +44,7 @@ import com.merxury.blocker.ui.detail.AppDetailActivity
 import com.merxury.blocker.util.AppStateCache
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.unsafeLazy
+import kotlinx.coroutines.launch
 
 class AppListFragment : Fragment() {
     private var _binding: AppListFragmentBinding? = null
@@ -85,9 +87,11 @@ class AppListFragment : Fragment() {
             logger.i("SortType changed to ${it?.name}")
             setSortType(requireContext(), it)
         }
-        lifecycleScope.launchWhenStarted {
-            viewModel?.error?.collect {
-                showErrorDialog(it)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel?.error?.collect {
+                    showErrorDialog(it)
+                }
             }
         }
         registerForContextMenu(binding.appListRecyclerView)

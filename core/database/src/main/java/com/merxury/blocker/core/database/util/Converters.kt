@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.database.util
 
 import androidx.room.TypeConverter
-import java.util.Date
 import kotlinx.datetime.Instant
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -32,18 +31,6 @@ class ListConverter {
     @TypeConverter
     fun fromArrayList(list: List<String>): String {
         return Json.encodeToString(list)
-    }
-}
-
-class TimeConverter {
-    @TypeConverter
-    fun fromTimeStamp(value: Long?): Date? {
-        return value?.let { Date(it) }
-    }
-
-    @TypeConverter
-    fun dateToTimestamp(date: Date?): Long? {
-        return date?.time
     }
 }
 
