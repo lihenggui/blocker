@@ -20,6 +20,7 @@ import android.content.pm.PackageInfo
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,7 +58,7 @@ fun AppListItem(
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
-    iconModifier: Modifier = Modifier,
+    onSelect: (Boolean) -> Unit
 ) {
     val color = if (isSelectedMode) {
         MaterialTheme.colorScheme.tertiaryContainer
@@ -88,18 +89,12 @@ fun AppListItem(
                     shape = shape
                 )
         ) {
-            Spacer(modifier = Modifier.width(8.dp))
-            if (isSelectedMode) {
-                IconButton(onClick = { /*TODO*/ }) {
-                    Icon(
-                        imageVector = BlockerIcons.Check,
-                        modifier = modifier.size(40.dp),
-                        contentDescription = null
-                    )
-                }
-            } else {
-                AppIcon(filterAppItem.packageInfo, iconModifier.size(40.dp))
-            }
+            AppIcon(
+                info = filterAppItem.packageInfo,
+                isSelectedMode = isSelectedMode,
+                isSelected = filterAppItem.isSelected,
+                onSelect = onSelect
+            )
             Spacer(modifier = Modifier.width(16.dp))
             AppContent(appItem = filterAppItem)
         }
@@ -107,15 +102,37 @@ fun AppListItem(
 }
 
 @Composable
-private fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
-    AsyncImage(
-        modifier = modifier,
-        model = Builder(LocalContext.current)
-            .data(info)
-            .crossfade(true)
-            .build(),
-        contentDescription = null
-    )
+private fun AppIcon(
+    info: PackageInfo?,
+    modifier: Modifier = Modifier,
+    isSelectedMode: Boolean,
+    isSelected: Boolean,
+    onSelect: (Boolean) -> Unit
+) {
+    if (isSelected) {
+        IconButton(onClick = { onSelect(false) }) {
+            Icon(
+                imageVector = BlockerIcons.Check,
+                modifier = modifier.size(40.dp),
+                contentDescription = null
+            )
+        }
+    } else {
+        AsyncImage(
+            modifier = modifier
+                .size(40.dp)
+                .clickable {
+                    if (isSelectedMode) {
+                        onSelect(true)
+                    }
+                },
+            model = Builder(LocalContext.current)
+                .data(info)
+                .crossfade(true)
+                .build(),
+            contentDescription = null,
+        )
+    }
 }
 
 @Composable
@@ -204,14 +221,16 @@ fun AppListItemPreview() {
         activityCount = 20,
         broadcastCount = 2,
         serviceCount = 6,
-        contentProviderCount = 12
+        contentProviderCount = 12,
+        isSelected = true
     )
     BlockerTheme {
         Surface {
             AppListItem(
                 filterAppItem = filterAppItem,
                 isSelectedMode = true,
-                switchSelectedMode = {}
+                switchSelectedMode = {},
+                onSelect = {}
             )
         }
     }
@@ -233,7 +252,9 @@ fun AppListItemWithoutServicePreview() {
             AppListItem(
                 filterAppItem = filterAppItem,
                 isSelectedMode = false,
-                switchSelectedMode = {})
+                switchSelectedMode = {},
+                onSelect = {}
+            )
         }
     }
 }
