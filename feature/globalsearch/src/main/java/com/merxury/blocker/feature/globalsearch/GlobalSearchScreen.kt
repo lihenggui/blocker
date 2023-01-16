@@ -113,7 +113,7 @@ fun GlobalSearchScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
-                        NoSearchScreen(modifier = modifier)
+                        NoSearchScreen()
                     }
                 }
 
@@ -240,7 +240,7 @@ fun ErrorScreen(message: ErrorMessage) {
 }
 
 @Composable
-fun NoSearchScreen(modifier: Modifier = Modifier) {
+fun NoSearchScreen() {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Icon(
             imageVector = BlockerIcons.Inbox,
