@@ -231,6 +231,7 @@ class AppListViewModel @Inject constructor(
                 label = it.label,
                 packageName = it.packageName,
                 versionName = it.versionName.orEmpty(),
+                versionCode = it.versionCode,
                 isSystem = ApplicationUtil.isSystemApp(context.packageManager, it.packageName),
                 // TODO detect if an app is running or not
                 isRunning = false,
@@ -262,6 +263,7 @@ data class AppItem(
     val label: String,
     val packageName: String,
     val versionName: String,
+    val versionCode: Long,
     val isSystem: Boolean,
     val isRunning: Boolean,
     val enabled: Boolean,
