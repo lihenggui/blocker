@@ -206,7 +206,7 @@ class SettingsViewModel @Inject constructor(
 data class UserEditableSettings(
     val controllerType: ControllerType = IFW,
     val ruleServerProvider: RuleServerProvider = GITLAB,
-    val ruleBackupFolder: String? = null,
+    val ruleBackupFolder: String = "",
     val backupSystemApp: Boolean = false,
     val restoreSystemApp: Boolean = false,
     val showSystemApps: Boolean = false,
