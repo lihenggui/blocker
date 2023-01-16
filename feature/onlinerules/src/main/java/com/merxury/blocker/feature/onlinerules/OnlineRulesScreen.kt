@@ -33,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
 import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
@@ -44,7 +43,6 @@ import com.merxury.blocker.feature.onlinerules.component.RuleCard
 import com.merxury.blocker.feature.onlinerules.model.OnlineRulesUiState
 import com.merxury.blocker.feature.onlinerules.model.OnlineRulesViewModel
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun OnlineRulesRoute(
     viewModel: OnlineRulesViewModel = hiltViewModel()

@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
@@ -54,7 +53,6 @@ import com.merxury.blocker.feature.settings.item.IfwRulesSettings
 import com.merxury.blocker.feature.settings.item.OthersSettings
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun SettingsRoute(
     onNavigationClick: () -> Unit,

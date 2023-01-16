@@ -54,7 +54,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
@@ -65,7 +64,6 @@ import com.merxury.blocker.feature.globalsearch.model.LocalSearchUiState
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchViewModel
 import com.merxury.blocker.feature.globalsearch.model.SearchBoxUiState
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun GlobalSearchRoute(
     viewModel: LocalSearchViewModel = hiltViewModel()
