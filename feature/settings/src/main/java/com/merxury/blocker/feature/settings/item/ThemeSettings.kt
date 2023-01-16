@@ -70,7 +70,7 @@ fun ThemeSettings(
             onMenuClick = updateThemeBrand
         )
         ThemeSettingsItems(
-            itemRes = string.dark_mode_preference,
+            itemRes = string.dark_mode,
             itemValue = uiState.settings.darkThemeConfig,
             menuList = listOf(FOLLOW_SYSTEM, LIGHT, DARK),
             onMenuClick = updateDarkThemeConfig

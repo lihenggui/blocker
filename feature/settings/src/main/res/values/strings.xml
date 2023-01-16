@@ -59,7 +59,7 @@
     <string name="theme">Theme</string>
     <string name="theme_default">Default</string>
     <string name="theme_Android">Android</string>
-    <string name="dark_mode_preference">Dark mode preference</string>
+    <string name="dark_mode">Dark mode</string>
     <string name="system_default">System default</string>
     <string name="light">Light</string>
     <string name="dark">Dark</string>
