@@ -3,7 +3,9 @@ package com.merxury.blocker.feature.globalsearch.model
 import android.content.pm.PackageInfo
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.feature.globalsearch.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,6 +19,26 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
     private val _localSearchUiState = MutableStateFlow(LocalSearchUiState.NoSearch)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
+
+    private val _tabState = MutableStateFlow(
+        TabState(
+            titles = listOf(
+                R.string.application,
+                R.string.component,
+                R.string.online_rule
+            ),
+            currentIndex = 0
+        )
+    )
+    val tabState: StateFlow<TabState> = _tabState.asStateFlow()
+
+    fun switchTab(newIndex: Int) {
+        if (newIndex != tabState.value.currentIndex) {
+            _tabState.update {
+                it.copy(currentIndex = newIndex)
+            }
+        }
+    }
 
     fun onSearchTextChanged(changedSearchText: TextFieldValue) {
         _searchBoxUiState.update { it.copy(keyword = changedSearchText) }
@@ -35,10 +57,7 @@ sealed interface LocalSearchUiState {
     object NoSearch : LocalSearchUiState
     object Loading : LocalSearchUiState
     class LocalSearchResult(
-        val filter: List<FilterAppItem>,
-        val appCount: Int,
-        val componentCount: Int,
-        val onlineRuleCount: Int
+        val filter: List<FilterAppItem>
     ) : LocalSearchUiState
 
     class Error(val message: ErrorMessage) : LocalSearchUiState
