@@ -206,6 +206,7 @@ fun AppListContent(
                     label = it.label,
                     packageName = it.packageName,
                     versionName = it.versionName,
+                    versionCode = it.versionCode,
                     packageInfo = it.packageInfo,
                     appServiceStatus = it.appServiceStatus,
                     onClick = onAppItemClick,
