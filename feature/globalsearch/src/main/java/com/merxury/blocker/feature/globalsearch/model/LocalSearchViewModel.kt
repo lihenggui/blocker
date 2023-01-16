@@ -16,7 +16,8 @@ import kotlinx.coroutines.flow.update
 class LocalSearchViewModel @Inject constructor() : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
-    private val _localSearchUiState = MutableStateFlow(LocalSearchUiState.NoSearch)
+    private val _localSearchUiState =
+        MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.NoSearch)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
 
     private val _tabState = MutableStateFlow(
@@ -47,10 +48,6 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
         _searchBoxUiState.update { SearchBoxUiState() }
     }
 
-    fun onNavigationClick() {
-        // TODO
-    }
-
     fun onSelectAll() {
         // TODO
     }
@@ -61,6 +58,10 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
 
     fun onCheckAll() {
         // TODO
+    }
+
+    fun switchSelectedMode(value: Boolean) {
+        // TODO, isSelectedMode = true
     }
 }
 
