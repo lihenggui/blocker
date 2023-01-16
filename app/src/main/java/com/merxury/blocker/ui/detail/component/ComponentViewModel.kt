@@ -27,8 +27,8 @@ import androidx.lifecycle.viewModelScope
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.data.model.asEntity
-import com.merxury.blocker.core.data.respository.ComponentDataRepository
-import com.merxury.blocker.core.data.respository.USER_GENERATED_FOLDER
+import com.merxury.blocker.core.data.respository.onlinecomponent.ComponentDataRepository
+import com.merxury.blocker.core.data.respository.onlinecomponent.USER_GENERATED_FOLDER
 import com.merxury.blocker.core.database.app.AppComponentRepository
 import com.merxury.blocker.core.database.cmpdetail.asExternalModel
 import com.merxury.blocker.core.extension.getSimpleName

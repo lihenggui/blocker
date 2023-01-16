@@ -23,7 +23,9 @@ import android.view.ViewGroup
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.merxury.blocker.R
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
@@ -31,6 +33,7 @@ import com.merxury.blocker.databinding.ComponentDetailBottomSheetBinding
 import com.merxury.blocker.ui.detail.component.ComponentData
 import com.merxury.blocker.util.parcelable
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
@@ -97,9 +100,11 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun listenLoadingUpdate() {
-        lifecycleScope.launchWhenStarted {
-            viewModel.loading.collect {
-                binding.loadingIndicator.isVisible = it
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.loading.collect {
+                    binding.loadingIndicator.isVisible = it
+                }
             }
         }
     }
@@ -123,19 +128,21 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun listenComponentInfoUpdate() {
-        lifecycleScope.launchWhenStarted {
-            viewModel.onlineData.collect {
-                if (it == null) return@collect
-                if (!it.sdkName.isNullOrEmpty()) {
-                    binding.icon.isVisible = true
-                    binding.sdkName.isVisible = true
-                    binding.sdkName.editText?.setText(it.sdkName.orEmpty())
-                    binding.belongsToSdkCheckbox.isChecked = true
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.onlineData.collect {
+                    if (it == null) return@collect
+                    if (!it.sdkName.isNullOrEmpty()) {
+                        binding.icon.isVisible = true
+                        binding.sdkName.isVisible = true
+                        binding.sdkName.editText?.setText(it.sdkName.orEmpty())
+                        binding.belongsToSdkCheckbox.isChecked = true
+                    }
+                    binding.name.editText?.setText(it.simpleName)
+                    binding.description.editText?.setText(it.description.orEmpty())
+                    binding.disabledEffect.editText?.setText(it.disableEffect.orEmpty())
+                    binding.recommendCheckbox.isChecked = it.recommendToBlock
                 }
-                binding.name.editText?.setText(it.simpleName)
-                binding.description.editText?.setText(it.description.orEmpty())
-                binding.disabledEffect.editText?.setText(it.disableEffect.orEmpty())
-                binding.recommendCheckbox.isChecked = it.recommendToBlock
             }
         }
     }
