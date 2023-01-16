@@ -68,9 +68,13 @@ fun <T> SettingItem(
             Column {
                 Text(
                     text = stringResource(id = itemRes),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
                 )
-                Text(text = itemValue, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = itemValue,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         BlockerDropdownMenu(
@@ -102,7 +106,11 @@ fun SettingItem(
                     text = stringResource(id = itemRes),
                     style = MaterialTheme.typography.bodyLarge
                 )
-                Text(text = itemValue, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = itemValue,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
