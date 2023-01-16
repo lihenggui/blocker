@@ -52,11 +52,11 @@ import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchUiState
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchViewModel
 import com.merxury.blocker.feature.globalsearch.model.SearchBoxUiState
+import com.merxury.blocker.feature.globalsearch.model.SearchTabState
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
@@ -81,7 +81,7 @@ fun GlobalSearchRoute(
 @Composable
 fun GlobalSearchScreen(
     modifier: Modifier = Modifier,
-    tabState: TabState,
+    tabState: SearchTabState,
     searchBoxUiState: SearchBoxUiState,
     localSearchUiState: LocalSearchUiState,
     switchTab: (Int) -> Unit,
@@ -141,13 +141,42 @@ fun GlobalSearchScreen(
                     BlockerScrollableTabRow(
                         selectedTabIndex = tabState.currentIndex,
                     ) {
-                        tabState.titles.forEachIndexed { index, titleRes ->
-                            BlockerTab(
-                                selected = index == tabState.currentIndex,
-                                onClick = { switchTab(index) },
-                                text = { Text(text = stringResource(id = titleRes)) }
-                            )
-                        }
+                        BlockerTab(
+                            selected = 0 == tabState.currentIndex,
+                            onClick = { switchTab(0) },
+                            text = {
+                                Text(
+                                    text = stringResource(
+                                        id = tabState.titles[0],
+                                        tabState.appCount
+                                    )
+                                )
+                            }
+                        )
+                        BlockerTab(
+                            selected = 1 == tabState.currentIndex,
+                            onClick = { switchTab(1) },
+                            text = {
+                                Text(
+                                    text = stringResource(
+                                        id = tabState.titles[1],
+                                        tabState.componentCount
+                                    )
+                                )
+                            }
+                        )
+                        BlockerTab(
+                            selected = 2 == tabState.currentIndex,
+                            onClick = { switchTab(2) },
+                            text = {
+                                Text(
+                                    text = stringResource(
+                                        id = tabState.titles[2],
+                                        tabState.rulesCount
+                                    )
+                                )
+                            }
+                        )
                     }
                     when (tabState.currentIndex) {
                         0 -> {}
@@ -252,7 +281,7 @@ fun NoSearchScreen() {
 fun GlobalSearchScreenEmptyPreview() {
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.NoSearch
-    val tabState = TabState(
+    val tabState = SearchTabState(
         titles = listOf(
             R.string.application,
             R.string.component,
@@ -279,7 +308,7 @@ fun GlobalSearchScreenPreview() {
     val localSearchUiState = LocalSearchUiState.LocalSearchResult(
         filter = listOf()
     )
-    val tabState = TabState(
+    val tabState = SearchTabState(
         titles = listOf(
             R.string.application,
             R.string.component,
