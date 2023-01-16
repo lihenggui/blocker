@@ -68,7 +68,8 @@ fun GlobalSearchRoute(
         onSelectAll = viewModel::onSelectAll,
         onBlockAll = viewModel::onBlockAll,
         onCheckAll = viewModel::onCheckAll,
-        switchSelectedMode = viewModel::switchSelectedMode
+        switchSelectedMode = viewModel::switchSelectedMode,
+        onSelect = viewModel::onSelectItem
     )
 }
 
@@ -87,6 +88,7 @@ fun GlobalSearchScreen(
     onBlockAll: () -> Unit,
     onCheckAll: () -> Unit,
     switchSelectedMode: (Boolean) -> Unit,
+    onSelect: (Boolean) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -148,7 +150,8 @@ fun GlobalSearchScreen(
                             SearchResultContent(
                                 appList = localSearchUiState.filter,
                                 isSelectedMode = localSearchUiState.isSelectedMode,
-                                switchSelectedMode = switchSelectedMode
+                                switchSelectedMode = switchSelectedMode,
+                                onSelect = onSelect
                             )
                         }
 
@@ -272,6 +275,7 @@ fun SearchResultContent(
     appList: List<FilterAppItem>,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
+    onSelect: (Boolean) -> Unit
 ) {
     val listContent = remember { appList }
     val listState = rememberLazyListState()
@@ -284,7 +288,8 @@ fun SearchResultContent(
                 AppListItem(
                     filterAppItem = it,
                     isSelectedMode = isSelectedMode,
-                    switchSelectedMode = switchSelectedMode
+                    switchSelectedMode = switchSelectedMode,
+                    onSelect = onSelect
                 )
             }
         }
@@ -316,7 +321,8 @@ fun GlobalSearchScreenEmptyPreview() {
             onSelectAll = {},
             onBlockAll = {},
             onCheckAll = {},
-            switchSelectedMode = {}
+            switchSelectedMode = {},
+            onSelect = {}
         )
     }
 }
@@ -358,7 +364,8 @@ fun GlobalSearchScreenPreview() {
             onSelectAll = {},
             onBlockAll = {},
             onCheckAll = {},
-            switchSelectedMode = {}
+            switchSelectedMode = {},
+            onSelect = {}
         )
     }
 }
@@ -400,7 +407,8 @@ fun GlobalSearchScreenSelectedPreview() {
             onSelectAll = {},
             onBlockAll = {},
             onCheckAll = {},
-            switchSelectedMode = {}
+            switchSelectedMode = {},
+            onSelect = {}
         )
     }
 }

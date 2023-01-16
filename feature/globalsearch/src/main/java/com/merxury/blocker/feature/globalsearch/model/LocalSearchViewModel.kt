@@ -63,6 +63,10 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
     fun switchSelectedMode(value: Boolean) {
         // TODO, isSelectedMode = true
     }
+
+    fun onSelectItem(select: Boolean) {
+        // TODO
+    }
 }
 
 sealed interface LocalSearchUiState {
@@ -88,6 +92,7 @@ data class FilterAppItem(
     val broadcastCount: Int = 0,
     val serviceCount: Int = 0,
     val contentProviderCount: Int = 0,
+    val isSelected: Boolean = false
 )
 
 data class SearchTabState(
