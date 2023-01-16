@@ -16,8 +16,10 @@
 
 package com.merxury.blocker.feature.settings.item
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,7 +37,7 @@ fun BlockerRulesSettings(
         modifier = modifier
             .padding(vertical = 4.dp)
     ) {
-        SettingItemHead(itemRes = string.blocker_rules)
+        SettingItemHeader(itemRes = string.blocker_rules)
         SettingsItem(itemRes = string.export_rules, onItemClick = exportRules)
         SettingsItem(itemRes = string.import_rules, onItemClick = importRules)
     }
@@ -52,7 +54,7 @@ fun IfwRulesSettings(
         modifier = modifier
             .padding(vertical = 4.dp)
     ) {
-        SettingItemHead(itemRes = string.ifw_rules)
+        SettingItemHeader(itemRes = string.ifw_rules)
         SettingsItem(itemRes = string.export_ifw_rules, onItemClick = exportIfwRules)
         SettingsItem(itemRes = string.import_ifw_rules, onItemClick = importIfwRules)
         SettingsItem(itemRes = string.reset_ifw, onItemClick = resetIfwRules)
@@ -61,20 +63,26 @@ fun IfwRulesSettings(
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun BackupSectionPreview() {
     BlockerTheme {
-        BlockerRulesSettings(exportRules = {}, importRules = {})
+        Surface {
+            BlockerRulesSettings(exportRules = {}, importRules = {})
+        }
     }
 }
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun IfwSectionPreview() {
     BlockerTheme {
-        IfwRulesSettings(
-            exportIfwRules = {},
-            importIfwRules = {},
-            resetIfwRules = {}
-        )
+        Surface {
+            IfwRulesSettings(
+                exportIfwRules = {},
+                importIfwRules = {},
+                resetIfwRules = {}
+            )
+        }
     }
 }

@@ -62,7 +62,7 @@ fun ThemeSettings(
         modifier = modifier
             .padding(vertical = 4.dp)
     ) {
-        SettingItemHead(itemRes = string.theme)
+        SettingItemHeader(itemRes = string.theme)
         ThemeSettingsItems(
             itemRes = string.theme,
             itemValue = uiState.settings.themeBrand,

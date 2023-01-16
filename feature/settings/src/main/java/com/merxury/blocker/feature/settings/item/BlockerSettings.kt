@@ -16,21 +16,28 @@
 
 package com.merxury.blocker.feature.settings.item
 
+import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.core.model.preference.ThemeBrand.ANDROID
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
+import com.merxury.blocker.feature.settings.UserEditableSettings
 
 @Composable
 fun BlockerSettings(
@@ -59,5 +66,25 @@ fun BlockerSettings(
             onMenuClick = updateRuleServerProvider,
             modifier = modifier
         )
+    }
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun BlockerSettingsPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerSettings(
+                uiState = Success(
+                    UserEditableSettings(
+                        themeBrand = ANDROID,
+                        darkThemeConfig = FOLLOW_SYSTEM
+                    )
+                ),
+                updateControllerType = {},
+                updateRuleServerProvider = {}
+            )
+        }
     }
 }
