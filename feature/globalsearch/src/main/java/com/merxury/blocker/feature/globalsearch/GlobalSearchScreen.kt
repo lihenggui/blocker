@@ -194,7 +194,9 @@ fun TopBar(
     onBlockAll: () -> Unit,
     onCheckAll: () -> Unit,
 ) {
-    if (localSearchUiState is LocalSearchUiState.LocalSearchResult && localSearchUiState.isSelectedMode) {
+    if (localSearchUiState is LocalSearchUiState.LocalSearchResult &&
+        localSearchUiState.isSelectedMode
+    ) {
         SelectedAppTopBar(
             localSearchUiState.selectedAppCount,
             onNavigationClick = onNavigationClick,

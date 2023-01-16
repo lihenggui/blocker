@@ -57,8 +57,8 @@ import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import com.merxury.blocker.feature.settings.item.AppListSettings
 import com.merxury.blocker.feature.settings.item.BackupSettings
 import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
-import com.merxury.blocker.feature.settings.item.IfwRulesSettings
 import com.merxury.blocker.feature.settings.item.BlockerSettings
+import com.merxury.blocker.feature.settings.item.IfwRulesSettings
 import com.merxury.blocker.feature.settings.item.SettingsItem
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 
