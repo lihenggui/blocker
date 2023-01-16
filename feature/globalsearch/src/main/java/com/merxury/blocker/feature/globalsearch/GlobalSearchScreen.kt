@@ -3,12 +3,9 @@ package com.merxury.blocker.feature.globalsearch
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumedWindowInsets
@@ -18,14 +15,11 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,8 +48,11 @@ import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
+import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchUiState
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchViewModel
@@ -68,9 +65,13 @@ fun GlobalSearchRoute(
 ) {
     val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
+    val tabState by viewModel.tabState.collectAsStateWithLifecycle()
+
     GlobalSearchScreen(
         searchBoxUiState = searchBoxUiState,
+        tabState = tabState,
         localSearchUiState = localSearchUiState,
+        switchTab = viewModel::switchTab,
         onSearchTextChanged = viewModel::onSearchTextChanged,
         onClearClick = viewModel::onClearClick
     )
@@ -80,8 +81,10 @@ fun GlobalSearchRoute(
 @Composable
 fun GlobalSearchScreen(
     modifier: Modifier = Modifier,
+    tabState: TabState,
     searchBoxUiState: SearchBoxUiState,
     localSearchUiState: LocalSearchUiState,
+    switchTab: (Int) -> Unit,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit
 ) {
@@ -135,48 +138,28 @@ fun GlobalSearchScreen(
                 }
 
                 is LocalSearchUiState.LocalSearchResult -> {
-                    GlobalSearchContent(
-                        modifier = modifier,
-                        localSearchUiState = localSearchUiState
-                    )
+                    BlockerScrollableTabRow(
+                        selectedTabIndex = tabState.currentIndex,
+                    ) {
+                        tabState.titles.forEachIndexed { index, titleRes ->
+                            BlockerTab(
+                                selected = index == tabState.currentIndex,
+                                onClick = { switchTab(index) },
+                                text = { Text(text = stringResource(id = titleRes)) }
+                            )
+                        }
+                    }
+                    when (tabState.currentIndex) {
+                        0 -> {}
+                        1 -> {}
+                        2 -> {}
+                    }
                 }
 
                 is LocalSearchUiState.Error -> {
                     ErrorScreen(localSearchUiState.message)
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun GlobalSearchContent(
-    modifier: Modifier = Modifier,
-    localSearchUiState: LocalSearchUiState.LocalSearchResult
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(20.dp)
-            .horizontalScroll(rememberScrollState()),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        FilledTonalButton(onClick = { /*TODO*/ }) {
-            Text(text = stringResource(id = R.string.application, localSearchUiState.appCount))
-        }
-        Spacer(modifier = modifier.width(8.dp))
-        FilledTonalButton(onClick = { /*TODO*/ }) {
-            Text(text = stringResource(id = R.string.component, localSearchUiState.componentCount))
-        }
-        Spacer(modifier = modifier.width(8.dp))
-        FilledTonalButton(onClick = { /*TODO*/ }) {
-            Text(
-                text = stringResource(
-                    id = R.string.online_rule,
-                    localSearchUiState.onlineRuleCount
-                )
-            )
         }
     }
 }
@@ -269,12 +252,22 @@ fun NoSearchScreen() {
 fun GlobalSearchScreenEmptyPreview() {
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.NoSearch
+    val tabState = TabState(
+        titles = listOf(
+            R.string.application,
+            R.string.component,
+            R.string.online_rule
+        ),
+        currentIndex = 0
+    )
     BlockerTheme {
         GlobalSearchScreen(
             searchBoxUiState = searchBoxUiState,
             localSearchUiState = localSearchUiState,
             onSearchTextChanged = {},
-            onClearClick = {}
+            onClearClick = {},
+            tabState = tabState,
+            switchTab = {}
         )
     }
 }
@@ -284,17 +277,24 @@ fun GlobalSearchScreenEmptyPreview() {
 fun GlobalSearchScreenPreview() {
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.LocalSearchResult(
-        filter = listOf(),
-        appCount = 0,
-        componentCount = 99,
-        onlineRuleCount = 6
+        filter = listOf()
+    )
+    val tabState = TabState(
+        titles = listOf(
+            R.string.application,
+            R.string.component,
+            R.string.online_rule
+        ),
+        currentIndex = 0
     )
     BlockerTheme {
         GlobalSearchScreen(
             searchBoxUiState = searchBoxUiState,
             localSearchUiState = localSearchUiState,
             onSearchTextChanged = {},
-            onClearClick = {}
+            onClearClick = {},
+            tabState = tabState,
+            switchTab = {}
         )
     }
 }
