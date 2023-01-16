@@ -1,8 +1,5 @@
 package com.merxury.blocker.feature.globalsearch
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +8,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumedWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
@@ -20,37 +16,23 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
@@ -58,6 +40,8 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.globalsearch.component.AppListItem
+import com.merxury.blocker.feature.globalsearch.component.SearchBar
+import com.merxury.blocker.feature.globalsearch.component.SelectedAppTopBar
 import com.merxury.blocker.feature.globalsearch.model.FilterAppItem
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchUiState
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchViewModel
@@ -79,7 +63,11 @@ fun GlobalSearchRoute(
         localSearchUiState = localSearchUiState,
         switchTab = viewModel::switchTab,
         onSearchTextChanged = viewModel::onSearchTextChanged,
-        onClearClick = viewModel::onClearClick
+        onClearClick = viewModel::onClearClick,
+        onNavigationClick = viewModel::onNavigationClick,
+        onSelectAll = viewModel::onSelectAll,
+        onBlockAll = viewModel::onBlockAll,
+        onCheckAll = viewModel::onCheckAll
     )
 }
 
@@ -92,15 +80,23 @@ fun GlobalSearchScreen(
     localSearchUiState: LocalSearchUiState,
     switchTab: (Int) -> Unit,
     onSearchTextChanged: (TextFieldValue) -> Unit,
-    onClearClick: () -> Unit
+    onClearClick: () -> Unit,
+    onNavigationClick: () -> Unit,
+    onSelectAll: () -> Unit,
+    onBlockAll: () -> Unit,
+    onCheckAll: () -> Unit,
 ) {
     Scaffold(
         topBar = {
-            SearchBar(
-                modifier = modifier,
-                uiState = searchBoxUiState,
+            TopBar(
+                localSearchUiState = localSearchUiState,
+                searchBoxUiState = searchBoxUiState,
                 onSearchTextChanged = onSearchTextChanged,
-                onClearClick = onClearClick
+                onClearClick = onClearClick,
+                onNavigationClick = onNavigationClick,
+                onSelectAll = onSelectAll,
+                onBlockAll = onBlockAll,
+                onCheckAll = onCheckAll
             )
         }
     ) { padding ->
@@ -147,9 +143,11 @@ fun GlobalSearchScreen(
                     SearchResultTabRow(tabState = tabState, switchTab = switchTab)
                     when (tabState.currentIndex) {
                         0 -> {
-                            SearchResultContent(appList = localSearchUiState.filter)
+                            SearchResultContent(
+                                appList = localSearchUiState.filter,
+                                isSelectedMode = localSearchUiState.isSelectedMode
+                            )
                         }
-
                         1 -> {}
                         2 -> {}
                     }
@@ -163,63 +161,34 @@ fun GlobalSearchScreen(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SearchBar(
+fun TopBar(
     modifier: Modifier = Modifier,
-    uiState: SearchBoxUiState,
+    localSearchUiState: LocalSearchUiState,
+    searchBoxUiState: SearchBoxUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit,
-    onClearClick: () -> Unit
+    onClearClick: () -> Unit,
+    onNavigationClick: () -> Unit,
+    onSelectAll: () -> Unit,
+    onBlockAll: () -> Unit,
+    onCheckAll: () -> Unit,
 ) {
-    var showClearButton by remember { mutableStateOf(false) }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val colors = TextFieldDefaults.textFieldColors(
-        focusedIndicatorColor = Color.Transparent,
-        unfocusedIndicatorColor = Color.Transparent
-    )
-    BlockerHomeTopAppBar(
-        titleRes = R.string.searching,
-        actions = {
-            TextField(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 2.dp)
-                    .onFocusChanged { focusState ->
-                        showClearButton = (focusState.isFocused)
-                    },
-                value = uiState.keyword,
-                onValueChange = onSearchTextChanged,
-                placeholder = {
-                    Text(
-                        text = stringResource(id = R.string.click_to_search),
-                        modifier = modifier.padding(start = 24.dp)
-                    )
-                },
-                trailingIcon = {
-                    AnimatedVisibility(
-                        visible = showClearButton,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        IconButton(onClick = { onClearClick() }) {
-                            Icon(
-                                imageVector = BlockerIcons.Clear,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                },
-                maxLines = 1,
-                singleLine = true,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = {
-                    keyboardController?.hide()
-                }),
-                colors = colors,
-                shape = RoundedCornerShape(56.dp)
-            )
-        }
-    )
+    if (localSearchUiState is LocalSearchUiState.LocalSearchResult && localSearchUiState.isSelectedMode) {
+        SelectedAppTopBar(
+            localSearchUiState.selectedAppCount,
+            onNavigationClick = onNavigationClick,
+            onSelectAll = onSelectAll,
+            onBlockAll = onBlockAll,
+            onCheckAll = onCheckAll
+        )
+    } else {
+        SearchBar(
+            modifier = modifier,
+            uiState = searchBoxUiState,
+            onSearchTextChanged = onSearchTextChanged,
+            onClearClick = onClearClick
+        )
+    }
 }
 
 @Composable
@@ -296,7 +265,8 @@ fun NoSearchScreen() {
 @Composable
 fun SearchResultContent(
     modifier: Modifier = Modifier,
-    appList: List<FilterAppItem>
+    appList: List<FilterAppItem>,
+    isSelectedMode: Boolean,
 ) {
     val listContent = remember { appList }
     val listState = rememberLazyListState()
@@ -306,7 +276,7 @@ fun SearchResultContent(
             state = listState
         ) {
             items(listContent, key = { it.label }) {
-                AppListItem(filterAppItem = it)
+                AppListItem(filterAppItem = it, isSelectedMode = isSelectedMode)
             }
         }
     }
@@ -332,7 +302,11 @@ fun GlobalSearchScreenEmptyPreview() {
             onSearchTextChanged = {},
             onClearClick = {},
             tabState = tabState,
-            switchTab = {}
+            switchTab = {},
+            onNavigationClick = {},
+            onSelectAll = {},
+            onBlockAll = {},
+            onCheckAll = {}
         )
     }
 }
@@ -350,7 +324,9 @@ fun GlobalSearchScreenPreview() {
     )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.LocalSearchResult(
-        filter = listOf(filterAppItem)
+        filter = listOf(filterAppItem),
+        isSelectedMode = false,
+        selectedAppCount = 0
     )
     val tabState = SearchTabState(
         titles = listOf(
@@ -367,7 +343,52 @@ fun GlobalSearchScreenPreview() {
             onSearchTextChanged = {},
             onClearClick = {},
             tabState = tabState,
-            switchTab = {}
+            switchTab = {},
+            onNavigationClick = {},
+            onSelectAll = {},
+            onBlockAll = {},
+            onCheckAll = {}
+        )
+    }
+}
+
+@Composable
+@Preview
+fun GlobalSearchScreenSelectedPreview() {
+    val filterAppItem = FilterAppItem(
+        label = "Blocker",
+        packageInfo = null,
+        activityCount = 0,
+        broadcastCount = 1,
+        serviceCount = 0,
+        contentProviderCount = 9
+    )
+    val searchBoxUiState = SearchBoxUiState()
+    val localSearchUiState = LocalSearchUiState.LocalSearchResult(
+        filter = listOf(filterAppItem),
+        isSelectedMode = true,
+        selectedAppCount = 1
+    )
+    val tabState = SearchTabState(
+        titles = listOf(
+            R.string.application,
+            R.string.component,
+            R.string.online_rule
+        ),
+        currentIndex = 0
+    )
+    BlockerTheme {
+        GlobalSearchScreen(
+            searchBoxUiState = searchBoxUiState,
+            localSearchUiState = localSearchUiState,
+            onSearchTextChanged = {},
+            onClearClick = {},
+            tabState = tabState,
+            switchTab = {},
+            onNavigationClick = {},
+            onSelectAll = {},
+            onBlockAll = {},
+            onCheckAll = {}
         )
     }
 }

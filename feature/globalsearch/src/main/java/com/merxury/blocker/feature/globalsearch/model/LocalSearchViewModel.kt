@@ -47,7 +47,19 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
         _searchBoxUiState.update { SearchBoxUiState() }
     }
 
-    fun onNavigationBack() {
+    fun onNavigationClick() {
+        // TODO
+    }
+
+    fun onSelectAll() {
+        // TODO
+    }
+
+    fun onBlockAll() {
+        // TODO
+    }
+
+    fun onCheckAll() {
         // TODO
     }
 }
@@ -56,7 +68,9 @@ sealed interface LocalSearchUiState {
     object NoSearch : LocalSearchUiState
     object Loading : LocalSearchUiState
     class LocalSearchResult(
-        val filter: List<FilterAppItem>
+        val filter: List<FilterAppItem>,
+        val isSelectedMode: Boolean,
+        val selectedAppCount: Int
     ) : LocalSearchUiState
 
     class Error(val message: ErrorMessage) : LocalSearchUiState
