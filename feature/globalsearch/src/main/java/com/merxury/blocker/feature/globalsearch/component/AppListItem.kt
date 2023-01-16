@@ -54,9 +54,10 @@ import com.merxury.blocker.feature.globalsearch.model.FilterAppItem
 fun AppListItem(
     filterAppItem: FilterAppItem,
     modifier: Modifier = Modifier,
+    isSelectedMode: Boolean,
     iconModifier: Modifier = Modifier,
 ) {
-    var isSelectedMode by remember { mutableStateOf(false) }
+    var isSelected by remember { mutableStateOf(isSelectedMode) }
     Box {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -64,7 +65,7 @@ fun AppListItem(
                 .fillMaxWidth()
                 .combinedClickable(
                     onClick = {},
-                    onLongClick = { isSelectedMode = true },
+                    onLongClick = { isSelected = true },
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
@@ -177,7 +178,7 @@ fun AppListItemPreview() {
     )
     BlockerTheme {
         Surface {
-            AppListItem(filterAppItem = filterAppItem)
+            AppListItem(filterAppItem = filterAppItem, isSelectedMode = false)
         }
     }
 }
@@ -195,7 +196,7 @@ fun AppListItemWithoutServicePreview() {
     )
     BlockerTheme {
         Surface {
-            AppListItem(filterAppItem = filterAppItem)
+            AppListItem(filterAppItem = filterAppItem, isSelectedMode = false)
         }
     }
 }

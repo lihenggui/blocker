@@ -194,7 +194,11 @@ fun BlockerCollapsingTopAppBar(
         actions = {
             actions()
         },
-        scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
     )
 }
 
@@ -224,7 +228,11 @@ fun BlockerLargeTopAppBar(
         },
         actions = {
             actions()
-        }
+        },
+        colors = TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
     )
 }
 
