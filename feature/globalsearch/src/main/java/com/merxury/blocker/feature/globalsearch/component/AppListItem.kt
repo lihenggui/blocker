@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.globalsearch.component
 import android.content.pm.PackageInfo
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,6 +30,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.globalsearch.R
 import com.merxury.blocker.feature.globalsearch.model.FilterAppItem
@@ -54,6 +59,16 @@ fun AppListItem(
     switchSelectedMode: (Boolean) -> Unit,
     iconModifier: Modifier = Modifier,
 ) {
+    val color = if (isSelectedMode) {
+        MaterialTheme.colorScheme.tertiaryContainer
+    } else {
+        MaterialTheme.colorScheme.background
+    }
+    val shape = if (isSelectedMode) {
+        RoundedCornerShape(12.dp)
+    } else {
+        RoundedCornerShape(0.dp)
+    }
     Box {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -67,9 +82,24 @@ fun AppListItem(
                         }
                     },
                 )
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .background(
+                    color = color,
+                    shape = shape
+                )
         ) {
-            AppIcon(filterAppItem.packageInfo, iconModifier.size(48.dp))
+            Spacer(modifier = Modifier.width(8.dp))
+            if (isSelectedMode) {
+                IconButton(onClick = { /*TODO*/ }) {
+                    Icon(
+                        imageVector = BlockerIcons.Check,
+                        modifier = modifier.size(40.dp),
+                        contentDescription = null
+                    )
+                }
+            } else {
+                AppIcon(filterAppItem.packageInfo, iconModifier.size(40.dp))
+            }
             Spacer(modifier = Modifier.width(16.dp))
             AppContent(appItem = filterAppItem)
         }
@@ -180,8 +210,9 @@ fun AppListItemPreview() {
         Surface {
             AppListItem(
                 filterAppItem = filterAppItem,
-                isSelectedMode = false,
-                switchSelectedMode = {})
+                isSelectedMode = true,
+                switchSelectedMode = {}
+            )
         }
     }
 }
