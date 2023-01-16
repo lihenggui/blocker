@@ -33,7 +33,7 @@ import com.merxury.blocker.feature.settings.R.string
 fun BackupSettings(
     backupSystemApps: Boolean,
     restoreSystemApp: Boolean,
-    ruleBackupFolder: String?,
+    ruleBackupFolder: String,
     updateBackupSystemApp: (Boolean) -> Unit,
     updateRestoreSystemApp: (Boolean) -> Unit,
     updateRuleBackupFolder: (String) -> Unit,
@@ -47,8 +47,9 @@ fun BackupSettings(
         SettingItem(
             icon = BlockerIcons.Folder,
             itemRes = string.folder_to_save,
-            itemValue = ruleBackupFolder
-                ?: stringResource(id = string.directory_invalid_or_not_set),
+            itemValue = ruleBackupFolder.ifEmpty {
+                stringResource(id = string.directory_invalid_or_not_set)
+            },
             onItemClick = {}
         )
         SwitchSettingItem(
