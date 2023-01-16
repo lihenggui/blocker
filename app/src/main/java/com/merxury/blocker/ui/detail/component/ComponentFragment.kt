@@ -287,10 +287,12 @@ class ComponentFragment : Fragment() {
                 }
                 .show()
         }
-        lifecycleScope.launchWhenStarted {
-            viewModel.zippedRules.collect {
-                if (it == null) return@collect
-                showShareFile(it)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(State.STARTED) {
+                viewModel.zippedRules.collect {
+                    if (it == null) return@collect
+                    showShareFile(it)
+                }
             }
         }
     }
