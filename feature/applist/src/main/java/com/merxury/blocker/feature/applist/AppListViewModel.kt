@@ -88,6 +88,7 @@ class AppListViewModel @Inject constructor(
     init {
         loadData()
         listenSortingChanges()
+        listenShowSystemAppsChanges()
     }
 
     fun loadData() = viewModelScope.launch {
@@ -117,6 +118,15 @@ class AppListViewModel @Inject constructor(
             }
     }
 
+    private fun listenShowSystemAppsChanges() = viewModelScope.launch {
+        userDataRepository.userData
+            .map { it.showSystemApps }
+            .distinctUntilChanged()
+            .collect {
+                loadData()
+            }
+    }
+
     fun updateSorting(sorting: AppSorting) = viewModelScope.launch {
         userDataRepository.setAppSorting(sorting)
     }
@@ -127,6 +137,10 @@ class AppListViewModel @Inject constructor(
                 start = CoroutineStart.LAZY,
                 context = ioDispatcher + exceptionHandler
             ) {
+                val userData = userDataRepository.userData.first()
+                if (!userData.showServiceInfo) {
+                    return@launch
+                }
                 Timber.d("Get service status for $packageName")
                 val currentUiState = _uiState.value
                 if (currentUiState !is AppListUiState.Success) {
