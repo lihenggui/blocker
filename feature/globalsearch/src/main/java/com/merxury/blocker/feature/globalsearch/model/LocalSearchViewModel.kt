@@ -3,7 +3,6 @@ package com.merxury.blocker.feature.globalsearch.model
 import android.content.pm.PackageInfo
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
-import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.globalsearch.R
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,7 +20,7 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
 
     private val _tabState = MutableStateFlow(
-        TabState(
+        SearchTabState(
             titles = listOf(
                 R.string.application,
                 R.string.component,
@@ -30,7 +29,7 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
             currentIndex = 0
         )
     )
-    val tabState: StateFlow<TabState> = _tabState.asStateFlow()
+    val tabState: StateFlow<SearchTabState> = _tabState.asStateFlow()
 
     fun switchTab(newIndex: Int) {
         if (newIndex != tabState.value.currentIndex) {
@@ -74,4 +73,12 @@ data class FilterAppItem(
     val broadcastCount: Int = 0,
     val serviceCount: Int = 0,
     val contentProviderCount: Int = 0,
+)
+
+data class SearchTabState(
+    val titles: List<Int>,
+    val currentIndex: Int,
+    val appCount: Int = 0,
+    val componentCount: Int = 0,
+    val rulesCount: Int = 0,
 )
