@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -31,6 +32,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -188,25 +191,26 @@ fun SearchBar(
 ) {
     var showClearButton by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val colors = TextFieldDefaults.textFieldColors(
+        focusedIndicatorColor = Color.Transparent,
+        unfocusedIndicatorColor = Color.Transparent
+    )
     BlockerHomeTopAppBar(
         titleRes = R.string.searching,
         actions = {
             TextField(
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(4.dp)
+                    .padding(horizontal = 24.dp, vertical = 2.dp)
                     .onFocusChanged { focusState ->
                         showClearButton = (focusState.isFocused)
                     },
                 value = uiState.keyword,
                 onValueChange = onSearchTextChanged,
                 placeholder = {
-                    Text(text = stringResource(id = R.string.search_label))
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = BlockerIcons.Search,
-                        contentDescription = null
+                    Text(
+                        text = stringResource(id = R.string.click_to_search),
+                        modifier = modifier.padding(start = 24.dp)
                     )
                 },
                 trailingIcon = {
@@ -229,6 +233,8 @@ fun SearchBar(
                 keyboardActions = KeyboardActions(onDone = {
                     keyboardController?.hide()
                 }),
+                colors = colors,
+                shape = RoundedCornerShape(56.dp)
             )
         }
     )
