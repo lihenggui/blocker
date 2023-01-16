@@ -59,7 +59,8 @@ import com.merxury.blocker.feature.settings.item.AppListSettings
 import com.merxury.blocker.feature.settings.item.BackupSettings
 import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
-import com.merxury.blocker.feature.settings.item.OthersSettings
+import com.merxury.blocker.feature.settings.item.BlockerSettings
+import com.merxury.blocker.feature.settings.item.SettingsItem
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 
 @OptIn(ExperimentalLifecycleComposeApi::class)
@@ -189,10 +190,17 @@ fun SettingsContent(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-        OthersSettings(
+        BlockerSettings(
             uiState = uiState,
             updateControllerType = updateControllerType,
             updateRuleServerProvider = updateRuleServerProvider
+        )
+        Divider()
+        ThemeSettings(
+            modifier = modifier,
+            uiState = uiState,
+            updateThemeBrand = updateThemeBrand,
+            updateDarkThemeConfig = updateDarkThemeConfig
         )
         Divider()
         AppListSettings(
@@ -219,11 +227,9 @@ fun SettingsContent(
             resetIfwRules = resetIfwRules
         )
         Divider()
-        ThemeSettings(
-            modifier = modifier,
-            uiState = uiState,
-            updateThemeBrand = updateThemeBrand,
-            updateDarkThemeConfig = updateDarkThemeConfig
+        SettingsItem(
+            itemRes = string.import_mat_rules,
+            onItemClick = {}
         )
     }
 }
@@ -262,6 +268,5 @@ fun SettingsScreenPreview() {
             updateThemeBrand = {},
             updateDarkThemeConfig = {}
         )
-
     }
 }
