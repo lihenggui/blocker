@@ -64,10 +64,11 @@ fun GlobalSearchRoute(
         switchTab = viewModel::switchTab,
         onSearchTextChanged = viewModel::onSearchTextChanged,
         onClearClick = viewModel::onClearClick,
-        onNavigationClick = viewModel::onNavigationClick,
+        onNavigationClick = { viewModel.switchSelectedMode(false) },
         onSelectAll = viewModel::onSelectAll,
         onBlockAll = viewModel::onBlockAll,
-        onCheckAll = viewModel::onCheckAll
+        onCheckAll = viewModel::onCheckAll,
+        switchSelectedMode = viewModel::switchSelectedMode
     )
 }
 
@@ -85,6 +86,7 @@ fun GlobalSearchScreen(
     onSelectAll: () -> Unit,
     onBlockAll: () -> Unit,
     onCheckAll: () -> Unit,
+    switchSelectedMode: (Boolean) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -145,9 +147,11 @@ fun GlobalSearchScreen(
                         0 -> {
                             SearchResultContent(
                                 appList = localSearchUiState.filter,
-                                isSelectedMode = localSearchUiState.isSelectedMode
+                                isSelectedMode = localSearchUiState.isSelectedMode,
+                                switchSelectedMode = switchSelectedMode
                             )
                         }
+
                         1 -> {}
                         2 -> {}
                     }
@@ -267,6 +271,7 @@ fun SearchResultContent(
     modifier: Modifier = Modifier,
     appList: List<FilterAppItem>,
     isSelectedMode: Boolean,
+    switchSelectedMode: (Boolean) -> Unit,
 ) {
     val listContent = remember { appList }
     val listState = rememberLazyListState()
@@ -276,7 +281,11 @@ fun SearchResultContent(
             state = listState
         ) {
             items(listContent, key = { it.label }) {
-                AppListItem(filterAppItem = it, isSelectedMode = isSelectedMode)
+                AppListItem(
+                    filterAppItem = it,
+                    isSelectedMode = isSelectedMode,
+                    switchSelectedMode = switchSelectedMode
+                )
             }
         }
     }
@@ -306,7 +315,8 @@ fun GlobalSearchScreenEmptyPreview() {
             onNavigationClick = {},
             onSelectAll = {},
             onBlockAll = {},
-            onCheckAll = {}
+            onCheckAll = {},
+            switchSelectedMode = {}
         )
     }
 }
@@ -347,7 +357,8 @@ fun GlobalSearchScreenPreview() {
             onNavigationClick = {},
             onSelectAll = {},
             onBlockAll = {},
-            onCheckAll = {}
+            onCheckAll = {},
+            switchSelectedMode = {}
         )
     }
 }
@@ -388,7 +399,8 @@ fun GlobalSearchScreenSelectedPreview() {
             onNavigationClick = {},
             onSelectAll = {},
             onBlockAll = {},
-            onCheckAll = {}
+            onCheckAll = {},
+            switchSelectedMode = {}
         )
     }
 }

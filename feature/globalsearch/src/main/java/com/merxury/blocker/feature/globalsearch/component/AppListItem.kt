@@ -33,10 +33,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -55,9 +51,9 @@ fun AppListItem(
     filterAppItem: FilterAppItem,
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
+    switchSelectedMode: (Boolean) -> Unit,
     iconModifier: Modifier = Modifier,
 ) {
-    var isSelected by remember { mutableStateOf(isSelectedMode) }
     Box {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -65,7 +61,11 @@ fun AppListItem(
                 .fillMaxWidth()
                 .combinedClickable(
                     onClick = {},
-                    onLongClick = { isSelected = true },
+                    onLongClick = {
+                        if (!isSelectedMode) {
+                            switchSelectedMode(true)
+                        }
+                    },
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
@@ -178,7 +178,10 @@ fun AppListItemPreview() {
     )
     BlockerTheme {
         Surface {
-            AppListItem(filterAppItem = filterAppItem, isSelectedMode = false)
+            AppListItem(
+                filterAppItem = filterAppItem,
+                isSelectedMode = false,
+                switchSelectedMode = {})
         }
     }
 }
@@ -196,7 +199,10 @@ fun AppListItemWithoutServicePreview() {
     )
     BlockerTheme {
         Surface {
-            AppListItem(filterAppItem = filterAppItem, isSelectedMode = false)
+            AppListItem(
+                filterAppItem = filterAppItem,
+                isSelectedMode = false,
+                switchSelectedMode = {})
         }
     }
 }
