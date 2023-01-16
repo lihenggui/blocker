@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,7 @@ fun AppListItem(
     label: String,
     packageName: String,
     versionName: String,
+    versionCode: Long,
     packageInfo: PackageInfo?,
     appServiceStatus: AppServiceStatus?,
     onClick: (String) -> Unit,
@@ -83,6 +84,7 @@ fun AppListItem(
             AppContent(
                 label = label,
                 versionName = versionName,
+                versionCode = versionCode,
                 serviceStatus = appServiceStatus
             )
         }
@@ -121,6 +123,7 @@ private fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
 private fun AppContent(
     label: String,
     versionName: String,
+    versionCode: Long,
     serviceStatus: AppServiceStatus?,
     modifier: Modifier = Modifier
 ) {
@@ -130,8 +133,9 @@ private fun AppContent(
             style = MaterialTheme.typography.bodyLarge
         )
         Text(
-            text = versionName,
-            style = MaterialTheme.typography.bodyMedium
+            text = stringResource(id = string.version_code_template, versionName, versionCode),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (serviceStatus != null) {
             Text(
@@ -141,7 +145,8 @@ private fun AppContent(
                     serviceStatus.blocked,
                     serviceStatus.total
                 ),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -163,6 +168,7 @@ fun AppListItemPreview() {
                 label = "Blocker",
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
+                versionCode = 1206,
                 packageInfo = PackageInfo(),
                 appServiceStatus = appServiceStatus,
                 onClick = {},
@@ -186,6 +192,7 @@ fun AppListItemWithoutServicePreview() {
                 label = "Blocker",
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
+                versionCode = 1206,
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = {},
@@ -209,6 +216,7 @@ fun AppListItemWithLongAppName() {
                 label = "AppNameWithVeryLongLongLongLongLongLongName",
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
+                versionCode = 1206,
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = {},
