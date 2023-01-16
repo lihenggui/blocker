@@ -56,7 +56,7 @@ fun AppListItem(
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
 ) {
-    var expanded by remember { mutableStateOf(false) }
+    var isSelectedMode by remember { mutableStateOf(false) }
     Box {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -64,7 +64,7 @@ fun AppListItem(
                 .fillMaxWidth()
                 .combinedClickable(
                     onClick = {},
-                    onLongClick = { expanded = true },
+                    onLongClick = { isSelectedMode = true },
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
