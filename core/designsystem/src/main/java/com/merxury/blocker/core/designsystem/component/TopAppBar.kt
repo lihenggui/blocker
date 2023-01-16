@@ -199,6 +199,36 @@ fun BlockerCollapsingTopAppBar(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BlockerLargeTopAppBar(
+    modifier: Modifier = Modifier,
+    title: String,
+    navigation: @Composable () -> Unit,
+    actions: @Composable () -> Unit
+) {
+    LargeTopAppBar(
+        title = {
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(text = title)
+                }
+            }
+        },
+        navigationIcon = {
+            navigation()
+        },
+        actions = {
+            actions()
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview("Top App Bar")
 @Composable
 fun BlockerTopAppBarPreview() {
