@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.settings.item
 
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -164,7 +165,7 @@ fun SettingsItem(
 }
 
 @Composable
-fun SettingItemHead(itemRes: Int) {
+fun SettingItemHeader(itemRes: Int) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(id = itemRes),
@@ -196,6 +197,7 @@ fun SwitchSettingItem(
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun SettingsItemPreview() {
     BlockerTheme {
         Surface {
@@ -212,6 +214,7 @@ fun SettingsItemPreview() {
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun SettingsItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
@@ -239,7 +242,8 @@ fun SettingsItemSinglePreview() {
 
 @Composable
 @Preview
-fun SwitchSettingsItemSinglePreview() {
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun SwitchSettingsItemPreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
@@ -253,10 +257,11 @@ fun SwitchSettingsItemSinglePreview() {
 
 @Composable
 @Preview
-fun SettingsItemHeadPreview() {
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun SettingsItemHeaderPreview() {
     BlockerTheme {
         Surface {
-            SettingItemHead(itemRes = R.string.backup)
+            SettingItemHeader(itemRes = R.string.backup)
         }
     }
 }

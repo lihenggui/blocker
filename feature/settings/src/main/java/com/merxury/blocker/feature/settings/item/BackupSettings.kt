@@ -43,7 +43,7 @@ fun BackupSettings(
         modifier = modifier
             .padding(vertical = 4.dp)
     ) {
-        SettingItemHead(itemRes = string.backup)
+        SettingItemHeader(itemRes = string.backup)
         SettingItem(
             icon = BlockerIcons.Folder,
             itemRes = string.folder_to_save,
