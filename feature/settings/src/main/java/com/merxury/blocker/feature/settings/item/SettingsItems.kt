@@ -88,17 +88,19 @@ fun <T> SettingItem(
 }
 
 @Composable
-fun SettingItem(
+fun <T> SettingItem(
     modifier: Modifier = Modifier,
     itemRes: Int,
     itemValue: String,
-    onClick: () -> Unit
+    menuList: List<T>,
+    onMenuClick: (item: T) -> Unit,
 ) {
+    var expanded by remember { mutableStateOf(false) }
     Box(modifier = modifier) {
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .clickable { onClick() }
+                .clickable { expanded = true }
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -114,6 +116,12 @@ fun SettingItem(
                 )
             }
         }
+        BlockerDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            menuList = menuList,
+            onClick = onMenuClick
+        )
     }
 }
 
@@ -220,8 +228,9 @@ fun SettingsItemWithoutIconPreview() {
         Surface {
             SettingItem(
                 itemRes = R.string.theme,
-                itemValue = "Default",
-                onClick = {}
+                itemValue = stringResource(id = R.string.theme_default),
+                menuList = listOf<String>(),
+                onMenuClick = {}
             )
         }
     }
