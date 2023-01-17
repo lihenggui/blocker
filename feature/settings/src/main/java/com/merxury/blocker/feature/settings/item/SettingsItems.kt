@@ -82,33 +82,6 @@ fun SettingItem(
 }
 
 @Composable
-fun SettingItem(
-    icon: ImageVector,
-    itemRes: Int,
-    itemValue: String,
-    onItemClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onItemClick() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(imageVector = icon, contentDescription = stringResource(id = itemRes))
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(
-                text = stringResource(id = itemRes),
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(text = itemValue, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
-
-@Composable
 fun SettingsItem(
     itemRes: Int,
     onItemClick: () -> Unit,
