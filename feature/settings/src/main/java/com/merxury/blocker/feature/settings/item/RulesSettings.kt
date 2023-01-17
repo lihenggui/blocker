@@ -38,8 +38,8 @@ fun BlockerRulesSettings(
             .padding(vertical = 4.dp)
     ) {
         SettingItemHeader(itemRes = string.blocker_rules)
-        SettingsItem(itemRes = string.export_rules, onItemClick = exportRules)
-        SettingsItem(itemRes = string.import_rules, onItemClick = importRules)
+        SingleRowSettingItem(itemRes = string.export_rules, onItemClick = exportRules)
+        SingleRowSettingItem(itemRes = string.import_rules, onItemClick = importRules)
     }
 }
 
@@ -55,9 +55,9 @@ fun IfwRulesSettings(
             .padding(vertical = 4.dp)
     ) {
         SettingItemHeader(itemRes = string.ifw_rules)
-        SettingsItem(itemRes = string.export_ifw_rules, onItemClick = exportIfwRules)
-        SettingsItem(itemRes = string.import_ifw_rules, onItemClick = importIfwRules)
-        SettingsItem(itemRes = string.reset_ifw, onItemClick = resetIfwRules)
+        SingleRowSettingItem(itemRes = string.export_ifw_rules, onItemClick = exportIfwRules)
+        SingleRowSettingItem(itemRes = string.import_ifw_rules, onItemClick = importIfwRules)
+        SingleRowSettingItem(itemRes = string.reset_ifw, onItemClick = resetIfwRules)
     }
 }
 
