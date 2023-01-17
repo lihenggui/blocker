@@ -42,7 +42,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R
 
 @Composable
-fun SettingItem(
+fun TwoRowsSettingItem(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     itemRes: Int,
@@ -82,7 +82,7 @@ fun SettingItem(
 }
 
 @Composable
-fun SettingsItem(
+fun SingleRowSettingItem(
     itemRes: Int,
     onItemClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -138,7 +138,7 @@ fun SwitchSettingItem(
 fun SettingsItemPreview() {
     BlockerTheme {
         Surface {
-            SettingItem(
+            TwoRowsSettingItem(
                 icon = BlockerIcons.AutoFix,
                 itemRes = R.string.controller_type,
                 itemValue = "IFW",
@@ -154,7 +154,7 @@ fun SettingsItemPreview() {
 fun SettingsItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
-            SettingItem(
+            TwoRowsSettingItem(
                 itemRes = R.string.theme,
                 itemValue = "Default",
                 onClick = {}
@@ -168,7 +168,7 @@ fun SettingsItemWithoutIconPreview() {
 fun SettingsItemSinglePreview() {
     BlockerTheme {
         Surface {
-            SettingsItem(
+            SingleRowSettingItem(
                 itemRes = R.string.import_mat_rules,
                 onItemClick = {}
             )
