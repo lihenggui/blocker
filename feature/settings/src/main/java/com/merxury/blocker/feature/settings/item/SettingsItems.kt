@@ -49,7 +49,7 @@ import com.merxury.blocker.feature.settings.R
 @Composable
 fun <T> SettingItem(
     modifier: Modifier = Modifier,
-    icon: ImageVector,
+    icon: ImageVector? = null,
     itemRes: Int,
     itemValue: String,
     menuList: List<T>,
@@ -64,8 +64,15 @@ fun <T> SettingItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(imageVector = icon, contentDescription = stringResource(id = itemRes))
-            Spacer(modifier = Modifier.width(16.dp))
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = stringResource(id = itemRes),
+                    modifier = modifier.padding(end = 16.dp)
+                )
+            } else {
+                Spacer(modifier = Modifier.width(40.dp))
+            }
             Column {
                 Text(
                     text = stringResource(id = itemRes),
@@ -75,44 +82,6 @@ fun <T> SettingItem(
                     text = itemValue,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
-        BlockerDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            menuList = menuList,
-            onClick = onMenuClick
-        )
-    }
-}
-
-@Composable
-fun <T> SettingItem(
-    modifier: Modifier = Modifier,
-    itemRes: Int,
-    itemValue: String,
-    menuList: List<T>,
-    onMenuClick: (item: T) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(modifier = modifier) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .clickable { expanded = true }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = modifier.padding(start = 40.dp)) {
-                Text(
-                    text = stringResource(id = itemRes),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(
-                    text = itemValue,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
