@@ -44,13 +44,13 @@ fun BackupSettings(
             .padding(vertical = 4.dp)
     ) {
         SettingItemHeader(itemRes = string.backup)
-        SettingItem(
+        TwoRowsSettingItem(
             icon = BlockerIcons.Folder,
             itemRes = string.folder_to_save,
             itemValue = ruleBackupFolder.ifEmpty {
                 stringResource(id = string.directory_invalid_or_not_set)
             },
-            onItemClick = {}
+            onClick = {}
         )
         SwitchSettingItem(
             itemRes = string.backup_system_apps,

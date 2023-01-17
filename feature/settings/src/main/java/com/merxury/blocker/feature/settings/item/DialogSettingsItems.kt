@@ -61,7 +61,7 @@ fun <T> DialogSettingsItems(
 ) {
     var isShowDialog by remember { mutableStateOf(false) }
     Column {
-        SettingItem(
+        TwoRowsSettingItem(
             icon = icon,
             itemRes = itemRes,
             itemValue = itemValue.toString(),
