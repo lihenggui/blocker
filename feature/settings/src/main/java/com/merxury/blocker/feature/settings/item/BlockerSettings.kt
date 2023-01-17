@@ -50,21 +50,19 @@ fun BlockerSettings(
         modifier = modifier
             .padding(vertical = 4.dp)
     ) {
-        SettingItem(
+        DialogSettingsItems(
             icon = BlockerIcons.AutoFix,
             itemRes = string.controller_type,
-            itemValue = uiState.settings.controllerType.toString(),
+            itemValue = uiState.settings.controllerType,
             menuList = listOf(IFW, PM, SHIZUKU),
             onMenuClick = updateControllerType,
-            modifier = modifier
         )
-        SettingItem(
+        DialogSettingsItems(
             icon = BlockerIcons.Block,
             itemRes = string.online_rule_source,
-            itemValue = uiState.settings.ruleServerProvider.toString(),
+            itemValue = uiState.settings.ruleServerProvider,
             menuList = listOf(GITHUB, GITLAB),
             onMenuClick = updateRuleServerProvider,
-            modifier = modifier
         )
     }
 }
