@@ -32,10 +32,10 @@ dependencies {
     implementation(project(":core:datastore"))
     implementation(project(":core:ifw-api"))
     implementation(libs.androidx.documentfile)
+    implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.android)
+    implementation(libs.hilt.ext.work)
+    implementation(libs.kotlinx.serialization.json)
     kapt(libs.hilt.compiler)
     kapt(libs.hilt.ext.compiler)
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.work.ktx)
-    implementation(libs.hilt.ext.work)
 }
