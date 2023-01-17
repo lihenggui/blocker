@@ -120,7 +120,10 @@ fun SwitchSettingItem(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.padding(start = 56.dp, end = 24.dp),
+        modifier = Modifier
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 12.dp)
+            .padding(start = 56.dp, end = 24.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -128,7 +131,7 @@ fun SwitchSettingItem(
             style = MaterialTheme.typography.bodyLarge
         )
         Spacer(modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = { onCheckedChange(!checked) })
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 
