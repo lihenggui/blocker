@@ -14,6 +14,7 @@
  *   limitations under the License.
  */
 
+import com.android.build.api.dsl.ManagedVirtualDevice
 import com.merxury.blocker.BlockerBuildType
 
 // TODO: Remove once https://youtrack.jetbrains.com/issue/KTIJ-19369 is fixed
@@ -83,7 +84,7 @@ android {
         // TODO: Convert it as a convention plugin once Flamingo goes out (https://github.com/android/nowinandroid/issues/523)
         managedDevices {
             devices {
-                maybeCreate<com.android.build.api.dsl.ManagedVirtualDevice>("pixel4api30").apply {
+                maybeCreate<ManagedVirtualDevice>("pixel4api30").apply {
                     device = "Pixel 4"
                     apiLevel = 30
                     // ATDs currently support only API level 30.
