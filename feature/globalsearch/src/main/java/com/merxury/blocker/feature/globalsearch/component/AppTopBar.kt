@@ -125,10 +125,7 @@ fun SearchBar(
                 value = uiState.keyword,
                 onValueChange = onSearchTextChanged,
                 placeholder = {
-                    Text(
-                        text = stringResource(id = string.click_to_search),
-                        modifier = modifier.padding(start = 24.dp)
-                    )
+                    Text(text = stringResource(id = string.click_to_search))
                 },
                 trailingIcon = {
                     AnimatedVisibility(
