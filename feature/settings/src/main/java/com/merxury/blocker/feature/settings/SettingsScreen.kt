@@ -59,7 +59,7 @@ import com.merxury.blocker.feature.settings.item.BackupSettings
 import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
 import com.merxury.blocker.feature.settings.item.BlockerSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
-import com.merxury.blocker.feature.settings.item.SettingsItem
+import com.merxury.blocker.feature.settings.item.SingleRowSettingItem
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 
 @Composable
@@ -225,7 +225,7 @@ fun SettingsContent(
             resetIfwRules = resetIfwRules
         )
         Divider()
-        SettingsItem(
+        SingleRowSettingItem(
             itemRes = string.import_mat_rules,
             onItemClick = {}
         )
