@@ -31,36 +31,29 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R
 
 @Composable
-fun <T> SettingItem(
+fun SettingItem(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
     itemRes: Int,
     itemValue: String,
-    menuList: List<T>,
-    onMenuClick: (item: T) -> Unit,
+    onClick: () -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
     Box(modifier = modifier) {
         Row(
             modifier = modifier
                 .fillMaxWidth()
-                .clickable { expanded = true }
+                .clickable { onClick() }
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -76,21 +69,15 @@ fun <T> SettingItem(
             Column {
                 Text(
                     text = stringResource(id = itemRes),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
                     text = itemValue,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-        BlockerDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            menuList = menuList,
-            onClick = onMenuClick
-        )
     }
 }
 
@@ -182,8 +169,7 @@ fun SettingsItemPreview() {
                 icon = BlockerIcons.AutoFix,
                 itemRes = R.string.controller_type,
                 itemValue = "IFW",
-                menuList = listOf("IFW", "Package Manager", "Shizuku"),
-                onMenuClick = {}
+                onClick = {}
             )
         }
     }
@@ -197,9 +183,8 @@ fun SettingsItemWithoutIconPreview() {
         Surface {
             SettingItem(
                 itemRes = R.string.theme,
-                itemValue = stringResource(id = R.string.theme_default),
-                menuList = listOf<String>(),
-                onMenuClick = {}
+                itemValue = "Default",
+                onClick = {}
             )
         }
     }

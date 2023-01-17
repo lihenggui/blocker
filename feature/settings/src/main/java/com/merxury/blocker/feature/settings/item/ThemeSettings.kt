@@ -43,15 +43,15 @@ fun ThemeSettings(
             .padding(vertical = 4.dp)
     ) {
         SettingItemHeader(itemRes = string.theme)
-        SettingItem(
+        DialogSettingsItems(
             itemRes = string.theme,
-            itemValue = uiState.settings.themeBrand.toString(),
+            itemValue = uiState.settings.themeBrand,
             menuList = listOf(ANDROID, DEFAULT),
             onMenuClick = updateThemeBrand
         )
-        SettingItem(
+        DialogSettingsItems(
             itemRes = string.dark_mode,
-            itemValue = uiState.settings.darkThemeConfig.toString(),
+            itemValue = uiState.settings.darkThemeConfig,
             menuList = listOf(FOLLOW_SYSTEM, LIGHT, DARK),
             onMenuClick = updateDarkThemeConfig
         )
