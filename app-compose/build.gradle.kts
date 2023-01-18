@@ -144,6 +144,7 @@ dependencies {
     implementation(libs.coil.kt.svg)
     implementation(libs.kotlinx.datetime)
     implementation(libs.libsu.core)
+    implementation(libs.timber)
 }
 
 // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13
