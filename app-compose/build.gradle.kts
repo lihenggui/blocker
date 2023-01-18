@@ -107,18 +107,12 @@ dependencies {
     implementation(project(":feature:onlinerules"))
     implementation(project(":feature:globalsearch"))
     implementation(project(":feature:settings"))
-    // TODO database, datastore, rule, datetime, network should be removed
-    implementation(project(":core:database"))
-    implementation(project(":core:datastore"))
-    implementation(project(":core:network"))
-    implementation(project(":core:rule"))
-    implementation(project(":core:component-controller"))
-    implementation(project(":core:ifw-api"))
-    implementation(project(":core:common"))
+
     implementation(project(":core:ui"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:data"))
     implementation(project(":core:model"))
+
     implementation(project(":sync:work"))
 
     androidTestImplementation(project(":core:testing"))
