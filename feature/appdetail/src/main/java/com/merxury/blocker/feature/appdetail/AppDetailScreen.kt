@@ -42,7 +42,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
@@ -63,7 +62,7 @@ import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.model.AppInfoViewModel
 import kotlinx.datetime.Clock.System
 
-@OptIn(ExperimentalLifecycleComposeApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailRoute(
     viewModel: AppInfoViewModel = hiltViewModel(),
@@ -86,7 +85,12 @@ fun AppDetailRoute(
         onEnableAll = viewModel::onEnableAll,
         onBlockAll = viewModel::onBlockAll,
         isCollapsed = isCollapsed,
-        scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior,
+        onExportRules = viewModel::onExportRules,
+        onImportRules = viewModel::onImportRules,
+        onExportIfw = viewModel::onExportIfw,
+        onImportIfw = viewModel::onImportIfw,
+        onResetIfw = viewModel::onResetIfw
     )
 }
 
@@ -105,7 +109,12 @@ fun AppDetailScreen(
     onBlockAll: () -> Unit,
     isCollapsed: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onExportRules: () -> Unit,
+    onImportRules: () -> Unit,
+    onExportIfw: () -> Unit,
+    onImportIfw: () -> Unit,
+    onResetIfw: () -> Unit
 ) {
     Column(modifier) {
         when (uiState) {
@@ -136,7 +145,12 @@ fun AppDetailScreen(
                     onBlockAll = onBlockAll,
                     isCollapsed = isCollapsed,
                     scrollBehavior = scrollBehavior,
-                    modifier = modifier
+                    modifier = modifier,
+                    onExportRules = onExportRules,
+                    onImportRules = onImportRules,
+                    onExportIfw = onExportIfw,
+                    onImportIfw = onImportIfw,
+                    onResetIfw = onResetIfw
                 )
             }
 
@@ -160,7 +174,12 @@ fun AppDetailContent(
     onBlockAll: () -> Unit,
     scrollBehavior: TopAppBarScrollBehavior,
     isCollapsed: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onExportRules: () -> Unit,
+    onImportRules: () -> Unit,
+    onExportIfw: () -> Unit,
+    onImportIfw: () -> Unit,
+    onResetIfw: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -186,12 +205,14 @@ fun AppDetailContent(
                             tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
-                    TopAppBarMoreMenu(
-                        onEnableApp = onEnableApp,
-                        onRefresh = onRefresh,
-                        onEnableAll = onEnableAll,
-                        onBlockAll = onBlockAll
-                    )
+                    if (tabState.currentIndex != 0) {
+                        TopAppBarMoreMenu(
+                            onEnableApp = onEnableApp,
+                            onRefresh = onRefresh,
+                            onEnableAll = onEnableAll,
+                            onBlockAll = onBlockAll
+                        )
+                    }
                 }
             )
         },
@@ -214,7 +235,15 @@ fun AppDetailContent(
                 }
             }
             when (tabState.currentIndex) {
-                0 -> AppInfoTabContent(app = uiState.appInfo)
+                0 -> AppInfoTabContent(
+                    app = uiState.appInfo,
+                    onExportRules = onExportRules,
+                    onImportRules = onImportRules,
+                    onExportIfw = onExportIfw,
+                    onImportIfw = onImportIfw,
+                    onResetIfw = onResetIfw
+                )
+
                 1 -> ComponentListContentRoute()
                 2 -> ComponentListContentRoute()
                 3 -> ComponentListContentRoute()
@@ -269,6 +298,11 @@ fun AppDetailScreenPreview() {
                 onBlockAll = {},
                 isCollapsed = false,
                 scrollBehavior = scrollBehavior,
+                onExportRules = {},
+                onImportRules = {},
+                onExportIfw = {},
+                onImportIfw = {},
+                onResetIfw = {}
             )
         }
     }
@@ -314,6 +348,11 @@ fun AppDetailScreenCollapsedPreview() {
                 onBlockAll = {},
                 isCollapsed = true,
                 scrollBehavior = scrollBehavior,
+                onExportRules = {},
+                onImportRules = {},
+                onExportIfw = {},
+                onImportIfw = {},
+                onResetIfw = {}
             )
         }
     }

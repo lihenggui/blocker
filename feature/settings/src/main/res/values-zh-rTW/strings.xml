@@ -55,4 +55,5 @@
     <string name="github">GitHub</string>
     <string name="telegram_group">Telegram 群組</string>
     <string name="export_error_log">導出錯誤日誌</string>
+    <string name="dark_mode">夜間主題</string>
 </resources>

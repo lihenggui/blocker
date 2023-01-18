@@ -37,7 +37,7 @@ fun AppListSettings(
         modifier = modifier
             .padding(vertical = 4.dp)
     ) {
-        SettingItemHead(itemRes = string.application_list)
+        SettingItemHeader(itemRes = string.application_list)
         SwitchSettingItem(
             itemRes = string.show_system_apps,
             checked = showSystemApps,

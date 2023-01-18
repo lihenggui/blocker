@@ -194,7 +194,45 @@ fun BlockerCollapsingTopAppBar(
         actions = {
             actions()
         },
-        scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior,
+        colors = TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BlockerLargeTopAppBar(
+    modifier: Modifier = Modifier,
+    title: String,
+    navigation: @Composable () -> Unit,
+    actions: @Composable () -> Unit
+) {
+    LargeTopAppBar(
+        title = {
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column {
+                    Text(text = title)
+                }
+            }
+        },
+        navigationIcon = {
+            navigation()
+        },
+        actions = {
+            actions()
+        },
+        colors = TopAppBarDefaults.largeTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+        )
     )
 }
 

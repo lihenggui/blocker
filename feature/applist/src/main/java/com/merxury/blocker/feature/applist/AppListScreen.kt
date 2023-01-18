@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
@@ -56,7 +55,6 @@ import com.merxury.blocker.feature.applist.component.AppListItem
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun AppListRoute(
     navigateToAppDetail: (String) -> Unit,
@@ -208,6 +206,7 @@ fun AppListContent(
                     label = it.label,
                     packageName = it.packageName,
                     versionName = it.versionName,
+                    versionCode = it.versionCode,
                     packageInfo = it.packageInfo,
                     appServiceStatus = it.appServiceStatus,
                     onClick = onAppItemClick,
