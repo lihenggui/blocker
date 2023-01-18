@@ -172,7 +172,6 @@ dependencies {
     implementation(libs.libsu.io)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
-    implementation(libs.glide)
     implementation(libs.apache.commons.csv)
 }
 

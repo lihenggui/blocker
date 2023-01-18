@@ -22,7 +22,7 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import coil.load
 import com.merxury.blocker.R
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.network.model.OnlineSourceType
@@ -108,10 +108,10 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
             if (!item.iconUrl.isNullOrEmpty()) {
                 val baseUrl = getOnlineSourceType(context).baseUrl
                 val iconUrl = baseUrl + item.iconUrl
-                Glide.with(context)
-                    .load(iconUrl)
-                    .placeholder(R.drawable.ic_android)
-                    .into(binding.icon)
+                binding.icon.load(iconUrl) {
+                    crossfade(true)
+                    placeholder(R.drawable.ic_android)
+                }
             }
 
             binding.searchButton.setOnClickListener {
