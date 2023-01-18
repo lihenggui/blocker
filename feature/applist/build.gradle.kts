@@ -14,6 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import com.android.build.api.dsl.ManagedVirtualDevice
+
 plugins {
     id("blocker.android.feature")
     id("blocker.android.library.compose")
@@ -27,7 +30,7 @@ android {
         // TODO: Convert it as a convention plugin once Flamingo goes out (https://github.com/android/nowinandroid/issues/523)
         managedDevices {
             devices {
-                maybeCreate<com.android.build.api.dsl.ManagedVirtualDevice>("pixel4api30").apply {
+                maybeCreate<ManagedVirtualDevice>("pixel4api30").apply {
                     device = "Pixel 4"
                     apiLevel = 30
                     // ATDs currently support only API level 30.

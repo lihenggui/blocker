@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="application">Application ( %1$d )</string>
+    <string name="application">App ( %1$d )</string>
     <string name="component">Component ( %1$d )</string>
     <string name="online_rule">Online rule ( %1$d )</string>
     <string name="searching">searching</string>
@@ -24,4 +24,7 @@
     <string name="broadcast_count">%1$d Broadcast</string>
     <string name="service_count">%1$d Service</string>
     <string name="delimiter"> / </string>
+    <string name="selected_app">%1$d apps selected</string>
+    <string name="click_to_search">Click to search</string>
+    <string name="no_search_result">No search result yet</string>
 </resources>

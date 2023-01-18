@@ -23,7 +23,7 @@ data class UserPreferenceData(
     val darkThemeConfig: DarkThemeConfig,
     val controllerType: ControllerType,
     val ruleServerProvider: RuleServerProvider,
-    val ruleBackupFolder: String?,
+    val ruleBackupFolder: String,
     val backupSystemApp: Boolean,
     val restoreSystemApp: Boolean,
     val showSystemApps: Boolean,

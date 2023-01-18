@@ -18,7 +18,7 @@ package com.merxury.blocker.ui.detail.component.info
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.OnlineComponentRepository
+import com.merxury.blocker.core.data.respository.onlinecomponent.OnlineComponentRepository
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.ui.detail.component.ComponentData
