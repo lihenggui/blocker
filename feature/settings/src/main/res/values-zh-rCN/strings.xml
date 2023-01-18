@@ -63,7 +63,7 @@
     <string name="theme">主题</string>
     <string name="theme_default">默认</string>
     <string name="theme_Android">Android</string>
-    <string name="dark_mode_preference">暗色主题设置</string>
+    <string name="dark_mode">夜间主题</string>
     <string name="system_default">系统默认</string>
     <string name="light">日间模式</string>
     <string name="dark">暗黑模式</string>

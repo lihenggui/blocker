@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.CheckBox
 import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CloudDownload
@@ -39,6 +40,7 @@ import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.FindInPage
 import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.List
 import androidx.compose.material.icons.outlined.MoreVert
@@ -72,9 +74,11 @@ object BlockerIcons {
     val Find = Icons.Outlined.FindInPage
     val Clear = Icons.Outlined.Clear
     val SelectAll = Icons.Outlined.SelectAll
+    val Inbox = Icons.Outlined.Inbox
     val ExpandMore = Icons.Outlined.ExpandMore
     val Tune = Icons.Outlined.Tune
     val Block = Icons.Outlined.Block
+    val CheckCircle = Icons.Outlined.CheckCircle
     val Folder = Icons.Outlined.Folder
     val Search = Icons.Outlined.Search
     val BugReport = Icons.Outlined.BugReport

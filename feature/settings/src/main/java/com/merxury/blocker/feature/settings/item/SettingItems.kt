@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.settings.item
 
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,61 +31,20 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R
 
 @Composable
-fun <T> SettingItem(
+fun TwoRowsSettingItem(
     modifier: Modifier = Modifier,
-    icon: ImageVector,
-    itemRes: Int,
-    itemValue: String,
-    menuList: List<T>,
-    onMenuClick: (item: T) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(modifier = modifier) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .clickable { expanded = true }
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(imageVector = icon, contentDescription = stringResource(id = itemRes))
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(
-                    text = stringResource(id = itemRes),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                Text(text = itemValue, style = MaterialTheme.typography.bodyMedium)
-            }
-        }
-        BlockerDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            menuList = menuList,
-            onClick = onMenuClick
-        )
-    }
-}
-
-@Composable
-fun SettingItem(
-    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
     itemRes: Int,
     itemValue: String,
     onClick: () -> Unit
@@ -97,46 +57,32 @@ fun SettingItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = modifier.padding(start = 40.dp)) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = stringResource(id = itemRes),
+                    modifier = modifier.padding(end = 16.dp)
+                )
+            } else {
+                Spacer(modifier = Modifier.width(40.dp))
+            }
+            Column {
                 Text(
                     text = stringResource(id = itemRes),
                     style = MaterialTheme.typography.bodyLarge
                 )
-                Text(text = itemValue, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = itemValue,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
 }
 
 @Composable
-fun SettingItem(
-    icon: ImageVector,
-    itemRes: Int,
-    itemValue: String,
-    onItemClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onItemClick() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(imageVector = icon, contentDescription = stringResource(id = itemRes))
-        Spacer(modifier = Modifier.width(16.dp))
-        Column {
-            Text(
-                text = stringResource(id = itemRes),
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(text = itemValue, style = MaterialTheme.typography.bodyMedium)
-        }
-    }
-}
-
-@Composable
-fun SettingsItem(
+fun SingleRowSettingItem(
     itemRes: Int,
     onItemClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -156,7 +102,7 @@ fun SettingsItem(
 }
 
 @Composable
-fun SettingItemHead(itemRes: Int) {
+fun SettingItemHeader(itemRes: Int) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(id = itemRes),
@@ -174,7 +120,10 @@ fun SwitchSettingItem(
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
-        modifier = Modifier.padding(start = 56.dp, end = 24.dp),
+        modifier = Modifier
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 12.dp)
+            .padding(start = 56.dp, end = 24.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -182,21 +131,21 @@ fun SwitchSettingItem(
             style = MaterialTheme.typography.bodyLarge
         )
         Spacer(modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = { onCheckedChange(!checked) })
+        Switch(checked = checked, onCheckedChange = null)
     }
 }
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun SettingsItemPreview() {
     BlockerTheme {
         Surface {
-            SettingItem(
+            TwoRowsSettingItem(
                 icon = BlockerIcons.AutoFix,
                 itemRes = R.string.controller_type,
                 itemValue = "IFW",
-                menuList = listOf("IFW", "Package Manager", "Shizuku"),
-                onMenuClick = {}
+                onClick = {}
             )
         }
     }
@@ -204,10 +153,11 @@ fun SettingsItemPreview() {
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun SettingsItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
-            SettingItem(
+            TwoRowsSettingItem(
                 itemRes = R.string.theme,
                 itemValue = "Default",
                 onClick = {}
@@ -221,7 +171,7 @@ fun SettingsItemWithoutIconPreview() {
 fun SettingsItemSinglePreview() {
     BlockerTheme {
         Surface {
-            SettingsItem(
+            SingleRowSettingItem(
                 itemRes = R.string.import_mat_rules,
                 onItemClick = {}
             )
@@ -231,7 +181,8 @@ fun SettingsItemSinglePreview() {
 
 @Composable
 @Preview
-fun SwitchSettingsItemSinglePreview() {
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun SwitchSettingsItemPreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
@@ -245,10 +196,11 @@ fun SwitchSettingsItemSinglePreview() {
 
 @Composable
 @Preview
-fun SettingsItemHeadPreview() {
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun SettingsItemHeaderPreview() {
     BlockerTheme {
         Surface {
-            SettingItemHead(itemRes = R.string.backup)
+            SettingItemHeader(itemRes = R.string.backup)
         }
     }
 }

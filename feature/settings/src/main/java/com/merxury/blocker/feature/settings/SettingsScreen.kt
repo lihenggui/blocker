@@ -18,12 +18,20 @@ package com.merxury.blocker.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumedWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.ExperimentalLifecycleComposeApi
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
@@ -50,11 +57,11 @@ import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import com.merxury.blocker.feature.settings.item.AppListSettings
 import com.merxury.blocker.feature.settings.item.BackupSettings
 import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
+import com.merxury.blocker.feature.settings.item.BlockerSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
-import com.merxury.blocker.feature.settings.item.OthersSettings
+import com.merxury.blocker.feature.settings.item.SingleRowSettingItem
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 
-@OptIn(ExperimentalLifecycleComposeApi::class)
 @Composable
 fun SettingsRoute(
     onNavigationClick: () -> Unit,
@@ -81,7 +88,7 @@ fun SettingsRoute(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     onNavigationClick: () -> Unit,
@@ -102,43 +109,60 @@ fun SettingsScreen(
     resetIfwRules: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier) {
-        when (uiState) {
-            Loading -> {
-                Column(
-                    modifier = modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    BlockerLoadingWheel(
-                        modifier = modifier,
-                        contentDesc = stringResource(id = string.loading),
+    Scaffold(
+        topBar = {
+            BlockerTopAppBar(
+                titleRes = string.settings,
+                onNavigationClick = onNavigationClick
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+                .consumedWindowInsets(padding)
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Horizontal
+                    )
+                ),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            when (uiState) {
+                Loading -> {
+                    Column(
+                        modifier = modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        BlockerLoadingWheel(
+                            modifier = modifier,
+                            contentDesc = stringResource(id = string.loading),
+                        )
+                    }
+                }
+
+                is Success -> {
+                    SettingsContent(
+                        uiState = uiState,
+                        updateShowSystemApps = updateShowSystemApps,
+                        updateShowServiceInfo = updateShowServiceInfo,
+                        updateBackupSystemApp = updateBackupSystemApp,
+                        updateRestoreSystemApp = updateRestoreSystemApp,
+                        updateRuleBackupFolder = updateRuleBackupFolder,
+                        updateControllerType = updateControllerType,
+                        updateRuleServerProvider = updateRuleServerProvider,
+                        exportRules = exportRules,
+                        importRules = importRules,
+                        exportIfwRules = exportIfwRules,
+                        importIfwRules = importIfwRules,
+                        resetIfwRules = resetIfwRules,
+                        updateThemeBrand = updateThemeBrand,
+                        updateDarkThemeConfig = updateDarkThemeConfig
                     )
                 }
-            }
-
-            is Success -> {
-                BlockerTopAppBar(
-                    titleRes = string.settings,
-                    onNavigationClick = onNavigationClick
-                )
-                SettingsContent(
-                    uiState = uiState,
-                    updateShowSystemApps = updateShowSystemApps,
-                    updateShowServiceInfo = updateShowServiceInfo,
-                    updateBackupSystemApp = updateBackupSystemApp,
-                    updateRestoreSystemApp = updateRestoreSystemApp,
-                    updateRuleBackupFolder = updateRuleBackupFolder,
-                    updateControllerType = updateControllerType,
-                    updateRuleServerProvider = updateRuleServerProvider,
-                    exportRules = exportRules,
-                    importRules = importRules,
-                    exportIfwRules = exportIfwRules,
-                    importIfwRules = importIfwRules,
-                    resetIfwRules = resetIfwRules,
-                    updateThemeBrand = updateThemeBrand,
-                    updateDarkThemeConfig = updateDarkThemeConfig
-                )
             }
         }
     }
@@ -164,10 +188,17 @@ fun SettingsContent(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
-        OthersSettings(
+        BlockerSettings(
             uiState = uiState,
             updateControllerType = updateControllerType,
             updateRuleServerProvider = updateRuleServerProvider
+        )
+        Divider()
+        ThemeSettings(
+            modifier = modifier,
+            uiState = uiState,
+            updateThemeBrand = updateThemeBrand,
+            updateDarkThemeConfig = updateDarkThemeConfig
         )
         Divider()
         AppListSettings(
@@ -194,11 +225,9 @@ fun SettingsContent(
             resetIfwRules = resetIfwRules
         )
         Divider()
-        ThemeSettings(
-            modifier = modifier,
-            uiState = uiState,
-            updateThemeBrand = updateThemeBrand,
-            updateDarkThemeConfig = updateDarkThemeConfig
+        SingleRowSettingItem(
+            itemRes = string.import_mat_rules,
+            onItemClick = {}
         )
     }
 }
@@ -207,37 +236,35 @@ fun SettingsContent(
 @Preview
 fun SettingsScreenPreview() {
     BlockerTheme {
-        Surface {
-            SettingsScreen(
-                onNavigationClick = {},
-                uiState = Success(
-                    UserEditableSettings(
-                        controllerType = IFW,
-                        ruleServerProvider = GITHUB,
-                        ruleBackupFolder = "/emulated/0/Blocker",
-                        backupSystemApp = true,
-                        restoreSystemApp = false,
-                        showSystemApps = false,
-                        showServiceInfo = true,
-                        themeBrand = ANDROID,
-                        darkThemeConfig = FOLLOW_SYSTEM
-                    )
-                ),
-                updateShowSystemApps = {},
-                updateShowServiceInfo = {},
-                updateBackupSystemApp = {},
-                updateRestoreSystemApp = {},
-                updateRuleBackupFolder = {},
-                importRules = {},
-                exportRules = {},
-                importIfwRules = {},
-                exportIfwRules = {},
-                resetIfwRules = {},
-                updateControllerType = {},
-                updateRuleServerProvider = {},
-                updateThemeBrand = {},
-                updateDarkThemeConfig = {}
-            )
-        }
+        SettingsScreen(
+            onNavigationClick = {},
+            uiState = Success(
+                UserEditableSettings(
+                    controllerType = IFW,
+                    ruleServerProvider = GITHUB,
+                    ruleBackupFolder = "/emulated/0/Blocker",
+                    backupSystemApp = true,
+                    restoreSystemApp = false,
+                    showSystemApps = false,
+                    showServiceInfo = true,
+                    themeBrand = ANDROID,
+                    darkThemeConfig = FOLLOW_SYSTEM
+                )
+            ),
+            updateShowSystemApps = {},
+            updateShowServiceInfo = {},
+            updateBackupSystemApp = {},
+            updateRestoreSystemApp = {},
+            updateRuleBackupFolder = {},
+            importRules = {},
+            exportRules = {},
+            importIfwRules = {},
+            exportIfwRules = {},
+            resetIfwRules = {},
+            updateControllerType = {},
+            updateRuleServerProvider = {},
+            updateThemeBrand = {},
+            updateDarkThemeConfig = {}
+        )
     }
 }

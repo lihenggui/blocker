@@ -63,7 +63,7 @@
     <string name="theme">Тема</string>
     <string name="theme_default">По умолчанию</string>
     <string name="theme_Android">Android</string>
-    <string name="dark_mode_preference">Темный режим</string>
+    <string name="dark_mode">Темный режим</string>
     <string name="system_default">Системные установки по умолчанию</string>
     <string name="light">Свет</string>
     <string name="dark">Dark</string>
