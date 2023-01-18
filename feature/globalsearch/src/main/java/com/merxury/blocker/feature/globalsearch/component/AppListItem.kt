@@ -59,7 +59,8 @@ fun AppListItem(
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
-    onSelect: (Boolean) -> Unit
+    onSelect: (Boolean) -> Unit,
+    onClick: () -> Unit
 ) {
     val color = if (isSelectedMode) {
         MaterialTheme.colorScheme.tertiaryContainer
@@ -80,7 +81,13 @@ fun AppListItem(
             modifier = modifier
                 .fillMaxWidth()
                 .combinedClickable(
-                    onClick = {},
+                    onClick = {
+                        if (!isSelectedMode) {
+                            onClick()
+                        } else {
+                            onSelect(!filterAppItem.isSelected)
+                        }
+                    },
                     onLongClick = {
                         if (!isSelectedMode) {
                             switchSelectedMode(true)
@@ -234,7 +241,8 @@ fun AppListItemPreview() {
                 filterAppItem = filterAppItem,
                 isSelectedMode = true,
                 switchSelectedMode = {},
-                onSelect = {}
+                onSelect = {},
+                onClick = {}
             )
         }
     }
@@ -256,7 +264,8 @@ fun AppListItemWithoutServicePreview() {
                 filterAppItem = filterAppItem,
                 isSelectedMode = false,
                 switchSelectedMode = {},
-                onSelect = {}
+                onSelect = {},
+                onClick = {}
             )
         }
     }
