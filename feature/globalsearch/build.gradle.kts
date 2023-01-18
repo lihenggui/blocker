@@ -41,6 +41,7 @@ android {
 }
 dependencies {
     implementation(project(":core:database"))
+    implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.compose.material)
     implementation(libs.accompanist.navigation.animation)
 }
