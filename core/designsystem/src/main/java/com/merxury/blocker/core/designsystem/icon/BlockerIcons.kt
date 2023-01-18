@@ -102,6 +102,7 @@ object BlockerIcons {
     val Save = Icons.Outlined.Save
     val CheckBox = Icons.Outlined.CheckBox
     val CheckBoxBlank = Icons.Outlined.CheckBoxOutlineBlank
+    val Rectangle = R.drawable.ic_rectangle
     val Export = R.drawable.ic_export
     val Import = R.drawable.ic_import
     val Android = R.drawable.ic_android
