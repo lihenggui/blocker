@@ -120,7 +120,6 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
         }
     }
 
-    // TODO use DataStore instead
     private fun getOnlineSourceType(context: Context): OnlineSourceType {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val value = pref.getString(

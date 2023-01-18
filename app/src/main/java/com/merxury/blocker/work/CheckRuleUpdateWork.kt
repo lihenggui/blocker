@@ -211,7 +211,6 @@ class CheckRuleUpdateWork @AssistedInject constructor(
         return applicationContext.cacheDir.resolve(filename).exists()
     }
 
-    // TODO use DataStore instead
     private fun getOnlineSourceType(context: Context): OnlineSourceType {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val value = pref.getString(
