@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalsearch
+package com.merxury.blocker.feature.globalsearch.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -36,6 +36,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.ModalBottomSheetValue.Expanded
+import androidx.compose.material.ModalBottomSheetValue.HalfExpanded
 import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -54,7 +55,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.BlockerFilledButton
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
@@ -63,6 +63,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.feature.globalsearch.R.string
 import com.merxury.blocker.feature.globalsearch.component.AppListItem
 import com.merxury.blocker.feature.globalsearch.component.SearchBar
 import com.merxury.blocker.feature.globalsearch.component.SelectedAppTopBar
@@ -122,7 +123,7 @@ fun GlobalSearchScreen(
 ) {
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
-        confirmStateChange = { it != ModalBottomSheetValue.HalfExpanded }
+        confirmStateChange = { it != HalfExpanded }
     )
     val coroutineScope = rememberCoroutineScope()
 
@@ -166,14 +167,6 @@ fun GlobalSearchScreen(
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                BlockerFilledButton(onClick = {
-                    coroutineScope.launch {
-                        if (sheetState.isVisible) sheetState.hide()
-                        else sheetState.animateTo(ModalBottomSheetValue.HalfExpanded)
-                    }
-                }) {
-                    Text(text = "Click to show bottom sheet")
-                }
                 when (localSearchUiState) {
                     LocalSearchUiState.NoSearch -> {
                         Column(
@@ -195,7 +188,7 @@ fun GlobalSearchScreen(
                         ) {
                             BlockerLoadingWheel(
                                 modifier = modifier,
-                                contentDesc = stringResource(id = R.string.searching),
+                                contentDesc = stringResource(id = string.searching),
                             )
                         }
                     }
@@ -208,7 +201,13 @@ fun GlobalSearchScreen(
                                     appList = localSearchUiState.filter,
                                     isSelectedMode = localSearchUiState.isSelectedMode,
                                     switchSelectedMode = switchSelectedMode,
-                                    onSelect = onSelect
+                                    onSelect = onSelect,
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            if (sheetState.isVisible) sheetState.hide()
+                                            else sheetState.animateTo(HalfExpanded)
+                                        }
+                                    }
                                 )
                             }
 
@@ -322,7 +321,7 @@ fun NoSearchScreen() {
             tint = MaterialTheme.colorScheme.outline
         )
         Text(
-            text = stringResource(id = R.string.no_search_result),
+            text = stringResource(id = string.no_search_result),
             color = MaterialTheme.colorScheme.outline,
             style = MaterialTheme.typography.bodyLarge
         )
@@ -335,7 +334,8 @@ fun SearchResultContent(
     appList: List<FilterAppItem>,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
-    onSelect: (Boolean) -> Unit
+    onSelect: (Boolean) -> Unit,
+    onClick: () -> Unit
 ) {
     val listContent = remember { appList }
     val listState = rememberLazyListState()
@@ -349,7 +349,8 @@ fun SearchResultContent(
                     filterAppItem = it,
                     isSelectedMode = isSelectedMode,
                     switchSelectedMode = switchSelectedMode,
-                    onSelect = onSelect
+                    onSelect = onSelect,
+                    onClick = onClick
                 )
             }
         }
@@ -363,9 +364,9 @@ fun GlobalSearchScreenEmptyPreview() {
     val localSearchUiState = LocalSearchUiState.NoSearch
     val tabState = SearchTabState(
         titles = listOf(
-            R.string.application,
-            R.string.component,
-            R.string.online_rule
+            string.application,
+            string.component,
+            string.online_rule
         ),
         currentIndex = 0
     )
@@ -408,9 +409,9 @@ fun GlobalSearchScreenPreview() {
     )
     val tabState = SearchTabState(
         titles = listOf(
-            R.string.application,
-            R.string.component,
-            R.string.online_rule
+            string.application,
+            string.component,
+            string.online_rule
         ),
         currentIndex = 0
     )
@@ -454,9 +455,9 @@ fun GlobalSearchScreenSelectedPreview() {
     )
     val tabState = SearchTabState(
         titles = listOf(
-            R.string.application,
-            R.string.component,
-            R.string.online_rule
+            string.application,
+            string.component,
+            string.online_rule
         ),
         currentIndex = 0
     )
