@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.globalsearch
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,10 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.ModalBottomSheetValue.Expanded
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -48,11 +54,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.BlockerFilledButton
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.globalsearch.component.AppListItem
 import com.merxury.blocker.feature.globalsearch.component.SearchBar
@@ -62,9 +71,11 @@ import com.merxury.blocker.feature.globalsearch.model.LocalSearchUiState
 import com.merxury.blocker.feature.globalsearch.model.LocalSearchViewModel
 import com.merxury.blocker.feature.globalsearch.model.SearchBoxUiState
 import com.merxury.blocker.feature.globalsearch.model.SearchTabState
+import kotlinx.coroutines.launch
 
 @Composable
 fun GlobalSearchRoute(
+    navigationToSearchedAppDetail: () -> Unit,
     viewModel: LocalSearchViewModel = hiltViewModel()
 ) {
     val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
@@ -83,11 +94,15 @@ fun GlobalSearchRoute(
         onBlockAll = viewModel::onBlockAll,
         onCheckAll = viewModel::onCheckAll,
         switchSelectedMode = viewModel::switchSelectedMode,
-        onSelect = viewModel::onSelectItem
+        onSelect = viewModel::onSelectItem,
+        navigationToSearchedAppDetail = navigationToSearchedAppDetail
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
+    ExperimentalMaterialApi::class
+)
 @Composable
 fun GlobalSearchScreen(
     modifier: Modifier = Modifier,
@@ -102,80 +117,109 @@ fun GlobalSearchScreen(
     onBlockAll: () -> Unit,
     onCheckAll: () -> Unit,
     switchSelectedMode: (Boolean) -> Unit,
-    onSelect: (Boolean) -> Unit
+    onSelect: (Boolean) -> Unit,
+    navigationToSearchedAppDetail: () -> Unit,
 ) {
-    Scaffold(
-        topBar = {
-            TopBar(
-                localSearchUiState = localSearchUiState,
-                searchBoxUiState = searchBoxUiState,
-                onSearchTextChanged = onSearchTextChanged,
-                onClearClick = onClearClick,
-                onNavigationClick = onNavigationClick,
-                onSelectAll = onSelectAll,
-                onBlockAll = onBlockAll,
-                onCheckAll = onCheckAll
-            )
+    val sheetState = rememberModalBottomSheetState(
+        initialValue = ModalBottomSheetValue.Hidden,
+        confirmStateChange = { it != ModalBottomSheetValue.HalfExpanded }
+    )
+    val coroutineScope = rememberCoroutineScope()
+
+    BackHandler(sheetState.isVisible) {
+        coroutineScope.launch { sheetState.hide() }
+    }
+    if (sheetState.targetValue == Expanded) {
+        navigationToSearchedAppDetail()
+        // TODO
+    }
+    BlockerModalBottomSheetLayout(
+        sheetState = sheetState,
+        sheetContent = {
+            // TODO
         }
-    ) { padding ->
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(padding)
-                .consumedWindowInsets(padding)
-                .windowInsetsPadding(
-                    WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal
-                    )
-                ),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            when (localSearchUiState) {
-                LocalSearchUiState.NoSearch -> {
-                    Column(
-                        modifier = modifier
-                            .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        NoSearchScreen()
-                    }
-                }
-
-                LocalSearchUiState.Loading -> {
-                    Column(
-                        modifier = modifier
-                            .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        BlockerLoadingWheel(
-                            modifier = modifier,
-                            contentDesc = stringResource(id = R.string.searching),
+    ) {
+        Scaffold(
+            topBar = {
+                TopBar(
+                    localSearchUiState = localSearchUiState,
+                    searchBoxUiState = searchBoxUiState,
+                    onSearchTextChanged = onSearchTextChanged,
+                    onClearClick = onClearClick,
+                    onNavigationClick = onNavigationClick,
+                    onSelectAll = onSelectAll,
+                    onBlockAll = onBlockAll,
+                    onCheckAll = onCheckAll
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .consumedWindowInsets(padding)
+                    .windowInsetsPadding(
+                        WindowInsets.safeDrawing.only(
+                            WindowInsetsSides.Horizontal
                         )
+                    ),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                BlockerFilledButton(onClick = {
+                    coroutineScope.launch {
+                        if (sheetState.isVisible) sheetState.hide()
+                        else sheetState.animateTo(ModalBottomSheetValue.HalfExpanded)
                     }
+                }) {
+                    Text(text = "Click to show bottom sheet")
                 }
+                when (localSearchUiState) {
+                    LocalSearchUiState.NoSearch -> {
+                        Column(
+                            modifier = modifier
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            NoSearchScreen()
+                        }
+                    }
 
-                is LocalSearchUiState.LocalSearchResult -> {
-                    SearchResultTabRow(tabState = tabState, switchTab = switchTab)
-                    when (tabState.currentIndex) {
-                        0 -> {
-                            SearchResultContent(
-                                appList = localSearchUiState.filter,
-                                isSelectedMode = localSearchUiState.isSelectedMode,
-                                switchSelectedMode = switchSelectedMode,
-                                onSelect = onSelect
+                    LocalSearchUiState.Loading -> {
+                        Column(
+                            modifier = modifier
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            BlockerLoadingWheel(
+                                modifier = modifier,
+                                contentDesc = stringResource(id = R.string.searching),
                             )
                         }
-
-                        1 -> {}
-                        2 -> {}
                     }
-                }
 
-                is LocalSearchUiState.Error -> {
-                    ErrorScreen(localSearchUiState.message)
+                    is LocalSearchUiState.LocalSearchResult -> {
+                        SearchResultTabRow(tabState = tabState, switchTab = switchTab)
+                        when (tabState.currentIndex) {
+                            0 -> {
+                                SearchResultContent(
+                                    appList = localSearchUiState.filter,
+                                    isSelectedMode = localSearchUiState.isSelectedMode,
+                                    switchSelectedMode = switchSelectedMode,
+                                    onSelect = onSelect
+                                )
+                            }
+
+                            1 -> {}
+                            2 -> {}
+                        }
+                    }
+
+                    is LocalSearchUiState.Error -> {
+                        ErrorScreen(localSearchUiState.message)
+                    }
                 }
             }
         }
@@ -300,7 +344,7 @@ fun SearchResultContent(
             modifier = modifier,
             state = listState
         ) {
-            items(listContent, key = { it.label }) {
+            items(listContent, key = { it.app.label }) {
                 AppListItem(
                     filterAppItem = it,
                     isSelectedMode = isSelectedMode,
@@ -338,7 +382,8 @@ fun GlobalSearchScreenEmptyPreview() {
             onBlockAll = {},
             onCheckAll = {},
             switchSelectedMode = {},
-            onSelect = {}
+            onSelect = {},
+            navigationToSearchedAppDetail = {}
         )
     }
 }
@@ -347,8 +392,9 @@ fun GlobalSearchScreenEmptyPreview() {
 @Preview
 fun GlobalSearchScreenPreview() {
     val filterAppItem = FilterAppItem(
-        label = "Blocker",
-        packageInfo = null,
+        app = Application(
+            label = "Blocker",
+        ),
         activityCount = 0,
         broadcastCount = 1,
         serviceCount = 0,
@@ -381,7 +427,8 @@ fun GlobalSearchScreenPreview() {
             onBlockAll = {},
             onCheckAll = {},
             switchSelectedMode = {},
-            onSelect = {}
+            onSelect = {},
+            navigationToSearchedAppDetail = {}
         )
     }
 }
@@ -390,8 +437,10 @@ fun GlobalSearchScreenPreview() {
 @Preview
 fun GlobalSearchScreenSelectedPreview() {
     val filterAppItem = FilterAppItem(
-        label = "Blocker",
-        packageInfo = null,
+        app = Application(
+            label = "Blocker",
+        ),
+        isSelected = true,
         activityCount = 0,
         broadcastCount = 1,
         serviceCount = 0,
@@ -424,7 +473,8 @@ fun GlobalSearchScreenSelectedPreview() {
             onBlockAll = {},
             onCheckAll = {},
             switchSelectedMode = {},
-            onSelect = {}
+            onSelect = {},
+            navigationToSearchedAppDetail = {}
         )
     }
 }
