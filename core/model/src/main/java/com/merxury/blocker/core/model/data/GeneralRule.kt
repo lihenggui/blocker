@@ -26,5 +26,5 @@ data class GeneralRule(
     val description: String? = null,
     val safeToBlock: Boolean? = null,
     val sideEffect: String? = null,
-    val contributors: List<String> = listOf()
+    val contributors: List<String> = listOf(),
 )

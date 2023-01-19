@@ -35,8 +35,6 @@ import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import java.io.File
-import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -44,13 +42,15 @@ import okhttp3.Request
 import okio.buffer
 import okio.sink
 import org.apache.commons.csv.CSVFormat
+import java.io.File
+import java.io.IOException
 
 @HiltWorker
 class CheckRuleUpdateWork @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted params: WorkerParameters,
     val dao: InstantComponentInfoDao,
-    val okHttpClient: OkHttpClient
+    val okHttpClient: OkHttpClient,
 ) : CoroutineWorker(context, params) {
     private val logger = XLog.tag("CheckRuleUpdateWork")
 
@@ -103,7 +103,7 @@ class CheckRuleUpdateWork @AssistedInject constructor(
                     packagePath = it[0],
                     componentName = it[1],
                     description = it[2],
-                    recommendToBlock = it[3].toBoolean()
+                    recommendToBlock = it[3].toBoolean(),
                 )
             }
             .forEach {
@@ -214,7 +214,8 @@ class CheckRuleUpdateWork @AssistedInject constructor(
     private fun getOnlineSourceType(context: Context): OnlineSourceType {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val value = pref.getString(
-            context.getString(R.string.key_pref_online_source_type), "GITLAB"
+            context.getString(R.string.key_pref_online_source_type),
+            "GITLAB",
         ).orEmpty()
         return try {
             OnlineSourceType.valueOf(value)
@@ -231,5 +232,5 @@ class CheckRuleUpdateWork @AssistedInject constructor(
 data class Set(
     val filename: String = "",
     val date: Long = 0L,
-    val version: Long = 0L
+    val version: Long = 0L,
 )

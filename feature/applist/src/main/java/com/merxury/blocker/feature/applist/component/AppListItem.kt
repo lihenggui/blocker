@@ -77,7 +77,7 @@ fun AppListItem(
                     onClick = { onClick(packageName) },
                     onLongClick = { expanded = true },
                 )
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             AppIcon(packageInfo, iconModifier.size(48.dp))
             Spacer(modifier = Modifier.width(16.dp))
@@ -85,13 +85,13 @@ fun AppListItem(
                 label = label,
                 versionName = versionName,
                 versionCode = versionCode,
-                serviceStatus = appServiceStatus
+                serviceStatus = appServiceStatus,
             )
         }
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter),
-            contentAlignment = Alignment.TopEnd
+            contentAlignment = Alignment.TopEnd,
         ) {
             AppListItemMenuList(
                 expanded = expanded,
@@ -101,7 +101,7 @@ fun AppListItem(
                 onUninstallClick = { onUninstallClick(packageName) },
                 onEnableClick = { onEnableClick(packageName) },
                 onDisableClick = { onDisableClick(packageName) },
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
             )
         }
     }
@@ -115,7 +115,7 @@ private fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
             .data(info)
             .crossfade(true)
             .build(),
-        contentDescription = null
+        contentDescription = null,
     )
 }
 
@@ -125,12 +125,12 @@ private fun AppContent(
     versionName: String,
     versionCode: Long,
     serviceStatus: AppServiceStatus?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
         Text(
             text = stringResource(id = string.version_code_template, versionName, versionCode),
@@ -143,7 +143,7 @@ private fun AppContent(
                     id = string.service_status_template,
                     serviceStatus.running,
                     serviceStatus.blocked,
-                    serviceStatus.total
+                    serviceStatus.total,
                 ),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -160,7 +160,7 @@ fun AppListItemPreview() {
         running = 1,
         blocked = 2,
         total = 10,
-        packageName = "com.merxury.blocker"
+        packageName = "com.merxury.blocker",
     )
     BlockerTheme {
         Surface {

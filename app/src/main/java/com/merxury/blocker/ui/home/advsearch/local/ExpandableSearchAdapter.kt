@@ -88,7 +88,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
         groupPosition: Int,
         isExpanded: Boolean,
         convertView: View?,
-        parent: ViewGroup?
+        parent: ViewGroup?,
     ): View {
         val app = appList[groupPosition]
         val components = data[app] ?: listOf()
@@ -119,7 +119,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
         childPosition: Int,
         isLastChild: Boolean,
         convertView: View?,
-        parent: ViewGroup?
+        parent: ViewGroup?,
     ): View {
         val app = appList.getOrNull(groupPosition)
         val child = data[app]?.getOrNull(childPosition) ?: throw RuntimeException("Child is null")
@@ -149,7 +149,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
                     context,
                     appInfo,
                     appInfo.uid / 100000,
-                    view
+                    view,
                 )
             } catch (e: Exception) {
                 logger.e("Failed to load icon, packageName: ${app?.packageName}", e)

@@ -47,7 +47,7 @@ fun BlockerNavHost(
     onBackClick: () -> Unit,
     isExpandedScreen: Boolean,
     modifier: Modifier = Modifier,
-    startDestination: String = appListRoute
+    startDestination: String = appListRoute,
 ) {
     AnimatedNavHost(
         navController = navController,

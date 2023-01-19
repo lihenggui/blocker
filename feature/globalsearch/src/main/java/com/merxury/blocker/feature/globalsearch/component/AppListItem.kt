@@ -58,7 +58,7 @@ fun AppListItem(
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
-    onSelect: (Boolean) -> Unit
+    onSelect: (Boolean) -> Unit,
 ) {
     val color = if (isSelectedMode) {
         MaterialTheme.colorScheme.tertiaryContainer
@@ -86,14 +86,14 @@ fun AppListItem(
                 .padding(horizontal = 8.dp, vertical = 4.dp)
                 .background(
                     color = color,
-                    shape = shape
-                )
+                    shape = shape,
+                ),
         ) {
             AppIcon(
                 info = filterAppItem.packageInfo,
                 isSelectedMode = isSelectedMode,
                 isSelected = filterAppItem.isSelected,
-                onSelect = onSelect
+                onSelect = onSelect,
             )
             Spacer(modifier = Modifier.width(16.dp))
             AppContent(appItem = filterAppItem)
@@ -107,14 +107,14 @@ private fun AppIcon(
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
     isSelected: Boolean,
-    onSelect: (Boolean) -> Unit
+    onSelect: (Boolean) -> Unit,
 ) {
     if (isSelected) {
         IconButton(onClick = { onSelect(false) }) {
             Icon(
                 imageVector = BlockerIcons.Check,
                 modifier = modifier.size(40.dp),
-                contentDescription = null
+                contentDescription = null,
             )
         }
     } else {
@@ -138,25 +138,25 @@ private fun AppIcon(
 @Composable
 private fun AppContent(
     appItem: FilterAppItem,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var count = 0
     Column(modifier) {
         Text(
             text = appItem.label,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
         Row(
             modifier = modifier,
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.Start,
         ) {
             if (appItem.serviceCount != 0) {
                 Text(
                     text = stringResource(
                         id = R.string.service_count,
-                        appItem.serviceCount
+                        appItem.serviceCount,
                     ),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
                 count++
             }
@@ -164,15 +164,15 @@ private fun AppContent(
                 if (count != 0) {
                     Text(
                         text = stringResource(id = R.string.delimiter),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 Text(
                     text = stringResource(
                         id = R.string.broadcast_count,
-                        appItem.broadcastCount
+                        appItem.broadcastCount,
                     ),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
 
                 count++
@@ -181,30 +181,30 @@ private fun AppContent(
                 if (count != 0) {
                     Text(
                         text = stringResource(id = R.string.delimiter),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 Text(
                     text = stringResource(
                         id = R.string.activity_count,
-                        appItem.activityCount
+                        appItem.activityCount,
                     ),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
             if (appItem.contentProviderCount != 0) {
                 if (count != 0) {
                     Text(
                         text = stringResource(id = R.string.delimiter),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.bodyMedium,
                     )
                 }
                 Text(
                     text = stringResource(
                         id = R.string.content_provider_count,
-                        appItem.contentProviderCount
+                        appItem.contentProviderCount,
                     ),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
         }
@@ -222,7 +222,7 @@ fun AppListItemPreview() {
         broadcastCount = 2,
         serviceCount = 6,
         contentProviderCount = 12,
-        isSelected = true
+        isSelected = true,
     )
     BlockerTheme {
         Surface {
@@ -230,7 +230,7 @@ fun AppListItemPreview() {
                 filterAppItem = filterAppItem,
                 isSelectedMode = true,
                 switchSelectedMode = {},
-                onSelect = {}
+                onSelect = {},
             )
         }
     }
@@ -245,7 +245,7 @@ fun AppListItemWithoutServicePreview() {
         activityCount = 0,
         broadcastCount = 0,
         serviceCount = 0,
-        contentProviderCount = 9
+        contentProviderCount = 9,
     )
     BlockerTheme {
         Surface {
@@ -253,7 +253,7 @@ fun AppListItemWithoutServicePreview() {
                 filterAppItem = filterAppItem,
                 isSelectedMode = false,
                 switchSelectedMode = {},
-                onSelect = {}
+                onSelect = {},
             )
         }
     }

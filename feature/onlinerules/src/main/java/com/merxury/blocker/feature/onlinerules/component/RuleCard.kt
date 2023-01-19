@@ -46,7 +46,7 @@ fun RuleCard(item: GeneralRuleEntity) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 8.dp),
-        onClick = {}
+        onClick = {},
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
             RuleBasicInfo(item = item)
@@ -57,17 +57,17 @@ fun RuleCard(item: GeneralRuleEntity) {
 
 @Composable
 fun RuleBasicInfo(
-    item: GeneralRuleEntity
+    item: GeneralRuleEntity,
 ) {
     Row(
         modifier = Modifier.padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         if (item.iconUrl == null) {
             Icon(
                 painter = painterResource(id = BlockerIcons.Android),
                 contentDescription = null,
-                modifier = Modifier.size(48.dp)
+                modifier = Modifier.size(48.dp),
             )
         } else {
             // TODO
@@ -93,7 +93,7 @@ fun RuleDetail(item: GeneralRuleEntity) {
     ruleDetail.forEach {
         RuleDetailItem(
             title = it.title,
-            detail = it.detail
+            detail = it.detail,
         )
     }
 }
@@ -101,7 +101,7 @@ fun RuleDetail(item: GeneralRuleEntity) {
 @Composable
 fun RuleDetailItem(
     title: String?,
-    detail: String?
+    detail: String?,
 ) {
     Column(modifier = Modifier.padding(bottom = 2.dp)) {
         title?.let { Text(text = it, style = MaterialTheme.typography.titleSmall) }
@@ -111,7 +111,7 @@ fun RuleDetailItem(
 
 private data class RuleDetailItemInfo(
     val title: String?,
-    val detail: String?
+    val detail: String?,
 )
 
 @Composable
@@ -125,7 +125,7 @@ fun RuleBasicInfoPreview() {
         description = "Merxury Merxury Merxury Merxury Merxury Merxury Merxury Merxury",
         sideEffect = "unknown",
         safeToBlock = true,
-        contributors = listOf("blocker")
+        contributors = listOf("blocker"),
     )
     BlockerTheme {
         RuleCard(item = item)

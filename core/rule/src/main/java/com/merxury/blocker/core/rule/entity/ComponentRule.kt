@@ -26,5 +26,5 @@ data class ComponentRule(
     var name: String = "",
     var state: Boolean = true,
     var type: EComponentType = EComponentType.RECEIVER,
-    var method: ControllerType = ControllerType.PM
+    var method: ControllerType = ControllerType.PM,
 )
