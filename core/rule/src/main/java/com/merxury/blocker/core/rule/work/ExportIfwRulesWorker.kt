@@ -37,11 +37,11 @@ import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.util.IfwStorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import java.io.File
-import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
+import java.io.IOException
 
 @HiltWorker
 class ExportIfwRulesWorker @AssistedInject constructor(
@@ -58,12 +58,12 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         val folderPath = inputData.getString(PARAM_FOLDER_PATH)
         if (folderPath.isNullOrEmpty()) {
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED)
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
             )
         }
         if (!StorageUtil.isFolderReadable(context, folderPath)) {
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION)
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
         }
         Timber.i("Start to export IFW rules.")
@@ -83,17 +83,17 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         } catch (e: RuntimeException) {
             Timber.e("Failed to export IFW rules", e)
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION)
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
             )
         } catch (e: IOException) {
             Timber.e("Can't read IFW rules", e)
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION)
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
             )
         }
         Timber.i("Export IFW rules finished, success count = $current.")
         return@withContext Result.success(
-            workDataOf(PARAM_EXPORT_COUNT to current)
+            workDataOf(PARAM_EXPORT_COUNT to current),
         )
     }
 
@@ -128,7 +128,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
             .setInputData(
                 workDataOf(
                     PARAM_FOLDER_PATH to folderPath,
-                )
+                ),
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()

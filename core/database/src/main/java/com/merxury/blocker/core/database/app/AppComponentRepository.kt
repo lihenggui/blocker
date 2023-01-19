@@ -32,7 +32,7 @@ class AppComponentRepository @Inject constructor(private val appComponentDao: Ap
 
     suspend fun getAppComponentByType(
         packageName: String,
-        type: EComponentType
+        type: EComponentType,
     ): List<AppComponentEntity> {
         return appComponentDao.getByPackageNameAndType(packageName, type)
     }

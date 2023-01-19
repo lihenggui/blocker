@@ -35,12 +35,12 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideInstalledAppDatabase(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
     ): InstalledAppDatabase {
         return Room.databaseBuilder(
             context,
             InstalledAppDatabase::class.java,
-            "installed_app"
+            "installed_app",
         )
             .fallbackToDestructiveMigration()
             .build()
@@ -49,12 +49,12 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideInstantComponentInfoDatabase(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
     ): InstantComponentInfoDatabase {
         return Room.databaseBuilder(
             context,
             InstantComponentInfoDatabase::class.java,
-            "instant_component_info"
+            "instant_component_info",
         )
             .fallbackToDestructiveMigration()
             .build()
@@ -71,12 +71,12 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideComponentDetailDatabase(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
     ): ComponentDetailDatabase {
         return Room.databaseBuilder(
             context,
             ComponentDetailDatabase::class.java,
-            "component_detail"
+            "component_detail",
         )
             .fallbackToDestructiveMigration()
             .build()

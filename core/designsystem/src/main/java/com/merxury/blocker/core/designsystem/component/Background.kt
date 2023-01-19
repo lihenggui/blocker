@@ -50,7 +50,7 @@ import kotlin.math.tan
 @Composable
 fun BlockerBackground(
     modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val color = LocalBackgroundTheme.current.color
     val tonalElevation = LocalBackgroundTheme.current.tonalElevation
@@ -79,7 +79,7 @@ fun BlockerGradientBackground(
     modifier: Modifier = Modifier,
     topColor: Color = LocalGradientColors.current.primary,
     bottomColor: Color = LocalGradientColors.current.secondary,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val currentTopColor by rememberUpdatedState(topColor)
     val currentBottomColor by rememberUpdatedState(bottomColor)
@@ -93,7 +93,7 @@ fun BlockerGradientBackground(
                     val offset = size.height * tan(
                         Math
                             .toRadians(11.06)
-                            .toFloat()
+                            .toFloat(),
                     )
 
                     val start = Offset(size.width / 2 + offset / 2, 0f)
@@ -127,7 +127,7 @@ fun BlockerGradientBackground(
                         drawRect(topGradient)
                         drawRect(bottomGradient)
                     }
-                }
+                },
         ) {
             content()
         }

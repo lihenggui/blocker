@@ -22,15 +22,15 @@ import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleReposito
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
-    private val generalRuleRepository: GeneralRuleRepository
+    private val generalRuleRepository: GeneralRuleRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<GeneralRuleUiState>(GeneralRuleUiState.Loading)
     val uiState = _uiState.asStateFlow()

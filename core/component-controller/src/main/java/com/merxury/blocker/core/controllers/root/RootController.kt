@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,35 +28,35 @@ import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.utils.ApplicationUtil
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import javax.inject.Inject
 
 class RootController @Inject constructor(
-    private val context: Context
+    private val context: Context,
 ) : IController {
 
     override suspend fun switchComponent(
         packageName: String,
         componentName: String,
-        state: Int
+        state: Int,
     ): Boolean {
         val comm: String = when (state) {
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> removeEscapeCharacter(
                 String.format(
                     ENABLE_COMPONENT_TEMPLATE,
                     packageName,
-                    componentName
-                )
+                    componentName,
+                ),
             )
 
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> removeEscapeCharacter(
                 String.format(
                     DISABLE_COMPONENT_TEMPLATE,
                     packageName,
-                    componentName
-                )
+                    componentName,
+                ),
             )
 
             else -> return false
@@ -77,7 +77,7 @@ class RootController @Inject constructor(
         return switchComponent(
             packageName,
             componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
         )
     }
 
@@ -85,13 +85,13 @@ class RootController @Inject constructor(
         return switchComponent(
             packageName,
             componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
         )
     }
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
         var succeededCount = 0
         componentList.forEach {
@@ -105,7 +105,7 @@ class RootController @Inject constructor(
 
     override suspend fun batchDisable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
         var succeededCount = 0
         componentList.forEach {
@@ -123,11 +123,11 @@ class RootController @Inject constructor(
 
     override suspend fun checkComponentEnableState(
         packageName: String,
-        componentName: String
+        componentName: String,
     ): Boolean {
         return ApplicationUtil.checkComponentIsEnabled(
             context.packageManager,
-            ComponentName(packageName, componentName)
+            ComponentName(packageName, componentName),
         )
     }
 

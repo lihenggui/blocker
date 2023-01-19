@@ -31,7 +31,7 @@ import com.merxury.blocker.core.model.Application
 
 @Composable
 fun CollapseTextSection(
-    app: Application
+    app: Application,
 ) {
     val versionName = app.versionName
     Text(text = app.packageName, style = MaterialTheme.typography.bodyMedium)
@@ -50,6 +50,6 @@ fun CollapseImageSection(info: PackageInfo?, modifier: Modifier = Modifier) {
             .data(info)
             .crossfade(true)
             .build(),
-        contentDescription = null
+        contentDescription = null,
     )
 }

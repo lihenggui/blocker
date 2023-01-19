@@ -68,7 +68,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
     override fun onBindViewHolder(
         holder: ComponentViewHolder,
         position: Int,
-        payloads: MutableList<Any>
+        payloads: MutableList<Any>,
     ) {
         if (payloads.isEmpty()) {
             return super.onBindViewHolder(holder, position, payloads)
@@ -155,7 +155,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
         override fun onCreateContextMenu(
             menu: ContextMenu?,
             view: View?,
-            menuInfo: ContextMenu.ContextMenuInfo?
+            menuInfo: ContextMenu.ContextMenuInfo?,
         ) {
             val item = currentList.getOrNull(contextMenuPosition)
             if (item == null) {

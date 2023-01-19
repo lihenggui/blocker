@@ -27,19 +27,19 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class AppInfoViewModel @Inject constructor(
     app: android.app.Application,
     savedStateHandle: SavedStateHandle,
-    stringDecoder: StringDecoder
+    stringDecoder: StringDecoder,
 ) : AndroidViewModel(app) {
     private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _uiState: MutableStateFlow<AppInfoUiState> =
@@ -53,10 +53,10 @@ class AppInfoViewModel @Inject constructor(
                 string.receiver,
                 string.service,
                 string.activity,
-                string.content_provider
+                string.content_provider,
             ),
-            currentIndex = 0
-        )
+            currentIndex = 0,
+        ),
     )
     val tabState: StateFlow<TabState> = _tabState.asStateFlow()
 
@@ -133,6 +133,6 @@ sealed interface AppInfoUiState {
     object Loading : AppInfoUiState
     class Error(val error: ErrorMessage) : AppInfoUiState
     data class Success(
-        val appInfo: Application
+        val appInfo: Application,
     ) : AppInfoUiState
 }

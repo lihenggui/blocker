@@ -47,17 +47,17 @@ interface AppComponentDao {
 
     @Query(
         "SELECT * FROM app_component WHERE package_name LIKE :packageName " +
-            "AND component_name LIKE :componentName"
+            "AND component_name LIKE :componentName",
     )
     suspend fun getByPackageNameAndComponentName(
         packageName: String,
-        componentName: String
+        componentName: String,
     ): AppComponentEntity?
 
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName AND type = :type")
     suspend fun getByPackageNameAndType(
         packageName: String,
-        type: EComponentType
+        type: EComponentType,
     ): List<AppComponentEntity>
 
     @Transaction
