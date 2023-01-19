@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import com.merxury.blocker.core.model.data.ControllerType
 
 class ComponentControllerProxy private constructor(
     method: ControllerType,
-    context: Context
+    context: Context,
 ) : IController {
 
     private var controller: IController = when (method) {
@@ -41,7 +41,7 @@ class ComponentControllerProxy private constructor(
     override suspend fun switchComponent(
         packageName: String,
         componentName: String,
-        state: Int
+        state: Int,
     ): Boolean {
         return controller.switchComponent(packageName, componentName, state)
     }
@@ -56,21 +56,21 @@ class ComponentControllerProxy private constructor(
 
     override suspend fun checkComponentEnableState(
         packageName: String,
-        componentName: String
+        componentName: String,
     ): Boolean {
         return controller.checkComponentEnableState(packageName, componentName)
     }
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
         return controller.batchEnable(componentList) { action(it) }
     }
 
     override suspend fun batchDisable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
         return controller.batchDisable(componentList) { action(it) }
     }
@@ -91,7 +91,7 @@ class ComponentControllerProxy private constructor(
 
         private fun getComponentControllerProxy(
             method: ControllerType,
-            context: Context
+            context: Context,
         ): ComponentControllerProxy {
             return ComponentControllerProxy(method, context).also {
                 controllerMethod = method

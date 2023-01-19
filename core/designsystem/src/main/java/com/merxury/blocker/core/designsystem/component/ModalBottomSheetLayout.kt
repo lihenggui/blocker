@@ -53,14 +53,14 @@ fun BlockerModalBottomSheetLayout(
             bottomStart = 0.dp,
             bottomEnd = 0.dp,
             topStart = 12.dp,
-            topEnd = 12.dp
+            topEnd = 12.dp,
         ),
         sheetContent = {
             SheetContent {
                 sheetContent()
             }
         },
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
         screenContent()
     }
@@ -68,7 +68,7 @@ fun BlockerModalBottomSheetLayout(
 
 @Composable
 fun SheetContent(
-    sheetContent: @Composable () -> Unit
+    sheetContent: @Composable () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -79,7 +79,7 @@ fun SheetContent(
         Icon(
             painter = painterResource(BlockerIcons.Rectangle),
             contentDescription = null,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         )
         sheetContent()
     }
@@ -94,14 +94,14 @@ fun SheetContentPreview() {
                 sheetContent = {
                     Text(
                         text = "Bottom sheet",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                     Spacer(modifier = Modifier.height(32.dp))
                     Text(
                         text = "Click outside the bottom sheet to hide it",
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.bodyLarge,
                     )
-                }
+                },
             )
         }
     }

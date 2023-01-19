@@ -46,25 +46,25 @@ fun NavController.navigateToAppDetail(packageName: String) {
 
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.appDetailScreen(
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
 ) {
     composable(
         route = "app_detail_route/{$packageNameArg}",
         arguments = listOf(
-            navArgument(packageNameArg) { type = NavType.StringType }
+            navArgument(packageNameArg) { type = NavType.StringType },
         ),
         enterTransition = {
             slideInHorizontally(
                 initialOffsetX = { 300 },
-                animationSpec = tween(300)
+                animationSpec = tween(300),
             ) + fadeIn(animationSpec = tween(300))
         },
         popExitTransition = {
             slideOutHorizontally(
                 targetOffsetX = { 300 },
-                animationSpec = tween(300)
+                animationSpec = tween(300),
             ) + fadeOut(animationSpec = tween(300))
-        }
+        },
     ) {
         AppDetailRoute(onBackClick = onBackClick)
     }

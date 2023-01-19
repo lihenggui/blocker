@@ -163,7 +163,7 @@ class SettingsFragment :
                     backupPath = backupPath?.toString(),
                     restoreSystemApps = restoreSystemApps,
                     controllerType = controllerType,
-                )
+                ),
             )
         }
         ToastUtil.showToast(R.string.import_app_rules_please_wait, Toast.LENGTH_LONG)
@@ -178,8 +178,8 @@ class SettingsFragment :
                 ExistingWorkPolicy.KEEP,
                 ExportBlockerRulesWorker.exportWork(
                     folderPath = savedFolder?.toString().orEmpty(),
-                    backupSystemApps = backupSystemApps
-                )
+                    backupSystemApps = backupSystemApps,
+                ),
             )
         }
         ToastUtil.showToast(R.string.backing_up_apps_please_wait, Toast.LENGTH_LONG)
@@ -192,7 +192,7 @@ class SettingsFragment :
             enqueueUniqueWork(
                 "ExportIfwRule",
                 ExistingWorkPolicy.KEEP,
-                ExportIfwRulesWorker.exportWork(savedFolder?.toString().orEmpty())
+                ExportIfwRulesWorker.exportWork(savedFolder?.toString().orEmpty()),
             )
         }
     }
@@ -208,7 +208,7 @@ class SettingsFragment :
                 ImportIfwRulesWorker.importIfwWork(
                     backupPath = backupPath.toString(),
                     restoreSystemApps = restoreSystemApps,
-                )
+                ),
             )
         }
     }
@@ -228,7 +228,7 @@ class SettingsFragment :
             enqueueUniqueWork(
                 "ImportMatRule",
                 ExistingWorkPolicy.KEEP,
-                ImportMatRulesWorker.importWork(fileUri, controllerType, restoreSystemApps)
+                ImportMatRulesWorker.importWork(fileUri, controllerType, restoreSystemApps),
             )
         }
     }
@@ -255,7 +255,7 @@ class SettingsFragment :
 
     private fun initPreference() {
         controllerTypePreference?.setDefaultValue(
-            getString(R.string.key_pref_controller_type_default_value)
+            getString(R.string.key_pref_controller_type_default_value),
         )
         updateFolderSummary()
     }
@@ -360,7 +360,7 @@ class SettingsFragment :
         PreferenceManager.getDefaultSharedPreferences(context).edit()
             .putString(
                 context.getString(R.string.key_pref_online_source_type),
-                type.name
+                type.name,
             )
             .apply()
     }

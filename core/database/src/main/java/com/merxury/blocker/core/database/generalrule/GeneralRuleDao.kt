@@ -49,7 +49,7 @@ interface GeneralRuleDao {
         value = """
             DELETE FROM general_rules
             WHERE id in (:ids)
-        """
+        """,
     )
     suspend fun deleteGeneralRules(ids: List<Int>)
 

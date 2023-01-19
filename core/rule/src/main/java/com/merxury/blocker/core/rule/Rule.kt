@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,14 +51,15 @@ object Rule {
         val rule = BlockerRule(
             packageName = applicationInfo.packageName,
             versionName = applicationInfo.versionName,
-            versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo)
+            versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo),
         )
         val ifwController = IntentFirewallImpl(packageName).load()
         try {
             applicationInfo.receivers?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
                 val statePM = ApplicationUtil.checkComponentIsEnabled(
-                    pm, ComponentName(it.packageName, it.name)
+                    pm,
+                    ComponentName(it.packageName, it.name),
                 )
                 rule.components.add(
                     ComponentRule(
@@ -66,8 +67,8 @@ object Rule {
                         it.name,
                         stateIFW,
                         EComponentType.RECEIVER,
-                        ControllerType.IFW
-                    )
+                        ControllerType.IFW,
+                    ),
                 )
                 rule.components.add(
                     ComponentRule(
@@ -75,14 +76,15 @@ object Rule {
                         it.name,
                         statePM,
                         EComponentType.RECEIVER,
-                        ControllerType.PM
-                    )
+                        ControllerType.PM,
+                    ),
                 )
             }
             applicationInfo.services?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
                 val statePM = ApplicationUtil.checkComponentIsEnabled(
-                    pm, ComponentName(it.packageName, it.name)
+                    pm,
+                    ComponentName(it.packageName, it.name),
                 )
                 rule.components.add(
                     ComponentRule(
@@ -90,8 +92,8 @@ object Rule {
                         it.name,
                         stateIFW,
                         EComponentType.SERVICE,
-                        ControllerType.IFW
-                    )
+                        ControllerType.IFW,
+                    ),
                 )
                 rule.components.add(
                     ComponentRule(
@@ -99,14 +101,15 @@ object Rule {
                         it.name,
                         statePM,
                         EComponentType.SERVICE,
-                        ControllerType.PM
-                    )
+                        ControllerType.PM,
+                    ),
                 )
             }
             applicationInfo.activities?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
                 val statePM = ApplicationUtil.checkComponentIsEnabled(
-                    pm, ComponentName(it.packageName, it.name)
+                    pm,
+                    ComponentName(it.packageName, it.name),
                 )
                 rule.components.add(
                     ComponentRule(
@@ -114,8 +117,8 @@ object Rule {
                         it.name,
                         stateIFW,
                         EComponentType.ACTIVITY,
-                        ControllerType.IFW
-                    )
+                        ControllerType.IFW,
+                    ),
                 )
                 rule.components.add(
                     ComponentRule(
@@ -123,13 +126,14 @@ object Rule {
                         it.name,
                         statePM,
                         EComponentType.ACTIVITY,
-                        ControllerType.PM
-                    )
+                        ControllerType.PM,
+                    ),
                 )
             }
             applicationInfo.providers?.forEach {
                 val statePM = ApplicationUtil.checkComponentIsEnabled(
-                    pm, ComponentName(it.packageName, it.name)
+                    pm,
+                    ComponentName(it.packageName, it.name),
                 )
                 rule.components.add(
                     ComponentRule(
@@ -137,8 +141,8 @@ object Rule {
                         it.name,
                         statePM,
                         EComponentType.PROVIDER,
-                        ControllerType.PM
-                    )
+                        ControllerType.PM,
+                    ),
                 )
             }
             val result = if (rule.components.isNotEmpty()) {
@@ -157,7 +161,7 @@ object Rule {
     suspend fun import(
         context: Context,
         rule: BlockerRule,
-        controllerType: ControllerType
+        controllerType: ControllerType,
     ): Boolean {
         val controller = if (controllerType == ControllerType.IFW) {
             // Fallback to traditional controller
@@ -184,11 +188,15 @@ object Rule {
                             EComponentType.RECEIVER -> {
                                 if (!it.state) {
                                     ifwController?.add(
-                                        it.packageName, it.name, ComponentType.BROADCAST
+                                        it.packageName,
+                                        it.name,
+                                        ComponentType.BROADCAST,
                                     )
                                 } else {
                                     ifwController?.remove(
-                                        it.packageName, it.name, ComponentType.BROADCAST
+                                        it.packageName,
+                                        it.name,
+                                        ComponentType.BROADCAST,
                                     )
                                 }
                             }
@@ -196,11 +204,15 @@ object Rule {
                             EComponentType.SERVICE -> {
                                 if (!it.state) {
                                     ifwController?.add(
-                                        it.packageName, it.name, ComponentType.SERVICE
+                                        it.packageName,
+                                        it.name,
+                                        ComponentType.SERVICE,
                                     )
                                 } else {
                                     ifwController?.remove(
-                                        it.packageName, it.name, ComponentType.SERVICE
+                                        it.packageName,
+                                        it.name,
+                                        ComponentType.SERVICE,
                                     )
                                 }
                             }
@@ -208,11 +220,15 @@ object Rule {
                             EComponentType.ACTIVITY -> {
                                 if (!it.state) {
                                     ifwController?.add(
-                                        it.packageName, it.name, ComponentType.ACTIVITY
+                                        it.packageName,
+                                        it.name,
+                                        ComponentType.ACTIVITY,
                                     )
                                 } else {
                                     ifwController?.remove(
-                                        it.packageName, it.name, ComponentType.ACTIVITY
+                                        it.packageName,
+                                        it.name,
+                                        ComponentType.ACTIVITY,
                                     )
                                 }
                             }
@@ -230,7 +246,8 @@ object Rule {
                     else -> {
                         // For PM controllers, state enabled means component is enabled
                         val currentState = ApplicationUtil.checkComponentIsEnabled(
-                            pm, ComponentName(it.packageName, it.name)
+                            pm,
+                            ComponentName(it.packageName, it.name),
                         )
                         if (currentState == it.state) return@forEach
                         if (it.state) {
@@ -273,7 +290,7 @@ object Rule {
 
     suspend fun updateIfwState(
         rule: Rules,
-        controller: IController
+        controller: IController,
     ) {
         val activities =
             rule.activity?.componentFilters?.asSequence()?.map { filter -> filter.name.split("/") }
@@ -324,7 +341,7 @@ object Rule {
     fun isApplicationUninstalled(
         context: Context,
         savedList: MutableList<String>,
-        packageName: String
+        packageName: String,
     ): Boolean {
         if (packageName.trim().isEmpty()) {
             return true

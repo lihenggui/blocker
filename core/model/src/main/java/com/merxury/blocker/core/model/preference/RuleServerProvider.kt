@@ -21,5 +21,5 @@ package com.merxury.blocker.core.model.preference
  */
 enum class RuleServerProvider {
     GITHUB,
-    GITLAB
+    GITLAB,
 }

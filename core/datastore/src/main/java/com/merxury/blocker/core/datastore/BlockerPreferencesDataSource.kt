@@ -26,14 +26,14 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import java.io.IOException
-import javax.inject.Inject
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
+import java.io.IOException
+import javax.inject.Inject
 
 class BlockerPreferencesDataSource @Inject constructor(
-    private val userPreferences: DataStore<UserPreferences>
+    private val userPreferences: DataStore<UserPreferences>,
 ) {
 
     val userData = userPreferences.data.map {
@@ -42,14 +42,16 @@ class BlockerPreferencesDataSource @Inject constructor(
                 null,
                 ThemeBrandProto.THEME_BRAND_UNSPECIFIED,
                 ThemeBrandProto.UNRECOGNIZED,
-                ThemeBrandProto.THEME_BRAND_DEFAULT -> ThemeBrand.DEFAULT
+                ThemeBrandProto.THEME_BRAND_DEFAULT,
+                -> ThemeBrand.DEFAULT
                 ThemeBrandProto.THEME_BRAND_ANDROID -> ThemeBrand.ANDROID
             },
             darkThemeConfig = when (it.darkThemeConfig) {
                 null,
                 DarkThemeConfigProto.DARK_THEME_CONFIG_UNSPECIFIED,
                 DarkThemeConfigProto.UNRECOGNIZED,
-                DarkThemeConfigProto.DARK_THEME_CONFIG_FOLLOW_SYSTEM ->
+                DarkThemeConfigProto.DARK_THEME_CONFIG_FOLLOW_SYSTEM,
+                ->
                     DarkThemeConfig.FOLLOW_SYSTEM
                 DarkThemeConfigProto.DARK_THEME_CONFIG_LIGHT -> DarkThemeConfig.LIGHT
                 DarkThemeConfigProto.DARK_THEME_CONFIG_DARK -> DarkThemeConfig.DARK
@@ -57,14 +59,16 @@ class BlockerPreferencesDataSource @Inject constructor(
             controllerType = when (it.controllerType) {
                 null,
                 ControllerTypeProto.UNRECOGNIZED,
-                ControllerTypeProto.IFW -> ControllerType.IFW
+                ControllerTypeProto.IFW,
+                -> ControllerType.IFW
                 ControllerTypeProto.PM -> ControllerType.PM
                 ControllerTypeProto.SHIZUKU -> ControllerType.SHIZUKU
             },
             ruleServerProvider = when (it.ruleServerProvider) {
                 null,
                 RuleServerProviderProto.UNRECOGNIZED,
-                RuleServerProviderProto.GITLAB -> RuleServerProvider.GITLAB
+                RuleServerProviderProto.GITLAB,
+                -> RuleServerProvider.GITLAB
                 RuleServerProviderProto.GITHUB -> RuleServerProvider.GITHUB
             },
             ruleBackupFolder = it.ruleBackupFolder,
@@ -75,7 +79,8 @@ class BlockerPreferencesDataSource @Inject constructor(
             appSorting = when (it.appSorting) {
                 null,
                 AppSortingProto.UNRECOGNIZED,
-                AppSortingProto.APP_NAME_ASCENDING ->
+                AppSortingProto.APP_NAME_ASCENDING,
+                ->
                     AppSorting.NAME_ASCENDING
                 AppSortingProto.APP_NAME_DESCENDING ->
                     AppSorting.NAME_DESCENDING
@@ -91,7 +96,8 @@ class BlockerPreferencesDataSource @Inject constructor(
             componentSorting = when (it.componentSorting) {
                 null,
                 ComponentSortingProto.UNRECOGNIZED,
-                ComponentSortingProto.COMPONENT_NAME_ASCENDING ->
+                ComponentSortingProto.COMPONENT_NAME_ASCENDING,
+                ->
                     ComponentSorting.NAME_ASCENDING
                 ComponentSortingProto.COMPONENT_NAME_DESCENDING ->
                     ComponentSorting.NAME_DESCENDING
@@ -99,11 +105,12 @@ class BlockerPreferencesDataSource @Inject constructor(
             componentShowPriority = when (it.componentShowPriority) {
                 null,
                 ComponentShowPriorityProto.UNRECOGNIZED,
-                ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST ->
+                ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST,
+                ->
                     ComponentShowPriority.ENABLED_COMPONENTS_FIRST
                 ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST ->
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST
-            }
+            },
         )
     }
 
@@ -231,8 +238,8 @@ class BlockerPreferencesDataSource @Inject constructor(
                 val updatedChangeListVersions = update(
                     ChangeListVersions(
                         generalRuleVersion = currentPreferences.generalRuleChangeListVersion,
-                        onlineComponentVersion = currentPreferences.onlineComponentChangeListVersion
-                    )
+                        onlineComponentVersion = currentPreferences.onlineComponentChangeListVersion,
+                    ),
                 )
                 currentPreferences.copy {
                     generalRuleChangeListVersion = updatedChangeListVersions.generalRuleVersion

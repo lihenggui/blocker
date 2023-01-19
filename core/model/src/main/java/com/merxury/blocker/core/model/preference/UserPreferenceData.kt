@@ -30,5 +30,5 @@ data class UserPreferenceData(
     val showServiceInfo: Boolean,
     val appSorting: AppSorting,
     val componentSorting: ComponentSorting,
-    val componentShowPriority: ComponentShowPriority
+    val componentShowPriority: ComponentShowPriority,
 )
