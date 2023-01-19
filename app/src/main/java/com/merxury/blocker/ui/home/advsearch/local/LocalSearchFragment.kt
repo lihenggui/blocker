@@ -80,7 +80,7 @@ class LocalSearchFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         binding = LocalSearchFragmentBinding.inflate(inflater, container, false)
         return binding.root
@@ -165,7 +165,7 @@ class LocalSearchFragment : Fragment() {
         Toast.makeText(
             requireContext(),
             R.string.enabling_components_please_wait,
-            Toast.LENGTH_SHORT
+            Toast.LENGTH_SHORT,
         ).show()
         viewModel.doBatchOperation(true)
     }
@@ -174,7 +174,7 @@ class LocalSearchFragment : Fragment() {
         Toast.makeText(
             requireContext(),
             R.string.disabling_components_please_wait,
-            Toast.LENGTH_SHORT
+            Toast.LENGTH_SHORT,
         ).show()
         viewModel.doBatchOperation(false)
     }
@@ -208,7 +208,7 @@ class LocalSearchFragment : Fragment() {
         val searchManager =
             requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
         searchView?.setSearchableInfo(
-            searchManager.getSearchableInfo(requireActivity().componentName)
+            searchManager.getSearchableInfo(requireActivity().componentName),
         )
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -248,7 +248,7 @@ class LocalSearchFragment : Fragment() {
             requireActivity().addMenuProvider(
                 menuProvider,
                 viewLifecycleOwner,
-                Lifecycle.State.RESUMED
+                Lifecycle.State.RESUMED,
             )
         } else {
             requireActivity().removeMenuProvider(menuProvider)

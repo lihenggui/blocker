@@ -50,7 +50,7 @@ class GeneralRulesFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         binding = GeneralRulesFragmentBinding.inflate(inflater, container, false)
         return binding.root
@@ -99,14 +99,15 @@ class GeneralRulesFragment : Fragment() {
                         R.id.action_submit_ideas -> {
                             BrowserUtil.openUrl(
                                 requireContext(),
-                                "https://github.com/lihenggui/blocker-general-rules/issues"
+                                "https://github.com/lihenggui/blocker-general-rules/issues",
                             )
                         }
                     }
                     return true
                 }
             },
-            viewLifecycleOwner, Lifecycle.State.RESUMED
+            viewLifecycleOwner,
+            Lifecycle.State.RESUMED,
         )
     }
 

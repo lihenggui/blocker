@@ -41,7 +41,6 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.state.AppStateCache
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineStart
@@ -57,13 +56,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
     app: android.app.Application,
     private val userDataRepository: UserDataRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-    @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher
+    @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(app) {
     private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
     val uiState = _uiState.asStateFlow()
@@ -76,7 +76,7 @@ class AppListViewModel @Inject constructor(
                 ?: throwable.stackTraceToString()
                     .split("\n")
                     .first(),
-            throwable.stackTraceToString()
+            throwable.stackTraceToString(),
         )
     }
     private val channel = Channel<Job>(capacity = Channel.UNLIMITED).apply {
@@ -135,7 +135,7 @@ class AppListViewModel @Inject constructor(
         channel.trySend(
             viewModelScope.launch(
                 start = CoroutineStart.LAZY,
-                context = ioDispatcher + exceptionHandler
+                context = ioDispatcher + exceptionHandler,
             ) {
                 val userData = userDataRepository.userData.first()
                 if (!userData.showServiceInfo) {
@@ -159,11 +159,11 @@ class AppListViewModel @Inject constructor(
                     packageName = status.packageName,
                     running = status.running,
                     blocked = status.blocked,
-                    total = status.total
+                    total = status.total,
                 )
                 val newItem = oldItem.copy(appServiceStatus = serviceStatus)
                 currentList[itemIndex] = newItem
-            }
+            },
         )
     }
 
@@ -208,7 +208,7 @@ class AppListViewModel @Inject constructor(
 
     private suspend fun sortList(
         list: SnapshotStateList<AppItem>,
-        sorting: AppSorting
+        sorting: AppSorting,
     ) = withContext(cpuDispatcher) {
         when (sorting) {
             NAME_ASCENDING -> list.sortBy { it.label.lowercase() }
@@ -223,7 +223,7 @@ class AppListViewModel @Inject constructor(
 
     private suspend fun mapToSnapshotStateList(
         list: MutableList<Application>,
-        context: Context
+        context: Context,
     ): SnapshotStateList<AppItem> = withContext(cpuDispatcher) {
         val stateAppList = mutableStateListOf<AppItem>()
         list.forEach {
@@ -240,7 +240,7 @@ class AppListViewModel @Inject constructor(
                 lastUpdateTime = it.lastUpdateTime,
                 // TODO get service status
                 appServiceStatus = null,
-                packageInfo = it.packageInfo
+                packageInfo = it.packageInfo,
             )
             stateAppList.add(appItem)
         }

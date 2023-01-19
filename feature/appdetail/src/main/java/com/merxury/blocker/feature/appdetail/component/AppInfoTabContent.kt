@@ -48,15 +48,15 @@ fun AppInfoTabContent(
     onImportRules: () -> Unit,
     onExportIfw: () -> Unit,
     onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit
+    onResetIfw: () -> Unit,
 ) {
     Box(modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(
-                    rememberScrollState()
-                )
+                    rememberScrollState(),
+                ),
         ) {
             MoreInfo(
                 targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
@@ -68,7 +68,7 @@ fun AppInfoTabContent(
                 onImportRules = onImportRules,
                 onExportIfw = onExportIfw,
                 onImportIfw = onImportIfw,
-                onResetIfw = onResetIfw
+                onResetIfw = onResetIfw,
             )
         }
     }
@@ -84,7 +84,7 @@ fun MoreInfo(
     onImportRules: () -> Unit,
     onExportIfw: () -> Unit,
     onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit
+    onResetIfw: () -> Unit,
 ) {
     Column {
         MoreInfoItem(itemId = string.target_sdk_version, itemInfo = targetSdkVersion.toString())
@@ -103,20 +103,20 @@ fun MoreInfo(
 @Composable
 fun MoreInfoItem(
     itemId: Int,
-    itemInfo: String
+    itemInfo: String,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Text(
             text = stringResource(id = itemId),
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
         Text(
             text = itemInfo,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }
@@ -124,11 +124,11 @@ fun MoreInfoItem(
 @Composable
 fun BlockerRuleItem(
     onExportRules: () -> Unit,
-    onImportRules: () -> Unit
+    onImportRules: () -> Unit,
 ) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         ItemHead(itemRes = string.blocker_rules)
         Item(itemRes = string.export_rules, onItemClick = onExportRules)
@@ -140,11 +140,11 @@ fun BlockerRuleItem(
 fun IfwRuleItem(
     onExportIfw: () -> Unit,
     onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit
+    onResetIfw: () -> Unit,
 ) {
     Column(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
     ) {
         ItemHead(itemRes = string.ifw_rules)
         Item(itemRes = string.export_ifw_rules, onItemClick = onExportIfw)
@@ -160,7 +160,7 @@ fun ItemHead(itemRes: Int) {
             text = stringResource(id = itemRes),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         )
     }
 }
@@ -169,18 +169,18 @@ fun ItemHead(itemRes: Int) {
 fun Item(
     itemRes: Int,
     onItemClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onItemClick() }
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = stringResource(id = itemRes),
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
         )
     }
 }
@@ -205,7 +205,7 @@ fun PreviewAppInfoTabContent() {
                 onImportRules = {},
                 onExportIfw = {},
                 onImportIfw = {},
-                onResetIfw = {}
+                onResetIfw = {},
             )
         }
     }

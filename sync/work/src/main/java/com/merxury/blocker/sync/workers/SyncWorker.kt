@@ -63,8 +63,11 @@ class SyncWorker @AssistedInject constructor(
                 async { generalRuleRepository.sync() },
             ).all { it }
 
-            if (syncedSuccessfully) Result.success()
-            else Result.retry()
+            if (syncedSuccessfully) {
+                Result.success()
+            } else {
+                Result.retry()
+            }
         }
     }
 
@@ -72,7 +75,7 @@ class SyncWorker @AssistedInject constructor(
         blockerPreferences.getChangeListVersions()
 
     override suspend fun updateChangeListVersions(
-        update: ChangeListVersions.() -> ChangeListVersions
+        update: ChangeListVersions.() -> ChangeListVersions,
     ) = blockerPreferences.updateChangeListVersion(update)
 
     companion object {

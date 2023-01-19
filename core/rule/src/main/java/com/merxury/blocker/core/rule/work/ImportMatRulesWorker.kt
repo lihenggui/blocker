@@ -43,10 +43,10 @@ import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.IOException
 
 @HiltWorker
 class ImportMatRulesWorker @AssistedInject constructor(
@@ -66,7 +66,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
         if (uri == null) {
             Timber.e("File URI is null, cannot import MAT rules")
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_STORAGE_PERMISSION)
+                workDataOf(PARAM_WORK_RESULT to MISSING_STORAGE_PERMISSION),
             )
         }
         val typeOrdinal = inputData.getInt(PARAM_CONTROLLER_TYPE, IFW.ordinal)
@@ -91,7 +91,8 @@ class ImportMatRulesWorker @AssistedInject constructor(
                         return@forEach
                     }
                     val isSystemApp = ApplicationUtil.isSystemApp(
-                        context.packageManager, packageName
+                        context.packageManager,
+                        packageName,
                     )
                     if (!shouldRestoreSystemApps && isSystemApp) {
                         return@forEach
@@ -104,16 +105,16 @@ class ImportMatRulesWorker @AssistedInject constructor(
         } catch (e: RuntimeException) {
             Timber.e("Failed to import MAT files.", e)
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION)
+                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
             )
         } catch (e: IOException) {
             Timber.e("Error occurs while reading MAT files.", e)
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION)
+                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
             )
         }
         return@withContext Result.success(
-            workDataOf(PARAM_IMPORT_COUNT to current)
+            workDataOf(PARAM_IMPORT_COUNT to current),
         )
     }
 
@@ -150,7 +151,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
         fun importWork(
             fileUri: Uri,
             controllerType: ControllerType,
-            restoreSystemApps: Boolean
+            restoreSystemApps: Boolean,
         ): OneTimeWorkRequest {
             return OneTimeWorkRequestBuilder<ImportMatRulesWorker>()
                 .setInputData(
@@ -158,7 +159,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
                         PARAM_FILE_URI to fileUri.toString(),
                         PARAM_CONTROLLER_TYPE to controllerType.ordinal,
                         PARAM_RESTORE_SYS_APPS to restoreSystemApps,
-                    )
+                    ),
                 )
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()

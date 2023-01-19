@@ -43,10 +43,10 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.util.RuleSerializer
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.IOException
 
 @HiltWorker
 class ImportIfwRulesWorker @AssistedInject constructor(
@@ -63,12 +63,12 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         val folderPath = inputData.getString(PARAM_FOLDER_PATH)
         if (folderPath.isNullOrEmpty()) {
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to FOLDER_NOT_DEFINED)
+                workDataOf(PARAM_WORK_RESULT to FOLDER_NOT_DEFINED),
             )
         }
         if (!StorageUtil.isFolderReadable(context, folderPath)) {
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_STORAGE_PERMISSION)
+                workDataOf(PARAM_WORK_RESULT to MISSING_STORAGE_PERMISSION),
             )
         }
         Timber.i("Started to import IFW rules")
@@ -79,7 +79,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
             // Check directory is readable
             val ifwFolder = StorageUtil.getOrCreateIfwFolder(context, folderPath)
                 ?: return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION)
+                    workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
                 )
             val controller = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
             val files = ifwFolder.listFiles()
@@ -131,17 +131,17 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         } catch (e: RuntimeException) {
             Timber.e("Cannot import IFW rules", e)
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION)
+                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
             )
         } catch (e: IOException) {
             Timber.e("Cannot read IFW rules", e)
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION)
+                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
             )
         }
         Timber.i("Imported $importedCount IFW rules.")
         return@withContext Result.success(
-            workDataOf(PARAM_IMPORT_COUNT to importedCount)
+            workDataOf(PARAM_IMPORT_COUNT to importedCount),
         )
     }
 
@@ -180,7 +180,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                 workDataOf(
                     PARAM_FOLDER_PATH to backupPath,
                     PARAM_RESTORE_SYS_APPS to restoreSystemApps,
-                )
+                ),
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()

@@ -51,7 +51,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = ComponentDetailBottomSheetBinding.inflate(inflater, container, false)
         return binding.root
@@ -122,7 +122,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
             sdkName = sdkName,
             description = binding.description.editText?.text?.toString().orEmpty(),
             disableEffect = binding.disabledEffect.editText?.text?.toString().orEmpty(),
-            recommendToBlock = binding.recommendCheckbox.isChecked
+            recommendToBlock = binding.recommendCheckbox.isChecked,
         )
         viewModel.saveUserRule(userComponent)
     }

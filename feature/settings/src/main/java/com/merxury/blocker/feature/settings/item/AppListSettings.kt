@@ -31,22 +31,22 @@ fun AppListSettings(
     showServiceInfo: Boolean,
     updateShowSystemApps: (Boolean) -> Unit,
     updateShowServiceInfo: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp),
     ) {
         SettingItemHeader(itemRes = string.application_list)
         SwitchSettingItem(
             itemRes = string.show_system_apps,
             checked = showSystemApps,
-            onCheckedChange = updateShowSystemApps
+            onCheckedChange = updateShowSystemApps,
         )
         SwitchSettingItem(
             itemRes = string.show_service_info,
             checked = showServiceInfo,
-            onCheckedChange = updateShowServiceInfo
+            onCheckedChange = updateShowServiceInfo,
         )
     }
 }
@@ -59,7 +59,7 @@ fun AppListSettingsSectionPreview() {
             showSystemApps = false,
             showServiceInfo = true,
             updateShowSystemApps = {},
-            updateShowServiceInfo = {}
+            updateShowServiceInfo = {},
         )
     }
 }

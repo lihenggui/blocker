@@ -29,7 +29,7 @@ object PreferenceUtil {
         return when (
             pref.getString(
                 context.getString(R.string.key_pref_controller_type),
-                context.getString(R.string.key_pref_controller_type_default_value)
+                context.getString(R.string.key_pref_controller_type_default_value),
             )
         ) {
             "pm" -> ControllerType.PM
@@ -83,7 +83,8 @@ object PreferenceUtil {
     fun getShowServiceInfo(context: Context): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         return pref.getBoolean(
-            context.getString(R.string.key_pref_show_running_service_info), false
+            context.getString(R.string.key_pref_show_running_service_info),
+            false,
         )
     }
 
@@ -95,20 +96,23 @@ object PreferenceUtil {
     fun getSearchSystemApps(context: Context): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         return pref.getBoolean(
-            context.getString(R.string.key_pref_search_system_apps), false
+            context.getString(R.string.key_pref_search_system_apps),
+            false,
         )
     }
 
     fun setShowEnabledComponentShowFirst(context: Context, value: Boolean) {
         PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(
-            context.getString(R.string.key_pref_show_enabled_component_show_first), value
+            context.getString(R.string.key_pref_show_enabled_component_show_first),
+            value,
         ).apply()
     }
 
     fun getShowEnabledComponentShowFirst(context: Context): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         return pref.getBoolean(
-            context.getString(R.string.key_pref_show_enabled_component_show_first), false
+            context.getString(R.string.key_pref_show_enabled_component_show_first),
+            false,
         )
     }
 }
