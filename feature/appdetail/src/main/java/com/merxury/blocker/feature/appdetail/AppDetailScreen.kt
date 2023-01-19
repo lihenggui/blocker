@@ -90,7 +90,7 @@ fun AppDetailRoute(
         onImportRules = viewModel::onImportRules,
         onExportIfw = viewModel::onExportIfw,
         onImportIfw = viewModel::onImportIfw,
-        onResetIfw = viewModel::onResetIfw
+        onResetIfw = viewModel::onResetIfw,
     )
 }
 
@@ -114,7 +114,7 @@ fun AppDetailScreen(
     onImportRules: () -> Unit,
     onExportIfw: () -> Unit,
     onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit
+    onResetIfw: () -> Unit,
 ) {
     Column(modifier) {
         when (uiState) {
@@ -122,7 +122,7 @@ fun AppDetailScreen(
                 Column(
                     modifier = modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     BlockerLoadingWheel(
                         modifier = modifier,
@@ -150,7 +150,7 @@ fun AppDetailScreen(
                     onImportRules = onImportRules,
                     onExportIfw = onExportIfw,
                     onImportIfw = onImportIfw,
-                    onResetIfw = onResetIfw
+                    onResetIfw = onResetIfw,
                 )
             }
 
@@ -179,7 +179,7 @@ fun AppDetailContent(
     onImportRules: () -> Unit,
     onExportIfw: () -> Unit,
     onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit
+    onResetIfw: () -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -195,14 +195,14 @@ fun AppDetailContent(
                         Icon(
                             imageVector = BlockerIcons.Share,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                     IconButton(onClick = onFindInPage) {
                         Icon(
                             imageVector = BlockerIcons.Find,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                     if (tabState.currentIndex != 0) {
@@ -210,18 +210,18 @@ fun AppDetailContent(
                             onEnableApp = onEnableApp,
                             onRefresh = onRefresh,
                             onEnableAll = onEnableAll,
-                            onBlockAll = onBlockAll
+                            onBlockAll = onBlockAll,
                         )
                     }
-                }
+                },
             )
         },
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection)
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { padding ->
         Column(
             modifier = modifier
                 .padding(padding)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) {
             BlockerScrollableTabRow(
                 selectedTabIndex = tabState.currentIndex,
@@ -230,7 +230,7 @@ fun AppDetailContent(
                     BlockerTab(
                         selected = index == tabState.currentIndex,
                         onClick = { switchTab(index) },
-                        text = { Text(text = stringResource(id = titleRes)) }
+                        text = { Text(text = stringResource(id = titleRes)) },
                     )
                 }
             }
@@ -241,7 +241,7 @@ fun AppDetailContent(
                     onImportRules = onImportRules,
                     onExportIfw = onExportIfw,
                     onImportIfw = onImportIfw,
-                    onResetIfw = onResetIfw
+                    onResetIfw = onResetIfw,
                 )
 
                 1 -> ComponentListContentRoute()
@@ -277,9 +277,9 @@ fun AppDetailScreenPreview() {
             string.service,
             string.service,
             string.activity,
-            string.content_provider
+            string.content_provider,
         ),
-        currentIndex = 0
+        currentIndex = 0,
     )
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
@@ -302,7 +302,7 @@ fun AppDetailScreenPreview() {
                 onImportRules = {},
                 onExportIfw = {},
                 onImportIfw = {},
-                onResetIfw = {}
+                onResetIfw = {},
             )
         }
     }
@@ -327,9 +327,9 @@ fun AppDetailScreenCollapsedPreview() {
             string.receiver,
             string.service,
             string.activity,
-            string.content_provider
+            string.content_provider,
         ),
-        currentIndex = 0
+        currentIndex = 0,
     )
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
@@ -352,7 +352,7 @@ fun AppDetailScreenCollapsedPreview() {
                 onImportRules = {},
                 onExportIfw = {},
                 onImportIfw = {},
-                onResetIfw = {}
+                onResetIfw = {},
             )
         }
     }

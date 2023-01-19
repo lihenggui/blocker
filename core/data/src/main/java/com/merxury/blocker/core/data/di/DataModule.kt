@@ -34,21 +34,21 @@ import dagger.hilt.components.SingletonComponent
 interface DataModule {
     @Binds
     fun bindUserDataRepository(
-        userDataRepository: LocalUserDataRepository
+        userDataRepository: LocalUserDataRepository,
     ): UserDataRepository
 
     @Binds
     fun bindsGeneralRuleRepository(
-        generalRuleRepository: OfflineFirstGeneralRuleRepository
+        generalRuleRepository: OfflineFirstGeneralRuleRepository,
     ): GeneralRuleRepository
 
     @Binds
     fun bindsComponentDataRepository(
-        componentDataRepository: OnlineComponentRepository
+        componentDataRepository: OnlineComponentRepository,
     ): ComponentDataRepository
 
     @Binds
     fun bindsNetworkMonitor(
-        networkMonitor: ConnectivityManagerNetworkMonitor
+        networkMonitor: ConnectivityManagerNetworkMonitor,
     ): NetworkMonitor
 }

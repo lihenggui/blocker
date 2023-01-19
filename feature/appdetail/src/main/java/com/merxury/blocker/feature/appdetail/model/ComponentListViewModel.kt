@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.cmplist
+package com.merxury.blocker.feature.appdetail.model
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
@@ -22,18 +22,18 @@ import androidx.lifecycle.SavedStateHandle
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
+import com.merxury.blocker.feature.appdetail.model.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import javax.inject.Inject
 
 @HiltViewModel
 class ComponentListViewModel @Inject constructor(
     app: android.app.Application,
     savedStateHandle: SavedStateHandle,
-    stringDecoder: StringDecoder
+    stringDecoder: StringDecoder,
 ) : AndroidViewModel(app) {
     private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _uiState: MutableStateFlow<ComponentListUiState> =
@@ -78,6 +78,6 @@ sealed interface ComponentListUiState {
     object Loading : ComponentListUiState
     class Error(val error: ErrorMessage) : ComponentListUiState
     data class Success(
-        val list: SnapshotStateList<ComponentInfo>
+        val list: SnapshotStateList<ComponentInfo>,
     ) : ComponentListUiState
 }

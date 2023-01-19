@@ -18,5 +18,5 @@ package com.merxury.blocker.core.ui.data
 
 data class ErrorMessage(
     val message: String,
-    val stackTrace: String? = null
+    val stackTrace: String? = null,
 )

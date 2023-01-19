@@ -27,7 +27,7 @@ class HomeAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
     private val list = listOf(
         AppListFragment(),
         SearchContainerFragment(),
-        SettingsFragment()
+        SettingsFragment(),
     )
 
     override fun getItemCount(): Int {

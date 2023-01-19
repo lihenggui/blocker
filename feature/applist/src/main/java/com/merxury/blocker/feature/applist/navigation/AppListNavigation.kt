@@ -38,27 +38,27 @@ fun NavController.navigateToAppList(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.appListScreen(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
-    navigateToSupportAndFeedback: () -> Unit
+    navigateToSupportAndFeedback: () -> Unit,
 ) {
     composable(
         route = appListRoute,
         exitTransition = {
             slideOutHorizontally(
                 targetOffsetX = { -300 },
-                animationSpec = tween(300)
+                animationSpec = tween(300),
             ) + fadeOut(animationSpec = tween(300))
         },
         popEnterTransition = {
             slideInHorizontally(
                 initialOffsetX = { -300 },
-                animationSpec = tween(300)
+                animationSpec = tween(300),
             ) + fadeIn(animationSpec = tween(300))
-        }
+        },
     ) {
         AppListRoute(
             navigateToAppDetail = navigateToAppDetail,
             navigateToSettings = navigateToSettings,
-            navigateToSupportAndFeedback = navigateToSupportAndFeedback
+            navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         )
     }
 }

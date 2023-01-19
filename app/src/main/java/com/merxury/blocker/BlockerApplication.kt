@@ -32,9 +32,9 @@ import com.elvishew.xlog.printer.file.naming.DateFileNameGenerator
 import com.google.android.material.color.DynamicColors
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
-import javax.inject.Inject
 import me.weishu.reflection.Reflection
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltAndroidApp
 class BlockerApplication : Application(), Configuration.Provider {
@@ -50,7 +50,7 @@ class BlockerApplication : Application(), Configuration.Provider {
             Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)
                 .setFlags(Shell.FLAG_MOUNT_MASTER)
-                .setTimeout(10)
+                .setTimeout(10),
         )
         Timber.plant(Timber.DebugTree())
     }
