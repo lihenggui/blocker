@@ -61,7 +61,7 @@ class AppListFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = AppListFragmentBinding.inflate(inflater, container, false)
         return binding.root
@@ -131,7 +131,8 @@ class AppListFragment : Fragment() {
                     return true
                 }
             },
-            viewLifecycleOwner, Lifecycle.State.RESUMED
+            viewLifecycleOwner,
+            Lifecycle.State.RESUMED,
         )
     }
 
@@ -187,7 +188,7 @@ class AppListFragment : Fragment() {
         val searchManager =
             requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
         searchView.setSearchableInfo(
-            searchManager.getSearchableInfo(requireActivity().componentName)
+            searchManager.getSearchableInfo(requireActivity().componentName),
         )
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -258,7 +259,7 @@ class AppListFragment : Fragment() {
         PreferenceManager.getDefaultSharedPreferences(context).edit()
             .putString(
                 context.getString(R.string.key_pref_sort_type),
-                value?.name
+                value?.name,
             ).apply()
     }
 }

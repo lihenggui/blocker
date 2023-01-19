@@ -44,11 +44,11 @@ fun BlockerSettings(
     modifier: Modifier = Modifier,
     uiState: Success,
     updateControllerType: (ControllerType) -> Unit,
-    updateRuleServerProvider: (RuleServerProvider) -> Unit
+    updateRuleServerProvider: (RuleServerProvider) -> Unit,
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp),
     ) {
         DialogSettingsItems(
             icon = BlockerIcons.AutoFix,
@@ -77,11 +77,11 @@ fun BlockerSettingsPreview() {
                 uiState = Success(
                     UserEditableSettings(
                         themeBrand = ANDROID,
-                        darkThemeConfig = FOLLOW_SYSTEM
-                    )
+                        darkThemeConfig = FOLLOW_SYSTEM,
+                    ),
                 ),
                 updateControllerType = {},
-                updateRuleServerProvider = {}
+                updateRuleServerProvider = {},
             )
         }
     }

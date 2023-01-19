@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     override suspend fun add(
         packageName: String,
         componentName: String,
-        type: ComponentType?
+        type: ComponentType?,
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot add rule")
@@ -128,7 +128,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     override suspend fun remove(
         packageName: String,
         componentName: String,
-        type: ComponentType?
+        type: ComponentType?,
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot remove rule")
@@ -138,19 +138,19 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
             ComponentType.ACTIVITY -> removeComponentFilter(
                 packageName,
                 componentName,
-                rule.activity
+                rule.activity,
             )
 
             ComponentType.BROADCAST -> removeComponentFilter(
                 packageName,
                 componentName,
-                rule.broadcast
+                rule.broadcast,
             )
 
             ComponentType.SERVICE -> removeComponentFilter(
                 packageName,
                 componentName,
-                rule.service
+                rule.service,
             )
 
             else -> false
@@ -159,7 +159,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
 
     override suspend fun getComponentEnableState(
         packageName: String,
-        componentName: String
+        componentName: String,
     ): Boolean {
         val filters: MutableList<ComponentFilter> = ArrayList()
         rule.activity?.let {
@@ -189,7 +189,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     private fun addComponentFilter(
         packageName: String,
         componentName: String,
-        component: Component?
+        component: Component?,
     ): Boolean {
         if (component == null) {
             return false
@@ -214,7 +214,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     private fun removeComponentFilter(
         packageName: String,
         componentName: String,
-        component: Component?
+        component: Component?,
     ): Boolean {
         if (component == null) {
             return false
@@ -235,7 +235,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     private fun getFilterEnableState(
         packageName: String,
         componentName: String,
-        componentFilters: List<ComponentFilter>?
+        componentFilters: List<ComponentFilter>?,
     ): Boolean {
         if (componentFilters == null) {
             return true

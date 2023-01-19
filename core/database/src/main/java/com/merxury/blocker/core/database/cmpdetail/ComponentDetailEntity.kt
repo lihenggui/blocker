@@ -25,7 +25,8 @@ import javax.annotation.Nonnull
 @Entity(tableName = "component_detail")
 data class ComponentDetailEntity(
     @Nonnull
-    @PrimaryKey @ColumnInfo(name = "full_name")
+    @PrimaryKey
+    @ColumnInfo(name = "full_name")
     val fullName: String,
     @Nonnull
     @ColumnInfo(name = "simple_name")
@@ -56,5 +57,5 @@ fun ComponentDetailEntity.asExternalModel() = ComponentDetail(
     disableEffect = disableEffect,
     author = author,
     addedVersion = addedVersion,
-    recommendToBlock = recommendToBlock
+    recommendToBlock = recommendToBlock,
 )

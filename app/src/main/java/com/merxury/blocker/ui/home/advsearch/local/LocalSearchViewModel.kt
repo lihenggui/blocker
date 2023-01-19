@@ -41,15 +41,15 @@ import com.merxury.blocker.data.Event
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.regex.PatternSyntaxException
-import javax.inject.Inject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.regex.PatternSyntaxException
+import javax.inject.Inject
 
 @HiltViewModel
 class LocalSearchViewModel @Inject constructor(
     private val appComponentRepository: AppComponentRepository,
-    private val installedAppRepository: InstalledAppRepository
+    private val installedAppRepository: InstalledAppRepository,
 ) : ViewModel() {
     private val logger = XLog.tag("AdvSearchViewModel")
     private val _filteredData: MutableLiveData<Map<InstalledAppEntity?, List<AppComponentEntity>>> =
@@ -105,7 +105,7 @@ class LocalSearchViewModel @Inject constructor(
                 lastUpdateTime = app.lastUpdateTime,
                 isEnabled = app.isEnabled,
                 isSystem = isSystem,
-                label = app.label
+                label = app.label,
             )
         }.forEach { app ->
             _loadingState.value = LocalSearchState.Loading(app)
@@ -116,7 +116,7 @@ class LocalSearchViewModel @Inject constructor(
 
     private suspend fun updateComponentInfo(
         context: Context,
-        app: InstalledAppEntity
+        app: InstalledAppEntity,
     ) {
         val serviceHelper = ServiceHelper(app.packageName)
         serviceHelper.refresh()
@@ -257,7 +257,7 @@ class LocalSearchViewModel @Inject constructor(
 
     private suspend fun processProviders(
         list: List<AppComponentEntity>,
-        enabled: Boolean
+        enabled: Boolean,
     ) {
         val context = BlockerApplication.context
         val type = PreferenceUtil.getControllerType(context)
@@ -284,7 +284,7 @@ class LocalSearchViewModel @Inject constructor(
     private suspend fun saveComponentInfoToDb(
         packageName: String,
         name: String,
-        enabled: Boolean
+        enabled: Boolean,
     ) {
         val updatedComponent = appComponentRepository.getAppComponent(packageName, name) ?: run {
             logger.e("Component not found: $packageName, $name")

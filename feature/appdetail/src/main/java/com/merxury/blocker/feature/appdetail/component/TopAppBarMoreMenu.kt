@@ -27,29 +27,29 @@ fun TopAppBarMoreMenu(
     onEnableApp: () -> Unit,
     onRefresh: () -> Unit,
     onEnableAll: () -> Unit,
-    onBlockAll: () -> Unit
+    onBlockAll: () -> Unit,
 ) {
     val items = listOf(
         DropDownMenuItem(
             R.string.enable_application,
-            onEnableApp
+            onEnableApp,
         ),
         DropDownMenuItem(
             R.string.refresh,
-            onRefresh
+            onRefresh,
         ),
         DropDownMenuItem(
             R.string.enable_all_of_this_page,
-            onEnableAll
+            onEnableAll,
         ),
         DropDownMenuItem(
             R.string.block_all_of_this_page,
-            onBlockAll
-        )
+            onBlockAll,
+        ),
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
         menuIconDesc = R.string.more_menu,
-        menuList = items
+        menuList = items,
     )
 }

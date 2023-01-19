@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,13 +35,13 @@ import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.model.toApplication
-import java.util.Collections
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Collections
 
 object ApplicationUtil {
 
@@ -53,7 +53,7 @@ object ApplicationUtil {
      */
     suspend fun getApplicationList(
         context: Context,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): List<Application> {
         val pm = context.packageManager
         val blockerName = context.packageName
@@ -74,7 +74,7 @@ object ApplicationUtil {
      */
     suspend fun getThirdPartyApplicationList(
         context: Context,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): List<Application> {
         val pm = context.packageManager
         val blockerName = context.packageName
@@ -82,7 +82,8 @@ object ApplicationUtil {
             val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(0))
             } else {
-                @Suppress("DEPRECATION") pm.getInstalledPackages(0)
+                @Suppress("DEPRECATION")
+                pm.getInstalledPackages(0)
             }
             installedPackages
                 .filter { it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM == 0 }
@@ -100,7 +101,7 @@ object ApplicationUtil {
      */
     suspend fun getSystemApplicationList(
         context: Context,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): List<Application> {
         val pm = context.packageManager
         return withContext(dispatcher) {
@@ -122,14 +123,15 @@ object ApplicationUtil {
     suspend fun getActivityList(
         pm: PackageManager,
         packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): List<ActivityInfo> {
         return withContext(dispatcher) {
             val activities = mutableListOf<ActivityInfo>()
             try {
                 var flags = PackageManager.GET_ACTIVITIES
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
+                    flags or @Suppress("DEPRECATION")
+                    PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
@@ -157,14 +159,15 @@ object ApplicationUtil {
     suspend fun getReceiverList(
         pm: PackageManager,
         packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): List<ActivityInfo> {
         return withContext(dispatcher) {
             val receivers = mutableListOf<ActivityInfo>()
             try {
                 var flags = PackageManager.GET_RECEIVERS
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
+                    flags or @Suppress("DEPRECATION")
+                    PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
@@ -190,14 +193,15 @@ object ApplicationUtil {
     suspend fun getServiceList(
         pm: PackageManager,
         packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): List<ServiceInfo> {
         return withContext(dispatcher) {
             val services = mutableListOf<ServiceInfo>()
             try {
                 var flags = PackageManager.GET_SERVICES
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
+                    flags or @Suppress("DEPRECATION")
+                    PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
@@ -225,14 +229,15 @@ object ApplicationUtil {
     suspend fun getProviderList(
         pm: PackageManager,
         packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): List<ProviderInfo> {
         return withContext(dispatcher) {
             val providers = mutableListOf<ProviderInfo>()
             try {
                 var flags = PackageManager.GET_PROVIDERS
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
+                    flags or @Suppress("DEPRECATION")
+                    PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
@@ -262,7 +267,7 @@ object ApplicationUtil {
         pm: PackageManager,
         packageName: String,
         flags: Int,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): PackageInfo? {
         return withContext(dispatcher) {
             var info: PackageInfo? = null
@@ -277,7 +282,7 @@ object ApplicationUtil {
 
     suspend fun getApplicationInfo(
         context: Context,
-        packageName: String
+        packageName: String,
     ): Application? {
         val pm = context.packageManager
         val info = getApplicationComponents(pm, packageName, 0) ?: return null
@@ -295,14 +300,16 @@ object ApplicationUtil {
     suspend fun getApplicationComponents(
         pm: PackageManager,
         packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): PackageInfo {
         return withContext(dispatcher) {
             var flags = PackageManager.GET_ACTIVITIES or PackageManager.GET_PROVIDERS or
                 PackageManager.GET_RECEIVERS or PackageManager.GET_SERVICES or
-                @Suppress("DEPRECATION") PackageManager.GET_INTENT_FILTERS
+                @Suppress("DEPRECATION")
+                PackageManager.GET_INTENT_FILTERS
             flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or @Suppress("DEPRECATION") PackageManager.GET_DISABLED_COMPONENTS
+                flags or @Suppress("DEPRECATION")
+                PackageManager.GET_DISABLED_COMPONENTS
             } else {
                 flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
@@ -321,7 +328,7 @@ object ApplicationUtil {
 
     private suspend fun getPackageInfoFromManifest(
         pm: PackageManager,
-        packageName: String
+        packageName: String,
     ): PackageInfo {
         val info = PackageInfo()
         info.packageName = packageName
@@ -366,7 +373,8 @@ object ApplicationUtil {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(0))
             } else {
-                @Suppress("DEPRECATION") pm.getApplicationInfo(packageName, 0)
+                @Suppress("DEPRECATION")
+                pm.getApplicationInfo(packageName, 0)
             }
             return true
         } catch (e: PackageManager.NameNotFoundException) {
@@ -391,7 +399,7 @@ object ApplicationUtil {
     suspend fun isProvider(
         pm: PackageManager,
         packageName: String,
-        componentName: String
+        componentName: String,
     ): Boolean {
         return getProviderList(pm, packageName).any { it.name == componentName }
     }
@@ -399,7 +407,7 @@ object ApplicationUtil {
     suspend fun isActivity(
         pm: PackageManager,
         packageName: String,
-        componentName: String
+        componentName: String,
     ): Boolean {
         return getActivityList(pm, packageName).any { it.name == componentName }
     }

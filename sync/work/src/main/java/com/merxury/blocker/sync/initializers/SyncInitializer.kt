@@ -48,7 +48,7 @@ class SyncInitializer : Initializer<Sync> {
             enqueueUniqueWork(
                 SyncWorkName,
                 ExistingWorkPolicy.KEEP,
-                SyncWorker.startUpSyncWork()
+                SyncWorker.startUpSyncWork(),
             )
         }
 

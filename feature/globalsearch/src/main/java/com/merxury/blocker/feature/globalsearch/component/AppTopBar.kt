@@ -69,7 +69,7 @@ fun SelectedAppTopBar(
                 Icon(
                     imageVector = BlockerIcons.Close,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         },
@@ -78,24 +78,24 @@ fun SelectedAppTopBar(
                 Icon(
                     imageVector = BlockerIcons.SelectAll,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             IconButton(onClick = onBlockAll) {
                 Icon(
                     imageVector = BlockerIcons.Block,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             IconButton(onClick = onCheckAll) {
                 Icon(
                     imageVector = BlockerIcons.CheckCircle,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
-        }
+        },
     )
 }
 
@@ -111,7 +111,7 @@ fun SearchBar(
     val keyboardController = LocalSoftwareKeyboardController.current
     val colors = TextFieldDefaults.textFieldColors(
         focusedIndicatorColor = Color.Transparent,
-        unfocusedIndicatorColor = Color.Transparent
+        unfocusedIndicatorColor = Color.Transparent,
     )
     BlockerHomeTopAppBar(
         titleRes = string.searching,
@@ -132,12 +132,12 @@ fun SearchBar(
                     AnimatedVisibility(
                         visible = showClearButton,
                         enter = fadeIn(),
-                        exit = fadeOut()
+                        exit = fadeOut(),
                     ) {
                         IconButton(onClick = { onClearClick() }) {
                             Icon(
                                 imageVector = BlockerIcons.Clear,
-                                contentDescription = null
+                                contentDescription = null,
                             )
                         }
                     }
@@ -149,9 +149,9 @@ fun SearchBar(
                     keyboardController?.hide()
                 }),
                 colors = colors,
-                shape = RoundedCornerShape(56.dp)
+                shape = RoundedCornerShape(56.dp),
             )
-        }
+        },
     )
 }
 
@@ -165,7 +165,7 @@ fun SelectedAppTopBarPreview() {
                 onNavigationClick = {},
                 onSelectAll = {},
                 onBlockAll = {},
-                onCheckAll = {}
+                onCheckAll = {},
             )
         }
     }

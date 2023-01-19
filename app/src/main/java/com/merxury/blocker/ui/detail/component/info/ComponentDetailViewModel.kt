@@ -23,15 +23,15 @@ import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.ui.detail.component.ComponentData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class ComponentDetailViewModel @Inject constructor(
-    private val repository: OnlineComponentRepository
+    private val repository: OnlineComponentRepository,
 ) : ViewModel() {
     private val _onlineData: MutableStateFlow<NetworkComponentDetail?> = MutableStateFlow(null)
     val onlineData = _onlineData.asStateFlow()
@@ -43,7 +43,7 @@ class ComponentDetailViewModel @Inject constructor(
             isLoading.value = true
             _onlineData.value =
                 repository.getUserGeneratedComponentDetail(component.name)
-            val onlineData = repository.getNetworkComponentData(component.name,)
+            val onlineData = repository.getNetworkComponentData(component.name)
             onlineData.collect {
                 Timber.d("Get online data $it")
                 if (it is Result.Success) {

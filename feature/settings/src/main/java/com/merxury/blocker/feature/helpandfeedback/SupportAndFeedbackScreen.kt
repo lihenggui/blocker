@@ -32,17 +32,17 @@ import com.merxury.blocker.feature.settings.R
 @Composable
 fun SupportAndFeedbackRoute(
     onNavigationClick: () -> Unit,
-    viewModel: SupportAndFeedbackViewModel = hiltViewModel()
+    viewModel: SupportAndFeedbackViewModel = hiltViewModel(),
 ) {
     Column {
         BlockerTopAppBar(
             titleRes = R.string.support_and_feedback,
-            onNavigationClick = onNavigationClick
+            onNavigationClick = onNavigationClick,
         )
         SupportAndFeedbackScreen(
             onClickGithub = { viewModel.onClickGithub() },
             onClickTelegramGroup = { viewModel.onClickTelegramGroup() },
-            onClickExportErrorLog = { viewModel.onClickExportErrorLog() }
+            onClickExportErrorLog = { viewModel.onClickExportErrorLog() },
         )
     }
 }
@@ -51,7 +51,7 @@ fun SupportAndFeedbackRoute(
 fun SupportAndFeedbackScreen(
     onClickGithub: () -> Unit,
     onClickTelegramGroup: () -> Unit,
-    onClickExportErrorLog: () -> Unit
+    onClickExportErrorLog: () -> Unit,
 ) {
     Column {
         Item(itemRes = R.string.github) {
@@ -62,7 +62,7 @@ fun SupportAndFeedbackScreen(
         }
         Item(
             icon = BlockerIcons.BugReport,
-            itemRes = R.string.export_error_log
+            itemRes = R.string.export_error_log,
         ) {
             onClickExportErrorLog()
         }
@@ -76,7 +76,7 @@ fun SupportAndFeedbackScreenPreview() {
         Surface {
             SupportAndFeedbackScreen(
                 onClickGithub = {},
-                onClickTelegramGroup = {}
+                onClickTelegramGroup = {},
             ) {
             }
         }
