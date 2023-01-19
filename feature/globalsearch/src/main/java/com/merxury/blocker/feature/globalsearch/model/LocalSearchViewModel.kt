@@ -22,11 +22,11 @@ import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.globalsearch.R
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 @HiltViewModel
 class LocalSearchViewModel @Inject constructor() : ViewModel() {
@@ -41,10 +41,10 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
             titles = listOf(
                 R.string.application,
                 R.string.component,
-                R.string.online_rule
+                R.string.online_rule,
             ),
-            currentIndex = 0
-        )
+            currentIndex = 0,
+        ),
     )
     val tabState: StateFlow<SearchTabState> = _tabState.asStateFlow()
 
@@ -91,14 +91,14 @@ sealed interface LocalSearchUiState {
     class LocalSearchResult(
         val filter: List<FilterAppItem>,
         val isSelectedMode: Boolean,
-        val selectedAppCount: Int
+        val selectedAppCount: Int,
     ) : LocalSearchUiState
 
     class Error(val message: ErrorMessage) : LocalSearchUiState
 }
 
 data class SearchBoxUiState(
-    val keyword: TextFieldValue = TextFieldValue()
+    val keyword: TextFieldValue = TextFieldValue(),
 )
 
 data class FilterAppItem(
@@ -107,7 +107,7 @@ data class FilterAppItem(
     val broadcastCount: Int = 0,
     val serviceCount: Int = 0,
     val contentProviderCount: Int = 0,
-    val isSelected: Boolean = false
+    val isSelected: Boolean = false,
 )
 
 data class SearchTabState(

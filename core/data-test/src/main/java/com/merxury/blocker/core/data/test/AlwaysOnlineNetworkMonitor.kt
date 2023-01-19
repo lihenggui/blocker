@@ -17,9 +17,9 @@
 package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.core.data.util.NetworkMonitor
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import javax.inject.Inject
 
 class AlwaysOnlineNetworkMonitor @Inject constructor() : NetworkMonitor {
     override val isOnline: Flow<Boolean> = flowOf(true)

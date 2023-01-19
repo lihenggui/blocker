@@ -25,5 +25,5 @@ annotation class Dispatcher(val dispatcher: BlockerDispatchers)
 
 enum class BlockerDispatchers {
     IO,
-    DEFAULT
+    DEFAULT,
 }

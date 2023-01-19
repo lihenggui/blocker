@@ -51,7 +51,7 @@ import com.merxury.blocker.feature.globalsearch.model.FilterAppItem
 fun BottomSheetRoute(
     modifier: Modifier = Modifier,
     app: FilterAppItem,
-    viewModel: BottomSheetViewModel = hiltViewModel()
+    viewModel: BottomSheetViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     BottomSheet(filterApp = app, tabState = tabState, switchTab = viewModel::switchTab)
@@ -62,12 +62,12 @@ fun BottomSheet(
     modifier: Modifier = Modifier,
     filterApp: FilterAppItem,
     tabState: TabState,
-    switchTab: (Int) -> Unit
+    switchTab: (Int) -> Unit,
 ) {
     Column(modifier = modifier.defaultMinSize(1.dp)) {
         InfoSection(
             modifier = modifier,
-            filterApp = filterApp
+            filterApp = filterApp,
         )
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
@@ -76,7 +76,7 @@ fun BottomSheet(
                 BlockerTab(
                     selected = index == tabState.currentIndex,
                     onClick = { switchTab(index) },
-                    text = { Text(text = stringResource(id = titleRes)) }
+                    text = { Text(text = stringResource(id = titleRes)) },
                 )
             }
         }
@@ -90,26 +90,26 @@ fun BottomSheet(
 @Composable
 fun InfoSection(
     modifier: Modifier = Modifier,
-    filterApp: FilterAppItem
+    filterApp: FilterAppItem,
 ) {
     val versionName = filterApp.app.versionName
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column {
             Text(
                 text = filterApp.app.label,
                 style = MaterialTheme.typography.bodyLarge,
-                maxLines = 2
+                maxLines = 2,
             )
             Text(text = filterApp.app.packageName, style = MaterialTheme.typography.bodyMedium)
             if (versionName != null) {
                 Text(
                     text = versionName,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
                 )
             }
         }
@@ -122,7 +122,7 @@ fun InfoSection(
                 .data(filterApp.app.packageInfo)
                 .crossfade(true)
                 .build(),
-            contentDescription = null
+            contentDescription = null,
         )
     }
 }
@@ -137,14 +137,14 @@ fun BottomSheetPreview() {
             versionName = "1.2.69-alpha",
             isEnabled = false,
             packageInfo = null,
-        )
+        ),
     )
     val tabState = TabState(
         titles = listOf(
             string.applicable_app,
-            string.illustrate
+            string.illustrate,
         ),
-        currentIndex = 0
+        currentIndex = 0,
     )
     BlockerTheme {
         Surface {

@@ -34,7 +34,7 @@ object ShareUtil {
         val uri = FileProvider.getUriForFile(
             context,
             "com.merxury.blocker.provider",
-            file
+            file,
         )
         emailIntent.putExtra(Intent.EXTRA_STREAM, uri)
         val chooserIntent =
@@ -43,12 +43,13 @@ object ShareUtil {
             val resInfoList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 context.packageManager.queryIntentActivities(
                     chooserIntent,
-                    PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_ALL.toLong())
+                    PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_ALL.toLong()),
                 )
             } else {
-                @Suppress("DEPRECATION") context.packageManager.queryIntentActivities(
+                @Suppress("DEPRECATION")
+                context.packageManager.queryIntentActivities(
                     chooserIntent,
-                    PackageManager.MATCH_ALL
+                    PackageManager.MATCH_ALL,
                 )
             }
             resInfoList.forEach {
@@ -57,7 +58,7 @@ object ShareUtil {
                     packageName,
                     uri,
                     Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION,
                 )
             }
         }

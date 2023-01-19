@@ -29,5 +29,5 @@ fun NetworkGeneralRule.asEntity() = GeneralRuleEntity(
     description = description,
     safeToBlock = safeToBlock,
     sideEffect = sideEffect,
-    contributors = contributors
+    contributors = contributors,
 )

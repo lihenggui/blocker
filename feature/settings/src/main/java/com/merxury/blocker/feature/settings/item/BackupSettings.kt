@@ -37,11 +37,11 @@ fun BackupSettings(
     updateBackupSystemApp: (Boolean) -> Unit,
     updateRestoreSystemApp: (Boolean) -> Unit,
     updateRuleBackupFolder: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp),
     ) {
         SettingItemHeader(itemRes = string.backup)
         TwoRowsSettingItem(
@@ -50,17 +50,17 @@ fun BackupSettings(
             itemValue = ruleBackupFolder.ifEmpty {
                 stringResource(id = string.directory_invalid_or_not_set)
             },
-            onClick = {}
+            onClick = {},
         )
         SwitchSettingItem(
             itemRes = string.backup_system_apps,
             checked = backupSystemApps,
-            onCheckedChange = updateBackupSystemApp
+            onCheckedChange = updateBackupSystemApp,
         )
         SwitchSettingItem(
             itemRes = string.show_service_info,
             checked = restoreSystemApp,
-            onCheckedChange = updateRestoreSystemApp
+            onCheckedChange = updateRestoreSystemApp,
         )
     }
 }
@@ -77,7 +77,7 @@ fun BackupSettingsPreview() {
                 ruleBackupFolder = "/emulated/0/Blocker",
                 updateBackupSystemApp = {},
                 updateRestoreSystemApp = {},
-                updateRuleBackupFolder = {}
+                updateRuleBackupFolder = {},
             )
         }
     }

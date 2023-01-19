@@ -56,7 +56,7 @@ fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    navController: NavHostController = rememberAnimatedNavController()
+    navController: NavHostController = rememberAnimatedNavController(),
 ): BlockerAppState {
     NavigationTrackingSideEffect(navController)
     return remember(navController, coroutineScope, windowSizeClass, networkMonitor) {
@@ -98,7 +98,7 @@ class BlockerAppState(
         .stateIn(
             scope = coroutineScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = false
+            initialValue = false,
         )
 
     /**

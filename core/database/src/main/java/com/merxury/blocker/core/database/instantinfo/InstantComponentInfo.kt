@@ -24,5 +24,5 @@ data class InstantComponentInfo(
     @ColumnInfo(name = "package_path") val packagePath: String,
     @ColumnInfo(name = "component_name") val componentName: String,
     @ColumnInfo(name = "description") val description: String,
-    @ColumnInfo(name = "recommend_to_block") val recommendToBlock: Boolean
+    @ColumnInfo(name = "recommend_to_block") val recommendToBlock: Boolean,
 )

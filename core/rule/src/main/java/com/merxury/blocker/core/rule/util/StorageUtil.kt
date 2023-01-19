@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,13 +21,13 @@ import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
-import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
+import java.io.IOException
 
 object StorageUtil {
     private const val IFW_RELATIVE_PATH = "ifw"
@@ -68,7 +68,7 @@ object StorageUtil {
         baseFolder: String,
         filename: String,
         content: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Boolean = withContext(dispatcher) {
         // Get base dir
         val destUri = Uri.parse(baseFolder)
@@ -116,7 +116,7 @@ object StorageUtil {
         rule: BlockerRule,
         packageName: String,
         destUri: Uri,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Boolean {
         val dir = DocumentFile.fromTreeUri(context, destUri)
         if (dir == null) {

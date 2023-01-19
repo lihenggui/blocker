@@ -36,6 +36,6 @@ class DesignSystemIssueRegistry : IssueRegistry() {
     override val vendor: Vendor = Vendor(
         vendorName = "Blocker",
         feedbackUrl = "https://github.com/lihenggui/blocker/issues",
-        contact = "https://github.com/lihenggui/blocker"
+        contact = "https://github.com/lihenggui/blocker",
     )
 }

@@ -39,7 +39,7 @@ class DesignSystemDetector : Detector(), Detector.UastScanner {
     override fun getApplicableUastTypes(): List<Class<out UElement>> {
         return listOf(
             UCallExpression::class.java,
-            UQualifiedReferenceExpression::class.java
+            UQualifiedReferenceExpression::class.java,
         )
     }
 
@@ -72,8 +72,8 @@ class DesignSystemDetector : Detector(), Detector.UastScanner {
             severity = Severity.ERROR,
             implementation = Implementation(
                 DesignSystemDetector::class.java,
-                Scope.JAVA_FILE_SCOPE
-            )
+                Scope.JAVA_FILE_SCOPE,
+            ),
         )
 
         // Unfortunately :lint is a Java module and thus can't depend on the :core-designsystem
@@ -100,21 +100,23 @@ class DesignSystemDetector : Detector(), Detector.UastScanner {
             "CenterAlignedTopAppBar" to "BlockerTopAppBar",
             "SmallTopAppBar" to "BlockerTopAppBar",
             "MediumTopAppBar" to "BlockerTopAppBar",
-            "LargeTopAppBar" to "BlockerTopAppBar"
+            "LargeTopAppBar" to "BlockerTopAppBar",
         )
         val RECEIVER_NAMES = mapOf(
-            "Icons" to "BlockerIcons"
+            "Icons" to "BlockerIcons",
         )
 
         fun reportIssue(
             context: JavaContext,
             node: UElement,
             name: String,
-            preferredName: String
+            preferredName: String,
         ) {
             context.report(
-                ISSUE, node, context.getLocation(node),
-                "Using $name instead of $preferredName"
+                ISSUE,
+                node,
+                context.getLocation(node),
+                "Using $name instead of $preferredName",
             )
         }
     }

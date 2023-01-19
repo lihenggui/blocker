@@ -31,11 +31,11 @@ import com.merxury.blocker.feature.settings.R.string
 fun BlockerRulesSettings(
     exportRules: () -> Unit,
     importRules: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp),
     ) {
         SettingItemHeader(itemRes = string.blocker_rules)
         SingleRowSettingItem(itemRes = string.export_rules, onItemClick = exportRules)
@@ -48,11 +48,11 @@ fun IfwRulesSettings(
     exportIfwRules: () -> Unit,
     importIfwRules: () -> Unit,
     resetIfwRules: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp),
     ) {
         SettingItemHeader(itemRes = string.ifw_rules)
         SingleRowSettingItem(itemRes = string.export_ifw_rules, onItemClick = exportIfwRules)
@@ -81,7 +81,7 @@ fun IfwSectionPreview() {
             IfwRulesSettings(
                 exportIfwRules = {},
                 importIfwRules = {},
-                resetIfwRules = {}
+                resetIfwRules = {},
             )
         }
     }
