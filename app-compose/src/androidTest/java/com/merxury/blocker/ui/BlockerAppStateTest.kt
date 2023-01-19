@@ -32,15 +32,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.createGraph
 import androidx.navigation.testing.TestNavHostController
 import com.merxury.blocker.core.testing.util.TestNetworkMonitor
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 /**
  * Tests [BlockerAppState].
@@ -71,7 +71,7 @@ class BlockerAppStateTest {
                     windowSizeClass = getCompactWindowClass(),
                     navController = navController,
                     networkMonitor = networkMonitor,
-                    coroutineScope = backgroundScope
+                    coroutineScope = backgroundScope,
                 )
             }
 
@@ -92,7 +92,7 @@ class BlockerAppStateTest {
         composeTestRule.setContent {
             state = rememberBlockerAppState(
                 windowSizeClass = getCompactWindowClass(),
-                networkMonitor = networkMonitor
+                networkMonitor = networkMonitor,
             )
         }
 
@@ -109,7 +109,7 @@ class BlockerAppStateTest {
                 windowSizeClass = getCompactWindowClass(),
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
-                coroutineScope = backgroundScope
+                coroutineScope = backgroundScope,
             )
         }
 
@@ -124,7 +124,7 @@ class BlockerAppStateTest {
                 windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(800.dp, 800.dp)),
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
-                coroutineScope = backgroundScope
+                coroutineScope = backgroundScope,
             )
         }
 
@@ -134,13 +134,12 @@ class BlockerAppStateTest {
 
     @Test
     fun niaAppState_showNavRail_large() = runTest {
-
         composeTestRule.setContent {
             state = BlockerAppState(
                 windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
-                coroutineScope = backgroundScope
+                coroutineScope = backgroundScope,
             )
         }
 
@@ -150,13 +149,12 @@ class BlockerAppStateTest {
 
     @Test
     fun stateIsOfflineWhenNetworkMonitorIsOffline() = runTest(UnconfinedTestDispatcher()) {
-
         composeTestRule.setContent {
             state = BlockerAppState(
                 windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
-                coroutineScope = backgroundScope
+                coroutineScope = backgroundScope,
             )
         }
 
@@ -164,7 +162,7 @@ class BlockerAppStateTest {
         networkMonitor.setConnected(false)
         assertEquals(
             true,
-            state.isOffline.value
+            state.isOffline.value,
         )
     }
 
