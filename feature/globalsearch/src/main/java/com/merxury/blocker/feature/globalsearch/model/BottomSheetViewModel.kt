@@ -22,26 +22,26 @@ import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.globalsearch.R.string
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 @HiltViewModel
 class BottomSheetViewModel @Inject constructor(
     app: android.app.Application,
     savedStateHandle: SavedStateHandle,
-    stringDecoder: StringDecoder
+    stringDecoder: StringDecoder,
 ) : AndroidViewModel(app) {
     private val _tabState = MutableStateFlow(
         TabState(
             titles = listOf(
                 string.applicable_app,
-                string.illustrate
+                string.illustrate,
             ),
-            currentIndex = 0
-        )
+            currentIndex = 0,
+        ),
     )
     val tabState: StateFlow<TabState> = _tabState.asStateFlow()
 

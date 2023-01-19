@@ -25,9 +25,6 @@ import android.os.Build
 import android.widget.ImageView
 import androidx.collection.LruCache
 import com.merxury.blocker.core.common.R
-import java.util.concurrent.Executor
-import java.util.concurrent.Executors
-import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +34,9 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import me.zhanghai.android.appiconloader.AppIconLoader
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
+import kotlin.coroutines.CoroutineContext
 
 /**
  * @author Rikka
@@ -120,7 +120,7 @@ object AppIconCache : CoroutineScope {
         context: Context,
         info: ApplicationInfo,
         userId: Int,
-        view: ImageView
+        view: ImageView,
     ): Job {
         return launch {
             val size = view.measuredWidth.let {
@@ -142,7 +142,7 @@ object AppIconCache : CoroutineScope {
                         context,
                         info,
                         userId,
-                        size
+                        size,
                     )
                 }
             } catch (e: CancellationException) {

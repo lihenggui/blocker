@@ -47,13 +47,13 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 fun ComponentTabContent(
     components: SnapshotStateList<ComponentInfo>,
     onSwitchClick: (String, String, Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val listContent = remember { components }
     val listState = rememberLazyListState()
     Box(modifier) {
         LazyColumn(
-            state = listState
+            state = listState,
         ) {
             items(listContent) {
                 ComponentItem(
@@ -61,7 +61,7 @@ fun ComponentTabContent(
                     name = it.name,
                     packageName = it.packageName,
                     enabled = it.enabled,
-                    onSwitchClick = onSwitchClick
+                    onSwitchClick = onSwitchClick,
                 )
             }
             item {
@@ -77,18 +77,18 @@ fun ComponentItem(
     name: String,
     packageName: String,
     enabled: Boolean,
-    onSwitchClick: (String, String, Boolean) -> Unit
+    onSwitchClick: (String, String, Boolean) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 16.dp, end = 24.dp, top = 14.dp, bottom = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.fillMaxWidth(0.8f)) {
             Text(
                 text = simpleName,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
             )
             Text(text = name, style = MaterialTheme.typography.bodyMedium)
         }
@@ -97,7 +97,7 @@ fun ComponentItem(
             checked = enabled,
             onCheckedChange = {
                 onSwitchClick(packageName, name, !enabled)
-            }
+            },
         )
     }
 }
@@ -113,7 +113,7 @@ fun ComponentItemPreview() {
                 name = "com.merxury.blocker.feature.appdetail.component.AccountAuthActivity",
                 packageName = "com.merxury.blocker",
                 enabled = false,
-                onSwitchClick = { _, _, _ -> }
+                onSwitchClick = { _, _, _ -> },
             )
         }
     }

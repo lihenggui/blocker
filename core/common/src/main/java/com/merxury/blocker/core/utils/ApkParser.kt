@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,15 @@ import android.content.pm.ServiceInfo
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
 import com.merxury.blocker.core.extension.getPackageInfoCompat
-import java.io.File
-import java.io.IOException
-import java.lang.reflect.InvocationTargetException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import timber.log.Timber
+import java.io.File
+import java.io.IOException
+import java.lang.reflect.InvocationTargetException
 
 object ApkParser {
 
@@ -72,7 +72,7 @@ object ApkParser {
                             componentInfo.name = parser.getAttributeValue(i)
                             componentInfo.enabled = ApplicationUtil.checkComponentIsEnabled(
                                 pm,
-                                ComponentName(componentInfo.packageName, componentInfo.name)
+                                ComponentName(componentInfo.packageName, componentInfo.name),
                             )
                             activities.add(componentInfo)
                         }
@@ -101,7 +101,7 @@ object ApkParser {
                             componentInfo.name = parser.getAttributeValue(i)
                             componentInfo.enabled = ApplicationUtil.checkComponentIsEnabled(
                                 pm,
-                                ComponentName(componentInfo.packageName, componentInfo.name)
+                                ComponentName(componentInfo.packageName, componentInfo.name),
                             )
                             services.add(componentInfo)
                         }
@@ -148,13 +148,14 @@ object ApkParser {
     @Throws(IOException::class)
     private suspend fun getParserForManifest(
         apkFile: File,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): XmlResourceParser {
         return withContext(dispatcher) {
             val assetManagerInstance = assetManager
             val cookie = addAssets(apkFile, assetManagerInstance!!)
             return@withContext (assetManagerInstance as AssetManager).openXmlResourceParser(
-                cookie, "AndroidManifest.xml"
+                cookie,
+                "AndroidManifest.xml",
             )
         }
     }
@@ -169,11 +170,12 @@ object ApkParser {
     private fun addAssets(apkFile: File, assetManagerInstance: Any): Int {
         try {
             val addAssetPath = assetManagerInstance.javaClass.getMethod(
-                "addAssetPath", String::class.java
+                "addAssetPath",
+                String::class.java,
             )
             return addAssetPath.invoke(
                 assetManagerInstance,
-                apkFile.absolutePath
+                apkFile.absolutePath,
             ) as Int
         } catch (e: NoSuchMethodException) {
             e.printStackTrace()

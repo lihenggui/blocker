@@ -26,7 +26,8 @@ import kotlinx.datetime.Instant
 @Entity(tableName = "installed_app", indices = [Index(value = ["package_name"])])
 data class InstalledAppEntity(
     @PrimaryKey
-    @ColumnInfo(name = "package_name") val packageName: String = "",
+    @ColumnInfo(name = "package_name")
+    val packageName: String = "",
     @ColumnInfo(name = "version_name") val versionName: String = "",
     @ColumnInfo(name = "version_code") val versionCode: Long = 0,
     @ColumnInfo(name = "first_install_time") val firstInstallTime: Instant? = null,
@@ -44,5 +45,5 @@ fun InstalledAppEntity.asExternalModel() = InstalledApp(
     lastUpdateTime = lastUpdateTime,
     isEnabled = isEnabled,
     isSystem = isSystem,
-    label = label
+    label = label,
 )

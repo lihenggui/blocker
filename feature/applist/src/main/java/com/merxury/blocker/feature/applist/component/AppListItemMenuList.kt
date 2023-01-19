@@ -38,33 +38,33 @@ fun AppListItemMenuList(
     val items = listOf(
         DropDownMenuItem(
             textRes = R.string.clear_cache,
-            onClick = onClearCacheClick
+            onClick = onClearCacheClick,
         ),
         DropDownMenuItem(
             textRes = R.string.clear_data,
-            onClick = onClearDataClick
+            onClick = onClearDataClick,
         ),
         DropDownMenuItem(
             textRes = R.string.force_stop,
-            onClick = onForceStopClick
+            onClick = onForceStopClick,
         ),
         DropDownMenuItem(
             textRes = R.string.uninstall,
-            onClick = onUninstallClick
+            onClick = onUninstallClick,
         ),
         DropDownMenuItem(
             textRes = R.string.enable,
-            onClick = onEnableClick
+            onClick = onEnableClick,
         ),
         DropDownMenuItem(
             textRes = R.string.disable,
-            onClick = onDisableClick
-        )
+            onClick = onDisableClick,
+        ),
     )
     BlockerDropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
-        menuList = items
+        menuList = items,
     )
 }
 

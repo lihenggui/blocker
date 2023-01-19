@@ -77,7 +77,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun GlobalSearchRoute(
     navigationToSearchedAppDetail: () -> Unit,
-    viewModel: LocalSearchViewModel = hiltViewModel()
+    viewModel: LocalSearchViewModel = hiltViewModel(),
 ) {
     val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
@@ -96,13 +96,14 @@ fun GlobalSearchRoute(
         onCheckAll = viewModel::onCheckAll,
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::onSelectItem,
-        navigationToSearchedAppDetail = navigationToSearchedAppDetail
+        navigationToSearchedAppDetail = navigationToSearchedAppDetail,
     )
 }
 
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class,
-    ExperimentalMaterialApi::class
+    ExperimentalMaterial3Api::class,
+    ExperimentalLayoutApi::class,
+    ExperimentalMaterialApi::class,
 )
 @Composable
 fun GlobalSearchScreen(
@@ -123,7 +124,7 @@ fun GlobalSearchScreen(
 ) {
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
-        confirmStateChange = { it != HalfExpanded }
+        confirmStateChange = { it != HalfExpanded },
     )
     val coroutineScope = rememberCoroutineScope()
 
@@ -138,7 +139,7 @@ fun GlobalSearchScreen(
         sheetState = sheetState,
         sheetContent = {
             // TODO
-        }
+        },
     ) {
         Scaffold(
             topBar = {
@@ -150,9 +151,9 @@ fun GlobalSearchScreen(
                     onNavigationClick = onNavigationClick,
                     onSelectAll = onSelectAll,
                     onBlockAll = onBlockAll,
-                    onCheckAll = onCheckAll
+                    onCheckAll = onCheckAll,
                 )
-            }
+            },
         ) { padding ->
             Column(
                 modifier = modifier
@@ -161,11 +162,11 @@ fun GlobalSearchScreen(
                     .consumedWindowInsets(padding)
                     .windowInsetsPadding(
                         WindowInsets.safeDrawing.only(
-                            WindowInsetsSides.Horizontal
-                        )
+                            WindowInsetsSides.Horizontal,
+                        ),
                     ),
                 verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 when (localSearchUiState) {
                     LocalSearchUiState.NoSearch -> {
@@ -173,7 +174,7 @@ fun GlobalSearchScreen(
                             modifier = modifier
                                 .fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.Center,
                         ) {
                             NoSearchScreen()
                         }
@@ -184,7 +185,7 @@ fun GlobalSearchScreen(
                             modifier = modifier
                                 .fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.Center,
                         ) {
                             BlockerLoadingWheel(
                                 modifier = modifier,
@@ -204,10 +205,13 @@ fun GlobalSearchScreen(
                                     onSelect = onSelect,
                                     onClick = {
                                         coroutineScope.launch {
-                                            if (sheetState.isVisible) sheetState.hide()
-                                            else sheetState.animateTo(HalfExpanded)
+                                            if (sheetState.isVisible) {
+                                                sheetState.hide()
+                                            } else {
+                                                sheetState.animateTo(HalfExpanded)
+                                            }
                                         }
-                                    }
+                                    },
                                 )
                             }
 
@@ -245,14 +249,14 @@ fun TopBar(
             onNavigationClick = onNavigationClick,
             onSelectAll = onSelectAll,
             onBlockAll = onBlockAll,
-            onCheckAll = onCheckAll
+            onCheckAll = onCheckAll,
         )
     } else {
         SearchBar(
             modifier = modifier,
             uiState = searchBoxUiState,
             onSearchTextChanged = onSearchTextChanged,
-            onClearClick = onClearClick
+            onClearClick = onClearClick,
         )
     }
 }
@@ -260,7 +264,7 @@ fun TopBar(
 @Composable
 fun SearchResultTabRow(
     tabState: SearchTabState,
-    switchTab: (Int) -> Unit
+    switchTab: (Int) -> Unit,
 ) {
     BlockerScrollableTabRow(
         selectedTabIndex = tabState.currentIndex,
@@ -272,10 +276,10 @@ fun SearchResultTabRow(
                 Text(
                     text = stringResource(
                         id = tabState.titles[0],
-                        tabState.appCount
-                    )
+                        tabState.appCount,
+                    ),
                 )
-            }
+            },
         )
         BlockerTab(
             selected = 1 == tabState.currentIndex,
@@ -284,10 +288,10 @@ fun SearchResultTabRow(
                 Text(
                     text = stringResource(
                         id = tabState.titles[1],
-                        tabState.componentCount
-                    )
+                        tabState.componentCount,
+                    ),
                 )
-            }
+            },
         )
         BlockerTab(
             selected = 2 == tabState.currentIndex,
@@ -296,10 +300,10 @@ fun SearchResultTabRow(
                 Text(
                     text = stringResource(
                         id = tabState.titles[2],
-                        tabState.rulesCount
-                    )
+                        tabState.rulesCount,
+                    ),
                 )
-            }
+            },
         )
     }
 }
@@ -318,12 +322,12 @@ fun NoSearchScreen() {
             modifier = Modifier
                 .size(96.dp)
                 .padding(8.dp),
-            tint = MaterialTheme.colorScheme.outline
+            tint = MaterialTheme.colorScheme.outline,
         )
         Text(
             text = stringResource(id = string.no_search_result),
             color = MaterialTheme.colorScheme.outline,
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
@@ -335,14 +339,14 @@ fun SearchResultContent(
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     val listContent = remember { appList }
     val listState = rememberLazyListState()
     Box(modifier) {
         LazyColumn(
             modifier = modifier,
-            state = listState
+            state = listState,
         ) {
             items(listContent, key = { it.app.label }) {
                 AppListItem(
@@ -350,7 +354,7 @@ fun SearchResultContent(
                     isSelectedMode = isSelectedMode,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
-                    onClick = onClick
+                    onClick = onClick,
                 )
             }
         }
@@ -366,9 +370,9 @@ fun GlobalSearchScreenEmptyPreview() {
         titles = listOf(
             string.application,
             string.component,
-            string.online_rule
+            string.online_rule,
         ),
-        currentIndex = 0
+        currentIndex = 0,
     )
     BlockerTheme {
         GlobalSearchScreen(
@@ -384,7 +388,7 @@ fun GlobalSearchScreenEmptyPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            navigationToSearchedAppDetail = {}
+            navigationToSearchedAppDetail = {},
         )
     }
 }
@@ -399,21 +403,21 @@ fun GlobalSearchScreenPreview() {
         activityCount = 0,
         broadcastCount = 1,
         serviceCount = 0,
-        contentProviderCount = 9
+        contentProviderCount = 9,
     )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.LocalSearchResult(
         filter = listOf(filterAppItem),
         isSelectedMode = false,
-        selectedAppCount = 0
+        selectedAppCount = 0,
     )
     val tabState = SearchTabState(
         titles = listOf(
             string.application,
             string.component,
-            string.online_rule
+            string.online_rule,
         ),
-        currentIndex = 0
+        currentIndex = 0,
     )
     BlockerTheme {
         GlobalSearchScreen(
@@ -429,7 +433,7 @@ fun GlobalSearchScreenPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            navigationToSearchedAppDetail = {}
+            navigationToSearchedAppDetail = {},
         )
     }
 }
@@ -445,21 +449,21 @@ fun GlobalSearchScreenSelectedPreview() {
         activityCount = 0,
         broadcastCount = 1,
         serviceCount = 0,
-        contentProviderCount = 9
+        contentProviderCount = 9,
     )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.LocalSearchResult(
         filter = listOf(filterAppItem),
         isSelectedMode = true,
-        selectedAppCount = 1
+        selectedAppCount = 1,
     )
     val tabState = SearchTabState(
         titles = listOf(
             string.application,
             string.component,
-            string.online_rule
+            string.online_rule,
         ),
-        currentIndex = 0
+        currentIndex = 0,
     )
     BlockerTheme {
         GlobalSearchScreen(
@@ -475,7 +479,7 @@ fun GlobalSearchScreenSelectedPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            navigationToSearchedAppDetail = {}
+            navigationToSearchedAppDetail = {},
         )
     }
 }

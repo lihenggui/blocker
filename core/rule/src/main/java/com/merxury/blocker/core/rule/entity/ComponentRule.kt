@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,5 +26,5 @@ data class ComponentRule(
     var name: String = "",
     var state: Boolean = true,
     var type: EComponentType = EComponentType.RECEIVER,
-    var method: ControllerType = ControllerType.PM
+    var method: ControllerType = ControllerType.PM,
 )

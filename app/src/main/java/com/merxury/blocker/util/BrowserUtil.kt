@@ -65,7 +65,8 @@ object BrowserUtil {
         val resolvedActivityList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pm.queryIntentActivities(activityIntent, PackageManager.ResolveInfoFlags.of(0))
         } else {
-            @Suppress("DEPRECATION") pm.queryIntentActivities(activityIntent, 0)
+            @Suppress("DEPRECATION")
+            pm.queryIntentActivities(activityIntent, 0)
         }
         val packagesSupportingCustomTabs: ArrayList<ResolveInfo> = ArrayList()
         for (info in resolvedActivityList) {
@@ -76,7 +77,8 @@ object BrowserUtil {
             val service = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.resolveService(serviceIntent, PackageManager.ResolveInfoFlags.of(0))
             } else {
-                @Suppress("DEPRECATION") pm.resolveService(serviceIntent, 0)
+                @Suppress("DEPRECATION")
+                pm.resolveService(serviceIntent, 0)
             }
             if (service != null) {
                 packagesSupportingCustomTabs.add(info)

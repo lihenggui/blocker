@@ -49,7 +49,7 @@ class AppDetailAdapter(activity: FragmentActivity, app: Application) :
             R.string.service,
             R.string.receiver,
             R.string.activity,
-            R.string.content_provider
+            R.string.content_provider,
         )
     }
 }

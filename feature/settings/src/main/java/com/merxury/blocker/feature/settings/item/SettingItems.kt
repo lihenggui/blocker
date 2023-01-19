@@ -47,7 +47,7 @@ fun TwoRowsSettingItem(
     icon: ImageVector? = null,
     itemRes: Int,
     itemValue: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Box(modifier = modifier) {
         Row(
@@ -55,13 +55,13 @@ fun TwoRowsSettingItem(
                 .fillMaxWidth()
                 .clickable { onClick() }
                 .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             if (icon != null) {
                 Icon(
                     imageVector = icon,
                     contentDescription = stringResource(id = itemRes),
-                    modifier = modifier.padding(end = 16.dp)
+                    modifier = modifier.padding(end = 16.dp),
                 )
             } else {
                 Spacer(modifier = Modifier.width(40.dp))
@@ -69,12 +69,12 @@ fun TwoRowsSettingItem(
             Column {
                 Text(
                     text = stringResource(id = itemRes),
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
                     text = itemValue,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -85,18 +85,18 @@ fun TwoRowsSettingItem(
 fun SingleRowSettingItem(
     itemRes: Int,
     onItemClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onItemClick() }
             .padding(vertical = 16.dp, horizontal = 56.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = stringResource(id = itemRes),
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
@@ -108,7 +108,7 @@ fun SettingItemHeader(itemRes: Int) {
             text = stringResource(id = itemRes),
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(vertical = 16.dp, horizontal = 56.dp)
+            modifier = Modifier.padding(vertical = 16.dp, horizontal = 56.dp),
         )
     }
 }
@@ -117,18 +117,18 @@ fun SettingItemHeader(itemRes: Int) {
 fun SwitchSettingItem(
     itemRes: Int,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     Row(
         modifier = Modifier
             .clickable { onCheckedChange(!checked) }
             .padding(vertical = 12.dp)
             .padding(start = 56.dp, end = 24.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = stringResource(id = itemRes),
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
         Spacer(modifier = Modifier.weight(1f))
         Switch(checked = checked, onCheckedChange = null)
@@ -145,7 +145,7 @@ fun SettingsItemPreview() {
                 icon = BlockerIcons.AutoFix,
                 itemRes = R.string.controller_type,
                 itemValue = "IFW",
-                onClick = {}
+                onClick = {},
             )
         }
     }
@@ -160,7 +160,7 @@ fun SettingsItemWithoutIconPreview() {
             TwoRowsSettingItem(
                 itemRes = R.string.theme,
                 itemValue = "Default",
-                onClick = {}
+                onClick = {},
             )
         }
     }
@@ -173,7 +173,7 @@ fun SettingsItemSinglePreview() {
         Surface {
             SingleRowSettingItem(
                 itemRes = R.string.import_mat_rules,
-                onItemClick = {}
+                onItemClick = {},
             )
         }
     }
@@ -188,7 +188,7 @@ fun SwitchSettingsItemPreview() {
             SwitchSettingItem(
                 itemRes = R.string.show_system_apps,
                 checked = true,
-                onCheckedChange = {}
+                onCheckedChange = {},
             )
         }
     }

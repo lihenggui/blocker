@@ -23,8 +23,6 @@ import com.merxury.blocker.core.network.BuildConfig
 import com.merxury.blocker.core.network.model.NetworkChangeList
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
-import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -33,6 +31,8 @@ import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Path
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Retrofit API declaration for Blocker Network API
@@ -55,7 +55,7 @@ private const val BlockerBaseUrl = BuildConfig.BACKEND_URL
  */
 @Singleton
 class RetrofitBlockerNetwork @Inject constructor(
-    networkJson: Json
+    networkJson: Json,
 ) : BlockerNetworkDataSource {
 
     private val networkApi = Retrofit.Builder()
@@ -66,13 +66,13 @@ class RetrofitBlockerNetwork @Inject constructor(
                     // TODO: Decide logging logic
                     HttpLoggingInterceptor().apply {
                         setLevel(HttpLoggingInterceptor.Level.BODY)
-                    }
+                    },
                 )
-                .build()
+                .build(),
         )
         .addConverterFactory(
             @OptIn(ExperimentalSerializationApi::class)
-            networkJson.asConverterFactory("application/json".toMediaType())
+            networkJson.asConverterFactory("application/json".toMediaType()),
         )
         .build()
         .create(BlockerNetworkApi::class.java)

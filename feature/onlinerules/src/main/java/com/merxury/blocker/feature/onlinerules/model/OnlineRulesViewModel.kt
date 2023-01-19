@@ -21,10 +21,10 @@ import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.onlinerules.model.OnlineRulesUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import javax.inject.Inject
 
 @HiltViewModel
 class OnlineRulesViewModel @Inject constructor() : ViewModel() {
@@ -35,7 +35,7 @@ class OnlineRulesViewModel @Inject constructor() : ViewModel() {
 sealed interface OnlineRulesUiState {
     object Loading : OnlineRulesUiState
     class OnlineRulesResult(
-        val rules: List<GeneralRuleEntity>
+        val rules: List<GeneralRuleEntity>,
     ) : OnlineRulesUiState
 
     class Error(val message: ErrorMessage) : OnlineRulesUiState

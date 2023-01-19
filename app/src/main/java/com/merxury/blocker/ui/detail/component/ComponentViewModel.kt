@@ -42,8 +42,6 @@ import com.merxury.blocker.util.ManagerUtils
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.IntentFirewallImpl
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.io.File
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -53,6 +51,8 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
+import javax.inject.Inject
 
 @HiltViewModel
 class ComponentViewModel @Inject constructor(
@@ -111,7 +111,7 @@ class ComponentViewModel @Inject constructor(
                 ControllerType.SHIZUKU -> controlComponentInShizukuMode(
                     context,
                     component,
-                    enabled
+                    enabled,
                 )
             }
             // Save the component status to database
@@ -149,7 +149,7 @@ class ComponentViewModel @Inject constructor(
         context: Context,
         packageName: String,
         type: EComponentType,
-        enable: Boolean
+        enable: Boolean,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             val controllerType = PreferenceUtil.getControllerType(context)
@@ -173,7 +173,7 @@ class ComponentViewModel @Inject constructor(
             } catch (e: Throwable) {
                 logger.e(
                     "Failed to control all components $packageName, type $type, enable $enable",
-                    e
+                    e,
                 )
                 errorStack.postValue(e)
                 return@launch
@@ -185,7 +185,7 @@ class ComponentViewModel @Inject constructor(
         list: List<ComponentData>,
         component: ComponentInfo,
         status: Boolean,
-        controllerType: ControllerType
+        controllerType: ControllerType,
     ) {
         val data = list.find { it.name == component.name }
         when (controllerType) {
@@ -219,7 +219,7 @@ class ComponentViewModel @Inject constructor(
         context: Context,
         component: ComponentData,
         enabled: Boolean,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ) = withContext(dispatcher) {
         try {
             // First we need to change IFW state if it's been blocked by IFW
@@ -248,13 +248,13 @@ class ComponentViewModel @Inject constructor(
         context: Context,
         component: ComponentData,
         enabled: Boolean,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ) = withContext(dispatcher) {
         try {
             // Need to enable the component by PM controller first
             if (enabled && !ApplicationUtil.checkComponentIsEnabled(
                     context.packageManager,
-                    ComponentName(component.packageName, component.name)
+                    ComponentName(component.packageName, component.name),
                 )
             ) {
                 ComponentControllerProxy.getInstance(ControllerType.PM, context)
@@ -278,7 +278,7 @@ class ComponentViewModel @Inject constructor(
         context: Context,
         component: ComponentData,
         enabled: Boolean,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ) = withContext(dispatcher) {
         try {
             // In Shizuku mode, use root privileges as little as possible
@@ -300,7 +300,7 @@ class ComponentViewModel @Inject constructor(
         context: Context,
         packageName: String,
         components: MutableList<out ComponentInfo>,
-        type: EComponentType
+        type: EComponentType,
     ): MutableList<ComponentData> {
         val ifwController = IntentFirewallImpl(packageName).load()
         val pmController = ComponentControllerProxy.getInstance(ControllerType.PM, context)
@@ -334,8 +334,8 @@ class ComponentViewModel @Inject constructor(
                                 !blocked
                             }
                         },
-                        { it.simpleName }
-                    )
+                        { it.simpleName },
+                    ),
                 )
                 .toMutableList()
         }
