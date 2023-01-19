@@ -17,9 +17,9 @@
 package com.merxury.ifw.util
 
 import com.merxury.ifw.entity.Rules
-import java.io.InputStream
 import org.simpleframework.xml.core.Persister
 import timber.log.Timber
+import java.io.InputStream
 
 object RuleSerializer {
     private val serializer by lazy { Persister() }

@@ -58,7 +58,7 @@ val LightDefaultColorScheme = lightColorScheme(
     onSurface = DarkPurpleGray10,
     surfaceVariant = PurpleGray90,
     onSurfaceVariant = PurpleGray30,
-    outline = PurpleGray50
+    outline = PurpleGray50,
 )
 
 /**
@@ -88,7 +88,7 @@ val DarkDefaultColorScheme = darkColorScheme(
     onSurface = DarkPurpleGray90,
     surfaceVariant = PurpleGray30,
     onSurfaceVariant = PurpleGray80,
-    outline = PurpleGray60
+    outline = PurpleGray60,
 )
 
 /**
@@ -118,7 +118,7 @@ val LightAndroidColorScheme = lightColorScheme(
     onSurface = DarkGreenGray10,
     surfaceVariant = GreenGray90,
     onSurfaceVariant = GreenGray30,
-    outline = GreenGray50
+    outline = GreenGray50,
 )
 
 /**
@@ -148,7 +148,7 @@ val DarkAndroidColorScheme = darkColorScheme(
     onSurface = DarkGreenGray90,
     surfaceVariant = GreenGray30,
     onSurfaceVariant = GreenGray80,
-    outline = GreenGray60
+    outline = GreenGray60,
 )
 
 /**
@@ -158,7 +158,7 @@ val LightDefaultGradientColors = GradientColors(
     primary = Purple95,
     secondary = Orange95,
     tertiary = Blue95,
-    neutral = DarkPurpleGray95
+    neutral = DarkPurpleGray95,
 )
 
 /**
@@ -182,12 +182,12 @@ val DarkAndroidBackgroundTheme = BackgroundTheme(color = Color.Black)
 fun BlockerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     androidTheme: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) = BlockerTheme(
     darkTheme = darkTheme,
     androidTheme = androidTheme,
     disableDynamicTheming = false,
-    content = content
+    content = content,
 )
 
 /**
@@ -205,7 +205,7 @@ internal fun BlockerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     androidTheme: Boolean = false,
     disableDynamicTheming: Boolean,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = if (androidTheme) {
         if (darkTheme) DarkAndroidColorScheme else LightAndroidColorScheme
@@ -225,7 +225,7 @@ internal fun BlockerTheme(
 
     val defaultBackgroundTheme = BackgroundTheme(
         color = colorScheme.surface,
-        tonalElevation = 2.dp
+        tonalElevation = 2.dp,
     )
     val backgroundTheme = if (androidTheme) {
         if (darkTheme) DarkAndroidBackgroundTheme else LightAndroidBackgroundTheme
@@ -235,12 +235,12 @@ internal fun BlockerTheme(
 
     CompositionLocalProvider(
         LocalGradientColors provides gradientColors,
-        LocalBackgroundTheme provides backgroundTheme
+        LocalBackgroundTheme provides backgroundTheme,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = BlockerTypography,
-            content = content
+            content = content,
         )
     }
 }

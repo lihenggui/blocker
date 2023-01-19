@@ -40,7 +40,7 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
         val binding = GeneralRulesCardItemBinding.inflate(
             LayoutInflater.from(context),
             parent,
-            false
+            false,
         )
         return ViewHolder(context, binding)
     }
@@ -67,7 +67,7 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
 
     inner class ViewHolder(
         private val context: Context,
-        private val binding: GeneralRulesCardItemBinding
+        private val binding: GeneralRulesCardItemBinding,
     ) :
         RecyclerView.ViewHolder(binding.root) {
 
@@ -123,7 +123,8 @@ class GeneralRulesAdapter : RecyclerView.Adapter<GeneralRulesAdapter.ViewHolder>
     private fun getOnlineSourceType(context: Context): OnlineSourceType {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val value = pref.getString(
-            context.getString(R.string.key_pref_online_source_type), "GITLAB"
+            context.getString(R.string.key_pref_online_source_type),
+            "GITLAB",
         ).orEmpty()
         return try {
             OnlineSourceType.valueOf(value)

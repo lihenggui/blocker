@@ -57,7 +57,7 @@ fun <T> DialogSettingsItems(
     itemRes: Int,
     itemValue: T,
     menuList: List<T>,
-    onMenuClick: (item: T) -> Unit
+    onMenuClick: (item: T) -> Unit,
 ) {
     var isShowDialog by remember { mutableStateOf(false) }
     Column {
@@ -65,7 +65,7 @@ fun <T> DialogSettingsItems(
             icon = icon,
             itemRes = itemRes,
             itemValue = itemValue.toString(),
-            onClick = { isShowDialog = true }
+            onClick = { isShowDialog = true },
         )
     }
     if (isShowDialog) {
@@ -73,7 +73,7 @@ fun <T> DialogSettingsItems(
             titleRes = itemRes,
             items = menuList,
             value = itemValue,
-            onMenuClick = onMenuClick
+            onMenuClick = onMenuClick,
         ) {
             isShowDialog = false
         }
@@ -86,14 +86,14 @@ fun <T> SettingDialog(
     items: List<T>,
     value: T,
     onMenuClick: (item: T) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = { onDismiss() },
         title = {
             Text(
                 text = stringResource(titleRes),
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge,
             )
         },
         text = {
@@ -103,7 +103,7 @@ fun <T> SettingDialog(
                     SettingsDialogThemeChooserRow(
                         item = it,
                         selected = value == it,
-                        onClick = onMenuClick
+                        onClick = onMenuClick,
                     )
                 }
             }
@@ -115,9 +115,9 @@ fun <T> SettingDialog(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
-                    .clickable { onDismiss() }
+                    .clickable { onDismiss() },
             )
-        }
+        },
     )
 }
 
@@ -125,7 +125,7 @@ fun <T> SettingDialog(
 fun <T> SettingsDialogThemeChooserRow(
     item: T,
     selected: Boolean,
-    onClick: (item: T) -> Unit
+    onClick: (item: T) -> Unit,
 ) {
     Row(
         Modifier
@@ -136,11 +136,11 @@ fun <T> SettingsDialogThemeChooserRow(
                 onClick = { onClick(item) },
             )
             .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(
             selected = selected,
-            onClick = null
+            onClick = null,
         )
         Spacer(Modifier.width(8.dp))
         Text(item.toString())
@@ -158,7 +158,7 @@ fun DialogSettingsItemPreview() {
                 items = listOf(ANDROID, DEFAULT),
                 value = DEFAULT,
                 onMenuClick = {},
-                onDismiss = {}
+                onDismiss = {},
             )
         }
     }

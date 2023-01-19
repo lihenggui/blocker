@@ -77,7 +77,7 @@ fun BlockerApp(
     networkMonitor: NetworkMonitor,
     appState: BlockerAppState = rememberBlockerAppState(
         networkMonitor = networkMonitor,
-        windowSizeClass = windowSizeClass
+        windowSizeClass = windowSizeClass,
     ),
 ) {
     val background: @Composable (@Composable () -> Unit) -> Unit =
@@ -90,7 +90,6 @@ fun BlockerApp(
         }
 
     background {
-
         val snackbarHostState = remember { SnackbarHostState() }
 
         Scaffold(
@@ -107,10 +106,10 @@ fun BlockerApp(
                         destinations = appState.topLevelDestinations,
                         onNavigateToDestination = appState::navigateToTopLevelDestination,
                         currentDestination = appState.currentDestination,
-                        modifier = Modifier.testTag("BlockerBottomBar")
+                        modifier = Modifier.testTag("BlockerBottomBar"),
                     )
                 }
-            }
+            },
         ) { padding ->
 
             val isOffline by appState.isOffline.collectAsStateWithLifecycle()
@@ -118,10 +117,12 @@ fun BlockerApp(
             // If user is not connected to the internet show a snack bar to inform them.
             val notConnected = stringResource(R.string.not_connected)
             LaunchedEffect(isOffline) {
-                if (isOffline) snackbarHostState.showSnackbar(
-                    message = notConnected,
-                    duration = Indefinite
-                )
+                if (isOffline) {
+                    snackbarHostState.showSnackbar(
+                        message = notConnected,
+                        duration = Indefinite,
+                    )
+                }
             }
 
             Row(
@@ -129,9 +130,9 @@ fun BlockerApp(
                     .fillMaxSize()
                     .windowInsetsPadding(
                         WindowInsets.safeDrawing.only(
-                            WindowInsetsSides.Horizontal
-                        )
-                    )
+                            WindowInsetsSides.Horizontal,
+                        ),
+                    ),
             ) {
                 if (appState.shouldShowNavRail) {
                     BlockerNavRail(
@@ -140,7 +141,7 @@ fun BlockerApp(
                         currentDestination = appState.currentDestination,
                         modifier = Modifier
                             .testTag("BlockerNavRail")
-                            .safeDrawingPadding()
+                            .safeDrawingPadding(),
                     )
                 }
 
@@ -150,7 +151,7 @@ fun BlockerApp(
                     isExpandedScreen = appState.isExpandedScreen,
                     modifier = Modifier
                         .padding(padding)
-                        .consumedWindowInsets(padding)
+                        .consumedWindowInsets(padding),
                 )
 
                 // TODO: We may want to add padding or spacer when the snackbar is shown so that
@@ -182,16 +183,16 @@ private fun BlockerNavRail(
                     when (icon) {
                         is ImageVectorIcon -> Icon(
                             imageVector = icon.imageVector,
-                            contentDescription = null
+                            contentDescription = null,
                         )
 
                         is DrawableResourceIcon -> Icon(
                             painter = painterResource(id = icon.id),
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     }
                 },
-                label = { Text(stringResource(destination.iconTextId)) }
+                label = { Text(stringResource(destination.iconTextId)) },
             )
         }
     }
@@ -202,10 +203,10 @@ private fun BlockerBottomBar(
     destinations: List<TopLevelDestination>,
     onNavigateToDestination: (TopLevelDestination) -> Unit,
     currentDestination: NavDestination?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     BlockerNavigationBar(
-        modifier = modifier
+        modifier = modifier,
     ) {
         destinations.forEach { destination ->
             val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
@@ -221,16 +222,16 @@ private fun BlockerBottomBar(
                     when (icon) {
                         is ImageVectorIcon -> Icon(
                             imageVector = icon.imageVector,
-                            contentDescription = null
+                            contentDescription = null,
                         )
 
                         is DrawableResourceIcon -> Icon(
                             painter = painterResource(id = icon.id),
-                            contentDescription = null
+                            contentDescription = null,
                         )
                     }
                 },
-                label = { Text(stringResource(destination.iconTextId)) }
+                label = { Text(stringResource(destination.iconTextId)) },
             )
         }
     }

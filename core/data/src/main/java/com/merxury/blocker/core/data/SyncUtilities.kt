@@ -18,10 +18,10 @@ package com.merxury.blocker.core.data
 
 import com.merxury.blocker.core.datastore.ChangeListVersions
 import com.merxury.blocker.core.network.model.NetworkChangeList
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import timber.log.Timber
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Interface marker for a class that manages synchronization between local data and a remote
@@ -113,10 +113,10 @@ fun <T1, T2, T3, T4, T5, T6, R> combine(
     flow4: Flow<T4>,
     flow5: Flow<T5>,
     flow6: Flow<T6>,
-    transform: suspend (T1, T2, T3, T4, T5, T6) -> R
+    transform: suspend (T1, T2, T3, T4, T5, T6) -> R,
 ): Flow<R> = combine(
     combine(flow, flow2, flow3, ::Triple),
-    combine(flow4, flow5, flow6, ::Triple)
+    combine(flow4, flow5, flow6, ::Triple),
 ) { t1, t2 ->
     transform(
         t1.first,
@@ -124,6 +124,6 @@ fun <T1, T2, T3, T4, T5, T6, R> combine(
         t1.third,
         t2.first,
         t2.second,
-        t2.third
+        t2.third,
     )
 }

@@ -37,10 +37,10 @@ import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.util.IfwStorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.IOException
 
 @HiltWorker
 class ResetIfwWorker @AssistedInject constructor(
@@ -67,24 +67,24 @@ class ResetIfwWorker @AssistedInject constructor(
                 FileUtils.delete(
                     path = ifwFolder + it,
                     recursively = false,
-                    dispatcher = ioDispatcher
+                    dispatcher = ioDispatcher,
                 )
                 count++
             }
         } catch (e: RuntimeException) {
             Timber.e("Failed to clear IFW rules", e)
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION)
+                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
             )
         } catch (e: IOException) {
             Timber.e("Failed to clear IFW rules, IO exception occured", e)
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION)
+                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
             )
         }
         Timber.i("Cleared $count IFW rules.")
         return@withContext Result.success(
-            workDataOf(PARAM_CLEAR_COUNT to count)
+            workDataOf(PARAM_CLEAR_COUNT to count),
         )
     }
 

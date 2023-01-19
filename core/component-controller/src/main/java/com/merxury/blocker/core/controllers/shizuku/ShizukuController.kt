@@ -23,25 +23,25 @@ import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.utils.ApplicationUtil
-import javax.inject.Inject
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
+import javax.inject.Inject
 
 class ShizukuController @Inject constructor(
-    private val context: Context
+    private val context: Context,
 ) : IController {
     private var pm: IPackageManager? = null
 
     override suspend fun switchComponent(
         packageName: String,
         componentName: String,
-        state: Int
+        state: Int,
     ): Boolean {
         if (pm == null) {
             pm = IPackageManager.Stub.asInterface(
                 ShizukuBinderWrapper(
-                    SystemServiceHelper.getSystemService("package")
-                )
+                    SystemServiceHelper.getSystemService("package"),
+                ),
             )
         }
         // 0 means kill the application
@@ -53,7 +53,7 @@ class ShizukuController @Inject constructor(
         return switchComponent(
             packageName,
             componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
         )
     }
 
@@ -61,13 +61,13 @@ class ShizukuController @Inject constructor(
         return switchComponent(
             packageName,
             componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
         )
     }
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
         var successCount = 0
         componentList.forEach {
@@ -81,7 +81,7 @@ class ShizukuController @Inject constructor(
 
     override suspend fun batchDisable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
         var successCount = 0
         componentList.forEach {
@@ -95,11 +95,11 @@ class ShizukuController @Inject constructor(
 
     override suspend fun checkComponentEnableState(
         packageName: String,
-        componentName: String
+        componentName: String,
     ): Boolean {
         return ApplicationUtil.checkComponentIsEnabled(
             context.packageManager,
-            ComponentName(packageName, componentName)
+            ComponentName(packageName, componentName),
         )
     }
 }

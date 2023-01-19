@@ -46,7 +46,7 @@ object DaosModule {
 
     @Provides
     fun provideInstantComponentInfoDao(
-        database: InstantComponentInfoDatabase
+        database: InstantComponentInfoDatabase,
     ): InstantComponentInfoDao {
         return database.instantComponentInfoDao()
     }

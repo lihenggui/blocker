@@ -57,7 +57,7 @@ import com.merxury.blocker.feature.onlinerules.model.OnlineRulesViewModel
 
 @Composable
 fun OnlineRulesRoute(
-    viewModel: OnlineRulesViewModel = hiltViewModel()
+    viewModel: OnlineRulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.onlineRulesUiState.collectAsStateWithLifecycle()
     OnlineRulesScreen(uiState = uiState)
@@ -67,12 +67,12 @@ fun OnlineRulesRoute(
 @Composable
 fun OnlineRulesScreen(
     modifier: Modifier = Modifier,
-    uiState: OnlineRulesUiState
+    uiState: OnlineRulesUiState,
 ) {
     Scaffold(
         topBar = {
             BlockerHomeTopAppBar(titleRes = string.online_rules, actions = {})
-        }
+        },
     ) { padding ->
         Column(
             modifier = modifier
@@ -81,11 +81,11 @@ fun OnlineRulesScreen(
                 .consumedWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal
-                    )
+                        WindowInsetsSides.Horizontal,
+                    ),
                 ),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when (uiState) {
                 Loading -> {
@@ -93,7 +93,7 @@ fun OnlineRulesScreen(
                         modifier = modifier
                             .fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
                     ) {
                         BlockerLoadingWheel(
                             modifier = modifier,
@@ -122,13 +122,13 @@ fun ErrorScreen(message: ErrorMessage) {
 @Composable
 fun OnlineRulesContent(
     modifier: Modifier = Modifier,
-    uiState: OnlineRulesResult
+    uiState: OnlineRulesResult,
 ) {
     val listContent = remember { uiState.rules }
     val listState = rememberLazyListState()
     LazyColumn(
         modifier = modifier,
-        state = listState
+        state = listState,
     ) {
         items(listContent, key = { it.id }) {
             RuleCard(item = it)
@@ -149,7 +149,7 @@ fun OnlineRulesScreenPreview() {
                 description = "Merxury Merxury Merxury Merxury Merxury Merxury Merxury Merxury",
                 sideEffect = "unknown",
                 safeToBlock = true,
-                contributors = listOf("blocker")
+                contributors = listOf("blocker"),
             ),
             GeneralRuleEntity(
                 id = 10,
@@ -159,9 +159,9 @@ fun OnlineRulesScreenPreview() {
                 description = "Blocker Blocker Blocker Blocker Blocker",
                 sideEffect = "Blocker",
                 safeToBlock = false,
-                contributors = listOf("merxury")
-            )
-        )
+                contributors = listOf("merxury"),
+            ),
+        ),
     )
     BlockerTheme {
         OnlineRulesScreen(uiState = uiState)

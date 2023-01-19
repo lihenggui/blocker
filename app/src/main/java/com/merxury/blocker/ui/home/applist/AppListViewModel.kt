@@ -83,7 +83,7 @@ class AppListViewModel : ViewModel() {
         _appList.value = originalList.filter {
             it.label.replace(" ", "").contains(clearedKeyword, true) || it.packageName.contains(
                 keyword,
-                true
+                true,
             )
         }
     }

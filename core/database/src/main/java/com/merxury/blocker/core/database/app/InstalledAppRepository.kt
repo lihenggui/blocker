@@ -21,7 +21,7 @@ import javax.inject.Singleton
 
 @Singleton
 class InstalledAppRepository @Inject constructor(
-    private val installedAppDao: InstalledAppDao
+    private val installedAppDao: InstalledAppDao,
 ) {
     suspend fun getInstalledApp() = installedAppDao.getAll()
 

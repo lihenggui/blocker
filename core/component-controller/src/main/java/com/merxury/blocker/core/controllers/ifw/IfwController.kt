@@ -27,11 +27,11 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.ComponentType
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 class IfwController @Inject constructor(
-    private val context: Context
+    private val context: Context,
 ) : IController {
     private lateinit var controller: IntentFirewall
     private lateinit var packageInfo: PackageInfo
@@ -39,7 +39,7 @@ class IfwController @Inject constructor(
     override suspend fun switchComponent(
         packageName: String,
         componentName: String,
-        state: Int
+        state: Int,
     ): Boolean {
         init(packageName)
         val type = getComponentType(componentName)
@@ -48,13 +48,13 @@ class IfwController @Inject constructor(
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED ->
                     ComponentControllerProxy.getInstance(
                         ControllerType.PM,
-                        context
+                        context,
                     ).disable(packageName, componentName)
 
                 PackageManager.COMPONENT_ENABLED_STATE_ENABLED ->
                     ComponentControllerProxy.getInstance(
                         ControllerType.PM,
-                        context
+                        context,
                     ).enable(packageName, componentName)
 
                 else -> false
@@ -84,7 +84,7 @@ class IfwController @Inject constructor(
         return switchComponent(
             packageName,
             componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
         )
     }
 
@@ -92,13 +92,13 @@ class IfwController @Inject constructor(
         return switchComponent(
             packageName,
             componentName,
-            PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
         )
     }
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
         var succeededCount = 0
         if (componentList.isEmpty()) {
@@ -120,7 +120,7 @@ class IfwController @Inject constructor(
 
     override suspend fun batchDisable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
         var succeededCount = 0
         if (componentList.isEmpty()) {
@@ -142,7 +142,7 @@ class IfwController @Inject constructor(
 
     override suspend fun checkComponentEnableState(
         packageName: String,
-        componentName: String
+        componentName: String,
     ): Boolean {
         init(packageName)
         return controller.getComponentEnableState(packageName, componentName)

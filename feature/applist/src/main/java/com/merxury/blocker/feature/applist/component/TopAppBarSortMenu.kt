@@ -34,32 +34,32 @@ fun TopAppBarSortMenu(onSortingUpdate: (AppSorting) -> Unit) {
     val items = listOf(
         DropDownMenuItem(
             textRes = R.string.name_asc,
-            onClick = { onSortingUpdate(NAME_ASCENDING) }
+            onClick = { onSortingUpdate(NAME_ASCENDING) },
         ),
         DropDownMenuItem(
             textRes = R.string.name_desc,
-            onClick = { onSortingUpdate(NAME_DESCENDING) }
+            onClick = { onSortingUpdate(NAME_DESCENDING) },
         ),
         DropDownMenuItem(
             textRes = R.string.installation_date,
-            onClick = { onSortingUpdate(FIRST_INSTALL_TIME_ASCENDING) }
+            onClick = { onSortingUpdate(FIRST_INSTALL_TIME_ASCENDING) },
         ),
         DropDownMenuItem(
             textRes = R.string.installation_date,
-            onClick = { onSortingUpdate(FIRST_INSTALL_TIME_DESCENDING) }
+            onClick = { onSortingUpdate(FIRST_INSTALL_TIME_DESCENDING) },
         ),
         DropDownMenuItem(
             textRes = R.string.last_update_time,
-            onClick = { onSortingUpdate(LAST_UPDATE_TIME_ASCENDING) }
+            onClick = { onSortingUpdate(LAST_UPDATE_TIME_ASCENDING) },
         ),
         DropDownMenuItem(
             textRes = R.string.last_update_time,
-            onClick = { onSortingUpdate(LAST_UPDATE_TIME_DESCENDING) }
+            onClick = { onSortingUpdate(LAST_UPDATE_TIME_DESCENDING) },
         ),
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.Sort,
         menuIconDesc = R.string.sort_menu,
-        menuList = items
+        menuList = items,
     )
 }

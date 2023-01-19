@@ -30,12 +30,12 @@ import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.ifw.util.IfwStorageUtils
 import com.merxury.ifw.util.RuleSerializer
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStreamReader
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
 
 object RuleBackupHelper {
     private val logger = XLog.tag("RuleBackupHelper")
@@ -44,7 +44,7 @@ object RuleBackupHelper {
     suspend fun import(
         context: Context,
         packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Uri? {
         return withContext(dispatcher) {
             val controllerType = PreferenceUtil.getControllerType(context)
@@ -59,12 +59,12 @@ object RuleBackupHelper {
                 val reader = BufferedReader(InputStreamReader(it))
                 val blockerRule = Gson().fromJson(
                     reader,
-                    BlockerRule::class.java
+                    BlockerRule::class.java,
                 )
                 Rule.import(context, blockerRule, controllerType)
                 logger.i(
                     "Import rule ${blockerRule.packageName} " +
-                        "from ${backupFile.uri.path} successfully"
+                        "from ${backupFile.uri.path} successfully",
                 )
             }
             return@withContext backupFile.uri
@@ -75,7 +75,7 @@ object RuleBackupHelper {
     suspend fun export(
         context: Context,
         packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Boolean {
         val savedPath = PreferenceUtil.getSavedRulePath(context) ?: return false
         return withContext(dispatcher) {
@@ -93,7 +93,7 @@ object RuleBackupHelper {
     suspend fun importIfwRule(
         context: Context,
         packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Uri? {
         return withContext(dispatcher) {
             val baseUri = PreferenceUtil.getSavedRulePath(context) ?: return@withContext null
@@ -127,7 +127,7 @@ object RuleBackupHelper {
     suspend fun exportIfwRule(
         context: Context,
         packageName: String,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): String? {
         return withContext(dispatcher) {
             val backupFolder = PreferenceUtil.getSavedRulePath(context)
@@ -147,7 +147,7 @@ object RuleBackupHelper {
                     backupFolder.toString(),
                     filename,
                     content,
-                    dispatcher
+                    dispatcher,
                 )
                 if (!result) {
                     logger.i("Export $it failed")

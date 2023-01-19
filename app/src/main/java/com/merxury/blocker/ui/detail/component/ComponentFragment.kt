@@ -55,8 +55,8 @@ import com.merxury.blocker.util.ShareUtil
 import com.merxury.blocker.util.serializable
 import com.merxury.blocker.util.unsafeLazy
 import dagger.hilt.android.AndroidEntryPoint
-import java.io.File
 import kotlinx.coroutines.launch
+import java.io.File
 
 @AndroidEntryPoint
 class ComponentFragment : Fragment() {
@@ -76,7 +76,7 @@ class ComponentFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         binding = ComponentFragmentBinding.inflate(inflater, container, false)
         return binding.root
@@ -105,7 +105,7 @@ class ComponentFragment : Fragment() {
                             Toast.makeText(
                                 requireContext(),
                                 R.string.disabling_components_please_wait,
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             ).show()
                             viewModel.disableAll(requireContext(), packageName, type)
                             true
@@ -115,7 +115,7 @@ class ComponentFragment : Fragment() {
                             Toast.makeText(
                                 requireContext(),
                                 R.string.enabling_components_please_wait,
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             ).show()
                             viewModel.enableAll(requireContext(), packageName, type)
                             true
@@ -152,7 +152,8 @@ class ComponentFragment : Fragment() {
                     }
                 }
             },
-            viewLifecycleOwner, State.RESUMED
+            viewLifecycleOwner,
+            State.RESUMED,
         )
     }
 
@@ -161,7 +162,7 @@ class ComponentFragment : Fragment() {
     private fun openRepository() {
         BrowserUtil.openUrl(
             requireContext(),
-            "https://github.com/lihenggui/blocker-general-rules"
+            "https://github.com/lihenggui/blocker-general-rules",
         )
     }
 
@@ -171,7 +172,7 @@ class ComponentFragment : Fragment() {
         val searchManager =
             requireActivity().getSystemService(Context.SEARCH_SERVICE) as? SearchManager ?: return
         searchView.setSearchableInfo(
-            searchManager.getSearchableInfo(requireActivity().componentName)
+            searchManager.getSearchableInfo(requireActivity().componentName),
         )
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
@@ -209,20 +210,20 @@ class ComponentFragment : Fragment() {
                 requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
             val clipData = ClipData.newPlainText(
                 requireContext().getString(R.string.component_name),
-                componentData.name
+                componentData.name,
             )
             clipboardManager?.setPrimaryClip(clipData)
             Toast.makeText(
                 requireContext(),
                 getString(R.string.copied_to_clipboard_template, componentData.name),
-                Toast.LENGTH_SHORT
+                Toast.LENGTH_SHORT,
             ).show()
         }
         adapter.onDetailClick = { componentData ->
             val fragment = ComponentDetailBottomSheetFragment.newInstance(componentData)
             fragment.show(
                 requireActivity().supportFragmentManager,
-                "ComponentDetailDialogFragment"
+                "ComponentDetailDialogFragment",
             )
         }
         adapter.onComponentBind = { fullName ->
