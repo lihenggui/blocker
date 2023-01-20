@@ -41,7 +41,7 @@ fun BlockerViewToggleButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     compactText: @Composable () -> Unit,
-    expandedText: @Composable () -> Unit
+    expandedText: @Composable () -> Unit,
 ) {
     BlockerTextButton(
         onClick = { onExpandedChange(!expanded) },
@@ -51,8 +51,8 @@ fun BlockerViewToggleButton(
         trailingIcon = {
             Icon(
                 imageVector = if (expanded) BlockerIcons.ViewDay else BlockerIcons.ShortText,
-                contentDescription = null
+                contentDescription = null,
             )
-        }
+        },
     )
 }

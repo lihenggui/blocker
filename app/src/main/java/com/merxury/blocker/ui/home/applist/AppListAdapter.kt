@@ -74,7 +74,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
     override fun onBindViewHolder(
         holder: AppListViewHolder,
         position: Int,
-        payloads: MutableList<Any>
+        payloads: MutableList<Any>,
     ) {
         super.onBindViewHolder(holder, position, payloads)
         if (payloads.isEmpty()) return
@@ -115,7 +115,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
 
     inner class AppListViewHolder(
         private val context: Context,
-        private val binding: AppListItemBinding
+        private val binding: AppListItemBinding,
     ) :
         RecyclerView.ViewHolder(binding.root), View.OnCreateContextMenuListener {
 
@@ -126,7 +126,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
         override fun onCreateContextMenu(
             menu: ContextMenu?,
             view: View?,
-            menuInfo: ContextMenu.ContextMenuInfo?
+            menuInfo: ContextMenu.ContextMenuInfo?,
         ) {
             val item = currentList.getOrNull(contextMenuPosition)
             if (item == null) {
@@ -176,7 +176,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
             // Load icon
             binding.appIcon.setTag(
                 com.merxury.blocker.core.common.R.id.app_item_icon_id,
-                app.packageName
+                app.packageName,
             )
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
@@ -188,7 +188,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
                         context,
                         appInfo,
                         appInfo.uid / 100000,
-                        binding.appIcon
+                        binding.appIcon,
                     )
                 } catch (e: Exception) {
                     logger.e("Failed to load icon, packageName: ${app.packageName}", e)
@@ -209,7 +209,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
                 R.string.service_status_template,
                 state.running,
                 state.blocked,
-                state.total
+                state.total,
             )
         }
 

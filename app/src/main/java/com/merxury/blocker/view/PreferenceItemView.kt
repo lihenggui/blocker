@@ -32,7 +32,7 @@ class PreferenceItemView : ConstraintLayout {
     constructor(context: Context, attrs: AttributeSet?, attributeSetId: Int) : super(
         context,
         attrs,
-        attributeSetId
+        attributeSetId,
     ) {
         initAttrs(context, attrs)
     }

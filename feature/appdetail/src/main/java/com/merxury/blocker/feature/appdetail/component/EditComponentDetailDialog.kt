@@ -51,12 +51,12 @@ fun EditComponentDetailDialog(
     recommendedBlockingValue: Boolean,
     belongingSdkValue: Boolean,
     onSave: () -> Unit,
-    onDismissRequest: () -> Unit
+    onDismissRequest: () -> Unit,
 ) {
     AlertDialog(onDismissRequest = onDismissRequest, title = {
         Text(
             text = stringResource(id = R.string.analyze_service),
-            style = MaterialTheme.typography.headlineSmall
+            style = MaterialTheme.typography.headlineSmall,
         )
     }, text = {
         Column {
@@ -64,14 +64,14 @@ fun EditComponentDetailDialog(
                 modifier = modifier.height(56.dp),
                 value = descriptionValue ?: "",
                 label = { R.string.description },
-                onValueChange = onDescriptionValueChange
+                onValueChange = onDescriptionValueChange,
             )
             Spacer(modifier = modifier.height(8.dp))
             OutlinedTextField(
                 modifier = modifier.height(56.dp),
                 value = blockEffectValue ?: "",
                 label = { R.string.blocking_effect },
-                onValueChange = onBlockEffectValueChange
+                onValueChange = onBlockEffectValueChange,
             )
             Spacer(modifier = modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -99,7 +99,7 @@ fun EditComponentDetailDialog(
                 .clickable {
                     onSave()
                     onDismissRequest()
-                }
+                },
         )
     }, dismissButton = {
         Text(
@@ -108,7 +108,7 @@ fun EditComponentDetailDialog(
             color = MaterialTheme.colorScheme.primary,
             modifier = Modifier
                 .padding(horizontal = 8.dp)
-                .clickable { onDismissRequest() }
+                .clickable { onDismissRequest() },
         )
     })
 }

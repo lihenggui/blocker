@@ -58,12 +58,12 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         val backupPath = inputData.getString(PARAM_FOLDER_PATH)
         if (backupPath.isNullOrEmpty()) {
             return Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED)
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
             )
         }
         if (!StorageUtil.isFolderReadable(context, backupPath)) {
             return Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION)
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
         }
         // Notify users that work is being started
@@ -88,13 +88,13 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
             } catch (e: Exception) {
                 Timber.e("Failed to export blocker rules", e)
                 return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION)
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
                 )
             }
             // Success, show a toast then cancel notifications
             Timber.i("Backup app rules finished.")
             return@withContext Result.success(
-                workDataOf(PARAM_BACKUP_COUNT to current)
+                workDataOf(PARAM_BACKUP_COUNT to current),
             )
         }
     }
@@ -133,8 +133,8 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 .setInputData(
                     workDataOf(
                         PARAM_FOLDER_PATH to folderPath,
-                        PARAM_BACKUP_SYSTEM_APPS to backupSystemApps
-                    )
+                        PARAM_BACKUP_SYSTEM_APPS to backupSystemApps,
+                    ),
                 )
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()

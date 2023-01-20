@@ -50,7 +50,7 @@ fun Item(
             .fillMaxWidth()
             .clickable { onClick() }
             .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) {
             Icon(imageVector = icon, contentDescription = stringResource(id = itemRes))
@@ -61,7 +61,7 @@ fun Item(
         Text(
             modifier = modifier.padding(start = padding),
             text = stringResource(id = itemRes),
-            style = MaterialTheme.typography.bodyLarge
+            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
@@ -74,7 +74,7 @@ fun ItemWithIconPreview() {
             Item(
                 icon = BlockerIcons.BugReport,
                 itemRes = R.string.export_error_log,
-                onClick = {}
+                onClick = {},
             )
         }
     }
@@ -87,7 +87,7 @@ fun ItemWithoutIconPreview() {
         Surface {
             Item(
                 itemRes = R.string.github,
-                onClick = {}
+                onClick = {},
             )
         }
     }

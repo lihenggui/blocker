@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,12 +68,12 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
             val backupPath = inputData.getString(PARAM_FOLDER_PATH)
             if (backupPath.isNullOrEmpty()) {
                 return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED)
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
                 )
             }
             if (!StorageUtil.isFolderReadable(context, backupPath)) {
                 return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION)
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
                 )
             }
             val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
@@ -119,12 +119,12 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         } catch (e: RuntimeException) {
             Timber.e("Failed to import blocker rules", e)
             return@withContext Result.failure(
-                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION)
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
             )
         }
         Timber.i("Imported $successCount rules.")
         return@withContext Result.success(
-            workDataOf(PARAM_IMPORT_COUNT to successCount)
+            workDataOf(PARAM_IMPORT_COUNT to successCount),
         )
     }
 
@@ -161,14 +161,14 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         fun importWork(
             backupPath: String?,
             restoreSystemApps: Boolean,
-            controllerType: ControllerType
+            controllerType: ControllerType,
         ) = OneTimeWorkRequestBuilder<ImportBlockerRuleWorker>()
             .setInputData(
                 workDataOf(
                     PARAM_FOLDER_PATH to backupPath,
                     PARAM_RESTORE_SYS_APPS to restoreSystemApps,
-                    PARAM_CONTROLLER_TYPE to controllerType.ordinal
-                )
+                    PARAM_CONTROLLER_TYPE to controllerType.ordinal,
+                ),
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()

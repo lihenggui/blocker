@@ -59,7 +59,7 @@ fun BlockerFilledButton(
     small: Boolean = false,
     colors: ButtonColors = BlockerButtonDefaults.filledButtonColors(),
     contentPadding: PaddingValues = BlockerButtonDefaults.buttonContentPadding(small = small),
-    content: @Composable RowScope.() -> Unit
+    content: @Composable RowScope.() -> Unit,
 ) {
     Button(
         onClick = onClick,
@@ -75,7 +75,7 @@ fun BlockerFilledButton(
             ProvideTextStyle(value = MaterialTheme.typography.labelSmall) {
                 content()
             }
-        }
+        },
     )
 }
 
@@ -102,7 +102,7 @@ fun BlockerFilledButton(
     colors: ButtonColors = BlockerButtonDefaults.filledButtonColors(),
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     BlockerFilledButton(
         onClick = onClick,
@@ -113,13 +113,13 @@ fun BlockerFilledButton(
         contentPadding = BlockerButtonDefaults.buttonContentPadding(
             small = small,
             leadingIcon = leadingIcon != null,
-            trailingIcon = trailingIcon != null
-        )
+            trailingIcon = trailingIcon != null,
+        ),
     ) {
         BlockerButtonContent(
             text = text,
             leadingIcon = leadingIcon,
-            trailingIcon = trailingIcon
+            trailingIcon = trailingIcon,
         )
     }
 }
@@ -148,7 +148,7 @@ fun BlockerOutlinedButton(
     border: BorderStroke? = BlockerButtonDefaults.outlinedButtonBorder(enabled = enabled),
     colors: ButtonColors = BlockerButtonDefaults.outlinedButtonColors(),
     contentPadding: PaddingValues = BlockerButtonDefaults.buttonContentPadding(small = small),
-    content: @Composable RowScope.() -> Unit
+    content: @Composable RowScope.() -> Unit,
 ) {
     OutlinedButton(
         onClick = onClick,
@@ -165,7 +165,7 @@ fun BlockerOutlinedButton(
             ProvideTextStyle(value = MaterialTheme.typography.labelSmall) {
                 content()
             }
-        }
+        },
     )
 }
 
@@ -194,7 +194,7 @@ fun BlockerOutlinedButton(
     colors: ButtonColors = BlockerButtonDefaults.outlinedButtonColors(),
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     BlockerOutlinedButton(
         onClick = onClick,
@@ -206,13 +206,13 @@ fun BlockerOutlinedButton(
         contentPadding = BlockerButtonDefaults.buttonContentPadding(
             small = small,
             leadingIcon = leadingIcon != null,
-            trailingIcon = trailingIcon != null
-        )
+            trailingIcon = trailingIcon != null,
+        ),
     ) {
         BlockerButtonContent(
             text = text,
             leadingIcon = leadingIcon,
-            trailingIcon = trailingIcon
+            trailingIcon = trailingIcon,
         )
     }
 }
@@ -239,7 +239,7 @@ fun BlockerTextButton(
     small: Boolean = false,
     colors: ButtonColors = BlockerButtonDefaults.textButtonColors(),
     contentPadding: PaddingValues = BlockerButtonDefaults.buttonContentPadding(small = small),
-    content: @Composable RowScope.() -> Unit
+    content: @Composable RowScope.() -> Unit,
 ) {
     TextButton(
         onClick = onClick,
@@ -255,7 +255,7 @@ fun BlockerTextButton(
             ProvideTextStyle(value = MaterialTheme.typography.labelSmall) {
                 content()
             }
-        }
+        },
     )
 }
 
@@ -282,7 +282,7 @@ fun BlockerTextButton(
     colors: ButtonColors = BlockerButtonDefaults.textButtonColors(),
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)? = null,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     BlockerTextButton(
         onClick = onClick,
@@ -293,13 +293,13 @@ fun BlockerTextButton(
         contentPadding = BlockerButtonDefaults.buttonContentPadding(
             small = small,
             leadingIcon = leadingIcon != null,
-            trailingIcon = trailingIcon != null
-        )
+            trailingIcon = trailingIcon != null,
+        ),
     ) {
         BlockerButtonContent(
             text = text,
             leadingIcon = leadingIcon,
-            trailingIcon = trailingIcon
+            trailingIcon = trailingIcon,
         )
     }
 }
@@ -316,7 +316,7 @@ fun BlockerTextButton(
 private fun RowScope.BlockerButtonContent(
     text: @Composable () -> Unit,
     leadingIcon: @Composable (() -> Unit)?,
-    trailingIcon: @Composable (() -> Unit)?
+    trailingIcon: @Composable (() -> Unit)?,
 ) {
     if (leadingIcon != null) {
         Box(Modifier.sizeIn(maxHeight = BlockerButtonDefaults.ButtonIconSize)) {
@@ -335,8 +335,8 @@ private fun RowScope.BlockerButtonContent(
                     BlockerButtonDefaults.ButtonContentSpacing
                 } else {
                     0.dp
-                }
-            )
+                },
+            ),
     ) {
         text()
     }
@@ -365,7 +365,7 @@ object BlockerButtonDefaults {
     fun buttonContentPadding(
         small: Boolean,
         leadingIcon: Boolean = false,
-        trailingIcon: Boolean = false
+        trailingIcon: Boolean = false,
     ): PaddingValues {
         return PaddingValues(
             start = when {
@@ -381,63 +381,67 @@ object BlockerButtonDefaults {
                 trailingIcon -> ButtonHorizontalIconPadding
                 else -> ButtonHorizontalPadding
             },
-            bottom = if (small) SmallButtonVerticalPadding else ButtonVerticalPadding
+            bottom = if (small) SmallButtonVerticalPadding else ButtonVerticalPadding,
         )
     }
+
     @Composable
     fun filledButtonColors(
         containerColor: Color = MaterialTheme.colorScheme.onBackground,
         contentColor: Color = MaterialTheme.colorScheme.onPrimary,
         disabledContainerColor: Color = MaterialTheme.colorScheme.onBackground.copy(
-            alpha = DisabledButtonContainerAlpha
+            alpha = DisabledButtonContainerAlpha,
         ),
         disabledContentColor: Color = MaterialTheme.colorScheme.onBackground.copy(
-            alpha = DisabledButtonContentAlpha
-        )
+            alpha = DisabledButtonContentAlpha,
+        ),
     ) = ButtonDefaults.buttonColors(
         containerColor = containerColor,
         contentColor = contentColor,
         disabledContainerColor = disabledContainerColor,
-        disabledContentColor = disabledContentColor
+        disabledContentColor = disabledContentColor,
     )
+
     @Composable
     fun outlinedButtonBorder(
         enabled: Boolean,
         width: Dp = 1.dp,
         color: Color = MaterialTheme.colorScheme.onBackground,
         disabledColor: Color = MaterialTheme.colorScheme.onBackground.copy(
-            alpha = DisabledButtonContainerAlpha
-        )
+            alpha = DisabledButtonContainerAlpha,
+        ),
     ): BorderStroke = BorderStroke(
         width = width,
-        color = if (enabled) color else disabledColor
+        color = if (enabled) color else disabledColor,
     )
+
     @Composable
     fun outlinedButtonColors(
         containerColor: Color = Color.Transparent,
         contentColor: Color = MaterialTheme.colorScheme.onBackground,
         disabledContainerColor: Color = Color.Transparent,
         disabledContentColor: Color = MaterialTheme.colorScheme.onBackground.copy(
-            alpha = DisabledButtonContentAlpha
-        )
+            alpha = DisabledButtonContentAlpha,
+        ),
     ) = ButtonDefaults.outlinedButtonColors(
         containerColor = containerColor,
         contentColor = contentColor,
         disabledContainerColor = disabledContainerColor,
-        disabledContentColor = disabledContentColor
+        disabledContentColor = disabledContentColor,
     )
+
     @Composable
     fun textButtonColors(
         containerColor: Color = Color.Transparent,
         contentColor: Color = MaterialTheme.colorScheme.onBackground,
         disabledContainerColor: Color = Color.Transparent,
         disabledContentColor: Color = MaterialTheme.colorScheme.onBackground.copy(
-            alpha = DisabledButtonContentAlpha
-        )
+            alpha = DisabledButtonContentAlpha,
+        ),
     ) = ButtonDefaults.textButtonColors(
         containerColor = containerColor,
         contentColor = contentColor,
         disabledContainerColor = disabledContainerColor,
-        disabledContentColor = disabledContentColor
+        disabledContentColor = disabledContentColor,
     )
 }
