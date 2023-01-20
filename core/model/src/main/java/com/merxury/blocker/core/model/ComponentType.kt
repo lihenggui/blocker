@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.model
 
-enum class EComponentType {
+enum class ComponentType {
     RECEIVER,
     ACTIVITY,
     SERVICE,

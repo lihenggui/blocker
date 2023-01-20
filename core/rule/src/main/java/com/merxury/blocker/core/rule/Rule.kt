@@ -24,7 +24,7 @@ import androidx.core.content.pm.PackageInfoCompat
 import androidx.documentfile.provider.DocumentFile
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.entity.ComponentRule
@@ -66,7 +66,7 @@ object Rule {
                         it.packageName,
                         it.name,
                         stateIFW,
-                        EComponentType.RECEIVER,
+                        ComponentType.RECEIVER,
                         ControllerType.IFW,
                     ),
                 )
@@ -75,7 +75,7 @@ object Rule {
                         it.packageName,
                         it.name,
                         statePM,
-                        EComponentType.RECEIVER,
+                        ComponentType.RECEIVER,
                         ControllerType.PM,
                     ),
                 )
@@ -91,7 +91,7 @@ object Rule {
                         it.packageName,
                         it.name,
                         stateIFW,
-                        EComponentType.SERVICE,
+                        ComponentType.SERVICE,
                         ControllerType.IFW,
                     ),
                 )
@@ -100,7 +100,7 @@ object Rule {
                         it.packageName,
                         it.name,
                         statePM,
-                        EComponentType.SERVICE,
+                        ComponentType.SERVICE,
                         ControllerType.PM,
                     ),
                 )
@@ -116,7 +116,7 @@ object Rule {
                         it.packageName,
                         it.name,
                         stateIFW,
-                        EComponentType.ACTIVITY,
+                        ComponentType.ACTIVITY,
                         ControllerType.IFW,
                     ),
                 )
@@ -125,7 +125,7 @@ object Rule {
                         it.packageName,
                         it.name,
                         statePM,
-                        EComponentType.ACTIVITY,
+                        ComponentType.ACTIVITY,
                         ControllerType.PM,
                     ),
                 )
@@ -140,7 +140,7 @@ object Rule {
                         it.packageName,
                         it.name,
                         statePM,
-                        EComponentType.PROVIDER,
+                        ComponentType.PROVIDER,
                         ControllerType.PM,
                     ),
                 )
@@ -185,7 +185,7 @@ object Rule {
                         when (it.type) {
                             // state == false means that IFW applied
                             // We should add in the IFW controller
-                            EComponentType.RECEIVER -> {
+                            ComponentType.RECEIVER -> {
                                 if (!it.state) {
                                     ifwController?.add(
                                         it.packageName,
@@ -201,7 +201,7 @@ object Rule {
                                 }
                             }
 
-                            EComponentType.SERVICE -> {
+                            ComponentType.SERVICE -> {
                                 if (!it.state) {
                                     ifwController?.add(
                                         it.packageName,
@@ -217,7 +217,7 @@ object Rule {
                                 }
                             }
 
-                            EComponentType.ACTIVITY -> {
+                            ComponentType.ACTIVITY -> {
                                 if (!it.state) {
                                     ifwController?.add(
                                         it.packageName,
@@ -233,7 +233,7 @@ object Rule {
                                 }
                             }
                             // content provider needs PM to implement it
-                            EComponentType.PROVIDER -> {
+                            ComponentType.PROVIDER -> {
                                 if (!it.state) {
                                     controller.enable(it.packageName, it.name)
                                 } else {

@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.databinding.ComponentItemBinding
 
@@ -167,7 +167,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
                     onCopyClick?.invoke(item)
                     true
                 }
-            if (item.type == EComponentType.ACTIVITY) {
+            if (item.type == ComponentType.ACTIVITY) {
                 menu?.add(Menu.NONE, 1, 1, R.string.launch_activity)
                     ?.setOnMenuItemClickListener {
                         onLaunchClick?.invoke(item)

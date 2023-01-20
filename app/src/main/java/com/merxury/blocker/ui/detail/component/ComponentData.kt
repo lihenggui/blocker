@@ -17,7 +17,7 @@
 package com.merxury.blocker.ui.detail.component
 
 import android.os.Parcelable
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
@@ -25,7 +25,7 @@ data class ComponentData(
     var name: String = "",
     var simpleName: String = "",
     var packageName: String = "",
-    var type: EComponentType = EComponentType.RECEIVER,
+    var type: ComponentType = ComponentType.RECEIVER,
     var ifwBlocked: Boolean = false,
     var pmBlocked: Boolean = false,
     var isRunning: Boolean = false,
