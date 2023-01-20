@@ -26,7 +26,7 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
-import com.merxury.ifw.entity.ComponentType
+import com.merxury.ifw.entity.IfwComponentType
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -43,7 +43,7 @@ class IfwController @Inject constructor(
     ): Boolean {
         init(packageName)
         val type = getComponentType(componentName)
-        if (type == ComponentType.PROVIDER) {
+        if (type == IfwComponentType.PROVIDER) {
             return when (state) {
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED ->
                     ComponentControllerProxy.getInstance(
@@ -172,27 +172,27 @@ class IfwController @Inject constructor(
         }
     }
 
-    private fun getComponentType(componentName: String): ComponentType {
+    private fun getComponentType(componentName: String): IfwComponentType {
         packageInfo.receivers?.forEach {
             if (it.name == componentName) {
-                return ComponentType.BROADCAST
+                return IfwComponentType.BROADCAST
             }
         }
         packageInfo.services?.forEach {
             if (it.name == componentName) {
-                return ComponentType.SERVICE
+                return IfwComponentType.SERVICE
             }
         }
         packageInfo.activities?.forEach {
             if (it.name == componentName) {
-                return ComponentType.ACTIVITY
+                return IfwComponentType.ACTIVITY
             }
         }
         packageInfo.providers?.forEach {
             if (it.name == componentName) {
-                return ComponentType.PROVIDER
+                return IfwComponentType.PROVIDER
             }
         }
-        return ComponentType.UNKNOWN
+        return IfwComponentType.UNKNOWN
     }
 }

@@ -22,7 +22,7 @@ import com.merxury.ifw.entity.Activity
 import com.merxury.ifw.entity.Broadcast
 import com.merxury.ifw.entity.Component
 import com.merxury.ifw.entity.ComponentFilter
-import com.merxury.ifw.entity.ComponentType
+import com.merxury.ifw.entity.IfwComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.entity.Service
 import com.merxury.ifw.exception.RootUnavailableException
@@ -91,7 +91,7 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     override suspend fun add(
         packageName: String,
         componentName: String,
-        type: ComponentType?,
+        type: IfwComponentType?,
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot add rule")
@@ -99,21 +99,21 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
         }
         var result = false
         when (type) {
-            ComponentType.ACTIVITY -> {
+            IfwComponentType.ACTIVITY -> {
                 if (rule.activity == null) {
                     rule.activity = Activity()
                 }
                 result = addComponentFilter(packageName, componentName, rule.activity)
             }
 
-            ComponentType.BROADCAST -> {
+            IfwComponentType.BROADCAST -> {
                 if (rule.broadcast == null) {
                     rule.broadcast = Broadcast()
                 }
                 result = addComponentFilter(packageName, componentName, rule.broadcast)
             }
 
-            ComponentType.SERVICE -> {
+            IfwComponentType.SERVICE -> {
                 if (rule.service == null) {
                     rule.service = Service()
                 }
@@ -128,26 +128,26 @@ class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
     override suspend fun remove(
         packageName: String,
         componentName: String,
-        type: ComponentType?,
+        type: IfwComponentType?,
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot remove rule")
             throw RootUnavailableException()
         }
         return when (type) {
-            ComponentType.ACTIVITY -> removeComponentFilter(
+            IfwComponentType.ACTIVITY -> removeComponentFilter(
                 packageName,
                 componentName,
                 rule.activity,
             )
 
-            ComponentType.BROADCAST -> removeComponentFilter(
+            IfwComponentType.BROADCAST -> removeComponentFilter(
                 packageName,
                 componentName,
                 rule.broadcast,
             )
 
-            ComponentType.SERVICE -> removeComponentFilter(
+            IfwComponentType.SERVICE -> removeComponentFilter(
                 packageName,
                 componentName,
                 rule.service,
