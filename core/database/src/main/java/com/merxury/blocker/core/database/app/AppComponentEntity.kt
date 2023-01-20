@@ -19,7 +19,7 @@ package com.merxury.blocker.core.database.app
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 
 @Entity(
     primaryKeys = ["package_name", "component_name"],
@@ -31,6 +31,6 @@ data class AppComponentEntity(
     @ColumnInfo(name = "component_name") val componentName: String,
     @ColumnInfo(name = "ifw_blocked") var ifwBlocked: Boolean,
     @ColumnInfo(name = "pm_blocked") var pmBlocked: Boolean,
-    val type: EComponentType,
+    val type: ComponentType,
     val exported: Boolean,
 )
