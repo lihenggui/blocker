@@ -38,7 +38,7 @@ android {
         versionName = "1.2.70" // X.Y.Z; X = Major, Y = minor, Z = Patch level
 
         // Custom test runner to set up Hilt dependency graph
-        testInstrumentationRunner = "com.merxury.blocker.testing.BlockerTestRunner"
+        testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
