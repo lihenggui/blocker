@@ -26,14 +26,14 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
 import com.merxury.blocker.core.result.asResult
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 class OfflineFirstGeneralRuleRepository @Inject constructor(
     private val generalRuleDao: GeneralRuleDao,
-    private val network: BlockerNetworkDataSource
+    private val network: BlockerNetworkDataSource,
 ) : GeneralRuleRepository {
 
     override fun getCacheGeneralRules(): Flow<List<GeneralRule>> =
@@ -49,7 +49,7 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
 
     override suspend fun updateGeneralRules(list: List<GeneralRule>) {
         generalRuleDao.upsertGeneralRule(
-            list.map(GeneralRule::fromExternalModel)
+            list.map(GeneralRule::fromExternalModel),
         )
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,14 @@ package com.merxury.blocker.core.model.util
 
 import android.content.res.AssetManager
 import android.content.res.XmlResourceParser
-import java.io.File
-import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import timber.log.Timber
+import java.io.File
+import java.io.IOException
 
 object ApkParser {
 
@@ -58,7 +58,7 @@ object ApkParser {
      */
     suspend fun getMinSdkVersion(
         apkFile: File,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Int {
         return withContext(dispatcher) {
             try {
@@ -93,13 +93,14 @@ object ApkParser {
     @Throws(IOException::class)
     private suspend fun getParserForManifest(
         apkFile: File,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO
+        dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): XmlResourceParser {
         return withContext(dispatcher) {
             val assetManagerInstance = assetManager
             val cookie = addAssets(apkFile, assetManagerInstance!!)
             return@withContext (assetManagerInstance as AssetManager).openXmlResourceParser(
-                cookie, "AndroidManifest.xml"
+                cookie,
+                "AndroidManifest.xml",
             )
         }
     }
@@ -114,11 +115,12 @@ object ApkParser {
     private fun addAssets(apkFile: File, assetManagerInstance: Any): Int {
         try {
             val addAssetPath = assetManagerInstance.javaClass.getMethod(
-                "addAssetPath", String::class.java
+                "addAssetPath",
+                String::class.java,
             )
             return addAssetPath.invoke(
                 assetManagerInstance,
-                apkFile.absolutePath
+                apkFile.absolutePath,
             ) as Int
         } catch (e: Exception) {
             Timber.e("Cannot access addAssetPath", e)

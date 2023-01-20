@@ -29,17 +29,19 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.model.ComponentListUiState
+import com.merxury.blocker.feature.appdetail.model.ComponentListViewModel
 
 @Composable
 fun ComponentListContentRoute(
     modifier: Modifier = Modifier,
-    viewModel: ComponentListViewModel = hiltViewModel()
+    viewModel: ComponentListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ComponentListContent(
         uiState = uiState,
         onSwitch = viewModel::controlComponent,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -47,7 +49,7 @@ fun ComponentListContentRoute(
 fun ComponentListContent(
     uiState: ComponentListUiState,
     onSwitch: (String, String, Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     when (uiState) {
         ComponentListUiState.Loading -> {
@@ -55,7 +57,7 @@ fun ComponentListContent(
                 modifier = modifier
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                verticalArrangement = Arrangement.Center,
             ) {
                 BlockerLoadingWheel(
                     modifier = modifier,
@@ -68,7 +70,7 @@ fun ComponentListContent(
             ComponentTabContent(
                 components = uiState.list,
                 onSwitchClick = onSwitch,
-                modifier = modifier
+                modifier = modifier,
             )
         }
 

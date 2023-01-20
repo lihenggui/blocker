@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 fun BlockerAppTopBarMenu(
     menuIcon: ImageVector,
     menuIconDesc: Int,
-    menuList: List<DropDownMenuItem>
+    menuList: List<DropDownMenuItem>,
 ) {
     val expanded = remember { mutableStateOf(false) }
     Box(Modifier.wrapContentSize(Alignment.TopStart)) {
@@ -46,13 +46,13 @@ fun BlockerAppTopBarMenu(
         }) {
             Icon(
                 imageVector = menuIcon,
-                contentDescription = stringResource(id = menuIconDesc)
+                contentDescription = stringResource(id = menuIconDesc),
             )
         }
         BlockerDropdownMenu(
             expanded = expanded.value,
             onDismissRequest = { expanded.value = false },
-            menuList = menuList
+            menuList = menuList,
         )
     }
 }
@@ -62,11 +62,11 @@ fun BlockerDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     menuList: List<DropDownMenuItem>,
-    dismissOnItemClick: Boolean = true
+    dismissOnItemClick: Boolean = true,
 ) {
     DropdownMenu(
         expanded = expanded,
-        onDismissRequest = onDismissRequest
+        onDismissRequest = onDismissRequest,
     ) {
         menuList.forEach { item ->
             DropdownMenuItem(
@@ -74,7 +74,7 @@ fun BlockerDropdownMenu(
                 onClick = {
                     item.onClick()
                     if (dismissOnItemClick) onDismissRequest()
-                }
+                },
             )
         }
     }
@@ -86,12 +86,12 @@ fun <T> BlockerDropdownMenu(
     onDismissRequest: () -> Unit,
     menuList: List<T>,
     onClick: (item: T) -> Unit,
-    dismissOnItemClick: Boolean = true
+    dismissOnItemClick: Boolean = true,
 ) {
     DropdownMenu(
         offset = DpOffset(x = 56.dp, y = (-16).dp),
         expanded = expanded,
-        onDismissRequest = onDismissRequest
+        onDismissRequest = onDismissRequest,
     ) {
         menuList.forEach { item ->
             DropdownMenuItem(
@@ -99,7 +99,7 @@ fun <T> BlockerDropdownMenu(
                 onClick = {
                     onClick(item)
                     if (dismissOnItemClick) onDismissRequest()
-                }
+                },
             )
         }
     }
@@ -107,5 +107,5 @@ fun <T> BlockerDropdownMenu(
 
 data class DropDownMenuItem(
     val textRes: Int,
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
 )

@@ -41,9 +41,9 @@ import com.merxury.blocker.util.AppIconCache
 import com.merxury.blocker.util.PreferenceUtil
 import com.merxury.blocker.util.ToastUtil
 import com.merxury.blocker.util.parcelable
-import java.io.File
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import java.io.File
 
 class AppInfoFragment : Fragment() {
     private var _binding: AppInfoFragmentBinding? = null
@@ -55,7 +55,7 @@ class AppInfoFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = AppInfoFragmentBinding.inflate(inflater, container, false)
         return binding.root
@@ -97,7 +97,8 @@ class AppInfoFragment : Fragment() {
                     return true
                 }
             },
-            viewLifecycleOwner, Lifecycle.State.RESUMED
+            viewLifecycleOwner,
+            Lifecycle.State.RESUMED,
         )
     }
 
@@ -109,13 +110,13 @@ class AppInfoFragment : Fragment() {
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.import_fail_message),
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                 } else {
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.import_from_successfully, uri.path),
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                 }
             }
@@ -136,15 +137,15 @@ class AppInfoFragment : Fragment() {
                         requireContext(),
                         getString(
                             R.string.export_to_dest,
-                            folder?.path + File.separator + fileName
+                            folder?.path + File.separator + fileName,
                         ),
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                 } else {
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.export_fail_message),
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                 }
             }
@@ -162,13 +163,13 @@ class AppInfoFragment : Fragment() {
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.import_fail_message),
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                 } else {
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.import_from_successfully, uri.path),
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                 }
             }
@@ -186,13 +187,13 @@ class AppInfoFragment : Fragment() {
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.export_fail_message),
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                 } else {
                     Toast.makeText(
                         requireContext(),
                         getString(R.string.export_to_dest, uri),
-                        Toast.LENGTH_LONG
+                        Toast.LENGTH_LONG,
                     ).show()
                 }
             }
@@ -207,7 +208,7 @@ class AppInfoFragment : Fragment() {
             Toast.makeText(
                 requireContext(),
                 R.string.backup_folder_hasnt_been_set_yet,
-                Toast.LENGTH_LONG
+                Toast.LENGTH_LONG,
             ).show()
             return false
         }
@@ -220,8 +221,8 @@ class AppInfoFragment : Fragment() {
             ToastUtil.showToast(
                 BlockerApplication.context.getString(
                     R.string.control_component_error_message,
-                    e.message
-                )
+                    e.message,
+                ),
             )
         } else {
             AlertDialog.Builder(context)
@@ -258,13 +259,13 @@ class AppInfoFragment : Fragment() {
         val appInfo = app.packageInfo?.applicationInfo!!
         binding.appIcon.setTag(
             com.merxury.blocker.core.common.R.id.app_item_icon_id,
-            app.packageName
+            app.packageName,
         )
         loadIconJob = AppIconCache.loadIconBitmapAsync(
             requireContext(),
             appInfo,
             appInfo.uid / 100000,
-            binding.appIcon
+            binding.appIcon,
         )
     }
 
@@ -276,8 +277,8 @@ class AppInfoFragment : Fragment() {
                 getString(
                     R.string.sdk_version_with_name_template,
                     targetSdkVersion,
-                    targetSdkName
-                )
+                    targetSdkName,
+                ),
             )
             val minSdkVersion = app.minSdkVersion
             val minSdkName = AndroidCodeName.getCodeName(minSdkVersion)
@@ -285,8 +286,8 @@ class AppInfoFragment : Fragment() {
                 getString(
                     R.string.sdk_version_with_name_template,
                     minSdkVersion,
-                    minSdkName
-                )
+                    minSdkName,
+                ),
             )
             val lastUpdateTime = app.lastUpdateTime
             binding.itemLastUpdateTime.setSummary(lastUpdateTime.toString())

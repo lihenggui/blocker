@@ -49,7 +49,7 @@ fun BlockerTab(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    text: @Composable () -> Unit
+    text: @Composable () -> Unit,
 ) {
     Tab(
         selected = selected,
@@ -64,9 +64,9 @@ fun BlockerTab(
                     Box(modifier = Modifier.padding(top = BlockerTabDefaults.TabTopPadding)) {
                         text()
                     }
-                }
+                },
             )
-        }
+        },
     )
 }
 
@@ -74,13 +74,13 @@ fun BlockerTab(
 fun BlockerScrollableTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
-    tabs: @Composable () -> Unit
+    tabs: @Composable () -> Unit,
 ) {
     ScrollableTabRow(
         selectedTabIndex = selectedTabIndex,
         edgePadding = 16.dp,
         modifier = modifier.wrapContentWidth(),
-        tabs = tabs
+        tabs = tabs,
     )
 }
 
@@ -96,7 +96,7 @@ fun BlockerScrollableTabRow(
 fun BlockerTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
-    tabs: @Composable () -> Unit
+    tabs: @Composable () -> Unit,
 ) {
     TabRow(
         selectedTabIndex = selectedTabIndex,
@@ -107,10 +107,10 @@ fun BlockerTabRow(
             TabRowDefaults.Indicator(
                 modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
                 height = 2.dp,
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
         },
-        tabs = tabs
+        tabs = tabs,
     )
 }
 

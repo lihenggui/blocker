@@ -27,8 +27,6 @@ import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.asResult
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.io.IOException
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.Flow
@@ -38,6 +36,8 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
+import java.io.IOException
+import javax.inject.Inject
 
 const val FILE_EXTENSION = ".json"
 const val USER_GENERATED_FOLDER = "user_generated_components/"
@@ -53,7 +53,7 @@ class OnlineComponentRepository @Inject constructor(
     }
 
     override suspend fun getNetworkComponentData(
-        fullName: String
+        fullName: String,
     ): Flow<Result<NetworkComponentDetail>> {
         val relativePath = fullName.replace(".", "/")
             .plus(FILE_EXTENSION)
@@ -64,14 +64,14 @@ class OnlineComponentRepository @Inject constructor(
     }
 
     override suspend fun getLocalComponentData(
-        fullName: String
+        fullName: String,
     ): ComponentDetailEntity? {
         return componentDetailDao.getComponentDetail(fullName)
             .firstOrNull()
     }
 
     override suspend fun getUserGeneratedComponentDetail(
-        fullName: String
+        fullName: String,
     ): NetworkComponentDetail? {
         return withContext(ioDispatcher + exceptionHandler) {
             val folder = context.filesDir.resolve(USER_GENERATED_FOLDER)
@@ -88,14 +88,14 @@ class OnlineComponentRepository @Inject constructor(
     }
 
     override suspend fun saveComponentAsCache(
-        component: NetworkComponentDetail
+        component: NetworkComponentDetail,
     ) {
         Timber.d("Save network component info to db: ${component.fullName}")
         componentDetailDao.insertComponentDetail(component.asEntity())
     }
 
     override suspend fun saveUserGeneratedComponentDetail(
-        componentDetail: NetworkComponentDetail
+        componentDetail: NetworkComponentDetail,
     ): Boolean {
         return withContext(ioDispatcher + exceptionHandler) {
             // Make root folder first

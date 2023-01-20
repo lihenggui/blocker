@@ -31,11 +31,11 @@ fun NavController.navigateToGlobalSearch(navOptions: NavOptions? = null) {
 
 @OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.globalSearchScreen(
-    navigationToSearchedAppDetail: () -> Unit = {}
+    navigationToSearchedAppDetail: () -> Unit = {},
 ) {
     composable(route = globalSearchRoute) {
         GlobalSearchRoute(
-            navigationToSearchedAppDetail
+            navigationToSearchedAppDetail,
         )
     }
 }

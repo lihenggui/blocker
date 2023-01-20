@@ -55,7 +55,7 @@ fun RowScope.BlockerNavigationBarItem(
     selectedIcon: @Composable () -> Unit = icon,
     enabled: Boolean = true,
     label: @Composable (() -> Unit)? = null,
-    alwaysShowLabel: Boolean = true
+    alwaysShowLabel: Boolean = true,
 ) {
     NavigationBarItem(
         selected = selected,
@@ -70,8 +70,8 @@ fun RowScope.BlockerNavigationBarItem(
             unselectedIconColor = BlockerNavigationDefaults.navigationContentColor(),
             selectedTextColor = BlockerNavigationDefaults.navigationSelectedItemColor(),
             unselectedTextColor = BlockerNavigationDefaults.navigationContentColor(),
-            indicatorColor = BlockerNavigationDefaults.navigationIndicatorColor()
-        )
+            indicatorColor = BlockerNavigationDefaults.navigationIndicatorColor(),
+        ),
     )
 }
 
@@ -85,13 +85,13 @@ fun RowScope.BlockerNavigationBarItem(
 @Composable
 fun BlockerNavigationBar(
     modifier: Modifier = Modifier,
-    content: @Composable RowScope.() -> Unit
+    content: @Composable RowScope.() -> Unit,
 ) {
     NavigationBar(
         modifier = modifier,
         contentColor = BlockerNavigationDefaults.navigationContentColor(),
         tonalElevation = 0.dp,
-        content = content
+        content = content,
     )
 }
 
@@ -119,7 +119,7 @@ fun BlockerNavigationRailItem(
     selectedIcon: @Composable () -> Unit = icon,
     enabled: Boolean = true,
     label: @Composable (() -> Unit)? = null,
-    alwaysShowLabel: Boolean = true
+    alwaysShowLabel: Boolean = true,
 ) {
     NavigationRailItem(
         selected = selected,
@@ -134,8 +134,8 @@ fun BlockerNavigationRailItem(
             unselectedIconColor = BlockerNavigationDefaults.navigationContentColor(),
             selectedTextColor = BlockerNavigationDefaults.navigationSelectedItemColor(),
             unselectedTextColor = BlockerNavigationDefaults.navigationContentColor(),
-            indicatorColor = BlockerNavigationDefaults.navigationIndicatorColor()
-        )
+            indicatorColor = BlockerNavigationDefaults.navigationIndicatorColor(),
+        ),
     )
 }
 
@@ -151,14 +151,14 @@ fun BlockerNavigationRailItem(
 fun BlockerNavigationRail(
     modifier: Modifier = Modifier,
     header: @Composable (ColumnScope.() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit
+    content: @Composable ColumnScope.() -> Unit,
 ) {
     NavigationRail(
         modifier = modifier,
         containerColor = Color.Transparent,
         contentColor = BlockerNavigationDefaults.navigationContentColor(),
         header = header,
-        content = content
+        content = content,
     )
 }
 
@@ -168,6 +168,7 @@ fun BlockerNavigationRail(
 object BlockerNavigationDefaults {
     @Composable
     fun navigationContentColor() = MaterialTheme.colorScheme.onSurfaceVariant
+
     @Composable
     fun navigationSelectedItemColor() = MaterialTheme.colorScheme.onPrimaryContainer
 

@@ -63,7 +63,7 @@ fun BlockerTopAppBar(
             AutoResizeText(
                 text = title,
                 FontSizeRange(5.sp, 22.sp),
-                maxLines = 2
+                maxLines = 2,
             )
         },
         navigationIcon = {
@@ -71,14 +71,14 @@ fun BlockerTopAppBar(
                 Icon(
                     imageVector = navigationIcon,
                     contentDescription = navigationIconContentDescription,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         },
         actions = {
             actions()
         },
-        colors = colors
+        colors = colors,
     )
 }
 
@@ -96,13 +96,13 @@ fun BlockerHomeTopAppBar(
             AutoResizeText(
                 text = stringResource(id = titleRes),
                 FontSizeRange(5.sp, 22.sp),
-                maxLines = 2
+                maxLines = 2,
             )
         },
         actions = {
             actions()
         },
-        colors = colors
+        colors = colors,
     )
 }
 
@@ -120,7 +120,7 @@ fun BlockerTopAppBar(
             AutoResizeText(
                 text = stringResource(id = titleRes),
                 FontSizeRange(5.sp, 22.sp),
-                maxLines = 2
+                maxLines = 2,
             )
         },
         navigationIcon = {
@@ -128,11 +128,11 @@ fun BlockerTopAppBar(
                 Icon(
                     imageVector = BlockerIcons.Back,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         },
-        colors = colors
+        colors = colors,
     )
 }
 
@@ -146,7 +146,7 @@ fun BlockerCollapsingTopAppBar(
     isCollapsed: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
     actions: @Composable () -> Unit,
-    onNavigationClick: () -> Unit = {}
+    onNavigationClick: () -> Unit = {},
 ) {
     val collapsed = 22
     val expanded = 28
@@ -163,14 +163,14 @@ fun BlockerCollapsingTopAppBar(
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text(
                         text = title,
                         fontSize = topAppBarTextSize,
                         style = topAppBarTextStyle,
-                        maxLines = 2
+                        maxLines = 2,
                     )
                     if (!isCollapsed) {
                         collapseTextSection()
@@ -187,7 +187,7 @@ fun BlockerCollapsingTopAppBar(
                 Icon(
                     imageVector = BlockerIcons.Back,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         },
@@ -198,7 +198,7 @@ fun BlockerCollapsingTopAppBar(
         colors = TopAppBarDefaults.largeTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-        )
+        ),
     )
 }
 
@@ -208,7 +208,7 @@ fun BlockerLargeTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
     navigation: @Composable () -> Unit,
-    actions: @Composable () -> Unit
+    actions: @Composable () -> Unit,
 ) {
     LargeTopAppBar(
         title = {
@@ -216,7 +216,7 @@ fun BlockerLargeTopAppBar(
                 modifier = modifier
                     .fillMaxWidth()
                     .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text(text = title)
@@ -232,7 +232,7 @@ fun BlockerLargeTopAppBar(
         colors = TopAppBarDefaults.largeTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-        )
+        ),
     )
 }
 
@@ -250,10 +250,10 @@ fun BlockerTopAppBarPreview() {
                     Icon(
                         imageVector = BlockerIcons.Search,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
-            }
+            },
         )
     }
 }
@@ -265,7 +265,7 @@ fun BlockerHomeTopAppBarPreview() {
     BlockerTheme {
         BlockerHomeTopAppBar(
             titleRes = string.untitled,
-            actions = {}
+            actions = {},
         )
     }
 }
@@ -277,7 +277,7 @@ fun BlockerTopAppBarWithNavPreview() {
     BlockerTheme {
         BlockerTopAppBar(
             titleRes = string.untitled,
-            onNavigationClick = {}
+            onNavigationClick = {},
         )
     }
 }
@@ -305,17 +305,17 @@ fun BlockerCollapsingTopAppBarPreview() {
                     Icon(
                         imageVector = BlockerIcons.Share,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
                 IconButton(onClick = {}) {
                     Icon(
                         imageVector = BlockerIcons.Find,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
-            }
+            },
         )
     }
 }

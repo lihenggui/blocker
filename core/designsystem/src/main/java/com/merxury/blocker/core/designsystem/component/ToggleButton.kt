@@ -66,7 +66,7 @@ fun BlockerToggleButton(
     backgroundColor: Color = Color.Transparent,
     checkedBackgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
     iconColor: Color = contentColorFor(backgroundColor),
-    checkedIconColor: Color = contentColorFor(checkedBackgroundColor)
+    checkedIconColor: Color = contentColorFor(checkedBackgroundColor),
 ) {
     val radius = with(LocalDensity.current) { (size / 2).toPx() }
     IconButton(
@@ -79,7 +79,7 @@ fun BlockerToggleButton(
             .drawBehind {
                 drawCircle(
                     color = if (checked) checkedBackgroundColor else backgroundColor,
-                    radius = radius
+                    radius = radius,
                 )
             },
         enabled = enabled,
@@ -87,15 +87,15 @@ fun BlockerToggleButton(
             Box(
                 modifier = Modifier.sizeIn(
                     maxWidth = iconSize,
-                    maxHeight = iconSize
-                )
+                    maxHeight = iconSize,
+                ),
             ) {
                 val contentColor = if (checked) checkedIconColor else iconColor
                 CompositionLocalProvider(LocalContentColor provides contentColor) {
                     if (checked) checkedIcon() else icon()
                 }
             }
-        }
+        },
     )
 }
 

@@ -44,10 +44,10 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.ui.BlockerApp
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @AndroidEntryPoint
@@ -107,7 +107,7 @@ class MainActivity : ComponentActivity() {
 
             BlockerTheme(
                 darkTheme = darkTheme,
-                androidTheme = shouldUseAndroidTheme(uiState)
+                androidTheme = shouldUseAndroidTheme(uiState),
             ) {
                 BlockerApp(
                     networkMonitor = networkMonitor,
