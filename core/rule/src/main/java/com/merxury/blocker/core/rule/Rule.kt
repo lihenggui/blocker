@@ -33,7 +33,7 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
-import com.merxury.ifw.entity.ComponentType
+import com.merxury.ifw.entity.IfwComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.util.IfwStorageUtils
 import com.merxury.ifw.util.RuleSerializer
@@ -190,13 +190,13 @@ object Rule {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
-                                        ComponentType.BROADCAST,
+                                        IfwComponentType.BROADCAST,
                                     )
                                 } else {
                                     ifwController?.remove(
                                         it.packageName,
                                         it.name,
-                                        ComponentType.BROADCAST,
+                                        IfwComponentType.BROADCAST,
                                     )
                                 }
                             }
@@ -206,13 +206,13 @@ object Rule {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
-                                        ComponentType.SERVICE,
+                                        IfwComponentType.SERVICE,
                                     )
                                 } else {
                                     ifwController?.remove(
                                         it.packageName,
                                         it.name,
-                                        ComponentType.SERVICE,
+                                        IfwComponentType.SERVICE,
                                     )
                                 }
                             }
@@ -222,13 +222,13 @@ object Rule {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
-                                        ComponentType.ACTIVITY,
+                                        IfwComponentType.ACTIVITY,
                                     )
                                 } else {
                                     ifwController?.remove(
                                         it.packageName,
                                         it.name,
-                                        ComponentType.ACTIVITY,
+                                        IfwComponentType.ACTIVITY,
                                     )
                                 }
                             }
