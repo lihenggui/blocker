@@ -23,7 +23,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 
 @Dao
 interface AppComponentDao {
@@ -57,7 +57,7 @@ interface AppComponentDao {
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName AND type = :type")
     suspend fun getByPackageNameAndType(
         packageName: String,
-        type: EComponentType,
+        type: ComponentType,
     ): List<AppComponentEntity>
 
     @Transaction
