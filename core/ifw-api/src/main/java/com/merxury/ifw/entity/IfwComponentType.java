@@ -16,7 +16,7 @@
 
 package com.merxury.ifw.entity;
 
-public enum ComponentType {
+public enum IfwComponentType {
     ACTIVITY,
     BROADCAST,
     SERVICE,
