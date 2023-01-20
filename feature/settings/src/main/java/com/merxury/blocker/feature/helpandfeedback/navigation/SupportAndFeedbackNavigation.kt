@@ -33,7 +33,7 @@ fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) {
 fun NavGraphBuilder.supportAndFeedbackScreen(onBackClick: () -> Unit) {
     composable(route = supportAndFeedbackRoute) {
         SupportAndFeedbackRoute(
-            onNavigationClick = onBackClick
+            onNavigationClick = onBackClick,
         )
     }
 }

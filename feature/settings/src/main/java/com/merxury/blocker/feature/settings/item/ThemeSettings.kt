@@ -40,20 +40,20 @@ fun ThemeSettings(
 ) {
     Column(
         modifier = modifier
-            .padding(vertical = 4.dp)
+            .padding(vertical = 4.dp),
     ) {
         SettingItemHeader(itemRes = string.theme)
         DialogSettingsItems(
             itemRes = string.theme,
             itemValue = uiState.settings.themeBrand,
             menuList = listOf(ANDROID, DEFAULT),
-            onMenuClick = updateThemeBrand
+            onMenuClick = updateThemeBrand,
         )
         DialogSettingsItems(
             itemRes = string.dark_mode,
             itemValue = uiState.settings.darkThemeConfig,
             menuList = listOf(FOLLOW_SYSTEM, LIGHT, DARK),
-            onMenuClick = updateDarkThemeConfig
+            onMenuClick = updateDarkThemeConfig,
         )
     }
 }

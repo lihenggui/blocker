@@ -21,7 +21,7 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 
 enum class OnlineSourceType(val baseUrl: String) {
     GITHUB("https://raw.githubusercontent.com/lihenggui/blocker-general-rules/online/"),
-    GITLAB("https://jihulab.com/mercuryli/blocker-general-rules/-/raw/online/")
+    GITLAB("https://jihulab.com/mercuryli/blocker-general-rules/-/raw/online/"),
 }
 
 fun RuleServerProvider.asOnlineSourceType(): OnlineSourceType {

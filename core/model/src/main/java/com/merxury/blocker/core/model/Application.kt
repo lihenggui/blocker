@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,11 @@ import android.os.Build
 import android.os.Parcel
 import android.os.Parcelable
 import com.merxury.blocker.core.model.util.ApkParser
-import java.io.File
 import kotlinx.datetime.Instant
 import kotlinx.parcelize.Parceler
 import kotlinx.parcelize.Parcelize
 import kotlinx.parcelize.RawValue
+import java.io.File
 
 /**
  * Created by Mercury on 2017/12/30.
@@ -59,7 +59,7 @@ data class Application(
                 targetSdkVersion = parcel.readInt(),
                 firstInstallTime = Instant.fromEpochMilliseconds(parcel.readLong()),
                 lastUpdateTime = Instant.fromEpochMilliseconds(parcel.readLong()),
-                packageInfo = parcel.readParcelableCompat(PackageInfo::class.java.classLoader)
+                packageInfo = parcel.readParcelableCompat(PackageInfo::class.java.classLoader),
             )
         }
 
@@ -114,8 +114,9 @@ inline fun <reified T : Parcelable> Parcel.readParcelableCompat(classLoader: Cla
     when {
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> readParcelable(
             classLoader,
-            T::class.java
+            T::class.java,
         )
 
-        else -> @Suppress("DEPRECATION") readParcelable(classLoader)
+        else -> @Suppress("DEPRECATION")
+        readParcelable(classLoader)
     }

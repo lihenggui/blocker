@@ -12,5 +12,5 @@ fun NetworkComponentDetail.asEntity() = ComponentDetailEntity(
     disableEffect = disableEffect,
     author = author,
     addedVersion = addedVersion,
-    recommendToBlock = recommendToBlock
+    recommendToBlock = recommendToBlock,
 )

@@ -1,0 +1,88 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "6b613015a29d4019d6fd45253dc2d574",
+    "entities": [
+      {
+        "tableName": "component_detail",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`full_name` TEXT NOT NULL, `simple_name` TEXT NOT NULL, `package_name` TEXT NOT NULL, `icon` TEXT, `sdk_name` TEXT, `description` TEXT, `disable_effect` TEXT, `author` TEXT, `added_version` TEXT, `recommend_to_block` INTEGER NOT NULL, PRIMARY KEY(`full_name`))",
+        "fields": [
+          {
+            "fieldPath": "fullName",
+            "columnName": "full_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "simpleName",
+            "columnName": "simple_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "packageName",
+            "columnName": "package_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "icon",
+            "columnName": "icon",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "sdkName",
+            "columnName": "sdk_name",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "description",
+            "columnName": "description",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "disableEffect",
+            "columnName": "disable_effect",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "author",
+            "columnName": "author",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "addedVersion",
+            "columnName": "added_version",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "recommendToBlock",
+            "columnName": "recommend_to_block",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "full_name"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6b613015a29d4019d6fd45253dc2d574')"
+    ]
+  }
+}

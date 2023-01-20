@@ -61,7 +61,7 @@ fun AppListRoute(
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: AppListViewModel = hiltViewModel()
+    viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by remember { viewModel.errorState }
@@ -78,7 +78,7 @@ fun AppListRoute(
         onServiceStateUpdate = viewModel::updateServiceStatus,
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-        modifier = modifier
+        modifier = modifier,
     )
     if (errorState != null) {
         AlertDialog(
@@ -91,11 +91,11 @@ fun AppListRoute(
             },
             confirmButton = {
                 BlockerTextButton(
-                    onClick = { viewModel.dismissDialog() }
+                    onClick = { viewModel.dismissDialog() },
                 ) {
                     Text(stringResource(id = android.R.string.ok))
                 }
-            }
+            },
         )
     }
 }
@@ -115,7 +115,7 @@ fun AppListScreen(
     onSortingUpdate: (AppSorting) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Scaffold(
         topBar = {
@@ -127,9 +127,9 @@ fun AppListScreen(
                         navigateToSettings = navigateToSettings,
                         navigateToFeedback = navigateToSupportAndFeedback,
                     )
-                }
+                },
             )
-        }
+        },
     ) { padding ->
         Column(
             modifier = modifier
@@ -138,11 +138,11 @@ fun AppListScreen(
                 .consumedWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal
-                    )
+                        WindowInsetsSides.Horizontal,
+                    ),
                 ),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when (uiState) {
                 AppListUiState.Loading -> {
@@ -151,7 +151,7 @@ fun AppListScreen(
                             .fillMaxSize()
                             .padding(padding),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
                     ) {
                         BlockerLoadingWheel(
                             modifier = modifier,
@@ -171,7 +171,7 @@ fun AppListScreen(
                         onEnableClick = onEnableClick,
                         onDisableClick = onDisableClick,
                         onServiceStateUpdate = onServiceStateUpdate,
-                        modifier = modifier
+                        modifier = modifier,
                     )
                 }
 
@@ -192,14 +192,14 @@ fun AppListContent(
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
     onServiceStateUpdate: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val listContent = remember { appList }
     val listState = rememberLazyListState()
     Box(modifier) {
         LazyColumn(
             modifier = modifier,
-            state = listState
+            state = listState,
         ) {
             items(listContent, key = { it.packageName }) {
                 AppListItem(

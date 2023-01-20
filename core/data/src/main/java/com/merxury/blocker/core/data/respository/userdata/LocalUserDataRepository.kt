@@ -24,11 +24,11 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
 class LocalUserDataRepository @Inject constructor(
-    private val blockerPreferenceDataSource: BlockerPreferencesDataSource
+    private val blockerPreferenceDataSource: BlockerPreferencesDataSource,
 ) : UserDataRepository {
     override val userData: Flow<UserPreferenceData>
         get() = blockerPreferenceDataSource.userData

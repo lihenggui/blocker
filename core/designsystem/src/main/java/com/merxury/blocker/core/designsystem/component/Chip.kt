@@ -47,7 +47,7 @@ fun BlockerFilterChip(
     onSelectedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    label: @Composable () -> Unit
+    label: @Composable () -> Unit,
 ) {
     FilterChip(
         selected = selected,
@@ -62,7 +62,7 @@ fun BlockerFilterChip(
         trailingIcon = {
             Icon(
                 imageVector = BlockerIcons.Check,
-                contentDescription = null
+                contentDescription = null,
             )
         },
         shape = CircleShape,
@@ -70,13 +70,13 @@ fun BlockerFilterChip(
             borderColor = MaterialTheme.colorScheme.onBackground,
             selectedBorderColor = MaterialTheme.colorScheme.onBackground,
             disabledBorderColor = MaterialTheme.colorScheme.onBackground.copy(
-                alpha = BlockerChipDefaults.DisabledChipContentAlpha
+                alpha = BlockerChipDefaults.DisabledChipContentAlpha,
             ),
             disabledSelectedBorderColor = MaterialTheme.colorScheme.onBackground.copy(
-                alpha = BlockerChipDefaults.DisabledChipContentAlpha
+                alpha = BlockerChipDefaults.DisabledChipContentAlpha,
             ),
             borderWidth = BlockerChipDefaults.ChipBorderWidth,
-            selectedBorderWidth = BlockerChipDefaults.ChipBorderWidth
+            selectedBorderWidth = BlockerChipDefaults.ChipBorderWidth,
         ),
         colors = FilterChipDefaults.filterChipColors(
             containerColor = Color.Transparent,
@@ -84,21 +84,21 @@ fun BlockerFilterChip(
             iconColor = MaterialTheme.colorScheme.onBackground,
             disabledContainerColor = if (selected) {
                 MaterialTheme.colorScheme.onBackground.copy(
-                    alpha = BlockerChipDefaults.DisabledChipContainerAlpha
+                    alpha = BlockerChipDefaults.DisabledChipContainerAlpha,
                 )
             } else {
                 Color.Transparent
             },
             disabledLabelColor = MaterialTheme.colorScheme.onBackground.copy(
-                alpha = BlockerChipDefaults.DisabledChipContentAlpha
+                alpha = BlockerChipDefaults.DisabledChipContentAlpha,
             ),
             disabledLeadingIconColor = MaterialTheme.colorScheme.onBackground.copy(
-                alpha = BlockerChipDefaults.DisabledChipContentAlpha
+                alpha = BlockerChipDefaults.DisabledChipContentAlpha,
             ),
             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
             selectedLabelColor = MaterialTheme.colorScheme.onBackground,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.onBackground
-        )
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onBackground,
+        ),
     )
 }
 

@@ -65,7 +65,7 @@ import com.merxury.blocker.feature.settings.item.ThemeSettings
 @Composable
 fun SettingsRoute(
     onNavigationClick: () -> Unit,
-    viewModel: SettingsViewModel = hiltViewModel()
+    viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
     SettingsScreen(
@@ -84,7 +84,7 @@ fun SettingsRoute(
         updateControllerType = viewModel::updateControllerType,
         updateRuleServerProvider = viewModel::updateRuleServerProvider,
         updateThemeBrand = viewModel::updateThemeBrand,
-        updateDarkThemeConfig = viewModel::updateDarkThemeConfig
+        updateDarkThemeConfig = viewModel::updateDarkThemeConfig,
     )
 }
 
@@ -107,15 +107,15 @@ fun SettingsScreen(
     exportIfwRules: () -> Unit,
     importIfwRules: () -> Unit,
     resetIfwRules: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Scaffold(
         topBar = {
             BlockerTopAppBar(
                 titleRes = string.settings,
-                onNavigationClick = onNavigationClick
+                onNavigationClick = onNavigationClick,
             )
-        }
+        },
     ) { padding ->
         Column(
             modifier = modifier
@@ -124,18 +124,18 @@ fun SettingsScreen(
                 .consumedWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Horizontal
-                    )
+                        WindowInsetsSides.Horizontal,
+                    ),
                 ),
             verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when (uiState) {
                 Loading -> {
                     Column(
                         modifier = modifier.fillMaxSize(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
                     ) {
                         BlockerLoadingWheel(
                             modifier = modifier,
@@ -160,7 +160,7 @@ fun SettingsScreen(
                         importIfwRules = importIfwRules,
                         resetIfwRules = resetIfwRules,
                         updateThemeBrand = updateThemeBrand,
-                        updateDarkThemeConfig = updateDarkThemeConfig
+                        updateDarkThemeConfig = updateDarkThemeConfig,
                     )
                 }
             }
@@ -185,27 +185,27 @@ fun SettingsContent(
     exportIfwRules: () -> Unit,
     importIfwRules: () -> Unit,
     resetIfwRules: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
         BlockerSettings(
             uiState = uiState,
             updateControllerType = updateControllerType,
-            updateRuleServerProvider = updateRuleServerProvider
+            updateRuleServerProvider = updateRuleServerProvider,
         )
         Divider()
         ThemeSettings(
             modifier = modifier,
             uiState = uiState,
             updateThemeBrand = updateThemeBrand,
-            updateDarkThemeConfig = updateDarkThemeConfig
+            updateDarkThemeConfig = updateDarkThemeConfig,
         )
         Divider()
         AppListSettings(
             showSystemApps = uiState.settings.showSystemApps,
             showServiceInfo = uiState.settings.showServiceInfo,
             updateShowSystemApps = updateShowSystemApps,
-            updateShowServiceInfo = updateShowServiceInfo
+            updateShowServiceInfo = updateShowServiceInfo,
         )
         Divider()
         BackupSettings(
@@ -214,7 +214,7 @@ fun SettingsContent(
             ruleBackupFolder = uiState.settings.ruleBackupFolder,
             updateBackupSystemApp = updateBackupSystemApp,
             updateRestoreSystemApp = updateRestoreSystemApp,
-            updateRuleBackupFolder = updateRuleBackupFolder
+            updateRuleBackupFolder = updateRuleBackupFolder,
         )
         Divider()
         BlockerRulesSettings(exportRules = exportRules, importRules = importRules)
@@ -222,12 +222,12 @@ fun SettingsContent(
         IfwRulesSettings(
             exportIfwRules = exportIfwRules,
             importIfwRules = importIfwRules,
-            resetIfwRules = resetIfwRules
+            resetIfwRules = resetIfwRules,
         )
         Divider()
         SingleRowSettingItem(
             itemRes = string.import_mat_rules,
-            onItemClick = {}
+            onItemClick = {},
         )
     }
 }
@@ -248,8 +248,8 @@ fun SettingsScreenPreview() {
                     showSystemApps = false,
                     showServiceInfo = true,
                     themeBrand = ANDROID,
-                    darkThemeConfig = FOLLOW_SYSTEM
-                )
+                    darkThemeConfig = FOLLOW_SYSTEM,
+                ),
             ),
             updateShowSystemApps = {},
             updateShowServiceInfo = {},
@@ -264,7 +264,7 @@ fun SettingsScreenPreview() {
             updateControllerType = {},
             updateRuleServerProvider = {},
             updateThemeBrand = {},
-            updateDarkThemeConfig = {}
+            updateDarkThemeConfig = {},
         )
     }
 }

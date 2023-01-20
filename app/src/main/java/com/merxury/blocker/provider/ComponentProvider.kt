@@ -62,10 +62,10 @@ class ComponentProvider : ContentProvider() {
             ApplicationUtil.getActivityList(packageManager, packageName).filter {
                 !pmController.checkComponentEnableState(
                     it.packageName,
-                    it.name
+                    it.name,
                 ) || !ifwController.checkComponentEnableState(
                     it.packageName,
-                    it.name
+                    it.name,
                 )
             }
                 .forEach {
@@ -73,17 +73,17 @@ class ComponentProvider : ContentProvider() {
                         ShareCmpInfo.Component(
                             it.packageName,
                             it.name,
-                            block = true
-                        )
+                            block = true,
+                        ),
                     )
                 }
             ApplicationUtil.getServiceList(packageManager, packageName).filter {
                 !pmController.checkComponentEnableState(
                     it.packageName,
-                    it.name
+                    it.name,
                 ) || !ifwController.checkComponentEnableState(
                     it.packageName,
-                    it.name
+                    it.name,
                 )
             }
                 .forEach {
@@ -91,17 +91,17 @@ class ComponentProvider : ContentProvider() {
                         ShareCmpInfo.Component(
                             it.packageName,
                             it.name,
-                            block = true
-                        )
+                            block = true,
+                        ),
                     )
                 }
             ApplicationUtil.getProviderList(packageManager, packageName).filter {
                 !pmController.checkComponentEnableState(
                     it.packageName,
-                    it.name
+                    it.name,
                 ) || !ifwController.checkComponentEnableState(
                     it.packageName,
-                    it.name
+                    it.name,
                 )
             }
                 .forEach {
@@ -109,17 +109,17 @@ class ComponentProvider : ContentProvider() {
                         ShareCmpInfo.Component(
                             it.packageName,
                             it.name,
-                            block = true
-                        )
+                            block = true,
+                        ),
                     )
                 }
             ApplicationUtil.getReceiverList(packageManager, packageName).filter {
                 !pmController.checkComponentEnableState(
                     it.packageName,
-                    it.name
+                    it.name,
                 ) || !ifwController.checkComponentEnableState(
                     it.packageName,
-                    it.name
+                    it.name,
                 )
             }
                 .forEach {
@@ -127,8 +127,8 @@ class ComponentProvider : ContentProvider() {
                         ShareCmpInfo.Component(
                             it.packageName,
                             it.name,
-                            block = true
-                        )
+                            block = true,
+                        ),
                     )
                 }
             val returnJson = Gson().toJson(ShareCmpInfo(packageName, blockedComponents))
@@ -146,7 +146,7 @@ class ComponentProvider : ContentProvider() {
         val appContext = context.applicationContext ?: return@runBlocking null
         val hintEntryPoint = EntryPointAccessors.fromApplication(
             appContext,
-            AppComponentRepositoryEntryPoint::class.java
+            AppComponentRepositoryEntryPoint::class.java,
         )
         val appComponentRepository = hintEntryPoint.appComponent()
         try {
@@ -187,7 +187,7 @@ class ComponentProvider : ContentProvider() {
         projection: Array<String>?,
         selection: String?,
         selectionArgs: Array<String>?,
-        sortOrder: String?
+        sortOrder: String?,
     ): Cursor? {
         // Not implemented
         return null
@@ -202,7 +202,7 @@ class ComponentProvider : ContentProvider() {
         uri: Uri,
         values: ContentValues?,
         selection: String?,
-        selectionArgs: Array<out String>?
+        selectionArgs: Array<out String>?,
     ): Int {
         // Not implemented
         return 0

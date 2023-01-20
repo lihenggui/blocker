@@ -72,7 +72,7 @@ fun AutoResizeText(
                 readyToDraw = true
             }
         },
-        modifier = modifier.drawWithContent { if (readyToDraw) drawContent() }
+        modifier = modifier.drawWithContent { if (readyToDraw) drawContent() },
     )
 }
 

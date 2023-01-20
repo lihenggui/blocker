@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,12 +43,12 @@ interface IController {
 
     suspend fun batchEnable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int
 
     suspend fun batchDisable(
         componentList: List<ComponentInfo>,
-        action: suspend (info: ComponentInfo) -> Unit
+        action: suspend (info: ComponentInfo) -> Unit,
     ): Int
 
     suspend fun checkComponentEnableState(packageName: String, componentName: String): Boolean

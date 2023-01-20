@@ -34,17 +34,17 @@ fun TopAppBarMoreMenu(
     val items = listOf(
         DropDownMenuItem(
             R.string.settings,
-            navigateToSettings
+            navigateToSettings,
         ),
         DropDownMenuItem(
             R.string.support_and_feedback,
-            navigateToFeedback
-        )
+            navigateToFeedback,
+        ),
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
         menuIconDesc = R.string.more_menu,
-        menuList = items
+        menuList = items,
     )
 }
 

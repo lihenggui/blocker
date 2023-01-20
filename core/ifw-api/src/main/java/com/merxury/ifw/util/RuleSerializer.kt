@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package com.merxury.ifw.util
 
 import com.merxury.ifw.entity.Rules
-import java.io.InputStream
 import org.simpleframework.xml.core.Persister
 import timber.log.Timber
+import java.io.InputStream
 
 object RuleSerializer {
     private val serializer by lazy { Persister() }

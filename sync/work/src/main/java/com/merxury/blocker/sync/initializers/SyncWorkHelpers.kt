@@ -43,7 +43,7 @@ val SyncConstraints
  */
 fun Context.syncForegroundInfo() = ForegroundInfo(
     SyncNotificationId,
-    syncWorkNotification()
+    syncWorkNotification(),
 )
 
 /**
@@ -55,7 +55,7 @@ private fun Context.syncWorkNotification(): Notification {
         val channel = NotificationChannel(
             SyncNotificationChannelID,
             getString(R.string.sync_notification_channel_name),
-            NotificationManager.IMPORTANCE_DEFAULT
+            NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
             description = getString(R.string.sync_notification_channel_description)
         }
@@ -68,7 +68,7 @@ private fun Context.syncWorkNotification(): Notification {
 
     return NotificationCompat.Builder(
         this,
-        SyncNotificationChannelID
+        SyncNotificationChannelID,
     )
         .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
         .setContentTitle(getString(R.string.sync_notification_title))

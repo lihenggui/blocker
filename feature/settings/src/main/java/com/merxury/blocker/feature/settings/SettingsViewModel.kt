@@ -38,18 +38,18 @@ import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     appContext: Application,
-    private val userDataRepository: UserDataRepository
+    private val userDataRepository: UserDataRepository,
 ) : AndroidViewModel(appContext) {
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData
@@ -64,14 +64,14 @@ class SettingsViewModel @Inject constructor(
                         showSystemApps = userData.showSystemApps,
                         showServiceInfo = userData.showServiceInfo,
                         themeBrand = userData.themeBrand,
-                        darkThemeConfig = userData.darkThemeConfig
-                    )
+                        darkThemeConfig = userData.darkThemeConfig,
+                    ),
                 )
             }
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = Loading
+                initialValue = Loading,
             )
 
     fun updateControllerType(type: ControllerType) {
@@ -126,7 +126,7 @@ class SettingsViewModel @Inject constructor(
                     backupPath = userData.ruleBackupFolder,
                     restoreSystemApps = userData.restoreSystemApp,
                     controllerType = userData.controllerType,
-                )
+                ),
             )
         }
     }
@@ -139,8 +139,8 @@ class SettingsViewModel @Inject constructor(
                 ExistingWorkPolicy.REPLACE,
                 ExportBlockerRulesWorker.exportWork(
                     folderPath = userData.ruleBackupFolder,
-                    backupSystemApps = userData.backupSystemApp
-                )
+                    backupSystemApps = userData.backupSystemApp,
+                ),
             )
         }
     }
@@ -151,7 +151,7 @@ class SettingsViewModel @Inject constructor(
             enqueueUniqueWork(
                 "ExportIfwRule",
                 ExistingWorkPolicy.KEEP,
-                ExportIfwRulesWorker.exportWork(userData.ruleBackupFolder)
+                ExportIfwRulesWorker.exportWork(userData.ruleBackupFolder),
             )
         }
     }
@@ -165,7 +165,7 @@ class SettingsViewModel @Inject constructor(
                 ImportIfwRulesWorker.importIfwWork(
                     backupPath = userData.ruleBackupFolder,
                     restoreSystemApps = userData.restoreSystemApp,
-                )
+                ),
             )
         }
     }
@@ -184,8 +184,8 @@ class SettingsViewModel @Inject constructor(
                 ImportMatRulesWorker.importWork(
                     fileUri,
                     userData.controllerType,
-                    userData.restoreSystemApp
-                )
+                    userData.restoreSystemApp,
+                ),
             )
         }
     }
@@ -212,7 +212,7 @@ data class UserEditableSettings(
     val showSystemApps: Boolean = false,
     val showServiceInfo: Boolean = false,
     val themeBrand: ThemeBrand,
-    val darkThemeConfig: DarkThemeConfig
+    val darkThemeConfig: DarkThemeConfig,
 )
 
 sealed interface SettingsUiState {
