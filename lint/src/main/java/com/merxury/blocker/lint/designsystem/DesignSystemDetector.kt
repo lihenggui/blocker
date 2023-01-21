@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,9 +31,8 @@ import org.jetbrains.uast.UQualifiedReferenceExpression
 
 /**
  * A detector that checks for incorrect usages of Compose Material APIs over equivalents in
- * the Now in Android design system module.
+ * the Blocker design system module.
  */
-@Suppress("UnstableApiUsage")
 class DesignSystemDetector : Detector(), Detector.UastScanner {
 
     override fun getApplicableUastTypes(): List<Class<out UElement>> {
@@ -65,7 +64,7 @@ class DesignSystemDetector : Detector(), Detector.UastScanner {
             id = "DesignSystem",
             briefDescription = "Design system",
             explanation = "This check highlights calls in code that use Compose Material " +
-                "composables instead of equivalents from the Now in Android design system " +
+                "composables instead of equivalents from the Blocker design system " +
                 "module.",
             category = Category.CUSTOM_LINT_CHECKS,
             priority = 7,
