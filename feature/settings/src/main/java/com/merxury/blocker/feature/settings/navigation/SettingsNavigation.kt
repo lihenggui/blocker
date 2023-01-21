@@ -16,16 +16,10 @@
 
 package com.merxury.blocker.feature.settings.navigation
 
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import com.google.accompanist.navigation.animation.composable
+import androidx.navigation.compose.composable
 import com.merxury.blocker.feature.settings.SettingsRoute
 
 const val settingsRoute = "settings_route"
@@ -34,22 +28,9 @@ fun NavController.navigateToSettings(navOptions: NavOptions? = null) {
     this.navigate(settingsRoute, navOptions)
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.settingsScreen(onBackClick: () -> Unit) {
     composable(
         route = settingsRoute,
-        enterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { 300 },
-                animationSpec = tween(300),
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        popExitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { 300 },
-                animationSpec = tween(300),
-            ) + fadeOut(animationSpec = tween(300))
-        },
     ) {
         SettingsRoute(onNavigationClick = onBackClick)
     }
