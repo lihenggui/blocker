@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import com.android.build.api.dsl.ManagedVirtualDevice
 import com.merxury.blocker.BlockerBuildType
 import com.merxury.blocker.configureFlavors
@@ -64,7 +65,7 @@ android {
         )
     }
 
-    targetProjectPath = ":app"
+    targetProjectPath = ":app-compose"
     experimentalProperties["android.experimental.self-instrumenting"] = true
 
     testOptions {
