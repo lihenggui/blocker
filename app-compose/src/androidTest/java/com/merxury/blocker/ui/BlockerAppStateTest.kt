@@ -61,7 +61,7 @@ class BlockerAppStateTest {
     private lateinit var state: BlockerAppState
 
     @Test
-    fun niaAppState_currentDestination() = runTest {
+    fun blockerAppState_currentDestination() = runTest {
         var currentDestination: String? = null
 
         composeTestRule.setContent {
@@ -88,7 +88,7 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun niaAppState_destinations() = runTest {
+    fun blockerAppState_destinations() = runTest {
         composeTestRule.setContent {
             state = rememberBlockerAppState(
                 windowSizeClass = getCompactWindowClass(),
@@ -103,7 +103,7 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun niaAppState_showBottomBar_compact() = runTest {
+    fun blockerAppState_showBottomBar_compact() = runTest {
         composeTestRule.setContent {
             state = BlockerAppState(
                 windowSizeClass = getCompactWindowClass(),
@@ -118,7 +118,7 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun niaAppState_showNavRail_medium() = runTest {
+    fun blockerAppState_showNavRail_medium() = runTest {
         composeTestRule.setContent {
             state = BlockerAppState(
                 windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(800.dp, 800.dp)),
@@ -133,7 +133,7 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun niaAppState_showNavRail_large() = runTest {
+    fun blockerAppState_showNavRail_large() = runTest {
         composeTestRule.setContent {
             state = BlockerAppState(
                 windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
