@@ -59,11 +59,15 @@ fun BlockerFilterChip(
         },
         modifier = modifier,
         enabled = enabled,
-        trailingIcon = {
-            Icon(
-                imageVector = BlockerIcons.Check,
-                contentDescription = null,
-            )
+        leadingIcon = if (selected) {
+            {
+                Icon(
+                    imageVector = BlockerIcons.Check,
+                    contentDescription = null,
+                )
+            }
+        } else {
+            null
         },
         shape = CircleShape,
         border = FilterChipDefaults.filterChipBorder(
@@ -75,11 +79,9 @@ fun BlockerFilterChip(
             disabledSelectedBorderColor = MaterialTheme.colorScheme.onBackground.copy(
                 alpha = BlockerChipDefaults.DisabledChipContentAlpha,
             ),
-            borderWidth = BlockerChipDefaults.ChipBorderWidth,
             selectedBorderWidth = BlockerChipDefaults.ChipBorderWidth,
         ),
         colors = FilterChipDefaults.filterChipColors(
-            containerColor = Color.Transparent,
             labelColor = MaterialTheme.colorScheme.onBackground,
             iconColor = MaterialTheme.colorScheme.onBackground,
             disabledContainerColor = if (selected) {
@@ -106,6 +108,8 @@ fun BlockerFilterChip(
  * Blocker chip default values.
  */
 object BlockerChipDefaults {
+    // TODO: File bug
+    // FilterChip default values aren't exposed via FilterChipDefaults
     const val DisabledChipContainerAlpha = 0.12f
     const val DisabledChipContentAlpha = 0.38f
     val ChipBorderWidth = 1.dp
