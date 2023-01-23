@@ -83,9 +83,6 @@ class BlockerAppState(
             else -> null
         }
 
-    val isExpandedScreen: Boolean
-        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
-
     val shouldShowBottomBar: Boolean
         get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact ||
             windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact

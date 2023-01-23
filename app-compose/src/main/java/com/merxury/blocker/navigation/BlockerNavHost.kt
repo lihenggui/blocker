@@ -44,7 +44,6 @@ import com.merxury.blocker.feature.settings.navigation.settingsScreen
 fun BlockerNavHost(
     navController: NavHostController,
     onBackClick: () -> Unit,
-    isExpandedScreen: Boolean,
     modifier: Modifier = Modifier,
     startDestination: String = appListRoute,
 ) {
