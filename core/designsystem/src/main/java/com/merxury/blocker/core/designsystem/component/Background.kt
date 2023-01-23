@@ -36,6 +36,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.designsystem.theme.GradientColors
 import com.merxury.blocker.core.designsystem.theme.LocalBackgroundTheme
 import com.merxury.blocker.core.designsystem.theme.LocalGradientColors
 import kotlin.math.tan
@@ -77,13 +78,19 @@ fun BlockerBackground(
 @Composable
 fun BlockerGradientBackground(
     modifier: Modifier = Modifier,
-    topColor: Color = LocalGradientColors.current.primary,
-    bottomColor: Color = LocalGradientColors.current.secondary,
+    gradientColors: GradientColors = LocalGradientColors.current,
     content: @Composable () -> Unit,
 ) {
-    val currentTopColor by rememberUpdatedState(topColor)
-    val currentBottomColor by rememberUpdatedState(bottomColor)
-    BlockerBackground(modifier) {
+    val currentTopColor by rememberUpdatedState(gradientColors.top)
+    val currentBottomColor by rememberUpdatedState(gradientColors.bottom)
+    Surface(
+        color = if (gradientColors.container == Color.Unspecified) {
+            Color.Transparent
+        } else {
+            gradientColors.container
+        },
+        modifier = modifier.fillMaxSize(),
+    ) {
         Box(
             Modifier
                 .fillMaxSize()

@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.globalsearch.navigation
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -29,7 +28,6 @@ fun NavController.navigateToGlobalSearch(navOptions: NavOptions? = null) {
     this.navigate(globalSearchRoute, navOptions)
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.globalSearchScreen() {
     composable(route = globalSearchRoute) {
         GlobalSearchRoute()
