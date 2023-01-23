@@ -80,7 +80,7 @@ class DesignSystemDetector : Detector(), Detector.UastScanner {
         // instead of hardcoded names.
         val METHOD_NAMES = mapOf(
             "MaterialTheme" to "BlockerTheme",
-            "Button" to "BlockerFilledButton",
+            "Button" to "BlockerButton",
             "OutlinedButton" to "BlockerOutlinedButton",
             "TextButton" to "BlockerTextButton",
             "FilterChip" to "BlockerFilterChip",
@@ -92,10 +92,10 @@ class DesignSystemDetector : Detector(), Detector.UastScanner {
             "NavigationRailItem" to "BlockerNavigationRailItem",
             "TabRow" to "BlockerTabRow",
             "Tab" to "BlockerTab",
-            "IconToggleButton" to "BlockerToggleButton",
-            "FilledIconToggleButton" to "BlockerToggleButton",
-            "FilledTonalIconToggleButton" to "BlockerToggleButton",
-            "OutlinedIconToggleButton" to "BlockerToggleButton",
+            "IconToggleButton" to "BlockerIconToggleButton",
+            "FilledIconToggleButton" to "BlockerIconToggleButton",
+            "FilledTonalIconToggleButton" to "BlockerIconToggleButton",
+            "OutlinedIconToggleButton" to "BlockerIconToggleButton",
             "CenterAlignedTopAppBar" to "BlockerTopAppBar",
             "SmallTopAppBar" to "BlockerTopAppBar",
             "MediumTopAppBar" to "BlockerTopAppBar",
