@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,20 +31,24 @@ enum class TopLevelDestination(
     val selectedIcon: Icon,
     val unselectedIcon: Icon,
     val iconTextId: Int,
+    val titleTextId: Int,
 ) {
     APP_LIST(
         selectedIcon = ImageVectorIcon(BlockerIcons.Apps),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Apps),
         iconTextId = R.string.application_list,
+        titleTextId = R.string.app_name,
     ),
     ONLINE_RULES(
         selectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
         unselectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
         iconTextId = R.string.online_rules,
+        titleTextId = R.string.online_rules,
     ),
     GLOBAL_SEARCH(
         selectedIcon = ImageVectorIcon(BlockerIcons.Search),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
         iconTextId = R.string.global_search,
+        titleTextId = R.string.global_search,
     ),
 }

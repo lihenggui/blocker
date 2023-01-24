@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import com.merxury.blocker.core.data.respository.onlinecomponent.USER_GENERATED_
 import com.merxury.blocker.core.database.app.AppComponentRepository
 import com.merxury.blocker.core.database.cmpdetail.asExternalModel
 import com.merxury.blocker.core.extension.getSimpleName
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -75,7 +75,7 @@ class ComponentViewModel @Inject constructor(
     private val _zippedRules = MutableSharedFlow<File?>()
     val zippedRules = _zippedRules.asSharedFlow()
 
-    fun load(context: Context, packageName: String, type: EComponentType) {
+    fun load(context: Context, packageName: String, type: ComponentType) {
         logger.i("Load $packageName $type")
         viewModelScope.launch {
             val origList = getComponents(packageName, type)
@@ -127,12 +127,12 @@ class ComponentViewModel @Inject constructor(
         }
     }
 
-    fun enableAll(context: Context, packageName: String, type: EComponentType) {
+    fun enableAll(context: Context, packageName: String, type: ComponentType) {
         logger.i("Enable all $packageName, type $type")
         doBatchOperation(context, packageName, type, true)
     }
 
-    fun disableAll(context: Context, packageName: String, type: EComponentType) {
+    fun disableAll(context: Context, packageName: String, type: ComponentType) {
         logger.i("Disable all $packageName, type $type")
         doBatchOperation(context, packageName, type, false)
     }
@@ -148,7 +148,7 @@ class ComponentViewModel @Inject constructor(
     private fun doBatchOperation(
         context: Context,
         packageName: String,
-        type: EComponentType,
+        type: ComponentType,
         enable: Boolean,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
@@ -300,11 +300,11 @@ class ComponentViewModel @Inject constructor(
         context: Context,
         packageName: String,
         components: MutableList<out ComponentInfo>,
-        type: EComponentType,
+        type: ComponentType,
     ): MutableList<ComponentData> {
         val ifwController = IntentFirewallImpl(packageName).load()
         val pmController = ComponentControllerProxy.getInstance(ControllerType.PM, context)
-        val serviceHelper = if (type == EComponentType.SERVICE) {
+        val serviceHelper = if (type == ComponentType.SERVICE) {
             ServiceHelper(packageName).also { it.refresh() }
         } else {
             null
@@ -354,13 +354,13 @@ class ComponentViewModel @Inject constructor(
 
     private suspend fun getComponents(
         packageName: String,
-        type: EComponentType,
+        type: ComponentType,
     ): MutableList<out ComponentInfo> {
         val components = when (type) {
-            EComponentType.RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
-            EComponentType.ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)
-            EComponentType.SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
-            EComponentType.PROVIDER -> ApplicationUtil.getProviderList(pm, packageName)
+            ComponentType.RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
+            ComponentType.ACTIVITY -> ApplicationUtil.getActivityList(pm, packageName)
+            ComponentType.SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
+            ComponentType.PROVIDER -> ApplicationUtil.getProviderList(pm, packageName)
         }
         return withContext(Dispatchers.Default) {
             components.asSequence()
