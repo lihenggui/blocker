@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ android {
         versionName = "1.2.70" // X.Y.Z; X = Major, Y = minor, Z = Patch level
 
         // Custom test runner to set up Hilt dependency graph
-        testInstrumentationRunner = "com.merxury.blocker.testing.BlockerTestRunner"
+        testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,10 +26,9 @@ import androidx.compose.ui.graphics.Color
  */
 @Immutable
 data class GradientColors(
-    val primary: Color = Color.Unspecified,
-    val secondary: Color = Color.Unspecified,
-    val tertiary: Color = Color.Unspecified,
-    val neutral: Color = Color.Unspecified,
+    val top: Color = Color.Unspecified,
+    val bottom: Color = Color.Unspecified,
+    val container: Color = Color.Unspecified,
 )
 
 /**
