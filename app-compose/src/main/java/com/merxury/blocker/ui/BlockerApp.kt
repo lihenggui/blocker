@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,6 +17,7 @@
 
 package com.merxury.blocker.ui
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,14 +34,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration.Indefinite
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -50,10 +48,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import com.merxury.blocker.R
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerGradientBackground
@@ -63,9 +59,10 @@ import com.merxury.blocker.core.designsystem.component.BlockerNavigationRail
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationRailItem
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
+import com.merxury.blocker.core.designsystem.theme.GradientColors
+import com.merxury.blocker.core.designsystem.theme.LocalGradientColors
 import com.merxury.blocker.navigation.BlockerNavHost
 import com.merxury.blocker.navigation.TopLevelDestination
-import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
 
 @OptIn(
     ExperimentalMaterial3Api::class,
@@ -81,82 +78,71 @@ fun BlockerApp(
         windowSizeClass = windowSizeClass,
     ),
 ) {
-    val background: @Composable (@Composable () -> Unit) -> Unit =
-        when (appState.currentTopLevelDestination) {
-            APP_LIST -> { content ->
-                BlockerGradientBackground(content = content)
-            }
+    val shouldShowGradientBackground =
+        appState.currentTopLevelDestination == TopLevelDestination.APP_LIST
 
-            else -> { content -> BlockerBackground(content = content) }
-        }
-
-    background {
-        val snackbarHostState = remember { SnackbarHostState() }
-
-        Scaffold(
-            modifier = Modifier.semantics {
-                testTagsAsResourceId = true
+    BlockerBackground {
+        BlockerGradientBackground(
+            gradientColors = if (shouldShowGradientBackground) {
+                LocalGradientColors.current
+            } else {
+                GradientColors()
             },
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onBackground,
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-            bottomBar = {
-                if (appState.shouldShowBottomBar) {
-                    BlockerBottomBar(
-                        destinations = appState.topLevelDestinations,
-                        onNavigateToDestination = appState::navigateToTopLevelDestination,
-                        currentDestination = appState.currentDestination,
-                        modifier = Modifier.testTag("BlockerBottomBar"),
-                    )
-                }
-            },
-        ) { padding ->
-
-            val isOffline by appState.isOffline.collectAsStateWithLifecycle()
-
-            // If user is not connected to the internet show a snack bar to inform them.
-            val notConnected = stringResource(R.string.not_connected)
-            LaunchedEffect(isOffline) {
-                if (isOffline) {
-                    snackbarHostState.showSnackbar(
-                        message = notConnected,
-                        duration = Indefinite,
-                    )
-                }
-            }
-
-            Row(
-                Modifier
-                    .fillMaxSize()
-                    .windowInsetsPadding(
-                        WindowInsets.safeDrawing.only(
-                            WindowInsetsSides.Horizontal,
-                        ),
-                    ),
-            ) {
-                if (appState.shouldShowNavRail) {
-                    BlockerNavRail(
-                        destinations = appState.topLevelDestinations,
-                        onNavigateToDestination = appState::navigateToTopLevelDestination,
-                        currentDestination = appState.currentDestination,
-                        modifier = Modifier
-                            .testTag("BlockerNavRail")
-                            .safeDrawingPadding(),
-                    )
-                }
-
-                BlockerNavHost(
-                    navController = appState.navController,
-                    onBackClick = appState::onBackClick,
-                    isExpandedScreen = appState.isExpandedScreen,
-                    modifier = Modifier
+        ) {
+            val snackbarHostState = remember { SnackbarHostState() }
+            Scaffold(
+                modifier = Modifier.semantics {
+                    testTagsAsResourceId = true
+                },
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onBackground,
+                contentWindowInsets = WindowInsets(0, 0, 0, 0),
+                snackbarHost = { SnackbarHost(snackbarHostState) },
+                bottomBar = {
+                    if (appState.shouldShowBottomBar) {
+                        BlockerBottomBar(
+                            destinations = appState.topLevelDestinations,
+                            onNavigateToDestination = appState::navigateToTopLevelDestination,
+                            currentDestination = appState.currentDestination,
+                            modifier = Modifier.testTag("BlockerBottomBar"),
+                        )
+                    }
+                },
+            ) { padding ->
+                Row(
+                    Modifier
+                        .fillMaxSize()
                         .padding(padding)
-                        .consumedWindowInsets(padding),
-                )
+                        .consumedWindowInsets(padding)
+                        .windowInsetsPadding(
+                            WindowInsets.safeDrawing.only(
+                                WindowInsetsSides.Horizontal,
+                            ),
+                        ),
+                ) {
+                    if (appState.shouldShowNavRail) {
+                        BlockerNavRail(
+                            destinations = appState.topLevelDestinations,
+                            onNavigateToDestination = appState::navigateToTopLevelDestination,
+                            currentDestination = appState.currentDestination,
+                            modifier = Modifier
+                                .testTag("BlockerNavRail")
+                                .safeDrawingPadding(),
+                        )
+                    }
 
-                // TODO: We may want to add padding or spacer when the snackbar is shown so that
-                //  content doesn't display behind it.
+                    Column(Modifier.fillMaxSize()) {
+                        // TODO Show the top app bar on top level destinations.
+
+                        BlockerNavHost(
+                            navController = appState.navController,
+                            onBackClick = appState::onBackClick,
+                        )
+                    }
+
+                    // TODO: We may want to add padding or spacer when the snackbar is shown so that
+                    //  content doesn't display behind it.
+                }
             }
         }
     }

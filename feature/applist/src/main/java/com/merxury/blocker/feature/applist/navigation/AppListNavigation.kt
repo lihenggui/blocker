@@ -16,16 +16,10 @@
 
 package com.merxury.blocker.feature.applist.navigation
 
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
-import com.google.accompanist.navigation.animation.composable
+import androidx.navigation.compose.composable
 import com.merxury.blocker.feature.applist.AppListRoute
 
 const val appListRoute = "app_list_route"
@@ -34,7 +28,6 @@ fun NavController.navigateToAppList(navOptions: NavOptions? = null) {
     this.navigate(appListRoute, navOptions)
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.appListScreen(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
@@ -42,18 +35,6 @@ fun NavGraphBuilder.appListScreen(
 ) {
     composable(
         route = appListRoute,
-        exitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { -300 },
-                animationSpec = tween(300),
-            ) + fadeOut(animationSpec = tween(300))
-        },
-        popEnterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { -300 },
-                animationSpec = tween(300),
-            ) + fadeIn(animationSpec = tween(300))
-        },
     ) {
         AppListRoute(
             navigateToAppDetail = navigateToAppDetail,

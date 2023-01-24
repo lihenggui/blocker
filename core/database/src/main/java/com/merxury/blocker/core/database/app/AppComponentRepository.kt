@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.database.app
 
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -32,7 +32,7 @@ class AppComponentRepository @Inject constructor(private val appComponentDao: Ap
 
     suspend fun getAppComponentByType(
         packageName: String,
-        type: EComponentType,
+        type: ComponentType,
     ): List<AppComponentEntity> {
         return appComponentDao.getByPackageNameAndType(packageName, type)
     }

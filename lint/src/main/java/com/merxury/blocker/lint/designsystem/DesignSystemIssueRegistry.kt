@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,9 +23,8 @@ import com.android.tools.lint.detector.api.CURRENT_API
 
 /**
  * An issue registry that checks for incorrect usages of Compose Material APIs over equivalents in
- * the Now in Android design system module.
+ * the Blocker design system module.
  */
-@Suppress("UnstableApiUsage")
 class DesignSystemIssueRegistry : IssueRegistry() {
     override val issues = listOf(DesignSystemDetector.ISSUE)
 
