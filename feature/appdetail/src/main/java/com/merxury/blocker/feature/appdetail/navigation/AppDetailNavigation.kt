@@ -17,18 +17,12 @@
 package com.merxury.blocker.feature.appdetail.navigation
 
 import android.net.Uri
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
+import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.google.accompanist.navigation.animation.composable
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
 
@@ -44,7 +38,6 @@ fun NavController.navigateToAppDetail(packageName: String) {
     this.navigate("app_detail_route/$encodedId")
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 fun NavGraphBuilder.appDetailScreen(
     onBackClick: () -> Unit,
 ) {
@@ -53,18 +46,6 @@ fun NavGraphBuilder.appDetailScreen(
         arguments = listOf(
             navArgument(packageNameArg) { type = NavType.StringType },
         ),
-        enterTransition = {
-            slideInHorizontally(
-                initialOffsetX = { 300 },
-                animationSpec = tween(300),
-            ) + fadeIn(animationSpec = tween(300))
-        },
-        popExitTransition = {
-            slideOutHorizontally(
-                targetOffsetX = { 300 },
-                animationSpec = tween(300),
-            ) + fadeOut(animationSpec = tween(300))
-        },
     ) {
         AppDetailRoute(onBackClick = onBackClick)
     }

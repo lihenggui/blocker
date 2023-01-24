@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -30,10 +30,10 @@ import com.merxury.blocker.core.database.app.AppComponentEntity
 import com.merxury.blocker.core.database.app.AppComponentRepository
 import com.merxury.blocker.core.database.app.InstalledAppEntity
 import com.merxury.blocker.core.database.app.InstalledAppRepository
-import com.merxury.blocker.core.model.EComponentType.ACTIVITY
-import com.merxury.blocker.core.model.EComponentType.PROVIDER
-import com.merxury.blocker.core.model.EComponentType.RECEIVER
-import com.merxury.blocker.core.model.EComponentType.SERVICE
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
