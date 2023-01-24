@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,9 +30,9 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import androidx.tracing.trace
-import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
@@ -56,7 +56,7 @@ fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    navController: NavHostController = rememberAnimatedNavController(),
+    navController: NavHostController = rememberNavController(),
 ): BlockerAppState {
     NavigationTrackingSideEffect(navController)
     return remember(navController, coroutineScope, windowSizeClass, networkMonitor) {
@@ -82,9 +82,6 @@ class BlockerAppState(
             globalSearchRoute -> GLOBAL_SEARCH
             else -> null
         }
-
-    val isExpandedScreen: Boolean
-        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
 
     val shouldShowBottomBar: Boolean
         get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact ||

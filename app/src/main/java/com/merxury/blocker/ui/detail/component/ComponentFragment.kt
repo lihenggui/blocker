@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  *   Licensed under the Apache License, Version 2.0 (the "License");
  *   you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.elvishew.xlog.XLog
 import com.merxury.blocker.R
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.databinding.ComponentFragmentBinding
 import com.merxury.blocker.ui.detail.component.info.ComponentDetailBottomSheetFragment
 import com.merxury.blocker.util.BrowserUtil
@@ -64,13 +64,13 @@ class ComponentFragment : Fragment() {
     private val viewModel: ComponentViewModel by viewModels()
     private val adapter by unsafeLazy { ComponentAdapter(lifecycleScope) }
     private var packageName: String = ""
-    private var type: EComponentType = EComponentType.RECEIVER
+    private var type: ComponentType = ComponentType.RECEIVER
     private val logger = XLog.tag("ComponentFragment")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         packageName = arguments?.getString(KEY_PACKAGE_NAME).orEmpty()
-        type = arguments?.serializable(KEY_TYPE) as? EComponentType ?: EComponentType.RECEIVER
+        type = arguments?.serializable(KEY_TYPE) as? ComponentType ?: ComponentType.RECEIVER
     }
 
     override fun onCreateView(
@@ -306,7 +306,7 @@ class ComponentFragment : Fragment() {
         private const val KEY_PACKAGE_NAME = "package_name"
         private const val KEY_TYPE = "type"
 
-        fun newInstance(packageName: String, type: EComponentType): Fragment {
+        fun newInstance(packageName: String, type: ComponentType): Fragment {
             val fragment = ComponentFragment()
             val args = Bundle().apply {
                 putString(KEY_PACKAGE_NAME, packageName)

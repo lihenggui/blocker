@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.rule.entity
 
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ControllerType
 import kotlinx.serialization.Serializable
 
@@ -25,6 +25,6 @@ data class ComponentRule(
     var packageName: String = "",
     var name: String = "",
     var state: Boolean = true,
-    var type: EComponentType = EComponentType.RECEIVER,
+    var type: ComponentType = ComponentType.RECEIVER,
     var method: ControllerType = ControllerType.PM,
 )

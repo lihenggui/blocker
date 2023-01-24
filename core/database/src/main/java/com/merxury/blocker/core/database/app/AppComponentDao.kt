@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.merxury.blocker.core.model.EComponentType
+import com.merxury.blocker.core.model.ComponentType
 
 @Dao
 interface AppComponentDao {
@@ -57,7 +57,7 @@ interface AppComponentDao {
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName AND type = :type")
     suspend fun getByPackageNameAndType(
         packageName: String,
-        type: EComponentType,
+        type: ComponentType,
     ): List<AppComponentEntity>
 
     @Transaction
