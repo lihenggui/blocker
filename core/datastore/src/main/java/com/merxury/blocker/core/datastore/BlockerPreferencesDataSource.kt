@@ -111,6 +111,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST ->
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST
             },
+            useDynamicColor = it.useDynamicColor,
         )
     }
 
@@ -134,6 +135,14 @@ class BlockerPreferencesDataSource @Inject constructor(
                     DarkThemeConfig.LIGHT -> DarkThemeConfigProto.DARK_THEME_CONFIG_LIGHT
                     DarkThemeConfig.DARK -> DarkThemeConfigProto.DARK_THEME_CONFIG_DARK
                 }
+            }
+        }
+    }
+
+    suspend fun setDynamicColorPreference(useDynamicColor: Boolean) {
+        userPreferences.updateData {
+            it.copy {
+                this.useDynamicColor = useDynamicColor
             }
         }
     }

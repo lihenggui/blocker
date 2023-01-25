@@ -78,6 +78,7 @@ fun BlockerSettingsPreview() {
                     UserEditableSettings(
                         themeBrand = ANDROID,
                         darkThemeConfig = FOLLOW_SYSTEM,
+                        useDynamicColor = false,
                     ),
                 ),
                 updateControllerType = {},
