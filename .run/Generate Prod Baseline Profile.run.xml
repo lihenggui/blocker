@@ -24,7 +24,7 @@
   In this run configuration we leverage rerun parameter that always reruns the requested task regardless of cache.
   We also leverage enable-display parameter to be able to verify the generator works as intended.
   -->
-  <configuration default="false" name="Generate Prod Baseline Profile" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="Generate Market Baseline Profile" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$/app-compose" />
@@ -35,7 +35,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value=":benchmark:pixel6Api31ProdBenchmarkAndroidTest" />
+          <option value=":benchmark:pixel6Api31MarketBenchmarkAndroidTest" />
           <option value="--rerun" />
           <option value="--enable-display" />
         </list>

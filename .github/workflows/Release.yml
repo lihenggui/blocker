@@ -46,8 +46,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: app/build/outputs/apk/basic/release/app-basic-release.apk
-          asset_name: app-basic-release.apk
+          asset_path: app/build/outputs/apk/foss/release/app-foss-release.apk
+          asset_name: app-foss-release.apk
           asset_content_type: application/vnd.android.package-archive
 
       - name: Upload market app
@@ -56,8 +56,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: app/build/outputs/apk/prod/release/app-prod-release.apk
-          asset_name: app-prod-release.apk
+          asset_path: app/build/outputs/apk/market/release/app-market-release.apk
+          asset_name: app-market-release.apk
           asset_content_type: application/vnd.android.package-archive
 
       - name: Upload mappings
@@ -65,4 +65,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: mappings
-          path: "app/build/outputs/mapping/prodRelease"
+          path: "app/build/outputs/mapping/marketRelease"
