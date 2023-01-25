@@ -42,8 +42,8 @@ import com.merxury.blocker.feature.settings.UserEditableSettings
 fun BlockerSettings(
     modifier: Modifier = Modifier,
     settings: UserEditableSettings,
-    updateControllerType: (ControllerType) -> Unit,
-    updateRuleServerProvider: (RuleServerProvider) -> Unit,
+    onChangeControllerType: (ControllerType) -> Unit,
+    onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -54,14 +54,14 @@ fun BlockerSettings(
             itemRes = string.controller_type,
             itemValue = settings.controllerType,
             menuList = listOf(IFW, PM, SHIZUKU),
-            onMenuClick = updateControllerType,
+            onMenuClick = onChangeControllerType,
         )
         DialogSettingsItems(
             icon = BlockerIcons.Block,
             itemRes = string.online_rule_source,
             itemValue = settings.ruleServerProvider,
             menuList = listOf(GITHUB, GITLAB),
-            onMenuClick = updateRuleServerProvider,
+            onMenuClick = onChangeRuleServerProvider,
         )
     }
 }
@@ -78,8 +78,8 @@ fun BlockerSettingsPreview() {
                     darkThemeConfig = FOLLOW_SYSTEM,
                     useDynamicColor = false,
                 ),
-                updateControllerType = {},
-                updateRuleServerProvider = {},
+                onChangeControllerType = {},
+                onChangeRuleServerProvider = {},
             )
         }
     }
