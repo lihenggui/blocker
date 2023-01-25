@@ -149,7 +149,7 @@ fun SettingsScreen(
 
                 is Success -> {
                     SettingsContent(
-                        uiState = uiState,
+                        settings = uiState.settings,
                         supportDynamicColor = supportsDynamicTheming(),
                         updateShowSystemApps = updateShowSystemApps,
                         updateShowServiceInfo = updateShowServiceInfo,
@@ -175,7 +175,7 @@ fun SettingsScreen(
 
 @Composable
 fun SettingsContent(
-    uiState: Success,
+    settings: UserEditableSettings,
     supportDynamicColor: Boolean,
     updateShowSystemApps: (Boolean) -> Unit,
     updateShowServiceInfo: (Boolean) -> Unit,
@@ -196,14 +196,14 @@ fun SettingsContent(
 ) {
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
         BlockerSettings(
-            uiState = uiState,
+            settings = settings,
             updateControllerType = updateControllerType,
             updateRuleServerProvider = updateRuleServerProvider,
         )
         Divider()
         ThemeSettings(
             modifier = modifier,
-            uiState = uiState,
+            settings = settings,
             supportDynamicColor = supportDynamicColor,
             onChangeThemeBrand = updateThemeBrand,
             onChangeDynamicColorPreference = onChangeDynamicColorPreference,
@@ -211,16 +211,16 @@ fun SettingsContent(
         )
         Divider()
         AppListSettings(
-            showSystemApps = uiState.settings.showSystemApps,
-            showServiceInfo = uiState.settings.showServiceInfo,
+            showSystemApps = settings.showSystemApps,
+            showServiceInfo = settings.showServiceInfo,
             updateShowSystemApps = updateShowSystemApps,
             updateShowServiceInfo = updateShowServiceInfo,
         )
         Divider()
         BackupSettings(
-            backupSystemApps = uiState.settings.backupSystemApp,
-            restoreSystemApp = uiState.settings.restoreSystemApp,
-            ruleBackupFolder = uiState.settings.ruleBackupFolder,
+            backupSystemApps = settings.backupSystemApp,
+            restoreSystemApp = settings.restoreSystemApp,
+            ruleBackupFolder = settings.ruleBackupFolder,
             updateBackupSystemApp = updateBackupSystemApp,
             updateRestoreSystemApp = updateRestoreSystemApp,
             updateRuleBackupFolder = updateRuleBackupFolder,

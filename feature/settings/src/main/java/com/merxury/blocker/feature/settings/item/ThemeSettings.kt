@@ -29,12 +29,12 @@ import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.model.preference.ThemeBrand.ANDROID
 import com.merxury.blocker.core.model.preference.ThemeBrand.DEFAULT
 import com.merxury.blocker.feature.settings.R.string
-import com.merxury.blocker.feature.settings.SettingsUiState.Success
+import com.merxury.blocker.feature.settings.UserEditableSettings
 
 @Composable
 fun ThemeSettings(
     modifier: Modifier = Modifier,
-    uiState: Success,
+    settings: UserEditableSettings,
     supportDynamicColor: Boolean,
     onChangeThemeBrand: (ThemeBrand) -> Unit,
     onChangeDynamicColorPreference: (useDynamicColor: Boolean) -> Unit,
@@ -47,21 +47,21 @@ fun ThemeSettings(
         SettingItemHeader(itemRes = string.theme)
         DialogSettingsItems(
             itemRes = string.theme,
-            itemValue = uiState.settings.themeBrand,
+            itemValue = settings.themeBrand,
             menuList = listOf(ANDROID, DEFAULT),
             onMenuClick = onChangeThemeBrand,
         )
-        if (uiState.settings.themeBrand == DEFAULT && supportDynamicColor) {
+        if (settings.themeBrand == DEFAULT && supportDynamicColor) {
             DialogSettingsItems(
                 itemRes = string.dark_mode,
-                itemValue = uiState.settings.useDynamicColor,
+                itemValue = settings.useDynamicColor,
                 menuList = listOf(true, false),
                 onMenuClick = onChangeDynamicColorPreference,
             )
         }
         DialogSettingsItems(
             itemRes = string.dark_mode,
-            itemValue = uiState.settings.darkThemeConfig,
+            itemValue = settings.darkThemeConfig,
             menuList = listOf(FOLLOW_SYSTEM, LIGHT, DARK),
             onMenuClick = onChangeDarkThemeConfig,
         )
