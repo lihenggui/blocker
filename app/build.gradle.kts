@@ -113,7 +113,6 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:data"))
     implementation(project(":core:model"))
-    implementation(project(":sync:work"))
 
     androidTestImplementation(project(":core:testing"))
     androidTestImplementation(project(":core:data-test"))

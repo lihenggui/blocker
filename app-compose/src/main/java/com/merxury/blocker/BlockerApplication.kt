@@ -21,7 +21,6 @@ import android.app.Application
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.SvgDecoder
-import com.merxury.blocker.sync.initializers.Sync
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
@@ -36,7 +35,6 @@ class BlockerApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         // Initialize Sync; the system responsible for keeping data in the app up to date.
-        Sync.initialize(context = this)
         Timber.plant(Timber.DebugTree())
         Shell.enableVerboseLogging = true
         Shell.setDefaultBuilder(
