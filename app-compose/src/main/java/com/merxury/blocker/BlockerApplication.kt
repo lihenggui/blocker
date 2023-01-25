@@ -18,11 +18,14 @@
 package com.merxury.blocker
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.SvgDecoder
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
 import me.zhanghai.android.appiconloader.coil.AppIconKeyer
 import timber.log.Timber
@@ -31,10 +34,12 @@ import timber.log.Timber
  * [Application] class for Blocker
  */
 @HiltAndroidApp
-class BlockerApplication : Application(), ImageLoaderFactory {
+class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Provider {
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
     override fun onCreate() {
         super.onCreate()
-        // Initialize Sync; the system responsible for keeping data in the app up to date.
         Timber.plant(Timber.DebugTree())
         Shell.enableVerboseLogging = true
         Shell.setDefaultBuilder(
@@ -62,4 +67,9 @@ class BlockerApplication : Application(), ImageLoaderFactory {
             }
             .build()
     }
+
+    override fun getWorkManagerConfiguration(): Configuration =
+        Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 }
