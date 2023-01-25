@@ -34,35 +34,35 @@ GRADLE_PARAMS=" --stacktrace"
 $DIR/gradlew :app:clean :app:assemble ${GRADLE_PARAMS}
 BUILD_RESULT=$?
 
-# Basic debug
-cp $APP_OUT/apk/basic/debug/app-basic-debug.apk $DIST_DIR
+# FOSS debug
+cp $APP_OUT/apk/foss/debug/app-foss-debug.apk $DIST_DIR
 
-# Basic release
-cp $APP_OUT/apk/basic/release/app-basic-release.apk $DIST_DIR
+# FOSS release
+cp $APP_OUT/apk/foss/release/app-foss-release.apk $DIST_DIR
 
-# Prod debug
-cp $APP_OUT/apk/prod/debug/app-prod-debug.apk $DIST_DIR/app-prod-debug.apk
+# Market debug
+cp $APP_OUT/apk/market/debug/app-market-debug.apk $DIST_DIR/app-market-debug.apk
 
-# Prod release
-cp $APP_OUT/apk/prod/release/app-prod-release.apk $DIST_DIR/app-prod-release.apk
+# Market release
+cp $APP_OUT/apk/market/release/app-market-release.apk $DIST_DIR/app-market-release.apk
 #cp $APP_OUT/mapping/release/mapping.txt $DIST_DIR/mobile-release-apk-mapping.txt
 
 # Build App Bundles
 # Don't clean here, otherwise all apks are gone.
 $DIR/gradlew :app:bundle ${GRADLE_PARAMS}
 
-# Basic debug
-cp $APP_OUT/bundle/basicDebug/app-basic-debug.aab $DIST_DIR/app-basic-debug.aab
+# FOSS debug
+cp $APP_OUT/bundle/fossDebug/app-foss-debug.aab $DIST_DIR/app-foss-debug.aab
 
-# Basic release
-cp $APP_OUT/bundle/basicRelease/app-basic-release.aab $DIST_DIR/app-basic-release.aab
+# FOSS release
+cp $APP_OUT/bundle/fossRelease/app-foss-release.aab $DIST_DIR/app-foss-release.aab
 
-# Prod debug
-cp $APP_OUT/bundle/prodDebug/app-prod-debug.aab $DIST_DIR/app-prod-debug.aab
+# Market debug
+cp $APP_OUT/bundle/marketDebug/app-market-debug.aab $DIST_DIR/app-market-debug.aab
 
-# Prod release
-cp $APP_OUT/bundle/prodRelease/app-prod-release.aab $DIST_DIR/app-prod-release.aab
-#cp $APP_OUT/mapping/prodRelease/mapping.txt $DIST_DIR/mobile-release-aab-mapping.txt
+# Market release
+cp $APP_OUT/bundle/marketRelease/app-market-release.aab $DIST_DIR/app-market-release.aab
+#cp $APP_OUT/mapping/marketRelease/mapping.txt $DIST_DIR/mobile-release-aab-mapping.txt
 BUILD_RESULT=$?
 
 exit $BUILD_RESULT

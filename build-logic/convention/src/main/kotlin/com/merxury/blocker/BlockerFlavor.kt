@@ -30,8 +30,8 @@ enum class FlavorDimension {
 
 @Suppress("EnumEntryName")
 enum class BlockerFlavor(val dimension: FlavorDimension, val applicationIdSuffix: String? = null) {
-    basic(FlavorDimension.contentType),
-    prod(FlavorDimension.contentType)
+    foss(FlavorDimension.contentType),
+    market(FlavorDimension.contentType)
 }
 
 fun Project.configureFlavors(
