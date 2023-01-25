@@ -40,13 +40,15 @@ import com.merxury.blocker.core.designsystem.theme.LightAndroidGradientColors
 import com.merxury.blocker.core.designsystem.theme.LightDefaultColorScheme
 import com.merxury.blocker.core.designsystem.theme.LocalBackgroundTheme
 import com.merxury.blocker.core.designsystem.theme.LocalGradientColors
+import com.merxury.blocker.core.designsystem.theme.LocalTintTheme
+import com.merxury.blocker.core.designsystem.theme.TintTheme
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
 
 /**
  * Tests [BlockerTheme] using different combinations of the theme mode parameters:
- * darkTheme, dynamicColor, and androidTheme.
+ * darkTheme, disableDynamicTheming, and androidTheme.
  *
  * It verifies that the various composition locals — [MaterialTheme], [LocalGradientColors] and
  * [LocalBackgroundTheme] — have the expected values for a given theme mode, as specified by the
@@ -71,6 +73,8 @@ class ThemeTest {
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = defaultBackgroundTheme(colorScheme)
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
+                val tintTheme = defaultTintTheme()
+                assertEquals(tintTheme, LocalTintTheme.current)
             }
         }
     }
@@ -89,6 +93,8 @@ class ThemeTest {
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = defaultBackgroundTheme(colorScheme)
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
+                val tintTheme = defaultTintTheme()
+                assertEquals(tintTheme, LocalTintTheme.current)
             }
         }
     }
@@ -98,6 +104,7 @@ class ThemeTest {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
+                disableDynamicTheming = false,
                 androidTheme = false,
             ) {
                 val colorScheme = dynamicLightColorSchemeWithFallback()
@@ -106,6 +113,8 @@ class ThemeTest {
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = defaultBackgroundTheme(colorScheme)
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
+                val tintTheme = dynamicTintThemeWithFallback(colorScheme)
+                assertEquals(tintTheme, LocalTintTheme.current)
             }
         }
     }
@@ -115,6 +124,7 @@ class ThemeTest {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
+                disableDynamicTheming = false,
                 androidTheme = false,
             ) {
                 val colorScheme = dynamicDarkColorSchemeWithFallback()
@@ -123,6 +133,8 @@ class ThemeTest {
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = defaultBackgroundTheme(colorScheme)
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
+                val tintTheme = dynamicTintThemeWithFallback(colorScheme)
+                assertEquals(tintTheme, LocalTintTheme.current)
             }
         }
     }
@@ -141,6 +153,8 @@ class ThemeTest {
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = LightAndroidBackgroundTheme
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
+                val tintTheme = defaultTintTheme()
+                assertEquals(tintTheme, LocalTintTheme.current)
             }
         }
     }
@@ -159,6 +173,8 @@ class ThemeTest {
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = DarkAndroidBackgroundTheme
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
+                val tintTheme = defaultTintTheme()
+                assertEquals(tintTheme, LocalTintTheme.current)
             }
         }
     }
@@ -168,6 +184,7 @@ class ThemeTest {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
+                disableDynamicTheming = false,
                 androidTheme = true,
             ) {
                 val colorScheme = LightAndroidColorScheme
@@ -176,6 +193,8 @@ class ThemeTest {
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = LightAndroidBackgroundTheme
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
+                val tintTheme = defaultTintTheme()
+                assertEquals(tintTheme, LocalTintTheme.current)
             }
         }
     }
@@ -185,6 +204,7 @@ class ThemeTest {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
+                disableDynamicTheming = false,
                 androidTheme = true,
             ) {
                 val colorScheme = DarkAndroidColorScheme
@@ -193,6 +213,8 @@ class ThemeTest {
                 assertEquals(gradientColors, LocalGradientColors.current)
                 val backgroundTheme = DarkAndroidBackgroundTheme
                 assertEquals(backgroundTheme, LocalBackgroundTheme.current)
+                val tintTheme = defaultTintTheme()
+                assertEquals(tintTheme, LocalTintTheme.current)
             }
         }
     }
@@ -240,6 +262,18 @@ class ThemeTest {
             color = colorScheme.surface,
             tonalElevation = 2.dp,
         )
+    }
+
+    private fun defaultTintTheme(): TintTheme {
+        return TintTheme()
+    }
+
+    private fun dynamicTintThemeWithFallback(colorScheme: ColorScheme): TintTheme {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            TintTheme(colorScheme.primary)
+        } else {
+            TintTheme()
+        }
     }
 
     /**
