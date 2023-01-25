@@ -25,10 +25,10 @@ import coil.ImageLoaderFactory
 import coil.decode.SvgDecoder
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
-import javax.inject.Inject
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
 import me.zhanghai.android.appiconloader.coil.AppIconKeyer
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * [Application] class for Blocker
