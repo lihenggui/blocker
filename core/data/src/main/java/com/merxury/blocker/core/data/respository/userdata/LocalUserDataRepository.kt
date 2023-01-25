@@ -39,6 +39,9 @@ class LocalUserDataRepository @Inject constructor(
     override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) =
         blockerPreferenceDataSource.setDarkThemeConfig(darkThemeConfig)
 
+    override suspend fun setDynamicColorPreference(useDynamicColor: Boolean) =
+        blockerPreferenceDataSource.setDynamicColorPreference(useDynamicColor)
+
     override suspend fun setControllerType(controllerType: ControllerType) =
         blockerPreferenceDataSource.setControllerType(controllerType)
 

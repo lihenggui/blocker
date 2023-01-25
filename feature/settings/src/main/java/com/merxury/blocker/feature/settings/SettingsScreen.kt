@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.designsystem.theme.supportsDynamicTheming
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
@@ -84,6 +85,7 @@ fun SettingsRoute(
         updateControllerType = viewModel::updateControllerType,
         updateRuleServerProvider = viewModel::updateRuleServerProvider,
         updateThemeBrand = viewModel::updateThemeBrand,
+        onChangeDynamicColorPreference = viewModel::updateDynamicColorPreference,
         updateDarkThemeConfig = viewModel::updateDarkThemeConfig,
     )
 }
@@ -101,6 +103,7 @@ fun SettingsScreen(
     updateControllerType: (ControllerType) -> Unit,
     updateRuleServerProvider: (RuleServerProvider) -> Unit,
     updateThemeBrand: (ThemeBrand) -> Unit,
+    onChangeDynamicColorPreference: (Boolean) -> Unit,
     updateDarkThemeConfig: (DarkThemeConfig) -> Unit,
     exportRules: () -> Unit,
     importRules: () -> Unit,
@@ -147,6 +150,7 @@ fun SettingsScreen(
                 is Success -> {
                     SettingsContent(
                         uiState = uiState,
+                        supportDynamicColor = supportsDynamicTheming(),
                         updateShowSystemApps = updateShowSystemApps,
                         updateShowServiceInfo = updateShowServiceInfo,
                         updateBackupSystemApp = updateBackupSystemApp,
@@ -160,6 +164,7 @@ fun SettingsScreen(
                         importIfwRules = importIfwRules,
                         resetIfwRules = resetIfwRules,
                         updateThemeBrand = updateThemeBrand,
+                        onChangeDynamicColorPreference = onChangeDynamicColorPreference,
                         updateDarkThemeConfig = updateDarkThemeConfig,
                     )
                 }
@@ -171,6 +176,7 @@ fun SettingsScreen(
 @Composable
 fun SettingsContent(
     uiState: Success,
+    supportDynamicColor: Boolean,
     updateShowSystemApps: (Boolean) -> Unit,
     updateShowServiceInfo: (Boolean) -> Unit,
     updateBackupSystemApp: (Boolean) -> Unit,
@@ -179,6 +185,7 @@ fun SettingsContent(
     updateControllerType: (ControllerType) -> Unit,
     updateRuleServerProvider: (RuleServerProvider) -> Unit,
     updateThemeBrand: (ThemeBrand) -> Unit,
+    onChangeDynamicColorPreference: (Boolean) -> Unit,
     updateDarkThemeConfig: (DarkThemeConfig) -> Unit,
     exportRules: () -> Unit,
     importRules: () -> Unit,
@@ -197,8 +204,10 @@ fun SettingsContent(
         ThemeSettings(
             modifier = modifier,
             uiState = uiState,
-            updateThemeBrand = updateThemeBrand,
-            updateDarkThemeConfig = updateDarkThemeConfig,
+            supportDynamicColor = supportDynamicColor,
+            onChangeThemeBrand = updateThemeBrand,
+            onChangeDynamicColorPreference = onChangeDynamicColorPreference,
+            onChangeDarkThemeConfig = updateDarkThemeConfig,
         )
         Divider()
         AppListSettings(
@@ -249,6 +258,7 @@ fun SettingsScreenPreview() {
                     showServiceInfo = true,
                     themeBrand = ANDROID,
                     darkThemeConfig = FOLLOW_SYSTEM,
+                    useDynamicColor = false,
                 ),
             ),
             updateShowSystemApps = {},
@@ -264,6 +274,7 @@ fun SettingsScreenPreview() {
             updateControllerType = {},
             updateRuleServerProvider = {},
             updateThemeBrand = {},
+            onChangeDynamicColorPreference = {},
             updateDarkThemeConfig = {},
         )
     }

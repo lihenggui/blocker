@@ -108,6 +108,7 @@ class MainActivity : ComponentActivity() {
             BlockerTheme(
                 darkTheme = darkTheme,
                 androidTheme = shouldUseAndroidTheme(uiState),
+                disableDynamicTheming = shouldDisableDynamicTheming(uiState),
             ) {
                 BlockerApp(
                     networkMonitor = networkMonitor,
@@ -140,6 +141,17 @@ private fun shouldUseAndroidTheme(
         ThemeBrand.DEFAULT -> false
         ThemeBrand.ANDROID -> true
     }
+}
+
+/**
+ * Returns `true` if the dynamic color is disabled, as a function of the [uiState].
+ */
+@Composable
+private fun shouldDisableDynamicTheming(
+    uiState: MainActivityUiState,
+): Boolean = when (uiState) {
+    Loading -> false
+    is Success -> !uiState.userData.useDynamicColor
 }
 
 /**
