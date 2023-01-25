@@ -27,7 +27,7 @@ jobs:
           java-version: 11
 
       - name: Build app
-        run: ./gradlew :app:assembleProdRelease
+        run: ./gradlew :app:assembleRelease
 
       - name: Create Release
         id: create_release
@@ -40,7 +40,17 @@ jobs:
           draft: true
           prerelease: false
 
-      - name: Upload app
+      - name: Upload FOSS app
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: app/build/outputs/apk/basic/release/app-basic-release.apk
+          asset_name: app-basic-release.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload market app
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,4 +58,11 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: app/build/outputs/apk/prod/release/app-prod-release.apk
           asset_name: app-prod-release.apk
-          asset_content_type: application/vnd.android.package-archive          
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload mappings
+        if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v3
+        with:
+          name: mappings
+          path: "app/build/outputs/mapping/prodRelease"
