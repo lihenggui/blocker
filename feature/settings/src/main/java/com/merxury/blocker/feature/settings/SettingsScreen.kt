@@ -43,6 +43,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.designsystem.theme.supportsDynamicTheming
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
@@ -71,20 +72,21 @@ fun SettingsRoute(
     SettingsScreen(
         onNavigationClick = onNavigationClick,
         uiState = settingsUiState,
-        updateShowSystemApps = viewModel::updateShowSystemApp,
-        updateShowServiceInfo = viewModel::updateShowServiceInfo,
-        updateBackupSystemApp = viewModel::updateBackupSystemApp,
-        updateRestoreSystemApp = viewModel::updateRestoreSystemApp,
-        updateRuleBackupFolder = viewModel::updateRuleBackupFolder,
+        onChangeShowSystemApps = viewModel::updateShowSystemApp,
+        onChangeShowServiceInfo = viewModel::updateShowServiceInfo,
+        onChangeBackupSystemApp = viewModel::updateBackupSystemApp,
+        onChangeRestoreSystemApp = viewModel::updateRestoreSystemApp,
+        onChangeRuleBackupFolder = viewModel::updateRuleBackupFolder,
         importRules = viewModel::importBlockerRules,
         exportRules = viewModel::exportBlockerRules,
         importIfwRules = viewModel::importIfwRules,
         exportIfwRules = viewModel::exportIfwRules,
         resetIfwRules = viewModel::resetIfwRules,
-        updateControllerType = viewModel::updateControllerType,
-        updateRuleServerProvider = viewModel::updateRuleServerProvider,
-        updateThemeBrand = viewModel::updateThemeBrand,
-        updateDarkThemeConfig = viewModel::updateDarkThemeConfig,
+        onChangeControllerType = viewModel::updateControllerType,
+        onChangeRuleServerProvider = viewModel::updateRuleServerProvider,
+        onChangeThemeBrand = viewModel::updateThemeBrand,
+        onChangeDynamicColorPreference = viewModel::updateDynamicColorPreference,
+        onChangeDarkThemeConfig = viewModel::updateDarkThemeConfig,
     )
 }
 
@@ -93,15 +95,16 @@ fun SettingsRoute(
 fun SettingsScreen(
     onNavigationClick: () -> Unit,
     uiState: SettingsUiState,
-    updateShowSystemApps: (Boolean) -> Unit,
-    updateShowServiceInfo: (Boolean) -> Unit,
-    updateBackupSystemApp: (Boolean) -> Unit,
-    updateRestoreSystemApp: (Boolean) -> Unit,
-    updateRuleBackupFolder: (String) -> Unit,
-    updateControllerType: (ControllerType) -> Unit,
-    updateRuleServerProvider: (RuleServerProvider) -> Unit,
-    updateThemeBrand: (ThemeBrand) -> Unit,
-    updateDarkThemeConfig: (DarkThemeConfig) -> Unit,
+    onChangeShowSystemApps: (Boolean) -> Unit,
+    onChangeShowServiceInfo: (Boolean) -> Unit,
+    onChangeBackupSystemApp: (Boolean) -> Unit,
+    onChangeRestoreSystemApp: (Boolean) -> Unit,
+    onChangeRuleBackupFolder: (String) -> Unit,
+    onChangeControllerType: (ControllerType) -> Unit,
+    onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
+    onChangeThemeBrand: (ThemeBrand) -> Unit,
+    onChangeDynamicColorPreference: (Boolean) -> Unit,
+    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
     exportRules: () -> Unit,
     importRules: () -> Unit,
     exportIfwRules: () -> Unit,
@@ -146,21 +149,23 @@ fun SettingsScreen(
 
                 is Success -> {
                     SettingsContent(
-                        uiState = uiState,
-                        updateShowSystemApps = updateShowSystemApps,
-                        updateShowServiceInfo = updateShowServiceInfo,
-                        updateBackupSystemApp = updateBackupSystemApp,
-                        updateRestoreSystemApp = updateRestoreSystemApp,
-                        updateRuleBackupFolder = updateRuleBackupFolder,
-                        updateControllerType = updateControllerType,
-                        updateRuleServerProvider = updateRuleServerProvider,
+                        settings = uiState.settings,
+                        supportDynamicColor = supportsDynamicTheming(),
+                        onChangeShowSystemApps = onChangeShowSystemApps,
+                        onChangeShowServiceInfo = onChangeShowServiceInfo,
+                        onChangeBackupSystemApp = onChangeBackupSystemApp,
+                        onChangeRestoreSystemApp = onChangeRestoreSystemApp,
+                        onChangeRuleBackupFolder = onChangeRuleBackupFolder,
+                        onChangeControllerType = onChangeControllerType,
+                        onChangeRuleServerProvider = onChangeRuleServerProvider,
+                        onChangeThemeBrand = onChangeThemeBrand,
+                        onChangeDynamicColorPreference = onChangeDynamicColorPreference,
+                        onChangeDarkThemeConfig = onChangeDarkThemeConfig,
                         exportRules = exportRules,
                         importRules = importRules,
                         exportIfwRules = exportIfwRules,
                         importIfwRules = importIfwRules,
                         resetIfwRules = resetIfwRules,
-                        updateThemeBrand = updateThemeBrand,
-                        updateDarkThemeConfig = updateDarkThemeConfig,
                     )
                 }
             }
@@ -170,16 +175,18 @@ fun SettingsScreen(
 
 @Composable
 fun SettingsContent(
-    uiState: Success,
-    updateShowSystemApps: (Boolean) -> Unit,
-    updateShowServiceInfo: (Boolean) -> Unit,
-    updateBackupSystemApp: (Boolean) -> Unit,
-    updateRestoreSystemApp: (Boolean) -> Unit,
-    updateRuleBackupFolder: (String) -> Unit,
-    updateControllerType: (ControllerType) -> Unit,
-    updateRuleServerProvider: (RuleServerProvider) -> Unit,
-    updateThemeBrand: (ThemeBrand) -> Unit,
-    updateDarkThemeConfig: (DarkThemeConfig) -> Unit,
+    settings: UserEditableSettings,
+    supportDynamicColor: Boolean,
+    onChangeShowSystemApps: (Boolean) -> Unit,
+    onChangeShowServiceInfo: (Boolean) -> Unit,
+    onChangeBackupSystemApp: (Boolean) -> Unit,
+    onChangeRestoreSystemApp: (Boolean) -> Unit,
+    onChangeRuleBackupFolder: (String) -> Unit,
+    onChangeControllerType: (ControllerType) -> Unit,
+    onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
+    onChangeThemeBrand: (ThemeBrand) -> Unit,
+    onChangeDynamicColorPreference: (Boolean) -> Unit,
+    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
     exportRules: () -> Unit,
     importRules: () -> Unit,
     exportIfwRules: () -> Unit,
@@ -189,32 +196,34 @@ fun SettingsContent(
 ) {
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
         BlockerSettings(
-            uiState = uiState,
-            updateControllerType = updateControllerType,
-            updateRuleServerProvider = updateRuleServerProvider,
+            settings = settings,
+            onChangeControllerType = onChangeControllerType,
+            onChangeRuleServerProvider = onChangeRuleServerProvider,
         )
         Divider()
         ThemeSettings(
             modifier = modifier,
-            uiState = uiState,
-            updateThemeBrand = updateThemeBrand,
-            updateDarkThemeConfig = updateDarkThemeConfig,
+            settings = settings,
+            supportDynamicColor = supportDynamicColor,
+            onChangeThemeBrand = onChangeThemeBrand,
+            onChangeDynamicColorPreference = onChangeDynamicColorPreference,
+            onChangeDarkThemeConfig = onChangeDarkThemeConfig,
         )
         Divider()
         AppListSettings(
-            showSystemApps = uiState.settings.showSystemApps,
-            showServiceInfo = uiState.settings.showServiceInfo,
-            updateShowSystemApps = updateShowSystemApps,
-            updateShowServiceInfo = updateShowServiceInfo,
+            showSystemApps = settings.showSystemApps,
+            showServiceInfo = settings.showServiceInfo,
+            onChangeShowSystemApps = onChangeShowSystemApps,
+            onChangeShowServiceInfo = onChangeShowServiceInfo,
         )
         Divider()
         BackupSettings(
-            backupSystemApps = uiState.settings.backupSystemApp,
-            restoreSystemApp = uiState.settings.restoreSystemApp,
-            ruleBackupFolder = uiState.settings.ruleBackupFolder,
-            updateBackupSystemApp = updateBackupSystemApp,
-            updateRestoreSystemApp = updateRestoreSystemApp,
-            updateRuleBackupFolder = updateRuleBackupFolder,
+            backupSystemApps = settings.backupSystemApp,
+            restoreSystemApp = settings.restoreSystemApp,
+            ruleBackupFolder = settings.ruleBackupFolder,
+            onChangeBackupSystemApp = onChangeBackupSystemApp,
+            onChangeRestoreSystemApp = onChangeRestoreSystemApp,
+            onChangeRuleBackupFolder = onChangeRuleBackupFolder,
         )
         Divider()
         BlockerRulesSettings(exportRules = exportRules, importRules = importRules)
@@ -249,22 +258,24 @@ fun SettingsScreenPreview() {
                     showServiceInfo = true,
                     themeBrand = ANDROID,
                     darkThemeConfig = FOLLOW_SYSTEM,
+                    useDynamicColor = false,
                 ),
             ),
-            updateShowSystemApps = {},
-            updateShowServiceInfo = {},
-            updateBackupSystemApp = {},
-            updateRestoreSystemApp = {},
-            updateRuleBackupFolder = {},
+            onChangeShowSystemApps = {},
+            onChangeShowServiceInfo = {},
+            onChangeBackupSystemApp = {},
+            onChangeRestoreSystemApp = {},
+            onChangeRuleBackupFolder = {},
             importRules = {},
             exportRules = {},
             importIfwRules = {},
             exportIfwRules = {},
             resetIfwRules = {},
-            updateControllerType = {},
-            updateRuleServerProvider = {},
-            updateThemeBrand = {},
-            updateDarkThemeConfig = {},
+            onChangeControllerType = {},
+            onChangeRuleServerProvider = {},
+            onChangeThemeBrand = {},
+            onChangeDynamicColorPreference = {},
+            onChangeDarkThemeConfig = {},
         )
     }
 }

@@ -27,4 +27,6 @@
     <string name="selected_app">%1$d apps selected</string>
     <string name="click_to_search">Click to search</string>
     <string name="no_search_result">No search result yet</string>
+    <string name="applicable_app">Applicable_app</string>
+    <string name="illustrate">Illustrate</string>
 </resources>

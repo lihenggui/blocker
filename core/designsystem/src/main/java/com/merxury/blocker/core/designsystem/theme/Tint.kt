@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Blocker
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +15,21 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.sync.test
+package com.merxury.blocker.core.designsystem.theme
 
-import com.merxury.blocker.core.data.util.SyncStatusMonitor
-import com.merxury.blocker.sync.di.SyncModule
-import dagger.Binds
-import dagger.Module
-import dagger.hilt.components.SingletonComponent
-import dagger.hilt.testing.TestInstallIn
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 
-@Module
-@TestInstallIn(
-    components = [SingletonComponent::class],
-    replaces = [SyncModule::class],
+/**
+ * A class to model background color and tonal elevation values for Now in Android.
+ */
+@Immutable
+data class TintTheme(
+    val iconTint: Color? = null,
 )
-interface TestSyncModule {
-    @Binds
-    fun bindsSyncStatusMonitor(
-        syncStatusMonitor: NeverSyncingSyncStatusMonitor,
-    ): SyncStatusMonitor
-}
+
+/**
+ * A composition local for [TintTheme].
+ */
+val LocalTintTheme = staticCompositionLocalOf { TintTheme() }

@@ -36,15 +36,14 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.model.preference.ThemeBrand.ANDROID
 import com.merxury.blocker.feature.settings.R.string
-import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import com.merxury.blocker.feature.settings.UserEditableSettings
 
 @Composable
 fun BlockerSettings(
     modifier: Modifier = Modifier,
-    uiState: Success,
-    updateControllerType: (ControllerType) -> Unit,
-    updateRuleServerProvider: (RuleServerProvider) -> Unit,
+    settings: UserEditableSettings,
+    onChangeControllerType: (ControllerType) -> Unit,
+    onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -53,16 +52,16 @@ fun BlockerSettings(
         DialogSettingsItems(
             icon = BlockerIcons.AutoFix,
             itemRes = string.controller_type,
-            itemValue = uiState.settings.controllerType,
+            itemValue = settings.controllerType,
             menuList = listOf(IFW, PM, SHIZUKU),
-            onMenuClick = updateControllerType,
+            onMenuClick = onChangeControllerType,
         )
         DialogSettingsItems(
             icon = BlockerIcons.Block,
             itemRes = string.online_rule_source,
-            itemValue = uiState.settings.ruleServerProvider,
+            itemValue = settings.ruleServerProvider,
             menuList = listOf(GITHUB, GITLAB),
-            onMenuClick = updateRuleServerProvider,
+            onMenuClick = onChangeRuleServerProvider,
         )
     }
 }
@@ -74,14 +73,13 @@ fun BlockerSettingsPreview() {
     BlockerTheme {
         Surface {
             BlockerSettings(
-                uiState = Success(
-                    UserEditableSettings(
-                        themeBrand = ANDROID,
-                        darkThemeConfig = FOLLOW_SYSTEM,
-                    ),
+                settings = UserEditableSettings(
+                    themeBrand = ANDROID,
+                    darkThemeConfig = FOLLOW_SYSTEM,
+                    useDynamicColor = false,
                 ),
-                updateControllerType = {},
-                updateRuleServerProvider = {},
+                onChangeControllerType = {},
+                onChangeRuleServerProvider = {},
             )
         }
     }
