@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.sync.test
+package com.merxury.blocker.feature.globalsearch.screen
 
-import com.merxury.blocker.core.data.util.SyncStatusMonitor
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
-import javax.inject.Inject
+import androidx.compose.runtime.Composable
 
-class NeverSyncingSyncStatusMonitor @Inject constructor() : SyncStatusMonitor {
-    override val isSyncing: Flow<Boolean> = flowOf(false)
+@Composable
+fun SearchedComponentDetailScreen() {
 }

@@ -19,6 +19,7 @@ import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.merxury.blocker.configureFlavors
 import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configurePrintApksTask
+import com.merxury.blocker.configureRenameBuildOutputTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
@@ -38,6 +39,7 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
             }
             extensions.configure<ApplicationAndroidComponentsExtension> {
                 configurePrintApksTask(this)
+                configureRenameBuildOutputTask(this)
             }
         }
     }

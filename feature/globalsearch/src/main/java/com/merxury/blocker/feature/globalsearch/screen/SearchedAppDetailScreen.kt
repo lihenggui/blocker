@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id("blocker.android.library")
-    id("blocker.android.hilt")
-}
 
-android {
-    namespace = "com.google.samples.apps.blocker.core.sync.test"
-}
+package com.merxury.blocker.feature.globalsearch.screen
 
-dependencies {
-    api(project(":sync:work"))
-    implementation(project(":core:data"))
-    implementation(project(":core:testing"))
+import androidx.compose.runtime.Composable
+
+@Composable
+fun SearchedAppDetailScreen() {
 }

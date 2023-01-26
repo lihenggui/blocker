@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.sync.di
+package com.merxury.blocker.feature.globalsearch.screen
 
-import com.merxury.blocker.core.data.util.SyncStatusMonitor
-import com.merxury.blocker.sync.status.WorkManagerSyncStatusMonitor
-import dagger.Binds
-import dagger.Module
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import androidx.compose.runtime.Composable
 
-@Module
-@InstallIn(SingletonComponent::class)
-interface SyncModule {
-    @Binds
-    fun bindsSyncStatusMonitor(
-        syncStatusMonitor: WorkManagerSyncStatusMonitor,
-    ): SyncStatusMonitor
+@Composable
+fun SearchedRuleDetailScreen() {
 }

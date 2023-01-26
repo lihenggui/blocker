@@ -30,7 +30,7 @@ class FirebaseConventionPlugin : Plugin<Project> {
                 val extension =
                     extensions.getByName("androidComponents") as ApplicationAndroidComponentsExtension
                 extension.beforeVariants {
-                    if (it.flavorName?.contains(BlockerFlavor.prod.name) == true) {
+                    if (it.flavorName?.contains(BlockerFlavor.market.name) == true) {
                         pluginManager.apply("com.google.gms.google-services")
                         pluginManager.apply("com.google.firebase.crashlytics")
                     }
@@ -39,9 +39,9 @@ class FirebaseConventionPlugin : Plugin<Project> {
             val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
             dependencies {
                 val bom = libs.findLibrary("firebase-bom").get()
-                add("prodImplementation", platform(bom))
-                add("prodImplementation", libs.findLibrary("firebase-analytics").get())
-                add("prodImplementation", libs.findLibrary("firebase-crashlytics").get())
+                add("marketImplementation", platform(bom))
+                add("marketImplementation", libs.findLibrary("firebase-analytics").get())
+                add("marketImplementation", libs.findLibrary("firebase-crashlytics").get())
             }
         }
     }
