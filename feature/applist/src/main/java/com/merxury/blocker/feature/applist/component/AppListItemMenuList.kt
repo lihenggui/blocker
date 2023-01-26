@@ -19,6 +19,8 @@ package com.merxury.blocker.feature.applist.component
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -27,6 +29,7 @@ import com.merxury.blocker.feature.applist.R
 @Composable
 fun AppListItemMenuList(
     expanded: Boolean,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
     onClearCacheClick: () -> Unit,
     onClearDataClick: () -> Unit,
     onForceStopClick: () -> Unit,
@@ -62,6 +65,7 @@ fun AppListItemMenuList(
         ),
     )
     BlockerDropdownMenu(
+        offset = offset,
         expanded = expanded,
         onDismissRequest = onDismissRequest,
         menuList = items,
