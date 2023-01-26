@@ -113,8 +113,6 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:model"))
 
-    implementation(project(":sync:work"))
-
     androidTestImplementation(project(":core:testing"))
     androidTestImplementation(project(":core:datastore-test"))
     androidTestImplementation(project(":core:data-test"))
@@ -138,9 +136,11 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.window.manager)
+    implementation(libs.androidx.work.ktx)
     implementation(libs.androidx.profileinstaller)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.svg)
+    implementation(libs.hilt.ext.work)
     implementation(libs.kotlinx.datetime)
     implementation(libs.libsu.core)
     implementation(libs.timber)

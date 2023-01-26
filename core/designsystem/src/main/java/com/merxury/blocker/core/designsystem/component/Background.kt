@@ -160,7 +160,7 @@ fun BackgroundDefault() {
 @ThemePreviews
 @Composable
 fun BackgroundDynamic() {
-    BlockerTheme {
+    BlockerTheme(disableDynamicTheming = false) {
         BlockerBackground(Modifier.size(100.dp), content = {})
     }
 }
@@ -184,7 +184,7 @@ fun GradientBackgroundDefault() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundDynamic() {
-    BlockerTheme {
+    BlockerTheme(disableDynamicTheming = false) {
         BlockerGradientBackground(Modifier.size(100.dp), content = {})
     }
 }

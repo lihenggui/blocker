@@ -62,7 +62,7 @@ run_firebase_test_lab() {
   while [ $result != 0 -a $counter -lt $MAX_RETRY ]; do
     gcloud firebase test android run \
       --type instrumentation \
-      --app  "app/build/outputs/apk/prod/debug/app-prod-debug.apk" \
+      --app  "app/build/outputs/apk/market/debug/app-market-debug.apk" \
       --test "$testApk" \
       --device-ids $deviceIds \
       --os-version-ids $osVersionIds \
@@ -76,7 +76,7 @@ run_firebase_test_lab() {
 
 
 # All modules with androidTest to run tests on.
-testApks=($(./gradlew -q basicDebugPrintTestApk))
+testApks=($(./gradlew -q fossDebugPrintTestApk))
 
 # Run all modules in parallel with Firebase Test Lab, and fail if any fail
 pids=""

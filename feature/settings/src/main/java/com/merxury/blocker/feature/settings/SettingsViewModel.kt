@@ -65,6 +65,7 @@ class SettingsViewModel @Inject constructor(
                         showServiceInfo = userData.showServiceInfo,
                         themeBrand = userData.themeBrand,
                         darkThemeConfig = userData.darkThemeConfig,
+                        useDynamicColor = userData.useDynamicColor,
                     ),
                 )
             }
@@ -201,6 +202,12 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setDarkThemeConfig(darkThemeConfig)
         }
     }
+
+    fun updateDynamicColorPreference(useDynamicColor: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setDynamicColorPreference(useDynamicColor)
+        }
+    }
 }
 
 data class UserEditableSettings(
@@ -213,6 +220,7 @@ data class UserEditableSettings(
     val showServiceInfo: Boolean = false,
     val themeBrand: ThemeBrand,
     val darkThemeConfig: DarkThemeConfig,
+    val useDynamicColor: Boolean,
 )
 
 sealed interface SettingsUiState {

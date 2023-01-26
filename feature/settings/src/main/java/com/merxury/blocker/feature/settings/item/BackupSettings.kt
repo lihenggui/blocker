@@ -34,9 +34,9 @@ fun BackupSettings(
     backupSystemApps: Boolean,
     restoreSystemApp: Boolean,
     ruleBackupFolder: String,
-    updateBackupSystemApp: (Boolean) -> Unit,
-    updateRestoreSystemApp: (Boolean) -> Unit,
-    updateRuleBackupFolder: (String) -> Unit,
+    onChangeBackupSystemApp: (Boolean) -> Unit,
+    onChangeRestoreSystemApp: (Boolean) -> Unit,
+    onChangeRuleBackupFolder: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -55,12 +55,12 @@ fun BackupSettings(
         SwitchSettingItem(
             itemRes = string.backup_system_apps,
             checked = backupSystemApps,
-            onCheckedChange = updateBackupSystemApp,
+            onCheckedChange = onChangeBackupSystemApp,
         )
         SwitchSettingItem(
             itemRes = string.show_service_info,
             checked = restoreSystemApp,
-            onCheckedChange = updateRestoreSystemApp,
+            onCheckedChange = onChangeRestoreSystemApp,
         )
     }
 }
@@ -75,9 +75,9 @@ fun BackupSettingsPreview() {
                 backupSystemApps = false,
                 restoreSystemApp = true,
                 ruleBackupFolder = "/emulated/0/Blocker",
-                updateBackupSystemApp = {},
-                updateRestoreSystemApp = {},
-                updateRuleBackupFolder = {},
+                onChangeBackupSystemApp = {},
+                onChangeRestoreSystemApp = {},
+                onChangeRuleBackupFolder = {},
             )
         }
     }

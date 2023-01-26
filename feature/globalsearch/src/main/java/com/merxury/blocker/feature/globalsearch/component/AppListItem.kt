@@ -48,6 +48,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.feature.globalsearch.R
 import com.merxury.blocker.feature.globalsearch.model.FilterAppItem
 
@@ -59,6 +60,7 @@ fun AppListItem(
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
+    onClick: () -> Unit,
 ) {
     val color = if (isSelectedMode) {
         MaterialTheme.colorScheme.tertiaryContainer
@@ -70,27 +72,37 @@ fun AppListItem(
     } else {
         RoundedCornerShape(0.dp)
     }
-    Box {
+    Box(
+        modifier = modifier
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
                 .fillMaxWidth()
                 .combinedClickable(
-                    onClick = {},
+                    onClick = {
+                        if (!isSelectedMode) {
+                            onClick()
+                        } else {
+                            onSelect(!filterAppItem.isSelected)
+                        }
+                    },
                     onLongClick = {
                         if (!isSelectedMode) {
                             switchSelectedMode(true)
                         }
                     },
                 )
-                .padding(horizontal = 8.dp, vertical = 4.dp)
                 .background(
                     color = color,
                     shape = shape,
-                ),
+                )
+                .padding(horizontal = 8.dp, vertical = 10.dp),
+
         ) {
             AppIcon(
-                info = filterAppItem.packageInfo,
+                info = filterAppItem.app.packageInfo,
                 isSelectedMode = isSelectedMode,
                 isSelected = filterAppItem.isSelected,
                 onSelect = onSelect,
@@ -143,7 +155,7 @@ private fun AppContent(
     var count = 0
     Column(modifier) {
         Text(
-            text = appItem.label,
+            text = appItem.app.label,
             style = MaterialTheme.typography.bodyLarge,
         )
         Row(
@@ -216,8 +228,7 @@ private fun AppContent(
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppListItemPreview() {
     val filterAppItem = FilterAppItem(
-        label = "Blocker",
-        packageInfo = null,
+        app = Application(label = "Blocker"),
         activityCount = 20,
         broadcastCount = 2,
         serviceCount = 6,
@@ -231,6 +242,7 @@ fun AppListItemPreview() {
                 isSelectedMode = true,
                 switchSelectedMode = {},
                 onSelect = {},
+                onClick = {},
             )
         }
     }
@@ -240,8 +252,7 @@ fun AppListItemPreview() {
 @Preview
 fun AppListItemWithoutServicePreview() {
     val filterAppItem = FilterAppItem(
-        label = "Blocker",
-        packageInfo = null,
+        app = Application(label = "Blocker"),
         activityCount = 0,
         broadcastCount = 0,
         serviceCount = 0,
@@ -254,6 +265,7 @@ fun AppListItemWithoutServicePreview() {
                 isSelectedMode = false,
                 switchSelectedMode = {},
                 onSelect = {},
+                onClick = {},
             )
         }
     }

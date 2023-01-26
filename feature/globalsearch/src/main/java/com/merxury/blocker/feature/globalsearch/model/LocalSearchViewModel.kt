@@ -16,9 +16,9 @@
 
 package com.merxury.blocker.feature.globalsearch.model
 
-import android.content.pm.PackageInfo
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
+import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.globalsearch.R
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -102,8 +102,7 @@ data class SearchBoxUiState(
 )
 
 data class FilterAppItem(
-    val label: String = "",
-    val packageInfo: PackageInfo?,
+    val app: Application = Application(),
     val activityCount: Int = 0,
     val broadcastCount: Int = 0,
     val serviceCount: Int = 0,

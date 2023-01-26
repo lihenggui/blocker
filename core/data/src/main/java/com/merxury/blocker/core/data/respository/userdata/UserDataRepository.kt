@@ -32,6 +32,11 @@ interface UserDataRepository {
 
     suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig)
 
+    /**
+     * Sets the preferred dynamic color config.
+     */
+    suspend fun setDynamicColorPreference(useDynamicColor: Boolean)
+
     suspend fun setControllerType(controllerType: ControllerType)
 
     suspend fun setRuleServerProvider(serverProvider: RuleServerProvider)

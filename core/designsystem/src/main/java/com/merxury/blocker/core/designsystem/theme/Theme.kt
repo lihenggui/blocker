@@ -182,27 +182,7 @@ val LightAndroidBackgroundTheme = BackgroundTheme(color = DarkGreenGray95)
 val DarkAndroidBackgroundTheme = BackgroundTheme(color = Color.Black)
 
 /**
- * Now in Android theme.
- *
- * @param darkTheme Whether the theme should use a dark color scheme (follows system by default).
- * @param androidTheme Whether the theme should use the Android theme color scheme instead of the
- *        default theme. If this is `false`, then dynamic theming will be used when supported.
- */
-@Composable
-fun BlockerTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    androidTheme: Boolean = false,
-    content: @Composable () -> Unit,
-) = BlockerTheme(
-    darkTheme = darkTheme,
-    androidTheme = androidTheme,
-    disableDynamicTheming = false,
-    content = content,
-)
-
-/**
- * Now in Android theme. This is an internal only version, to allow disabling dynamic theming
- * in tests.
+ * Blocker theme.
  *
  * @param darkTheme Whether the theme should use a dark color scheme (follows system by default).
  * @param androidTheme Whether the theme should use the Android theme color scheme instead of the
@@ -211,10 +191,10 @@ fun BlockerTheme(
  *        supported. This parameter has no effect if [androidTheme] is `true`.
  */
 @Composable
-internal fun BlockerTheme(
+fun BlockerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     androidTheme: Boolean = false,
-    disableDynamicTheming: Boolean,
+    disableDynamicTheming: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     // Color scheme
@@ -224,6 +204,7 @@ internal fun BlockerTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         else -> if (darkTheme) DarkDefaultColorScheme else LightDefaultColorScheme
     }
     // Gradient colors
@@ -247,10 +228,16 @@ internal fun BlockerTheme(
         androidTheme -> if (darkTheme) DarkAndroidBackgroundTheme else LightAndroidBackgroundTheme
         else -> defaultBackgroundTheme
     }
+    val tintTheme = when {
+        androidTheme -> TintTheme()
+        !disableDynamicTheming && supportsDynamicTheming() -> TintTheme(colorScheme.primary)
+        else -> TintTheme()
+    }
     // Composition locals
     CompositionLocalProvider(
         LocalGradientColors provides gradientColors,
         LocalBackgroundTheme provides backgroundTheme,
+        LocalTintTheme provides tintTheme,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
@@ -261,4 +248,4 @@ internal fun BlockerTheme(
 }
 
 @ChecksSdkIntAtLeast(api = Build.VERSION_CODES.S)
-private fun supportsDynamicTheming() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+fun supportsDynamicTheming() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
