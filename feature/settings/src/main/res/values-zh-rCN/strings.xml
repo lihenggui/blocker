@@ -62,9 +62,12 @@
     <string name="loading">Loading</string>
     <string name="theme">主题</string>
     <string name="theme_default">默认</string>
-    <string name="theme_Android">Android</string>
+    <string name="android">Android</string>
     <string name="dark_mode">夜间主题</string>
     <string name="system_default">系统默认</string>
     <string name="light">日间模式</string>
     <string name="dark">暗黑模式</string>
+    <string name="use_dynamic_color">使用动态主题颜色</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
 </resources>

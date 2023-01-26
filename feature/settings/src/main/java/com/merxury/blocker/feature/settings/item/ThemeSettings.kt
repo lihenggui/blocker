@@ -46,24 +46,34 @@ fun ThemeSettings(
     ) {
         SettingItemHeader(itemRes = string.theme)
         DialogSettingsItems(
-            itemRes = string.theme,
-            itemValue = settings.themeBrand,
-            menuList = listOf(ANDROID, DEFAULT),
-            onMenuClick = onChangeThemeBrand,
+            titleRes = string.theme,
+            selectedItem = settings.themeBrand,
+            itemList = listOf(
+                ANDROID to string.android,
+                DEFAULT to string.theme_default,
+            ),
+            onValueChange = onChangeThemeBrand,
         )
         if (settings.themeBrand == DEFAULT && supportDynamicColor) {
             DialogSettingsItems(
-                itemRes = string.dark_mode,
-                itemValue = settings.useDynamicColor,
-                menuList = listOf(true, false),
-                onMenuClick = onChangeDynamicColorPreference,
+                titleRes = string.use_dynamic_color,
+                selectedItem = settings.useDynamicColor,
+                itemList = listOf(
+                    true to string.yes,
+                    false to string.no,
+                ),
+                onValueChange = onChangeDynamicColorPreference,
             )
         }
         DialogSettingsItems(
-            itemRes = string.dark_mode,
-            itemValue = settings.darkThemeConfig,
-            menuList = listOf(FOLLOW_SYSTEM, LIGHT, DARK),
-            onMenuClick = onChangeDarkThemeConfig,
+            titleRes = string.dark_mode,
+            selectedItem = settings.darkThemeConfig,
+            itemList = listOf(
+                FOLLOW_SYSTEM to string.system_default,
+                LIGHT to string.light,
+                DARK to string.dark,
+            ),
+            onValueChange = onChangeDarkThemeConfig,
         )
     }
 }
