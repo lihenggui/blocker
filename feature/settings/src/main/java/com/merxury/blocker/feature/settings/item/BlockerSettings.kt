@@ -51,17 +51,24 @@ fun BlockerSettings(
     ) {
         DialogSettingsItems(
             icon = BlockerIcons.AutoFix,
-            itemRes = string.controller_type,
-            itemValue = settings.controllerType,
-            menuList = listOf(IFW, PM, SHIZUKU),
-            onMenuClick = onChangeControllerType,
+            titleRes = string.controller_type,
+            selectedItem = settings.controllerType,
+            itemList = listOf(
+                IFW to string.intent_firewall,
+                PM to string.package_manager,
+                SHIZUKU to string.shizuku,
+            ),
+            onValueChange = onChangeControllerType,
         )
         DialogSettingsItems(
             icon = BlockerIcons.Block,
-            itemRes = string.online_rule_source,
-            itemValue = settings.ruleServerProvider,
-            menuList = listOf(GITHUB, GITLAB),
-            onMenuClick = onChangeRuleServerProvider,
+            titleRes = string.online_rule_source,
+            selectedItem = settings.ruleServerProvider,
+            itemList = listOf(
+                GITHUB to string.github,
+                GITLAB to string.gitlab,
+            ),
+            onValueChange = onChangeRuleServerProvider,
         )
     }
 }
