@@ -41,9 +41,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
@@ -75,6 +77,7 @@ fun AppListItem(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
+    val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
     Box {
         Row(
@@ -83,7 +86,10 @@ fun AppListItem(
                 .fillMaxWidth()
                 .combinedClickable(
                     onClick = { onClick(packageName) },
-                    onLongClick = { expanded = true },
+                    onLongClick = {
+                        expanded = true
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    },
                 )
                 .pointerInteropFilter {
                     if (it.action == MotionEvent.ACTION_DOWN) {
