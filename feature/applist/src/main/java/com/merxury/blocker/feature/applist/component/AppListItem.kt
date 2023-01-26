@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.applist.component
 
 import android.content.pm.PackageInfo
 import android.content.res.Configuration
+import android.view.MotionEvent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -37,10 +38,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -48,7 +54,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.applist.AppServiceStatus
 import com.merxury.blocker.feature.applist.R.string
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun AppListItem(
     label: String,
@@ -68,6 +74,8 @@ fun AppListItem(
     iconModifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
+    val density = LocalDensity.current
     Box {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -77,6 +85,12 @@ fun AppListItem(
                     onClick = { onClick(packageName) },
                     onLongClick = { expanded = true },
                 )
+                .pointerInteropFilter {
+                    if (it.action == MotionEvent.ACTION_DOWN) {
+                        touchPoint = Offset(it.x, it.y)
+                    }
+                    false
+                }
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             AppIcon(packageInfo, iconModifier.size(48.dp))
@@ -87,14 +101,12 @@ fun AppListItem(
                 versionCode = versionCode,
                 serviceStatus = appServiceStatus,
             )
-        }
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomCenter),
-            contentAlignment = Alignment.TopEnd,
-        ) {
+            val offset = with(density) {
+                DpOffset(touchPoint.x.toDp(), -touchPoint.y.toDp())
+            }
             AppListItemMenuList(
                 expanded = expanded,
+                offset = offset,
                 onClearCacheClick = { onClearCacheClick(packageName) },
                 onClearDataClick = { onClearDataClick(packageName) },
                 onForceStopClick = { onForceStopClick(packageName) },

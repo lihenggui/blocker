@@ -73,12 +73,14 @@ fun BlockerAppTopBarMenu(
 @Composable
 fun BlockerDropdownMenu(
     expanded: Boolean,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
     onDismissRequest: () -> Unit,
     menuList: List<DropDownMenuItem>,
     dismissOnItemClick: Boolean = true,
 ) {
     DropdownMenu(
         expanded = expanded,
+        offset = offset,
         onDismissRequest = onDismissRequest,
     ) {
         menuList.forEach { item ->
