@@ -41,8 +41,8 @@ internal fun Project.configureRenameBuildOutputTask(extension: AndroidComponents
         ) {
             val loader = variant.artifacts.getBuiltArtifactsLoader()
             val artifact = variant.artifacts.get(SingleArtifact.APK)
-            val javaSources = variant.sources?.java?.all
-            val kotlinSources = variant.sources?.kotlin?.all
+            val javaSources = variant.sources.java?.all
+            val kotlinSources = variant.sources.kotlin?.all
             val buildSources = if (javaSources != null && kotlinSources != null) {
                 javaSources.zip(kotlinSources) { javaDirs, kotlinDirs ->
                     javaDirs + kotlinDirs
