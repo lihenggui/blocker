@@ -55,7 +55,7 @@
     <string name="blocker_rules">Blocker规则</string>
     <string name="ifw_rules">IFW规则</string>
     <string name="support_and_feedback">帮助与反馈</string>
-    <string name="github">GitHub</string>
+    <string name="project_homepage">项目主页</string>
     <string name="telegram_group">Telegram 群组</string>
     <string name="export_error_log">导出错误日志</string>
     <string name="dir_not_set">目录未设置或不可读</string>
