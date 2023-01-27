@@ -67,7 +67,11 @@
     <string name="system_default">Системные установки по умолчанию</string>
     <string name="light">Свет</string>
     <string name="dark">Dark</string>
-    <string name="use_dynamic_color">Использовать динамический цвет</string>
-    <string name="yes">Да</string>
-    <string name="no">Нет</string>
+    <string name="options_github">GitHub</string>
+    <string name="options_gitlab">GitLab</string>
+    <string name="intent_firewall">Intent Firewall</string>
+    <string name="package_manager">Package Manager</string>
+    <string name="dynamic_color">Динамический цвет</string>
+    <string name="options_on">На</string>
+    <string name="options_off">Выключенный</string>
 </resources>
