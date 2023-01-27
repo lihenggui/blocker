@@ -41,5 +41,6 @@ android {
 dependencies {
     implementation(project(":core:datastore"))
     implementation(project(":core:rule"))
+    implementation(libs.accompanist.permissions)
     implementation(libs.androidx.work.ktx)
 }

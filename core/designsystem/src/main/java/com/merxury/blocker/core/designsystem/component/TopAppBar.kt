@@ -292,11 +292,8 @@ fun BlockerCollapsingTopAppBarPreview() {
         BlockerCollapsingTopAppBar(
             title = "Blocker",
             collapseTextSection = {
-                val versionName = "1.0.0"
                 Text(text = "app.packageName", style = MaterialTheme.typography.bodyMedium)
-                if (versionName != null) {
-                    Text(text = versionName, style = MaterialTheme.typography.bodyMedium)
-                }
+                Text(text = "1.0.0", style = MaterialTheme.typography.bodyMedium)
             },
             isCollapsed = false,
             scrollBehavior = scrollBehavior,
