@@ -62,9 +62,12 @@
     <string name="loading">Загрузка</string>
     <string name="theme">Тема</string>
     <string name="theme_default">По умолчанию</string>
-    <string name="theme_Android">Android</string>
+    <string name="android">Android</string>
     <string name="dark_mode">Темный режим</string>
     <string name="system_default">Системные установки по умолчанию</string>
     <string name="light">Свет</string>
     <string name="dark">Dark</string>
+    <string name="use_dynamic_color">Использовать динамический цвет</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
 </resources>

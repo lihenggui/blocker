@@ -58,13 +58,20 @@
     <string name="loading">Loading</string>
     <string name="theme">Theme</string>
     <string name="theme_default">Default</string>
-    <string name="theme_Android">Android</string>
+    <string name="android">Android</string>
     <string name="dark_mode">Dark mode</string>
     <string name="system_default">System default</string>
     <string name="light">Light</string>
     <string name="dark">Dark</string>
     <string name="support_and_feedback">Support and feedback</string>
-    <string name="github">GitHub</string>
+    <string name="github" translatable="false">GitHub</string>
+    <string name="gitlab" translatable="false">GitLab</string>
+    <string name="intent_firewall" translatable="false">Intent Firewall</string>
+    <string name="package_manager" translatable="false">Package Manager</string>
+    <string name="shizuku" translatable="false">Shizuku</string>
     <string name="telegram_group">Telegram group</string>
     <string name="export_error_log">Export error log</string>
+    <string name="use_dynamic_color">Use Dynamic Color</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>
