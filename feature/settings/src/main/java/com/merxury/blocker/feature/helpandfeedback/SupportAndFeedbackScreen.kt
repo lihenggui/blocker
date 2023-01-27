@@ -70,6 +70,7 @@ fun SupportAndFeedbackRoute(
         ) {
             SupportAndFeedbackScreen(
                 onProjectHomeClick = { viewModel.openProjectHomepage(context) },
+                onRulesRepositoryClick = { viewModel.openRulesRepository(context) },
                 onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
                 onExportLogClick = { viewModel.exportErrorLog() },
             )
@@ -80,6 +81,7 @@ fun SupportAndFeedbackRoute(
 @Composable
 fun SupportAndFeedbackScreen(
     onProjectHomeClick: () -> Unit,
+    onRulesRepositoryClick: () -> Unit,
     onTelegramGroupLinkClick: () -> Unit,
     onExportLogClick: () -> Unit,
 ) {
@@ -88,6 +90,11 @@ fun SupportAndFeedbackScreen(
             icon = DrawableResourceIcon(BlockerIcons.GitHub),
             titleRes = string.project_homepage,
             onClick = { onProjectHomeClick() },
+        )
+        Item(
+            icon = ImageVectorIcon(BlockerIcons.Rule),
+            titleRes = string.rule_repository,
+            onClick = { onRulesRepositoryClick() },
         )
         Item(
             icon = DrawableResourceIcon(BlockerIcons.Telegram),
@@ -109,6 +116,7 @@ fun SupportAndFeedbackScreenPreview() {
         Surface {
             SupportAndFeedbackScreen(
                 onProjectHomeClick = {},
+                onRulesRepositoryClick = {},
                 onTelegramGroupLinkClick = {},
                 onExportLogClick = {},
             )
