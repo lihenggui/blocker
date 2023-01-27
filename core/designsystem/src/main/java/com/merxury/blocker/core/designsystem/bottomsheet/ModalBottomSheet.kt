@@ -62,10 +62,10 @@ import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetState.C
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.Expanded
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.HalfExpanded
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.Hidden
-import kotlin.math.max
-import kotlin.math.roundToInt
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 /**
  * Possible values of [ModalBottomSheetState].
