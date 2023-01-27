@@ -16,10 +16,23 @@
 
 package com.merxury.blocker.feature.helpandfeedback
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.consumedWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -29,25 +42,38 @@ import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.helpandfeedback.item.Item
-import com.merxury.blocker.feature.settings.R
+import com.merxury.blocker.feature.settings.R.string
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SupportAndFeedbackRoute(
     onNavigationClick: () -> Unit,
     viewModel: SupportFeedbackViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    Column {
-        BlockerTopAppBar(
-            titleRes = R.string.support_and_feedback,
-            onNavigationClick = onNavigationClick,
-        )
-        SupportAndFeedbackScreen(
-            onProjectHomeClick = { viewModel.openProjectHomepage(context) },
-            onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
-            onExportLogClick = { viewModel.exportErrorLog() },
-        )
+    Scaffold(
+        topBar = {
+            BlockerTopAppBar(
+                titleRes = string.support_and_feedback,
+                onNavigationClick = onNavigationClick,
+            )
+        },
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .consumedWindowInsets(padding)
+                .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            SupportAndFeedbackScreen(
+                onProjectHomeClick = { viewModel.openProjectHomepage(context) },
+                onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
+                onExportLogClick = { viewModel.exportErrorLog() },
+            )
+        }
     }
 }
 
@@ -60,17 +86,17 @@ fun SupportAndFeedbackScreen(
     Column {
         Item(
             icon = DrawableResourceIcon(BlockerIcons.GitHub),
-            titleRes = R.string.project_homepage,
+            titleRes = string.project_homepage,
             onClick = { onProjectHomeClick() },
         )
         Item(
             icon = DrawableResourceIcon(BlockerIcons.Telegram),
-            titleRes = R.string.telegram_group,
+            titleRes = string.telegram_group,
             onClick = { onTelegramGroupLinkClick() },
         )
         Item(
             icon = ImageVectorIcon(BlockerIcons.BugReport),
-            titleRes = R.string.export_error_log,
+            titleRes = string.export_error_log,
             onClick = { onExportLogClick() },
         )
     }
