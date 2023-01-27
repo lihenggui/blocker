@@ -53,6 +53,7 @@
     <string name="ifw_rules">IFW規則</string>
     <string name="support_and_feedback">幫助和反饋</string>
     <string name="project_homepage">項目主頁</string>
+    <string name="rule_repository">規則倉庫</string>
     <string name="telegram_group">Telegram 群組</string>
     <string name="export_error_log">導出錯誤日誌</string>
     <string name="dark_mode">夜間主題</string>
