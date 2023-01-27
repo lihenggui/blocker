@@ -20,10 +20,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
+import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.helpandfeedback.item.Item
 import com.merxury.blocker.feature.settings.R
@@ -32,40 +35,44 @@ import com.merxury.blocker.feature.settings.R
 @Composable
 fun SupportAndFeedbackRoute(
     onNavigationClick: () -> Unit,
-    viewModel: SupportAndFeedbackViewModel = hiltViewModel(),
+    viewModel: SupportFeedbackViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     Column {
         BlockerTopAppBar(
             titleRes = R.string.support_and_feedback,
             onNavigationClick = onNavigationClick,
         )
         SupportAndFeedbackScreen(
-            onClickGithub = { viewModel.onClickGithub() },
-            onClickTelegramGroup = { viewModel.onClickTelegramGroup() },
-            onClickExportErrorLog = { viewModel.onClickExportErrorLog() },
+            onProjectHomeClick = { viewModel.openProjectHomepage(context) },
+            onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
+            onExportLogClick = { viewModel.exportErrorLog() },
         )
     }
 }
 
 @Composable
 fun SupportAndFeedbackScreen(
-    onClickGithub: () -> Unit,
-    onClickTelegramGroup: () -> Unit,
-    onClickExportErrorLog: () -> Unit,
+    onProjectHomeClick: () -> Unit,
+    onTelegramGroupLinkClick: () -> Unit,
+    onExportLogClick: () -> Unit,
 ) {
     Column {
-        Item(itemRes = R.string.github) {
-            onClickGithub()
-        }
-        Item(itemRes = R.string.telegram_group) {
-            onClickTelegramGroup()
-        }
         Item(
-            icon = BlockerIcons.BugReport,
-            itemRes = R.string.export_error_log,
-        ) {
-            onClickExportErrorLog()
-        }
+            icon = DrawableResourceIcon(BlockerIcons.GitHub),
+            titleRes = R.string.project_homepage,
+            onClick = { onProjectHomeClick() },
+        )
+        Item(
+            icon = DrawableResourceIcon(BlockerIcons.Telegram),
+            titleRes = R.string.telegram_group,
+            onClick = { onTelegramGroupLinkClick() },
+        )
+        Item(
+            icon = ImageVectorIcon(BlockerIcons.BugReport),
+            titleRes = R.string.export_error_log,
+            onClick = { onExportLogClick() },
+        )
     }
 }
 
@@ -75,10 +82,10 @@ fun SupportAndFeedbackScreenPreview() {
     BlockerTheme {
         Surface {
             SupportAndFeedbackScreen(
-                onClickGithub = {},
-                onClickTelegramGroup = {},
-            ) {
-            }
+                onProjectHomeClick = {},
+                onTelegramGroupLinkClick = {},
+                onExportLogClick = {},
+            )
         }
     }
 }
