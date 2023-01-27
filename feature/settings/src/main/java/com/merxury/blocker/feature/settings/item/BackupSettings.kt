@@ -78,7 +78,7 @@ fun BackupSettings(
             onCheckedChange = onChangeBackupSystemApp,
         )
         SwitchSettingItem(
-            itemRes = string.show_service_info,
+            itemRes = string.restore_system_apps,
             checked = restoreSystemApp,
             onCheckedChange = onChangeRestoreSystemApp,
         )
