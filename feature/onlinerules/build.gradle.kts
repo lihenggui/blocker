@@ -41,5 +41,4 @@ android {
 }
 dependencies {
     implementation(project(":core:database"))
-    implementation(libs.androidx.compose.material)
 }
