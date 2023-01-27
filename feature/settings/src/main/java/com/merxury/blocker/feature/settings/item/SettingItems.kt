@@ -42,11 +42,11 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R
 
 @Composable
-fun TwoRowsSettingItem(
+fun SettingItem(
     modifier: Modifier = Modifier,
     icon: ImageVector? = null,
-    itemRes: Int,
-    itemValue: String,
+    title: String,
+    summary: String,
     onClick: () -> Unit,
 ) {
     Box(modifier = modifier) {
@@ -60,7 +60,7 @@ fun TwoRowsSettingItem(
             if (icon != null) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = stringResource(id = itemRes),
+                    contentDescription = title,
                     modifier = modifier.padding(end = 16.dp),
                 )
             } else {
@@ -68,11 +68,11 @@ fun TwoRowsSettingItem(
             }
             Column {
                 Text(
-                    text = stringResource(id = itemRes),
+                    text = title,
                     style = MaterialTheme.typography.bodyLarge,
                 )
                 Text(
-                    text = itemValue,
+                    text = summary,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -141,10 +141,10 @@ fun SwitchSettingItem(
 fun SettingsItemPreview() {
     BlockerTheme {
         Surface {
-            TwoRowsSettingItem(
+            SettingItem(
                 icon = BlockerIcons.AutoFix,
-                itemRes = R.string.controller_type,
-                itemValue = "IFW",
+                title = stringResource(id = R.string.controller_type),
+                summary = "IFW",
                 onClick = {},
             )
         }
@@ -157,9 +157,9 @@ fun SettingsItemPreview() {
 fun SettingsItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
-            TwoRowsSettingItem(
-                itemRes = R.string.theme,
-                itemValue = "Default",
+            SettingItem(
+                title = stringResource(id = R.string.theme),
+                summary = "Default",
                 onClick = {},
             )
         }

@@ -54,26 +54,28 @@ import com.merxury.blocker.feature.settings.R
 @Composable
 fun <T> DialogSettingsItems(
     icon: ImageVector? = null,
-    itemRes: Int,
-    itemValue: T,
-    menuList: List<T>,
-    onMenuClick: (item: T) -> Unit,
+    titleRes: Int,
+    selectedItem: T,
+    itemList: List<Pair<T, Int>>,
+    onValueChange: (item: T) -> Unit,
 ) {
     var isShowDialog by remember { mutableStateOf(false) }
+    val itemWithSummary = itemList.find { it.first == selectedItem }
+        ?: throw RuntimeException("Can't find selectedValue in the list")
     Column {
-        TwoRowsSettingItem(
+        SettingItem(
             icon = icon,
-            itemRes = itemRes,
-            itemValue = itemValue.toString(),
+            title = stringResource(id = titleRes),
+            summary = stringResource(id = itemWithSummary.second),
             onClick = { isShowDialog = true },
         )
     }
     if (isShowDialog) {
         SettingDialog(
-            titleRes = itemRes,
-            items = menuList,
-            value = itemValue,
-            onMenuClick = onMenuClick,
+            titleRes = titleRes,
+            items = itemList,
+            selectedValue = selectedItem,
+            onValueChange = onValueChange,
         ) {
             isShowDialog = false
         }
@@ -83,13 +85,15 @@ fun <T> DialogSettingsItems(
 @Composable
 fun <T> SettingDialog(
     titleRes: Int,
-    items: List<T>,
-    value: T,
-    onMenuClick: (item: T) -> Unit,
+    items: List<Pair<T, Int>>,
+    selectedValue: T,
+    onValueChange: (item: T) -> Unit,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
-        onDismissRequest = { onDismiss() },
+        onDismissRequest = {
+            onDismiss()
+        },
         title = {
             Text(
                 text = stringResource(titleRes),
@@ -99,11 +103,12 @@ fun <T> SettingDialog(
         text = {
             Divider()
             Column(Modifier.verticalScroll(rememberScrollState())) {
-                items.forEach {
-                    SettingsDialogThemeChooserRow(
-                        item = it,
-                        selected = value == it,
-                        onClick = onMenuClick,
+                items.forEach { item ->
+                    val value = item.first
+                    SettingsDialogChooserRow(
+                        item = item,
+                        selected = selectedValue == value,
+                        onClick = { onValueChange(value) },
                     )
                 }
             }
@@ -122,10 +127,10 @@ fun <T> SettingDialog(
 }
 
 @Composable
-fun <T> SettingsDialogThemeChooserRow(
-    item: T,
+fun <T> SettingsDialogChooserRow(
+    item: Pair<T, Int>,
     selected: Boolean,
-    onClick: (item: T) -> Unit,
+    onClick: (item: Pair<T, Int>) -> Unit,
 ) {
     Row(
         Modifier
@@ -143,7 +148,7 @@ fun <T> SettingsDialogThemeChooserRow(
             onClick = null,
         )
         Spacer(Modifier.width(8.dp))
-        Text(item.toString())
+        Text(stringResource(id = item.second))
     }
 }
 
@@ -155,9 +160,12 @@ fun DialogSettingsItemPreview() {
         Surface {
             SettingDialog(
                 titleRes = R.string.theme,
-                items = listOf(ANDROID, DEFAULT),
-                value = DEFAULT,
-                onMenuClick = {},
+                items = listOf(
+                    ANDROID to R.string.android,
+                    DEFAULT to R.string.theme_default,
+                ),
+                selectedValue = DEFAULT to R.string.theme_default,
+                onValueChange = {},
                 onDismiss = {},
             )
         }
