@@ -40,7 +40,6 @@ import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
@@ -48,6 +47,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -187,7 +187,11 @@ class SettingsViewModel @Inject constructor(
             .enqueueUniqueWork("ResetIfw", ExistingWorkPolicy.KEEP, ResetIfwWorker.clearIfwWork())
     }
 
-    fun importMyAndroidToolsRules(fileUri: Uri) = viewModelScope.launch {
+    fun importMyAndroidToolsRules(fileUri: Uri?) = viewModelScope.launch {
+        if (fileUri == null) {
+            Timber.e("Can't get MAT backup file from URI.")
+            return@launch
+        }
         val userData = userDataRepository.userData.first()
         WorkManager.getInstance(getApplication()).apply {
             enqueueUniqueWork(
