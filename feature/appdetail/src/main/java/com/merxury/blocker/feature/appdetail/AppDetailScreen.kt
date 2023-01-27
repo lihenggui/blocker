@@ -118,7 +118,7 @@ fun AppDetailScreen(
 ) {
     Column(modifier) {
         when (uiState) {
-            AppInfoUiState.Loading -> {
+            is AppInfoUiState.Loading -> {
                 Column(
                     modifier = modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
