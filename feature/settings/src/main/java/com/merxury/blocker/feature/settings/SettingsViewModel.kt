@@ -17,6 +17,8 @@
 package com.merxury.blocker.feature.settings
 
 import android.app.Application
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -38,13 +40,14 @@ import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import timber.log.Timber
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -99,9 +102,17 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateRuleBackupFolder(path: String) {
+    fun updateRuleBackupFolder(uri: Uri?) {
         viewModelScope.launch {
-            userDataRepository.setRuleBackupFolder(path)
+            if (uri == null) {
+                Timber.e("Backup folder is null, ignore")
+                return@launch
+            }
+            val context: Context = getApplication()
+            val flags =
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            context.contentResolver.takePersistableUriPermission(uri, flags)
+            userDataRepository.setRuleBackupFolder(uri.toString())
         }
     }
 

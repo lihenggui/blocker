@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.settings
 
 import android.Manifest.permission
+import android.net.Uri
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -114,7 +115,7 @@ fun SettingsScreen(
     onChangeShowServiceInfo: (Boolean) -> Unit,
     onChangeBackupSystemApp: (Boolean) -> Unit,
     onChangeRestoreSystemApp: (Boolean) -> Unit,
-    onChangeRuleBackupFolder: (String) -> Unit,
+    onChangeRuleBackupFolder: (Uri?) -> Unit,
     onChangeControllerType: (ControllerType) -> Unit,
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
     onChangeThemeBrand: (ThemeBrand) -> Unit,
@@ -196,7 +197,7 @@ fun SettingsContent(
     onChangeShowServiceInfo: (Boolean) -> Unit,
     onChangeBackupSystemApp: (Boolean) -> Unit,
     onChangeRestoreSystemApp: (Boolean) -> Unit,
-    onChangeRuleBackupFolder: (String) -> Unit,
+    onChangeRuleBackupFolder: (Uri?) -> Unit,
     onChangeControllerType: (ControllerType) -> Unit,
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
     onChangeThemeBrand: (ThemeBrand) -> Unit,
