@@ -147,7 +147,6 @@ dependencies {
     implementation(libs.androidx.annotation)
     implementation(libs.androidx.preference.ktx)
     implementation(libs.androidx.cardview)
-    implementation(libs.androidx.browser)
     implementation(libs.androidx.fragment.ktx)
     implementation(libs.lottie)
     implementation(libs.appiconloader)

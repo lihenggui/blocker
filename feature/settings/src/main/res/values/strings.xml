@@ -64,7 +64,7 @@
     <string name="light">Light</string>
     <string name="dark">Dark</string>
     <string name="support_and_feedback">Support and feedback</string>
-    <string name="github">GitHub</string>
+    <string name="project_homepage">Project homepage</string>
     <string name="options_github">GitHub</string>
     <string name="options_gitlab">GitLab</string>
     <string name="intent_firewall">Intent Firewall</string>
