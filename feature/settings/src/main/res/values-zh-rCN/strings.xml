@@ -67,7 +67,11 @@
     <string name="system_default">系统默认</string>
     <string name="light">日间模式</string>
     <string name="dark">暗黑模式</string>
-    <string name="use_dynamic_color">使用动态主题颜色</string>
-    <string name="yes">是</string>
-    <string name="no">否</string>
+    <string name="options_github">GitHub（海外地区推荐）</string>
+    <string name="options_gitlab">GitLab（大陆地区推荐）</string>
+    <string name="intent_firewall">Intent Firewall（意图防火墙）</string>
+    <string name="package_manager">Package Manager（系统包管理器）</string>
+    <string name="dynamic_color">动态主题颜色</string>
+    <string name="options_on">启用</string>
+    <string name="options_off">关闭</string>
 </resources>
