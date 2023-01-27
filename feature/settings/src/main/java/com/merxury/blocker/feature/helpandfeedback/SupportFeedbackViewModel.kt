@@ -40,6 +40,8 @@ class SupportFeedbackViewModel @Inject constructor() : ViewModel() {
 
     fun openGroupLink(context: Context) = openUrl(context, GROUP_URL)
 
+    fun openRulesRepository(context: Context) = openUrl(context, RULE_REPO_URL)
+
     fun exportErrorLog() {
         // TODO
     }
