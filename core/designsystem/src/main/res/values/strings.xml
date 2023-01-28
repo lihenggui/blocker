@@ -20,4 +20,9 @@
     <string name="browse_topic">Browse topic</string>
     <string name="more_menu">More menu</string>
     <string name="sort_menu">Sort menu</string>
+    <string name="blocker_header">Blocker header</string>
+    <string name="import_mat_rules">Import MyAndroidTools Rules</string>
+    <string name="theme">Theme</string>
+    <string name="controller_type">Controller Type</string>
+    <string name="show_system_apps">Show system apps</string>
 </resources>
