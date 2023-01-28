@@ -49,5 +49,5 @@
     <string name="belonging_sdk">Belonging SDK</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
-    <string name="sdk_int_with_android_release_name" translatable="false">%1$d (%2$s)</string>
+    <string name="data_with_explanation" translatable="false">%1$s (%2$s)</string>
 </resources>
