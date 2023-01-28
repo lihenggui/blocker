@@ -25,7 +25,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumedWindowInsets
@@ -50,14 +49,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.merxury.blocker.core.designsystem.component.BlockerItem
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -277,8 +275,8 @@ fun SettingsContent(
             resetIfwRules = resetIfwRules,
         )
         Divider()
-        BlockerItem(
-            titleRes = string.import_mat_rules,
+        BlockerSettingItem(
+            title = stringResource(id = string.import_mat_rules),
             onItemClick = {
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
@@ -287,7 +285,7 @@ fun SettingsContent(
                     getMatFileResult.launch(arrayOf("*/*"))
                 }
             },
-            paddingValues = PaddingValues(horizontal = 56.dp, vertical = 16.dp),
+            extraIconPadding = true,
         )
     }
 }
