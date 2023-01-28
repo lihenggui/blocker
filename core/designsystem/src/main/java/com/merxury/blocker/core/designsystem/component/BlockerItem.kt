@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.helpandfeedback.item
+package com.merxury.blocker.core.designsystem.component
 
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,27 +35,44 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.feature.settings.R
 
 @Composable
-fun Item(
-    modifier: Modifier = Modifier,
-    icon: Icon? = null,
-    titleRes: Int,
-    onClick: () -> Unit,
+fun ItemHeader(
+    itemRes: Int,
+    paddingValues: PaddingValues,
 ) {
-    var padding = 0.dp
+    Row(modifier = Modifier.fillMaxWidth()) {
+        Text(
+            text = stringResource(id = itemRes),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(paddingValues),
+        )
+    }
+}
+
+@Composable
+fun BlockerItem(
+    modifier: Modifier = Modifier,
+    paddingValues: PaddingValues,
+    spacePadding: Dp = 0.dp,
+    icon: Icon? = null,
+    titleRes: Int? = null,
+    summary: String? = null,
+    onItemClick: () -> Unit = {},
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(16.dp),
+            .clickable { onItemClick() }
+            .padding(paddingValues),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) {
@@ -69,25 +89,45 @@ fun Item(
             }
             Spacer(modifier = Modifier.width(16.dp))
         } else {
-            padding = 40.dp
+            Spacer(modifier = Modifier.width(spacePadding))
         }
-        Text(
-            modifier = modifier.padding(start = padding),
-            text = stringResource(id = titleRes),
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Column {
+            if (titleRes != null) {
+                Text(
+                    text = stringResource(id = titleRes),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            }
+            if (summary != null) {
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
     }
 }
 
 @Composable
 @Preview
-fun ItemWithIconPreview() {
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun SettingsItemHeaderPreview() {
     BlockerTheme {
         Surface {
-            Item(
-                icon = ImageVectorIcon(BlockerIcons.BugReport),
-                titleRes = R.string.export_error_log,
-                onClick = {},
+            ItemHeader(itemRes = R.string.blocker_header, paddingValues = PaddingValues(16.dp))
+        }
+    }
+}
+
+@Composable
+@Preview
+fun SettingsItemSinglePreview() {
+    BlockerTheme {
+        Surface {
+            BlockerItem(
+                paddingValues = PaddingValues(vertical = 16.dp, horizontal = 56.dp),
+                titleRes = R.string.import_mat_rules,
             )
         }
     }
@@ -95,12 +135,14 @@ fun ItemWithIconPreview() {
 
 @Composable
 @Preview
-fun ItemWithoutIconPreview() {
+fun SettingsItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
-            Item(
-                titleRes = R.string.project_homepage,
-                onClick = {},
+            BlockerItem(
+                titleRes = R.string.theme,
+                summary = "Default",
+                paddingValues = PaddingValues(16.dp),
+                spacePadding = 40.dp,
             )
         }
     }
