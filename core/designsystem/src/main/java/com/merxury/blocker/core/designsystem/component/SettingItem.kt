@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
@@ -116,21 +117,23 @@ fun BlockerSettingItem(
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun SettingsItemHeaderPreview() {
+fun HeaderPreview() {
     BlockerTheme {
         Surface {
-            ItemHeader(title = "Blocker Header Preview")
+            ItemHeader(title = "Normal Header")
         }
     }
 }
 
 @Composable
 @Preview
-fun SettingsItemSinglePreview() {
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun HeaderWithPaddingPreview() {
     BlockerTheme {
         Surface {
-            BlockerSettingItem(
-                title = "Blocker single line item preview",
+            ItemHeader(
+                title = "Header with Extra padding",
+                extraIconPadding = true,
             )
         }
     }
@@ -138,12 +141,68 @@ fun SettingsItemSinglePreview() {
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun SingleLineSettingItemPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerSettingItem(title = "Single line item")
+        }
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun SingleLineSettingItemWithPaddingPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerSettingItem(
+                title = "Single line item with padding",
+                extraIconPadding = true,
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun SettingsItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
             BlockerSettingItem(
-                title = "BlockerSettingItem",
+                title = "Normal setting item",
                 summary = "Summary of the item",
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun SettingsItemWithIconPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerSettingItem(
+                title = "Setting item with icon",
+                summary = "Summary of the item",
+                icon = ImageVectorIcon(BlockerIcons.Apps),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun SettingsItemWithPaddingPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerSettingItem(
+                title = "Item with extra space",
+                summary = "Summary of the item",
+                extraIconPadding = true,
             )
         }
     }
