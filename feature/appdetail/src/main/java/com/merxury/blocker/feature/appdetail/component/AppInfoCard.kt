@@ -72,7 +72,6 @@ fun AppInfoCard(
                 ),
                 style = MaterialTheme.typography.bodySmall,
             )
-
         }
         Spacer(modifier.weight(1F))
         AsyncImage(

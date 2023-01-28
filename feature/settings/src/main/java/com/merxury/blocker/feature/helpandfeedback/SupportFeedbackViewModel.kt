@@ -26,8 +26,8 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 private const val PROJECT_HOME_URL = "https://github.com/lihenggui/blocker"
 private const val GROUP_URL = "https://t.me/blockerandroid"
