@@ -23,7 +23,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -32,7 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerItem
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
@@ -61,12 +60,12 @@ fun BackupSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            itemRes = string.backup,
-            paddingValues = PaddingValues(vertical = 16.dp, horizontal = 56.dp),
+            title = stringResource(id = string.backup),
+            extraIconPadding = true,
         )
-        BlockerItem(
+        BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.Folder),
-            titleRes = string.folder_to_save,
+            title = stringResource(id = string.folder_to_save),
             summary = ruleBackupFolder.ifEmpty {
                 stringResource(id = string.directory_invalid_or_not_set)
             },
@@ -78,7 +77,6 @@ fun BackupSettings(
                     Toast.makeText(context, string.file_manager_required, Toast.LENGTH_LONG).show()
                 }
             },
-            paddingValues = PaddingValues(16.dp),
         )
         SwitchSettingItem(
             itemRes = string.backup_system_apps,
