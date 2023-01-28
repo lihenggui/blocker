@@ -15,9 +15,8 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="app_name">Blocker</string>
-    <string name="not_connected">⚠️ You aren’t connected to the internet</string>
-    <string name="application_list">Application list</string>
-    <string name="global_search">Global search</string>
-    <string name="online_rules">Online rules</string>
+    <string name="app_name" translatable="false">Blocker</string>
+    <string name="apps">Apps</string>
+    <string name="search">Search</string>
+    <string name="rules">Rules</string>
 </resources>
