@@ -65,8 +65,8 @@ fun BlockerSettings(
             titleRes = string.online_rule_source,
             selectedItem = settings.ruleServerProvider,
             itemList = listOf(
-                GITHUB to string.github,
-                GITLAB to string.gitlab,
+                GITHUB to string.options_github,
+                GITLAB to string.options_gitlab,
             ),
             onValueChange = onChangeRuleServerProvider,
         )
