@@ -47,8 +47,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLargeTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.globalsearch.R.string
@@ -113,8 +113,8 @@ fun SearchBar(
         focusedIndicatorColor = Color.Transparent,
         unfocusedIndicatorColor = Color.Transparent,
     )
-    BlockerHomeTopAppBar(
-        titleRes = string.searching,
+    BlockerTopAppBar(
+        title = stringResource(id = string.searching),
         actions = {
             TextField(
                 modifier = modifier

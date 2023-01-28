@@ -43,8 +43,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
-import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.onlinerules.R.string
@@ -71,7 +71,7 @@ fun OnlineRulesScreen(
 ) {
     Scaffold(
         topBar = {
-            BlockerHomeTopAppBar(titleRes = string.online_rules, actions = {})
+            BlockerTopAppBar(title = stringResource(id = string.online_rules))
         },
     ) { padding ->
         Column(
