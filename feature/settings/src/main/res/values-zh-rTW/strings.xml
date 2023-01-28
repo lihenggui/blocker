@@ -52,11 +52,16 @@
     <string name="blocker_rules">Blocker規則</string>
     <string name="ifw_rules">IFW規則</string>
     <string name="support_and_feedback">幫助和反饋</string>
-    <string name="github">GitHub</string>
+    <string name="project_homepage">項目主頁</string>
+    <string name="rule_repository">規則倉庫</string>
     <string name="telegram_group">Telegram 群組</string>
     <string name="export_error_log">導出錯誤日誌</string>
     <string name="dark_mode">夜間主題</string>
-    <string name="use_dynamic_color">使用動態主題顏色</string>
-    <string name="yes">是</string>
-    <string name="no">否</string>
+    <string name="options_github">GitHub</string>
+    <string name="options_gitlab">GitLab</string>
+    <string name="intent_firewall">Intent Firewall（意圖防火牆）</string>
+    <string name="package_manager">Package Manager（系統包管理器）</string>
+    <string name="dynamic_color">動態主題顏色</string>
+    <string name="options_on">啟用</string>
+    <string name="options_off">關閉</string>
 </resources>

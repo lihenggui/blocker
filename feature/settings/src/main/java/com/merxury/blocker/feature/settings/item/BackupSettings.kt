@@ -16,12 +16,18 @@
 
 package com.merxury.blocker.feature.settings.item
 
+import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,9 +42,16 @@ fun BackupSettings(
     ruleBackupFolder: String,
     onChangeBackupSystemApp: (Boolean) -> Unit,
     onChangeRestoreSystemApp: (Boolean) -> Unit,
-    onChangeRuleBackupFolder: (String) -> Unit,
+    onChangeRuleBackupFolder: (Uri?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val getFolderResult = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree(),
+        onResult = { uri ->
+            onChangeRuleBackupFolder(uri)
+        },
+    )
     Column(
         modifier = modifier
             .padding(vertical = 4.dp),
@@ -50,7 +63,14 @@ fun BackupSettings(
             summary = ruleBackupFolder.ifEmpty {
                 stringResource(id = string.directory_invalid_or_not_set)
             },
-            onClick = {},
+            onClick = {
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+                if (intent.resolveActivity(context.packageManager) != null) {
+                    getFolderResult.launch(null)
+                } else {
+                    Toast.makeText(context, string.file_manager_required, Toast.LENGTH_LONG).show()
+                }
+            },
         )
         SwitchSettingItem(
             itemRes = string.backup_system_apps,
@@ -58,7 +78,7 @@ fun BackupSettings(
             onCheckedChange = onChangeBackupSystemApp,
         )
         SwitchSettingItem(
-            itemRes = string.show_service_info,
+            itemRes = string.restore_system_apps,
             checked = restoreSystemApp,
             onCheckedChange = onChangeRestoreSystemApp,
         )

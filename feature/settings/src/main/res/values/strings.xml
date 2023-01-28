@@ -64,14 +64,16 @@
     <string name="light">Light</string>
     <string name="dark">Dark</string>
     <string name="support_and_feedback">Support and feedback</string>
-    <string name="github" translatable="false">GitHub</string>
-    <string name="gitlab" translatable="false">GitLab</string>
-    <string name="intent_firewall" translatable="false">Intent Firewall</string>
-    <string name="package_manager" translatable="false">Package Manager</string>
+    <string name="project_homepage">Project homepage</string>
+    <string name="rule_repository">Rule repository</string>
+    <string name="options_github">GitHub</string>
+    <string name="options_gitlab">GitLab</string>
+    <string name="intent_firewall">Intent Firewall</string>
+    <string name="package_manager">Package Manager</string>
     <string name="shizuku" translatable="false">Shizuku</string>
     <string name="telegram_group">Telegram group</string>
     <string name="export_error_log">Export error log</string>
-    <string name="use_dynamic_color">Use Dynamic Color</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
+    <string name="dynamic_color">Dynamic Color</string>
+    <string name="options_on">On</string>
+    <string name="options_off">Off</string>
 </resources>
