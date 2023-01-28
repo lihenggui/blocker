@@ -29,19 +29,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.icon.Icon
+import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
+import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R
 
 @Composable
 fun Item(
     modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
-    itemRes: Int,
+    icon: Icon? = null,
+    titleRes: Int,
     onClick: () -> Unit,
 ) {
     var padding = 0.dp
@@ -53,14 +56,24 @@ fun Item(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) {
-            Icon(imageVector = icon, contentDescription = stringResource(id = itemRes))
+            when (icon) {
+                is ImageVectorIcon -> Icon(
+                    imageVector = icon.imageVector,
+                    contentDescription = null,
+                )
+
+                is DrawableResourceIcon -> Icon(
+                    painter = painterResource(id = icon.id),
+                    contentDescription = null,
+                )
+            }
             Spacer(modifier = Modifier.width(16.dp))
         } else {
             padding = 40.dp
         }
         Text(
             modifier = modifier.padding(start = padding),
-            text = stringResource(id = itemRes),
+            text = stringResource(id = titleRes),
             style = MaterialTheme.typography.bodyLarge,
         )
     }
@@ -72,8 +85,8 @@ fun ItemWithIconPreview() {
     BlockerTheme {
         Surface {
             Item(
-                icon = BlockerIcons.BugReport,
-                itemRes = R.string.export_error_log,
+                icon = ImageVectorIcon(BlockerIcons.BugReport),
+                titleRes = R.string.export_error_log,
                 onClick = {},
             )
         }
@@ -86,7 +99,7 @@ fun ItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
             Item(
-                itemRes = R.string.github,
+                titleRes = R.string.project_homepage,
                 onClick = {},
             )
         }
