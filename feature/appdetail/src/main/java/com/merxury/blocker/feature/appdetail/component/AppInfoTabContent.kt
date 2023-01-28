@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.appdetail.component
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -28,19 +27,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerItem
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.utils.AndroidCodeName
 import com.merxury.blocker.feature.appdetail.R.string
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun AppInfoTabContent(
@@ -89,37 +87,33 @@ fun MoreInfo(
     onResetIfw: () -> Unit,
 ) {
     Column {
-        BlockerItem(
-            titleRes = string.target_sdk_version,
+        BlockerSettingItem(
+            title = stringResource(id = string.target_sdk_version),
             summary = stringResource(
                 id = string.data_with_explanation,
                 targetSdkVersion,
                 AndroidCodeName.getCodeName(targetSdkVersion),
             ),
-            paddingValues = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
         )
-        BlockerItem(
-            titleRes = string.minimum_sdk_version,
+        BlockerSettingItem(
+            title = stringResource(id = string.minimum_sdk_version),
             summary = stringResource(
                 id = string.data_with_explanation,
                 minSdkVersion,
                 AndroidCodeName.getCodeName(minSdkVersion),
             ),
-            paddingValues = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
         )
-        BlockerItem(
-            titleRes = string.last_update_time,
+        BlockerSettingItem(
+            title = stringResource(id = string.last_update_time),
             summary = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                 .withLocale(Locale.getDefault())
                 .withZone(ZoneId.systemDefault())
                 .format(lastUpdateTime?.toJavaInstant()),
-            paddingValues = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
         )
         if (dataDir != null) {
-            BlockerItem(
-                titleRes = string.data_dir,
+            BlockerSettingItem(
+                title = stringResource(id = string.data_dir),
                 summary = dataDir,
-                paddingValues = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
             )
         }
         Divider()
@@ -138,16 +132,14 @@ fun BlockerRuleItem(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
-        ItemHeader(itemRes = string.blocker_rules, paddingValues = PaddingValues(16.dp))
-        BlockerItem(
-            titleRes = string.export_rules,
+        ItemHeader(title = stringResource(id = string.blocker_rules))
+        BlockerSettingItem(
+            title = stringResource(id = string.export_rules),
             onItemClick = onExportRules,
-            paddingValues = PaddingValues(16.dp),
         )
-        BlockerItem(
-            titleRes = string.import_rules,
+        BlockerSettingItem(
+            title = stringResource(id = string.import_rules),
             onItemClick = onImportRules,
-            paddingValues = PaddingValues(16.dp),
         )
     }
 }
@@ -162,21 +154,18 @@ fun IfwRuleItem(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
-        ItemHeader(itemRes = string.ifw_rules, paddingValues = PaddingValues(16.dp))
-        BlockerItem(
-            titleRes = string.export_ifw_rules,
+        ItemHeader(title = stringResource(id = string.ifw_rules))
+        BlockerSettingItem(
+            title = stringResource(id = string.export_ifw_rules),
             onItemClick = onExportIfw,
-            paddingValues = PaddingValues(16.dp),
         )
-        BlockerItem(
-            titleRes = string.import_ifw_rules,
+        BlockerSettingItem(
+            title = stringResource(id = string.import_ifw_rules),
             onItemClick = onImportIfw,
-            paddingValues = PaddingValues(16.dp),
         )
-        BlockerItem(
-            titleRes = string.reset_ifw,
+        BlockerSettingItem(
+            title = stringResource(id = string.reset_ifw),
             onItemClick = onResetIfw,
-            paddingValues = PaddingValues(16.dp),
         )
     }
 }

@@ -19,7 +19,6 @@ package com.merxury.blocker.feature.helpandfeedback
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumedWindowInsets
@@ -40,9 +39,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.merxury.blocker.core.designsystem.component.BlockerItem
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
@@ -100,29 +98,25 @@ fun SupportAndFeedbackScreen(
     onExportLogClick: () -> Unit,
 ) {
     Column {
-        BlockerItem(
+        BlockerSettingItem(
             icon = DrawableResourceIcon(BlockerIcons.GitHub),
-            titleRes = string.project_homepage,
+            title = stringResource(id = string.project_homepage),
             onItemClick = { onProjectHomeClick() },
-            paddingValues = PaddingValues(16.dp),
         )
-        BlockerItem(
+        BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.Rule),
-            titleRes = string.rule_repository,
+            title = stringResource(id = string.rule_repository),
             onItemClick = { onRulesRepositoryClick() },
-            paddingValues = PaddingValues(16.dp),
         )
-        BlockerItem(
+        BlockerSettingItem(
             icon = DrawableResourceIcon(BlockerIcons.Telegram),
-            titleRes = string.telegram_group,
+            title = stringResource(id = string.telegram_group),
             onItemClick = { onTelegramGroupLinkClick() },
-            paddingValues = PaddingValues(16.dp),
         )
-        BlockerItem(
+        BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.BugReport),
-            titleRes = string.export_error_log,
+            title = stringResource(id = string.export_error_log),
             onItemClick = { onExportLogClick() },
-            paddingValues = PaddingValues(16.dp),
         )
     }
 }

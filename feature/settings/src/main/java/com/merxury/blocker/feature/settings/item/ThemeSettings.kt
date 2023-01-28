@@ -18,11 +18,11 @@ package com.merxury.blocker.feature.settings.item
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.ItemHeader
@@ -51,8 +51,8 @@ fun ThemeSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            itemRes = string.theme,
-            paddingValues = PaddingValues(vertical = 16.dp, horizontal = 56.dp),
+            title = stringResource(id = string.theme),
+            extraIconPadding = true,
         )
         DialogSettingsItems(
             titleRes = string.theme,
@@ -62,8 +62,6 @@ fun ThemeSettings(
                 DEFAULT to string.theme_default,
             ),
             onValueChange = onChangeThemeBrand,
-            paddingValues = PaddingValues(16.dp),
-            spacePadding = 40.dp,
         )
         if (settings.themeBrand == DEFAULT && supportDynamicColor) {
             DialogSettingsItems(
@@ -74,8 +72,6 @@ fun ThemeSettings(
                     false to string.options_off,
                 ),
                 onValueChange = onChangeDynamicColorPreference,
-                paddingValues = PaddingValues(16.dp),
-                spacePadding = 40.dp,
             )
         }
         DialogSettingsItems(
@@ -87,8 +83,6 @@ fun ThemeSettings(
                 DARK to string.dark,
             ),
             onValueChange = onChangeDarkThemeConfig,
-            paddingValues = PaddingValues(16.dp),
-            spacePadding = 40.dp,
         )
     }
 }

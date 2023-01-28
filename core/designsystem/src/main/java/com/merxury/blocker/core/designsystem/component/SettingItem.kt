@@ -33,11 +33,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
@@ -45,34 +42,45 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun ItemHeader(
-    itemRes: Int,
-    paddingValues: PaddingValues,
+    title: String,
+    extraIconPadding: Boolean = false,
 ) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(id = itemRes),
+            text = title,
             style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(paddingValues),
+            modifier = Modifier.padding(
+                if (extraIconPadding) {
+                    PaddingValues(vertical = 16.dp, horizontal = 56.dp)
+                } else {
+                    PaddingValues(16.dp)
+                },
+            ),
         )
     }
 }
 
 @Composable
-fun BlockerItem(
+fun BlockerSettingItem(
     modifier: Modifier = Modifier,
-    paddingValues: PaddingValues,
-    spacePadding: Dp = 0.dp,
-    icon: Icon? = null,
-    titleRes: Int? = null,
+    extraIconPadding: Boolean = false,
+    title: String,
     summary: String? = null,
+    icon: Icon? = null,
     onItemClick: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onItemClick() }
-            .padding(paddingValues),
+            .padding(
+                if (extraIconPadding && icon == null) {
+                    PaddingValues(vertical = 16.dp, horizontal = 56.dp)
+                } else {
+                    PaddingValues(16.dp)
+                },
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) {
@@ -88,16 +96,12 @@ fun BlockerItem(
                 )
             }
             Spacer(modifier = Modifier.width(16.dp))
-        } else {
-            Spacer(modifier = Modifier.width(spacePadding))
         }
         Column {
-            if (titleRes != null) {
-                Text(
-                    text = stringResource(id = titleRes),
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+            )
             if (summary != null) {
                 Text(
                     text = summary,
@@ -115,7 +119,7 @@ fun BlockerItem(
 fun SettingsItemHeaderPreview() {
     BlockerTheme {
         Surface {
-            ItemHeader(itemRes = R.string.blocker_header, paddingValues = PaddingValues(16.dp))
+            ItemHeader(title = "Blocker Header Preview")
         }
     }
 }
@@ -125,9 +129,8 @@ fun SettingsItemHeaderPreview() {
 fun SettingsItemSinglePreview() {
     BlockerTheme {
         Surface {
-            BlockerItem(
-                paddingValues = PaddingValues(vertical = 16.dp, horizontal = 56.dp),
-                titleRes = R.string.import_mat_rules,
+            BlockerSettingItem(
+                title = "Blocker single line item preview",
             )
         }
     }
@@ -138,11 +141,9 @@ fun SettingsItemSinglePreview() {
 fun SettingsItemWithoutIconPreview() {
     BlockerTheme {
         Surface {
-            BlockerItem(
-                titleRes = R.string.theme,
-                summary = "Default",
-                paddingValues = PaddingValues(16.dp),
-                spacePadding = 40.dp,
+            BlockerSettingItem(
+                title = "BlockerSettingItem",
+                summary = "Summary of the item",
             )
         }
     }

@@ -17,10 +17,10 @@
 package com.merxury.blocker.feature.settings.item
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.ItemHeader
@@ -40,8 +40,8 @@ fun AppListSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            itemRes = string.application_list,
-            paddingValues = PaddingValues(vertical = 16.dp, horizontal = 56.dp),
+            title = stringResource(id = string.application_list),
+            extraIconPadding = true,
         )
         SwitchSettingItem(
             itemRes = string.show_system_apps,

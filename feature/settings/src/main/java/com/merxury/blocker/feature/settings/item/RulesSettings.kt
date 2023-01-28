@@ -18,14 +18,14 @@ package com.merxury.blocker.feature.settings.item
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerItem
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R.string
@@ -41,20 +41,18 @@ fun BlockerRulesSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            itemRes = string.blocker_rules,
-            paddingValues = PaddingValues(vertical = 16.dp, horizontal = 56.dp),
+            title = stringResource(id = string.blocker_rules),
+            extraIconPadding = true,
         )
-        BlockerItem(
-            titleRes = string.export_rules,
+        BlockerSettingItem(
+            title = stringResource(id = string.export_rules),
             onItemClick = exportRules,
-            paddingValues = PaddingValues(16.dp),
-            spacePadding = 40.dp,
+            extraIconPadding = true,
         )
-        BlockerItem(
-            titleRes = string.import_rules,
+        BlockerSettingItem(
+            title = stringResource(id = string.import_rules),
             onItemClick = importRules,
-            paddingValues = PaddingValues(16.dp),
-            spacePadding = 40.dp,
+            extraIconPadding = true,
         )
     }
 }
@@ -71,26 +69,23 @@ fun IfwRulesSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            itemRes = string.ifw_rules,
-            paddingValues = PaddingValues(vertical = 16.dp, horizontal = 56.dp),
+            title = stringResource(id = string.ifw_rules),
+            extraIconPadding = true,
         )
-        BlockerItem(
-            titleRes = string.export_ifw_rules,
+        BlockerSettingItem(
+            title = stringResource(id = string.export_ifw_rules),
             onItemClick = exportIfwRules,
-            paddingValues = PaddingValues(16.dp),
-            spacePadding = 40.dp,
+            extraIconPadding = true,
         )
-        BlockerItem(
-            titleRes = string.import_ifw_rules,
+        BlockerSettingItem(
+            title = stringResource(id = string.import_ifw_rules),
             onItemClick = importIfwRules,
-            paddingValues = PaddingValues(16.dp),
-            spacePadding = 40.dp,
+            extraIconPadding = true,
         )
-        BlockerItem(
-            titleRes = string.reset_ifw,
+        BlockerSettingItem(
+            title = stringResource(id = string.reset_ifw),
             onItemClick = resetIfwRules,
-            paddingValues = PaddingValues(16.dp),
-            spacePadding = 40.dp,
+            extraIconPadding = true,
         )
     }
 }
