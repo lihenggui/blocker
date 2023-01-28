@@ -17,13 +17,17 @@
 package com.merxury.blocker.feature.settings
 
 import android.Manifest.permission
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.consumedWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -39,6 +43,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -94,6 +99,7 @@ fun SettingsRoute(
         onChangeThemeBrand = viewModel::updateThemeBrand,
         onChangeDynamicColorPreference = viewModel::updateDynamicColorPreference,
         onChangeDarkThemeConfig = viewModel::updateDarkThemeConfig,
+        importMatRules = viewModel::importMyAndroidToolsRules,
     )
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         val notificationPermissionState = rememberPermissionState(permission.POST_NOTIFICATIONS)
@@ -114,7 +120,7 @@ fun SettingsScreen(
     onChangeShowServiceInfo: (Boolean) -> Unit,
     onChangeBackupSystemApp: (Boolean) -> Unit,
     onChangeRestoreSystemApp: (Boolean) -> Unit,
-    onChangeRuleBackupFolder: (String) -> Unit,
+    onChangeRuleBackupFolder: (Uri?) -> Unit,
     onChangeControllerType: (ControllerType) -> Unit,
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
     onChangeThemeBrand: (ThemeBrand) -> Unit,
@@ -125,6 +131,7 @@ fun SettingsScreen(
     exportIfwRules: () -> Unit,
     importIfwRules: () -> Unit,
     resetIfwRules: () -> Unit,
+    importMatRules: (Uri?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -139,7 +146,7 @@ fun SettingsScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(padding)
-                .consumeWindowInsets(padding)
+                .consumedWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
                         WindowInsetsSides.Horizontal,
@@ -181,6 +188,7 @@ fun SettingsScreen(
                         exportIfwRules = exportIfwRules,
                         importIfwRules = importIfwRules,
                         resetIfwRules = resetIfwRules,
+                        importMatRules = importMatRules,
                     )
                 }
             }
@@ -196,7 +204,7 @@ fun SettingsContent(
     onChangeShowServiceInfo: (Boolean) -> Unit,
     onChangeBackupSystemApp: (Boolean) -> Unit,
     onChangeRestoreSystemApp: (Boolean) -> Unit,
-    onChangeRuleBackupFolder: (String) -> Unit,
+    onChangeRuleBackupFolder: (Uri?) -> Unit,
     onChangeControllerType: (ControllerType) -> Unit,
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
     onChangeThemeBrand: (ThemeBrand) -> Unit,
@@ -207,8 +215,14 @@ fun SettingsContent(
     exportIfwRules: () -> Unit,
     importIfwRules: () -> Unit,
     resetIfwRules: () -> Unit,
+    importMatRules: (Uri?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val getMatFileResult = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument(),
+        onResult = { importMatRules(it) },
+    )
     Column(modifier = modifier.verticalScroll(rememberScrollState())) {
         BlockerSettings(
             settings = settings,
@@ -251,7 +265,14 @@ fun SettingsContent(
         Divider()
         SingleRowSettingItem(
             itemRes = string.import_mat_rules,
-            onItemClick = {},
+            onItemClick = {
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                intent.addCategory(Intent.CATEGORY_OPENABLE)
+                intent.type = "*/*"
+                if (intent.resolveActivity(context.packageManager) != null) {
+                    getMatFileResult.launch(arrayOf("*/*"))
+                }
+            },
         )
     }
 }
@@ -291,6 +312,7 @@ fun SettingsScreenPreview() {
             onChangeThemeBrand = {},
             onChangeDynamicColorPreference = {},
             onChangeDarkThemeConfig = {},
+            importMatRules = {},
         )
     }
 }

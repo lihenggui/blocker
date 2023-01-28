@@ -20,7 +20,7 @@ option java_package = "com.merxury.blocker.core.datastore";
 option java_multiple_files = true;
 
 enum ControllerTypeProto {
-  PM = 0;
-  IFW = 1;
+  IFW = 0;
+  PM = 1;
   SHIZUKU = 2;
 }

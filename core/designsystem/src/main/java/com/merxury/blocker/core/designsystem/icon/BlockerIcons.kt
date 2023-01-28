@@ -48,6 +48,7 @@ import androidx.compose.material.icons.outlined.PhonelinkSetup
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.RestartAlt
 import androidx.compose.material.icons.outlined.RocketLaunch
+import androidx.compose.material.icons.outlined.Rule
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
@@ -102,12 +103,15 @@ object BlockerIcons {
     val Save = Icons.Outlined.Save
     val CheckBox = Icons.Outlined.CheckBox
     val CheckBoxBlank = Icons.Outlined.CheckBoxOutlineBlank
+    val Rule = Icons.Outlined.Rule
+
     val Rectangle = R.drawable.ic_rectangle
     val Export = R.drawable.ic_export
     val Import = R.drawable.ic_import
     val Android = R.drawable.ic_android
     val Git = R.drawable.ic_git
     val GitHub = R.drawable.ic_github
+    val Telegram = R.drawable.ic_telegram
 
     val ArrowDropDown = Icons.Rounded.ArrowDropDown
     val ArrowDropUp = Icons.Rounded.ArrowDropUp
