@@ -17,11 +17,13 @@
 package com.merxury.blocker.feature.settings.item
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R.string
 
@@ -37,7 +39,10 @@ fun AppListSettings(
         modifier = modifier
             .padding(vertical = 4.dp),
     ) {
-        SettingItemHeader(itemRes = string.application_list)
+        ItemHeader(
+            itemRes = string.application_list,
+            paddingValues = PaddingValues(vertical = 16.dp, horizontal = 56.dp),
+        )
         SwitchSettingItem(
             itemRes = string.show_system_apps,
             checked = showSystemApps,

@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.settings.item
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -25,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
@@ -50,7 +52,7 @@ fun BlockerSettings(
             .padding(vertical = 4.dp),
     ) {
         DialogSettingsItems(
-            icon = BlockerIcons.AutoFix,
+            icon = ImageVectorIcon(BlockerIcons.AutoFix),
             titleRes = string.controller_type,
             selectedItem = settings.controllerType,
             itemList = listOf(
@@ -59,9 +61,10 @@ fun BlockerSettings(
                 SHIZUKU to string.shizuku,
             ),
             onValueChange = onChangeControllerType,
+            paddingValues = PaddingValues(16.dp),
         )
         DialogSettingsItems(
-            icon = BlockerIcons.Block,
+            icon = ImageVectorIcon(BlockerIcons.Block),
             titleRes = string.online_rule_source,
             selectedItem = settings.ruleServerProvider,
             itemList = listOf(
@@ -69,6 +72,7 @@ fun BlockerSettings(
                 GITLAB to string.options_gitlab,
             ),
             onValueChange = onChangeRuleServerProvider,
+            paddingValues = PaddingValues(16.dp),
         )
     }
 }
