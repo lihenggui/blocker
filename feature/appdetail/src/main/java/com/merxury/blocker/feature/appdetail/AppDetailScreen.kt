@@ -53,9 +53,8 @@ import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
+import com.merxury.blocker.feature.appdetail.component.AppInfoCard
 import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
-import com.merxury.blocker.feature.appdetail.component.CollapseImageSection
-import com.merxury.blocker.feature.appdetail.component.CollapseTextSection
 import com.merxury.blocker.feature.appdetail.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState
 import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
@@ -133,7 +132,7 @@ fun AppDetailScreen(
 
             is Success -> {
                 AppDetailContent(
-                    uiState = uiState,
+                    app = uiState.appInfo,
                     tabState = tabState,
                     onRefresh = onRefresh,
                     switchTab = switchTab,
@@ -162,7 +161,7 @@ fun AppDetailScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailContent(
-    uiState: Success,
+    app: Application,
     tabState: TabState,
     onRefresh: () -> Unit,
     switchTab: (Int) -> Unit,
@@ -184,9 +183,17 @@ fun AppDetailContent(
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
-                title = uiState.appInfo.label,
-                collapseTextSection = { CollapseTextSection(app = uiState.appInfo) },
-                collapseImageSection = { CollapseImageSection(info = uiState.appInfo.packageInfo) },
+                title = app.label,
+                content = {
+                    AppInfoCard(
+                        label = app.label,
+                        packageName = app.packageName,
+                        versionCode = app.versionCode,
+                        versionName = app.versionName,
+                        packageInfo = app.packageInfo,
+                        onAppIconClick = { /* TODO add click callback */ },
+                    )
+                },
                 isCollapsed = isCollapsed,
                 scrollBehavior = scrollBehavior,
                 onNavigationClick = onBackClick,
@@ -236,7 +243,7 @@ fun AppDetailContent(
             }
             when (tabState.currentIndex) {
                 0 -> AppInfoTabContent(
-                    app = uiState.appInfo,
+                    app = app,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
                     onExportIfw = onExportIfw,

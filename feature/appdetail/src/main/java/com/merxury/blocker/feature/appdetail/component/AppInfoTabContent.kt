@@ -95,7 +95,7 @@ fun MoreInfo(
         MoreInfoItem(
             titleRes = string.target_sdk_version,
             summary = stringResource(
-                id = string.sdk_int_with_android_release_name,
+                id = string.data_with_explanation,
                 targetSdkVersion,
                 AndroidCodeName.getCodeName(targetSdkVersion),
             ),
@@ -103,7 +103,7 @@ fun MoreInfo(
         MoreInfoItem(
             titleRes = string.minimum_sdk_version,
             summary = stringResource(
-                id = string.sdk_int_with_android_release_name,
+                id = string.data_with_explanation,
                 minSdkVersion,
                 AndroidCodeName.getCodeName(minSdkVersion),
             ),
