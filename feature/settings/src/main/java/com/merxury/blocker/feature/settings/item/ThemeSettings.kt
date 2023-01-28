@@ -56,11 +56,11 @@ fun ThemeSettings(
         )
         if (settings.themeBrand == DEFAULT && supportDynamicColor) {
             DialogSettingsItems(
-                titleRes = string.use_dynamic_color,
+                titleRes = string.dynamic_color,
                 selectedItem = settings.useDynamicColor,
                 itemList = listOf(
-                    true to string.yes,
-                    false to string.no,
+                    true to string.options_on,
+                    false to string.options_off,
                 ),
                 onValueChange = onChangeDynamicColorPreference,
             )

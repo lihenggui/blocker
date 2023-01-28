@@ -36,9 +36,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.utils.AndroidCodeName
 import com.merxury.blocker.feature.appdetail.R.string
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.toJavaInstant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 @Composable
 fun AppInfoTabContent(
@@ -61,7 +66,7 @@ fun AppInfoTabContent(
             MoreInfo(
                 targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
                 // TODO add min SDK detection
-                miniSdkVersion = 23,
+                minSdkVersion = 23,
                 lastUpdateTime = app.lastUpdateTime,
                 dataDir = app.packageInfo?.applicationInfo?.dataDir,
                 onExportRules = onExportRules,
@@ -77,7 +82,7 @@ fun AppInfoTabContent(
 @Composable
 fun MoreInfo(
     targetSdkVersion: Int,
-    miniSdkVersion: Int,
+    minSdkVersion: Int,
     lastUpdateTime: Instant?,
     dataDir: String?,
     onExportRules: () -> Unit,
@@ -87,11 +92,31 @@ fun MoreInfo(
     onResetIfw: () -> Unit,
 ) {
     Column {
-        MoreInfoItem(itemId = string.target_sdk_version, itemInfo = targetSdkVersion.toString())
-        MoreInfoItem(itemId = string.minimum_sdk_version, itemInfo = miniSdkVersion.toString())
-        MoreInfoItem(itemId = string.last_update_time, itemInfo = lastUpdateTime.toString())
+        MoreInfoItem(
+            titleRes = string.target_sdk_version,
+            summary = stringResource(
+                id = string.data_with_explanation,
+                targetSdkVersion,
+                AndroidCodeName.getCodeName(targetSdkVersion),
+            ),
+        )
+        MoreInfoItem(
+            titleRes = string.minimum_sdk_version,
+            summary = stringResource(
+                id = string.data_with_explanation,
+                minSdkVersion,
+                AndroidCodeName.getCodeName(minSdkVersion),
+            ),
+        )
+        MoreInfoItem(
+            titleRes = string.last_update_time,
+            summary = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withLocale(Locale.getDefault())
+                .withZone(ZoneId.systemDefault())
+                .format(lastUpdateTime?.toJavaInstant()),
+        )
         if (dataDir != null) {
-            MoreInfoItem(itemId = string.data_dir, itemInfo = dataDir)
+            MoreInfoItem(titleRes = string.data_dir, summary = dataDir)
         }
         Divider()
         BlockerRuleItem(onExportRules = onExportRules, onImportRules = onImportRules)
@@ -102,21 +127,23 @@ fun MoreInfo(
 
 @Composable
 fun MoreInfoItem(
-    itemId: Int,
-    itemInfo: String,
+    titleRes: Int,
+    summary: String,
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable { /* Intentionally ignored */ }
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Text(
-            text = stringResource(id = itemId),
-            style = MaterialTheme.typography.bodyLarge,
+            text = stringResource(id = titleRes),
+            style = MaterialTheme.typography.bodyMedium,
         )
         Text(
-            text = itemInfo,
+            text = summary,
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -130,7 +157,7 @@ fun BlockerRuleItem(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
-        ItemHead(itemRes = string.blocker_rules)
+        ItemHeader(itemRes = string.blocker_rules)
         Item(itemRes = string.export_rules, onItemClick = onExportRules)
         Item(itemRes = string.import_rules, onItemClick = onImportRules)
     }
@@ -146,7 +173,7 @@ fun IfwRuleItem(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
-        ItemHead(itemRes = string.ifw_rules)
+        ItemHeader(itemRes = string.ifw_rules)
         Item(itemRes = string.export_ifw_rules, onItemClick = onExportIfw)
         Item(itemRes = string.import_ifw_rules, onItemClick = onImportIfw)
         Item(itemRes = string.reset_ifw, onItemClick = onResetIfw)
@@ -154,7 +181,7 @@ fun IfwRuleItem(
 }
 
 @Composable
-fun ItemHead(itemRes: Int) {
+fun ItemHeader(itemRes: Int) {
     Row(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = stringResource(id = itemRes),

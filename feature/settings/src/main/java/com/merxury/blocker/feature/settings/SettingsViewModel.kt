@@ -17,6 +17,8 @@
 package com.merxury.blocker.feature.settings
 
 import android.app.Application
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -44,6 +46,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -99,9 +102,17 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateRuleBackupFolder(path: String) {
+    fun updateRuleBackupFolder(uri: Uri?) {
         viewModelScope.launch {
-            userDataRepository.setRuleBackupFolder(path)
+            if (uri == null) {
+                Timber.e("Backup folder is null, ignore")
+                return@launch
+            }
+            val context: Context = getApplication()
+            val flags =
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            context.contentResolver.takePersistableUriPermission(uri, flags)
+            userDataRepository.setRuleBackupFolder(uri.toString())
         }
     }
 
@@ -176,7 +187,11 @@ class SettingsViewModel @Inject constructor(
             .enqueueUniqueWork("ResetIfw", ExistingWorkPolicy.KEEP, ResetIfwWorker.clearIfwWork())
     }
 
-    fun importMyAndroidToolsRules(fileUri: Uri) = viewModelScope.launch {
+    fun importMyAndroidToolsRules(fileUri: Uri?) = viewModelScope.launch {
+        if (fileUri == null) {
+            Timber.e("Can't get MAT backup file from URI.")
+            return@launch
+        }
         val userData = userDataRepository.userData.first()
         WorkManager.getInstance(getApplication()).apply {
             enqueueUniqueWork(

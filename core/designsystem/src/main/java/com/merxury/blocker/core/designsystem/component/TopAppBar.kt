@@ -21,7 +21,6 @@ import android.R.string
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -141,22 +140,12 @@ fun BlockerTopAppBar(
 fun BlockerCollapsingTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
-    collapseTextSection: @Composable () -> Unit = {},
-    collapseImageSection: @Composable () -> Unit = {},
+    content: @Composable () -> Unit = {},
     isCollapsed: Boolean,
     scrollBehavior: TopAppBarScrollBehavior,
     actions: @Composable () -> Unit,
     onNavigationClick: () -> Unit = {},
 ) {
-    val collapsed = 22
-    val expanded = 28
-    val topAppBarTextSize =
-        (collapsed + (expanded - collapsed) * (1 - scrollBehavior.state.collapsedFraction)).sp
-    val topAppBarTextStyle = if (isCollapsed) {
-        MaterialTheme.typography.bodyLarge
-    } else {
-        MaterialTheme.typography.headlineMedium
-    }
     LargeTopAppBar(
         title = {
             Row(
@@ -168,17 +157,11 @@ fun BlockerCollapsingTopAppBar(
                 Column {
                     Text(
                         text = title,
-                        fontSize = topAppBarTextSize,
-                        style = topAppBarTextStyle,
                         maxLines = 2,
                     )
                     if (!isCollapsed) {
-                        collapseTextSection()
+                        content()
                     }
-                }
-                if (!isCollapsed) {
-                    Spacer(modifier = Modifier.weight(1f))
-                    collapseImageSection()
                 }
             }
         },
@@ -291,7 +274,7 @@ fun BlockerCollapsingTopAppBarPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             title = "Blocker",
-            collapseTextSection = {
+            content = {
                 Text(text = "app.packageName", style = MaterialTheme.typography.bodyMedium)
                 Text(text = "1.0.0", style = MaterialTheme.typography.bodyMedium)
             },

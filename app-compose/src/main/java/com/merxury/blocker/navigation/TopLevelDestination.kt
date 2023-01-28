@@ -36,19 +36,19 @@ enum class TopLevelDestination(
     APP_LIST(
         selectedIcon = ImageVectorIcon(BlockerIcons.Apps),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Apps),
-        iconTextId = R.string.application_list,
+        iconTextId = R.string.apps,
         titleTextId = R.string.app_name,
     ),
     ONLINE_RULES(
         selectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
         unselectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
-        iconTextId = R.string.online_rules,
-        titleTextId = R.string.online_rules,
+        iconTextId = R.string.rules,
+        titleTextId = R.string.rules,
     ),
     GLOBAL_SEARCH(
         selectedIcon = ImageVectorIcon(BlockerIcons.Search),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
-        iconTextId = R.string.global_search,
-        titleTextId = R.string.global_search,
+        iconTextId = R.string.search,
+        titleTextId = R.string.search,
     ),
 }
