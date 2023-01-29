@@ -45,9 +45,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.BlockerHomeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
+import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.applist.R.string
@@ -119,8 +119,8 @@ fun AppListScreen(
 ) {
     Scaffold(
         topBar = {
-            BlockerHomeTopAppBar(
-                titleRes = string.app_name,
+            BlockerTopAppBar(
+                title = stringResource(id = string.app_name),
                 actions = {
                     TopAppBarSortMenu(onSortingUpdate)
                     TopAppBarMoreMenu(

@@ -22,8 +22,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
+import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R.string
 
@@ -37,9 +40,20 @@ fun BlockerRulesSettings(
         modifier = modifier
             .padding(vertical = 4.dp),
     ) {
-        SettingItemHeader(itemRes = string.blocker_rules)
-        SingleRowSettingItem(itemRes = string.export_rules, onItemClick = exportRules)
-        SingleRowSettingItem(itemRes = string.import_rules, onItemClick = importRules)
+        ItemHeader(
+            title = stringResource(id = string.blocker_rules),
+            extraIconPadding = true,
+        )
+        BlockerSettingItem(
+            title = stringResource(id = string.export_rules),
+            onItemClick = exportRules,
+            extraIconPadding = true,
+        )
+        BlockerSettingItem(
+            title = stringResource(id = string.import_rules),
+            onItemClick = importRules,
+            extraIconPadding = true,
+        )
     }
 }
 
@@ -54,10 +68,25 @@ fun IfwRulesSettings(
         modifier = modifier
             .padding(vertical = 4.dp),
     ) {
-        SettingItemHeader(itemRes = string.ifw_rules)
-        SingleRowSettingItem(itemRes = string.export_ifw_rules, onItemClick = exportIfwRules)
-        SingleRowSettingItem(itemRes = string.import_ifw_rules, onItemClick = importIfwRules)
-        SingleRowSettingItem(itemRes = string.reset_ifw, onItemClick = resetIfwRules)
+        ItemHeader(
+            title = stringResource(id = string.ifw_rules),
+            extraIconPadding = true,
+        )
+        BlockerSettingItem(
+            title = stringResource(id = string.export_ifw_rules),
+            onItemClick = exportIfwRules,
+            extraIconPadding = true,
+        )
+        BlockerSettingItem(
+            title = stringResource(id = string.import_ifw_rules),
+            onItemClick = importIfwRules,
+            extraIconPadding = true,
+        )
+        BlockerSettingItem(
+            title = stringResource(id = string.reset_ifw),
+            onItemClick = resetIfwRules,
+            extraIconPadding = true,
+        )
     }
 }
 

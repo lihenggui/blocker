@@ -37,6 +37,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,7 +55,9 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.supportsDynamicTheming
 import com.merxury.blocker.core.model.data.ControllerType
@@ -71,7 +76,6 @@ import com.merxury.blocker.feature.settings.item.BackupSettings
 import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
 import com.merxury.blocker.feature.settings.item.BlockerSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
-import com.merxury.blocker.feature.settings.item.SingleRowSettingItem
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -137,8 +141,16 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             BlockerTopAppBar(
-                titleRes = string.settings,
-                onNavigationClick = onNavigationClick,
+                title = stringResource(id = string.settings),
+                navigationIcon = {
+                    IconButton(onClick = onNavigationClick) {
+                        Icon(
+                            imageVector = BlockerIcons.Back,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                },
             )
         },
     ) { padding ->
@@ -263,8 +275,8 @@ fun SettingsContent(
             resetIfwRules = resetIfwRules,
         )
         Divider()
-        SingleRowSettingItem(
-            itemRes = string.import_mat_rules,
+        BlockerSettingItem(
+            title = stringResource(id = string.import_mat_rules),
             onItemClick = {
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
@@ -273,6 +285,7 @@ fun SettingsContent(
                     getMatFileResult.launch(arrayOf("*/*"))
                 }
             },
+            extraIconPadding = true,
         )
     }
 }

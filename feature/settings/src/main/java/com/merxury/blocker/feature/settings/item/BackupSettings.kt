@@ -31,7 +31,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
+import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.settings.R.string
 
@@ -56,14 +59,17 @@ fun BackupSettings(
         modifier = modifier
             .padding(vertical = 4.dp),
     ) {
-        SettingItemHeader(itemRes = string.backup)
-        SettingItem(
-            icon = BlockerIcons.Folder,
+        ItemHeader(
+            title = stringResource(id = string.backup),
+            extraIconPadding = true,
+        )
+        BlockerSettingItem(
+            icon = ImageVectorIcon(BlockerIcons.Folder),
             title = stringResource(id = string.folder_to_save),
             summary = ruleBackupFolder.ifEmpty {
                 stringResource(id = string.directory_invalid_or_not_set)
             },
-            onClick = {
+            onItemClick = {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                 if (intent.resolveActivity(context.packageManager) != null) {
                     getFolderResult.launch(null)
