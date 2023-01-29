@@ -41,11 +41,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
+import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.preference.ThemeBrand.ANDROID
 import com.merxury.blocker.core.model.preference.ThemeBrand.DEFAULT
@@ -53,7 +54,7 @@ import com.merxury.blocker.feature.settings.R
 
 @Composable
 fun <T> DialogSettingsItems(
-    icon: ImageVector? = null,
+    icon: Icon? = null,
     titleRes: Int,
     selectedItem: T,
     itemList: List<Pair<T, Int>>,
@@ -63,11 +64,12 @@ fun <T> DialogSettingsItems(
     val itemWithSummary = itemList.find { it.first == selectedItem }
         ?: throw RuntimeException("Can't find selectedValue in the list")
     Column {
-        SettingItem(
+        BlockerSettingItem(
             icon = icon,
             title = stringResource(id = titleRes),
             summary = stringResource(id = itemWithSummary.second),
-            onClick = { isShowDialog = true },
+            onItemClick = { isShowDialog = true },
+            extraIconPadding = true,
         )
     }
     if (isShowDialog) {

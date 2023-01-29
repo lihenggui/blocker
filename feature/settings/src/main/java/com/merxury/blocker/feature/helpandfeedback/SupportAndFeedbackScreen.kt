@@ -28,20 +28,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.feature.helpandfeedback.item.Item
 import com.merxury.blocker.feature.settings.R.string
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -54,8 +58,16 @@ fun SupportAndFeedbackRoute(
     Scaffold(
         topBar = {
             BlockerTopAppBar(
-                titleRes = string.support_and_feedback,
-                onNavigationClick = onNavigationClick,
+                title = stringResource(id = string.support_and_feedback),
+                navigationIcon = {
+                    IconButton(onClick = onNavigationClick) {
+                        Icon(
+                            imageVector = BlockerIcons.Back,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                },
             )
         },
     ) { padding ->
@@ -86,25 +98,25 @@ fun SupportAndFeedbackScreen(
     onExportLogClick: () -> Unit,
 ) {
     Column {
-        Item(
+        BlockerSettingItem(
             icon = DrawableResourceIcon(BlockerIcons.GitHub),
-            titleRes = string.project_homepage,
-            onClick = { onProjectHomeClick() },
+            title = stringResource(id = string.project_homepage),
+            onItemClick = { onProjectHomeClick() },
         )
-        Item(
+        BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.Rule),
-            titleRes = string.rule_repository,
-            onClick = { onRulesRepositoryClick() },
+            title = stringResource(id = string.rule_repository),
+            onItemClick = { onRulesRepositoryClick() },
         )
-        Item(
+        BlockerSettingItem(
             icon = DrawableResourceIcon(BlockerIcons.Telegram),
-            titleRes = string.telegram_group,
-            onClick = { onTelegramGroupLinkClick() },
+            title = stringResource(id = string.telegram_group),
+            onItemClick = { onTelegramGroupLinkClick() },
         )
-        Item(
+        BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.BugReport),
-            titleRes = string.export_error_log,
-            onClick = { onExportLogClick() },
+            title = stringResource(id = string.export_error_log),
+            onItemClick = { onExportLogClick() },
         )
     }
 }

@@ -17,14 +17,11 @@
 package com.merxury.blocker.feature.settings.item
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
@@ -40,37 +37,31 @@ import com.merxury.blocker.feature.settings.UserEditableSettings
 
 @Composable
 fun BlockerSettings(
-    modifier: Modifier = Modifier,
     settings: UserEditableSettings,
     onChangeControllerType: (ControllerType) -> Unit,
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
 ) {
-    Column(
-        modifier = modifier
-            .padding(vertical = 4.dp),
-    ) {
-        DialogSettingsItems(
-            icon = BlockerIcons.AutoFix,
-            titleRes = string.controller_type,
-            selectedItem = settings.controllerType,
-            itemList = listOf(
-                IFW to string.intent_firewall,
-                PM to string.package_manager,
-                SHIZUKU to string.shizuku,
-            ),
-            onValueChange = onChangeControllerType,
-        )
-        DialogSettingsItems(
-            icon = BlockerIcons.Block,
-            titleRes = string.online_rule_source,
-            selectedItem = settings.ruleServerProvider,
-            itemList = listOf(
-                GITHUB to string.options_github,
-                GITLAB to string.options_gitlab,
-            ),
-            onValueChange = onChangeRuleServerProvider,
-        )
-    }
+    DialogSettingsItems(
+        icon = ImageVectorIcon(BlockerIcons.AutoFix),
+        titleRes = string.controller_type,
+        selectedItem = settings.controllerType,
+        itemList = listOf(
+            IFW to string.intent_firewall,
+            PM to string.package_manager,
+            SHIZUKU to string.shizuku,
+        ),
+        onValueChange = onChangeControllerType,
+    )
+    DialogSettingsItems(
+        icon = ImageVectorIcon(BlockerIcons.Block),
+        titleRes = string.online_rule_source,
+        selectedItem = settings.ruleServerProvider,
+        itemList = listOf(
+            GITHUB to string.options_github,
+            GITLAB to string.options_gitlab,
+        ),
+        onValueChange = onChangeRuleServerProvider,
+    )
 }
 
 @Preview
