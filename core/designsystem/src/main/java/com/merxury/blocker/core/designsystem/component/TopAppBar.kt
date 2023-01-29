@@ -18,7 +18,6 @@
 package com.merxury.blocker.core.designsystem.component
 
 import android.R.string
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,7 +36,6 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,13 +46,11 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerTopAppBar(
-    title: String,
-    navigationIcon: ImageVector,
-    navigationIconContentDescription: String?,
-    actions: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    title: String,
+    navigationIcon: @Composable () -> Unit = {},
+    actions: @Composable () -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
-    onNavigationClick: () -> Unit = {},
 ) {
     TopAppBar(
         modifier = modifier,
@@ -66,70 +62,10 @@ fun BlockerTopAppBar(
             )
         },
         navigationIcon = {
-            IconButton(onClick = onNavigationClick) {
-                Icon(
-                    imageVector = navigationIcon,
-                    contentDescription = navigationIconContentDescription,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
+            navigationIcon()
         },
         actions = {
             actions()
-        },
-        colors = colors,
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BlockerHomeTopAppBar(
-    @StringRes titleRes: Int,
-    actions: @Composable () -> Unit,
-    modifier: Modifier = Modifier,
-    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
-) {
-    TopAppBar(
-        modifier = modifier,
-        title = {
-            AutoResizeText(
-                text = stringResource(id = titleRes),
-                FontSizeRange(5.sp, 22.sp),
-                maxLines = 2,
-            )
-        },
-        actions = {
-            actions()
-        },
-        colors = colors,
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun BlockerTopAppBar(
-    @StringRes titleRes: Int,
-    onNavigationClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
-) {
-    TopAppBar(
-        modifier = modifier,
-        title = {
-            AutoResizeText(
-                text = stringResource(id = titleRes),
-                FontSizeRange(5.sp, 22.sp),
-                maxLines = 2,
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onNavigationClick) {
-                Icon(
-                    imageVector = BlockerIcons.Back,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
         },
         colors = colors,
     )
@@ -220,14 +156,21 @@ fun BlockerLargeTopAppBar(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview("Top App Bar")
+@Preview("Top App Bar with actions and navigation")
 @Composable
-fun BlockerTopAppBarPreview() {
+fun BlockerTopAppBarNaviActionsPreview() {
     BlockerTheme {
         BlockerTopAppBar(
             title = stringResource(id = string.untitled),
-            navigationIcon = BlockerIcons.Back,
-            navigationIconContentDescription = "Navigation icon",
+            navigationIcon = {
+                IconButton(onClick = {}) {
+                    Icon(
+                        imageVector = BlockerIcons.Back,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            },
             actions = {
                 IconButton(onClick = {}) {
                     Icon(
@@ -242,25 +185,12 @@ fun BlockerTopAppBarPreview() {
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview("Home Top App Bar")
+@Preview("Top App Bar without navigation and actions")
 @Composable
 fun BlockerHomeTopAppBarPreview() {
     BlockerTheme {
-        BlockerHomeTopAppBar(
-            titleRes = string.untitled,
-            actions = {},
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview("Top App Bar only with navigation icon")
-@Composable
-fun BlockerTopAppBarWithNavPreview() {
-    BlockerTheme {
         BlockerTopAppBar(
-            titleRes = string.untitled,
-            onNavigationClick = {},
+            title = stringResource(id = string.untitled),
         )
     }
 }
