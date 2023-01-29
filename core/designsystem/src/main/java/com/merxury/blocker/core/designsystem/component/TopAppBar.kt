@@ -48,7 +48,8 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 fun BlockerTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
-    navigationIcon: @Composable () -> Unit = {},
+    hasNavigationIcon: Boolean = false,
+    onNavigationClick: () -> Unit = {},
     actions: @Composable () -> Unit = {},
     colors: TopAppBarColors = TopAppBarDefaults.smallTopAppBarColors(),
 ) {
@@ -62,7 +63,15 @@ fun BlockerTopAppBar(
             )
         },
         navigationIcon = {
-            navigationIcon()
+            if (hasNavigationIcon) {
+                IconButton(onClick = onNavigationClick) {
+                    Icon(
+                        imageVector = BlockerIcons.Back,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
         },
         actions = {
             actions()
@@ -162,15 +171,7 @@ fun BlockerTopAppBarNaviActionsPreview() {
     BlockerTheme {
         BlockerTopAppBar(
             title = stringResource(id = string.untitled),
-            navigationIcon = {
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = BlockerIcons.Back,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            },
+            hasNavigationIcon = true,
             actions = {
                 IconButton(onClick = {}) {
                     Icon(
