@@ -87,8 +87,6 @@ fun BlockerCollapsingTopAppBar(
             Row(
                 modifier = modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column {
                     Text(
