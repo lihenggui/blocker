@@ -25,28 +25,45 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Detail
 
-internal const val packageNameArg = "appId"
+internal const val packageNameArg = "packageName"
+internal const val screenNameArg = "screenName"
 
-internal class AppDetailArgs(val packageName: String) {
+internal class AppDetailArgs(val packageName: String, val screenName: String) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
-        this(stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])))
+        this(
+            stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])),
+            stringDecoder.decodeString(checkNotNull(savedStateHandle[screenNameArg])),
+        )
 }
 
-fun NavController.navigateToAppDetail(packageName: String) {
+fun NavController.navigateToAppDetail(packageName: String, screen: String) {
     val encodedId = Uri.encode(packageName)
-    this.navigate("app_detail_route/$encodedId")
+    this.navigate("app_detail_route/$encodedId?screen=$screen")
 }
 
 fun NavGraphBuilder.appDetailScreen(
     onBackClick: () -> Unit,
 ) {
     composable(
-        route = "app_detail_route/{$packageNameArg}",
+        route = "app_detail_route/{$packageNameArg}?screen={screenName}",
         arguments = listOf(
             navArgument(packageNameArg) { type = NavType.StringType },
+            navArgument(screenNameArg) {
+                type = NavType.StringType
+                defaultValue = Detail.name
+            },
         ),
     ) {
         AppDetailRoute(onBackClick = onBackClick)
     }
+}
+
+sealed class Screen(val name: String) {
+    object Detail : Screen("detail")
+    object Receiver : Screen("receiver")
+    object Service : Screen("service")
+    object Activity : Screen("activity")
+    object Provider : Screen("provider")
 }
