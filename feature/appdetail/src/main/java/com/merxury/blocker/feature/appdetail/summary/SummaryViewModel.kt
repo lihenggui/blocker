@@ -16,4 +16,33 @@
 
 package com.merxury.blocker.feature.appdetail.summary
 
-class SummaryViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
+import timber.log.Timber
+
+@HiltViewModel
+class SummaryViewModel @Inject constructor(
+    app: Application,
+) : AndroidViewModel(app) {
+    fun exportRule(packageName: String) {
+        Timber.d("Export Blocker rule for $packageName")
+    }
+
+    fun importRule(packageName: String) {
+        Timber.d("Import Blocker rule for $packageName")
+    }
+
+    fun exportIfwRule(packageName: String) {
+        Timber.d("Export IFW rule for $packageName")
+    }
+
+    fun importIfwRule(packageName: String) {
+        Timber.d("Import IFW rule for $packageName")
+    }
+
+    fun resetIfw(packageName: String) {
+        Timber.d("Reset IFW rule for $packageName")
+    }
+}

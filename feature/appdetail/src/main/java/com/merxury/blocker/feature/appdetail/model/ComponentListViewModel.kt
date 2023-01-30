@@ -30,12 +30,16 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.model.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.model.ComponentListUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
+import com.merxury.blocker.feature.appdetail.navigation.Screen
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 @HiltViewModel
 class ComponentListViewModel @Inject constructor(
@@ -56,11 +60,10 @@ class ComponentListViewModel @Inject constructor(
         val context: Context = getApplication()
         val pm = context.packageManager
         val packageName = vmArgs.packageName
-        Timber.d("ScreenName is ${vmArgs.screenName}")
-        val list = when (vmArgs.screenName) {
-            "receiver" -> ApplicationUtil.getReceiverList(pm, packageName)
-            "service" -> ApplicationUtil.getServiceList(pm, packageName)
-            "activity" -> ApplicationUtil.getActivityList(pm, packageName)
+        val list = when (Screen.fromName(vmArgs.screenName)) {
+            Receiver -> ApplicationUtil.getReceiverList(pm, packageName)
+            Service -> ApplicationUtil.getServiceList(pm, packageName)
+            Activity -> ApplicationUtil.getActivityList(pm, packageName)
             else -> ApplicationUtil.getProviderList(pm, packageName)
         }
         val convertedList = list.map {
