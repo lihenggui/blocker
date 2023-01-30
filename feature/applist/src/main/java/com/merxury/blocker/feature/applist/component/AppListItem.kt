@@ -65,7 +65,7 @@ fun AppListItem(
     versionCode: Long,
     packageInfo: PackageInfo?,
     appServiceStatus: AppServiceStatus?,
-    onClick: (String) -> Unit,
+    onClick: (String, String) -> Unit,
     onClearCacheClick: (String) -> Unit,
     onClearDataClick: (String) -> Unit,
     onForceStopClick: (String) -> Unit,
@@ -85,7 +85,7 @@ fun AppListItem(
             modifier = modifier
                 .fillMaxWidth()
                 .combinedClickable(
-                    onClick = { onClick(packageName) },
+                    onClick = { onClick(packageName, "detail") },
                     onLongClick = {
                         expanded = true
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -189,7 +189,7 @@ fun AppListItemPreview() {
                 versionCode = 1206,
                 packageInfo = PackageInfo(),
                 appServiceStatus = appServiceStatus,
-                onClick = {},
+                onClick = { _, _ -> },
                 onClearCacheClick = { },
                 onClearDataClick = { },
                 onForceStopClick = { },
@@ -213,7 +213,7 @@ fun AppListItemWithoutServicePreview() {
                 versionCode = 1206,
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
-                onClick = {},
+                onClick = { _, _ -> },
                 onClearCacheClick = { },
                 onClearDataClick = { },
                 onForceStopClick = { },
@@ -237,7 +237,7 @@ fun AppListItemWithLongAppName() {
                 versionCode = 1206,
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
-                onClick = {},
+                onClick = { _, _ -> },
                 onClearCacheClick = { },
                 onClearDataClick = { },
                 onForceStopClick = { },
