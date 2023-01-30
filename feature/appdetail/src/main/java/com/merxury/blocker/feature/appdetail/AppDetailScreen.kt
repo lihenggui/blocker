@@ -46,23 +46,23 @@ import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
-import com.merxury.blocker.feature.appdetail.component.AppInfoCard
 import com.merxury.blocker.feature.appdetail.navigation.Screen
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Detail
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Provider
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
+import com.merxury.blocker.feature.appdetail.ui.AppInfoCard
 import kotlinx.datetime.Clock.System
 
 @Composable
 fun AppDetailRoute(
     onBackClick: () -> Unit,
-    packageName: String,
     screen: Screen,
     onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier,
@@ -178,11 +178,11 @@ fun AppDetailContent(
                 }
             }
             when (screenState.tabPosition) {
-                0 -> SummaryContent(app)
-                1 -> ComponentListContentRoute(type = RECEIVER)
-                2 -> ComponentListContentRoute(type = SERVICE)
-                3 -> ComponentListContentRoute(type = ACTIVITY)
-                4 -> ComponentListContentRoute(type = PROVIDER)
+                Detail.tabPosition -> SummaryContent(app)
+                Receiver.tabPosition -> ComponentListContentRoute()
+                Service.tabPosition -> ComponentListContentRoute()
+                Activity.tabPosition -> ComponentListContentRoute()
+                Provider.tabPosition -> ComponentListContentRoute()
             }
         }
     }
@@ -222,7 +222,7 @@ fun AppDetailScreenPreview() {
                 tabState = tabState,
                 onLaunchAppClick = {},
                 onNavigate = {},
-                screen = Screen.Detail,
+                screen = Detail,
                 onBackClick = {},
             )
         }
@@ -258,7 +258,7 @@ fun AppDetailScreenCollapsedPreview() {
                 tabState = tabState,
                 onLaunchAppClick = {},
                 onNavigate = {},
-                screen = Screen.Detail,
+                screen = Detail,
                 onBackClick = {},
             )
         }

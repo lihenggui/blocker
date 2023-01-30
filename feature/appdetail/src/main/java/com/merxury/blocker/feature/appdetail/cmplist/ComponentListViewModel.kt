@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.model
+package com.merxury.blocker.feature.appdetail.cmplist
 
 import android.content.Context
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -27,19 +27,19 @@ import com.merxury.blocker.core.extension.getSimpleName
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.feature.appdetail.model.ComponentListUiState.Loading
-import com.merxury.blocker.feature.appdetail.model.ComponentListUiState.Success
+import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
+import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import com.merxury.blocker.feature.appdetail.navigation.Screen
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class ComponentListViewModel @Inject constructor(

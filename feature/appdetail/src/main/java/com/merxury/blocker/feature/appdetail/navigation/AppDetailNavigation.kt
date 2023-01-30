@@ -77,7 +77,6 @@ fun NavGraphBuilder.detailScreen(
         val screen = Screen.fromName(backStackEntry.arguments?.getString(screenNameArg))
         AppDetailRoute(
             screen = screen,
-            packageName = packageName,
             onBackClick = onBackClick,
             onNavigate = { destinationScreen ->
                 if (destinationScreen == screen) {

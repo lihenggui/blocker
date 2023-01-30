@@ -19,8 +19,8 @@ package com.merxury.blocker.feature.appdetail.summary
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class SummaryViewModel @Inject constructor(
