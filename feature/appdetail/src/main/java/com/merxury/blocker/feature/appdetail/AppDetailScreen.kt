@@ -56,6 +56,7 @@ import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
 import com.merxury.blocker.feature.appdetail.component.AppInfoCard
 import com.merxury.blocker.feature.appdetail.navigation.Screen
+import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import kotlinx.datetime.Clock.System
 
 @Composable
@@ -176,8 +177,8 @@ fun AppDetailContent(
                     )
                 }
             }
-            when (tabState.currentIndex) {
-                0 -> { }
+            when (screenState.tabPosition) {
+                0 -> SummaryContent(app)
                 1 -> ComponentListContentRoute(type = RECEIVER)
                 2 -> ComponentListContentRoute(type = SERVICE)
                 3 -> ComponentListContentRoute(type = ACTIVITY)
