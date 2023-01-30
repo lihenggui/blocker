@@ -86,7 +86,7 @@ fun BlockerCollapsingTopAppBar(
         title = {
             Row(
                 modifier = modifier
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
             ) {
                 Column {
                     Text(

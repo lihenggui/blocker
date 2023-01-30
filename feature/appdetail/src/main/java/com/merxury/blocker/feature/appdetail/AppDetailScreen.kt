@@ -50,6 +50,10 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
@@ -251,10 +255,10 @@ fun AppDetailContent(
                     onResetIfw = onResetIfw,
                 )
 
-                1 -> ComponentListContentRoute()
-                2 -> ComponentListContentRoute()
-                3 -> ComponentListContentRoute()
-                4 -> ComponentListContentRoute()
+                1 -> ComponentListContentRoute(type = RECEIVER)
+                2 -> ComponentListContentRoute(type = SERVICE)
+                3 -> ComponentListContentRoute(type = ACTIVITY)
+                4 -> ComponentListContentRoute(type = PROVIDER)
             }
         }
     }
