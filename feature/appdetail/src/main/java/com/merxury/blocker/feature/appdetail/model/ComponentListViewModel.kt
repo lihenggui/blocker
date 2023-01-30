@@ -31,11 +31,11 @@ import com.merxury.blocker.feature.appdetail.model.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.model.ComponentListUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class ComponentListViewModel @Inject constructor(

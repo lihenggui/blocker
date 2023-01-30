@@ -21,7 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.merxury.blocker.feature.appdetail.navigation.appDetailScreen
+import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
@@ -57,7 +57,10 @@ fun BlockerNavHost(
             navigateToSettings = navController::navigateToSettings,
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
         )
-        appDetailScreen(onBackClick)
+        detailScreen(
+            navController = navController,
+            onBackClick = onBackClick,
+        )
         onlineRulesScreen()
         globalSearchScreen()
         settingsScreen(onBackClick)
