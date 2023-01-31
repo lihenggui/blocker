@@ -90,7 +90,11 @@ fun ComponentItem(
                 text = simpleName,
                 style = MaterialTheme.typography.bodyLarge,
             )
-            Text(text = name, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = name,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
         Spacer(modifier = Modifier.weight(1f))
         Switch(

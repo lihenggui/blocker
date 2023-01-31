@@ -23,18 +23,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,73 +44,52 @@ import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBa
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
-import com.merxury.blocker.feature.appdetail.component.AppInfoCard
-import com.merxury.blocker.feature.appdetail.component.AppInfoTabContent
-import com.merxury.blocker.feature.appdetail.component.TopAppBarMoreMenu
-import com.merxury.blocker.feature.appdetail.model.AppInfoUiState
-import com.merxury.blocker.feature.appdetail.model.AppInfoUiState.Success
-import com.merxury.blocker.feature.appdetail.model.AppInfoViewModel
+import com.merxury.blocker.feature.appdetail.navigation.Screen
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Detail
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Provider
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
+import com.merxury.blocker.feature.appdetail.summary.SummaryContent
+import com.merxury.blocker.feature.appdetail.ui.AppInfoCard
 import kotlinx.datetime.Clock.System
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailRoute(
-    viewModel: AppInfoViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
+    screen: Screen,
+    onNavigate: (Screen) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-    val isCollapsed by remember { derivedStateOf { scrollBehavior.state.collapsedFraction > 0.5 } }
     AppDetailScreen(
         uiState = uiState,
         tabState = tabState,
-        onRefresh = { viewModel.onRefresh() },
-        switchTab = viewModel::switchTab,
+        modifier = modifier,
+        screen = screen,
+        onLaunchAppClick = viewModel::launchApp,
+        onNavigate = onNavigate,
         onBackClick = onBackClick,
-        onShare = viewModel::onShare,
-        onFindInPage = viewModel::onFindInPage,
-        onEnableApp = viewModel::onEnableApp,
-        onEnableAll = viewModel::onEnableAll,
-        onBlockAll = viewModel::onBlockAll,
-        isCollapsed = isCollapsed,
-        scrollBehavior = scrollBehavior,
-        onExportRules = viewModel::onExportRules,
-        onImportRules = viewModel::onImportRules,
-        onExportIfw = viewModel::onExportIfw,
-        onImportIfw = viewModel::onImportIfw,
-        onResetIfw = viewModel::onResetIfw,
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailScreen(
     uiState: AppInfoUiState,
     tabState: TabState,
-    onRefresh: () -> Unit,
-    switchTab: (Int) -> Unit,
+    screen: Screen,
     onBackClick: () -> Unit,
-    onShare: () -> Unit,
-    onFindInPage: () -> Unit,
-    onEnableApp: () -> Unit,
-    onEnableAll: () -> Unit,
-    onBlockAll: () -> Unit,
-    isCollapsed: Boolean,
-    scrollBehavior: TopAppBarScrollBehavior,
+    onLaunchAppClick: (String) -> Unit,
+    onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier,
-    onExportRules: () -> Unit,
-    onImportRules: () -> Unit,
-    onExportIfw: () -> Unit,
-    onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit,
 ) {
     Column(modifier) {
         when (uiState) {
@@ -134,22 +110,11 @@ fun AppDetailScreen(
                 AppDetailContent(
                     app = uiState.appInfo,
                     tabState = tabState,
-                    onRefresh = onRefresh,
-                    switchTab = switchTab,
+                    screen = screen,
                     onBackClick = onBackClick,
-                    onShare = onShare,
-                    onFindInPage = onFindInPage,
-                    onEnableApp = onEnableApp,
-                    onEnableAll = onEnableAll,
-                    onBlockAll = onBlockAll,
-                    isCollapsed = isCollapsed,
-                    scrollBehavior = scrollBehavior,
+                    onLaunchAppClick = onLaunchAppClick,
+                    onNavigate = onNavigate,
                     modifier = modifier,
-                    onExportRules = onExportRules,
-                    onImportRules = onImportRules,
-                    onExportIfw = onExportIfw,
-                    onImportIfw = onImportIfw,
-                    onResetIfw = onResetIfw,
                 )
             }
 
@@ -163,23 +128,16 @@ fun AppDetailScreen(
 fun AppDetailContent(
     app: Application,
     tabState: TabState,
-    onRefresh: () -> Unit,
-    switchTab: (Int) -> Unit,
+    screen: Screen,
     onBackClick: () -> Unit,
-    onShare: () -> Unit,
-    onFindInPage: () -> Unit,
-    onEnableApp: () -> Unit,
-    onEnableAll: () -> Unit,
-    onBlockAll: () -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior,
-    isCollapsed: Boolean,
+    onLaunchAppClick: (String) -> Unit,
+    onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier,
-    onExportRules: () -> Unit,
-    onImportRules: () -> Unit,
-    onExportIfw: () -> Unit,
-    onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit,
 ) {
+    val scrollBehavior =
+        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val isCollapsed by remember { derivedStateOf { scrollBehavior.state.collapsedFraction > 0.5 } }
+    val screenState by remember { mutableStateOf(screen) }
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
@@ -191,36 +149,13 @@ fun AppDetailContent(
                         versionCode = app.versionCode,
                         versionName = app.versionName,
                         packageInfo = app.packageInfo,
-                        onAppIconClick = { /* TODO add click callback */ },
+                        onAppIconClick = { onLaunchAppClick(app.packageName) },
                     )
                 },
                 isCollapsed = isCollapsed,
                 scrollBehavior = scrollBehavior,
                 onNavigationClick = onBackClick,
-                actions = {
-                    IconButton(onClick = onShare) {
-                        Icon(
-                            imageVector = BlockerIcons.Share,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                    IconButton(onClick = onFindInPage) {
-                        Icon(
-                            imageVector = BlockerIcons.Find,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                    if (tabState.currentIndex != 0) {
-                        TopAppBarMoreMenu(
-                            onEnableApp = onEnableApp,
-                            onRefresh = onRefresh,
-                            onEnableAll = onEnableAll,
-                            onBlockAll = onBlockAll,
-                        )
-                    }
-                },
+                actions = { },
             )
         },
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -231,30 +166,23 @@ fun AppDetailContent(
                 .fillMaxWidth(),
         ) {
             BlockerScrollableTabRow(
-                selectedTabIndex = tabState.currentIndex,
+                selectedTabIndex = screenState.tabPosition,
             ) {
                 tabState.titles.forEachIndexed { index, titleRes ->
+                    val newScreen = Screen.fromPosition(index)
                     BlockerTab(
                         selected = index == tabState.currentIndex,
-                        onClick = { switchTab(index) },
+                        onClick = { onNavigate(newScreen) },
                         text = { Text(text = stringResource(id = titleRes)) },
                     )
                 }
             }
-            when (tabState.currentIndex) {
-                0 -> AppInfoTabContent(
-                    app = app,
-                    onExportRules = onExportRules,
-                    onImportRules = onImportRules,
-                    onExportIfw = onExportIfw,
-                    onImportIfw = onImportIfw,
-                    onResetIfw = onResetIfw,
-                )
-
-                1 -> ComponentListContentRoute()
-                2 -> ComponentListContentRoute()
-                3 -> ComponentListContentRoute()
-                4 -> ComponentListContentRoute()
+            when (screenState.tabPosition) {
+                Detail.tabPosition -> SummaryContent(app)
+                Receiver.tabPosition -> ComponentListContentRoute()
+                Service.tabPosition -> ComponentListContentRoute()
+                Activity.tabPosition -> ComponentListContentRoute()
+                Provider.tabPosition -> ComponentListContentRoute()
             }
         }
     }
@@ -265,7 +193,6 @@ fun ErrorAppDetailScreen(message: String) {
     Text(text = message)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun AppDetailScreenPreview() {
@@ -288,34 +215,20 @@ fun AppDetailScreenPreview() {
         ),
         currentIndex = 0,
     )
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     BlockerTheme {
         Surface {
             AppDetailScreen(
                 uiState = Success(appInfo = app),
                 tabState = tabState,
-                onRefresh = {},
-                switchTab = {},
+                onLaunchAppClick = {},
+                onNavigate = {},
+                screen = Detail,
                 onBackClick = {},
-                onShare = {},
-                onFindInPage = {},
-                onEnableApp = {},
-                onEnableAll = {},
-                onBlockAll = {},
-                isCollapsed = false,
-                scrollBehavior = scrollBehavior,
-                onExportRules = {},
-                onImportRules = {},
-                onExportIfw = {},
-                onImportIfw = {},
-                onResetIfw = {},
             )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppDetailScreenCollapsedPreview() {
@@ -338,28 +251,15 @@ fun AppDetailScreenCollapsedPreview() {
         ),
         currentIndex = 0,
     )
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     BlockerTheme {
         Surface {
             AppDetailScreen(
                 uiState = Success(appInfo = app),
                 tabState = tabState,
-                onRefresh = {},
-                switchTab = {},
+                onLaunchAppClick = {},
+                onNavigate = {},
+                screen = Detail,
                 onBackClick = {},
-                onShare = {},
-                onFindInPage = {},
-                onEnableApp = {},
-                onEnableAll = {},
-                onBlockAll = {},
-                isCollapsed = true,
-                scrollBehavior = scrollBehavior,
-                onExportRules = {},
-                onImportRules = {},
-                onExportIfw = {},
-                onImportIfw = {},
-                onResetIfw = {},
             )
         }
     }
