@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.component
+package com.merxury.blocker.feature.appdetail.summary
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +27,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -41,14 +42,10 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Composable
-fun AppInfoTabContent(
+fun SummaryContent(
     app: Application,
     modifier: Modifier = Modifier,
-    onExportRules: () -> Unit,
-    onImportRules: () -> Unit,
-    onExportIfw: () -> Unit,
-    onImportIfw: () -> Unit,
-    onResetIfw: () -> Unit,
+    viewModel: SummaryViewModel = hiltViewModel(),
 ) {
     Box(modifier) {
         Column(
@@ -58,24 +55,23 @@ fun AppInfoTabContent(
                     rememberScrollState(),
                 ),
         ) {
-            MoreInfo(
+            AppSummary(
                 targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
-                // TODO add min SDK detection
-                minSdkVersion = 23,
+                minSdkVersion = app.minSdkVersion,
                 lastUpdateTime = app.lastUpdateTime,
                 dataDir = app.packageInfo?.applicationInfo?.dataDir,
-                onExportRules = onExportRules,
-                onImportRules = onImportRules,
-                onExportIfw = onExportIfw,
-                onImportIfw = onImportIfw,
-                onResetIfw = onResetIfw,
+                onExportRules = { viewModel.exportRule(app.packageName) },
+                onImportRules = { viewModel.importRule(app.packageName) },
+                onExportIfw = { viewModel.exportIfwRule(app.packageName) },
+                onImportIfw = { viewModel.importIfwRule(app.packageName) },
+                onResetIfw = { viewModel.resetIfw(app.packageName) },
             )
         }
     }
 }
 
 @Composable
-fun MoreInfo(
+fun AppSummary(
     targetSdkVersion: Int,
     minSdkVersion: Int,
     lastUpdateTime: Instant?,
@@ -117,14 +113,18 @@ fun MoreInfo(
             )
         }
         Divider()
-        BlockerRuleItem(onExportRules = onExportRules, onImportRules = onImportRules)
+        BlockerRuleSection(onExportRules = onExportRules, onImportRules = onImportRules)
         Divider()
-        IfwRuleItem(onExportIfw = onExportIfw, onImportIfw = onImportIfw, onResetIfw = onResetIfw)
+        IfwRuleSection(
+            onExportIfw = onExportIfw,
+            onImportIfw = onImportIfw,
+            onResetIfw = onResetIfw,
+        )
     }
 }
 
 @Composable
-fun BlockerRuleItem(
+fun BlockerRuleSection(
     onExportRules: () -> Unit,
     onImportRules: () -> Unit,
 ) {
@@ -145,7 +145,7 @@ fun BlockerRuleItem(
 }
 
 @Composable
-fun IfwRuleItem(
+fun IfwRuleSection(
     onExportIfw: () -> Unit,
     onImportIfw: () -> Unit,
     onResetIfw: () -> Unit,
@@ -184,13 +184,8 @@ fun PreviewAppInfoTabContent() {
     )
     BlockerTheme {
         Surface {
-            AppInfoTabContent(
+            SummaryContent(
                 app = app,
-                onExportRules = {},
-                onImportRules = {},
-                onExportIfw = {},
-                onImportIfw = {},
-                onResetIfw = {},
             )
         }
     }
