@@ -18,26 +18,27 @@ package com.merxury.blocker.feature.appdetail
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
@@ -47,6 +48,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
+import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
@@ -57,7 +60,6 @@ import com.merxury.blocker.feature.appdetail.navigation.Screen.Provider
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
-import com.merxury.blocker.feature.appdetail.ui.AppInfoCard
 import kotlinx.datetime.Clock.System
 
 @Composable
@@ -134,56 +136,72 @@ fun AppDetailContent(
     onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-    val isCollapsed by remember { derivedStateOf { scrollBehavior.state.collapsedFraction > 0.5 } }
+    val scrollState = rememberScrollState()
     val screenState by remember { mutableStateOf(screen) }
-    Scaffold(
-        topBar = {
-            BlockerCollapsingTopAppBar(
-                title = app.label,
-                content = {
-                    AppInfoCard(
-                        label = app.label,
-                        packageName = app.packageName,
-                        versionCode = app.versionCode,
-                        versionName = app.versionName,
-                        packageInfo = app.packageInfo,
-                        onAppIconClick = { onLaunchAppClick(app.packageName) },
-                    )
-                },
-                isCollapsed = isCollapsed,
-                scrollBehavior = scrollBehavior,
-                onNavigationClick = onBackClick,
-                actions = { },
-            )
-        },
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) { padding ->
-        Column(
-            modifier = modifier
-                .padding(padding)
-                .fillMaxWidth(),
+    val toolbarHeightRange = with(LocalDensity.current) {
+        MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
+    }
+    val toolbarState = rememberToolbarState(toolbarHeightRange)
+    toolbarState.scrollValue = scrollState.value
+
+    Box(modifier = modifier) {
+        AppDetailTabContent(
+            app = app,
+            tabState = tabState,
+            screenState = screenState,
+            onNavigate = onNavigate,
+            modifier = modifier,
+        )
+        BlockerCollapsingTopAppBar(
+            progress = toolbarState.progress,
+            actions = {},
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(with(LocalDensity.current) { toolbarState.height.toDp() })
+                .graphicsLayer { translationY = toolbarState.offset },
+        )
+    }
+}
+
+private val MinToolbarHeight = 64.dp
+private val MaxToolbarHeight = 188.dp
+
+@Composable
+private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
+    return rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
+        ExitUntilCollapsedState(heightRange = toolbarHeightRange)
+    }
+}
+
+@Composable
+fun AppDetailTabContent(
+    modifier: Modifier = Modifier,
+    app: Application,
+    tabState: TabState,
+    screenState: Screen,
+    onNavigate: (Screen) -> Unit,
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+    ) {
+        BlockerScrollableTabRow(
+            selectedTabIndex = screenState.tabPosition,
         ) {
-            BlockerScrollableTabRow(
-                selectedTabIndex = screenState.tabPosition,
-            ) {
-                tabState.titles.forEachIndexed { index, titleRes ->
-                    val newScreen = Screen.fromPosition(index)
-                    BlockerTab(
-                        selected = index == tabState.currentIndex,
-                        onClick = { onNavigate(newScreen) },
-                        text = { Text(text = stringResource(id = titleRes)) },
-                    )
-                }
+            tabState.titles.forEachIndexed { index, titleRes ->
+                val newScreen = Screen.fromPosition(index)
+                BlockerTab(
+                    selected = index == tabState.currentIndex,
+                    onClick = { onNavigate(newScreen) },
+                    text = { Text(text = stringResource(id = titleRes)) },
+                )
             }
-            when (screenState.tabPosition) {
-                Detail.tabPosition -> SummaryContent(app)
-                Receiver.tabPosition -> ComponentListContentRoute()
-                Service.tabPosition -> ComponentListContentRoute()
-                Activity.tabPosition -> ComponentListContentRoute()
-                Provider.tabPosition -> ComponentListContentRoute()
-            }
+        }
+        when (screenState.tabPosition) {
+            Detail.tabPosition -> SummaryContent(app)
+            Receiver.tabPosition -> ComponentListContentRoute()
+            Service.tabPosition -> ComponentListContentRoute()
+            Activity.tabPosition -> ComponentListContentRoute()
+            Provider.tabPosition -> ComponentListContentRoute()
         }
     }
 }
