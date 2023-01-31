@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.model
+package com.merxury.blocker.feature.appdetail
 
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
@@ -24,6 +24,7 @@ import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,14 +37,14 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class AppInfoViewModel @Inject constructor(
+class AppDetailViewModel @Inject constructor(
     app: android.app.Application,
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
 ) : AndroidViewModel(app) {
     private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _uiState: MutableStateFlow<AppInfoUiState> =
-        MutableStateFlow(AppInfoUiState.Loading)
+        MutableStateFlow(Loading)
     val uiState: StateFlow<AppInfoUiState> = _uiState
 
     private val _tabState = MutableStateFlow(
@@ -72,6 +73,10 @@ class AppInfoViewModel @Inject constructor(
         }
     }
 
+    fun launchApp(packageName: String) {
+        // TODO
+    }
+
     private fun load() = viewModelScope.launch {
         val packageName = appPackageNameArgs.packageName
         val app = ApplicationUtil.getApplicationInfo(getApplication(), packageName)
@@ -82,50 +87,6 @@ class AppInfoViewModel @Inject constructor(
         } else {
             _uiState.emit(AppInfoUiState.Success(app))
         }
-    }
-
-    fun onRefresh() {
-        // TODO
-    }
-
-    fun onShare() {
-        // TODO
-    }
-
-    fun onFindInPage() {
-        // TODO
-    }
-
-    fun onEnableApp() {
-        // TODO
-    }
-
-    fun onEnableAll() {
-        // TODO
-    }
-
-    fun onBlockAll() {
-        // TODO
-    }
-
-    fun onExportRules() {
-        // TODO
-    }
-
-    fun onImportRules() {
-        // TODO
-    }
-
-    fun onExportIfw() {
-        // TODO
-    }
-
-    fun onImportIfw() {
-        // TODO
-    }
-
-    fun onResetIfw() {
-        // TODO
     }
 }
 
