@@ -21,4 +21,5 @@ data class ComponentInfo(
     val name: String,
     val packageName: String,
     val enabled: Boolean,
+    val description: String? = null,
 )

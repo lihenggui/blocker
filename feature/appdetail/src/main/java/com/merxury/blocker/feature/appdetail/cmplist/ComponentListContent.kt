@@ -29,8 +29,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.model.ComponentListUiState
-import com.merxury.blocker.feature.appdetail.model.ComponentListViewModel
 
 @Composable
 fun ComponentListContentRoute(
