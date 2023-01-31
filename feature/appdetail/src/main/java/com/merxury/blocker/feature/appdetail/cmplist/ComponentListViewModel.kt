@@ -14,19 +14,31 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.model
+package com.merxury.blocker.feature.appdetail.cmplist
 
+import android.content.Context
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.decoder.StringDecoder
+import com.merxury.blocker.core.extension.getSimpleName
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.feature.appdetail.model.ComponentListUiState.Loading
+import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
+import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
+import com.merxury.blocker.feature.appdetail.navigation.Screen
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
+import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,42 +47,38 @@ class ComponentListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
 ) : AndroidViewModel(app) {
-    private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
+    private val vmArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _uiState: MutableStateFlow<ComponentListUiState> =
         MutableStateFlow(Loading)
     val uiState: StateFlow<ComponentListUiState> = _uiState
 
     init {
-//        when (eComponentType) {
-//            ACTIVITY -> getActivityList()
-//            RECEIVER -> getReceiverList()
-//            PROVIDER -> getProviderList()
-//            SERVICE -> getServiceList()
-//        }
+        getComponentList()
     }
 
-    private fun getActivityList() {
-        // TODO
-    }
-
-    private fun getReceiverList() {
-        // TODO
-    }
-
-    private fun getProviderList() {
-        // TODO
-    }
-
-    private fun getServiceList() {
-        // TODO
+    private fun getComponentList() = viewModelScope.launch {
+        val context: Context = getApplication()
+        val pm = context.packageManager
+        val packageName = vmArgs.packageName
+        val list = when (Screen.fromName(vmArgs.screenName)) {
+            Receiver -> ApplicationUtil.getReceiverList(pm, packageName)
+            Service -> ApplicationUtil.getServiceList(pm, packageName)
+            Activity -> ApplicationUtil.getActivityList(pm, packageName)
+            else -> ApplicationUtil.getProviderList(pm, packageName)
+        }
+        val convertedList = list.map {
+            ComponentInfo(
+                simpleName = it.getSimpleName(),
+                name = it.name,
+                packageName = it.packageName,
+                enabled = it.enabled,
+            )
+        }.toMutableStateList()
+        _uiState.emit(Success(convertedList))
     }
 
     fun controlComponent(packageName: String, componentName: String, enabled: Boolean) {
-        // TODO
-    }
-
-    fun onRefresh() {
-        // TODO
+        Timber.d("Control $packageName/$componentName to state $enabled")
     }
 }
 
