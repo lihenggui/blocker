@@ -57,7 +57,7 @@ import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
 
 @Composable
 fun AppListRoute(
-    navigateToAppDetail: (String, String) -> Unit,
+    navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     modifier: Modifier = Modifier,
@@ -104,7 +104,7 @@ fun AppListRoute(
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
-    onAppItemClick: (String, String) -> Unit,
+    onAppItemClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit,
     onClearDataClick: (String) -> Unit,
     onForceStopClick: (String) -> Unit,
@@ -184,7 +184,7 @@ fun AppListScreen(
 @Composable
 fun AppListContent(
     appList: SnapshotStateList<AppItem>,
-    onAppItemClick: (String, String) -> Unit,
+    onAppItemClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit,
     onClearDataClick: (String) -> Unit,
     onForceStopClick: (String) -> Unit,
