@@ -51,7 +51,6 @@ class ComponentListViewModel @AssistedInject constructor(
     private fun getComponentList() = viewModelScope.launch {
         Timber.d("getComponentList $packageName, $type")
         repository.getComponentList(packageName, type).collect { list ->
-            // TODO Add detection for IFW status
             _uiState.emit(Success(list.toMutableStateList()))
         }
     }
