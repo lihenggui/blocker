@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.data.di
 
+import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
 import com.merxury.blocker.core.data.respository.onlinecomponent.ComponentDataRepository
@@ -51,4 +53,9 @@ interface DataModule {
     fun bindsNetworkMonitor(
         networkMonitor: ConnectivityManagerNetworkMonitor,
     ): NetworkMonitor
+
+    @Binds
+    fun bindsLocalComponentRepository(
+        localComponentRepository: LocalComponentRepository,
+    ): ComponentRepository
 }
