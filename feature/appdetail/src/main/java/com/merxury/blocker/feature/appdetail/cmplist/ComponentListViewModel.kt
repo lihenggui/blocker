@@ -25,13 +25,19 @@ import com.merxury.blocker.core.data.respository.component.LocalComponentReposit
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Error
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Success
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -43,6 +49,11 @@ class ComponentListViewModel @AssistedInject constructor(
     private val _uiState: MutableStateFlow<ComponentListUiState> =
         MutableStateFlow(Loading)
     val uiState: StateFlow<ComponentListUiState> = _uiState
+    private val _errorEvent = MutableSharedFlow<ErrorMessage>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val errorEvent = _errorEvent.asSharedFlow()
 
     init {
         getComponentList()
@@ -50,9 +61,13 @@ class ComponentListViewModel @AssistedInject constructor(
 
     private fun getComponentList() = viewModelScope.launch {
         Timber.d("getComponentList $packageName, $type")
-        repository.getComponentList(packageName, type).collect { list ->
-            _uiState.emit(Success(list.toMutableStateList()))
-        }
+        repository.getComponentList(packageName, type)
+            .catch { exception ->
+                _uiState.emit(Error(exception.toErrorMessage()))
+            }
+            .collect { list ->
+                _uiState.emit(Success(list.toMutableStateList()))
+            }
     }
 
     fun controlComponent(
@@ -61,6 +76,9 @@ class ComponentListViewModel @AssistedInject constructor(
         enabled: Boolean,
     ) = viewModelScope.launch {
         repository.controlComponent(packageName, componentName, enabled)
+            .catch { exception ->
+                _errorEvent.emit(exception.toErrorMessage())
+            }
             .collect {
                 // TODO Update the list by the result
             }
