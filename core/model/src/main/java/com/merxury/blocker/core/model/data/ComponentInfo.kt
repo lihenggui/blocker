@@ -16,10 +16,16 @@
 
 package com.merxury.blocker.core.model.data
 
+import com.merxury.blocker.core.model.ComponentType
+
 data class ComponentInfo(
-    val simpleName: String,
     val name: String,
+    val simpleName: String,
     val packageName: String,
-    val enabled: Boolean,
+    val type: ComponentType,
+    val pmBlocked: Boolean,
+    val ifwBlocked: Boolean = false,
     val description: String? = null,
-)
+) {
+    fun enabled() = !(pmBlocked || ifwBlocked)
+}
