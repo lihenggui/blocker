@@ -25,4 +25,10 @@ interface ComponentRepository {
         packageName: String,
         type: ComponentType,
     ): Flow<List<ComponentInfo>>
+
+    fun controlComponent(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ): Flow<Boolean>
 }

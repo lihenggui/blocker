@@ -28,8 +28,8 @@ import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.IfwComponentType
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import timber.log.Timber
+import javax.inject.Inject
 
 class IfwController @Inject constructor(
     @ApplicationContext private val context: Context,
