@@ -61,7 +61,7 @@ fun ComponentTabContent(
                 simpleName = it.simpleName,
                 name = it.name,
                 packageName = it.packageName,
-                enabled = it.enabled,
+                enabled = it.enabled(),
                 onSwitchClick = onSwitchClick,
             )
         }

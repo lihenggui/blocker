@@ -17,13 +17,13 @@
 package com.merxury.blocker.core.data.respository.component
 
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.data.model.Component
 import com.merxury.blocker.core.extension.getSimpleName
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.network.BlockerDispatchers.IO
 import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -39,10 +39,10 @@ class LocalComponentDataSource @Inject constructor(
     private val pm: PackageManager,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDataSource {
-    override suspend fun getComponentList(
+    override fun getComponentList(
         packageName: String,
         type: ComponentType,
-    ): Flow<List<Component>> = flow {
+    ): Flow<List<ComponentInfo>> = flow {
         val list = when (type) {
             RECEIVER -> ApplicationUtil.getReceiverList(pm, packageName)
             SERVICE -> ApplicationUtil.getServiceList(pm, packageName)
@@ -51,7 +51,7 @@ class LocalComponentDataSource @Inject constructor(
         }
         emit(
             list.map {
-                Component(
+                ComponentInfo(
                     name = it.name,
                     simpleName = it.getSimpleName(),
                     packageName = it.packageName,

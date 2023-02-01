@@ -16,17 +16,16 @@
 
 package com.merxury.blocker.feature.appdetail.cmplist
 
-import android.content.Context
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.decoder.StringDecoder
-import com.merxury.blocker.core.extension.getSimpleName
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
@@ -43,10 +42,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ComponentListViewModel @Inject constructor(
-    app: android.app.Application,
+    private val repository: LocalComponentRepository,
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
-) : AndroidViewModel(app) {
+) : ViewModel() {
     private val vmArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _uiState: MutableStateFlow<ComponentListUiState> =
         MutableStateFlow(Loading)
@@ -57,24 +56,17 @@ class ComponentListViewModel @Inject constructor(
     }
 
     private fun getComponentList() = viewModelScope.launch {
-        val context: Context = getApplication()
-        val pm = context.packageManager
         val packageName = vmArgs.packageName
-        val list = when (Screen.fromName(vmArgs.screenName)) {
-            Receiver -> ApplicationUtil.getReceiverList(pm, packageName)
-            Service -> ApplicationUtil.getServiceList(pm, packageName)
-            Activity -> ApplicationUtil.getActivityList(pm, packageName)
-            else -> ApplicationUtil.getProviderList(pm, packageName)
+        val type = when (Screen.fromName(vmArgs.screenName)) {
+            Receiver -> ComponentType.RECEIVER
+            Service -> ComponentType.SERVICE
+            Activity -> ComponentType.ACTIVITY
+            else -> ComponentType.PROVIDER
         }
-        val convertedList = list.map {
-            ComponentInfo(
-                simpleName = it.getSimpleName(),
-                name = it.name,
-                packageName = it.packageName,
-                enabled = it.enabled,
-            )
-        }.toMutableStateList()
-        _uiState.emit(Success(convertedList))
+        repository.getComponentList(packageName, type).collect { list ->
+            // TODO Add detection for IFW status
+            _uiState.emit(Success(list.toMutableStateList()))
+        }
     }
 
     fun controlComponent(packageName: String, componentName: String, enabled: Boolean) {
