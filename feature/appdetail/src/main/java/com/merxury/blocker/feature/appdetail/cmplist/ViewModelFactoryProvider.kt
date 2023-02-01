@@ -14,18 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.feature.appdetail.cmplist
 
-import com.merxury.blocker.core.model.ComponentType
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ActivityComponent
 
-data class ComponentInfo(
-    val name: String,
-    val simpleName: String,
-    val packageName: String,
-    val type: ComponentType,
-    val pmBlocked: Boolean,
-    val ifwBlocked: Boolean = false,
-    val description: String? = null,
-) {
-    fun enabled() = !(pmBlocked || ifwBlocked)
+@EntryPoint
+@InstallIn(ActivityComponent::class)
+interface ViewModelFactoryProvider {
+    fun componentLiveViewModelFactory(): ComponentListViewModel.Factory
 }

@@ -31,7 +31,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -51,13 +50,16 @@ import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
-import com.merxury.blocker.feature.appdetail.navigation.Screen
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Detail
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Provider
@@ -69,15 +71,12 @@ import kotlinx.datetime.Clock.System
 @Composable
 fun AppDetailRoute(
     onBackClick: () -> Unit,
-    screen: Screen,
-    onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
-    val screenState by remember { mutableStateOf(screen) }
     val toolbarHeightRange = with(LocalDensity.current) {
         MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
     }
@@ -88,10 +87,9 @@ fun AppDetailRoute(
         uiState = uiState,
         tabState = tabState,
         modifier = modifier,
-        screenState = screenState,
         progress = toolbarState.progress,
         onLaunchAppClick = viewModel::launchApp,
-        onNavigate = onNavigate,
+        switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
     )
 }
@@ -100,11 +98,10 @@ fun AppDetailRoute(
 fun AppDetailScreen(
     uiState: AppInfoUiState,
     progress: Float,
-    screenState: Screen,
     tabState: TabState,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
-    onNavigate: (Screen) -> Unit,
+    switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
@@ -126,11 +123,10 @@ fun AppDetailScreen(
                 AppDetailContent(
                     app = uiState.appInfo,
                     tabState = tabState,
-                    screenState = screenState,
                     progress = progress,
                     onBackClick = onBackClick,
                     onLaunchAppClick = onLaunchAppClick,
-                    onNavigate = onNavigate,
+                    switchTab = switchTab,
                     modifier = modifier,
                 )
             }
@@ -144,19 +140,17 @@ fun AppDetailScreen(
 fun AppDetailContent(
     app: Application,
     tabState: TabState,
-    screenState: Screen,
     progress: Float,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
-    onNavigate: (Screen) -> Unit,
+    switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier) {
         AppDetailTabContent(
             app = app,
             tabState = tabState,
-            screenState = screenState,
-            onNavigate = onNavigate,
+            switchTab = switchTab,
             modifier = modifier,
         )
         BlockerCollapsingTopAppBar(
@@ -194,30 +188,43 @@ fun AppDetailTabContent(
     modifier: Modifier = Modifier,
     app: Application,
     tabState: TabState,
-    screenState: Screen,
-    onNavigate: (Screen) -> Unit,
+    switchTab: (Int) -> Unit,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
     ) {
         BlockerScrollableTabRow(
-            selectedTabIndex = screenState.tabPosition,
+            selectedTabIndex = tabState.currentIndex,
         ) {
             tabState.titles.forEachIndexed { index, titleRes ->
-                val newScreen = Screen.fromPosition(index)
                 BlockerTab(
                     selected = index == tabState.currentIndex,
-                    onClick = { onNavigate(newScreen) },
+                    onClick = { switchTab(index) },
                     text = { Text(text = stringResource(id = titleRes)) },
                 )
             }
         }
-        when (screenState.tabPosition) {
+        when (tabState.currentIndex) {
             Detail.tabPosition -> SummaryContent(app)
-            Receiver.tabPosition -> ComponentListContentRoute()
-            Service.tabPosition -> ComponentListContentRoute()
-            Activity.tabPosition -> ComponentListContentRoute()
-            Provider.tabPosition -> ComponentListContentRoute()
+            Receiver.tabPosition -> ComponentListContentRoute(
+                packageName = app.packageName,
+                type = RECEIVER,
+            )
+
+            Service.tabPosition -> ComponentListContentRoute(
+                packageName = app.packageName,
+                type = SERVICE,
+            )
+
+            Activity.tabPosition -> ComponentListContentRoute(
+                packageName = app.packageName,
+                type = ACTIVITY,
+            )
+
+            Provider.tabPosition -> ComponentListContentRoute(
+                packageName = app.packageName,
+                type = PROVIDER,
+            )
         }
     }
 }
@@ -255,10 +262,9 @@ fun AppDetailScreenPreview() {
                 uiState = Success(appInfo = app),
                 tabState = tabState,
                 onLaunchAppClick = {},
-                onNavigate = {},
-                screenState = Detail,
                 progress = 0f,
                 onBackClick = {},
+                switchTab = {},
             )
         }
     }
@@ -292,10 +298,9 @@ fun AppDetailScreenCollapsedPreview() {
                 uiState = Success(appInfo = app),
                 tabState = tabState,
                 onLaunchAppClick = {},
-                onNavigate = {},
-                screenState = Detail,
                 progress = 1f,
                 onBackClick = {},
+                switchTab = {},
             )
         }
     }

@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.appdetail.cmplist
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -42,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.ui.TrackScrollJank
 
 @Composable
 fun ComponentTabContent(
@@ -51,22 +51,22 @@ fun ComponentTabContent(
 ) {
     val listContent = remember { components }
     val listState = rememberLazyListState()
-    Box(modifier) {
-        LazyColumn(
-            state = listState,
-        ) {
-            items(listContent) {
-                ComponentItem(
-                    simpleName = it.simpleName,
-                    name = it.name,
-                    packageName = it.packageName,
-                    enabled = it.enabled,
-                    onSwitchClick = onSwitchClick,
-                )
-            }
-            item {
-                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-            }
+    TrackScrollJank(scrollableState = listState, stateName = "component:list")
+    LazyColumn(
+        modifier = modifier,
+        state = listState,
+    ) {
+        items(listContent) {
+            ComponentItem(
+                simpleName = it.simpleName,
+                name = it.name,
+                packageName = it.packageName,
+                enabled = it.enabled(),
+                onSwitchClick = onSwitchClick,
+            )
+        }
+        item {
+            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
         }
     }
 }
