@@ -57,10 +57,7 @@ fun BlockerNavHost(
             navigateToSettings = navController::navigateToSettings,
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
         )
-        detailScreen(
-            navController = navController,
-            onBackClick = onBackClick,
-        )
+        detailScreen(onBackClick = onBackClick)
         onlineRulesScreen()
         globalSearchScreen()
         settingsScreen(onBackClick)
