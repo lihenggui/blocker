@@ -18,8 +18,6 @@ package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,10 +31,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -44,22 +45,32 @@ import kotlin.math.roundToInt
 
 private val ContentPadding = 16.dp
 private val Elevation = 4.dp
-private val IconSize = 80.dp
-private val CollapsedTitleSize = 22.dp
-private val ExpandedTitleSize = 28.dp
+private val AppIconSize = 80.dp
+private val CollapsedTitleSize = 22.sp
+private val ExpandedTitleSize = 28.sp
+private val padding = 4.dp
+
+val MinToolbarHeight = 64.dp
+val MaxToolbarHeight = 188.dp
 
 @Composable
 fun BlockerCollapsingTopAppBar(
-    progress: Float,
-    actions: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    progress: Float,
+    onNavigationClick: () -> Unit = {},
+    title: String,
+    actions: @Composable () -> Unit = {},
+    subtitle: String,
+    summary: String,
+    icon: ImageVector,
 ) {
     val titleSize = with(LocalDensity.current) {
-        lerp(CollapsedTitleSize.toPx(), ExpandedTitleSize.toPx(), progress).toDp()
+        lerp(CollapsedTitleSize.toPx(), ExpandedTitleSize.toPx(), progress).toSp()
     }
 
     Surface(
         color = MaterialTheme.colorScheme.background,
+        tonalElevation = Elevation,
         modifier = modifier,
     ) {
         Box(
@@ -69,30 +80,40 @@ fun BlockerCollapsingTopAppBar(
                 .fillMaxSize(),
         ) {
             CollapsingToolbarLayout(progress = progress) {
-                IconButton(onClick = {}) {
+                IconButton(
+                    onClick = onNavigationClick,
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
                     Icon(
                         imageVector = BlockerIcons.Back,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
-                Row {
-                    Column {
-                        Text(
-                            text = "Title",
-                            modifier = Modifier
-                                .size(titleSize),
-                        )
-                        Text(text = "Package name")
-                        Text(text = "version code")
-                    }
-                    Image(
-                        imageVector = BlockerIcons.Find,
-                        contentDescription = null,
-                        modifier = Modifier.size(IconSize),
-                    )
-                }
-
+                Text(
+                    text = title,
+                    fontSize = titleSize,
+                )
+                actions()
+                Text(
+                    text = subtitle,
+                    modifier = Modifier
+                        .padding(vertical = padding)
+                        .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
+                )
+                Text(
+                    text = summary,
+                    modifier = Modifier
+                        .padding(vertical = padding)
+                        .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
+                )
+                Image(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(AppIconSize)
+                        .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
+                )
             }
         }
     }
@@ -108,7 +129,7 @@ private fun CollapsingToolbarLayout(
         modifier = modifier,
         content = content,
     ) { measurables, constraints ->
-        check(measurables.size == 4)
+        check(measurables.size == 6)
 
         val placeables = measurables.map {
             it.measure(constraints)
@@ -121,56 +142,68 @@ private fun CollapsingToolbarLayout(
             val expandedHorizontalGuideline = (constraints.maxHeight * 0.4f).roundToInt()
             val collapsedHorizontalGuideline = (constraints.maxHeight * 0.5f).roundToInt()
 
-            val backIcon = placeables[0]
+            val navigationIcon = placeables[0]
             val title = placeables[1]
-//            val moreIcon = placeables[2]
-            val packageName = placeables[2]
-            val versionCode = placeables[3]
-            backIcon.placeRelative(
+            val actionsIcon = placeables[2]
+            val subtitle = placeables[3]
+            val summary = placeables[4]
+            val icon = placeables[5]
+            navigationIcon.placeRelative(
                 x = 0,
-                y = 0,
+                y = MinToolbarHeight.roundToPx() / 2 - navigationIcon.height / 2,
             )
             title.placeRelative(
                 x = lerp(
-                    start = 0,
-                    stop = backIcon.width + ContentPadding.roundToPx(),
-                    fraction = progress,
-                ),
-                y = lerp(
-                    start = collapsedHorizontalGuideline,
+                    start = navigationIcon.width + ContentPadding.roundToPx(),
                     stop = 0,
                     fraction = progress,
                 ),
+                y = lerp(
+                    start = collapsedHorizontalGuideline - title.height / 2,
+                    stop = expandedHorizontalGuideline + title.height / 2,
+                    fraction = progress,
+                ),
             )
-//            moreIcon.placeRelative(
-//                x= constraints.maxWidth - moreIcon.width,
-//                y = 0
-//            )
-            packageName.placeRelative(
+            actionsIcon.placeRelative(
+                x = constraints.maxWidth - ContentPadding.roundToPx(),
+                y = MinToolbarHeight.roundToPx() / 2 - actionsIcon.height / 2,
+            )
+            subtitle.placeRelative(
                 x = lerp(
-                    start = 0,
+                    start = navigationIcon.width + ContentPadding.roundToPx(),
                     stop = 0,
                     fraction = progress,
                 ),
                 y = lerp(
-                    start = collapsedHorizontalGuideline + title.height,
-                    stop = 0,
+                    start = collapsedHorizontalGuideline + title.height / 2,
+                    stop = expandedHorizontalGuideline + title.height + subtitle.height / 2,
                     fraction = progress,
                 ),
             )
-            versionCode.placeRelative(
+            summary.placeRelative(
                 x = lerp(
-                    start = 0,
+                    start = navigationIcon.width + ContentPadding.roundToPx(),
                     stop = 0,
                     fraction = progress,
                 ),
                 y = lerp(
-                    start = collapsedHorizontalGuideline + title.height + packageName.height,
-                    stop = 0,
+                    start = collapsedHorizontalGuideline + title.height / 2,
+                    stop = expandedHorizontalGuideline + title.height + subtitle.height,
                     fraction = progress,
                 ),
             )
-
+            icon.placeRelative(
+                x = lerp(
+                    start = constraints.maxWidth - icon.width,
+                    stop = constraints.maxWidth - icon.width,
+                    fraction = progress,
+                ),
+                y = lerp(
+                    start = collapsedHorizontalGuideline + icon.height,
+                    stop = expandedHorizontalGuideline,
+                    fraction = progress,
+                ),
+            )
         }
     }
 }
@@ -181,7 +214,22 @@ fun CollapsingToolbarCollapsedPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0f,
-            actions = {},
+            title = "Title",
+            actions = {
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
+                        imageVector = BlockerIcons.More,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            },
+            subtitle = "packageName",
+            summary = "versionCode",
+            icon = BlockerIcons.Find,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
@@ -195,7 +243,22 @@ fun CollapsingToolbarHalfwayPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0.5f,
-            actions = {},
+            title = "Title",
+            actions = {
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
+                        imageVector = BlockerIcons.More,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            },
+            subtitle = "packageName",
+            summary = "versionCode",
+            icon = BlockerIcons.Find,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(94.dp),
@@ -209,7 +272,22 @@ fun CollapsingToolbarExpandedPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 1f,
-            actions = {},
+            title = "Title",
+            actions = {
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
+                        imageVector = BlockerIcons.More,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            },
+            subtitle = "packageName",
+            summary = "versionCode",
+            icon = BlockerIcons.Find,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(188.dp),
