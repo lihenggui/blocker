@@ -22,8 +22,8 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
-import com.merxury.blocker.core.network.BlockerDispatchers.IO
-import com.merxury.blocker.core.network.Dispatcher
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn

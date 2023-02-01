@@ -30,10 +30,10 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.network.BlockerDispatchers.IO
-import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION

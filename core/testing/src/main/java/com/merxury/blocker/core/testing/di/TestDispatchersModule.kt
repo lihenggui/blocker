@@ -16,9 +16,9 @@
 
 package com.merxury.blocker.core.testing.di
 
-import com.merxury.blocker.core.network.BlockerDispatchers
-import com.merxury.blocker.core.network.Dispatcher
-import com.merxury.blocker.core.network.di.DispatchersModule
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers
+import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.dispatchers.di.DispatchersModule
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.components.SingletonComponent
