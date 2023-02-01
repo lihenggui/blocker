@@ -20,9 +20,9 @@ import android.content.Context
 import com.merxury.blocker.core.data.model.asEntity
 import com.merxury.blocker.core.database.cmpdetail.ComponentDetailDao
 import com.merxury.blocker.core.database.cmpdetail.ComponentDetailEntity
-import com.merxury.blocker.core.network.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
-import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.asResult
