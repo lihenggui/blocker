@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.data.respository.component
 
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.data.ComponentInfo
+import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
-data class ComponentInfo(
-    val name: String,
-    val simpleName: String,
-    val packageName: String,
-    val type: ComponentType,
-    val pmBlocked: Boolean,
-    val ifwBlocked: Boolean = false,
-    val description: String? = null,
-) {
-    fun enabled() = !(pmBlocked || ifwBlocked)
+class LocalComponentRepository @Inject constructor(
+    private val localDataSource: LocalComponentDataSource,
+) : ComponentRepository {
+    override fun getComponentList(
+        packageName: String,
+        type: ComponentType,
+    ): Flow<List<ComponentInfo>> = localDataSource.getComponentList(packageName, type)
 }

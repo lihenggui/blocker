@@ -31,7 +31,6 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,11 +45,14 @@ import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
-import com.merxury.blocker.feature.appdetail.navigation.Screen
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Detail
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Provider
@@ -63,8 +65,6 @@ import kotlinx.datetime.Clock.System
 @Composable
 fun AppDetailRoute(
     onBackClick: () -> Unit,
-    screen: Screen,
-    onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
@@ -74,9 +74,8 @@ fun AppDetailRoute(
         uiState = uiState,
         tabState = tabState,
         modifier = modifier,
-        screen = screen,
         onLaunchAppClick = viewModel::launchApp,
-        onNavigate = onNavigate,
+        switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
     )
 }
@@ -85,10 +84,9 @@ fun AppDetailRoute(
 fun AppDetailScreen(
     uiState: AppInfoUiState,
     tabState: TabState,
-    screen: Screen,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
-    onNavigate: (Screen) -> Unit,
+    switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
@@ -110,10 +108,9 @@ fun AppDetailScreen(
                 AppDetailContent(
                     app = uiState.appInfo,
                     tabState = tabState,
-                    screen = screen,
                     onBackClick = onBackClick,
                     onLaunchAppClick = onLaunchAppClick,
-                    onNavigate = onNavigate,
+                    switchTab = switchTab,
                     modifier = modifier,
                 )
             }
@@ -128,16 +125,14 @@ fun AppDetailScreen(
 fun AppDetailContent(
     app: Application,
     tabState: TabState,
-    screen: Screen,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
-    onNavigate: (Screen) -> Unit,
+    switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val scrollBehavior =
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val isCollapsed by remember { derivedStateOf { scrollBehavior.state.collapsedFraction > 0.5 } }
-    val screenState by remember { mutableStateOf(screen) }
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
@@ -166,23 +161,37 @@ fun AppDetailContent(
                 .fillMaxWidth(),
         ) {
             BlockerScrollableTabRow(
-                selectedTabIndex = screenState.tabPosition,
+                selectedTabIndex = tabState.currentIndex,
             ) {
                 tabState.titles.forEachIndexed { index, titleRes ->
-                    val newScreen = Screen.fromPosition(index)
                     BlockerTab(
                         selected = index == tabState.currentIndex,
-                        onClick = { onNavigate(newScreen) },
+                        onClick = { switchTab(index) },
                         text = { Text(text = stringResource(id = titleRes)) },
                     )
                 }
             }
-            when (screenState.tabPosition) {
+            when (tabState.currentIndex) {
                 Detail.tabPosition -> SummaryContent(app)
-                Receiver.tabPosition -> ComponentListContentRoute()
-                Service.tabPosition -> ComponentListContentRoute()
-                Activity.tabPosition -> ComponentListContentRoute()
-                Provider.tabPosition -> ComponentListContentRoute()
+                Receiver.tabPosition -> ComponentListContentRoute(
+                    packageName = app.packageName,
+                    type = RECEIVER,
+                )
+
+                Service.tabPosition -> ComponentListContentRoute(
+                    packageName = app.packageName,
+                    type = SERVICE,
+                )
+
+                Activity.tabPosition -> ComponentListContentRoute(
+                    packageName = app.packageName,
+                    type = ACTIVITY,
+                )
+
+                Provider.tabPosition -> ComponentListContentRoute(
+                    packageName = app.packageName,
+                    type = PROVIDER,
+                )
             }
         }
     }
@@ -221,9 +230,8 @@ fun AppDetailScreenPreview() {
                 uiState = Success(appInfo = app),
                 tabState = tabState,
                 onLaunchAppClick = {},
-                onNavigate = {},
-                screen = Detail,
                 onBackClick = {},
+                switchTab = {},
             )
         }
     }
@@ -257,9 +265,8 @@ fun AppDetailScreenCollapsedPreview() {
                 uiState = Success(appInfo = app),
                 tabState = tabState,
                 onLaunchAppClick = {},
-                onNavigate = {},
-                screen = Detail,
                 onBackClick = {},
+                switchTab = {},
             )
         }
     }

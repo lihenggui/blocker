@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.data.di
 
-import com.merxury.blocker.core.model.ComponentType
+import android.app.Application
+import android.content.pm.PackageManager
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
-data class ComponentInfo(
-    val name: String,
-    val simpleName: String,
-    val packageName: String,
-    val type: ComponentType,
-    val pmBlocked: Boolean,
-    val ifwBlocked: Boolean = false,
-    val description: String? = null,
-) {
-    fun enabled() = !(pmBlocked || ifwBlocked)
+@Module
+@InstallIn(SingletonComponent::class)
+object SysModule {
+    @Provides
+    fun providePackageManager(
+        app: Application,
+    ): PackageManager {
+        return app.packageManager
+    }
 }

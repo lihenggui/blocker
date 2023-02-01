@@ -16,38 +16,30 @@
 
 package com.merxury.blocker.feature.appdetail.cmplist
 
-import android.content.Context
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.decoder.StringDecoder
-import com.merxury.blocker.core.extension.getSimpleName
+import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Success
-import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
-import com.merxury.blocker.feature.appdetail.navigation.Screen
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
-@HiltViewModel
-class ComponentListViewModel @Inject constructor(
-    app: android.app.Application,
-    savedStateHandle: SavedStateHandle,
-    stringDecoder: StringDecoder,
-) : AndroidViewModel(app) {
-    private val vmArgs = AppDetailArgs(savedStateHandle, stringDecoder)
+class ComponentListViewModel @AssistedInject constructor(
+    private val repository: LocalComponentRepository,
+    @Assisted private val packageName: String,
+    @Assisted private val type: ComponentType,
+) : ViewModel() {
     private val _uiState: MutableStateFlow<ComponentListUiState> =
         MutableStateFlow(Loading)
     val uiState: StateFlow<ComponentListUiState> = _uiState
@@ -57,28 +49,33 @@ class ComponentListViewModel @Inject constructor(
     }
 
     private fun getComponentList() = viewModelScope.launch {
-        val context: Context = getApplication()
-        val pm = context.packageManager
-        val packageName = vmArgs.packageName
-        val list = when (Screen.fromName(vmArgs.screenName)) {
-            Receiver -> ApplicationUtil.getReceiverList(pm, packageName)
-            Service -> ApplicationUtil.getServiceList(pm, packageName)
-            Activity -> ApplicationUtil.getActivityList(pm, packageName)
-            else -> ApplicationUtil.getProviderList(pm, packageName)
+        Timber.d("getComponentList $packageName, $type")
+        repository.getComponentList(packageName, type).collect { list ->
+            // TODO Add detection for IFW status
+            _uiState.emit(Success(list.toMutableStateList()))
         }
-        val convertedList = list.map {
-            ComponentInfo(
-                simpleName = it.getSimpleName(),
-                name = it.name,
-                packageName = it.packageName,
-                enabled = it.enabled,
-            )
-        }.toMutableStateList()
-        _uiState.emit(Success(convertedList))
     }
 
     fun controlComponent(packageName: String, componentName: String, enabled: Boolean) {
         Timber.d("Control $packageName/$componentName to state $enabled")
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(packageName: String, type: ComponentType): ComponentListViewModel
+    }
+
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        fun provideFactory(
+            assistedFactory: Factory,
+            packageName: String,
+            type: ComponentType,
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return assistedFactory.create(packageName, type) as T
+            }
+        }
     }
 }
 
