@@ -39,7 +39,7 @@ import org.simpleframework.xml.core.Persister
 import timber.log.Timber
 
 class IntentFirewallImpl @AssistedInject constructor(
-    @Assisted override val packageName: String
+    @Assisted override val packageName: String,
 ) : IntentFirewall {
 
     private val filename: String = "$packageName$EXTENSION"

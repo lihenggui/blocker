@@ -55,8 +55,15 @@ class ComponentListViewModel @AssistedInject constructor(
         }
     }
 
-    fun controlComponent(packageName: String, componentName: String, enabled: Boolean) {
-        Timber.d("Control $packageName/$componentName to state $enabled")
+    fun controlComponent(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) = viewModelScope.launch {
+        repository.controlComponent(packageName, componentName, enabled)
+            .collect {
+                // TODO Update the list by the result
+            }
     }
 
     @AssistedFactory

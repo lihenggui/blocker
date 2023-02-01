@@ -24,9 +24,9 @@ import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
-import javax.inject.Inject
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
+import javax.inject.Inject
 
 class ShizukuController @Inject constructor(
     @ApplicationContext private val context: Context,
