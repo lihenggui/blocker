@@ -23,17 +23,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
+import dagger.hilt.android.EntryPointAccessors
 
 @Composable
 fun ComponentListContentRoute(
     modifier: Modifier = Modifier,
-    viewModel: ComponentListViewModel = hiltViewModel(),
+    packageName: String,
+    type: ComponentType,
+    viewModel: ComponentListViewModel = componentListViewModel(
+        packageName = packageName,
+        type = type,
+    ),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ComponentListContent(
@@ -41,6 +49,15 @@ fun ComponentListContentRoute(
         onSwitch = viewModel::controlComponent,
         modifier = modifier,
     )
+}
+
+@Composable
+fun componentListViewModel(packageName: String, type: ComponentType): ComponentListViewModel {
+    val factory = EntryPointAccessors.fromActivity(
+        LocalContext.current as android.app.Activity,
+        ViewModelFactoryProvider::class.java,
+    ).componentLiveViewModelFactory()
+    return viewModel(factory = ComponentListViewModel.provideFactory(factory, packageName, type))
 }
 
 @Composable
