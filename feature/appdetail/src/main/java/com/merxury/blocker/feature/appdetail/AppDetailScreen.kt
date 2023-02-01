@@ -22,9 +22,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,6 +46,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBa
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
+import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
+import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
@@ -72,11 +76,20 @@ fun AppDetailRoute(
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scrollState = rememberScrollState()
+    val screenState by remember { mutableStateOf(screen) }
+    val toolbarHeightRange = with(LocalDensity.current) {
+        MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
+    }
+    val toolbarState = rememberToolbarState(toolbarHeightRange)
+    toolbarState.scrollValue = scrollState.value
+
     AppDetailScreen(
         uiState = uiState,
         tabState = tabState,
         modifier = modifier,
-        screen = screen,
+        screenState = screenState,
+        progress = toolbarState.progress,
         onLaunchAppClick = viewModel::launchApp,
         onNavigate = onNavigate,
         onBackClick = onBackClick,
@@ -86,8 +99,9 @@ fun AppDetailRoute(
 @Composable
 fun AppDetailScreen(
     uiState: AppInfoUiState,
+    progress: Float,
+    screenState: Screen,
     tabState: TabState,
-    screen: Screen,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     onNavigate: (Screen) -> Unit,
@@ -112,7 +126,8 @@ fun AppDetailScreen(
                 AppDetailContent(
                     app = uiState.appInfo,
                     tabState = tabState,
-                    screen = screen,
+                    screenState = screenState,
+                    progress = progress,
                     onBackClick = onBackClick,
                     onLaunchAppClick = onLaunchAppClick,
                     onNavigate = onNavigate,
@@ -125,25 +140,17 @@ fun AppDetailScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailContent(
     app: Application,
     tabState: TabState,
-    screen: Screen,
+    screenState: Screen,
+    progress: Float,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     onNavigate: (Screen) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scrollState = rememberScrollState()
-    val screenState by remember { mutableStateOf(screen) }
-    val toolbarHeightRange = with(LocalDensity.current) {
-        MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
-    }
-    val toolbarState = rememberToolbarState(toolbarHeightRange)
-    toolbarState.scrollValue = scrollState.value
-
     Box(modifier = modifier) {
         AppDetailTabContent(
             app = app,
@@ -153,18 +160,27 @@ fun AppDetailContent(
             modifier = modifier,
         )
         BlockerCollapsingTopAppBar(
-            progress = toolbarState.progress,
-            actions = {},
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(with(LocalDensity.current) { toolbarState.height.toDp() })
-                .graphicsLayer { translationY = toolbarState.offset },
+            progress = progress,
+            onNavigationClick = onBackClick,
+            title = app.label,
+            actions = {
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
+                        imageVector = BlockerIcons.More,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            },
+            subtitle = app.packageName,
+            summary = app.versionCode.toString(),
+            icon = BlockerIcons.Find,
         )
     }
 }
-
-private val MinToolbarHeight = 64.dp
-private val MaxToolbarHeight = 188.dp
 
 @Composable
 private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
@@ -240,7 +256,8 @@ fun AppDetailScreenPreview() {
                 tabState = tabState,
                 onLaunchAppClick = {},
                 onNavigate = {},
-                screen = Detail,
+                screenState = Detail,
+                progress = 0f,
                 onBackClick = {},
             )
         }
@@ -276,7 +293,8 @@ fun AppDetailScreenCollapsedPreview() {
                 tabState = tabState,
                 onLaunchAppClick = {},
                 onNavigate = {},
-                screen = Detail,
+                screenState = Detail,
+                progress = 1f,
                 onBackClick = {},
             )
         }
