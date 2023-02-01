@@ -16,16 +16,16 @@
 
 package com.merxury.blocker.core.data.respository.component
 
-import com.merxury.blocker.core.data.model.Component
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.data.ComponentInfo
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
 ) : ComponentRepository {
-    override suspend fun getComponentList(
+    override fun getComponentList(
         packageName: String,
         type: ComponentType,
-    ): Flow<List<Component>> = localDataSource.getComponentList(packageName, type)
+    ): Flow<List<ComponentInfo>> = localDataSource.getComponentList(packageName, type)
 }

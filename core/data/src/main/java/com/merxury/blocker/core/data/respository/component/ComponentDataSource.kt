@@ -16,13 +16,13 @@
 
 package com.merxury.blocker.core.data.respository.component
 
-import com.merxury.blocker.core.data.model.Component
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.data.ComponentInfo
 import kotlinx.coroutines.flow.Flow
 
 interface ComponentDataSource {
-    suspend fun getComponentList(
+    fun getComponentList(
         packageName: String,
         type: ComponentType,
-    ): Flow<List<Component>>
+    ): Flow<List<ComponentInfo>>
 }
