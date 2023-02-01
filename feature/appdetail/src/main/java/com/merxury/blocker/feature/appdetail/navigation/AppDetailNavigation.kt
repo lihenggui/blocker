@@ -20,73 +20,34 @@ import android.net.Uri
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Detail
-import timber.log.Timber
 
 @VisibleForTesting
 internal const val packageNameArg = "packageName"
 
-@VisibleForTesting
-internal const val screenNameArg = "screenName"
-
-internal class AppDetailArgs(val packageName: String, val screenName: String) {
+internal class AppDetailArgs(val packageName: String) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
-        this(
-            stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])),
-            stringDecoder.decodeString(checkNotNull(savedStateHandle[screenNameArg])),
-        )
+        this(stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])))
 }
 
-fun NavController.navigateToAppDetail(packageName: String, screen: String) {
+fun NavController.navigateToAppDetail(packageName: String) {
     val encodedId = Uri.encode(packageName)
-    this.navigate("app_detail_route/$encodedId?screen=$screen") {
-        // Pop up to the start destination of the graph to
-        // avoid building up a large stack of destinations
-        // on the back stack as users select items
-        popUpTo(graph.findStartDestination().id) {
-            saveState = true
-        }
-        // Avoid multiple copies of the same destination when
-        // reselecting the same item
-        launchSingleTop = true
-    }
+    this.navigate("app_detail_route/$encodedId")
 }
 
-fun NavGraphBuilder.detailScreen(
-    navController: NavController,
-    onBackClick: () -> Unit,
-) {
+fun NavGraphBuilder.detailScreen(onBackClick: () -> Unit) {
     composable(
-        route = "app_detail_route/{$packageNameArg}?screen={$screenNameArg}",
+        route = "app_detail_route/{$packageNameArg}",
         arguments = listOf(
             navArgument(packageNameArg) { type = NavType.StringType },
-            navArgument(screenNameArg) {
-                type = NavType.StringType
-                defaultValue = Detail.name
-            },
         ),
-    ) { backStackEntry ->
-        val packageName = backStackEntry.arguments?.getString(packageNameArg).orEmpty()
-        val screen = Screen.fromName(backStackEntry.arguments?.getString(screenNameArg))
-        AppDetailRoute(
-            screen = screen,
-            onBackClick = onBackClick,
-            onNavigate = { destinationScreen ->
-                if (destinationScreen == screen) {
-                    // Don't navigate to the same destination
-                    Timber.d("Ignore navigating to the same detail screen.")
-                    return@AppDetailRoute
-                }
-                navController.navigateToAppDetail(packageName, destinationScreen.name)
-            },
-        )
+    ) {
+        AppDetailRoute(onBackClick = onBackClick)
     }
 }
 
