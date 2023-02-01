@@ -57,7 +57,11 @@ fun componentListViewModel(packageName: String, type: ComponentType): ComponentL
         LocalContext.current as android.app.Activity,
         ViewModelFactoryProvider::class.java,
     ).componentLiveViewModelFactory()
-    return viewModel(factory = ComponentListViewModel.provideFactory(factory, packageName, type))
+    val key = "$packageName+${type.name}"
+    return viewModel(
+        key = key,
+        factory = ComponentListViewModel.provideFactory(factory, packageName, type),
+    )
 }
 
 @Composable
