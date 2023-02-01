@@ -18,35 +18,28 @@ package com.merxury.blocker.feature.appdetail.cmplist
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
-import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Success
-import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
-import com.merxury.blocker.feature.appdetail.navigation.Screen
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
-import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
-@HiltViewModel
-class ComponentListViewModel @Inject constructor(
+class ComponentListViewModel @AssistedInject constructor(
     private val repository: LocalComponentRepository,
-    savedStateHandle: SavedStateHandle,
-    stringDecoder: StringDecoder,
+    @Assisted private val packageName: String,
+    @Assisted private val type: ComponentType,
 ) : ViewModel() {
-    private val vmArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _uiState: MutableStateFlow<ComponentListUiState> =
         MutableStateFlow(Loading)
     val uiState: StateFlow<ComponentListUiState> = _uiState
@@ -56,13 +49,7 @@ class ComponentListViewModel @Inject constructor(
     }
 
     private fun getComponentList() = viewModelScope.launch {
-        val packageName = vmArgs.packageName
-        val type = when (Screen.fromName(vmArgs.screenName)) {
-            Receiver -> ComponentType.RECEIVER
-            Service -> ComponentType.SERVICE
-            Activity -> ComponentType.ACTIVITY
-            else -> ComponentType.PROVIDER
-        }
+        Timber.d("getComponentList $packageName, $type")
         repository.getComponentList(packageName, type).collect { list ->
             // TODO Add detection for IFW status
             _uiState.emit(Success(list.toMutableStateList()))
@@ -71,6 +58,24 @@ class ComponentListViewModel @Inject constructor(
 
     fun controlComponent(packageName: String, componentName: String, enabled: Boolean) {
         Timber.d("Control $packageName/$componentName to state $enabled")
+    }
+
+    @AssistedFactory
+    interface Factory {
+        fun create(packageName: String, type: ComponentType): ComponentListViewModel
+    }
+
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        fun provideFactory(
+            assistedFactory: Factory,
+            packageName: String,
+            type: ComponentType,
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return assistedFactory.create(packageName, type) as T
+            }
+        }
     }
 }
 

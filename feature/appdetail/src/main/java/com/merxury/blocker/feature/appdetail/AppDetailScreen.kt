@@ -46,6 +46,10 @@ import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
@@ -179,10 +183,25 @@ fun AppDetailContent(
             }
             when (screenState.tabPosition) {
                 Detail.tabPosition -> SummaryContent(app)
-                Receiver.tabPosition -> ComponentListContentRoute()
-                Service.tabPosition -> ComponentListContentRoute()
-                Activity.tabPosition -> ComponentListContentRoute()
-                Provider.tabPosition -> ComponentListContentRoute()
+                Receiver.tabPosition -> ComponentListContentRoute(
+                    packageName = app.packageName,
+                    type = RECEIVER,
+                )
+
+                Service.tabPosition -> ComponentListContentRoute(
+                    packageName = app.packageName,
+                    type = SERVICE,
+                )
+
+                Activity.tabPosition -> ComponentListContentRoute(
+                    packageName = app.packageName,
+                    type = ACTIVITY,
+                )
+
+                Provider.tabPosition -> ComponentListContentRoute(
+                    packageName = app.packageName,
+                    type = PROVIDER,
+                )
             }
         }
     }
