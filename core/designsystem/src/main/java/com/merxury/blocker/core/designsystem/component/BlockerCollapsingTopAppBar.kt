@@ -43,11 +43,10 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import kotlin.math.roundToInt
 
-private val ContentPadding = 16.dp
-private val Elevation = 4.dp
-private val AppIconSize = 80.dp
-private val CollapsedTitleSize = 22.sp
-private val ExpandedTitleSize = 28.sp
+private val contentPadding = 16.dp
+private val appIconSize = 80.dp
+private val collapsedTitleSize = 22.sp
+private val expandedTitleSize = 28.sp
 private val padding = 4.dp
 
 val MinToolbarHeight = 64.dp
@@ -65,18 +64,17 @@ fun BlockerCollapsingTopAppBar(
     icon: ImageVector,
 ) {
     val titleSize = with(LocalDensity.current) {
-        lerp(CollapsedTitleSize.toPx(), ExpandedTitleSize.toPx(), progress).toSp()
+        lerp(collapsedTitleSize.toPx(), expandedTitleSize.toPx(), progress).toSp()
     }
 
     Surface(
-        color = MaterialTheme.colorScheme.background,
-        tonalElevation = Elevation,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = modifier,
     ) {
         Box(
             modifier = Modifier
                 .statusBarsPadding()
-                .padding(horizontal = ContentPadding)
+                .padding(horizontal = contentPadding)
                 .fillMaxSize(),
         ) {
             CollapsingToolbarLayout(progress = progress) {
@@ -111,7 +109,7 @@ fun BlockerCollapsingTopAppBar(
                     imageVector = icon,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(AppIconSize)
+                        .size(appIconSize)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
             }
@@ -154,23 +152,23 @@ private fun CollapsingToolbarLayout(
             )
             title.placeRelative(
                 x = lerp(
-                    start = navigationIcon.width + ContentPadding.roundToPx(),
+                    start = navigationIcon.width + contentPadding.roundToPx(),
                     stop = 0,
                     fraction = progress,
                 ),
                 y = lerp(
-                    start = collapsedHorizontalGuideline - title.height / 2,
+                    start = MinToolbarHeight.roundToPx() / 2 - title.height / 2,
                     stop = expandedHorizontalGuideline + title.height / 2,
                     fraction = progress,
                 ),
             )
             actionsIcon.placeRelative(
-                x = constraints.maxWidth - ContentPadding.roundToPx(),
+                x = constraints.maxWidth - contentPadding.roundToPx(),
                 y = MinToolbarHeight.roundToPx() / 2 - actionsIcon.height / 2,
             )
             subtitle.placeRelative(
                 x = lerp(
-                    start = navigationIcon.width + ContentPadding.roundToPx(),
+                    start = navigationIcon.width + contentPadding.roundToPx(),
                     stop = 0,
                     fraction = progress,
                 ),
@@ -182,7 +180,7 @@ private fun CollapsingToolbarLayout(
             )
             summary.placeRelative(
                 x = lerp(
-                    start = navigationIcon.width + ContentPadding.roundToPx(),
+                    start = navigationIcon.width + contentPadding.roundToPx(),
                     stop = 0,
                     fraction = progress,
                 ),

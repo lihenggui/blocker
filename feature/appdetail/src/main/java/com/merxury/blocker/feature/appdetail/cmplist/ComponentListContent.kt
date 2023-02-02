@@ -16,9 +16,11 @@
 
 package com.merxury.blocker.feature.appdetail.cmplist
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -36,6 +38,7 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun ComponentListContentRoute(
     modifier: Modifier = Modifier,
+    scrollState: ScrollState = rememberScrollState(),
     packageName: String,
     type: ComponentType,
     viewModel: ComponentListViewModel = componentListViewModel(
@@ -48,6 +51,7 @@ fun ComponentListContentRoute(
         uiState = uiState,
         onSwitch = viewModel::controlComponent,
         modifier = modifier,
+        scrollState = scrollState,
     )
 }
 
@@ -67,6 +71,7 @@ fun componentListViewModel(packageName: String, type: ComponentType): ComponentL
 @Composable
 fun ComponentListContent(
     uiState: ComponentListUiState,
+    scrollState: ScrollState = rememberScrollState(),
     onSwitch: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
