@@ -1,4 +1,5 @@
 /*
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +15,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network.di
+package com.merxury.blocker.core.dispatchers.di
 
-import com.merxury.blocker.core.network.BlockerDispatchers
-import com.merxury.blocker.core.network.Dispatcher
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
