@@ -47,11 +47,11 @@ class LocalComponentRepository @Inject constructor(
     override fun controlComponent(
         packageName: String,
         componentName: String,
-        enabled: Boolean,
+        newState: Boolean,
     ): Flow<Boolean> = flow {
-        Timber.d("Control $packageName/$componentName to state $enabled")
+        Timber.d("Control $packageName/$componentName to state $newState")
         val controller = getController()
-        val result = if (enabled) {
+        val result = if (newState) {
             controller.enable(packageName, componentName)
         } else {
             controller.disable(packageName, componentName)
