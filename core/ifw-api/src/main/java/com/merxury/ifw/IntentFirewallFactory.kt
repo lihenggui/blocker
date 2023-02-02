@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.component
+package com.merxury.ifw
 
-import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.ComponentInfo
-import kotlinx.coroutines.flow.Flow
+import dagger.assisted.AssistedFactory
 
-interface ComponentRepository {
-    fun getComponentList(
-        packageName: String,
-        type: ComponentType,
-    ): Flow<List<ComponentInfo>>
-
-    fun controlComponent(
-        packageName: String,
-        componentName: String,
-        enabled: Boolean,
-    ): Flow<Boolean>
+@AssistedFactory
+interface IntentFirewallFactory {
+    fun create(packageName: String): IntentFirewallImpl
 }

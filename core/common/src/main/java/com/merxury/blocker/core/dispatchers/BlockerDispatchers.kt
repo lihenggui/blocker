@@ -1,4 +1,5 @@
 /*
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network
+package com.merxury.blocker.core.dispatchers
 
 import javax.inject.Qualifier
 import kotlin.annotation.AnnotationRetention.RUNTIME
