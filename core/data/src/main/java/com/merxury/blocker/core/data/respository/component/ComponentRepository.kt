@@ -29,6 +29,6 @@ interface ComponentRepository {
     fun controlComponent(
         packageName: String,
         componentName: String,
-        enabled: Boolean,
+        newState: Boolean,
     ): Flow<Boolean>
 }
