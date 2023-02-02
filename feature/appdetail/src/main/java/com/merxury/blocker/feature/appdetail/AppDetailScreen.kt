@@ -17,12 +17,18 @@
 package com.merxury.blocker.feature.appdetail
 
 import android.content.res.Configuration
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,10 +37,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -76,18 +82,11 @@ fun AppDetailRoute(
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val scrollState = rememberScrollState()
-    val toolbarHeightRange = with(LocalDensity.current) {
-        MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
-    }
-    val toolbarState = rememberToolbarState(toolbarHeightRange)
-    toolbarState.scrollValue = scrollState.value
 
     AppDetailScreen(
         uiState = uiState,
         tabState = tabState,
-        modifier = modifier,
-        progress = toolbarState.progress,
+        modifier = modifier.fillMaxSize(),
         onLaunchAppClick = viewModel::launchApp,
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
@@ -97,7 +96,6 @@ fun AppDetailRoute(
 @Composable
 fun AppDetailScreen(
     uiState: AppInfoUiState,
-    progress: Float,
     tabState: TabState,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
@@ -108,7 +106,7 @@ fun AppDetailScreen(
         when (uiState) {
             is AppInfoUiState.Loading -> {
                 Column(
-                    modifier = modifier.fillMaxSize(),
+                    modifier = modifier,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
@@ -123,7 +121,6 @@ fun AppDetailScreen(
                 AppDetailContent(
                     app = uiState.appInfo,
                     tabState = tabState,
-                    progress = progress,
                     onBackClick = onBackClick,
                     onLaunchAppClick = onLaunchAppClick,
                     switchTab = switchTab,
@@ -140,21 +137,32 @@ fun AppDetailScreen(
 fun AppDetailContent(
     app: Application,
     tabState: TabState,
-    progress: Float,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scrollState = rememberScrollState()
+    val listState = rememberLazyListState()
+
+    val toolbarHeightRange = with(LocalDensity.current) {
+        MinToolbarHeight.roundToPx()..MaxToolbarHeight.roundToPx()
+    }
+    val toolbarState = rememberToolbarState(toolbarHeightRange)
+    toolbarState.scrollValue = scrollState.value
+
     Box(modifier = modifier) {
         AppDetailTabContent(
             app = app,
             tabState = tabState,
             switchTab = switchTab,
-            modifier = modifier,
+            modifier = Modifier.fillMaxSize(),
+            scrollState = scrollState,
+            listState = listState,
+            contentPadding = PaddingValues(top = MaxToolbarHeight),
         )
         BlockerCollapsingTopAppBar(
-            progress = progress,
+            progress = toolbarState.progress,
             onNavigationClick = onBackClick,
             title = app.label,
             actions = {
@@ -172,6 +180,10 @@ fun AppDetailContent(
             subtitle = app.packageName,
             summary = app.versionCode.toString(),
             icon = BlockerIcons.Find,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(with(LocalDensity.current) { toolbarState.height.toDp() })
+                .graphicsLayer { translationY = toolbarState.offset },
         )
     }
 }
@@ -189,10 +201,18 @@ fun AppDetailTabContent(
     app: Application,
     tabState: TabState,
     switchTab: (Int) -> Unit,
+    scrollState: ScrollState = rememberScrollState(),
+    listState: LazyListState = rememberLazyListState(),
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
     ) {
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(contentPadding.calculateTopPadding()),
+        )
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
         ) {
@@ -205,27 +225,42 @@ fun AppDetailTabContent(
             }
         }
         when (tabState.currentIndex) {
-            Detail.tabPosition -> SummaryContent(app)
+            Detail.tabPosition ->
+                SummaryContent(
+                    app = app,
+                    modifier = Modifier.fillMaxSize(),
+                    scrollState = scrollState,
+                )
+
             Receiver.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = RECEIVER,
+                scrollState = scrollState,
             )
 
             Service.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = SERVICE,
+                scrollState = scrollState,
             )
 
             Activity.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = ACTIVITY,
+                scrollState = scrollState,
             )
 
             Provider.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = PROVIDER,
+                scrollState = scrollState,
             )
         }
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(contentPadding.calculateBottomPadding()),
+        )
     }
 }
 
@@ -262,7 +297,6 @@ fun AppDetailScreenPreview() {
                 uiState = Success(appInfo = app),
                 tabState = tabState,
                 onLaunchAppClick = {},
-                progress = 0f,
                 onBackClick = {},
                 switchTab = {},
             )
@@ -298,7 +332,6 @@ fun AppDetailScreenCollapsedPreview() {
                 uiState = Success(appInfo = app),
                 tabState = tabState,
                 onLaunchAppClick = {},
-                progress = 1f,
                 onBackClick = {},
                 switchTab = {},
             )
