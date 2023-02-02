@@ -24,6 +24,9 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -33,10 +36,8 @@ import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASC
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
-import com.merxury.blocker.core.network.BlockerDispatchers.DEFAULT
-import com.merxury.blocker.core.network.BlockerDispatchers.IO
-import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.state.AppStateCache
@@ -70,14 +71,7 @@ class AppListViewModel @Inject constructor(
     var errorState = mutableStateOf<ErrorMessage?>(null)
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
-        errorState.value = ErrorMessage(
-            throwable.localizedMessage
-                ?: throwable.message
-                ?: throwable.stackTraceToString()
-                    .split("\n")
-                    .first(),
-            throwable.stackTraceToString(),
-        )
+        errorState.value = throwable.toErrorMessage()
     }
     private val channel = Channel<Job>(capacity = Channel.UNLIMITED).apply {
         viewModelScope.launch {

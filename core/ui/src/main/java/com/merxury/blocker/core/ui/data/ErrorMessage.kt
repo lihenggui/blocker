@@ -20,3 +20,9 @@ data class ErrorMessage(
     val message: String,
     val stackTrace: String? = null,
 )
+
+fun Throwable.toErrorMessage() = ErrorMessage(
+    message = localizedMessage ?: message
+        ?: stackTraceToString().split("\n").first(),
+    stackTrace = stackTraceToString(),
+)
