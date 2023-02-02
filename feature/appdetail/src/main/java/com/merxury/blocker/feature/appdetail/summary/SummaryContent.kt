@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail.summary
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -34,26 +35,25 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.utils.AndroidCodeName
 import com.merxury.blocker.feature.appdetail.R.string
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toJavaInstant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toJavaInstant
 
 @Composable
 fun SummaryContent(
     app: Application,
     modifier: Modifier = Modifier,
+    scrollState: ScrollState = rememberScrollState(),
     viewModel: SummaryViewModel = hiltViewModel(),
 ) {
     Box(modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(
-                    rememberScrollState(),
-                ),
+                .verticalScroll(scrollState),
         ) {
             AppSummary(
                 targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
