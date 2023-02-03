@@ -18,11 +18,13 @@ package com.merxury.blocker.feature.applist
 
 import android.content.Context
 import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -62,7 +64,9 @@ import javax.inject.Inject
 @HiltViewModel
 class AppListViewModel @Inject constructor(
     app: android.app.Application,
+    private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
+    private val appRepository: AppRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(app) {
@@ -90,12 +94,12 @@ class AppListViewModel @Inject constructor(
         val preference = userDataRepository.userData.first()
         val sortType = preference.appSorting
         val list = if (preference.showSystemApps) {
-            ApplicationUtil.getApplicationList(getApplication())
+            appRepository.getApplicationList().first()
         } else {
-            ApplicationUtil.getThirdPartyApplicationList(getApplication())
+            appRepository.getThirdPartyApplicationList().first()
         }
             .toMutableList()
-        val stateAppList = mapToSnapshotStateList(list, getApplication())
+        val stateAppList = mapToSnapshotStateList(list)
         sortList(stateAppList, sortType)
         _uiState.emit(AppListUiState.Success(stateAppList))
     }
@@ -217,7 +221,6 @@ class AppListViewModel @Inject constructor(
 
     private suspend fun mapToSnapshotStateList(
         list: MutableList<Application>,
-        context: Context,
     ): SnapshotStateList<AppItem> = withContext(cpuDispatcher) {
         val stateAppList = mutableStateListOf<AppItem>()
         list.forEach {
@@ -226,7 +229,7 @@ class AppListViewModel @Inject constructor(
                 packageName = it.packageName,
                 versionName = it.versionName.orEmpty(),
                 versionCode = it.versionCode,
-                isSystem = ApplicationUtil.isSystemApp(context.packageManager, it.packageName),
+                isSystem = ApplicationUtil.isSystemApp(pm, it.packageName),
                 // TODO detect if an app is running or not
                 isRunning = false,
                 enabled = it.isEnabled,
