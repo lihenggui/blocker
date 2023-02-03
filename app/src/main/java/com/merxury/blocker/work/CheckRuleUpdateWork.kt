@@ -29,7 +29,6 @@ import com.elvishew.xlog.XLog
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.merxury.blocker.R
-import com.merxury.blocker.core.database.instantinfo.InstantComponentInfo
 import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDao
 import com.merxury.blocker.core.network.model.OnlineSourceType
 import com.merxury.blocker.core.rule.util.NotificationUtil
@@ -41,7 +40,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.buffer
 import okio.sink
-import org.apache.commons.csv.CSVFormat
 import java.io.File
 import java.io.IOException
 
@@ -93,24 +91,6 @@ class CheckRuleUpdateWork @AssistedInject constructor(
     @Throws(IOException::class)
     private fun importCSV(file: File) {
         val reader = file.bufferedReader()
-        CSVFormat.Builder.create(CSVFormat.DEFAULT)
-            .apply { setIgnoreSurroundingSpaces(true) }
-            .build()
-            .parse(reader)
-            .drop(1)
-            .map {
-                InstantComponentInfo(
-                    packagePath = it[0],
-                    componentName = it[1],
-                    description = it[2],
-                    recommendToBlock = it[3].toBoolean(),
-                )
-            }
-            .forEach {
-                if (dao.find(it.packagePath, it.componentName) == null) {
-                    dao.insert(it)
-                }
-            }
         reader.close()
     }
 

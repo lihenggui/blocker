@@ -170,7 +170,6 @@ dependencies {
     implementation(libs.libsu.io)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
-    implementation(libs.apache.commons.csv)
 }
 
 // androidx.test is forcing JUnit, 4.12. This forces it to use 4.13

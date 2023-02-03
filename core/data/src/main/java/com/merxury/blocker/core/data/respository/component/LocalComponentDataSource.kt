@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.respository.component
 
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.ifw.IfwController
+import com.merxury.blocker.core.controllers.root.RootController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getSimpleName
@@ -39,6 +40,7 @@ import javax.inject.Singleton
 class LocalComponentDataSource @Inject constructor(
     private val pm: PackageManager,
     private val ifwController: IfwController,
+    private val pmController: RootController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDataSource {
     override fun getComponentList(
@@ -58,7 +60,7 @@ class LocalComponentDataSource @Inject constructor(
                     simpleName = it.getSimpleName(),
                     packageName = it.packageName,
                     type = type,
-                    pmBlocked = !it.enabled,
+                    pmBlocked = !pmController.checkComponentEnableState(packageName, it.name),
                     ifwBlocked = !ifwController.checkComponentEnableState(packageName, it.name),
                 )
             },
