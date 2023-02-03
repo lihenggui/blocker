@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.data.respository.component
 
-import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.ifw.IfwController
 import com.merxury.blocker.core.controllers.root.RootController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
@@ -69,14 +68,61 @@ class LocalComponentRepository @Inject constructor(
         newState: Boolean,
     ): Flow<Boolean> = flow {
         Timber.d("Control $packageName/$componentName to state $newState")
-        val controller = getController()
-        val result = if (newState) {
-            controller.enable(packageName, componentName)
-        } else {
-            controller.disable(packageName, componentName)
+        val userData = userDataRepository.userData.first()
+        val result = when (userData.controllerType) {
+            IFW -> controlInIfwMode(packageName, componentName, newState)
+            PM -> controlInPmMode(packageName, componentName, newState)
+            SHIZUKU -> controlInShizukuMode(packageName, componentName, newState)
         }
         updateComponentStatus(packageName, componentName)
         emit(result)
+    }
+
+    private suspend fun controlInIfwMode(
+        packageName: String,
+        componentName: String,
+        newState: Boolean,
+    ): Boolean {
+        return if (newState) {
+            // Need to enable the component by PM controller first
+            val blockedByPm = !pmController.checkComponentEnableState(packageName, componentName)
+            if (blockedByPm) {
+                pmController.enable(packageName, componentName)
+            }
+            ifwController.enable(packageName, componentName)
+        } else {
+            ifwController.disable(packageName, componentName)
+        }
+    }
+
+    private suspend fun controlInPmMode(
+        packageName: String,
+        componentName: String,
+        newState: Boolean,
+    ): Boolean {
+        return if (newState) {
+            // Need to enable the component by PM controller first
+            val blockedByIfw = !ifwController.checkComponentEnableState(packageName, componentName)
+            if (blockedByIfw) {
+                ifwController.enable(packageName, componentName)
+            }
+            pmController.enable(packageName, componentName)
+        } else {
+            pmController.disable(packageName, componentName)
+        }
+    }
+
+    private suspend fun controlInShizukuMode(
+        packageName: String,
+        componentName: String,
+        newState: Boolean,
+    ): Boolean {
+        // In Shizuku mode, use root privileges as little as possible
+        return if (newState) {
+            shizukuController.enable(packageName, componentName)
+        } else {
+            shizukuController.disable(packageName, componentName)
+        }
     }
 
     private suspend fun updateComponentStatus(packageName: String, componentName: String) {
@@ -93,14 +139,5 @@ class LocalComponentRepository @Inject constructor(
             cachedList[position] = newComponentInfo
         }
         _data.emit(cachedList)
-    }
-
-    private suspend fun getController(): IController {
-        val userData = userDataRepository.userData.first()
-        return when (userData.controllerType) {
-            IFW -> ifwController
-            PM -> pmController
-            SHIZUKU -> shizukuController
-        }
     }
 }
