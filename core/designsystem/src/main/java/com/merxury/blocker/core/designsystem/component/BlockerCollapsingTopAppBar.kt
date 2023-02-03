@@ -173,7 +173,7 @@ private fun CollapsingToolbarLayout(
                     fraction = progress,
                 ),
                 y = lerp(
-                    start = collapsedHorizontalGuideline + title.height / 2,
+                    start = collapsedHorizontalGuideline + title.height - subtitle.height / 2,
                     stop = expandedHorizontalGuideline + title.height + subtitle.height / 2,
                     fraction = progress,
                 ),
@@ -185,7 +185,7 @@ private fun CollapsingToolbarLayout(
                     fraction = progress,
                 ),
                 y = lerp(
-                    start = collapsedHorizontalGuideline + title.height / 2,
+                    start = collapsedHorizontalGuideline + title.height + subtitle.height - summary.height / 2,
                     stop = expandedHorizontalGuideline + title.height + subtitle.height,
                     fraction = progress,
                 ),
@@ -197,7 +197,7 @@ private fun CollapsingToolbarLayout(
                     fraction = progress,
                 ),
                 y = lerp(
-                    start = collapsedHorizontalGuideline + icon.height,
+                    start = collapsedHorizontalGuideline + title.height,
                     stop = expandedHorizontalGuideline,
                     fraction = progress,
                 ),
