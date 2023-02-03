@@ -20,7 +20,6 @@ import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -72,10 +71,11 @@ class AppListViewModel @Inject constructor(
 ) : AndroidViewModel(app) {
     private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
     val uiState = _uiState.asStateFlow()
-    var errorState = mutableStateOf<ErrorMessage?>(null)
+    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    val errorState = _errorState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
-        errorState.value = throwable.toErrorMessage()
+        _errorState.tryEmit(throwable.toErrorMessage())
     }
     private val channel = Channel<Job>(capacity = Channel.UNLIMITED).apply {
         viewModelScope.launch {
@@ -165,8 +165,8 @@ class AppListViewModel @Inject constructor(
         )
     }
 
-    fun dismissDialog() {
-        errorState.value = null
+    fun dismissDialog() = viewModelScope.launch {
+        _errorState.emit(null)
     }
 
     fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
