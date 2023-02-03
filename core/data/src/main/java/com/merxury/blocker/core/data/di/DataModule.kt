@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.data.di
 
+import com.merxury.blocker.core.data.respository.app.AppRepository
+import com.merxury.blocker.core.data.respository.app.LocalAppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
@@ -58,4 +60,9 @@ interface DataModule {
     fun bindsLocalComponentRepository(
         localComponentRepository: LocalComponentRepository,
     ): ComponentRepository
+
+    @Binds
+    fun bindsLocalAppRepository(
+        localAppRepository: LocalAppRepository,
+    ): AppRepository
 }
