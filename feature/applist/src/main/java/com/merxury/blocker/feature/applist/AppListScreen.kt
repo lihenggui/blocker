@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -45,8 +44,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
-import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.ui.data.ErrorMessage
@@ -64,7 +63,7 @@ fun AppListRoute(
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val errorState by remember { viewModel.errorState }
+    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     AppListScreen(
         uiState = uiState,
         onAppItemClick = navigateToAppDetail,
@@ -81,21 +80,10 @@ fun AppListRoute(
         modifier = modifier,
     )
     if (errorState != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissDialog() },
-            title = {
-                Text(errorState?.message.orEmpty())
-            },
-            text = {
-                Text(errorState?.stackTrace.orEmpty())
-            },
-            confirmButton = {
-                BlockerTextButton(
-                    onClick = { viewModel.dismissDialog() },
-                ) {
-                    Text(stringResource(id = android.R.string.ok))
-                }
-            },
+        BlockerErrorAlertDialog(
+            title = errorState?.message.orEmpty(),
+            text = errorState?.stackTrace.orEmpty(),
+            onDismissRequest = viewModel::dismissDialog,
         )
     }
 }
