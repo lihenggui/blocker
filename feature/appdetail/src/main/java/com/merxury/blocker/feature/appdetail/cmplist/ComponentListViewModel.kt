@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.feature.appdetail.cmplist
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -37,7 +37,10 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -46,28 +49,36 @@ class ComponentListViewModel @AssistedInject constructor(
     @Assisted private val packageName: String,
     @Assisted private val type: ComponentType,
 ) : ViewModel() {
-    private val _uiState: MutableStateFlow<ComponentListUiState> =
-        MutableStateFlow(Loading)
-    val uiState: StateFlow<ComponentListUiState> = _uiState
+    private val _uiState: MutableStateFlow<ComponentListUiState> = MutableStateFlow(Loading)
+    val uiState: StateFlow<ComponentListUiState> = _uiState.asStateFlow()
     private val _errorEvent = MutableSharedFlow<ErrorMessage>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
     val errorEvent = _errorEvent.asSharedFlow()
+    private val stateList = mutableStateListOf<ComponentInfo>()
 
     init {
+        listenDataChange()
         getComponentList()
     }
 
+    private fun listenDataChange() = viewModelScope.launch {
+        repository.data.collect {
+            stateList.clear()
+            stateList.addAll(it)
+            _uiState.emit(Success(stateList))
+        }
+    }
+
     private fun getComponentList() = viewModelScope.launch {
-        Timber.d("getComponentList $packageName, $type")
         repository.getComponentList(packageName, type)
-            .catch { exception ->
-                _uiState.emit(Error(exception.toErrorMessage()))
+            .onStart {
+                Timber.d("getComponentList $packageName, $type")
+                _uiState.emit(Loading)
             }
-            .collect { list ->
-                _uiState.emit(Success(list.toMutableStateList()))
-            }
+            .catch { _uiState.emit(Error(it.toErrorMessage())) }
+            .collect()
     }
 
     fun controlComponent(
@@ -79,9 +90,7 @@ class ComponentListViewModel @AssistedInject constructor(
             .catch { exception ->
                 _errorEvent.emit(exception.toErrorMessage())
             }
-            .collect {
-                // TODO Update the list by the result
-            }
+            .collect()
     }
 
     @AssistedFactory

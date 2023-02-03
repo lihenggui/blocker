@@ -17,14 +17,10 @@
 package com.merxury.blocker.core.data.respository.component
 
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.ComponentInfo
 import kotlinx.coroutines.flow.Flow
 
 interface ComponentRepository {
-    fun getComponentList(
-        packageName: String,
-        type: ComponentType,
-    ): Flow<List<ComponentInfo>>
+    fun getComponentList(packageName: String, type: ComponentType): Flow<Unit>
 
     fun controlComponent(
         packageName: String,
