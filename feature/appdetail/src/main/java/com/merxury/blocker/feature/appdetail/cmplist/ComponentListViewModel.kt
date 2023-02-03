@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.feature.appdetail.cmplist
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -25,13 +25,22 @@ import com.merxury.blocker.core.data.respository.component.LocalComponentReposit
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Error
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Success
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -40,24 +49,48 @@ class ComponentListViewModel @AssistedInject constructor(
     @Assisted private val packageName: String,
     @Assisted private val type: ComponentType,
 ) : ViewModel() {
-    private val _uiState: MutableStateFlow<ComponentListUiState> =
-        MutableStateFlow(Loading)
-    val uiState: StateFlow<ComponentListUiState> = _uiState
+    private val _uiState: MutableStateFlow<ComponentListUiState> = MutableStateFlow(Loading)
+    val uiState: StateFlow<ComponentListUiState> = _uiState.asStateFlow()
+    private val _errorEvent = MutableSharedFlow<ErrorMessage>(
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val errorEvent = _errorEvent.asSharedFlow()
+    private val stateList = mutableStateListOf<ComponentInfo>()
 
     init {
+        listenDataChange()
         getComponentList()
     }
 
-    private fun getComponentList() = viewModelScope.launch {
-        Timber.d("getComponentList $packageName, $type")
-        repository.getComponentList(packageName, type).collect { list ->
-            // TODO Add detection for IFW status
-            _uiState.emit(Success(list.toMutableStateList()))
+    private fun listenDataChange() = viewModelScope.launch {
+        repository.data.collect {
+            stateList.clear()
+            stateList.addAll(it)
+            _uiState.emit(Success(stateList))
         }
     }
 
-    fun controlComponent(packageName: String, componentName: String, enabled: Boolean) {
-        Timber.d("Control $packageName/$componentName to state $enabled")
+    private fun getComponentList() = viewModelScope.launch {
+        repository.getComponentList(packageName, type)
+            .onStart {
+                Timber.d("getComponentList $packageName, $type")
+                _uiState.emit(Loading)
+            }
+            .catch { _uiState.emit(Error(it.toErrorMessage())) }
+            .collect()
+    }
+
+    fun controlComponent(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) = viewModelScope.launch {
+        repository.controlComponent(packageName, componentName, enabled)
+            .catch { exception ->
+                _errorEvent.emit(exception.toErrorMessage())
+            }
+            .collect()
     }
 
     @AssistedFactory
