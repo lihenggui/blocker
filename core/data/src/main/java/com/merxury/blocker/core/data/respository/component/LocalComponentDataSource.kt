@@ -17,6 +17,10 @@
 package com.merxury.blocker.core.data.respository.component
 
 import android.content.pm.PackageManager
+import com.merxury.blocker.core.controllers.ifw.IfwController
+import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getSimpleName
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
@@ -24,8 +28,6 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.network.BlockerDispatchers.IO
-import com.merxury.blocker.core.network.Dispatcher
 import com.merxury.blocker.core.utils.ApplicationUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -37,6 +39,8 @@ import javax.inject.Singleton
 @Singleton
 class LocalComponentDataSource @Inject constructor(
     private val pm: PackageManager,
+    private val ifwController: IfwController,
+    private val pmController: RootController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDataSource {
     override fun getComponentList(
@@ -56,7 +60,8 @@ class LocalComponentDataSource @Inject constructor(
                     simpleName = it.getSimpleName(),
                     packageName = it.packageName,
                     type = type,
-                    pmBlocked = !it.enabled,
+                    pmBlocked = !pmController.checkComponentEnableState(packageName, it.name),
+                    ifwBlocked = !ifwController.checkComponentEnableState(packageName, it.name),
                 )
             },
         )

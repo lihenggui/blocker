@@ -30,13 +30,17 @@ import com.merxury.ifw.util.IfwStorageUtils
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
 import com.topjohnwu.superuser.io.SuFileOutputStream
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.simpleframework.xml.Serializer
 import org.simpleframework.xml.core.Persister
 import timber.log.Timber
 
-class IntentFirewallImpl(override val packageName: String) : IntentFirewall {
+class IntentFirewallImpl @AssistedInject constructor(
+    @Assisted override val packageName: String,
+) : IntentFirewall {
 
     private val filename: String = "$packageName$EXTENSION"
     private val destFile = SuFile(IfwStorageUtils.getIfwFolder() + filename)
