@@ -56,7 +56,10 @@ fun ComponentTabContent(
         modifier = modifier,
         state = listState,
     ) {
-        items(listContent) {
+        items(
+            items = listContent,
+            key = { it.name },
+        ) {
             ComponentItem(
                 simpleName = it.simpleName,
                 name = it.name,
