@@ -40,6 +40,7 @@ android {
     }
 }
 dependencies {
+    implementation(project(":core:component-controller"))
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.constraintlayout.compose)
 }
