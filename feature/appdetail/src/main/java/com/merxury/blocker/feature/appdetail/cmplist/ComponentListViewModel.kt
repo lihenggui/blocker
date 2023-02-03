@@ -32,11 +32,8 @@ import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Succes
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
@@ -51,16 +48,17 @@ class ComponentListViewModel @AssistedInject constructor(
 ) : ViewModel() {
     private val _uiState: MutableStateFlow<ComponentListUiState> = MutableStateFlow(Loading)
     val uiState: StateFlow<ComponentListUiState> = _uiState.asStateFlow()
-    private val _errorEvent = MutableSharedFlow<ErrorMessage>(
-        extraBufferCapacity = 1,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST,
-    )
-    val errorEvent = _errorEvent.asSharedFlow()
+    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    val errorState = _errorState.asStateFlow()
     private val stateList = mutableStateListOf<ComponentInfo>()
 
     init {
         listenDataChange()
         getComponentList()
+    }
+
+    fun dismissAlert() = viewModelScope.launch {
+        _errorState.emit(null)
     }
 
     private fun listenDataChange() = viewModelScope.launch {
@@ -88,7 +86,7 @@ class ComponentListViewModel @AssistedInject constructor(
     ) = viewModelScope.launch {
         repository.controlComponent(packageName, componentName, enabled)
             .catch { exception ->
-                _errorEvent.emit(exception.toErrorMessage())
+                _errorState.emit(exception.toErrorMessage())
             }
             .collect()
     }
