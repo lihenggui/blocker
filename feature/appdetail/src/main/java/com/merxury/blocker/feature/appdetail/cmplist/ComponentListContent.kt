@@ -20,15 +20,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
 import dagger.hilt.android.EntryPointAccessors
@@ -44,11 +49,26 @@ fun ComponentListContentRoute(
     ),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val showErrDialog = remember { mutableStateOf(false) }
+    val errorInfo = remember { mutableStateOf<ErrorMessage?>(null) }
     ComponentListContent(
         uiState = uiState,
         onSwitch = viewModel::controlComponent,
         modifier = modifier,
     )
+    if (showErrDialog.value) {
+        BlockerErrorAlertDialog(
+            title = errorInfo.value?.message.orEmpty(),
+            text = errorInfo.value?.stackTrace.orEmpty(),
+            onDismissRequest = { showErrDialog.value = false },
+        )
+    }
+    LaunchedEffect(true) {
+        viewModel.errorEvent.collect { error ->
+            errorInfo.value = error
+            showErrDialog.value = true
+        }
+    }
 }
 
 @Composable
