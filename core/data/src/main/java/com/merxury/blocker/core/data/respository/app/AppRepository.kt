@@ -14,6 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.ifw.exception
+package com.merxury.blocker.core.data.respository.app
 
-class RootUnavailableException : RuntimeException("Root unavailable")
+import com.merxury.blocker.core.model.Application
+import kotlinx.coroutines.flow.Flow
+
+interface AppRepository {
+    fun getApplicationList(): Flow<List<Application>>
+
+    fun getThirdPartyApplicationList(): Flow<List<Application>>
+}
