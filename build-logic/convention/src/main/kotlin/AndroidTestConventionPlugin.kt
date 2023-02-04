@@ -15,6 +15,7 @@
  */
 
 import com.android.build.gradle.TestExtension
+import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -31,6 +32,7 @@ class AndroidTestConventionPlugin : Plugin<Project> {
             extensions.configure<TestExtension> {
                 configureKotlinAndroid(this)
                 defaultConfig.targetSdk = 31
+                configureGradleManagedDevices(this)
             }
         }
     }

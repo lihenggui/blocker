@@ -10,7 +10,9 @@ jobs:
 
   android-ci:
     runs-on: macos-12
-
+    strategy:
+      matrix:
+        device-config: [ "pixel4api30aospatd" ]
     steps:
       - uses: actions/setup-java@v3
         with:
@@ -23,7 +25,7 @@ jobs:
 
       - name: Run instrumented tests with GMD
         run: ./gradlew cleanManagedDevices --unused-only &&
-          ./gradlew pixel4api30fossDebugAndroidTest -Dorg.gradle.workers.max=1
+          ./gradlew ${{ matrix.device-config }}fossDebugAndroidTest -Dorg.gradle.workers.max=1
           -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true --info
 
       - name: Upload test reports
