@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import com.android.build.api.dsl.ManagedVirtualDevice
 import com.merxury.blocker.BlockerBuildType
 import com.merxury.blocker.configureFlavors
 
@@ -67,19 +66,6 @@ android {
 
     targetProjectPath = ":app-compose"
     experimentalProperties["android.experimental.self-instrumenting"] = true
-
-    testOptions {
-        managedDevices {
-            // TODO: Convert it as a convention plugin once Flamingo goes out (https://github.com/android/nowinandroid/issues/523)
-            devices {
-                create<ManagedVirtualDevice>("pixel6Api31") {
-                    device = "Pixel 6"
-                    apiLevel = 31
-                    systemImageSource = "aosp"
-                }
-            }
-        }
-    }
 }
 
 dependencies {
