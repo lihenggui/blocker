@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.CollectionsBookmark
 import androidx.compose.material.icons.outlined.CreateNewFolder
+import androidx.compose.material.icons.outlined.Deselect
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material.icons.outlined.ExpandMore
@@ -104,6 +105,7 @@ object BlockerIcons {
     val CheckBox = Icons.Outlined.CheckBox
     val CheckBoxBlank = Icons.Outlined.CheckBoxOutlineBlank
     val Rule = Icons.Outlined.Rule
+    val Deselect = Icons.Outlined.Deselect
 
     val Rectangle = R.drawable.ic_rectangle
     val Export = R.drawable.ic_export
