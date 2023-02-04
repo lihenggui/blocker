@@ -129,12 +129,12 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                 }
             }
         } catch (e: RuntimeException) {
-            Timber.e("Cannot import IFW rules", e)
+            Timber.e(e, "Cannot import IFW rules")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
             )
         } catch (e: IOException) {
-            Timber.e("Cannot read IFW rules", e)
+            Timber.e(e, "Cannot read IFW rules")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
             )

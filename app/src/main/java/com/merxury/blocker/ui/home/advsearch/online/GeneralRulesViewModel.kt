@@ -63,7 +63,7 @@ class GeneralRulesViewModel @Inject constructor(
                     }
 
                     is Result.Error -> {
-                        Timber.e("Can't fetch network rules", result.exception)
+                        Timber.e(result.exception, "Can't fetch network rules")
                         val currentState = _uiState.value
                         if (currentState is GeneralRuleUiState.Loading) {
                             _uiState.emit(GeneralRuleUiState.Error(result.exception?.message))

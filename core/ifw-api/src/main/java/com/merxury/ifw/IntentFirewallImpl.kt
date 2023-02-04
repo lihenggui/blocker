@@ -53,7 +53,7 @@ class IntentFirewallImpl @AssistedInject constructor(
                 val input = SuFileInputStream.open(destFile)
                 rule = serializer.read(Rules::class.java, input)
             } catch (e: Exception) {
-                Timber.e("Error reading rules file $destFile:", e)
+                Timber.e(e, "Error reading rules file $destFile:")
             }
         }
         return@withContext this@IntentFirewallImpl
@@ -75,7 +75,7 @@ class IntentFirewallImpl @AssistedInject constructor(
                 FileUtils.chmod(destFile.absolutePath, 644, false)
                 Timber.i("Saved $destFile")
             } catch (e: Exception) {
-                Timber.e("Can't save IFW rule $packageName", e)
+                Timber.e(e, "Can't save IFW rule $packageName")
             }
         }
     }
