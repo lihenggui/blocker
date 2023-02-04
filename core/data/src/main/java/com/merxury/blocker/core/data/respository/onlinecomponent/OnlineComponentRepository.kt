@@ -118,7 +118,7 @@ class OnlineComponentRepository @Inject constructor(
             try {
                 destination.writeText(content)
             } catch (e: IOException) {
-                Timber.e("Failed to save user generated component data", e)
+                Timber.e(e, "Failed to save user generated component data")
                 return@withContext false
             }
             return@withContext true

@@ -35,13 +35,13 @@ import com.merxury.blocker.core.extension.getInstalledPackagesCompat
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.model.toApplication
+import java.util.Collections
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.Collections
 
 object ApplicationUtil {
 
@@ -142,7 +142,7 @@ object ApplicationUtil {
             } catch (e: PackageManager.NameNotFoundException) {
                 Timber.w("Cannot find specified package $packageName.")
             } catch (e: RuntimeException) {
-                Timber.e("Failed to fetch activity list for $packageName", e)
+                Timber.e(e, "Failed to fetch activity list for $packageName")
                 return@withContext ApkParser.getActivities(pm, packageName)
             }
             activities
@@ -212,7 +212,7 @@ object ApplicationUtil {
             } catch (e: PackageManager.NameNotFoundException) {
                 Timber.e("Cannot find specified package $packageName.")
             } catch (e: RuntimeException) {
-                Timber.e("Failed to fetch service list $packageName", e)
+                Timber.e(e, "Failed to fetch service list $packageName")
                 return@withContext ApkParser.getServices(pm, packageName)
             }
             services
@@ -246,7 +246,7 @@ object ApplicationUtil {
                     Collections.addAll(providers, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
-                Timber.e("Cannot find specified package $packageName.")
+                Timber.w("Cannot find specified package $packageName.")
             }
             providers
         }
@@ -317,10 +317,10 @@ object ApplicationUtil {
             try {
                 info = pm.getPackageInfoCompat(packageName, flags)
             } catch (e: RuntimeException) {
-                Timber.e("Can't get application components", e)
+                Timber.e(e, "Can't get application components")
                 info = getPackageInfoFromManifest(pm, packageName)
             } catch (e: PackageManager.NameNotFoundException) {
-                Timber.e("Cannot find specified package.")
+                Timber.w("Cannot find specified package ($packageName).")
             }
             info
         }

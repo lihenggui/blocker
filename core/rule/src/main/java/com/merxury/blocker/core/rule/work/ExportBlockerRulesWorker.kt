@@ -86,7 +86,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                     current++
                 }
             } catch (e: Exception) {
-                Timber.e("Failed to export blocker rules", e)
+                Timber.e(e, "Failed to export blocker rules")
                 return@withContext Result.failure(
                     workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
                 )
