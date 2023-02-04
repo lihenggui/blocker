@@ -81,12 +81,12 @@ class ExportIfwRulesWorker @AssistedInject constructor(
                 current++
             }
         } catch (e: RuntimeException) {
-            Timber.e("Failed to export IFW rules", e)
+            Timber.e(e, "Failed to export IFW rules")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
             )
         } catch (e: IOException) {
-            Timber.e("Can't read IFW rules", e)
+            Timber.e(e, "Can't read IFW rules")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.UNEXPECTED_EXCEPTION),
             )

@@ -14,22 +14,6 @@
  * limitations under the License.
  */
 
-package com.merxury.ifw.util
+package com.merxury.blocker.core.exception
 
-import com.merxury.ifw.entity.Rules
-import org.simpleframework.xml.core.Persister
-import timber.log.Timber
-import java.io.InputStream
-
-object RuleSerializer {
-    private val serializer by lazy { Persister() }
-
-    fun deserialize(inStream: InputStream): Rules? {
-        return try {
-            serializer.read(Rules::class.java, inStream)
-        } catch (e: Exception) {
-            Timber.e(e, "Not a valid ifw rule, skipping")
-            null
-        }
-    }
-}
+class RootUnavailableException : RuntimeException("Root unavailable")

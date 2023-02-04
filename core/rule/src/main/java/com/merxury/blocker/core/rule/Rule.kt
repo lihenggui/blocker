@@ -153,7 +153,7 @@ object Rule {
             }
             return result
         } catch (e: RuntimeException) {
-            Timber.e("Failed to export $packageName", e)
+            Timber.e(e, "Failed to export $packageName")
             return false
         }
     }
@@ -260,7 +260,7 @@ object Rule {
             }
             ifwController?.save()
         } catch (e: RuntimeException) {
-            Timber.e("Failed to import Blocker rule ${rule.packageName}, ${e.message}")
+            Timber.e(e, "Failed to import Blocker rule ${rule.packageName}")
             return false
         }
         return true
@@ -332,7 +332,7 @@ object Rule {
                 }
             }
         } catch (e: Exception) {
-            Timber.e("Can't reset IFW", e)
+            Timber.e(e, "Can't reset IFW")
             return false
         }
         return result

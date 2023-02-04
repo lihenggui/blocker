@@ -42,7 +42,7 @@ object ApkParser {
                     .forName("android.content.res.AssetManager")
                 return assetManagerClass.newInstance()
             } catch (e: Exception) {
-                Timber.e("Cannot create AssetManager", e)
+                Timber.e(e, "Cannot create AssetManager")
             }
             return null
         }
@@ -73,9 +73,9 @@ object ApkParser {
                     }
                 }
             } catch (e: XmlPullParserException) {
-                Timber.e("Error occurs in parsing manifest", e)
+                Timber.e(e, "Error occurs in parsing manifest")
             } catch (e: IOException) {
-                Timber.e("Cannot parse manifest", e)
+                Timber.e(e, "Cannot parse manifest")
             }
             return@withContext -1
         }
@@ -123,7 +123,7 @@ object ApkParser {
                 apkFile.absolutePath,
             ) as Int
         } catch (e: Exception) {
-            Timber.e("Cannot access addAssetPath", e)
+            Timber.e(e, "Cannot access addAssetPath")
         }
         return -1
     }

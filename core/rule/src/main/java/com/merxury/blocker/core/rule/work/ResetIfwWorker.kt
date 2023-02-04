@@ -72,12 +72,12 @@ class ResetIfwWorker @AssistedInject constructor(
                 count++
             }
         } catch (e: RuntimeException) {
-            Timber.e("Failed to clear IFW rules", e)
+            Timber.e(e, "Failed to clear IFW rules")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
             )
         } catch (e: IOException) {
-            Timber.e("Failed to clear IFW rules, IO exception occured", e)
+            Timber.e(e, "Failed to clear IFW rules, IO exception occured")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
             )
