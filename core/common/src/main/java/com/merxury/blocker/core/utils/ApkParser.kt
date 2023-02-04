@@ -48,11 +48,11 @@ object ApkParser {
                     .forName("android.content.res.AssetManager")
                 return assetManagerClass.newInstance()
             } catch (e: ClassNotFoundException) {
-                Timber.e("Cannot create AssetManager", e)
+                Timber.e(e, "Cannot create AssetManager")
             } catch (e: InstantiationException) {
-                Timber.e("Cannot create AssetManager", e)
+                Timber.e(e, "Cannot create AssetManager")
             } catch (e: IllegalAccessException) {
-                Timber.e("Cannot create AssetManager", e)
+                Timber.e(e, "Cannot create AssetManager")
             }
 
             return null
@@ -80,9 +80,9 @@ object ApkParser {
                 }
             }
         } catch (e: XmlPullParserException) {
-            Timber.e("Cannot parse Activities from xml", e)
+            Timber.e(e, "Cannot parse Activities from xml")
         } catch (e: IOException) {
-            Timber.e("Cannot parse Activities from xml", e)
+            Timber.e(e, "Cannot parse Activities from xml")
         }
         return activities
     }
@@ -109,9 +109,9 @@ object ApkParser {
                 }
             }
         } catch (e: XmlPullParserException) {
-            Timber.e("Cannot parse services from xml", e)
+            Timber.e(e, "Cannot parse services from xml")
         } catch (e: IOException) {
-            Timber.e("Cannot parse services from xml", e)
+            Timber.e(e, "Cannot parse services from xml")
         }
         return services
     }
@@ -129,9 +129,9 @@ object ApkParser {
                 }
             }
         } catch (e: XmlPullParserException) {
-            Timber.e("Cannot parse package name from xml", e)
+            Timber.e(e, "Cannot parse package name from xml")
         } catch (e: IOException) {
-            Timber.e("Cannot parse package name from xml", e)
+            Timber.e(e, "Cannot parse package name from xml")
         }
         return ""
     }

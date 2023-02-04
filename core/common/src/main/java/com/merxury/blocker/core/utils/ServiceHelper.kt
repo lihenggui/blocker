@@ -57,7 +57,7 @@ class ServiceHelper(private val packageName: String) {
                     ""
                 }
             } catch (e: Exception) {
-                Timber.e("Cannot get running service list:", e)
+                Timber.e(e, "Cannot get running service list:")
                 ""
             }
             parseServiceInfo()

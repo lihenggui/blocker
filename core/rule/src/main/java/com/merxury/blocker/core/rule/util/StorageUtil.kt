@@ -53,7 +53,7 @@ object StorageUtil {
         val folder = try {
             DocumentFile.fromTreeUri(context, uri)
         } catch (e: Exception) {
-            Timber.e("Uri $uri is not readable.", e)
+            Timber.e(e, "Uri $uri is not readable.")
             return false
         }
         // Folder may be unreachable
@@ -106,7 +106,7 @@ object StorageUtil {
             }
             true
         } catch (e: IOException) {
-            Timber.e("Cannot write rules for $filename", e)
+            Timber.e(e, "Cannot write rules for $filename")
             false
         }
     }
@@ -140,7 +140,7 @@ object StorageUtil {
                 }
                 return@withContext true
             } catch (e: Exception) {
-                Timber.e("Cannot write rules for $packageName", e)
+                Timber.e(e, "Cannot write rules for $packageName")
                 return@withContext false
             }
         }

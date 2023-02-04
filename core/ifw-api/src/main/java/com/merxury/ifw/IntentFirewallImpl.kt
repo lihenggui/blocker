@@ -16,6 +16,7 @@
 
 package com.merxury.ifw
 
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.PermissionUtils
 import com.merxury.ifw.entity.Activity
@@ -25,7 +26,6 @@ import com.merxury.ifw.entity.ComponentFilter
 import com.merxury.ifw.entity.IfwComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.entity.Service
-import com.merxury.ifw.exception.RootUnavailableException
 import com.merxury.ifw.util.IfwStorageUtils
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
@@ -53,7 +53,7 @@ class IntentFirewallImpl @AssistedInject constructor(
                 val input = SuFileInputStream.open(destFile)
                 rule = serializer.read(Rules::class.java, input)
             } catch (e: Exception) {
-                Timber.e("Error reading rules file $destFile:", e)
+                Timber.e(e, "Error reading rules file $destFile:")
             }
         }
         return@withContext this@IntentFirewallImpl
@@ -61,21 +61,22 @@ class IntentFirewallImpl @AssistedInject constructor(
 
     override suspend fun save() {
         withContext(Dispatchers.IO) {
-            if (!PermissionUtils.isRootAvailable()) {
-                throw RootUnavailableException()
+            try {
+                ensureNoEmptyTag()
+                if (rule.activity == null && rule.broadcast == null && rule.service == null) {
+                    // If there is no rules presented, delete rule file (if exists)
+                    clear()
+                    return@withContext
+                }
+                SuFileOutputStream.open(destFile).use {
+                    val serializer: Serializer = Persister()
+                    serializer.write(rule, it)
+                }
+                FileUtils.chmod(destFile.absolutePath, 644, false)
+                Timber.i("Saved $destFile")
+            } catch (e: Exception) {
+                Timber.e(e, "Can't save IFW rule $packageName")
             }
-            ensureNoEmptyTag()
-            if (rule.activity == null && rule.broadcast == null && rule.service == null) {
-                // If there is no rules presented, delete rule file (if exists)
-                clear()
-                return@withContext
-            }
-            SuFileOutputStream.open(destFile).use {
-                val serializer: Serializer = Persister()
-                serializer.write(rule, it)
-            }
-            FileUtils.chmod(destFile.absolutePath, 644, false)
-            Timber.i("Saved $destFile")
         }
     }
 

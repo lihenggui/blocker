@@ -18,11 +18,12 @@ package com.merxury.blocker.feature.applist
 
 import android.content.Context
 import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -62,16 +63,19 @@ import javax.inject.Inject
 @HiltViewModel
 class AppListViewModel @Inject constructor(
     app: android.app.Application,
+    private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
+    private val appRepository: AppRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(app) {
     private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
     val uiState = _uiState.asStateFlow()
-    var errorState = mutableStateOf<ErrorMessage?>(null)
+    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    val errorState = _errorState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
-        errorState.value = throwable.toErrorMessage()
+        _errorState.tryEmit(throwable.toErrorMessage())
     }
     private val channel = Channel<Job>(capacity = Channel.UNLIMITED).apply {
         viewModelScope.launch {
@@ -90,12 +94,12 @@ class AppListViewModel @Inject constructor(
         val preference = userDataRepository.userData.first()
         val sortType = preference.appSorting
         val list = if (preference.showSystemApps) {
-            ApplicationUtil.getApplicationList(getApplication())
+            appRepository.getApplicationList().first()
         } else {
-            ApplicationUtil.getThirdPartyApplicationList(getApplication())
+            appRepository.getThirdPartyApplicationList().first()
         }
             .toMutableList()
-        val stateAppList = mapToSnapshotStateList(list, getApplication())
+        val stateAppList = mapToSnapshotStateList(list)
         sortList(stateAppList, sortType)
         _uiState.emit(AppListUiState.Success(stateAppList))
     }
@@ -161,8 +165,8 @@ class AppListViewModel @Inject constructor(
         )
     }
 
-    fun dismissDialog() {
-        errorState.value = null
+    fun dismissDialog() = viewModelScope.launch {
+        _errorState.emit(null)
     }
 
     fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
@@ -217,7 +221,6 @@ class AppListViewModel @Inject constructor(
 
     private suspend fun mapToSnapshotStateList(
         list: MutableList<Application>,
-        context: Context,
     ): SnapshotStateList<AppItem> = withContext(cpuDispatcher) {
         val stateAppList = mutableStateListOf<AppItem>()
         list.forEach {
@@ -226,7 +229,7 @@ class AppListViewModel @Inject constructor(
                 packageName = it.packageName,
                 versionName = it.versionName.orEmpty(),
                 versionCode = it.versionCode,
-                isSystem = ApplicationUtil.isSystemApp(context.packageManager, it.packageName),
+                isSystem = ApplicationUtil.isSystemApp(pm, it.packageName),
                 // TODO detect if an app is running or not
                 isRunning = false,
                 enabled = it.isEnabled,

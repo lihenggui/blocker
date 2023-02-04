@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.ifw.util
+package com.merxury.blocker.core.data.respository.app
 
-import com.merxury.ifw.entity.Rules
-import org.simpleframework.xml.core.Persister
-import timber.log.Timber
-import java.io.InputStream
+import com.merxury.blocker.core.model.Application
+import kotlinx.coroutines.flow.Flow
 
-object RuleSerializer {
-    private val serializer by lazy { Persister() }
+interface AppDataSource {
+    fun getApplicationList(): Flow<List<Application>>
 
-    fun deserialize(inStream: InputStream): Rules? {
-        return try {
-            serializer.read(Rules::class.java, inStream)
-        } catch (e: Exception) {
-            Timber.e(e, "Not a valid ifw rule, skipping")
-            null
-        }
-    }
+    fun getThirdPartyApplicationList(): Flow<List<Application>>
 }

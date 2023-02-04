@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
@@ -44,11 +45,19 @@ fun ComponentListContentRoute(
     ),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     ComponentListContent(
         uiState = uiState,
         onSwitch = viewModel::controlComponent,
         modifier = modifier,
     )
+    if (errorState != null) {
+        BlockerErrorAlertDialog(
+            title = errorState?.message.orEmpty(),
+            text = errorState?.stackTrace.orEmpty(),
+            onDismissRequest = viewModel::dismissAlert,
+        )
+    }
 }
 
 @Composable
