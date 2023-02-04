@@ -61,22 +61,18 @@ class IntentFirewallImpl @AssistedInject constructor(
 
     override suspend fun save() {
         withContext(Dispatchers.IO) {
-            try {
-                ensureNoEmptyTag()
-                if (rule.activity == null && rule.broadcast == null && rule.service == null) {
-                    // If there is no rules presented, delete rule file (if exists)
-                    clear()
-                    return@withContext
-                }
-                SuFileOutputStream.open(destFile).use {
-                    val serializer: Serializer = Persister()
-                    serializer.write(rule, it)
-                }
-                FileUtils.chmod(destFile.absolutePath, 644, false)
-                Timber.i("Saved $destFile")
-            } catch (e: Exception) {
-                Timber.e(e, "Can't save IFW rule $packageName")
+            ensureNoEmptyTag()
+            if (rule.activity == null && rule.broadcast == null && rule.service == null) {
+                // If there is no rules presented, delete rule file (if exists)
+                clear()
+                return@withContext
             }
+            SuFileOutputStream.open(destFile).use {
+                val serializer: Serializer = Persister()
+                serializer.write(rule, it)
+            }
+            FileUtils.chmod(destFile.absolutePath, 644, false)
+            Timber.i("Saved $destFile")
         }
     }
 
