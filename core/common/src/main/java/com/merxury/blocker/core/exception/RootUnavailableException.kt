@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-package com.merxury.ifw.exception
+package com.merxury.blocker.core.exception
 
 class RootUnavailableException : RuntimeException("Root unavailable")
