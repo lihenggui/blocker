@@ -117,7 +117,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
             }
             Timber.i("Import rules finished.")
         } catch (e: RuntimeException) {
-            Timber.e("Failed to import blocker rules", e)
+            Timber.e(e, "Failed to import blocker rules")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
             )

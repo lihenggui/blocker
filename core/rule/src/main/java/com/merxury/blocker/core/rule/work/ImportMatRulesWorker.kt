@@ -103,12 +103,12 @@ class ImportMatRulesWorker @AssistedInject constructor(
                 }
             }
         } catch (e: RuntimeException) {
-            Timber.e("Failed to import MAT files.", e)
+            Timber.e(e, "Failed to import MAT files.")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
             )
         } catch (e: IOException) {
-            Timber.e("Error occurs while reading MAT files.", e)
+            Timber.e(e, "Error occurs while reading MAT files.")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
             )

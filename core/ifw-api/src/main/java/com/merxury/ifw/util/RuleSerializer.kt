@@ -28,7 +28,7 @@ object RuleSerializer {
         return try {
             serializer.read(Rules::class.java, inStream)
         } catch (e: Exception) {
-            Timber.e("Not a valid ifw rule, skipping", e)
+            Timber.e(e, "Not a valid ifw rule, skipping")
             null
         }
     }
