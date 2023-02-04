@@ -19,7 +19,6 @@ package com.merxury.ifw
 import com.merxury.ifw.entity.IfwComponentType
 
 interface IntentFirewall {
-    @Throws(Exception::class)
     suspend fun save()
 
     @Throws(Exception::class)
