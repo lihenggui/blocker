@@ -50,4 +50,5 @@
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
     <string name="data_with_explanation" translatable="false">%1$s (%2$s)</string>
+    <string name="no_components">No components</string>
 </resources>
