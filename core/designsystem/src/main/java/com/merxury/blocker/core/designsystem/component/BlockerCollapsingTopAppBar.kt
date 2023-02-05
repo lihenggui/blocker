@@ -16,7 +16,7 @@
 
 package com.merxury.blocker.core.designsystem.component
 
-import androidx.compose.foundation.Image
+import android.content.pm.PackageInfo
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,13 +32,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest.Builder
+import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import kotlin.math.roundToInt
@@ -61,7 +65,7 @@ fun BlockerCollapsingTopAppBar(
     actions: @Composable () -> Unit = {},
     subtitle: String,
     summary: String,
-    icon: ImageVector,
+    info: PackageInfo?,
 ) {
     val titleSize = with(LocalDensity.current) {
         lerp(collapsedTitleSize.toPx(), expandedTitleSize.toPx(), progress).toSp()
@@ -84,7 +88,7 @@ fun BlockerCollapsingTopAppBar(
                 ) {
                     Icon(
                         imageVector = BlockerIcons.Back,
-                        contentDescription = null,
+                        contentDescription = stringResource(id = R.string.back),
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
@@ -105,12 +109,15 @@ fun BlockerCollapsingTopAppBar(
                         .padding(vertical = padding)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
-                Image(
-                    imageVector = icon,
-                    contentDescription = null,
+                AsyncImage(
                     modifier = Modifier
                         .size(appIconSize)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
+                    model = Builder(LocalContext.current)
+                        .data(info)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = null,
                 )
             }
         }
@@ -226,7 +233,7 @@ fun CollapsingToolbarCollapsedPreview() {
             },
             subtitle = "packageName",
             summary = "versionCode",
-            icon = BlockerIcons.Find,
+            info = PackageInfo(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
@@ -255,7 +262,7 @@ fun CollapsingToolbarHalfwayPreview() {
             },
             subtitle = "packageName",
             summary = "versionCode",
-            icon = BlockerIcons.Find,
+            info = PackageInfo(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(94.dp),
@@ -284,7 +291,7 @@ fun CollapsingToolbarExpandedPreview() {
             },
             subtitle = "packageName",
             summary = "versionCode",
-            icon = BlockerIcons.Find,
+            info = PackageInfo(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(188.dp),

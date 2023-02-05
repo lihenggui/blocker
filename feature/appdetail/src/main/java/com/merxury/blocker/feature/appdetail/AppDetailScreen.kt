@@ -205,14 +205,14 @@ fun AppDetailContent(
                     ) {
                         Icon(
                             imageVector = BlockerIcons.More,
-                            contentDescription = null,
+                            contentDescription = stringResource(id = string.more_menu),
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 },
                 subtitle = app.packageName,
                 summary = app.versionCode.toString(),
-                icon = BlockerIcons.Find,
+                info = app.packageInfo,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
