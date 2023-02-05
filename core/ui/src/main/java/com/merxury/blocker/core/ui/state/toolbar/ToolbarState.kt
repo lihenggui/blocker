@@ -23,5 +23,7 @@ interface ToolbarState {
     val offset: Float
     val height: Float
     val progress: Float
-    var scrollValue: Int
+    val consumed: Float
+    var scrollTopLimitReached: Boolean
+    var scrollOffset: Float
 }

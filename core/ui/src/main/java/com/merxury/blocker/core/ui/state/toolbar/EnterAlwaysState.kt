@@ -8,11 +8,10 @@ import androidx.compose.runtime.structuralEqualityPolicy
 
 class EnterAlwaysState(
     heightRange: IntRange,
-    scrollValue: Int = 0,
     scrollOffset: Float = 0f,
-) : DynamicOffsetScrollFlagState(heightRange, scrollValue) {
+) : ScrollFlagState(heightRange) {
 
-    override var scrollOffset by mutableStateOf(
+    override var _scrollOffset by mutableStateOf(
         value = scrollOffset.coerceIn(0f, maxHeight.toFloat()),
         policy = structuralEqualityPolicy(),
     )
@@ -20,15 +19,12 @@ class EnterAlwaysState(
     override val offset: Float
         get() = -(scrollOffset - rangeDifference).coerceIn(0f, minHeight.toFloat())
 
-    override val height: Float
-        get() = (maxHeight - scrollOffset).coerceIn(minHeight.toFloat(), maxHeight.toFloat())
-
-    override var scrollValue: Int
-        get() = _scrollValue
+    override var scrollOffset: Float
+        get() = _scrollOffset
         set(value) {
-            val delta = (_scrollValue - value).toFloat()
-            scrollOffset = (scrollOffset - delta).coerceIn(0f, maxHeight.toFloat())
-            _scrollValue = value.coerceAtLeast(0)
+            val oldOffset = _scrollOffset
+            _scrollOffset = value.coerceIn(0f, maxHeight.toFloat())
+            _consumed = oldOffset - _scrollOffset
         }
 
     companion object {
@@ -36,7 +32,6 @@ class EnterAlwaysState(
 
             val minHeightKey = "MinHeight"
             val maxHeightKey = "MaxHeight"
-            val scrollValueKey = "ScrollValue"
             val scrollOffsetKey = "ScrollOffset"
 
             mapSaver(
@@ -44,14 +39,12 @@ class EnterAlwaysState(
                     mapOf(
                         minHeightKey to it.minHeight,
                         maxHeightKey to it.maxHeight,
-                        scrollValueKey to it.scrollValue,
                         scrollOffsetKey to it.scrollOffset,
                     )
                 },
                 restore = {
                     EnterAlwaysState(
                         heightRange = (it[minHeightKey] as Int)..(it[maxHeightKey] as Int),
-                        scrollValue = it[scrollValueKey] as Int,
                         scrollOffset = it[scrollOffsetKey] as Float,
                     )
                 },
