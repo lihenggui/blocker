@@ -17,32 +17,54 @@
 package com.merxury.blocker.feature.appdetail
 
 import android.content.res.Configuration
+import androidx.compose.animation.core.FloatExponentialDecaySpec
+import androidx.compose.animation.core.animateDecay
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
+import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
+import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
@@ -50,6 +72,8 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
+import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
@@ -59,7 +83,8 @@ import com.merxury.blocker.feature.appdetail.navigation.Screen.Provider
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
-import com.merxury.blocker.feature.appdetail.ui.AppInfoCard
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System
 
 @Composable
@@ -70,10 +95,11 @@ fun AppDetailRoute(
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
     AppDetailScreen(
         uiState = uiState,
         tabState = tabState,
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         onLaunchAppClick = viewModel::launchApp,
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
@@ -89,34 +115,32 @@ fun AppDetailScreen(
     switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier) {
-        when (uiState) {
-            is AppInfoUiState.Loading -> {
-                Column(
-                    modifier = modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    BlockerLoadingWheel(
-                        modifier = modifier,
-                        contentDesc = stringResource(id = string.loading),
-                    )
-                }
-            }
-
-            is Success -> {
-                AppDetailContent(
-                    app = uiState.appInfo,
-                    tabState = tabState,
-                    onBackClick = onBackClick,
-                    onLaunchAppClick = onLaunchAppClick,
-                    switchTab = switchTab,
+    when (uiState) {
+        is AppInfoUiState.Loading -> {
+            Column(
+                modifier = modifier,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                BlockerLoadingWheel(
                     modifier = modifier,
+                    contentDesc = stringResource(id = string.loading),
                 )
             }
-
-            is AppInfoUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
         }
+
+        is Success -> {
+            AppDetailContent(
+                app = uiState.appInfo,
+                tabState = tabState,
+                onBackClick = onBackClick,
+                onLaunchAppClick = onLaunchAppClick,
+                switchTab = switchTab,
+                modifier = modifier,
+            )
+        }
+
+        is AppInfoUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
     }
 }
 
@@ -130,69 +154,148 @@ fun AppDetailContent(
     switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-    val isCollapsed by remember { derivedStateOf { scrollBehavior.state.collapsedFraction > 0.5 } }
+    val listState = rememberLazyListState()
+    val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
+    val toolbarHeightRange = with(LocalDensity.current) {
+        MinToolbarHeight.roundToPx() + systemStatusHeight.roundToPx()..MaxToolbarHeight.roundToPx() + systemStatusHeight.roundToPx()
+    }
+    val toolbarState = rememberToolbarState(toolbarHeightRange)
+    val scope = rememberCoroutineScope()
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                toolbarState.scrollTopLimitReached =
+                    listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                toolbarState.scrollOffset = toolbarState.scrollOffset - available.y
+                return Offset(0f, toolbarState.consumed)
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (available.y > 0) {
+                    scope.launch {
+                        animateDecay(
+                            initialValue = toolbarState.height + toolbarState.offset,
+                            initialVelocity = available.y,
+                            animationSpec = FloatExponentialDecaySpec(),
+                        ) { value, _ ->
+                            toolbarState.scrollTopLimitReached =
+                                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                            toolbarState.scrollOffset =
+                                toolbarState.scrollOffset - (value - (toolbarState.height + toolbarState.offset))
+                            if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
+                        }
+                    }
+                }
+
+                return super.onPostFling(consumed, available)
+            }
+        }
+    }
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
-                title = app.label,
-                content = {
-                    AppInfoCard(
-                        label = app.label,
-                        packageName = app.packageName,
-                        versionCode = app.versionCode,
-                        versionName = app.versionName,
-                        packageInfo = app.packageInfo,
-                        onAppIconClick = { onLaunchAppClick(app.packageName) },
-                    )
-                },
-                isCollapsed = isCollapsed,
-                scrollBehavior = scrollBehavior,
+                progress = toolbarState.progress,
                 onNavigationClick = onBackClick,
-                actions = { },
+                title = app.label,
+                actions = {
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier.then(Modifier.size(24.dp)),
+                    ) {
+                        Icon(
+                            imageVector = BlockerIcons.More,
+                            contentDescription = stringResource(id = string.more_menu),
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                },
+                subtitle = app.packageName,
+                summary = app.versionCode.toString(),
+                iconSource = app.packageInfo,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
             )
         },
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-    ) { padding ->
-        Column(
-            modifier = modifier
-                .padding(padding)
-                .fillMaxWidth(),
-        ) {
-            BlockerScrollableTabRow(
-                selectedTabIndex = tabState.currentIndex,
-            ) {
-                tabState.titles.forEachIndexed { index, titleRes ->
-                    BlockerTab(
-                        selected = index == tabState.currentIndex,
-                        onClick = { switchTab(index) },
-                        text = { Text(text = stringResource(id = titleRes)) },
+        modifier = modifier.nestedScroll(nestedScrollConnection),
+    ) { innerPadding ->
+        AppDetailTabContent(
+            app = app,
+            tabState = tabState,
+            switchTab = switchTab,
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = { scope.coroutineContext.cancelChildren() },
                     )
-                }
+                },
+            listState = listState,
+        )
+    }
+}
+
+@Composable
+private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
+    return rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
+        ExitUntilCollapsedState(heightRange = toolbarHeightRange)
+    }
+}
+
+@Composable
+fun AppDetailTabContent(
+    modifier: Modifier = Modifier,
+    app: Application,
+    tabState: TabState,
+    switchTab: (Int) -> Unit,
+    listState: LazyListState = rememberLazyListState(),
+) {
+    Column(
+        modifier = modifier,
+    ) {
+        BlockerScrollableTabRow(
+            selectedTabIndex = tabState.currentIndex,
+        ) {
+            tabState.titles.forEachIndexed { index, titleRes ->
+                BlockerTab(
+                    selected = index == tabState.currentIndex,
+                    onClick = { switchTab(index) },
+                    text = { Text(text = stringResource(id = titleRes)) },
+                )
             }
-            when (tabState.currentIndex) {
-                Detail.tabPosition -> SummaryContent(app)
-                Receiver.tabPosition -> ComponentListContentRoute(
-                    packageName = app.packageName,
-                    type = RECEIVER,
+        }
+        when (tabState.currentIndex) {
+            Detail.tabPosition ->
+                SummaryContent(
+                    app = app,
+                    listState = listState,
                 )
 
-                Service.tabPosition -> ComponentListContentRoute(
-                    packageName = app.packageName,
-                    type = SERVICE,
-                )
+            Receiver.tabPosition -> ComponentListContentRoute(
+                packageName = app.packageName,
+                type = RECEIVER,
+                listState = listState,
+            )
 
-                Activity.tabPosition -> ComponentListContentRoute(
-                    packageName = app.packageName,
-                    type = ACTIVITY,
-                )
+            Service.tabPosition -> ComponentListContentRoute(
+                packageName = app.packageName,
+                type = SERVICE,
+                listState = listState,
+            )
 
-                Provider.tabPosition -> ComponentListContentRoute(
-                    packageName = app.packageName,
-                    type = PROVIDER,
-                )
-            }
+            Activity.tabPosition -> ComponentListContentRoute(
+                packageName = app.packageName,
+                type = ACTIVITY,
+                listState = listState,
+            )
+
+            Provider.tabPosition -> ComponentListContentRoute(
+                packageName = app.packageName,
+                type = PROVIDER,
+                listState = listState,
+            )
         }
     }
 }

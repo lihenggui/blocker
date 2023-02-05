@@ -19,8 +19,9 @@ package com.merxury.blocker.feature.appdetail.summary
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -45,27 +46,28 @@ import java.util.Locale
 fun SummaryContent(
     app: Application,
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
     viewModel: SummaryViewModel = hiltViewModel(),
 ) {
     Box(modifier) {
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(
-                    rememberScrollState(),
-                ),
+                .fillMaxWidth(),
+            state = listState,
         ) {
-            AppSummary(
-                targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
-                minSdkVersion = app.minSdkVersion,
-                lastUpdateTime = app.lastUpdateTime,
-                dataDir = app.packageInfo?.applicationInfo?.dataDir,
-                onExportRules = { viewModel.exportRule(app.packageName) },
-                onImportRules = { viewModel.importRule(app.packageName) },
-                onExportIfw = { viewModel.exportIfwRule(app.packageName) },
-                onImportIfw = { viewModel.importIfwRule(app.packageName) },
-                onResetIfw = { viewModel.resetIfw(app.packageName) },
-            )
+            item {
+                AppSummary(
+                    targetSdkVersion = app.packageInfo?.applicationInfo?.targetSdkVersion ?: 0,
+                    minSdkVersion = app.minSdkVersion,
+                    lastUpdateTime = app.lastUpdateTime,
+                    dataDir = app.packageInfo?.applicationInfo?.dataDir,
+                    onExportRules = { viewModel.exportRule(app.packageName) },
+                    onImportRules = { viewModel.importRule(app.packageName) },
+                    onExportIfw = { viewModel.exportIfwRule(app.packageName) },
+                    onImportIfw = { viewModel.importIfwRule(app.packageName) },
+                    onResetIfw = { viewModel.resetIfw(app.packageName) },
+                )
+            }
         }
     }
 }
