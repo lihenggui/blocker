@@ -21,9 +21,7 @@ import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,9 +32,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +47,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -74,7 +73,6 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
-import com.merxury.blocker.core.ui.state.toolbar.FixedScrollFlagState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
@@ -146,6 +144,7 @@ fun AppDetailScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailContent(
     app: Application,
@@ -193,46 +192,49 @@ fun AppDetailContent(
             }
         }
     }
-    Box(modifier = modifier.nestedScroll(nestedScrollConnection)) {
+    Scaffold(
+        topBar = {
+            BlockerCollapsingTopAppBar(
+                progress = toolbarState.progress,
+                onNavigationClick = onBackClick,
+                title = app.label,
+                actions = {
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier.then(Modifier.size(24.dp)),
+                    ) {
+                        Icon(
+                            imageVector = BlockerIcons.More,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                },
+                subtitle = app.packageName,
+                summary = app.versionCode.toString(),
+                icon = BlockerIcons.Find,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
+            )
+        },
+        modifier = modifier.nestedScroll(nestedScrollConnection),
+    ) { innerPadding ->
         AppDetailTabContent(
             app = app,
             tabState = tabState,
             switchTab = switchTab,
             modifier = Modifier
+                .padding(innerPadding)
                 .fillMaxSize()
-                .graphicsLayer { translationY = toolbarState.height + toolbarState.offset }
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onPress = { scope.coroutineContext.cancelChildren() },
                     )
                 },
             listState = listState,
-            contentPadding = PaddingValues(bottom = if (toolbarState is FixedScrollFlagState) MinToolbarHeight else 0.dp),
         )
-        BlockerCollapsingTopAppBar(
-            progress = toolbarState.progress,
-            onNavigationClick = onBackClick,
-            title = app.label,
-            actions = {
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.then(Modifier.size(24.dp)),
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.More,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            },
-            subtitle = app.packageName,
-            summary = app.versionCode.toString(),
-            icon = BlockerIcons.Find,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(with(LocalDensity.current) { toolbarState.height.toDp() })
-                .graphicsLayer { translationY = toolbarState.offset },
-        )
+
     }
 }
 
@@ -250,10 +252,9 @@ fun AppDetailTabContent(
     tabState: TabState,
     switchTab: (Int) -> Unit,
     listState: LazyListState = rememberLazyListState(),
-    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     Column(
-        modifier = modifier.padding(contentPadding),
+        modifier = modifier,
     ) {
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
