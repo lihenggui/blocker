@@ -89,7 +89,6 @@ fun ComponentListContent(
                         contentDesc = stringResource(id = string.loading),
                     )
                 }
-
             }
         }
 

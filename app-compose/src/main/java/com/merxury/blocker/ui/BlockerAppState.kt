@@ -86,8 +86,10 @@ class BlockerAppState(
             currentTopLevelDestination == GLOBAL_SEARCH
 
     val shouldShowBottomBar: Boolean
-        @Composable get() = (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact ||
-            windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact) && isOnTopLevelScreen
+        @Composable get() = (
+            windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact ||
+                windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
+            ) && isOnTopLevelScreen
 
     val shouldShowNavRail: Boolean
         @Composable get() = !shouldShowBottomBar && isOnTopLevelScreen

@@ -234,7 +234,6 @@ fun AppDetailContent(
                 },
             listState = listState,
         )
-
     }
 }
 
