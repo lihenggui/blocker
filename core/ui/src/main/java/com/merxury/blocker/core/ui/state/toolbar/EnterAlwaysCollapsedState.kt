@@ -8,34 +8,29 @@ import androidx.compose.runtime.structuralEqualityPolicy
 
 class EnterAlwaysCollapsedState(
     heightRange: IntRange,
-    scrollValue: Int = 0,
     scrollOffset: Float = 0f,
-) : DynamicOffsetScrollFlagState(heightRange, scrollValue) {
+) : ScrollFlagState(heightRange) {
 
-    override var scrollOffset by mutableStateOf(
-        value = scrollOffset.coerceIn(0f, minHeight.toFloat()),
+    override var _scrollOffset by mutableStateOf(
+        value = scrollOffset.coerceIn(0f, maxHeight.toFloat()),
         policy = structuralEqualityPolicy(),
     )
 
     override val offset: Float
-        get() = -scrollOffset
+        get() = if (scrollOffset > rangeDifference) {
+            -(scrollOffset - rangeDifference).coerceIn(0f, minHeight.toFloat())
+        } else 0f
 
-    override val height: Float
-        get() = (maxHeight.toFloat() - scrollValue).coerceIn(
-            minHeight.toFloat(),
-            maxHeight.toFloat(),
-        )
-
-    override var scrollValue: Int
-        get() = _scrollValue
+    override var scrollOffset: Float
+        get() = _scrollOffset
         set(value) {
-            val delta = (_scrollValue - value).toFloat().let {
-                if (it < 0 && height > minHeight) {
-                    (height - minHeight + it).coerceAtMost(0f)
-                } else it
+            val oldOffset = _scrollOffset
+            _scrollOffset = if (scrollTopLimitReached) {
+                value.coerceIn(0f, maxHeight.toFloat())
+            } else {
+                value.coerceIn(rangeDifference.toFloat(), maxHeight.toFloat())
             }
-            scrollOffset = (scrollOffset - delta).coerceIn(0f, minHeight.toFloat())
-            _scrollValue = value.coerceAtLeast(0)
+            _consumed = oldOffset - _scrollOffset
         }
 
     companion object {
@@ -43,7 +38,6 @@ class EnterAlwaysCollapsedState(
 
             val minHeightKey = "MinHeight"
             val maxHeightKey = "MaxHeight"
-            val scrollValueKey = "ScrollValue"
             val scrollOffsetKey = "ScrollOffset"
 
             mapSaver(
@@ -51,14 +45,12 @@ class EnterAlwaysCollapsedState(
                     mapOf(
                         minHeightKey to it.minHeight,
                         maxHeightKey to it.maxHeight,
-                        scrollValueKey to it.scrollValue,
                         scrollOffsetKey to it.scrollOffset,
                     )
                 },
                 restore = {
                     EnterAlwaysCollapsedState(
                         heightRange = (it[minHeightKey] as Int)..(it[maxHeightKey] as Int),
-                        scrollValue = it[scrollValueKey] as Int,
                         scrollOffset = it[scrollOffsetKey] as Float,
                     )
                 },

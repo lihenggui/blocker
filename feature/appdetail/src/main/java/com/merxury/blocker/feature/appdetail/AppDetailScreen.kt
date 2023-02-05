@@ -17,22 +17,23 @@
 package com.merxury.blocker.feature.appdetail
 
 import android.content.res.Configuration
-import androidx.compose.foundation.ScrollState
+import androidx.compose.animation.core.FloatExponentialDecaySpec
+import androidx.compose.animation.core.animateDecay
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -40,13 +41,21 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,6 +74,7 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
+import com.merxury.blocker.core.ui.state.toolbar.FixedScrollFlagState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
@@ -75,6 +85,8 @@ import com.merxury.blocker.feature.appdetail.navigation.Screen.Provider
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
 import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System
 
 @Composable
@@ -105,34 +117,32 @@ fun AppDetailScreen(
     switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier) {
-        when (uiState) {
-            is AppInfoUiState.Loading -> {
-                Column(
+    when (uiState) {
+        is AppInfoUiState.Loading -> {
+            Column(
+                modifier = modifier,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+            ) {
+                BlockerLoadingWheel(
                     modifier = modifier,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center,
-                ) {
-                    BlockerLoadingWheel(
-                        modifier = modifier,
-                        contentDesc = stringResource(id = string.loading),
-                    )
-                }
-            }
-
-            is Success -> {
-                AppDetailContent(
-                    app = uiState.appInfo,
-                    tabState = tabState,
-                    onBackClick = onBackClick,
-                    onLaunchAppClick = onLaunchAppClick,
-                    switchTab = switchTab,
-                    modifier = modifier,
+                    contentDesc = stringResource(id = string.loading),
                 )
             }
-
-            is AppInfoUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
         }
+
+        is Success -> {
+            AppDetailContent(
+                app = uiState.appInfo,
+                tabState = tabState,
+                onBackClick = onBackClick,
+                onLaunchAppClick = onLaunchAppClick,
+                switchTab = switchTab,
+                modifier = modifier,
+            )
+        }
+
+        is AppInfoUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
     }
 }
 
@@ -145,26 +155,59 @@ fun AppDetailContent(
     switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val scrollState = rememberScrollState()
     val listState = rememberLazyListState()
-
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
-
     val toolbarHeightRange = with(LocalDensity.current) {
         MinToolbarHeight.roundToPx() + systemStatusHeight.roundToPx()..MaxToolbarHeight.roundToPx() + systemStatusHeight.roundToPx()
     }
     val toolbarState = rememberToolbarState(toolbarHeightRange)
-    toolbarState.scrollValue = scrollState.value
+    val scope = rememberCoroutineScope()
 
-    Box(modifier = modifier) {
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                toolbarState.scrollTopLimitReached =
+                    listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                toolbarState.scrollOffset = toolbarState.scrollOffset - available.y
+                return Offset(0f, toolbarState.consumed)
+            }
+
+            override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                if (available.y > 0) {
+                    scope.launch {
+                        animateDecay(
+                            initialValue = toolbarState.height + toolbarState.offset,
+                            initialVelocity = available.y,
+                            animationSpec = FloatExponentialDecaySpec(),
+                        ) { value, _ ->
+                            toolbarState.scrollTopLimitReached =
+                                listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+                            toolbarState.scrollOffset =
+                                toolbarState.scrollOffset - (value - (toolbarState.height + toolbarState.offset))
+                            if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
+                        }
+                    }
+                }
+
+                return super.onPostFling(consumed, available)
+            }
+        }
+    }
+    Box(modifier = modifier.nestedScroll(nestedScrollConnection)) {
         AppDetailTabContent(
             app = app,
             tabState = tabState,
             switchTab = switchTab,
-            modifier = Modifier.fillMaxSize(),
-            scrollState = scrollState,
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { translationY = toolbarState.height + toolbarState.offset }
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = { scope.coroutineContext.cancelChildren() },
+                    )
+                },
             listState = listState,
-            contentPadding = PaddingValues(top = MaxToolbarHeight + systemStatusHeight),
+            contentPadding = PaddingValues(bottom = if (toolbarState is FixedScrollFlagState) MinToolbarHeight else 0.dp),
         )
         BlockerCollapsingTopAppBar(
             progress = toolbarState.progress,
@@ -206,18 +249,12 @@ fun AppDetailTabContent(
     app: Application,
     tabState: TabState,
     switchTab: (Int) -> Unit,
-    scrollState: ScrollState = rememberScrollState(),
     listState: LazyListState = rememberLazyListState(),
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     Column(
-        modifier = modifier,
+        modifier = modifier.padding(contentPadding),
     ) {
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(contentPadding.calculateTopPadding()),
-        )
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
         ) {
@@ -233,39 +270,33 @@ fun AppDetailTabContent(
             Detail.tabPosition ->
                 SummaryContent(
                     app = app,
-                    modifier = Modifier.fillMaxSize(),
-                    scrollState = scrollState,
+                    listState = listState,
                 )
 
             Receiver.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = RECEIVER,
-                scrollState = scrollState,
+                listState = listState,
             )
 
             Service.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = SERVICE,
-                scrollState = scrollState,
+                listState = listState,
             )
 
             Activity.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = ACTIVITY,
-                scrollState = scrollState,
+                listState = listState,
             )
 
             Provider.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = PROVIDER,
-                scrollState = scrollState,
+                listState = listState,
             )
         }
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(contentPadding.calculateBottomPadding()),
-        )
     }
 }
 

@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
@@ -48,9 +49,9 @@ fun ComponentTabContent(
     components: SnapshotStateList<ComponentInfo>,
     onSwitchClick: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
 ) {
     val listContent = remember { components }
-    val listState = rememberLazyListState()
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
     LazyColumn(
         modifier = modifier,
