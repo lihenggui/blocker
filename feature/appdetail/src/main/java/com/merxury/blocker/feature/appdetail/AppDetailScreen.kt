@@ -211,7 +211,11 @@ fun AppDetailContent(
                     }
                 },
                 subtitle = app.packageName,
-                summary = app.versionCode.toString(),
+                summary = stringResource(
+                    id = string.data_with_explanation,
+                    app.versionName.orEmpty(),
+                    app.versionCode,
+                ),
                 iconSource = app.packageInfo,
                 modifier = Modifier
                     .fillMaxWidth()
