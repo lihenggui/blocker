@@ -16,26 +16,35 @@
 
 package com.merxury.blocker.core.ui.state.toolbar
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.mapSaver
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.structuralEqualityPolicy
 
 class ScrollState(
     heightRange: IntRange,
-    scrollValue: Int = 0,
-) : ScrollFlagState(heightRange, scrollValue) {
+    scrollOffset: Float = 0f,
+) : ScrollFlagState(heightRange) {
+
+    override var _scrollOffset by mutableStateOf(
+        value = scrollOffset.coerceIn(0f, maxHeight.toFloat()),
+        policy = structuralEqualityPolicy(),
+    )
 
     override val offset: Float
-        get() = -(scrollValue - rangeDifference.toFloat()).coerceIn(0f, minHeight.toFloat())
+        get() = -(scrollOffset - rangeDifference).coerceIn(0f, minHeight.toFloat())
 
-    override val height: Float
-        get() = (maxHeight.toFloat() - scrollValue).coerceIn(
-            minHeight.toFloat(),
-            maxHeight.toFloat(),
-        )
-
-    override var scrollValue: Int
-        get() = _scrollValue
+    override var scrollOffset: Float
+        get() = _scrollOffset
         set(value) {
-            _scrollValue = value.coerceAtLeast(0)
+            if (scrollTopLimitReached) {
+                val oldOffset = _scrollOffset
+                _scrollOffset = value.coerceIn(0f, maxHeight.toFloat())
+                _consumed = oldOffset - _scrollOffset
+            } else {
+                _consumed = 0f
+            }
         }
 
     companion object {
@@ -43,20 +52,20 @@ class ScrollState(
 
             val minHeightKey = "MinHeight"
             val maxHeightKey = "MaxHeight"
-            val scrollValueKey = "ScrollValue"
+            val scrollOffsetKey = "ScrollOffset"
 
             mapSaver(
                 save = {
                     mapOf(
                         minHeightKey to it.minHeight,
                         maxHeightKey to it.maxHeight,
-                        scrollValueKey to it.scrollValue,
+                        scrollOffsetKey to it.scrollOffset,
                     )
                 },
                 restore = {
                     ScrollState(
                         heightRange = (it[minHeightKey] as Int)..(it[maxHeightKey] as Int),
-                        scrollValue = it[scrollValueKey] as Int,
+                        scrollOffset = it[scrollOffsetKey] as Float,
                     )
                 },
             )

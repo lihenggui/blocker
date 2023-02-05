@@ -16,11 +16,11 @@
 
 package com.merxury.blocker.feature.appdetail.cmplist
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -38,7 +38,7 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun ComponentListContentRoute(
     modifier: Modifier = Modifier,
-    scrollState: ScrollState = rememberScrollState(),
+    listState: LazyListState = rememberLazyListState(),
     packageName: String,
     type: ComponentType,
     viewModel: ComponentListViewModel = componentListViewModel(
@@ -51,7 +51,7 @@ fun ComponentListContentRoute(
         uiState = uiState,
         onSwitch = viewModel::controlComponent,
         modifier = modifier,
-        scrollState = scrollState,
+        listState = listState,
     )
 }
 
@@ -71,22 +71,25 @@ fun componentListViewModel(packageName: String, type: ComponentType): ComponentL
 @Composable
 fun ComponentListContent(
     uiState: ComponentListUiState,
-    scrollState: ScrollState = rememberScrollState(),
     onSwitch: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
 ) {
     when (uiState) {
         ComponentListUiState.Loading -> {
-            Column(
+            LazyColumn(
                 modifier = modifier
                     .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                BlockerLoadingWheel(
-                    modifier = modifier,
-                    contentDesc = stringResource(id = string.loading),
-                )
+                item {
+                    BlockerLoadingWheel(
+                        modifier = modifier,
+                        contentDesc = stringResource(id = string.loading),
+                    )
+                }
+
             }
         }
 
@@ -95,6 +98,7 @@ fun ComponentListContent(
                 components = uiState.list,
                 onSwitchClick = onSwitch,
                 modifier = modifier,
+                listState = listState,
             )
         }
 
