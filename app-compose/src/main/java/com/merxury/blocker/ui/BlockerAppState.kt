@@ -80,19 +80,17 @@ class BlockerAppState(
             globalSearchRoute -> GLOBAL_SEARCH
             else -> null
         }
+    private val isOnTopLevelScreen: Boolean
+        @Composable get() = currentTopLevelDestination == APP_LIST ||
+            currentTopLevelDestination == ONLINE_RULES ||
+            currentTopLevelDestination == GLOBAL_SEARCH
 
     val shouldShowBottomBar: Boolean
         @Composable get() = (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact ||
-            windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact) &&
-            (currentTopLevelDestination == APP_LIST ||
-                currentTopLevelDestination == ONLINE_RULES ||
-                currentTopLevelDestination == GLOBAL_SEARCH)
+            windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact) && isOnTopLevelScreen
 
     val shouldShowNavRail: Boolean
-        @Composable get() = !shouldShowBottomBar &&
-            (currentTopLevelDestination == APP_LIST ||
-                currentTopLevelDestination == ONLINE_RULES ||
-                currentTopLevelDestination == GLOBAL_SEARCH)
+        @Composable get() = !shouldShowBottomBar && isOnTopLevelScreen
 
     val isOffline = networkMonitor.isOnline
         .map(Boolean::not)
