@@ -122,7 +122,7 @@ fun AppListScreen(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(top = padding.calculateTopPadding())
                 .consumedWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(

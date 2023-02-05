@@ -17,7 +17,6 @@
 
 package com.merxury.blocker.ui
 
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material3.windowsizeclass.WindowHeightSizeClass
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
@@ -50,7 +49,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
@@ -82,13 +80,19 @@ class BlockerAppState(
             globalSearchRoute -> GLOBAL_SEARCH
             else -> null
         }
+    private val isOnTopLevelScreen: Boolean
+        @Composable get() = currentTopLevelDestination == APP_LIST ||
+            currentTopLevelDestination == ONLINE_RULES ||
+            currentTopLevelDestination == GLOBAL_SEARCH
 
     val shouldShowBottomBar: Boolean
-        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact ||
-            windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
+        @Composable get() = (
+            windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact ||
+                windowSizeClass.heightSizeClass == WindowHeightSizeClass.Compact
+            ) && isOnTopLevelScreen
 
     val shouldShowNavRail: Boolean
-        get() = !shouldShowBottomBar
+        @Composable get() = !shouldShowBottomBar && isOnTopLevelScreen
 
     val isOffline = networkMonitor.isOnline
         .map(Boolean::not)
