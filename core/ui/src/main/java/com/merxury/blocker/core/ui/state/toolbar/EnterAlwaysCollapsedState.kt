@@ -19,7 +19,9 @@ class EnterAlwaysCollapsedState(
     override val offset: Float
         get() = if (scrollOffset > rangeDifference) {
             -(scrollOffset - rangeDifference).coerceIn(0f, minHeight.toFloat())
-        } else 0f
+        } else {
+            0f
+        }
 
     override var scrollOffset: Float
         get() = _scrollOffset

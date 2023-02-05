@@ -136,7 +136,6 @@ private fun CollapsingToolbarLayout(
             width = constraints.maxWidth,
             height = constraints.maxHeight,
         ) {
-
             val expandedHorizontalGuideline = (constraints.maxHeight * 0.4f).roundToInt()
             val collapsedHorizontalGuideline = (constraints.maxHeight * 0.5f).roundToInt()
 
