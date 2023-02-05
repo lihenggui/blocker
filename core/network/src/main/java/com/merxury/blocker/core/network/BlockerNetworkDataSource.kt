@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.network
 
+import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.network.model.NetworkChangeList
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
@@ -26,4 +27,6 @@ interface BlockerNetworkDataSource {
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
 
     suspend fun getGeneralRuleChangeList(): List<NetworkChangeList>
+
+    fun changeServerProvider(provider: RuleServerProvider)
 }
