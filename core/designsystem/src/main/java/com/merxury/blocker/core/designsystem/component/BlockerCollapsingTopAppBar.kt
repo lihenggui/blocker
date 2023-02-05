@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.designsystem.component
 
-import android.content.pm.PackageInfo
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,12 +35,13 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import coil.compose.AsyncImage
-import coil.request.ImageRequest.Builder
+import coil.request.ImageRequest
 import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -65,7 +65,7 @@ fun BlockerCollapsingTopAppBar(
     actions: @Composable () -> Unit = {},
     subtitle: String,
     summary: String,
-    info: PackageInfo?,
+    iconSource: Any? = null,
 ) {
     val titleSize = with(LocalDensity.current) {
         lerp(collapsedTitleSize.toPx(), expandedTitleSize.toPx(), progress).toSp()
@@ -95,26 +95,36 @@ fun BlockerCollapsingTopAppBar(
                 Text(
                     text = title,
                     fontSize = titleSize,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f),
+                    overflow = TextOverflow.Ellipsis,
                 )
                 actions()
                 Text(
                     text = subtitle,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .padding(vertical = padding)
+                        .padding(padding)
+                        .fillMaxWidth(0.8f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
                 Text(
                     text = summary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .padding(vertical = padding)
+                        .padding(padding)
+                        .fillMaxWidth(0.8f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
                 AsyncImage(
                     modifier = Modifier
                         .size(appIconSize)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
-                    model = Builder(LocalContext.current)
-                        .data(info)
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(iconSource)
                         .crossfade(true)
                         .build(),
                     contentDescription = null,
@@ -191,8 +201,8 @@ private fun CollapsingToolbarLayout(
                     fraction = progress,
                 ),
                 y = lerp(
-                    start = collapsedHorizontalGuideline + title.height + subtitle.height - summary.height / 2,
-                    stop = expandedHorizontalGuideline + title.height + subtitle.height,
+                    start = collapsedHorizontalGuideline + title.height + subtitle.height,
+                    stop = expandedHorizontalGuideline + title.height + subtitle.height + summary.height / 4,
                     fraction = progress,
                 ),
             )
@@ -233,7 +243,7 @@ fun CollapsingToolbarCollapsedPreview() {
             },
             subtitle = "packageName",
             summary = "versionCode",
-            info = PackageInfo(),
+            iconSource = R.drawable.ic_android,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
@@ -262,7 +272,7 @@ fun CollapsingToolbarHalfwayPreview() {
             },
             subtitle = "packageName",
             summary = "versionCode",
-            info = PackageInfo(),
+            iconSource = R.drawable.ic_android,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(94.dp),
@@ -276,7 +286,7 @@ fun CollapsingToolbarExpandedPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 1f,
-            title = "Title",
+            title = "Title with long name 0123456789",
             actions = {
                 IconButton(
                     onClick = {},
@@ -289,9 +299,9 @@ fun CollapsingToolbarExpandedPreview() {
                     )
                 }
             },
-            subtitle = "packageName",
-            summary = "versionCode",
-            info = PackageInfo(),
+            subtitle = "packageName with long long long name 0123456789",
+            summary = "versionCode with long long long name 0123456789",
+            iconSource = R.drawable.ic_android,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(188.dp),

@@ -212,7 +212,7 @@ fun AppDetailContent(
                 },
                 subtitle = app.packageName,
                 summary = app.versionCode.toString(),
-                info = app.packageInfo,
+                iconSource = app.packageInfo,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
