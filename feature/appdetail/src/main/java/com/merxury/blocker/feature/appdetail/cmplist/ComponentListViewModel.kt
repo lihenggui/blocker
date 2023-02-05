@@ -22,8 +22,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
+import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Error
@@ -37,12 +41,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class ComponentListViewModel @AssistedInject constructor(
-    private val repository: LocalComponentRepository,
+    private val userDataRepository: UserDataRepository,
+    private val componentRepository: LocalComponentRepository,
     @Assisted private val packageName: String,
     @Assisted private val type: ComponentType,
 ) : ViewModel() {
@@ -62,15 +68,24 @@ class ComponentListViewModel @AssistedInject constructor(
     }
 
     private fun listenDataChange() = viewModelScope.launch {
-        repository.data.collect {
+        componentRepository.data.collect { list ->
             stateList.clear()
-            stateList.addAll(it)
+            val userData = userDataRepository.userData.first()
+            val sortedList = sortList(list, userData.componentSorting)
+            stateList.addAll(sortedList)
             _uiState.emit(Success(stateList))
         }
     }
 
+    private fun sortList(list: List<ComponentInfo>, sort: ComponentSorting): List<ComponentInfo> {
+        return when (sort) {
+            NAME_ASCENDING -> list.sortedBy { it.simpleName }
+            NAME_DESCENDING -> list.sortedByDescending { it.simpleName }
+        }
+    }
+
     private fun getComponentList() = viewModelScope.launch {
-        repository.getComponentList(packageName, type)
+        componentRepository.getComponentList(packageName, type)
             .onStart {
                 Timber.d("getComponentList $packageName, $type")
                 _uiState.emit(Loading)
@@ -84,7 +99,7 @@ class ComponentListViewModel @AssistedInject constructor(
         componentName: String,
         enabled: Boolean,
     ) = viewModelScope.launch {
-        repository.controlComponent(packageName, componentName, enabled)
+        componentRepository.controlComponent(packageName, componentName, enabled)
             .catch { exception ->
                 _errorState.emit(exception.toErrorMessage())
             }
