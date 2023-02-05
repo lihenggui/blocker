@@ -17,4 +17,5 @@
 <resources>
     <string name="more_menu">More menu</string>
     <string name="sort_menu">Sort menu</string>
+    <string name="back">Back button</string>
 </resources>
