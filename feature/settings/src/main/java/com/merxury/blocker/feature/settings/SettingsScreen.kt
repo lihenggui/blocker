@@ -37,9 +37,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -57,7 +54,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.supportsDynamicTheming
 import com.merxury.blocker.core.model.data.ControllerType
@@ -142,15 +138,8 @@ fun SettingsScreen(
         topBar = {
             BlockerTopAppBar(
                 title = stringResource(id = string.settings),
-                navigationIcon = {
-                    IconButton(onClick = onNavigationClick) {
-                        Icon(
-                            imageVector = BlockerIcons.Back,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                },
+                hasNavigationIcon = true,
+                onNavigationClick = onNavigationClick,
             )
         },
     ) { padding ->
