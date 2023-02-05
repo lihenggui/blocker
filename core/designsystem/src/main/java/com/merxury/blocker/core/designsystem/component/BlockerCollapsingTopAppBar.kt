@@ -95,6 +95,7 @@ fun BlockerCollapsingTopAppBar(
                 Text(
                     text = title,
                     fontSize = titleSize,
+                    style = MaterialTheme.typography.bodyLarge,
                     maxLines = 1,
                     modifier = Modifier
                         .fillMaxWidth(0.8f),
@@ -104,18 +105,20 @@ fun BlockerCollapsingTopAppBar(
                 Text(
                     text = subtitle,
                     maxLines = 1,
+                    style = MaterialTheme.typography.bodySmall,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .padding(padding)
+                        .padding(vertical = padding)
                         .fillMaxWidth(0.8f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
                 Text(
                     text = summary,
                     maxLines = 1,
+                    style = MaterialTheme.typography.bodySmall,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .padding(padding)
+                        .padding(vertical = padding)
                         .fillMaxWidth(0.8f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
