@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.designsystem.component
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -70,6 +71,7 @@ fun BlockerCollapsingTopAppBar(
     subtitle: String,
     summary: String,
     iconSource: Any? = null,
+    onIconClick: () -> Unit = {},
 ) {
     val titleSize = with(LocalDensity.current) {
         lerp(collapsedTitleSize.toPx(), expandedTitleSize.toPx(), progress).toSp()
@@ -134,6 +136,7 @@ fun BlockerCollapsingTopAppBar(
                 AsyncImage(
                     modifier = Modifier
                         .size(appIconSize)
+                        .clickable { onIconClick() }
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(iconSource)
