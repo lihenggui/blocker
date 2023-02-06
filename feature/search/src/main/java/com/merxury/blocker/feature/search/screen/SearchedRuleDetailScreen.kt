@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Blocker
- * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +14,10 @@
  * limitations under the License.
  */
 
-import com.android.build.api.dsl.ManagedVirtualDevice
+package com.merxury.blocker.feature.search.screen
 
-plugins {
-    id("blocker.android.feature")
-    id("blocker.android.library.compose")
-    id("blocker.android.library.jacoco")
-}
-android {
-    namespace = "com.merxury.blocker.feature.globalsearch"
-}
-dependencies {
-    implementation(project(":core:database"))
-    implementation(libs.kotlinx.datetime)
+import androidx.compose.runtime.Composable
+
+@Composable
+fun SearchedRuleDetailScreen() {
 }

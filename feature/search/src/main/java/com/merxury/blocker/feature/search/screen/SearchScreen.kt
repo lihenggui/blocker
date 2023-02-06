@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalsearch.screen
+package com.merxury.blocker.feature.search.screen
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -62,19 +62,19 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.feature.globalsearch.R.string
-import com.merxury.blocker.feature.globalsearch.component.AppListItem
-import com.merxury.blocker.feature.globalsearch.component.SearchBar
-import com.merxury.blocker.feature.globalsearch.component.SelectedAppTopBar
-import com.merxury.blocker.feature.globalsearch.model.FilterAppItem
-import com.merxury.blocker.feature.globalsearch.model.LocalSearchUiState
-import com.merxury.blocker.feature.globalsearch.model.LocalSearchViewModel
-import com.merxury.blocker.feature.globalsearch.model.SearchBoxUiState
-import com.merxury.blocker.feature.globalsearch.model.SearchTabState
+import com.merxury.blocker.feature.search.R.string
+import com.merxury.blocker.feature.search.component.AppListItem
+import com.merxury.blocker.feature.search.component.SearchBar
+import com.merxury.blocker.feature.search.component.SelectedAppTopBar
+import com.merxury.blocker.feature.search.model.FilterAppItem
+import com.merxury.blocker.feature.search.model.LocalSearchUiState
+import com.merxury.blocker.feature.search.model.LocalSearchViewModel
+import com.merxury.blocker.feature.search.model.SearchBoxUiState
+import com.merxury.blocker.feature.search.model.SearchTabState
 import kotlinx.coroutines.launch
 
 @Composable
-fun GlobalSearchRoute(
+fun SearchRoute(
     navigationToSearchedAppDetail: () -> Unit,
     viewModel: LocalSearchViewModel = hiltViewModel(),
 ) {
@@ -82,7 +82,7 @@ fun GlobalSearchRoute(
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
 
-    GlobalSearchScreen(
+    SearchScreen(
         searchBoxUiState = searchBoxUiState,
         tabState = tabState,
         localSearchUiState = localSearchUiState,
@@ -104,7 +104,7 @@ fun GlobalSearchRoute(
     ExperimentalLayoutApi::class,
 )
 @Composable
-fun GlobalSearchScreen(
+fun SearchScreen(
     modifier: Modifier = Modifier,
     tabState: SearchTabState,
     searchBoxUiState: SearchBoxUiState,
@@ -361,7 +361,7 @@ fun SearchResultContent(
 
 @Composable
 @Preview
-fun GlobalSearchScreenEmptyPreview() {
+fun SearchScreenEmptyPreview() {
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.NoSearch
     val tabState = SearchTabState(
@@ -373,7 +373,7 @@ fun GlobalSearchScreenEmptyPreview() {
         currentIndex = 0,
     )
     BlockerTheme {
-        GlobalSearchScreen(
+        SearchScreen(
             searchBoxUiState = searchBoxUiState,
             localSearchUiState = localSearchUiState,
             onSearchTextChanged = {},
@@ -393,7 +393,7 @@ fun GlobalSearchScreenEmptyPreview() {
 
 @Composable
 @Preview
-fun GlobalSearchScreenPreview() {
+fun SearchScreenPreview() {
     val filterAppItem = FilterAppItem(
         app = Application(
             label = "Blocker",
@@ -418,7 +418,7 @@ fun GlobalSearchScreenPreview() {
         currentIndex = 0,
     )
     BlockerTheme {
-        GlobalSearchScreen(
+        SearchScreen(
             searchBoxUiState = searchBoxUiState,
             localSearchUiState = localSearchUiState,
             onSearchTextChanged = {},
@@ -438,7 +438,7 @@ fun GlobalSearchScreenPreview() {
 
 @Composable
 @Preview
-fun GlobalSearchScreenSelectedPreview() {
+fun SearchScreenSelectedPreview() {
     val filterAppItem = FilterAppItem(
         app = Application(
             label = "Blocker",
@@ -464,7 +464,7 @@ fun GlobalSearchScreenSelectedPreview() {
         currentIndex = 0,
     )
     BlockerTheme {
-        GlobalSearchScreen(
+        SearchScreen(
             searchBoxUiState = searchBoxUiState,
             localSearchUiState = localSearchUiState,
             onSearchTextChanged = {},

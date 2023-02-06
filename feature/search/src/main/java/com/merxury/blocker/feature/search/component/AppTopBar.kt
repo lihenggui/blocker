@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalsearch.component
+package com.merxury.blocker.feature.search.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -51,8 +51,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerLargeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.feature.globalsearch.R.string
-import com.merxury.blocker.feature.globalsearch.model.SearchBoxUiState
+import com.merxury.blocker.feature.search.R.string
+import com.merxury.blocker.feature.search.model.SearchBoxUiState
 
 @Composable
 fun SelectedAppTopBar(
