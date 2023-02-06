@@ -38,12 +38,12 @@ import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleRoute
 import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
-import com.merxury.blocker.feature.globalsearch.navigation.globalSearchRoute
-import com.merxury.blocker.feature.globalsearch.navigation.navigateToGlobalSearch
+import com.merxury.blocker.feature.search.navigation.navigateToSearch
+import com.merxury.blocker.feature.search.navigation.searchRoute
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
 import com.merxury.blocker.navigation.TopLevelDestination.GENERAL_RULE
-import com.merxury.blocker.navigation.TopLevelDestination.GLOBAL_SEARCH
+import com.merxury.blocker.navigation.TopLevelDestination.SEARCH
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -77,14 +77,14 @@ class BlockerAppState(
         @Composable get() = when (currentDestination?.route) {
             appListRoute -> APP_LIST
             generalRuleRoute -> GENERAL_RULE
-            globalSearchRoute -> GLOBAL_SEARCH
+            searchRoute -> SEARCH
             else -> null
         }
     private val isOnTopLevelScreen: Boolean
         @Composable get() = when (currentDestination?.route) {
             appListRoute -> true
             generalRuleRoute -> true
-            globalSearchRoute -> true
+            searchRoute -> true
             else -> false
         }
 
@@ -138,7 +138,7 @@ class BlockerAppState(
             when (topLevelDestination) {
                 APP_LIST -> navController.navigateToAppList(topLevelNavOptions)
                 GENERAL_RULE -> navController.navigateToGeneralRule(topLevelNavOptions)
-                GLOBAL_SEARCH -> navController.navigateToGlobalSearch(topLevelNavOptions)
+                SEARCH -> navController.navigateToSearch(topLevelNavOptions)
             }
         }
     }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalsearch.component
+package com.merxury.blocker.feature.search.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,9 +43,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.feature.globalsearch.R.string
-import com.merxury.blocker.feature.globalsearch.model.BottomSheetViewModel
-import com.merxury.blocker.feature.globalsearch.model.FilterAppItem
+import com.merxury.blocker.feature.search.R.string
+import com.merxury.blocker.feature.search.model.BottomSheetViewModel
+import com.merxury.blocker.feature.search.model.FilterAppItem
 
 @Composable
 fun BottomSheetRoute(

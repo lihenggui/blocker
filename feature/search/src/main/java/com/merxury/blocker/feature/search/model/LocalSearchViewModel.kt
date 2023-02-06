@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalsearch.model
+package com.merxury.blocker.feature.search.model
 
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.feature.globalsearch.R
+import com.merxury.blocker.feature.search.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

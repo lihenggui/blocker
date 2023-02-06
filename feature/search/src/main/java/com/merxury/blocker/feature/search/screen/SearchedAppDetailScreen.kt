@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalsearch.screen
+package com.merxury.blocker.feature.search.screen
 
 import androidx.compose.runtime.Composable
 
 @Composable
-fun SearchedRuleDetailScreen() {
+fun SearchedAppDetailScreen() {
 }

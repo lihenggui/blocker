@@ -45,7 +45,7 @@ enum class TopLevelDestination(
         iconTextId = R.string.rules,
         titleTextId = R.string.rules,
     ),
-    GLOBAL_SEARCH(
+    SEARCH(
         selectedIcon = ImageVectorIcon(BlockerIcons.Search),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
         iconTextId = R.string.search,
