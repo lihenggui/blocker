@@ -16,20 +16,19 @@
 
 package com.merxury.blocker.core.data.respository.generalrule
 
-import com.merxury.blocker.core.data.Syncable
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
-interface GeneralRuleRepository : Syncable {
+interface GeneralRuleRepository {
     /**
      * Gets the general rule as a stream
      */
-    fun getCacheGeneralRules(): Flow<List<GeneralRule>>
+    fun getGeneralRules(): Flow<List<GeneralRule>>
 
-    fun getNetworkGeneralRules(): Flow<Result<List<GeneralRule>>>
-
-    suspend fun updateGeneralRules(list: List<GeneralRule>)
-
-    suspend fun clearCacheData()
+    /**
+     * Update the general rule from the backend API
+     * And emit results in a flow for application to listen
+     */
+    fun updateGeneralRule(): Flow<Result<Unit>>
 }
