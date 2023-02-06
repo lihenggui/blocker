@@ -70,7 +70,7 @@ import com.merxury.blocker.core.designsystem.R
  */
 object BlockerIcons {
     val Apps = Icons.Outlined.Apps
-    val OnlineRules = Icons.Outlined.CollectionsBookmark
+    val GeneralRule = Icons.Outlined.CollectionsBookmark
     val Sort = Icons.Outlined.Sort
     val Share = Icons.Outlined.Share
     val Find = Icons.Outlined.FindInPage

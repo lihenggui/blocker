@@ -47,13 +47,13 @@ import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.feature.generalrule.R
 import com.merxury.blocker.feature.generalrules.component.RuleCard
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Success
 import com.merxury.blocker.feature.generalrules.model.GeneralRulesViewModel
-import com.merxury.blocker.feature.onlinerules.R
 
 @Composable
 fun GeneralRulesRoute(
@@ -71,7 +71,7 @@ fun GeneralRulesScreen(
 ) {
     Scaffold(
         topBar = {
-            BlockerTopAppBar(title = stringResource(id = R.string.online_rules))
+            BlockerTopAppBar(title = stringResource(id = R.string.general_rules))
         },
     ) { padding ->
         Column(
@@ -138,7 +138,7 @@ fun GeneralRulesContent(
 
 @Composable
 @Preview
-fun OnlineRulesScreenPreview() {
+fun GeneralRuleScreenPreview() {
     val uiState = Success(
         listOf(
             GeneralRule(

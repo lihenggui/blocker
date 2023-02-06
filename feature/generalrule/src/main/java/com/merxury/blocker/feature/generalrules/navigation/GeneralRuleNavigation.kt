@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Blocker
- * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +14,22 @@
  * limitations under the License.
  */
 
-plugins {
-    id("blocker.android.feature")
-    id("blocker.android.library.compose")
-    id("blocker.android.library.jacoco")
+package com.merxury.blocker.feature.generalrules.navigation
+
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
+import androidx.navigation.compose.composable
+import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
+
+const val generalRuleRoute = "general_rule_route"
+
+fun NavController.navigateToGeneralRule(navOptions: NavOptions? = null) {
+    this.navigate(generalRuleRoute, navOptions)
 }
-android {
-    namespace = "com.merxury.blocker.feature.onlinerules"
-}
-dependencies {
-    implementation(project(":core:database"))
+
+fun NavGraphBuilder.generalRuleScreen() {
+    composable(route = generalRuleRoute) {
+        GeneralRulesRoute()
+    }
 }
