@@ -42,32 +42,32 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.onlinerules.R.string
 import com.merxury.blocker.feature.onlinerules.component.RuleCard
-import com.merxury.blocker.feature.onlinerules.model.OnlineRulesUiState
-import com.merxury.blocker.feature.onlinerules.model.OnlineRulesUiState.Error
-import com.merxury.blocker.feature.onlinerules.model.OnlineRulesUiState.Loading
-import com.merxury.blocker.feature.onlinerules.model.OnlineRulesUiState.OnlineRulesResult
-import com.merxury.blocker.feature.onlinerules.model.OnlineRulesViewModel
+import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState
+import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState.Error
+import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState.Loading
+import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState.Success
+import com.merxury.blocker.feature.onlinerules.model.GeneralRulesViewModel
 
 @Composable
-fun OnlineRulesRoute(
-    viewModel: OnlineRulesViewModel = hiltViewModel(),
+fun GeneralRulesRoute(
+    viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.onlineRulesUiState.collectAsStateWithLifecycle()
-    OnlineRulesScreen(uiState = uiState)
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    GeneralRulesScreen(uiState = uiState)
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun OnlineRulesScreen(
+fun GeneralRulesScreen(
     modifier: Modifier = Modifier,
-    uiState: OnlineRulesUiState,
+    uiState: GeneralRuleUiState,
 ) {
     Scaffold(
         topBar = {
@@ -102,8 +102,8 @@ fun OnlineRulesScreen(
                     }
                 }
 
-                is OnlineRulesResult -> {
-                    OnlineRulesContent(uiState = uiState)
+                is Success -> {
+                    GeneralRulesContent(uiState = uiState)
                 }
 
                 is Error -> {
@@ -120,9 +120,9 @@ fun ErrorScreen(message: ErrorMessage) {
 }
 
 @Composable
-fun OnlineRulesContent(
+fun GeneralRulesContent(
     modifier: Modifier = Modifier,
-    uiState: OnlineRulesResult,
+    uiState: Success,
 ) {
     val listContent = remember { uiState.rules }
     val listState = rememberLazyListState()
@@ -139,31 +139,38 @@ fun OnlineRulesContent(
 @Composable
 @Preview
 fun OnlineRulesScreenPreview() {
-    val uiState = OnlineRulesResult(
+    val uiState = Success(
         listOf(
-            GeneralRuleEntity(
-                id = 100,
-                name = "Blocker",
+            GeneralRule(
+                id = 1,
+                name = "AWS SDK for Kotlin (Developer Preview)",
                 iconUrl = null,
-                company = "Merxury blocker",
-                description = "Merxury Merxury Merxury Merxury Merxury Merxury Merxury Merxury",
-                sideEffect = "unknown",
+                company = "Amazon",
+                description = "The AWS SDK for Kotlin simplifies the use of AWS services by " +
+                    "providing a set of libraries that are consistent and familiar for " +
+                    "Kotlin developers. All AWS SDKs support API lifecycle considerations " +
+                    "such as credential management, retries, data marshaling, and serialization.",
+                sideEffect = "Unknown",
                 safeToBlock = true,
-                contributors = listOf("blocker"),
+                contributors = listOf("Online contributor"),
             ),
-            GeneralRuleEntity(
-                id = 10,
-                name = "Blocker2",
+            GeneralRule(
+                id = 2,
+                name = "Android WorkerManager",
                 iconUrl = null,
-                company = "Blocker Merxury",
-                description = "Blocker Blocker Blocker Blocker Blocker",
-                sideEffect = "Blocker",
+                company = "Google",
+                description = "WorkManager is the recommended solution for persistent work. " +
+                    "Work is persistent when it remains scheduled through app restarts and " +
+                    "system reboots. Because most background processing is best accomplished " +
+                    "through persistent work, WorkManager is the primary recommended API for " +
+                    "background processing.",
+                sideEffect = "Background works won't be able to execute",
                 safeToBlock = false,
-                contributors = listOf("merxury"),
+                contributors = listOf("Google"),
             ),
         ),
     )
     BlockerTheme {
-        OnlineRulesScreen(uiState = uiState)
+        GeneralRulesScreen(uiState = uiState)
     }
 }

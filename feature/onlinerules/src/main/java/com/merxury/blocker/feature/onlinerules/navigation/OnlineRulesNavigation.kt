@@ -20,7 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.merxury.blocker.feature.onlinerules.OnlineRulesRoute
+import com.merxury.blocker.feature.onlinerules.GeneralRulesRoute
 
 const val onlineRulesRoute = "online_rules_route"
 
@@ -30,6 +30,6 @@ fun NavController.navigateToOnlineRules(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.onlineRulesScreen() {
     composable(route = onlineRulesRoute) {
-        OnlineRulesRoute()
+        GeneralRulesRoute()
     }
 }
