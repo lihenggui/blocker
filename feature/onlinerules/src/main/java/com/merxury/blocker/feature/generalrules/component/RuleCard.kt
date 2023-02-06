@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.onlinerules.component
+package com.merxury.blocker.feature.generalrules.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
