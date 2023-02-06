@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -74,7 +75,11 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun launchApp(packageName: String) {
-        // TODO
+        Timber.i("Launch app $packageName")
+        val context: Context = getApplication()
+        context.packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
+            context.startActivity(launchIntent)
+        }
     }
 
     private fun load() = viewModelScope.launch {
