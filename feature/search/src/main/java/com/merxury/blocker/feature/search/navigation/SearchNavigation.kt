@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalsearch.navigation
+package com.merxury.blocker.feature.search.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.merxury.blocker.feature.globalsearch.screen.GlobalSearchRoute
+import com.merxury.blocker.feature.search.screen.SearchRoute
 
-const val globalSearchRoute = "global_search_route"
+const val searchRoute = "search_route"
 
-fun NavController.navigateToGlobalSearch(navOptions: NavOptions? = null) {
-    this.navigate(globalSearchRoute, navOptions)
+fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
+    this.navigate(searchRoute, navOptions)
 }
 
-fun NavGraphBuilder.globalSearchScreen(
+fun NavGraphBuilder.searchScreen(
     navigationToSearchedAppDetail: () -> Unit = {},
 ) {
-    composable(route = globalSearchRoute) {
-        GlobalSearchRoute(
+    composable(route = searchRoute) {
+        SearchRoute(
             navigationToSearchedAppDetail,
         )
     }

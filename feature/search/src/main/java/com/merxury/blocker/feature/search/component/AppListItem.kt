@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalsearch.component
+package com.merxury.blocker.feature.search.component
 
 import android.content.pm.PackageInfo
 import android.content.res.Configuration
@@ -49,8 +49,8 @@ import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
-import com.merxury.blocker.feature.globalsearch.R
-import com.merxury.blocker.feature.globalsearch.model.FilterAppItem
+import com.merxury.blocker.feature.search.R
+import com.merxury.blocker.feature.search.model.FilterAppItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

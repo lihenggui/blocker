@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.globalsearch.model
+package com.merxury.blocker.feature.search.model
 
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.feature.globalsearch.R.string
+import com.merxury.blocker.feature.search.R.string
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
