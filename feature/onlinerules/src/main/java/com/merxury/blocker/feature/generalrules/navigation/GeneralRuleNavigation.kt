@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.onlinerules.navigation
+package com.merxury.blocker.feature.generalrules.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import com.merxury.blocker.feature.onlinerules.GeneralRulesRoute
+import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
 
-const val onlineRulesRoute = "online_rules_route"
+const val generalRuleRoute = "online_rule_route"
 
 fun NavController.navigateToOnlineRules(navOptions: NavOptions? = null) {
-    this.navigate(onlineRulesRoute, navOptions)
+    this.navigate(generalRuleRoute, navOptions)
 }
 
 fun NavGraphBuilder.onlineRulesScreen() {
-    composable(route = onlineRulesRoute) {
+    composable(route = generalRuleRoute) {
         GeneralRulesRoute()
     }
 }

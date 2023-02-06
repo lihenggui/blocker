@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.onlinerules
+package com.merxury.blocker.feature.generalrules
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,13 +47,13 @@ import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.feature.onlinerules.R.string
-import com.merxury.blocker.feature.onlinerules.component.RuleCard
-import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState
-import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState.Error
-import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState.Loading
-import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState.Success
-import com.merxury.blocker.feature.onlinerules.model.GeneralRulesViewModel
+import com.merxury.blocker.feature.generalrules.component.RuleCard
+import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState
+import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
+import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
+import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Success
+import com.merxury.blocker.feature.generalrules.model.GeneralRulesViewModel
+import com.merxury.blocker.feature.onlinerules.R
 
 @Composable
 fun GeneralRulesRoute(
@@ -71,7 +71,7 @@ fun GeneralRulesScreen(
 ) {
     Scaffold(
         topBar = {
-            BlockerTopAppBar(title = stringResource(id = string.online_rules))
+            BlockerTopAppBar(title = stringResource(id = R.string.online_rules))
         },
     ) { padding ->
         Column(
@@ -97,7 +97,7 @@ fun GeneralRulesScreen(
                     ) {
                         BlockerLoadingWheel(
                             modifier = modifier,
-                            contentDesc = stringResource(id = string.loading),
+                            contentDesc = stringResource(id = R.string.loading),
                         )
                     }
                 }
