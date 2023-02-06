@@ -25,7 +25,7 @@ import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
-import com.merxury.blocker.feature.generalrules.navigation.onlineRulesScreen
+import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
 import com.merxury.blocker.feature.globalsearch.navigation.globalSearchScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
@@ -58,7 +58,7 @@ fun BlockerNavHost(
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
         )
         detailScreen(onBackClick = onBackClick)
-        onlineRulesScreen()
+        generalRuleScreen()
         globalSearchScreen()
         settingsScreen(onBackClick)
         supportAndFeedbackScreen(onBackClick)

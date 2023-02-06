@@ -92,7 +92,7 @@ android {
 dependencies {
     implementation(project(":feature:appdetail"))
     implementation(project(":feature:applist"))
-    implementation(project(":feature:onlinerules"))
+    implementation(project(":feature:generalrule"))
     implementation(project(":feature:globalsearch"))
     implementation(project(":feature:settings"))
 

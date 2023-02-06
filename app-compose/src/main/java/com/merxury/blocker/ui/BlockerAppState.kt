@@ -36,14 +36,14 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
-import com.merxury.blocker.feature.generalrules.navigation.navigateToOnlineRules
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleRoute
+import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
 import com.merxury.blocker.feature.globalsearch.navigation.globalSearchRoute
 import com.merxury.blocker.feature.globalsearch.navigation.navigateToGlobalSearch
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
+import com.merxury.blocker.navigation.TopLevelDestination.GENERAL_RULE
 import com.merxury.blocker.navigation.TopLevelDestination.GLOBAL_SEARCH
-import com.merxury.blocker.navigation.TopLevelDestination.ONLINE_RULES
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -76,7 +76,7 @@ class BlockerAppState(
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() = when (currentDestination?.route) {
             appListRoute -> APP_LIST
-            generalRuleRoute -> ONLINE_RULES
+            generalRuleRoute -> GENERAL_RULE
             globalSearchRoute -> GLOBAL_SEARCH
             else -> null
         }
@@ -137,7 +137,7 @@ class BlockerAppState(
 
             when (topLevelDestination) {
                 APP_LIST -> navController.navigateToAppList(topLevelNavOptions)
-                ONLINE_RULES -> navController.navigateToOnlineRules(topLevelNavOptions)
+                GENERAL_RULE -> navController.navigateToGeneralRule(topLevelNavOptions)
                 GLOBAL_SEARCH -> navController.navigateToGlobalSearch(topLevelNavOptions)
             }
         }
