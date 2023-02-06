@@ -202,6 +202,7 @@ fun AppDetailContent(
                     app.versionCode,
                 ),
                 iconSource = app.packageInfo,
+                onIconClick = { onLaunchAppClick(app.packageName) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
