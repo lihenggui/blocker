@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
@@ -70,6 +71,7 @@ import com.merxury.blocker.core.designsystem.R
  */
 object BlockerIcons {
     val Apps = Icons.Outlined.Apps
+    val Article = Icons.Outlined.Article
     val GeneralRule = Icons.Outlined.CollectionsBookmark
     val Sort = Icons.Outlined.Sort
     val Share = Icons.Outlined.Share
