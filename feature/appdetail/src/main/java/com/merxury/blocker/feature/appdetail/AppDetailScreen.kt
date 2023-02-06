@@ -204,6 +204,16 @@ fun AppDetailContent(
                         modifier = Modifier.then(Modifier.size(24.dp)),
                     ) {
                         Icon(
+                            imageVector = BlockerIcons.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier.then(Modifier.size(24.dp)),
+                    ) {
+                        Icon(
                             imageVector = BlockerIcons.More,
                             contentDescription = stringResource(id = string.more_menu),
                             tint = MaterialTheme.colorScheme.onSurface,
