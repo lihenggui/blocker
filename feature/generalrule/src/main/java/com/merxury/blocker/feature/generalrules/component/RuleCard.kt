@@ -24,108 +24,100 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.feature.generalrule.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RuleCard(item: GeneralRule) {
-    ElevatedCard(
+    OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
+            .padding(8.dp),
         onClick = {},
     ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            RuleBasicInfo(item = item)
-            RuleDetail(item = item)
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Row(
+                modifier = Modifier.padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                AsyncImage(
+                    modifier = Modifier.size(40.dp),
+                    model = Builder(LocalContext.current)
+                        .data(item.iconUrl)
+                        .error(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
+                        .placeholder(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = stringResource(id = R.string.rule_icon_description),
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(text = item.name, style = MaterialTheme.typography.bodyLarge)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    item.company?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+            }
         }
-    }
-}
-
-@Composable
-fun RuleBasicInfo(
-    item: GeneralRule,
-) {
-    Row(
-        modifier = Modifier.padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (item.iconUrl == null) {
-            Icon(
-                painter = painterResource(id = BlockerIcons.Android),
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-            )
-        } else {
-            // TODO
-        }
-        Spacer(modifier = Modifier.width(12.dp))
         Column {
-            item.name?.let { Text(text = it, style = MaterialTheme.typography.titleMedium) }
-            Spacer(modifier = Modifier.height(2.dp))
-            item.company?.let { Text(text = it, style = MaterialTheme.typography.labelSmall) }
+            Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Icon(
+                    modifier = Modifier
+                        .padding(4.dp)
+                        .size(20.dp),
+                    imageVector = BlockerIcons.SubdirectoryArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = item.searchKeyword.joinToString(separator = "\n"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }
-
-@Composable
-fun RuleDetail(item: GeneralRule) {
-    val ruleDetail = listOf(
-        RuleDetailItemInfo("Rules", item.name),
-        RuleDetailItemInfo("Description", item.description),
-        RuleDetailItemInfo("Side effect", item.sideEffect),
-        RuleDetailItemInfo("Safe to block", item.safeToBlock.toString()),
-        RuleDetailItemInfo("Contributor", item.contributors.toString()),
-    )
-    ruleDetail.forEach {
-        RuleDetailItem(
-            title = it.title,
-            detail = it.detail,
-        )
-    }
-}
-
-@Composable
-fun RuleDetailItem(
-    title: String?,
-    detail: String?,
-) {
-    Column(modifier = Modifier.padding(bottom = 2.dp)) {
-        title?.let { Text(text = it, style = MaterialTheme.typography.titleSmall) }
-        detail?.let { Text(text = it, style = MaterialTheme.typography.bodySmall) }
-    }
-}
-
-private data class RuleDetailItemInfo(
-    val title: String?,
-    val detail: String?,
-)
 
 @Composable
 @Preview
 fun RuleBasicInfoPreview() {
     val item = GeneralRule(
-        id = 100,
-        name = "Blocker",
+        id = 2,
+        name = "Android WorkerManager",
         iconUrl = null,
-        company = "Merxury blocker",
-        description = "Merxury Merxury Merxury Merxury Merxury Merxury Merxury Merxury",
-        sideEffect = "unknown",
-        safeToBlock = true,
-        contributors = listOf("blocker"),
+        company = "Google",
+        description = "WorkManager is the recommended solution for persistent work. " +
+            "Work is persistent when it remains scheduled through app restarts and " +
+            "system reboots. Because most background processing is best accomplished " +
+            "through persistent work, WorkManager is the primary recommended API for " +
+            "background processing.",
+        sideEffect = "Background works won't be able to execute",
+        safeToBlock = false,
+        contributors = listOf("Google"),
+        searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
     )
     BlockerTheme {
         RuleCard(item = item)
