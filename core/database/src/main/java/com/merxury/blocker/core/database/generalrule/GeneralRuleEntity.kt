@@ -26,7 +26,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 @TypeConverters(ListConverter::class)
 data class GeneralRuleEntity(
     @PrimaryKey val id: Int,
-    val name: String? = null,
+    val name: String,
     val iconUrl: String? = null,
     val company: String? = null,
     val searchKeyword: List<String> = listOf(),
