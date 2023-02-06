@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -28,12 +29,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
@@ -136,7 +139,11 @@ fun BlockerCollapsingTopAppBar(
                 AsyncImage(
                     modifier = Modifier
                         .size(appIconSize)
-                        .clickable { onIconClick() }
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = rememberRipple(bounded = false),
+                            onClick = { onIconClick() },
+                        )
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(iconSource)
