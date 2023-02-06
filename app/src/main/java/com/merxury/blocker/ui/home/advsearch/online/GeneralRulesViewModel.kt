@@ -41,7 +41,7 @@ class GeneralRulesViewModel @Inject constructor(
     }
 
     private fun loadRuleFromCache() = viewModelScope.launch {
-        generalRuleRepository.getCacheGeneralRules()
+        generalRuleRepository.getGeneralRules()
             .collect { list ->
                 if (list.isEmpty()) {
                     Timber.d("No cache data in the db")
@@ -52,29 +52,18 @@ class GeneralRulesViewModel @Inject constructor(
     }
 
     private fun loadRuleFromNetwork() = viewModelScope.launch {
-        generalRuleRepository.getNetworkGeneralRules()
-            .collect { result ->
-                when (result) {
-                    is Result.Success -> {
-                        Timber.d("Load online rules from network successfully.")
-                        _uiState.emit(GeneralRuleUiState.Success(result.data))
-                        generalRuleRepository.clearCacheData()
-                        generalRuleRepository.updateGeneralRules(result.data)
-                    }
-
-                    is Result.Error -> {
-                        Timber.e(result.exception, "Can't fetch network rules")
-                        val currentState = _uiState.value
-                        if (currentState is GeneralRuleUiState.Loading) {
-                            _uiState.emit(GeneralRuleUiState.Error(result.exception?.message))
-                        }
-                    }
-
-                    is Result.Loading -> {
-                        Timber.d("Start to load rules data from the network.")
+        generalRuleRepository.updateGeneralRule().collect { result ->
+            when (result) {
+                is Result.Loading -> Timber.d("Start to load rules data from the network.")
+                is Result.Success -> Timber.d("Load online rules from network successfully.")
+                is Result.Error -> {
+                    val currentState = _uiState.value
+                    if (currentState is GeneralRuleUiState.Loading) {
+                        _uiState.emit(GeneralRuleUiState.Error(result.exception?.message))
                     }
                 }
             }
+        }
     }
 }
 

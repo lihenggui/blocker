@@ -21,7 +21,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class NetworkGeneralRule(
     val id: Int,
-    val name: String? = null,
+    val name: String,
     val iconUrl: String? = null,
     val company: String? = null,
     val searchKeyword: List<String> = listOf(),

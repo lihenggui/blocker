@@ -28,19 +28,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -55,7 +53,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
@@ -64,7 +61,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
@@ -72,6 +68,7 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
@@ -161,7 +158,7 @@ fun AppDetailContent(
     }
     val toolbarState = rememberToolbarState(toolbarHeightRange)
     val scope = rememberCoroutineScope()
-
+    val appBarActionState = remember { mutableStateOf(AppBarActionState()) }
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
@@ -187,7 +184,6 @@ fun AppDetailContent(
                         }
                     }
                 }
-
                 return super.onPostFling(consumed, available)
             }
         }
@@ -198,21 +194,15 @@ fun AppDetailContent(
                 progress = toolbarState.progress,
                 onNavigationClick = onBackClick,
                 title = app.label,
-                actions = {
-                    IconButton(
-                        onClick = {},
-                        modifier = Modifier.then(Modifier.size(24.dp)),
-                    ) {
-                        Icon(
-                            imageVector = BlockerIcons.More,
-                            contentDescription = stringResource(id = string.more_menu),
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                },
+                actions = { appBarActionState.value.actions?.invoke(this) },
                 subtitle = app.packageName,
-                summary = app.versionCode.toString(),
+                summary = stringResource(
+                    id = string.data_with_explanation,
+                    app.versionName.orEmpty(),
+                    app.versionCode,
+                ),
                 iconSource = app.packageInfo,
+                onIconClick = { onLaunchAppClick(app.packageName) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
@@ -223,6 +213,7 @@ fun AppDetailContent(
         AppDetailTabContent(
             app = app,
             tabState = tabState,
+            appBarActionState = appBarActionState,
             switchTab = switchTab,
             modifier = Modifier
                 .padding(innerPadding)
@@ -249,6 +240,7 @@ fun AppDetailTabContent(
     modifier: Modifier = Modifier,
     app: Application,
     tabState: TabState,
+    appBarActionState: MutableState<AppBarActionState>,
     switchTab: (Int) -> Unit,
     listState: LazyListState = rememberLazyListState(),
 ) {
@@ -271,30 +263,45 @@ fun AppDetailTabContent(
                 SummaryContent(
                     app = app,
                     listState = listState,
+                    onComposing = {
+                        appBarActionState.value = it
+                    },
                 )
 
             Receiver.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = RECEIVER,
                 listState = listState,
+                onComposing = {
+                    appBarActionState.value = it
+                },
             )
 
             Service.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = SERVICE,
                 listState = listState,
+                onComposing = {
+                    appBarActionState.value = it
+                },
             )
 
             Activity.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = ACTIVITY,
                 listState = listState,
+                onComposing = {
+                    appBarActionState.value = it
+                },
             )
 
             Provider.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = PROVIDER,
                 listState = listState,
+                onComposing = {
+                    appBarActionState.value = it
+                },
             )
         }
     }
