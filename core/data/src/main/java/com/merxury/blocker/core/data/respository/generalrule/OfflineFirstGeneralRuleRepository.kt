@@ -16,46 +16,80 @@
 
 package com.merxury.blocker.core.data.respository.generalrule
 
-import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.model.asEntity
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
 import com.merxury.blocker.core.database.generalrule.asExternalModel
-import com.merxury.blocker.core.database.generalrule.fromExternalModel
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
-import com.merxury.blocker.core.network.model.NetworkGeneralRule
-import com.merxury.blocker.core.result.asResult
+import com.merxury.blocker.core.result.Result
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 class OfflineFirstGeneralRuleRepository @Inject constructor(
     private val generalRuleDao: GeneralRuleDao,
     private val network: BlockerNetworkDataSource,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : GeneralRuleRepository {
 
-    override fun getCacheGeneralRules(): Flow<List<GeneralRule>> =
-        generalRuleDao.getGeneralRuleEntities()
+    override fun getGeneralRules(): Flow<List<GeneralRule>> {
+        return generalRuleDao.getGeneralRuleEntities()
             .map { it.map(GeneralRuleEntity::asExternalModel) }
-
-    override fun getNetworkGeneralRules() = flow {
-        emit(network.getGeneralRules())
-    }
-        .map { it.map(NetworkGeneralRule::asEntity) }
-        .map { it.map(GeneralRuleEntity::asExternalModel) }
-        .asResult()
-
-    override suspend fun updateGeneralRules(list: List<GeneralRule>) {
-        generalRuleDao.upsertGeneralRule(
-            list.map(GeneralRule::fromExternalModel),
-        )
     }
 
-    override suspend fun clearCacheData() {
-        generalRuleDao.deleteAll()
+    override fun updateGeneralRule(): Flow<Result<Unit>> = flow {
+        try {
+            val networkRule = network.getGeneralRules()
+                .map { it.asEntity() }
+            compareAndUpdateCache(networkRule)
+            emit(Result.Success(Unit))
+        } catch (e: Exception) {
+            // Catch general errors here
+            Timber.w(e, "Failed to get the general rules from server.")
+            emit(Result.Error(e))
+        }
     }
+        .onStart {
+            Timber.v("Start fetching general online rules.")
+            emit(Result.Loading)
+        }
+        .flowOn(ioDispatcher)
 
-    override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
+    private suspend fun compareAndUpdateCache(networkRules: List<GeneralRuleEntity>) {
+        withContext(ioDispatcher) {
+            val currentCache = generalRuleDao.getGeneralRuleEntities().first()
+            Timber.v(
+                "Compare online rules with local rules.\n" +
+                    " Online rule size: ${networkRules.size}. Local DB size: ${currentCache.size}",
+            )
+            // Insert or update rules from the network
+            networkRules.forEach { networkEntity ->
+                val cachedEntity = currentCache.find { it == networkEntity }
+                if (cachedEntity != null) {
+                    Timber.v("Skip saving entity id: ${cachedEntity.id}")
+                    return@forEach
+                }
+                Timber.v("Saving new rules $networkEntity to local db.")
+                generalRuleDao.upsertGeneralRule(networkEntity)
+            }
+            // Delete outdated rules in the local cache
+            // Find the rules that's not existed
+            currentCache.filter { localEntity ->
+                networkRules.find { it.id == localEntity.id } == null
+            }.forEach { localEntity ->
+                Timber.i("Rule outdated, delete it. $localEntity")
+                generalRuleDao.delete(localEntity)
+            }
+        }
+    }
 }
