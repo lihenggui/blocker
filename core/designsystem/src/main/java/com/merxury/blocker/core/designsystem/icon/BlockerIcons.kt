@@ -57,6 +57,7 @@ import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Sort
+import androidx.compose.material.icons.outlined.SubdirectoryArrowRight
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
@@ -108,6 +109,7 @@ object BlockerIcons {
     val CheckBoxBlank = Icons.Outlined.CheckBoxOutlineBlank
     val Rule = Icons.Outlined.Rule
     val Deselect = Icons.Outlined.Deselect
+    val SubdirectoryArrowRight = Icons.Outlined.SubdirectoryArrowRight
 
     val Rectangle = R.drawable.ic_rectangle
     val Export = R.drawable.ic_export
