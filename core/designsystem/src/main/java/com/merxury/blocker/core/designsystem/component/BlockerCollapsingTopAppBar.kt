@@ -19,6 +19,7 @@ package com.merxury.blocker.core.designsystem.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -65,7 +66,7 @@ fun BlockerCollapsingTopAppBar(
     progress: Float,
     onNavigationClick: () -> Unit = {},
     title: String,
-    actions: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
     subtitle: String,
     summary: String,
     iconSource: Any? = null,

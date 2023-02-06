@@ -18,20 +18,28 @@ package com.merxury.blocker.feature.appdetail.cmplist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
 import dagger.hilt.android.EntryPointAccessors
@@ -39,6 +47,7 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun ComponentListContentRoute(
     modifier: Modifier = Modifier,
+    onComposing: (AppBarActionState) -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
     packageName: String,
     type: ComponentType,
@@ -60,6 +69,34 @@ fun ComponentListContentRoute(
             title = errorState?.message.orEmpty(),
             text = errorState?.stackTrace.orEmpty(),
             onDismissRequest = viewModel::dismissAlert,
+        )
+    }
+    LaunchedEffect(true) {
+        onComposing(
+            AppBarActionState(
+                actions = {
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier.then(Modifier.size(24.dp)),
+                    ) {
+                        Icon(
+                            imageVector = BlockerIcons.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                    IconButton(
+                        onClick = {},
+                        modifier = Modifier.then(Modifier.size(24.dp)),
+                    ) {
+                        Icon(
+                            imageVector = BlockerIcons.More,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                },
+            ),
         )
     }
 }
