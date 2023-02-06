@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Article
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
@@ -34,6 +35,7 @@ import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.CollectionsBookmark
 import androidx.compose.material.icons.outlined.CreateNewFolder
+import androidx.compose.material.icons.outlined.Deselect
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EventBusy
 import androidx.compose.material.icons.outlined.ExpandMore
@@ -55,6 +57,7 @@ import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.Sort
+import androidx.compose.material.icons.outlined.SubdirectoryArrowRight
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.ArrowDropUp
@@ -69,7 +72,8 @@ import com.merxury.blocker.core.designsystem.R
  */
 object BlockerIcons {
     val Apps = Icons.Outlined.Apps
-    val OnlineRules = Icons.Outlined.CollectionsBookmark
+    val Article = Icons.Outlined.Article
+    val GeneralRule = Icons.Outlined.CollectionsBookmark
     val Sort = Icons.Outlined.Sort
     val Share = Icons.Outlined.Share
     val Find = Icons.Outlined.FindInPage
@@ -104,6 +108,8 @@ object BlockerIcons {
     val CheckBox = Icons.Outlined.CheckBox
     val CheckBoxBlank = Icons.Outlined.CheckBoxOutlineBlank
     val Rule = Icons.Outlined.Rule
+    val Deselect = Icons.Outlined.Deselect
+    val SubdirectoryArrowRight = Icons.Outlined.SubdirectoryArrowRight
 
     val Rectangle = R.drawable.ic_rectangle
     val Export = R.drawable.ic_export

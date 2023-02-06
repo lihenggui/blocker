@@ -92,19 +92,19 @@ android {
 dependencies {
     implementation(project(":feature:appdetail"))
     implementation(project(":feature:applist"))
-    implementation(project(":feature:onlinerules"))
-    implementation(project(":feature:globalsearch"))
+    implementation(project(":feature:generalrule"))
+    implementation(project(":feature:search"))
     implementation(project(":feature:settings"))
 
     implementation(project(":core:ui"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:data"))
+    implementation(project(":core:network"))
     implementation(project(":core:model"))
 
     androidTestImplementation(project(":core:testing"))
     androidTestImplementation(project(":core:datastore-test"))
     androidTestImplementation(project(":core:data-test"))
-    androidTestImplementation(project(":core:network"))
     androidTestImplementation(libs.androidx.navigation.testing)
     androidTestImplementation(libs.accompanist.testharness)
     androidTestImplementation(kotlin("test"))

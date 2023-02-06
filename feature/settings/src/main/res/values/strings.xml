@@ -76,4 +76,5 @@
     <string name="dynamic_color">Dynamic Color</string>
     <string name="options_on">On</string>
     <string name="options_off">Off</string>
+    <string name="report_bugs_or_submit_ideas">Report bugs or submit ideas</string>
 </resources>

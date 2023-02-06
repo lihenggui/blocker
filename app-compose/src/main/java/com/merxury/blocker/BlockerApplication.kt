@@ -23,8 +23,14 @@ import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import coil.decode.SvgDecoder
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
 import me.zhanghai.android.appiconloader.coil.AppIconKeyer
 import timber.log.Timber
@@ -38,6 +44,13 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
 
+    @Inject
+    lateinit var blockerNetworkDataSource: BlockerNetworkDataSource
+
+    @Inject
+    lateinit var userDataRepository: UserDataRepository
+    private val applicationScope = MainScope()
+
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
@@ -48,6 +61,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
                 .setFlags(Shell.FLAG_MOUNT_MASTER)
                 .setTimeout(10),
         )
+        initServerProvider()
     }
 
     /**
@@ -72,4 +86,15 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
         Configuration.Builder()
             .setWorkerFactory(workerFactory)
             .build()
+
+    private fun initServerProvider() {
+        applicationScope.launch {
+            userDataRepository.userData
+                .map { it.ruleServerProvider }
+                .distinctUntilChanged()
+                .collect { newProvider ->
+                    blockerNetworkDataSource.changeServerProvider(newProvider)
+                }
+        }
+    }
 }

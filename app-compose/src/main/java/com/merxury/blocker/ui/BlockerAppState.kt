@@ -36,14 +36,14 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
-import com.merxury.blocker.feature.globalsearch.navigation.globalSearchRoute
-import com.merxury.blocker.feature.globalsearch.navigation.navigateToGlobalSearch
-import com.merxury.blocker.feature.onlinerules.navigation.navigateToOnlineRules
-import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesRoute
+import com.merxury.blocker.feature.generalrules.navigation.generalRuleRoute
+import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
+import com.merxury.blocker.feature.search.navigation.navigateToSearch
+import com.merxury.blocker.feature.search.navigation.searchRoute
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
-import com.merxury.blocker.navigation.TopLevelDestination.GLOBAL_SEARCH
-import com.merxury.blocker.navigation.TopLevelDestination.ONLINE_RULES
+import com.merxury.blocker.navigation.TopLevelDestination.GENERAL_RULE
+import com.merxury.blocker.navigation.TopLevelDestination.SEARCH
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -76,14 +76,17 @@ class BlockerAppState(
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() = when (currentDestination?.route) {
             appListRoute -> APP_LIST
-            onlineRulesRoute -> ONLINE_RULES
-            globalSearchRoute -> GLOBAL_SEARCH
+            generalRuleRoute -> GENERAL_RULE
+            searchRoute -> SEARCH
             else -> null
         }
     private val isOnTopLevelScreen: Boolean
-        @Composable get() = currentTopLevelDestination == APP_LIST ||
-            currentTopLevelDestination == ONLINE_RULES ||
-            currentTopLevelDestination == GLOBAL_SEARCH
+        @Composable get() = when (currentDestination?.route) {
+            appListRoute -> true
+            generalRuleRoute -> true
+            searchRoute -> true
+            else -> false
+        }
 
     val shouldShowBottomBar: Boolean
         @Composable get() = (
@@ -123,6 +126,7 @@ class BlockerAppState(
                 // on the back stack as users select items
                 popUpTo(navController.graph.findStartDestination().id) {
                     saveState = true
+                    inclusive = true
                 }
                 // Avoid multiple copies of the same destination when
                 // reselecting the same item
@@ -133,8 +137,8 @@ class BlockerAppState(
 
             when (topLevelDestination) {
                 APP_LIST -> navController.navigateToAppList(topLevelNavOptions)
-                ONLINE_RULES -> navController.navigateToOnlineRules(topLevelNavOptions)
-                GLOBAL_SEARCH -> navController.navigateToGlobalSearch(topLevelNavOptions)
+                GENERAL_RULE -> navController.navigateToGeneralRule(topLevelNavOptions)
+                SEARCH -> navController.navigateToSearch(topLevelNavOptions)
             }
         }
     }

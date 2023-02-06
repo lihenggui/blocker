@@ -16,19 +16,27 @@
 
 package com.merxury.blocker.core.designsystem.component
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
@@ -62,10 +70,11 @@ fun BlockerCollapsingTopAppBar(
     progress: Float,
     onNavigationClick: () -> Unit = {},
     title: String,
-    actions: @Composable () -> Unit = {},
+    actions: @Composable RowScope.() -> Unit = {},
     subtitle: String,
     summary: String,
     iconSource: Any? = null,
+    onIconClick: () -> Unit = {},
 ) {
     val titleSize = with(LocalDensity.current) {
         lerp(collapsedTitleSize.toPx(), expandedTitleSize.toPx(), progress).toSp()
@@ -95,33 +104,46 @@ fun BlockerCollapsingTopAppBar(
                 Text(
                     text = title,
                     fontSize = titleSize,
+                    style = MaterialTheme.typography.bodyLarge,
                     maxLines = 1,
                     modifier = Modifier
                         .fillMaxWidth(0.8f),
                     overflow = TextOverflow.Ellipsis,
                 )
-                actions()
+                Row(
+                    modifier = Modifier.wrapContentSize(),
+                    horizontalArrangement = Arrangement.spacedBy(contentPadding),
+                ) {
+                    actions()
+                }
                 Text(
                     text = subtitle,
                     maxLines = 1,
+                    style = MaterialTheme.typography.bodySmall,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .padding(padding)
+                        .padding(vertical = padding)
                         .fillMaxWidth(0.8f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
                 Text(
                     text = summary,
                     maxLines = 1,
+                    style = MaterialTheme.typography.bodySmall,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .padding(padding)
+                        .padding(vertical = padding)
                         .fillMaxWidth(0.8f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
                 AsyncImage(
                     modifier = Modifier
                         .size(appIconSize)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = rememberRipple(bounded = false),
+                            onClick = { onIconClick() },
+                        )
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(iconSource)
@@ -179,7 +201,7 @@ private fun CollapsingToolbarLayout(
                 ),
             )
             actionsIcon.placeRelative(
-                x = constraints.maxWidth - contentPadding.roundToPx(),
+                x = constraints.maxWidth - actionsIcon.width,
                 y = MinToolbarHeight.roundToPx() / 2 - actionsIcon.height / 2,
             )
             subtitle.placeRelative(
@@ -235,6 +257,16 @@ fun CollapsingToolbarCollapsedPreview() {
                     modifier = Modifier.then(Modifier.size(24.dp)),
                 ) {
                     Icon(
+                        imageVector = BlockerIcons.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
                         imageVector = BlockerIcons.More,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface,
@@ -264,6 +296,16 @@ fun CollapsingToolbarHalfwayPreview() {
                     modifier = Modifier.then(Modifier.size(24.dp)),
                 ) {
                     Icon(
+                        imageVector = BlockerIcons.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
                         imageVector = BlockerIcons.More,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface,
@@ -288,6 +330,16 @@ fun CollapsingToolbarExpandedPreview() {
             progress = 1f,
             title = "Title with long name 0123456789",
             actions = {
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
+                        imageVector = BlockerIcons.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
                 IconButton(
                     onClick = {},
                     modifier = Modifier.then(Modifier.size(24.dp)),
