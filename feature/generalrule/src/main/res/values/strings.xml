@@ -15,9 +15,9 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="local_search">本地搜索</string>
-    <string name="online_rules">線上規則</string>
-    <string name="search">搜索</string>
-    <string name="icon">圖標</string>
-    <string name="loading">加載中</string>
+    <string name="local_search">Local search</string>
+    <string name="general_rules">General rules</string>
+    <string name="search">Search</string>
+    <string name="icon">Icon</string>
+    <string name="loading">Loading</string>
 </resources>
