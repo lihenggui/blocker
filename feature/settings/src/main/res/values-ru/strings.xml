@@ -75,4 +75,5 @@
     <string name="dynamic_color">Динамический цвет</string>
     <string name="options_on">На</string>
     <string name="options_off">Выключенный</string>
+    <string name="report_bugs_or_submit_ideas">Сообщайте об ошибках или предлагайте идеи</string>
 </resources>
