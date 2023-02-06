@@ -81,9 +81,12 @@ class BlockerAppState(
             else -> null
         }
     private val isOnTopLevelScreen: Boolean
-        @Composable get() = currentTopLevelDestination == APP_LIST ||
-            currentTopLevelDestination == ONLINE_RULES ||
-            currentTopLevelDestination == GLOBAL_SEARCH
+        @Composable get() = when (currentDestination?.route) {
+            appListRoute -> true
+            onlineRulesRoute -> true
+            globalSearchRoute -> true
+            else -> false
+        }
 
     val shouldShowBottomBar: Boolean
         @Composable get() = (
@@ -123,6 +126,7 @@ class BlockerAppState(
                 // on the back stack as users select items
                 popUpTo(navController.graph.findStartDestination().id) {
                     saveState = true
+                    inclusive = true
                 }
                 // Avoid multiple copies of the same destination when
                 // reselecting the same item
