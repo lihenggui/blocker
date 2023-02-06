@@ -35,13 +35,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.GeneralRule
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RuleCard(item: GeneralRuleEntity) {
+fun RuleCard(item: GeneralRule) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -57,7 +57,7 @@ fun RuleCard(item: GeneralRuleEntity) {
 
 @Composable
 fun RuleBasicInfo(
-    item: GeneralRuleEntity,
+    item: GeneralRule,
 ) {
     Row(
         modifier = Modifier.padding(vertical = 8.dp),
@@ -82,7 +82,7 @@ fun RuleBasicInfo(
 }
 
 @Composable
-fun RuleDetail(item: GeneralRuleEntity) {
+fun RuleDetail(item: GeneralRule) {
     val ruleDetail = listOf(
         RuleDetailItemInfo("Rules", item.name),
         RuleDetailItemInfo("Description", item.description),
@@ -117,7 +117,7 @@ private data class RuleDetailItemInfo(
 @Composable
 @Preview
 fun RuleBasicInfoPreview() {
-    val item = GeneralRuleEntity(
+    val item = GeneralRule(
         id = 100,
         name = "Blocker",
         iconUrl = null,
