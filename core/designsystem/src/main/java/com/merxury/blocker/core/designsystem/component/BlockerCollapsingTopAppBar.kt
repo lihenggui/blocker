@@ -16,13 +16,16 @@
 
 package com.merxury.blocker.core.designsystem.component
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -100,7 +103,12 @@ fun BlockerCollapsingTopAppBar(
                         .fillMaxWidth(0.8f),
                     overflow = TextOverflow.Ellipsis,
                 )
-                actions()
+                Row(
+                    modifier = Modifier.wrapContentSize(),
+                    horizontalArrangement = Arrangement.spacedBy(contentPadding),
+                ) {
+                    actions()
+                }
                 Text(
                     text = subtitle,
                     maxLines = 1,
@@ -179,7 +187,7 @@ private fun CollapsingToolbarLayout(
                 ),
             )
             actionsIcon.placeRelative(
-                x = constraints.maxWidth - contentPadding.roundToPx(),
+                x = constraints.maxWidth - actionsIcon.width,
                 y = MinToolbarHeight.roundToPx() / 2 - actionsIcon.height / 2,
             )
             subtitle.placeRelative(
@@ -235,6 +243,16 @@ fun CollapsingToolbarCollapsedPreview() {
                     modifier = Modifier.then(Modifier.size(24.dp)),
                 ) {
                     Icon(
+                        imageVector = BlockerIcons.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
                         imageVector = BlockerIcons.More,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface,
@@ -264,6 +282,16 @@ fun CollapsingToolbarHalfwayPreview() {
                     modifier = Modifier.then(Modifier.size(24.dp)),
                 ) {
                     Icon(
+                        imageVector = BlockerIcons.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
                         imageVector = BlockerIcons.More,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurface,
@@ -288,6 +316,16 @@ fun CollapsingToolbarExpandedPreview() {
             progress = 1f,
             title = "Title with long name 0123456789",
             actions = {
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
+                        imageVector = BlockerIcons.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
                 IconButton(
                     onClick = {},
                     modifier = Modifier.then(Modifier.size(24.dp)),
