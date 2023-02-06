@@ -36,10 +36,10 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
+import com.merxury.blocker.feature.generalrules.navigation.navigateToOnlineRules
+import com.merxury.blocker.feature.generalrules.navigation.generalRuleRoute
 import com.merxury.blocker.feature.globalsearch.navigation.globalSearchRoute
 import com.merxury.blocker.feature.globalsearch.navigation.navigateToGlobalSearch
-import com.merxury.blocker.feature.onlinerules.navigation.navigateToOnlineRules
-import com.merxury.blocker.feature.onlinerules.navigation.onlineRulesRoute
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP_LIST
 import com.merxury.blocker.navigation.TopLevelDestination.GLOBAL_SEARCH
@@ -76,14 +76,14 @@ class BlockerAppState(
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() = when (currentDestination?.route) {
             appListRoute -> APP_LIST
-            onlineRulesRoute -> ONLINE_RULES
+            generalRuleRoute -> ONLINE_RULES
             globalSearchRoute -> GLOBAL_SEARCH
             else -> null
         }
     private val isOnTopLevelScreen: Boolean
         @Composable get() = when (currentDestination?.route) {
             appListRoute -> true
-            onlineRulesRoute -> true
+            generalRuleRoute -> true
             globalSearchRoute -> true
             else -> false
         }

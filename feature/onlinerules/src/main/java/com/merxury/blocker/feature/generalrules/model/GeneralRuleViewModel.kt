@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.onlinerules.model
+package com.merxury.blocker.feature.generalrules.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,17 +23,17 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState.Error
-import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState.Loading
-import com.merxury.blocker.feature.onlinerules.model.GeneralRuleUiState.Success
+import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
+import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
+import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
