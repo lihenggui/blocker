@@ -39,6 +39,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -100,49 +101,51 @@ class BlockerAppStateTest {
         assertTrue(state.topLevelDestinations[1].name.contains("ONLINE_RULES", true))
         assertTrue(state.topLevelDestinations[2].name.contains("GLOBAL_SEARCH", true))
     }
-// TODO Check NavRail and BottomBar state
 
-//    @Test
-//    fun blockerAppState_showBottomBar_compact() = runTest {
-//        composeTestRule.setContent {
-//            state = BlockerAppState(
-//                windowSizeClass = getCompactWindowClass(),
-//                navController = NavHostController(LocalContext.current),
-//                networkMonitor = networkMonitor,
-//                coroutineScope = backgroundScope,
-//            )
-//            assertTrue(state.shouldShowBottomBar)
-//            assertFalse(state.shouldShowNavRail)
-//        }
-//    }
+    @Test
+    fun blockerAppState_showBottomBar_compact() = runTest {
+        composeTestRule.setContent {
+            state = BlockerAppState(
+                windowSizeClass = getCompactWindowClass(),
+                navController = NavHostController(LocalContext.current),
+                networkMonitor = networkMonitor,
+                coroutineScope = backgroundScope,
+            )
+        }
 
-//    @Test
-//    fun blockerAppState_showNavRail_medium() = runTest {
-//        composeTestRule.setContent {
-//            state = BlockerAppState(
-//                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(800.dp, 800.dp)),
-//                navController = NavHostController(LocalContext.current),
-//                networkMonitor = networkMonitor,
-//                coroutineScope = backgroundScope,
-//            )
-//            assertTrue(state.shouldShowNavRail)
-//            assertFalse(state.shouldShowBottomBar)
-//        }
-//    }
+        assertTrue(state.shouldShowBottomBar)
+        assertFalse(state.shouldShowNavRail)
+    }
 
-//    @Test
-//    fun blockerAppState_showNavRail_large() = runTest {
-//        composeTestRule.setContent {
-//            state = BlockerAppState(
-//                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
-//                navController = NavHostController(LocalContext.current),
-//                networkMonitor = networkMonitor,
-//                coroutineScope = backgroundScope,
-//            )
-//            assertTrue(state.shouldShowNavRail)
-//            assertFalse(state.shouldShowBottomBar)
-//        }
-//    }
+    @Test
+    fun blockerAppState_showNavRail_medium() = runTest {
+        composeTestRule.setContent {
+            state = BlockerAppState(
+                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(800.dp, 800.dp)),
+                navController = NavHostController(LocalContext.current),
+                networkMonitor = networkMonitor,
+                coroutineScope = backgroundScope,
+            )
+        }
+
+        assertTrue(state.shouldShowNavRail)
+        assertFalse(state.shouldShowBottomBar)
+    }
+
+    @Test
+    fun blockerAppState_showNavRail_large() = runTest {
+        composeTestRule.setContent {
+            state = BlockerAppState(
+                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
+                navController = NavHostController(LocalContext.current),
+                networkMonitor = networkMonitor,
+                coroutineScope = backgroundScope,
+            )
+        }
+
+        assertTrue(state.shouldShowNavRail)
+        assertFalse(state.shouldShowBottomBar)
+    }
 
     @Test
     fun stateIsOfflineWhenNetworkMonitorIsOffline() = runTest(UnconfinedTestDispatcher()) {
