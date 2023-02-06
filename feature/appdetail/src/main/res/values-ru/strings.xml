@@ -49,4 +49,5 @@
     <string name="belonging_sdk">Принадлежащий SDK</string>
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>
+    <string name="no_components">Нет компонентов</string>
 </resources>

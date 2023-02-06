@@ -17,18 +17,31 @@
 
 package com.merxury.blocker.core.network.di
 
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
+import com.merxury.blocker.core.network.model.GitHub
+import com.merxury.blocker.core.network.model.GitLab
+import com.merxury.blocker.core.network.retrofit.BlockerNetworkApi
 import com.merxury.blocker.core.network.retrofit.RetrofitBlockerNetwork
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+    private const val GITHUB_URL =
+        "https://raw.githubusercontent.com/lihenggui/blocker-general-rules/online/"
+    private const val GITLAB_URL =
+        "https://jihulab.com/mercuryli/blocker-general-rules/-/raw/online/"
 
     @Provides
     @Singleton
@@ -37,6 +50,46 @@ object NetworkModule {
     }
 
     @Provides
-    fun RetrofitBlockerNetwork.binds(): BlockerNetworkDataSource =
-        RetrofitBlockerNetwork(providesNetworkJson())
+    @Singleton
+    fun provideBlockerNetworkDataSource(
+        @GitHub gitHubNetworkApi: BlockerNetworkApi,
+        @GitLab gitLabNetworkApi: BlockerNetworkApi,
+    ): BlockerNetworkDataSource {
+        return RetrofitBlockerNetwork(gitHubNetworkApi, gitLabNetworkApi)
+    }
+
+    @Singleton
+    @Provides
+    @GitHub
+    fun provideGitHubNetworkApi(
+        networkJson: Json,
+    ): BlockerNetworkApi = provideBlockerNetworkApi(networkJson, GITHUB_URL)
+
+    @Singleton
+    @Provides
+    @GitLab
+    fun provideGitLabNetworkApi(
+        networkJson: Json,
+    ): BlockerNetworkApi = provideBlockerNetworkApi(networkJson, GITLAB_URL)
+
+    private fun provideBlockerNetworkApi(networkJson: Json, url: String): BlockerNetworkApi {
+        return Retrofit.Builder()
+            .baseUrl(url)
+            .client(
+                OkHttpClient.Builder()
+                    .addInterceptor(
+                        // TODO: Decide logging logic
+                        HttpLoggingInterceptor().apply {
+                            setLevel(HttpLoggingInterceptor.Level.BODY)
+                        },
+                    )
+                    .build(),
+            )
+            .addConverterFactory(
+                @OptIn(ExperimentalSerializationApi::class)
+                networkJson.asConverterFactory("application/json".toMediaType()),
+            )
+            .build()
+            .create(BlockerNetworkApi::class.java)
+    }
 }

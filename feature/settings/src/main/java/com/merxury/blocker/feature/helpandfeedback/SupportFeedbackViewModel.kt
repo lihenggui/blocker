@@ -30,6 +30,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val PROJECT_HOME_URL = "https://github.com/lihenggui/blocker"
+private const val REPORT_BUG_URL = "https://github.com/lihenggui/blocker/issues/new/choose"
 private const val GROUP_URL = "https://t.me/blockerandroid"
 private const val RULE_REPO_URL = "https://github.com/lihenggui/blocker-general-rules"
 
@@ -41,6 +42,8 @@ class SupportFeedbackViewModel @Inject constructor() : ViewModel() {
     fun openGroupLink(context: Context) = openUrl(context, GROUP_URL)
 
     fun openRulesRepository(context: Context) = openUrl(context, RULE_REPO_URL)
+
+    fun openReportBugPage(context: Context) = openUrl(context, REPORT_BUG_URL)
 
     fun exportErrorLog() {
         // TODO

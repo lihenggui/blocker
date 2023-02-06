@@ -73,6 +73,7 @@ fun SupportAndFeedbackRoute(
             SupportAndFeedbackScreen(
                 onProjectHomeClick = { viewModel.openProjectHomepage(context) },
                 onRulesRepositoryClick = { viewModel.openRulesRepository(context) },
+                onReportBugClick = { viewModel.openReportBugPage(context) },
                 onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
                 onExportLogClick = { viewModel.exportErrorLog() },
             )
@@ -84,6 +85,7 @@ fun SupportAndFeedbackRoute(
 fun SupportAndFeedbackScreen(
     onProjectHomeClick: () -> Unit,
     onRulesRepositoryClick: () -> Unit,
+    onReportBugClick: () -> Unit,
     onTelegramGroupLinkClick: () -> Unit,
     onExportLogClick: () -> Unit,
 ) {
@@ -99,12 +101,17 @@ fun SupportAndFeedbackScreen(
             onItemClick = { onRulesRepositoryClick() },
         )
         BlockerSettingItem(
+            icon = ImageVectorIcon(BlockerIcons.BugReport),
+            title = stringResource(id = string.report_bugs_or_submit_ideas),
+            onItemClick = { onReportBugClick() },
+        )
+        BlockerSettingItem(
             icon = DrawableResourceIcon(BlockerIcons.Telegram),
             title = stringResource(id = string.telegram_group),
             onItemClick = { onTelegramGroupLinkClick() },
         )
         BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.BugReport),
+            icon = ImageVectorIcon(BlockerIcons.Article),
             title = stringResource(id = string.export_error_log),
             onItemClick = { onExportLogClick() },
         )
@@ -119,6 +126,7 @@ fun SupportAndFeedbackScreenPreview() {
             SupportAndFeedbackScreen(
                 onProjectHomeClick = {},
                 onRulesRepositoryClick = {},
+                onReportBugClick = {},
                 onTelegramGroupLinkClick = {},
                 onExportLogClick = {},
             )

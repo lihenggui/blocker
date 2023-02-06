@@ -64,4 +64,5 @@
     <string name="dynamic_color">動態主題顏色</string>
     <string name="options_on">啟用</string>
     <string name="options_off">關閉</string>
+    <string name="report_bugs_or_submit_ideas">問題反饋 &amp; 我有新點子</string>
 </resources>

@@ -17,15 +17,19 @@
 package com.merxury.blocker.feature.appdetail.cmplist
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -35,11 +39,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.TrackScrollJank
+import com.merxury.blocker.feature.appdetail.R
 
 @Composable
 fun ComponentTabContent(
@@ -48,6 +55,10 @@ fun ComponentTabContent(
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
 ) {
+    if (components.isEmpty()) {
+        NoComponentScreen()
+        return
+    }
     val listContent = remember { components }
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
     LazyColumn(
@@ -105,6 +116,29 @@ fun ComponentItem(
 }
 
 @Composable
+fun NoComponentScreen() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            imageVector = BlockerIcons.Deselect,
+            contentDescription = null,
+            modifier = Modifier
+                .size(96.dp)
+                .padding(8.dp),
+            tint = MaterialTheme.colorScheme.outline,
+        )
+        Text(
+            text = stringResource(id = R.string.no_components),
+            color = MaterialTheme.colorScheme.outline,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
+}
+
+@Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun ComponentItemPreview() {
@@ -117,6 +151,17 @@ fun ComponentItemPreview() {
                 enabled = false,
                 onSwitchClick = { _, _, _ -> },
             )
+        }
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun NoComponentScreenPreview() {
+    BlockerTheme {
+        Surface {
+            NoComponentScreen()
         }
     }
 }

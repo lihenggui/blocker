@@ -39,13 +39,13 @@ enum class TopLevelDestination(
         iconTextId = R.string.apps,
         titleTextId = R.string.app_name,
     ),
-    ONLINE_RULES(
-        selectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
-        unselectedIcon = ImageVectorIcon(BlockerIcons.OnlineRules),
+    GENERAL_RULE(
+        selectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
+        unselectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
         iconTextId = R.string.rules,
         titleTextId = R.string.rules,
     ),
-    GLOBAL_SEARCH(
+    SEARCH(
         selectedIcon = ImageVectorIcon(BlockerIcons.Search),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
         iconTextId = R.string.search,

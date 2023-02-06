@@ -17,20 +17,18 @@
 
 package com.merxury.blocker.core.network.retrofit
 
-import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
-import com.merxury.blocker.core.network.BuildConfig
+import com.merxury.blocker.core.network.model.GitHub
+import com.merxury.blocker.core.network.model.GitLab
 import com.merxury.blocker.core.network.model.NetworkChangeList
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Path
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,34 +46,16 @@ interface BlockerNetworkApi {
     suspend fun getGeneralRuleChangeList(): List<NetworkChangeList>
 }
 
-private const val BlockerBaseUrl = BuildConfig.BACKEND_URL
-
 /**
  * [Retrofit] backed [BlockerNetworkDataSource]
  */
 @Singleton
 class RetrofitBlockerNetwork @Inject constructor(
-    networkJson: Json,
+    @GitHub private val gitHubNetworkApi: BlockerNetworkApi,
+    @GitLab private val gitLabNetworkApi: BlockerNetworkApi,
 ) : BlockerNetworkDataSource {
 
-    private val networkApi = Retrofit.Builder()
-        .baseUrl(BlockerBaseUrl)
-        .client(
-            OkHttpClient.Builder()
-                .addInterceptor(
-                    // TODO: Decide logging logic
-                    HttpLoggingInterceptor().apply {
-                        setLevel(HttpLoggingInterceptor.Level.BODY)
-                    },
-                )
-                .build(),
-        )
-        .addConverterFactory(
-            @OptIn(ExperimentalSerializationApi::class)
-            networkJson.asConverterFactory("application/json".toMediaType()),
-        )
-        .build()
-        .create(BlockerNetworkApi::class.java)
+    private var networkApi: BlockerNetworkApi = gitHubNetworkApi
 
     override suspend fun getComponentData(path: String): NetworkComponentDetail =
         networkApi.getOnlineComponentData(path)
@@ -85,4 +65,13 @@ class RetrofitBlockerNetwork @Inject constructor(
 
     override suspend fun getGeneralRuleChangeList(): List<NetworkChangeList> =
         networkApi.getGeneralRuleChangeList()
+
+    override fun changeServerProvider(provider: RuleServerProvider) {
+        Timber.d("Switch backend API to $provider")
+        networkApi = if (provider == GITHUB) {
+            gitHubNetworkApi
+        } else {
+            gitLabNetworkApi
+        }
+    }
 }
