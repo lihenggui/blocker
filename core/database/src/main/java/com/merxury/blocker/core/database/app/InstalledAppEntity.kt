@@ -47,3 +47,14 @@ fun InstalledAppEntity.asExternalModel() = InstalledApp(
     isSystem = isSystem,
     label = label,
 )
+
+fun InstalledApp.fromExternalModel() = InstalledAppEntity(
+    packageName = packageName,
+    versionCode = versionCode,
+    versionName = versionName,
+    firstInstallTime = firstInstallTime,
+    lastUpdateTime = lastUpdateTime,
+    isEnabled = isEnabled,
+    isSystem = isSystem,
+    label = label,
+)

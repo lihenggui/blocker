@@ -19,7 +19,7 @@ package com.merxury.blocker.core.data.respository.app
 import android.content.Context
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -34,17 +34,20 @@ class LocalAppDataSource @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AppDataSource {
-    override fun getApplicationList(): Flow<List<Application>> = flow {
+    override fun getApplicationList(): Flow<List<InstalledApp>> = flow {
         val list = ApplicationUtil.getApplicationList(context = context, dispatcher = ioDispatcher)
-        emit(list)
-    }
-        .flowOn(ioDispatcher)
-
-    override fun getThirdPartyApplicationList(): Flow<List<Application>> = flow {
-        val list = ApplicationUtil.getThirdPartyApplicationList(
-            context = context,
-            dispatcher = ioDispatcher,
-        )
+            .map {
+                InstalledApp(
+                    packageName = it.packageName,
+                    versionName = it.versionName.orEmpty(),
+                    versionCode = it.versionCode,
+                    firstInstallTime = it.firstInstallTime,
+                    lastUpdateTime = it.lastUpdateTime,
+                    isEnabled = it.isEnabled,
+                    isSystem = ApplicationUtil.isSystemApp(context.packageManager, it.packageName),
+                    label = it.label,
+                )
+            }
         emit(list)
     }
         .flowOn(ioDispatcher)

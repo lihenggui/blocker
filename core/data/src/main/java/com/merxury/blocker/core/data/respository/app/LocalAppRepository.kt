@@ -16,16 +16,66 @@
 
 package com.merxury.blocker.core.data.respository.app
 
-import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.database.app.InstalledAppDao
+import com.merxury.blocker.core.database.app.asExternalModel
+import com.merxury.blocker.core.database.app.fromExternalModel
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.Result.Error
+import com.merxury.blocker.core.result.Result.Loading
+import com.merxury.blocker.core.result.Result.Success
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.transform
+import timber.log.Timber
 import javax.inject.Inject
 
 class LocalAppRepository @Inject constructor(
     private val localAppDataSource: LocalAppDataSource,
+    private val installedAppDao: InstalledAppDao,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AppRepository {
-    override fun getApplicationList(): Flow<List<Application>> =
-        localAppDataSource.getApplicationList()
+    override fun getApplicationList(): Flow<List<InstalledApp>> =
+        installedAppDao.getInstalledApps()
+            .transform { list ->
+                emit(
+                    list.map { it.asExternalModel() },
+                )
+            }
 
-    override fun getThirdPartyApplicationList(): Flow<List<Application>> =
-        localAppDataSource.getThirdPartyApplicationList()
+    override fun updateApplicationList(): Flow<Result<Unit>> = flow {
+        emit(Loading)
+        val cacheList = getApplicationList().first()
+        val localList = localAppDataSource.getApplicationList().first()
+        // Filter the uninstalled app first
+        val uninstalledApp = cacheList.filter { cachedApp ->
+            localList.find { installedApp ->
+                installedApp.packageName == cachedApp.packageName
+            } == null
+        }
+            .map { it.fromExternalModel() }
+        if (uninstalledApp.isNotEmpty()) {
+            Timber.v("Remove uninstalled in the cache. $uninstalledApp")
+            installedAppDao.deleteApps(uninstalledApp)
+        }
+        // Update the latest app info from system
+        val changedApps = localList.filter { app ->
+            !cacheList.contains(app)
+        }
+            .map { it.fromExternalModel() }
+        if (changedApps.isNotEmpty()) {
+            installedAppDao.upsertInstalledApps(changedApps)
+        }
+        emit(Success(Unit))
+    }
+        .catch { exception ->
+            emit(Error(exception))
+        }
+        .flowOn(ioDispatcher)
 }
