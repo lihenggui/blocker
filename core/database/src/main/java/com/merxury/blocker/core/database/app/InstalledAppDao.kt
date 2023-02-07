@@ -22,6 +22,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface InstalledAppDao {
@@ -48,4 +50,16 @@ interface InstalledAppDao {
 
     @Query("SELECT COUNT(package_name) FROM installed_app")
     suspend fun getCount(): Int
+
+    @Query("SELECT * FROM installed_app")
+    fun getInstalledApps(): Flow<List<InstalledAppEntity>>
+
+    @Upsert
+    fun upsertInstalledApp(app: InstalledAppEntity)
+
+    @Upsert
+    fun upsertInstalledApps(app: List<InstalledAppEntity>)
+
+    @Delete
+    suspend fun deleteApps(apps: List<InstalledAppEntity>): Int
 }
