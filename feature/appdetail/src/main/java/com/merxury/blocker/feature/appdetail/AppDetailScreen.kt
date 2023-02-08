@@ -216,7 +216,7 @@ fun AppDetailContent(
             appBarActionState = appBarActionState,
             switchTab = switchTab,
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTapGestures(
