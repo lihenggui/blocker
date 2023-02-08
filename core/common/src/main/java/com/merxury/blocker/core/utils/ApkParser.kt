@@ -61,7 +61,7 @@ object ApkParser {
     suspend fun getActivities(pm: PackageManager, packageName: String): MutableList<ActivityInfo> {
         val activities = mutableListOf<ActivityInfo>()
         try {
-            val packageInfo = pm.getPackageInfoCompat(packageName, 0)
+            val packageInfo = pm.getPackageInfoCompat(packageName, 0) ?: return activities
             val parser = getParserForManifest(File(packageInfo.applicationInfo.sourceDir))
             while (parser.next() != XmlPullParser.END_DOCUMENT) {
                 if (parser.eventType == XmlPullParser.START_TAG && parser.name == "activity") {
@@ -90,7 +90,7 @@ object ApkParser {
     suspend fun getServices(pm: PackageManager, packageName: String): MutableList<ServiceInfo> {
         val services = mutableListOf<ServiceInfo>()
         try {
-            val packageInfo = pm.getPackageInfoCompat(packageName, 0)
+            val packageInfo = pm.getPackageInfoCompat(packageName, 0) ?: return services
             val parser = getParserForManifest(File(packageInfo.applicationInfo.sourceDir))
             while (parser.next() != XmlPullParser.END_DOCUMENT) {
                 if (parser.eventType == XmlPullParser.START_TAG && parser.name == "service") {

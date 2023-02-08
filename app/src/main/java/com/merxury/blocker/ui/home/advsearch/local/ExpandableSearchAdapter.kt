@@ -141,7 +141,7 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
             try {
                 val packageInfo =
                     context.packageManager.getPackageInfoCompat(app?.packageName ?: "", 0)
-                val appInfo = packageInfo.applicationInfo ?: run {
+                val appInfo = packageInfo?.applicationInfo ?: run {
                     logger.e("Application info is null, packageName: ${app?.packageName}")
                     return@launch
                 }
