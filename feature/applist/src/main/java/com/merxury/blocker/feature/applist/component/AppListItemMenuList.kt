@@ -30,6 +30,7 @@ import com.merxury.blocker.feature.applist.R
 fun AppListItemMenuList(
     expanded: Boolean,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
+    isAppRunning: Boolean,
     isAppEnabled: Boolean,
     onClearCacheClick: () -> Unit,
     onClearDataClick: () -> Unit,
@@ -39,35 +40,49 @@ fun AppListItemMenuList(
     onDisableClick: () -> Unit,
     onDismissRequest: () -> Unit,
 ) {
-    val items = listOf(
-        DropDownMenuItem(
-            textRes = R.string.clear_cache,
-            onClick = onClearCacheClick,
-        ),
-        DropDownMenuItem(
-            textRes = R.string.clear_data,
-            onClick = onClearDataClick,
-        ),
-        DropDownMenuItem(
-            textRes = R.string.force_stop,
-            onClick = onForceStopClick,
-        ),
-        DropDownMenuItem(
-            textRes = R.string.uninstall,
-            onClick = onUninstallClick,
-        ),
-        if (isAppEnabled) {
+    val items = buildList {
+        add(
             DropDownMenuItem(
-                textRes = R.string.disable,
-                onClick = onDisableClick,
+                textRes = R.string.clear_cache,
+                onClick = onClearCacheClick,
+            ),
+        )
+        add(
+            DropDownMenuItem(
+                textRes = R.string.clear_data,
+                onClick = onClearDataClick,
+            ),
+        )
+        add(
+            DropDownMenuItem(
+                textRes = R.string.uninstall,
+                onClick = onUninstallClick,
+            ),
+        )
+        if (isAppRunning) {
+            add(
+                DropDownMenuItem(
+                    textRes = R.string.force_stop,
+                    onClick = onForceStopClick,
+                ),
+            )
+        }
+        if (isAppEnabled) {
+            add(
+                DropDownMenuItem(
+                    textRes = R.string.disable,
+                    onClick = onDisableClick,
+                ),
             )
         } else {
-            DropDownMenuItem(
-                textRes = R.string.enable,
-                onClick = onEnableClick,
+            add(
+                DropDownMenuItem(
+                    textRes = R.string.enable,
+                    onClick = onEnableClick,
+                ),
             )
-        },
-    )
+        }
+    }
     BlockerDropdownMenu(
         offset = offset,
         expanded = expanded,
@@ -83,7 +98,8 @@ fun AppListItemMenuPreview() {
         Surface {
             AppListItemMenuList(
                 expanded = true,
-                isAppEnabled = true,
+                isAppRunning = true,
+                isAppEnabled = false,
                 onClearCacheClick = { },
                 onClearDataClick = { },
                 onForceStopClick = { },

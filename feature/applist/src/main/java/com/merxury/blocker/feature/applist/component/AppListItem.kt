@@ -119,6 +119,7 @@ fun AppListItem(
             AppListItemMenuList(
                 expanded = expanded,
                 offset = offset,
+                isAppRunning = isAppRunning,
                 isAppEnabled = isAppEnabled,
                 onClearCacheClick = { onClearCacheClick(packageName) },
                 onClearDataClick = { onClearDataClick(packageName) },
