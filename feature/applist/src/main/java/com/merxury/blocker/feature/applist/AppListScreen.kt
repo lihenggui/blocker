@@ -37,7 +37,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -182,14 +181,13 @@ fun AppListContent(
     onServiceStateUpdate: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val listContent = remember { appList }
     val listState = rememberLazyListState()
     Box(modifier) {
         LazyColumn(
             modifier = modifier,
             state = listState,
         ) {
-            items(listContent, key = { it.packageName }) {
+            items(appList, key = { it.packageName }) {
                 AppListItem(
                     label = it.label,
                     packageName = it.packageName,
