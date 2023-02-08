@@ -29,7 +29,8 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
-import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_DESCENDING
@@ -37,6 +38,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASC
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -52,8 +54,10 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
@@ -73,6 +77,7 @@ class AppListViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<ErrorMessage?>(null)
     val errorState = _errorState.asStateFlow()
+    private val appStateList = mutableStateListOf<AppItem>()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
@@ -85,29 +90,44 @@ class AppListViewModel @Inject constructor(
 
     init {
         loadData()
+        updateInstalledAppList()
         listenSortingChanges()
         listenShowSystemAppsChanges()
     }
 
     fun loadData() = viewModelScope.launch {
-        _uiState.emit(AppListUiState.Loading)
-        val preference = userDataRepository.userData.first()
-        val sortType = preference.appSorting
-        val list = if (preference.showSystemApps) {
-            appRepository.getApplicationList().first()
-        } else {
-            appRepository.getThirdPartyApplicationList().first()
+        appRepository.getApplicationList()
+            .onStart {
+                _uiState.emit(AppListUiState.Loading)
+            }
+            .distinctUntilChanged()
+            .collect { list ->
+                val preference = userDataRepository.userData.first()
+                val sortType = preference.appSorting
+                val filteredList = if (!preference.showSystemApps) {
+                    list.filterNot { it.isSystem }
+                } else {
+                    list
+                }.toMutableList()
+                mapToSnapshotStateList(filteredList)
+                sortList(appStateList, sortType)
+                _uiState.emit(AppListUiState.Success(appStateList))
+            }
+    }
+
+    private fun updateInstalledAppList() = viewModelScope.launch {
+        appRepository.updateApplicationList().collect {
+            if (it is Result.Error) {
+                _errorState.emit(it.exception?.toErrorMessage())
+            }
         }
-            .toMutableList()
-        val stateAppList = mapToSnapshotStateList(list)
-        sortList(stateAppList, sortType)
-        _uiState.emit(AppListUiState.Success(stateAppList))
     }
 
     private fun listenSortingChanges() = viewModelScope.launch {
         userDataRepository.userData
             .map { it.appSorting }
             .distinctUntilChanged()
+            .drop(1)
             .collect {
                 val uiState = _uiState.value
                 if (uiState is AppListUiState.Success) {
@@ -120,9 +140,8 @@ class AppListViewModel @Inject constructor(
         userDataRepository.userData
             .map { it.showSystemApps }
             .distinctUntilChanged()
-            .collect {
-                loadData()
-            }
+            .drop(1)
+            .collect { loadData() }
     }
 
     fun updateSorting(sorting: AppSorting) = viewModelScope.launch {
@@ -220,14 +239,14 @@ class AppListViewModel @Inject constructor(
     }
 
     private suspend fun mapToSnapshotStateList(
-        list: MutableList<Application>,
-    ): SnapshotStateList<AppItem> = withContext(cpuDispatcher) {
-        val stateAppList = mutableStateListOf<AppItem>()
+        list: MutableList<InstalledApp>,
+    ) = withContext(cpuDispatcher) {
+        appStateList.clear()
         list.forEach {
             val appItem = AppItem(
                 label = it.label,
                 packageName = it.packageName,
-                versionName = it.versionName.orEmpty(),
+                versionName = it.versionName,
                 versionCode = it.versionCode,
                 isSystem = ApplicationUtil.isSystemApp(pm, it.packageName),
                 // TODO detect if an app is running or not
@@ -235,13 +254,11 @@ class AppListViewModel @Inject constructor(
                 enabled = it.isEnabled,
                 firstInstallTime = it.firstInstallTime,
                 lastUpdateTime = it.lastUpdateTime,
-                // TODO get service status
                 appServiceStatus = null,
-                packageInfo = it.packageInfo,
+                packageInfo = pm.getPackageInfoCompat(it.packageName, 0),
             )
-            stateAppList.add(appItem)
+            appStateList.add(appItem)
         }
-        return@withContext stateAppList
     }
 }
 
