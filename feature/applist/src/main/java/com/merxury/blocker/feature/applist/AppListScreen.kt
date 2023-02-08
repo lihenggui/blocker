@@ -196,6 +196,8 @@ fun AppListContent(
                     versionName = it.versionName,
                     versionCode = it.versionCode,
                     packageInfo = it.packageInfo,
+                    isAppEnabled = it.enabled,
+                    isAppRunning = it.isRunning,
                     appServiceStatus = it.appServiceStatus,
                     onClick = onAppItemClick,
                     onClearCacheClick = onClearCacheClick,

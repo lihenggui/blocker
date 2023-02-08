@@ -35,4 +35,6 @@
     <string name="settings">Настройки</string>
     <string name="support_and_feedback">поддержка и обратная связь</string>
     <string name="app_name">Blocker</string>
+    <string name="running">Бег</string>
+    <string name="disabled">Неполноценный</string>
 </resources>
