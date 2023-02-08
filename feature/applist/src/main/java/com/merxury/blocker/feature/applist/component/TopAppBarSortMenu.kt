@@ -41,19 +41,19 @@ fun TopAppBarSortMenu(onSortingUpdate: (AppSorting) -> Unit) {
             onClick = { onSortingUpdate(NAME_DESCENDING) },
         ),
         DropDownMenuItem(
-            textRes = R.string.installation_date,
+            textRes = R.string.installation_date_asc,
             onClick = { onSortingUpdate(FIRST_INSTALL_TIME_ASCENDING) },
         ),
         DropDownMenuItem(
-            textRes = R.string.installation_date,
+            textRes = R.string.installation_date_desc,
             onClick = { onSortingUpdate(FIRST_INSTALL_TIME_DESCENDING) },
         ),
         DropDownMenuItem(
-            textRes = R.string.last_update_time,
+            textRes = R.string.last_update_time_asc,
             onClick = { onSortingUpdate(LAST_UPDATE_TIME_ASCENDING) },
         ),
         DropDownMenuItem(
-            textRes = R.string.last_update_time,
+            textRes = R.string.last_update_time_desc,
             onClick = { onSortingUpdate(LAST_UPDATE_TIME_DESCENDING) },
         ),
     )
