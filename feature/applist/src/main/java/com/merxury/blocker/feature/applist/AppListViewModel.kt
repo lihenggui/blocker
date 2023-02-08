@@ -54,8 +54,10 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
@@ -94,11 +96,12 @@ class AppListViewModel @Inject constructor(
     }
 
     fun loadData() = viewModelScope.launch {
-        _uiState.emit(AppListUiState.Loading)
         appRepository.getApplicationList()
+            .onStart {
+                _uiState.emit(AppListUiState.Loading)
+            }
             .distinctUntilChanged()
             .collect { list ->
-                Timber.d("Collect data from the repo: size ${list.size}")
                 val preference = userDataRepository.userData.first()
                 val sortType = preference.appSorting
                 val filteredList = if (!preference.showSystemApps) {
@@ -124,6 +127,7 @@ class AppListViewModel @Inject constructor(
         userDataRepository.userData
             .map { it.appSorting }
             .distinctUntilChanged()
+            .drop(1)
             .collect {
                 val uiState = _uiState.value
                 if (uiState is AppListUiState.Success) {
@@ -136,9 +140,8 @@ class AppListViewModel @Inject constructor(
         userDataRepository.userData
             .map { it.showSystemApps }
             .distinctUntilChanged()
-            .collect {
-                loadData()
-            }
+            .drop(1)
+            .collect { loadData() }
     }
 
     fun updateSorting(sorting: AppSorting) = viewModelScope.launch {
@@ -238,12 +241,12 @@ class AppListViewModel @Inject constructor(
     private suspend fun mapToSnapshotStateList(
         list: MutableList<InstalledApp>,
     ) = withContext(cpuDispatcher) {
+        appStateList.clear()
         list.forEach {
-            appStateList.clear()
             val appItem = AppItem(
                 label = it.label,
                 packageName = it.packageName,
-                versionName = it.versionName.orEmpty(),
+                versionName = it.versionName,
                 versionCode = it.versionCode,
                 isSystem = ApplicationUtil.isSystemApp(pm, it.packageName),
                 // TODO detect if an app is running or not
@@ -251,7 +254,6 @@ class AppListViewModel @Inject constructor(
                 enabled = it.isEnabled,
                 firstInstallTime = it.firstInstallTime,
                 lastUpdateTime = it.lastUpdateTime,
-                // TODO get service status
                 appServiceStatus = null,
                 packageInfo = pm.getPackageInfoCompat(it.packageName, 0),
             )

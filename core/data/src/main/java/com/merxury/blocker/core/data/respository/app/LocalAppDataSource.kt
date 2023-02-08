@@ -16,38 +16,46 @@
 
 package com.merxury.blocker.core.data.respository.app
 
-import android.content.Context
+import android.content.pm.PackageManager
+import com.merxury.blocker.core.data.di.AppPackageName
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.getInstalledPackagesCompat
+import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.model.minSdkVersionCompat
 import com.merxury.blocker.core.utils.ApplicationUtil
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.datetime.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class LocalAppDataSource @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @AppPackageName private val appPackageName: String,
+    private val pm: PackageManager,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AppDataSource {
     override fun getApplicationList(): Flow<List<InstalledApp>> = flow {
-        val list = ApplicationUtil.getApplicationList(context = context, dispatcher = ioDispatcher)
+        val list = pm.getInstalledPackagesCompat(0)
             .map {
                 InstalledApp(
                     packageName = it.packageName,
                     versionName = it.versionName.orEmpty(),
-                    versionCode = it.versionCode,
-                    firstInstallTime = it.firstInstallTime,
-                    lastUpdateTime = it.lastUpdateTime,
-                    isEnabled = it.isEnabled,
-                    isSystem = ApplicationUtil.isSystemApp(context.packageManager, it.packageName),
-                    label = it.label,
+                    versionCode = it.getVersionCode(),
+                    minSdkVersion = it.applicationInfo.minSdkVersionCompat(),
+                    targetSdkVersion = it.applicationInfo?.targetSdkVersion ?: 0,
+                    firstInstallTime = Instant.fromEpochMilliseconds(it.firstInstallTime),
+                    lastUpdateTime = Instant.fromEpochMilliseconds(it.lastUpdateTime),
+                    isEnabled = it.applicationInfo?.enabled ?: false,
+                    isSystem = ApplicationUtil.isSystemApp(pm, it.packageName),
+                    label = it.applicationInfo?.loadLabel(pm).toString(),
                 )
             }
+            .filterNot { it.packageName == appPackageName }
         emit(list)
     }
         .flowOn(ioDispatcher)
