@@ -36,6 +36,9 @@ interface InstalledAppDao {
     @Delete
     suspend fun delete(installedAppEntity: InstalledAppEntity): Int
 
+    @Query("DELETE FROM installed_app WHERE package_name = :packageName")
+    suspend fun deleteByPackageName(packageName: String): Int
+
     @Query("DELETE FROM installed_app")
     suspend fun deleteAll()
 

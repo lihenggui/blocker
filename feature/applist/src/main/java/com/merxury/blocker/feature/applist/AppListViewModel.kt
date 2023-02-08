@@ -59,6 +59,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import timber.log.Timber
@@ -78,6 +79,7 @@ class AppListViewModel @Inject constructor(
     private val _errorState = MutableStateFlow<ErrorMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val appStateList = mutableStateListOf<AppItem>()
+    private val appListMutex = Mutex()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
@@ -209,18 +211,30 @@ class AppListViewModel @Inject constructor(
 
     fun uninstall(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm uninstall $packageName".exec(ioDispatcher)
+        notifyAppUpdated(packageName)
     }
 
     fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "am force-stop $packageName".exec(ioDispatcher)
+        notifyAppUpdated(packageName)
     }
 
     fun enable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm enable $packageName".exec(ioDispatcher)
+        notifyAppUpdated(packageName)
     }
 
     fun disable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm disable $packageName".exec(ioDispatcher)
+        notifyAppUpdated(packageName)
+    }
+
+    private suspend fun notifyAppUpdated(packageName: String) {
+        appRepository.updateApplication(packageName).collect {
+            if (it is Result.Error) {
+                _errorState.emit(it.exception?.toErrorMessage())
+            }
+        }
     }
 
     private suspend fun sortList(
