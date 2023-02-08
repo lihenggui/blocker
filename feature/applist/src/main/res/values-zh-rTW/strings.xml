@@ -35,4 +35,6 @@
     <string name="settings">設置</string>
     <string name="support_and_feedback">幫助與反饋</string>
     <string name="app_name">Blocker</string>
+    <string name="running">運行中</string>
+    <string name="disabled">已禁用</string>
 </resources>
