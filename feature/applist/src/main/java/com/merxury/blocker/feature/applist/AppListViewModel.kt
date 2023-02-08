@@ -45,6 +45,7 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.state.AppStateCache
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineStart
@@ -59,11 +60,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import timber.log.Timber
-import javax.inject.Inject
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
@@ -79,7 +78,6 @@ class AppListViewModel @Inject constructor(
     private val _errorState = MutableStateFlow<ErrorMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val appStateList = mutableStateListOf<AppItem>()
-    private val appListMutex = Mutex()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
