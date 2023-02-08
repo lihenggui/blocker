@@ -21,4 +21,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface AppDataSource {
     fun getApplicationList(): Flow<List<InstalledApp>>
+
+    fun getApplication(packageName: String): Flow<InstalledApp?>
 }
