@@ -107,7 +107,7 @@ fun BlockerCollapsingTopAppBar(
                     style = MaterialTheme.typography.bodyLarge,
                     maxLines = 1,
                     modifier = Modifier
-                        .fillMaxWidth(0.8f),
+                        .fillMaxWidth(0.7f),
                     overflow = TextOverflow.Ellipsis,
                 )
                 Row(
@@ -123,7 +123,7 @@ fun BlockerCollapsingTopAppBar(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .padding(vertical = padding)
-                        .fillMaxWidth(0.8f)
+                        .fillMaxWidth(0.7f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
                 Text(
@@ -133,7 +133,7 @@ fun BlockerCollapsingTopAppBar(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .padding(vertical = padding)
-                        .fillMaxWidth(0.8f)
+                        .fillMaxWidth(0.7f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
                 AsyncImage(
@@ -250,7 +250,7 @@ fun CollapsingToolbarCollapsedPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0f,
-            title = "Title",
+            title = "Title with long name 0123456789",
             actions = {
                 IconButton(
                     onClick = {},
@@ -289,7 +289,7 @@ fun CollapsingToolbarHalfwayPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0.5f,
-            title = "Title",
+            title = "Title with long name 0123456789",
             actions = {
                 IconButton(
                     onClick = {},
