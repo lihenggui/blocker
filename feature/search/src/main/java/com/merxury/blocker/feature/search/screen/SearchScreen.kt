@@ -227,6 +227,7 @@ fun SearchScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBar(
     modifier: Modifier = Modifier,
