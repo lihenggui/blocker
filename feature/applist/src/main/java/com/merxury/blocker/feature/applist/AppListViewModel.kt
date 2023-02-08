@@ -247,7 +247,6 @@ class AppListViewModel @Inject constructor(
             LAST_UPDATE_TIME_ASCENDING -> list.sortBy { it.lastUpdateTime }
             LAST_UPDATE_TIME_DESCENDING -> list.sortByDescending { it.lastUpdateTime }
         }
-        list.sortBy { it.enabled }
     }
 
     private suspend fun mapToSnapshotStateList(
