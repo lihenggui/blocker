@@ -36,4 +36,6 @@
     <string name="support_and_feedback">Support and feedback</string>
     <string name="app_name">Blocker</string>
     <string name="version_code_template" translatable="false">%1$s (%2$s)</string>
+    <string name="running">Running</string>
+    <string name="disabled">Disabled</string>
 </resources>

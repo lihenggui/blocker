@@ -30,6 +30,7 @@ import com.merxury.blocker.feature.applist.R
 fun AppListItemMenuList(
     expanded: Boolean,
     offset: DpOffset = DpOffset(0.dp, 0.dp),
+    isAppEnabled: Boolean,
     onClearCacheClick: () -> Unit,
     onClearDataClick: () -> Unit,
     onForceStopClick: () -> Unit,
@@ -55,14 +56,17 @@ fun AppListItemMenuList(
             textRes = R.string.uninstall,
             onClick = onUninstallClick,
         ),
-        DropDownMenuItem(
-            textRes = R.string.enable,
-            onClick = onEnableClick,
-        ),
-        DropDownMenuItem(
-            textRes = R.string.disable,
-            onClick = onDisableClick,
-        ),
+        if (isAppEnabled) {
+            DropDownMenuItem(
+                textRes = R.string.disable,
+                onClick = onDisableClick,
+            )
+        } else {
+            DropDownMenuItem(
+                textRes = R.string.enable,
+                onClick = onEnableClick,
+            )
+        },
     )
     BlockerDropdownMenu(
         offset = offset,
@@ -79,6 +83,7 @@ fun AppListItemMenuPreview() {
         Surface {
             AppListItemMenuList(
                 expanded = true,
+                isAppEnabled = true,
                 onClearCacheClick = { },
                 onClearDataClick = { },
                 onForceStopClick = { },
