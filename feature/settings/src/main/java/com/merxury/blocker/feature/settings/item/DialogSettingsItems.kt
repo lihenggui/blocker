@@ -142,7 +142,7 @@ fun <T> SettingsDialogChooserRow(
                 role = Role.RadioButton,
                 onClick = { onClick(item) },
             )
-            .padding(8.dp),
+            .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(
