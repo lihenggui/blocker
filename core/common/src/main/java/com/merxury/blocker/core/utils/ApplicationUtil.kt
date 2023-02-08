@@ -135,8 +135,8 @@ object ApplicationUtil {
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
-                val components = pm.getPackageInfoCompat(packageName, flags).activities
-                if (components != null && components.isNotEmpty()) {
+                val components = pm.getPackageInfoCompat(packageName, flags)?.activities
+                if (!components.isNullOrEmpty()) {
                     Collections.addAll(activities, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
@@ -171,8 +171,8 @@ object ApplicationUtil {
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
-                val components = pm.getPackageInfoCompat(packageName, flags).receivers
-                if (components != null && components.isNotEmpty()) {
+                val components = pm.getPackageInfoCompat(packageName, flags)?.receivers
+                if (!components.isNullOrEmpty()) {
                     Collections.addAll(receivers, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
@@ -205,8 +205,8 @@ object ApplicationUtil {
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
-                val components = pm.getPackageInfoCompat(packageName, flags).services
-                if (components != null && components.isNotEmpty()) {
+                val components = pm.getPackageInfoCompat(packageName, flags)?.services
+                if (!components.isNullOrEmpty()) {
                     Collections.addAll(services, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
@@ -241,8 +241,8 @@ object ApplicationUtil {
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
-                val components = pm.getPackageInfoCompat(packageName, flags).providers
-                if (components != null && components.isNotEmpty()) {
+                val components = pm.getPackageInfoCompat(packageName, flags)?.providers
+                if (!components.isNullOrEmpty()) {
                     Collections.addAll(providers, *components)
                 }
             } catch (e: PackageManager.NameNotFoundException) {
@@ -274,7 +274,7 @@ object ApplicationUtil {
             try {
                 info = pm.getPackageInfoCompat(packageName, flags)
             } catch (e: PackageManager.NameNotFoundException) {
-                Timber.e("Cannot find specified package.")
+                Timber.e("Cannot find specified package $packageName.")
             }
             info
         }
@@ -315,7 +315,7 @@ object ApplicationUtil {
             }
             var info = PackageInfo()
             try {
-                info = pm.getPackageInfoCompat(packageName, flags)
+                info = pm.getPackageInfoCompat(packageName, flags) ?: PackageInfo()
             } catch (e: RuntimeException) {
                 Timber.e(e, "Can't get application components")
                 info = getPackageInfoFromManifest(pm, packageName)
@@ -378,7 +378,7 @@ object ApplicationUtil {
             }
             return true
         } catch (e: PackageManager.NameNotFoundException) {
-            Timber.d(packageName + "is not installed.")
+            Timber.w(packageName + "is not installed.")
         }
         return false
     }
@@ -391,7 +391,7 @@ object ApplicationUtil {
             val info = pm.getApplicationInfoCompat(packageName, 0)
             return info.flags and ApplicationInfo.FLAG_SYSTEM != 0
         } catch (e: PackageManager.NameNotFoundException) {
-            Timber.d(packageName + "is not installed.")
+            Timber.w(packageName + "is not installed.")
         }
         return false
     }

@@ -14,11 +14,16 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.app
+package com.merxury.blocker.core.extension
 
-import com.merxury.blocker.core.model.data.InstalledApp
-import kotlinx.coroutines.flow.Flow
+import android.content.pm.PackageInfo
+import android.os.Build
 
-interface AppDataSource {
-    fun getApplicationList(): Flow<List<InstalledApp>>
+@Suppress("DEPRECATION")
+fun PackageInfo.getVersionCode(): Long {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        longVersionCode
+    } else {
+        versionCode.toLong()
+    }
 }
