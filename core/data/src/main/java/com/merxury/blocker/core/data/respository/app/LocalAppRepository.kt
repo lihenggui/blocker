@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import timber.log.Timber
 import javax.inject.Inject
@@ -44,13 +45,10 @@ class LocalAppRepository @Inject constructor(
     override fun getApplicationList(): Flow<List<InstalledApp>> =
         installedAppDao.getInstalledApps()
             .transform { list ->
-                emit(
-                    list.map { it.asExternalModel() },
-                )
+                emit(list.map { it.asExternalModel() })
             }
 
-    override fun updateApplicationList(): Flow<Result<Unit>> = flow {
-        emit(Loading)
+    override fun updateApplicationList(): Flow<Result<Unit>> = flow<Result<Unit>> {
         val cacheList = getApplicationList().first()
         val localList = localAppDataSource.getApplicationList().first()
         // Filter the uninstalled app first
@@ -61,19 +59,21 @@ class LocalAppRepository @Inject constructor(
         }
             .map { it.fromExternalModel() }
         if (uninstalledApp.isNotEmpty()) {
-            Timber.v("Remove uninstalled in the cache. $uninstalledApp")
+            Timber.d("Remove uninstalled in the cache. $uninstalledApp")
             installedAppDao.deleteApps(uninstalledApp)
         }
         // Update the latest app info from system
-        val changedApps = localList.filter { app ->
-            !cacheList.contains(app)
-        }
+        val changedApps = localList.filterNot { cacheList.contains(it) }
             .map { it.fromExternalModel() }
         if (changedApps.isNotEmpty()) {
+            Timber.d("${changedApps.size} apps changed")
             installedAppDao.upsertInstalledApps(changedApps)
         }
         emit(Success(Unit))
     }
+        .onStart {
+            emit(Loading)
+        }
         .catch { exception ->
             emit(Error(exception))
         }

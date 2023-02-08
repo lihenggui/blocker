@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.extension
 
-import kotlinx.datetime.Instant
+import android.content.pm.PackageInfo
+import android.os.Build
 
-/**
- * External data layer representation of the installed app in the device
- */
-data class InstalledApp(
-    val packageName: String = "",
-    val versionName: String = "",
-    val versionCode: Long = 0,
-    val minSdkVersion: Int = 0,
-    val targetSdkVersion: Int = 0,
-    val firstInstallTime: Instant? = null,
-    val lastUpdateTime: Instant? = null,
-    val isEnabled: Boolean = true,
-    val isSystem: Boolean = false,
-    val label: String = "",
-)
+@Suppress("DEPRECATION")
+fun PackageInfo.getVersionCode(): Long {
+    return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        longVersionCode
+    } else {
+        versionCode.toLong()
+    }
+}
