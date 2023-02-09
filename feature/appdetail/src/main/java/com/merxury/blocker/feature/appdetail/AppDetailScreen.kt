@@ -51,6 +51,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -92,6 +93,7 @@ fun AppDetailRoute(
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
 
     AppDetailScreen(
         uiState = uiState,
@@ -100,6 +102,8 @@ fun AppDetailRoute(
         onLaunchAppClick = viewModel::launchApp,
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
+        searchBoxUiState = searchBoxUiState,
+        onSearchTextChanged = viewModel::onSearchTextChanged,
     )
 }
 
@@ -111,6 +115,8 @@ fun AppDetailScreen(
     onLaunchAppClick: (String) -> Unit,
     switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    searchBoxUiState: SearchBoxUiState,
+    onSearchTextChanged: (TextFieldValue) -> Unit,
 ) {
     when (uiState) {
         is AppInfoUiState.Loading -> {
@@ -134,6 +140,8 @@ fun AppDetailScreen(
                 onLaunchAppClick = onLaunchAppClick,
                 switchTab = switchTab,
                 modifier = modifier,
+                searchBoxUiState = searchBoxUiState,
+                onSearchTextChanged = onSearchTextChanged,
             )
         }
 
@@ -150,6 +158,8 @@ fun AppDetailContent(
     onLaunchAppClick: (String) -> Unit,
     switchTab: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    searchBoxUiState: SearchBoxUiState,
+    onSearchTextChanged: (TextFieldValue) -> Unit,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -216,7 +226,7 @@ fun AppDetailContent(
             appBarActionState = appBarActionState,
             switchTab = switchTab,
             modifier = Modifier
-                .padding(innerPadding)
+                .padding(top = innerPadding.calculateTopPadding())
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTapGestures(
@@ -224,6 +234,8 @@ fun AppDetailContent(
                     )
                 },
             listState = listState,
+            searchBoxUiState = searchBoxUiState,
+            onSearchTextChanged = onSearchTextChanged,
         )
     }
 }
@@ -243,6 +255,8 @@ fun AppDetailTabContent(
     appBarActionState: MutableState<AppBarActionState>,
     switchTab: (Int) -> Unit,
     listState: LazyListState = rememberLazyListState(),
+    searchBoxUiState: SearchBoxUiState,
+    onSearchTextChanged: (TextFieldValue) -> Unit,
 ) {
     Column(
         modifier = modifier,
@@ -275,6 +289,8 @@ fun AppDetailTabContent(
                 onComposing = {
                     appBarActionState.value = it
                 },
+                searchBoxUiState = searchBoxUiState,
+                onSearchTextChanged = onSearchTextChanged,
             )
 
             Service.tabPosition -> ComponentListContentRoute(
@@ -284,6 +300,8 @@ fun AppDetailTabContent(
                 onComposing = {
                     appBarActionState.value = it
                 },
+                searchBoxUiState = searchBoxUiState,
+                onSearchTextChanged = onSearchTextChanged,
             )
 
             Activity.tabPosition -> ComponentListContentRoute(
@@ -293,6 +311,8 @@ fun AppDetailTabContent(
                 onComposing = {
                     appBarActionState.value = it
                 },
+                searchBoxUiState = searchBoxUiState,
+                onSearchTextChanged = onSearchTextChanged,
             )
 
             Provider.tabPosition -> ComponentListContentRoute(
@@ -302,6 +322,8 @@ fun AppDetailTabContent(
                 onComposing = {
                     appBarActionState.value = it
                 },
+                searchBoxUiState = searchBoxUiState,
+                onSearchTextChanged = onSearchTextChanged,
             )
         }
     }
@@ -342,6 +364,8 @@ fun AppDetailScreenPreview() {
                 onLaunchAppClick = {},
                 onBackClick = {},
                 switchTab = {},
+                searchBoxUiState = SearchBoxUiState(),
+                onSearchTextChanged = {},
             )
         }
     }
@@ -377,6 +401,8 @@ fun AppDetailScreenCollapsedPreview() {
                 onLaunchAppClick = {},
                 onBackClick = {},
                 switchTab = {},
+                searchBoxUiState = SearchBoxUiState(),
+                onSearchTextChanged = {},
             )
         }
     }

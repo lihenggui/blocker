@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.appdetail
 
 import android.content.Context
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -62,6 +63,9 @@ class AppDetailViewModel @Inject constructor(
     )
     val tabState: StateFlow<TabState> = _tabState.asStateFlow()
 
+    private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
+    val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
+
     init {
         load()
     }
@@ -80,6 +84,10 @@ class AppDetailViewModel @Inject constructor(
         context.packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             context.startActivity(launchIntent)
         }
+    }
+
+    fun onSearchTextChanged(changedSearchText: TextFieldValue) {
+        _searchBoxUiState.update { it.copy(keyword = changedSearchText) }
     }
 
     private fun load() = viewModelScope.launch {
@@ -102,3 +110,7 @@ sealed interface AppInfoUiState {
         val appInfo: Application,
     ) : AppInfoUiState
 }
+
+data class SearchBoxUiState(
+    val keyword: TextFieldValue = TextFieldValue(),
+)
