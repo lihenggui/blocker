@@ -31,7 +31,7 @@ data class InstalledAppEntity(
     @ColumnInfo(name = "version_name") val versionName: String = "",
     @ColumnInfo(name = "version_code") val versionCode: Long = 0,
     @ColumnInfo(name = "min_sdk_version") val minSdkVersion: Int = 0,
-    @ColumnInfo(name = "target_sdk_version") val targetSdkVersion :Int= 0,
+    @ColumnInfo(name = "target_sdk_version") val targetSdkVersion: Int = 0,
     @ColumnInfo(name = "first_install_time") val firstInstallTime: Instant? = null,
     @ColumnInfo(name = "last_update_time") val lastUpdateTime: Instant? = null,
     @ColumnInfo(name = "is_enabled") val isEnabled: Boolean = true,
