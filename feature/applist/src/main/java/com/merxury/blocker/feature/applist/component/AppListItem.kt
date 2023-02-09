@@ -158,6 +158,7 @@ private fun AppContent(
     Column(modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
+                modifier = Modifier.weight(1F),
                 text = label,
                 style = MaterialTheme.typography.bodyLarge,
             )
