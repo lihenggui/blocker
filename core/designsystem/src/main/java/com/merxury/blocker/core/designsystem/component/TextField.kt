@@ -53,11 +53,11 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerTextField(
+    modifier: Modifier = Modifier,
     keyword: TextFieldValue,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
     colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
-    modifier: Modifier = Modifier,
 ) {
     var showClearButton by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
