@@ -150,7 +150,6 @@ class AppListViewModel @Inject constructor(
         if (!userData.showServiceInfo) {
             return@launch
         }
-        Timber.d("Get service status for $packageName")
         appListMutex.withLock {
             // Avoid ConcurrentModificationException
             val itemIndex = appStateList.indexOfFirst { it.packageName == packageName }
@@ -159,6 +158,7 @@ class AppListViewModel @Inject constructor(
                 // Don't get service info again
                 return@launch
             }
+            Timber.d("Get service status for $packageName")
             val status = AppStateCache.get(getApplication(), packageName)
             val serviceStatus = AppServiceStatus(
                 packageName = status.packageName,
