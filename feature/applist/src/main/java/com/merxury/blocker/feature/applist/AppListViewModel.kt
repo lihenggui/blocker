@@ -284,7 +284,11 @@ class AppListViewModel @Inject constructor(
                     enabled = installedApp.isEnabled,
                     firstInstallTime = installedApp.firstInstallTime,
                     lastUpdateTime = installedApp.lastUpdateTime,
-                    appServiceStatus = null,
+                    appServiceStatus = if (origApp?.packageName == installedApp.packageName) {
+                        origApp.appServiceStatus
+                    } else {
+                        null
+                    },
                     packageInfo = pm.getPackageInfoCompat(installedApp.packageName, 0),
                 )
                 if (origApp == null) {
