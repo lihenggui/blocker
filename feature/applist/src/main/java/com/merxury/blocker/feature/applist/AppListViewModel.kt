@@ -47,6 +47,10 @@ import com.merxury.blocker.feature.applist.state.AppStateCache
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -80,6 +84,11 @@ class AppListViewModel @Inject constructor(
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
+    }
+    private val channel = Channel<Job>(capacity = Channel.UNLIMITED).apply {
+        viewModelScope.launch {
+            consumeEach { it.join() }
+        }
     }
 
     init {
@@ -143,32 +152,34 @@ class AppListViewModel @Inject constructor(
         userDataRepository.setAppSorting(sorting)
     }
 
-    fun updateServiceStatus(packageName: String) = viewModelScope.launch(
-        context = ioDispatcher + exceptionHandler,
-    ) {
-        val userData = userDataRepository.userData.first()
-        if (!userData.showServiceInfo) {
-            return@launch
-        }
-        appListMutex.withLock {
-            // Avoid ConcurrentModificationException
-            val itemIndex = appStateList.indexOfFirst { it.packageName == packageName }
-            val oldItem = appStateList.getOrNull(itemIndex) ?: return@launch
-            if (oldItem.appServiceStatus != null) {
-                // Don't get service info again
-                return@launch
-            }
-            Timber.d("Get service status for $packageName")
-            val status = AppStateCache.get(getApplication(), packageName)
-            val serviceStatus = AppServiceStatus(
-                packageName = status.packageName,
-                running = status.running,
-                blocked = status.blocked,
-                total = status.total,
-            )
-            val newItem = oldItem.copy(appServiceStatus = serviceStatus)
-            appStateList[itemIndex] = newItem
-        }
+    fun updateServiceStatus(packageName: String) {
+        channel.trySend(
+            viewModelScope.launch(
+                start = CoroutineStart.LAZY,
+                context = ioDispatcher + exceptionHandler,
+            ) {
+                val userData = userDataRepository.userData.first()
+                if (!userData.showServiceInfo) {
+                    return@launch
+                }
+                val itemIndex = appStateList.indexOfFirst { it.packageName == packageName }
+                val oldItem = appStateList.getOrNull(itemIndex) ?: return@launch
+                if (oldItem.appServiceStatus != null) {
+                    // Don't get service info again
+                    return@launch
+                }
+                Timber.d("Get service status for $packageName")
+                val status = AppStateCache.get(getApplication(), packageName)
+                val serviceStatus = AppServiceStatus(
+                    packageName = status.packageName,
+                    running = status.running,
+                    blocked = status.blocked,
+                    total = status.total,
+                )
+                val newItem = oldItem.copy(appServiceStatus = serviceStatus)
+                appStateList[itemIndex] = newItem
+            },
+        )
     }
 
     fun dismissDialog() = viewModelScope.launch {
