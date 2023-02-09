@@ -45,6 +45,7 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.state.AppStateCache
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineStart
@@ -59,10 +60,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Instant
 import timber.log.Timber
-import javax.inject.Inject
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
@@ -78,6 +80,7 @@ class AppListViewModel @Inject constructor(
     private val _errorState = MutableStateFlow<ErrorMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val appStateList = mutableStateListOf<AppItem>()
+    private val appListMutex = Mutex()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
@@ -102,15 +105,16 @@ class AppListViewModel @Inject constructor(
             }
             .distinctUntilChanged()
             .collect { list ->
+                Timber.v("App list changed, size ${list.size}")
                 val preference = userDataRepository.userData.first()
                 val sortType = preference.appSorting
-                val filteredList = if (!preference.showSystemApps) {
-                    list.filterNot { it.isSystem }
-                } else {
+                val filteredList = if (preference.showSystemApps) {
                     list
+                } else {
+                    list.filterNot { it.isSystem }
                 }.toMutableList()
-                mapToSnapshotStateList(filteredList)
-                sortList(appStateList, sortType)
+                sortList(filteredList, sortType)
+                updateAppStateList(filteredList)
                 _uiState.emit(AppListUiState.Success(appStateList))
             }
     }
@@ -239,6 +243,22 @@ class AppListViewModel @Inject constructor(
         list: SnapshotStateList<AppItem>,
         sorting: AppSorting,
     ) = withContext(cpuDispatcher) {
+        appListMutex.withLock {
+            when (sorting) {
+                NAME_ASCENDING -> list.sortBy { it.label.lowercase() }
+                NAME_DESCENDING -> list.sortByDescending { it.label.lowercase() }
+                FIRST_INSTALL_TIME_ASCENDING -> list.sortBy { it.firstInstallTime }
+                FIRST_INSTALL_TIME_DESCENDING -> list.sortByDescending { it.firstInstallTime }
+                LAST_UPDATE_TIME_ASCENDING -> list.sortBy { it.lastUpdateTime }
+                LAST_UPDATE_TIME_DESCENDING -> list.sortByDescending { it.lastUpdateTime }
+            }
+        }
+    }
+
+    private suspend fun sortList(
+        list: MutableList<InstalledApp>,
+        sorting: AppSorting,
+    ) = withContext(cpuDispatcher) {
         when (sorting) {
             NAME_ASCENDING -> list.sortBy { it.label.lowercase() }
             NAME_DESCENDING -> list.sortByDescending { it.label.lowercase() }
@@ -249,27 +269,62 @@ class AppListViewModel @Inject constructor(
         }
     }
 
-    private suspend fun mapToSnapshotStateList(
-        list: MutableList<InstalledApp>,
+    private suspend fun updateAppStateList(
+        newList: List<InstalledApp>,
     ) = withContext(cpuDispatcher) {
-        appStateList.clear()
-        list.forEach {
-            val appItem = AppItem(
-                label = it.label,
-                packageName = it.packageName,
-                versionName = it.versionName,
-                versionCode = it.versionCode,
-                isSystem = ApplicationUtil.isSystemApp(pm, it.packageName),
-                // TODO detect if an app is running or not
-                isRunning = false,
-                enabled = it.isEnabled,
-                firstInstallTime = it.firstInstallTime,
-                lastUpdateTime = it.lastUpdateTime,
-                appServiceStatus = null,
-                packageInfo = pm.getPackageInfoCompat(it.packageName, 0),
-            )
-            appStateList.add(appItem)
+        if (newList.size < appStateList.size) {
+            appListMutex.withLock {
+                appStateList.filter { origItem ->
+                    // Size different, find the changed one
+                    newList.none { newItem -> origItem.packageName == newItem.packageName }
+                }.forEach { changedItem ->
+                    // Then remove from the state list
+                    appStateList.remove(changedItem)
+                }
+            }
         }
+        // After modification, the size of the app list should be smaller than the new list
+        check(newList.size >= appStateList.size) {
+            "New list size == ${newList.size}, original list size = ${appStateList.size}"
+        }
+        newList.forEachIndexed { index, installedApp ->
+            appListMutex.withLock {
+                val origApp = appStateList.getOrNull(index)
+                val newItem = AppItem(
+                    label = installedApp.label,
+                    packageName = installedApp.packageName,
+                    versionName = installedApp.versionName,
+                    versionCode = installedApp.versionCode,
+                    isSystem = ApplicationUtil.isSystemApp(pm, installedApp.packageName),
+                    // TODO detect if an app is running or not
+                    isRunning = false,
+                    enabled = installedApp.isEnabled,
+                    firstInstallTime = installedApp.firstInstallTime,
+                    lastUpdateTime = installedApp.lastUpdateTime,
+                    appServiceStatus = null,
+                    packageInfo = pm.getPackageInfoCompat(installedApp.packageName, 0),
+                )
+                if (origApp == null) {
+                    // Fill in apps in the empty slot
+                    appStateList.add(newItem)
+                    return@withLock
+                }
+                if (!origApp.equalsToInstalledApp(installedApp)) {
+                    appStateList[index] = newItem
+                }
+            }
+        }
+    }
+
+    private fun AppItem.equalsToInstalledApp(app: InstalledApp): Boolean {
+        return label == app.label &&
+            packageName == app.packageName &&
+            versionName == app.versionName &&
+            versionCode == app.versionCode &&
+            isSystem == app.isSystem &&
+            enabled == app.isEnabled &&
+            firstInstallTime == app.firstInstallTime &&
+            lastUpdateTime == app.lastUpdateTime
     }
 }
 
