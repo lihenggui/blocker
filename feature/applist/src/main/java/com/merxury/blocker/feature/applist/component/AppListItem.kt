@@ -40,6 +40,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -63,6 +65,8 @@ fun AppListItem(
     packageName: String,
     versionName: String,
     versionCode: Long,
+    isAppEnabled: Boolean,
+    isAppRunning: Boolean,
     packageInfo: PackageInfo?,
     appServiceStatus: AppServiceStatus?,
     onClick: (String) -> Unit,
@@ -105,6 +109,8 @@ fun AppListItem(
                 label = label,
                 versionName = versionName,
                 versionCode = versionCode,
+                isAppEnabled = isAppEnabled,
+                isAppRunning = isAppRunning,
                 serviceStatus = appServiceStatus,
             )
             val offset = with(density) {
@@ -113,6 +119,8 @@ fun AppListItem(
             AppListItemMenuList(
                 expanded = expanded,
                 offset = offset,
+                isAppRunning = isAppRunning,
+                isAppEnabled = isAppEnabled,
                 onClearCacheClick = { onClearCacheClick(packageName) },
                 onClearDataClick = { onClearDataClick(packageName) },
                 onForceStopClick = { onForceStopClick(packageName) },
@@ -142,14 +150,53 @@ private fun AppContent(
     label: String,
     versionName: String,
     versionCode: Long,
+    isAppEnabled: Boolean,
+    isAppRunning: Boolean,
     serviceStatus: AppServiceStatus?,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                modifier = Modifier.weight(1F),
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            if (isAppRunning) {
+                Spacer(modifier = Modifier.width(8.dp))
+                val indicatorColor = MaterialTheme.colorScheme.tertiary
+                Text(
+                    modifier = Modifier
+                        .drawBehind {
+                            drawRoundRect(
+                                color = indicatorColor,
+                                cornerRadius = CornerRadius(x = 4.dp.toPx(), y = 4.dp.toPx()),
+                            )
+                        }
+                        .padding(horizontal = 2.dp, vertical = 1.dp),
+                    text = stringResource(id = string.running),
+                    color = MaterialTheme.colorScheme.onTertiary,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+            if (!isAppEnabled) {
+                Spacer(modifier = Modifier.width(8.dp))
+                val indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                Text(
+                    modifier = Modifier
+                        .drawBehind {
+                            drawRoundRect(
+                                color = indicatorColor,
+                                cornerRadius = CornerRadius(x = 4.dp.toPx(), y = 4.dp.toPx()),
+                            )
+                        }
+                        .padding(horizontal = 2.dp, vertical = 1.dp),
+                    text = stringResource(id = string.disabled),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
         Text(
             text = stringResource(id = string.version_code_template, versionName, versionCode),
             style = MaterialTheme.typography.bodyMedium,
@@ -187,6 +234,8 @@ fun AppListItemPreview() {
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
                 versionCode = 1206,
+                isAppEnabled = false,
+                isAppRunning = true,
                 packageInfo = PackageInfo(),
                 appServiceStatus = appServiceStatus,
                 onClick = { },
@@ -203,7 +252,7 @@ fun AppListItemPreview() {
 
 @Composable
 @Preview
-fun AppListItemWithoutServicePreview() {
+fun AppListItemWithoutServiceInfoPreview() {
     BlockerTheme {
         Surface {
             AppListItem(
@@ -211,6 +260,8 @@ fun AppListItemWithoutServicePreview() {
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
                 versionCode = 1206,
+                isAppEnabled = true,
+                isAppRunning = true,
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = { },
@@ -235,6 +286,8 @@ fun AppListItemWithLongAppName() {
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
                 versionCode = 1206,
+                isAppEnabled = true,
+                isAppRunning = true,
                 packageInfo = PackageInfo(),
                 appServiceStatus = null,
                 onClick = { },

@@ -16,11 +16,13 @@
 
 package com.merxury.blocker.core.data.respository.app
 
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.data.di.AppPackageName
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
+import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.minSdkVersionCompat
@@ -41,22 +43,32 @@ class LocalAppDataSource @Inject constructor(
 ) : AppDataSource {
     override fun getApplicationList(): Flow<List<InstalledApp>> = flow {
         val list = pm.getInstalledPackagesCompat(0)
-            .map {
-                InstalledApp(
-                    packageName = it.packageName,
-                    versionName = it.versionName.orEmpty(),
-                    versionCode = it.getVersionCode(),
-                    minSdkVersion = it.applicationInfo.minSdkVersionCompat(),
-                    targetSdkVersion = it.applicationInfo?.targetSdkVersion ?: 0,
-                    firstInstallTime = Instant.fromEpochMilliseconds(it.firstInstallTime),
-                    lastUpdateTime = Instant.fromEpochMilliseconds(it.lastUpdateTime),
-                    isEnabled = it.applicationInfo?.enabled ?: false,
-                    isSystem = ApplicationUtil.isSystemApp(pm, it.packageName),
-                    label = it.applicationInfo?.loadLabel(pm).toString(),
-                )
-            }
             .filterNot { it.packageName == appPackageName }
+            .map { it.toInstalledApp() }
         emit(list)
     }
         .flowOn(ioDispatcher)
+
+    override fun getApplication(packageName: String): Flow<InstalledApp?> = flow {
+        val app = pm.getPackageInfoCompat(packageName, 0)
+        if (app == null) {
+            emit(null)
+            return@flow
+        }
+        emit(app.toInstalledApp())
+    }
+        .flowOn(ioDispatcher)
+
+    private suspend fun PackageInfo.toInstalledApp() = InstalledApp(
+        packageName = packageName,
+        versionName = versionName.orEmpty(),
+        versionCode = getVersionCode(),
+        minSdkVersion = applicationInfo.minSdkVersionCompat(),
+        targetSdkVersion = applicationInfo?.targetSdkVersion ?: 0,
+        firstInstallTime = Instant.fromEpochMilliseconds(firstInstallTime),
+        lastUpdateTime = Instant.fromEpochMilliseconds(lastUpdateTime),
+        isEnabled = applicationInfo?.enabled ?: false,
+        isSystem = ApplicationUtil.isSystemApp(pm, packageName),
+        label = applicationInfo?.loadLabel(pm).toString(),
+    )
 }

@@ -48,6 +48,25 @@ class LocalAppRepository @Inject constructor(
                 emit(list.map { it.asExternalModel() })
             }
 
+    override fun updateApplication(packageName: String): Flow<Result<Unit>> = flow<Result<Unit>> {
+        val app = localAppDataSource.getApplication(packageName).first()
+        if (app == null) {
+            // If we can't find the application, the application might be uninstalled
+            installedAppDao.deleteByPackageName(packageName)
+        } else {
+            installedAppDao.upsertInstalledApp(app.fromExternalModel())
+        }
+        emit(Success(Unit))
+    }
+        .onStart {
+            Timber.v("Update app info: $packageName")
+            emit(Loading)
+        }
+        .catch {
+            Timber.e(it, "Error while updating app: $packageName")
+            emit(Error(it))
+        }
+
     override fun updateApplicationList(): Flow<Result<Unit>> = flow<Result<Unit>> {
         val cacheList = getApplicationList().first()
         val localList = localAppDataSource.getApplicationList().first()
@@ -63,7 +82,7 @@ class LocalAppRepository @Inject constructor(
             installedAppDao.deleteApps(uninstalledApp)
         }
         // Update the latest app info from system
-        val changedApps = localList.filterNot { cacheList.contains(it) }
+        val changedApps = localList.minus(cacheList.toSet())
             .map { it.fromExternalModel() }
         if (changedApps.isNotEmpty()) {
             Timber.d("${changedApps.size} apps changed")

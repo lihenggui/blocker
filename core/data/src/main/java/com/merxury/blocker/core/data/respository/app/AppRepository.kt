@@ -23,5 +23,7 @@ import kotlinx.coroutines.flow.Flow
 interface AppRepository {
     fun getApplicationList(): Flow<List<InstalledApp>>
 
+    fun updateApplication(packageName: String): Flow<Result<Unit>>
+
     fun updateApplicationList(): Flow<Result<Unit>>
 }
