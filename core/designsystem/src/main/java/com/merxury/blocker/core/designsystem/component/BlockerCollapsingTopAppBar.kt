@@ -37,12 +37,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -107,12 +109,13 @@ fun BlockerCollapsingTopAppBar(
                     style = MaterialTheme.typography.bodyLarge,
                     maxLines = 1,
                     modifier = Modifier
-                        .fillMaxWidth(0.8f),
+                        .fillMaxWidth(0.7f),
                     overflow = TextOverflow.Ellipsis,
                 )
                 Row(
                     modifier = Modifier.wrapContentSize(),
                     horizontalArrangement = Arrangement.spacedBy(contentPadding),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     actions()
                 }
@@ -123,7 +126,7 @@ fun BlockerCollapsingTopAppBar(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .padding(vertical = padding)
-                        .fillMaxWidth(0.8f)
+                        .fillMaxWidth(0.7f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
                 Text(
@@ -133,7 +136,7 @@ fun BlockerCollapsingTopAppBar(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .padding(vertical = padding)
-                        .fillMaxWidth(0.8f)
+                        .fillMaxWidth(0.7f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
                 AsyncImage(
@@ -250,7 +253,7 @@ fun CollapsingToolbarCollapsedPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0f,
-            title = "Title",
+            title = "Title with long name 0123456789",
             actions = {
                 IconButton(
                     onClick = {},
@@ -289,7 +292,7 @@ fun CollapsingToolbarHalfwayPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0.5f,
-            title = "Title",
+            title = "Title with long name 0123456789",
             actions = {
                 IconButton(
                     onClick = {},
@@ -330,16 +333,11 @@ fun CollapsingToolbarExpandedPreview() {
             progress = 1f,
             title = "Title with long name 0123456789",
             actions = {
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.then(Modifier.size(24.dp)),
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
+                BlockerTextField(
+                    keyword = TextFieldValue("blocker"),
+                    onSearchTextChanged = { TextFieldValue() },
+                    onClearClick = {},
+                )
                 IconButton(
                     onClick = {},
                     modifier = Modifier.then(Modifier.size(24.dp)),

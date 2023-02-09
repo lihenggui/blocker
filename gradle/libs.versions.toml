@@ -3,17 +3,17 @@ accompanist = "0.28.0"
 androidDesugarJdkLibs = "2.0.2"
 androidGradlePlugin = "7.4.1"
 androidxActivity = "1.6.1"
-androidxAppCompat = "1.6.0"
-androidxBrowser = "1.4.0"
+androidxAppCompat = "1.6.1"
+androidxBrowser = "1.5.0"
 androidxComposeBom = "2023.01.00"
 androidxComposeCompiler = "1.4.0"
-androidxComposeRuntimeTracing = "1.0.0-alpha01"
+androidxComposeRuntimeTracing = "1.0.0-alpha02"
 androidxCore = "1.9.0"
 androidxCoreSplashscreen = "1.0.0"
 androidxDataStore = "1.0.0"
 androidxEspresso = "3.5.1"
 androidxHiltNavigationCompose = "1.0.0"
-androidxLifecycle = "2.6.0-alpha05"
+androidxLifecycle = "2.6.0-beta01"
 androidxMacroBenchmark = "1.1.1"
 androidxComposeMaterial = "1.3.1"
 androidxNavigation = "2.5.3"
@@ -27,7 +27,7 @@ androidxTestRunner = "1.5.2"
 androidxTestRules = "1.5.0"
 androidxTracing = "1.1.0"
 androidxUiAutomator = "2.2.0"
-androidxWork = "2.7.1"
+androidxWork = "2.8.0"
 appiconloader = "1.5.0"
 coil = "2.2.2"
 firebase = "31.2.0"
@@ -113,7 +113,10 @@ coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase"}
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
+firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlytics" }
 firebase-perf = { group = "com.google.firebase", name = "firebase-perf-ktx"}
+firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version.ref = "firebasePerf" }
+google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
@@ -162,6 +165,7 @@ timber = "com.jakewharton.timber:timber:5.0.1"
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

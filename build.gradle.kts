@@ -20,9 +20,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.google.gms:google-services:4.3.15")
-        classpath("com.google.firebase:firebase-crashlytics-gradle:2.9.2")
-        classpath("com.google.firebase:perf-plugin:1.4.2")
+        classpath(libs.google.services)
+        classpath(libs.firebase.crashlytics.gradle)
+        classpath(libs.firebase.perf.plugin)
     }
 }
 
@@ -32,7 +32,8 @@ plugins {
     alias(libs.plugins.firebase.perf) apply false
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.kotlin.jvm) apply false
-    alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.hilt) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.ksp) apply false
     alias(libs.plugins.secrets) apply false
 }

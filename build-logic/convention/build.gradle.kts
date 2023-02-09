@@ -29,6 +29,7 @@ java {
 dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
+    compileOnly(libs.ksp.gradlePlugin)
 }
 
 gradlePlugin {
@@ -68,6 +69,10 @@ gradlePlugin {
         register("androidHilt") {
             id = "blocker.android.hilt"
             implementationClass = "AndroidHiltConventionPlugin"
+        }
+        register("androidRoom") {
+            id = "blocker.android.room"
+            implementationClass = "AndroidRoomConventionPlugin"
         }
         register("firebase") {
             id = "blocker.firebase"

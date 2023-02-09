@@ -16,38 +16,21 @@
 
 package com.merxury.blocker.feature.search.component
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerLargeTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -99,7 +82,7 @@ fun SelectedAppTopBar(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
@@ -107,8 +90,6 @@ fun SearchBar(
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
 ) {
-    var showClearButton by remember { mutableStateOf(false) }
-    val keyboardController = LocalSoftwareKeyboardController.current
     val colors = TextFieldDefaults.textFieldColors(
         focusedIndicatorColor = Color.Transparent,
         unfocusedIndicatorColor = Color.Transparent,
@@ -116,40 +97,12 @@ fun SearchBar(
     BlockerTopAppBar(
         title = stringResource(id = string.searching),
         actions = {
-            TextField(
-                modifier = modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 2.dp)
-                    .onFocusChanged { focusState ->
-                        showClearButton = (focusState.isFocused)
-                    },
-                value = uiState.keyword,
-                onValueChange = onSearchTextChanged,
-                placeholder = {
-                    Text(text = stringResource(id = string.click_to_search))
-                },
-                trailingIcon = {
-                    AnimatedVisibility(
-                        visible = showClearButton,
-                        enter = fadeIn(),
-                        exit = fadeOut(),
-                    ) {
-                        IconButton(onClick = { onClearClick() }) {
-                            Icon(
-                                imageVector = BlockerIcons.Clear,
-                                contentDescription = null,
-                            )
-                        }
-                    }
-                },
-                maxLines = 1,
-                singleLine = true,
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = {
-                    keyboardController?.hide()
-                }),
+            BlockerTextField(
+                keyword = uiState.keyword,
+                onSearchTextChanged = onSearchTextChanged,
+                onClearClick = onClearClick,
+                modifier = modifier.fillMaxWidth(),
                 colors = colors,
-                shape = RoundedCornerShape(56.dp),
             )
         },
     )
