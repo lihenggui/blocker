@@ -19,18 +19,12 @@ plugins {
     id("blocker.android.library")
     id("blocker.android.library.jacoco")
     id("blocker.android.hilt")
+    id("blocker.android.room")
     alias(libs.plugins.ksp)
 }
 
 android {
     defaultConfig {
-        // The schemas directory contains a schema file for each version of the Room database.
-        // This is required to enable Room auto migrations.
-        // See https://developer.android.com/reference/kotlin/androidx/room/AutoMigration.
-        ksp {
-            arg("room.schemaLocation", "$projectDir/schemas")
-        }
-
         testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
     }
     namespace = "com.merxury.blocker.core.database"
@@ -38,11 +32,6 @@ android {
 
 dependencies {
     implementation(project(":core:model"))
-
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
-
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
