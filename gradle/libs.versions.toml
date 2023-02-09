@@ -113,7 +113,10 @@ coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase"}
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
+firebase-crashlytics-gradle = { module = "com.google.firebase:firebase-crashlytics-gradle", version.ref = "firebaseCrashlytics" }
 firebase-perf = { group = "com.google.firebase", name = "firebase-perf-ktx"}
+firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version.ref = "firebasePerf" }
+google-services = { module = "com.google.gms:google-services", version.ref = "googleServices" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
