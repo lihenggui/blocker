@@ -25,18 +25,19 @@ import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
@@ -48,7 +49,8 @@ class AppDetailViewModel @Inject constructor(
     private val _uiState: MutableStateFlow<AppInfoUiState> =
         MutableStateFlow(Loading)
     val uiState: StateFlow<AppInfoUiState> = _uiState
-
+    private val _topAppBarUiState = MutableStateFlow(TopAppBarUiState())
+    val topAppBarUiState: StateFlow<TopAppBarUiState> = _topAppBarUiState.asStateFlow()
     private val _tabState = MutableStateFlow(
         TabState(
             titles = listOf(
@@ -62,9 +64,6 @@ class AppDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState> = _tabState.asStateFlow()
-
-    private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
-    val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
 
     init {
         load()
@@ -87,7 +86,21 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun onSearchTextChanged(changedSearchText: TextFieldValue) {
-        _searchBoxUiState.update { it.copy(keyword = changedSearchText) }
+        _topAppBarUiState.update { it.copy(keyword = changedSearchText) }
+    }
+
+    fun onSearchModeChange(isSearchMode: Boolean) {
+        _topAppBarUiState.update {
+            it.copy(
+                isSearchMode = isSearchMode,
+            )
+        }
+    }
+
+    fun onComposing(actions: AppBarActionState) {
+        _topAppBarUiState.update {
+            it.copy(actions = actions)
+        }
     }
 
     private fun load() = viewModelScope.launch {
@@ -111,6 +124,8 @@ sealed interface AppInfoUiState {
     ) : AppInfoUiState
 }
 
-data class SearchBoxUiState(
+data class TopAppBarUiState(
     val keyword: TextFieldValue = TextFieldValue(),
+    val isSearchMode: Boolean = false,
+    val actions: AppBarActionState = AppBarActionState(),
 )
