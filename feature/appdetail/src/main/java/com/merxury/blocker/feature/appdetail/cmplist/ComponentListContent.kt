@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -47,14 +46,12 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.SearchBoxUiState
+import com.merxury.blocker.feature.appdetail.TopAppBarUiState
 import dagger.hilt.android.EntryPointAccessors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComponentListContentRoute(
     modifier: Modifier = Modifier,
-    onComposing: (AppBarActionState) -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
     packageName: String,
     type: ComponentType,
@@ -62,8 +59,10 @@ fun ComponentListContentRoute(
         packageName = packageName,
         type = type,
     ),
-    searchBoxUiState: SearchBoxUiState,
-    onSearchTextChanged: (TextFieldValue) -> Unit,
+    topAppBarUiState: TopAppBarUiState,
+    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchModeChanged: (Boolean) -> Unit,
+    onComposing: (AppBarActionState) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
@@ -89,58 +88,12 @@ fun ComponentListContentRoute(
             onDismissRequest = viewModel::dismissAlert,
         )
     }
-    LaunchedEffect(true) {
-        onComposing(
-            AppBarActionState(
-                actions = {
-                    IconButton(
-                        onClick = {
-                            onComposing(
-                                AppBarActionState(
-                                    actions = {
-                                        BlockerTextField(
-                                            keyword = searchBoxUiState.keyword,
-                                            onSearchTextChanged = onSearchTextChanged,
-                                            onClearClick = {
-                                                onSearchTextChanged(
-                                                    TextFieldValue(),
-                                                )
-                                            },
-                                        )
-                                        IconButton(
-                                            onClick = {},
-                                            modifier = Modifier.then(Modifier.size(24.dp)),
-                                        ) {
-                                            Icon(
-                                                imageVector = BlockerIcons.More,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.onSurface,
-                                            )
-                                        }
-                                    },
-                                ),
-                            )
-                        },
-                        modifier = Modifier.then(Modifier.size(24.dp)),
-                    ) {
-                        Icon(
-                            imageVector = BlockerIcons.Search,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                    IconButton(
-                        onClick = {},
-                        modifier = Modifier.then(Modifier.size(24.dp)),
-                    ) {
-                        Icon(
-                            imageVector = BlockerIcons.More,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
-                },
-            ),
+    LaunchedEffect(topAppBarUiState) {
+        actions(
+            topAppBarUiState = topAppBarUiState,
+            onSearchTextChanged = onSearchTextChanged,
+            onComposing = onComposing,
+            onSearchModeChanged = onSearchModeChanged,
         )
     }
 }
@@ -201,4 +154,50 @@ fun ComponentListContent(
 
         is ComponentListUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
     }
+}
+
+fun actions(
+    topAppBarUiState: TopAppBarUiState,
+    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onComposing: (AppBarActionState) -> Unit,
+    onSearchModeChanged: (Boolean) -> Unit,
+) {
+    onComposing(
+        AppBarActionState(
+            actions = {
+                if (topAppBarUiState.isSearchMode) {
+                    BlockerTextField(
+                        keyword = topAppBarUiState.keyword,
+                        onSearchTextChanged = onSearchTextChanged,
+                        onClearClick = {
+                            onSearchTextChanged(
+                                TextFieldValue(),
+                            )
+                        },
+                    )
+                } else {
+                    IconButton(
+                        onClick = { onSearchModeChanged(true) },
+                        modifier = Modifier.then(Modifier.size(24.dp)),
+                    ) {
+                        Icon(
+                            imageVector = BlockerIcons.Search,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = {},
+                    modifier = Modifier.then(Modifier.size(24.dp)),
+                ) {
+                    Icon(
+                        imageVector = BlockerIcons.More,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            },
+        ),
+    )
 }
