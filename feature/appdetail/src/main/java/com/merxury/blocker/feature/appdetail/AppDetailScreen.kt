@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -237,7 +236,6 @@ fun AppDetailContent(
                         onPress = { scope.coroutineContext.cancelChildren() },
                     )
                 },
-            listState = listState,
             topAppBarUiState = topAppBarUiState,
             onSearchTextChanged = onSearchTextChanged,
             onSearchModeChanged = onSearchModeChanged,
@@ -259,7 +257,6 @@ fun AppDetailTabContent(
     app: Application,
     tabState: TabState,
     switchTab: (Int) -> Unit,
-    listState: LazyListState = rememberLazyListState(),
     topAppBarUiState: TopAppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
@@ -283,14 +280,12 @@ fun AppDetailTabContent(
             Detail.tabPosition ->
                 SummaryContent(
                     app = app,
-                    listState = listState,
                     onComposing = onComposing,
                 )
 
             Receiver.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = RECEIVER,
-                listState = listState,
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
@@ -300,7 +295,6 @@ fun AppDetailTabContent(
             Service.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = SERVICE,
-                listState = listState,
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
@@ -310,7 +304,6 @@ fun AppDetailTabContent(
             Activity.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = ACTIVITY,
-                listState = listState,
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
@@ -320,7 +313,6 @@ fun AppDetailTabContent(
             Provider.tabPosition -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = PROVIDER,
-                listState = listState,
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
