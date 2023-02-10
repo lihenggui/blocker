@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.preference.ComponentSorting
@@ -65,6 +66,18 @@ class ComponentListViewModel @AssistedInject constructor(
 
     fun dismissAlert() = viewModelScope.launch {
         _errorState.emit(null)
+    }
+
+    fun launchActivity(packageName: String, componentName: String) {
+        viewModelScope.launch {
+            "am start -n $packageName/$componentName".exec()
+        }
+    }
+
+    fun stopService(packageName: String, componentName: String) {
+        viewModelScope.launch {
+            "am stopservice $packageName/$componentName".exec()
+        }
     }
 
     private fun listenDataChange() = viewModelScope.launch {

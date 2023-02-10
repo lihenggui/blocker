@@ -49,4 +49,8 @@
     <string name="save">保存</string>
     <string name="cancel">取消</string>
     <string name="no_components">無組件</string>
+    <string name="copy_name">複製組件名</string>
+    <string name="copy_full_name">複製完整組件名</string>
+    <string name="launch_activity">複製包名</string>
+    <string name="stop_service">停止服務</string>
 </resources>
