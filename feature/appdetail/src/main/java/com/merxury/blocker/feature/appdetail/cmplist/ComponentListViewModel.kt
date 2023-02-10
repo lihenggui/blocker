@@ -23,6 +23,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
@@ -49,6 +50,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class ComponentListViewModel @AssistedInject constructor(
@@ -57,6 +59,7 @@ class ComponentListViewModel @AssistedInject constructor(
     @Assisted private val packageName: String,
     @Assisted private val type: ComponentType,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _uiState: MutableStateFlow<ComponentListUiState> = MutableStateFlow(Loading)
     val uiState: StateFlow<ComponentListUiState> = _uiState.asStateFlow()
@@ -66,7 +69,7 @@ class ComponentListViewModel @AssistedInject constructor(
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
     }
-    private val stateList = mutableStateListOf<ComponentInfo>()
+    private val stateList = mutableStateListOf<ComponentItem>()
 
     init {
         listenDataChange()
@@ -93,14 +96,18 @@ class ComponentListViewModel @AssistedInject constructor(
         componentRepository.data.collect { list ->
             stateList.clear()
             val userData = userDataRepository.userData.first()
-            val sortedList = sortList(list, userData.componentSorting)
+            val componentItemList = list.map { it.toComponentInfo() }
+            val sortedList = sortList(componentItemList, userData.componentSorting)
             stateList.addAll(sortedList)
             _uiState.emit(Success(stateList))
         }
     }
 
-    private fun sortList(list: List<ComponentInfo>, sort: ComponentSorting): List<ComponentInfo> {
-        return when (sort) {
+    private suspend fun sortList(
+        list: List<ComponentItem>,
+        sort: ComponentSorting,
+    ): List<ComponentItem> = withContext(cpuDispatcher) {
+        when (sort) {
             NAME_ASCENDING -> list.sortedBy { it.simpleName }
             NAME_DESCENDING -> list.sortedByDescending { it.simpleName }
         }
@@ -147,10 +154,37 @@ class ComponentListViewModel @AssistedInject constructor(
     }
 }
 
+/**
+ * Data representation for the component.
+ */
+
+data class ComponentItem(
+    val name: String,
+    val simpleName: String,
+    val packageName: String,
+    val type: ComponentType,
+    val pmBlocked: Boolean,
+    val ifwBlocked: Boolean = false,
+    val isRunning: Boolean = false,
+    val description: String? = null,
+) {
+    fun enabled() = !(pmBlocked || ifwBlocked)
+}
+
+private fun ComponentInfo.toComponentInfo() = ComponentItem(
+    name = name,
+    simpleName = simpleName,
+    packageName = packageName,
+    type = type,
+    pmBlocked = pmBlocked,
+    ifwBlocked = ifwBlocked,
+    description = description,
+)
+
 sealed interface ComponentListUiState {
     object Loading : ComponentListUiState
     class Error(val error: ErrorMessage) : ComponentListUiState
     data class Success(
-        val list: SnapshotStateList<ComponentInfo>,
+        val list: SnapshotStateList<ComponentItem>,
     ) : ComponentListUiState
 }
