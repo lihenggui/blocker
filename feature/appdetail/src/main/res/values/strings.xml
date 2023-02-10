@@ -51,4 +51,8 @@
     <string name="cancel">Cancel</string>
     <string name="data_with_explanation" translatable="false">%1$s (%2$s)</string>
     <string name="no_components">No components</string>
+    <string name="copy_name">Copy name</string>
+    <string name="copy_full_name">Copy full name</string>
+    <string name="launch_activity">Launch activity</string>
+    <string name="stop_service">Stop service</string>
 </resources>
