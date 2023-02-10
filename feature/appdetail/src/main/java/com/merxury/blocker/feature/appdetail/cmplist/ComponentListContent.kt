@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +50,6 @@ import dagger.hilt.android.EntryPointAccessors
 @Composable
 fun ComponentListContentRoute(
     modifier: Modifier = Modifier,
-    listState: LazyListState = rememberLazyListState(),
     packageName: String,
     type: ComponentType,
     viewModel: ComponentListViewModel = componentListViewModel(
@@ -79,7 +76,6 @@ fun ComponentListContentRoute(
         onCopyFullNameClick = { fullName ->
             clipboardManager.setText(AnnotatedString(fullName))
         },
-        listState = listState,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -120,7 +116,6 @@ fun ComponentListContent(
     onCopyFullNameClick: (String) -> Unit,
     onSwitch: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    listState: LazyListState = rememberLazyListState(),
 ) {
     when (uiState) {
         ComponentListUiState.Loading -> {
@@ -140,7 +135,7 @@ fun ComponentListContent(
         }
 
         is ComponentListUiState.Success -> {
-            ComponentTabContent(
+            ComponentListContent(
                 components = uiState.list,
                 onSwitchClick = onSwitch,
                 onStopServiceClick = onStopServiceClick,
@@ -148,7 +143,6 @@ fun ComponentListContent(
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
                 modifier = modifier,
-                listState = listState,
             )
         }
 

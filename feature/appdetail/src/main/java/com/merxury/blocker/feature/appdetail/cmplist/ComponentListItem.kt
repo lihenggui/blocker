@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
@@ -63,7 +62,7 @@ import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.feature.appdetail.R
 
 @Composable
-fun ComponentTabContent(
+fun ComponentListContent(
     components: SnapshotStateList<ComponentItem>,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
@@ -71,23 +70,22 @@ fun ComponentTabContent(
     onCopyFullNameClick: (String) -> Unit,
     onSwitchClick: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    listState: LazyListState = rememberLazyListState(),
 ) {
     if (components.isEmpty()) {
         NoComponentScreen()
         return
     }
-    val listContent = remember { components }
+    val listState = rememberLazyListState()
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
     LazyColumn(
         modifier = modifier,
         state = listState,
     ) {
         items(
-            items = listContent,
+            items = components,
             key = { it.name },
         ) {
-            ComponentItem(
+            ComponentListItem(
                 simpleName = it.simpleName,
                 name = it.name,
                 packageName = it.packageName,
@@ -106,7 +104,7 @@ fun ComponentTabContent(
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun ComponentItem(
+fun ComponentListItem(
     simpleName: String,
     name: String,
     packageName: String,
@@ -206,7 +204,7 @@ fun NoComponentScreen() {
 fun ComponentItemPreview() {
     BlockerTheme {
         Surface {
-            ComponentItem(
+            ComponentListItem(
                 simpleName = "AccountAuthActivity",
                 name = "com.merxury.blocker.feature.appdetail.component.AccountAuthActivity",
                 packageName = "com.merxury.blocker",
