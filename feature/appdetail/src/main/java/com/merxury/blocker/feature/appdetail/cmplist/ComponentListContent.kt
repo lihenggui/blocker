@@ -31,8 +31,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,10 +67,19 @@ fun ComponentListContentRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
+    val clipboardManager = LocalClipboardManager.current
     ComponentListContent(
         uiState = uiState,
         onSwitch = viewModel::controlComponent,
         modifier = modifier,
+        onStopServiceClick = viewModel::stopService,
+        onLaunchActivityClick = viewModel::launchActivity,
+        onCopyNameClick = { name ->
+            clipboardManager.setText(AnnotatedString(name))
+        },
+        onCopyFullNameClick = { fullName ->
+            clipboardManager.setText(AnnotatedString(fullName))
+        },
         listState = listState,
     )
     if (errorState != null) {
@@ -150,6 +161,10 @@ fun componentListViewModel(packageName: String, type: ComponentType): ComponentL
 @Composable
 fun ComponentListContent(
     uiState: ComponentListUiState,
+    onStopServiceClick: (String, String) -> Unit,
+    onLaunchActivityClick: (String, String) -> Unit,
+    onCopyNameClick: (String) -> Unit,
+    onCopyFullNameClick: (String) -> Unit,
     onSwitch: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
     listState: LazyListState = rememberLazyListState(),
@@ -175,6 +190,10 @@ fun ComponentListContent(
             ComponentTabContent(
                 components = uiState.list,
                 onSwitchClick = onSwitch,
+                onStopServiceClick = onStopServiceClick,
+                onLaunchActivityClick = onLaunchActivityClick,
+                onCopyNameClick = onCopyNameClick,
+                onCopyFullNameClick = onCopyFullNameClick,
                 modifier = modifier,
                 listState = listState,
             )
