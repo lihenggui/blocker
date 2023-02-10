@@ -59,13 +59,12 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.feature.appdetail.R
 
 @Composable
 fun ComponentTabContent(
-    components: SnapshotStateList<ComponentInfo>,
+    components: SnapshotStateList<ComponentItem>,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
