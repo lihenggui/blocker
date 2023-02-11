@@ -72,7 +72,7 @@ fun BlockerCollapsingTopAppBar(
     progress: Float,
     onNavigationClick: () -> Unit = {},
     title: String,
-    actions: @Composable RowScope.() -> Unit = {},
+    actions: (@Composable RowScope.() -> Unit)? = {},
     subtitle: String,
     summary: String,
     iconSource: Any? = null,
@@ -117,7 +117,9 @@ fun BlockerCollapsingTopAppBar(
                     horizontalArrangement = Arrangement.spacedBy(contentPadding),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    actions()
+                    if (actions != null) {
+                        actions()
+                    }
                 }
                 Text(
                     text = subtitle,

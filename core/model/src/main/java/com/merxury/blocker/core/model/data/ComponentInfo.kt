@@ -26,6 +26,4 @@ data class ComponentInfo(
     val pmBlocked: Boolean,
     val ifwBlocked: Boolean = false,
     val description: String? = null,
-) {
-    fun enabled() = !(pmBlocked || ifwBlocked)
-}
+)

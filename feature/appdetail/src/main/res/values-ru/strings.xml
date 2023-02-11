@@ -50,4 +50,8 @@
     <string name="save">Сохранить</string>
     <string name="cancel">Отмена</string>
     <string name="no_components">Нет компонентов</string>
+    <string name="copy_name">Скопировать полное имя</string>
+    <string name="copy_full_name">Копировать имя пакета</string>
+    <string name="launch_activity">Запуск активности</string>
+    <string name="stop_service">Остановить службу</string>
 </resources>
