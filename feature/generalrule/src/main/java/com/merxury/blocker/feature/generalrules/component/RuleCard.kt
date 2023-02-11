@@ -40,12 +40,16 @@ import com.merxury.blocker.feature.generalrule.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RuleCard(item: GeneralRule, serverUrl: String) {
+fun RuleCard(
+    item: GeneralRule,
+    serverUrl: String,
+    onCardClick: (GeneralRule) -> Unit = { },
+) {
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        onClick = {},
+        onClick = { onCardClick(item) },
     ) {
         ConstraintLayout {
             val (icon, name, company, ruleIcon, keywords) = createRefs()
@@ -100,7 +104,7 @@ fun RuleCard(item: GeneralRule, serverUrl: String) {
             Icon(
                 modifier = Modifier
                     .padding(bottom = 16.dp)
-                    .size(20.dp)
+                    .size(16.dp)
                     .constrainAs(ruleIcon) {
                         top.linkTo(titleBarrier)
                         start.linkTo(parent.start)
@@ -108,7 +112,7 @@ fun RuleCard(item: GeneralRule, serverUrl: String) {
                     },
                 imageVector = BlockerIcons.SubdirectoryArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = MaterialTheme.colorScheme.outline,
             )
             Text(
                 text = item.searchKeyword.joinToString("\n"),
