@@ -18,6 +18,7 @@
 package com.merxury.blocker.core.network.di
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
+import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.model.GitHub
 import com.merxury.blocker.core.network.model.GitLab
@@ -27,21 +28,17 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
-import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-    private const val GITHUB_URL =
-        "https://raw.githubusercontent.com/lihenggui/blocker-general-rules/online/"
-    private const val GITLAB_URL =
-        "https://jihulab.com/mercuryli/blocker-general-rules/-/raw/online/"
 
     @Provides
     @Singleton
@@ -63,14 +60,14 @@ object NetworkModule {
     @GitHub
     fun provideGitHubNetworkApi(
         networkJson: Json,
-    ): BlockerNetworkApi = provideBlockerNetworkApi(networkJson, GITHUB_URL)
+    ): BlockerNetworkApi = provideBlockerNetworkApi(networkJson, RuleServerProvider.GITHUB.baseUrl)
 
     @Singleton
     @Provides
     @GitLab
     fun provideGitLabNetworkApi(
         networkJson: Json,
-    ): BlockerNetworkApi = provideBlockerNetworkApi(networkJson, GITLAB_URL)
+    ): BlockerNetworkApi = provideBlockerNetworkApi(networkJson, RuleServerProvider.GITLAB.baseUrl)
 
     private fun provideBlockerNetworkApi(networkJson: Json, url: String): BlockerNetworkApi {
         return Retrofit.Builder()
