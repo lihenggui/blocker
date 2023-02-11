@@ -27,12 +27,12 @@ import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(

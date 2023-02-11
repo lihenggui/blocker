@@ -72,7 +72,8 @@ fun RuleCard(
                 contentDescription = stringResource(id = R.string.rule_icon_description),
             )
             Text(
-                text = item.name, style = MaterialTheme.typography.bodyLarge,
+                text = item.name,
+                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .padding(top = 16.dp, end = 16.dp)
                     .constrainAs(name) {
