@@ -26,8 +26,8 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import javax.inject.Inject
 import kotlinx.coroutines.flow.map
+import javax.inject.Inject
 
 class BlockerPreferencesDataSource @Inject constructor(
     private val userPreferences: DataStore<UserPreferences>,
@@ -120,7 +120,6 @@ class BlockerPreferencesDataSource @Inject constructor(
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST
             },
             useDynamicColor = it.useDynamicColor,
-            componentDatabaseInitialized = it.componentDatabaseInitialized,
         )
     }
 
@@ -242,14 +241,6 @@ class BlockerPreferencesDataSource @Inject constructor(
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST ->
                         ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST
                 }
-            }
-        }
-    }
-
-    suspend fun setComponentDatabaseInitialized() {
-        userPreferences.updateData {
-            it.copy {
-                this.componentDatabaseInitialized = true
             }
         }
     }

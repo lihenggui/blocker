@@ -17,8 +17,8 @@
 package com.merxury.blocker.core.database.app
 
 import com.merxury.blocker.core.model.ComponentType
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import javax.inject.Inject
 
 class AppComponentRepository @Inject constructor(private val appComponentDao: AppComponentDao) {
 
