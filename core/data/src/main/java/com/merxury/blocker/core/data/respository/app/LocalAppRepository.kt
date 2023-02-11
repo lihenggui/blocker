@@ -26,6 +26,7 @@ import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Error
 import com.merxury.blocker.core.result.Result.Loading
 import com.merxury.blocker.core.result.Result.Success
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -35,7 +36,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import timber.log.Timber
-import javax.inject.Inject
 
 class LocalAppRepository @Inject constructor(
     private val localAppDataSource: LocalAppDataSource,
@@ -97,4 +97,11 @@ class LocalAppRepository @Inject constructor(
             emit(Error(exception))
         }
         .flowOn(ioDispatcher)
+
+    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> {
+        return installedAppDao.getByPackageNameContains(keyword)
+            .transform { list ->
+                emit(list.map { it.asExternalModel() })
+            }
+    }
 }

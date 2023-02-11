@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.search.model
 
 import android.content.pm.PackageInfo
+import com.merxury.blocker.core.model.data.InstalledApp
 import kotlinx.datetime.Instant
 
 data class InstalledAppItem(
@@ -31,4 +32,18 @@ data class InstalledAppItem(
     val isSystem: Boolean = false,
     val label: String = "",
     val packageInfo: PackageInfo? = null,
+)
+
+fun InstalledApp.toInstalledAppItem(packageInfo: PackageInfo?) = InstalledAppItem(
+    packageName = packageName,
+    versionName = versionName,
+    versionCode = versionCode,
+    minSdkVersion = minSdkVersion,
+    targetSdkVersion = targetSdkVersion,
+    firstInstallTime = firstInstallTime,
+    lastUpdateTime = lastUpdateTime,
+    isEnabled = isEnabled,
+    isSystem = isSystem,
+    label = label,
+    packageInfo = packageInfo,
 )
