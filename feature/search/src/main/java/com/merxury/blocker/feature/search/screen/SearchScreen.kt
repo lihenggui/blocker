@@ -60,23 +60,23 @@ import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.component.AppListItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.component.SelectedAppTopBar
-import com.merxury.blocker.feature.search.model.FilterAppItem
+import com.merxury.blocker.feature.search.model.FilteredComponentItem
+import com.merxury.blocker.feature.search.model.InstalledAppItem
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
-import com.merxury.blocker.feature.search.model.LocalSearchViewModel
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
 import com.merxury.blocker.feature.search.model.SearchTabState
+import com.merxury.blocker.feature.search.model.SearchViewModel
 import kotlinx.coroutines.launch
 
 @Composable
 fun SearchRoute(
     navigationToSearchedAppDetail: () -> Unit,
-    viewModel: LocalSearchViewModel = hiltViewModel(),
+    viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
@@ -167,7 +167,7 @@ fun SearchScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 when (localSearchUiState) {
-                    LocalSearchUiState.NoSearch -> {
+                    LocalSearchUiState.Idle -> {
                         Column(
                             modifier = modifier
                                 .fillMaxSize(),
@@ -197,7 +197,7 @@ fun SearchScreen(
                         when (tabState.currentIndex) {
                             0 -> {
                                 SearchResultContent(
-                                    appList = localSearchUiState.filter,
+                                    appList = localSearchUiState.components,
                                     isSelectedMode = localSearchUiState.isSelectedMode,
                                     switchSelectedMode = switchSelectedMode,
                                     onSelect = onSelect,
@@ -333,7 +333,7 @@ fun NoSearchScreen() {
 @Composable
 fun SearchResultContent(
     modifier: Modifier = Modifier,
-    appList: List<FilterAppItem>,
+    appList: List<FilteredComponentItem>,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
@@ -363,7 +363,7 @@ fun SearchResultContent(
 @Preview
 fun SearchScreenEmptyPreview() {
     val searchBoxUiState = SearchBoxUiState()
-    val localSearchUiState = LocalSearchUiState.NoSearch
+    val localSearchUiState = LocalSearchUiState.Idle
     val tabState = SearchTabState(
         titles = listOf(
             string.application,
@@ -394,18 +394,16 @@ fun SearchScreenEmptyPreview() {
 @Composable
 @Preview
 fun SearchScreenPreview() {
-    val filterAppItem = FilterAppItem(
-        app = Application(
+    val filterAppItem = FilteredComponentItem(
+        app = InstalledAppItem(
+            packageName = "com.merxury.blocker",
             label = "Blocker",
+            isSystem = false,
         ),
-        activityCount = 0,
-        broadcastCount = 1,
-        serviceCount = 0,
-        contentProviderCount = 9,
     )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.LocalSearchResult(
-        filter = listOf(filterAppItem),
+        components = listOf(filterAppItem),
         isSelectedMode = false,
         selectedAppCount = 0,
     )
@@ -439,19 +437,17 @@ fun SearchScreenPreview() {
 @Composable
 @Preview
 fun SearchScreenSelectedPreview() {
-    val filterAppItem = FilterAppItem(
-        app = Application(
+    val filterAppItem = FilteredComponentItem(
+        app = InstalledAppItem(
+            packageName = "com.merxury.blocker",
             label = "Blocker",
+            isSystem = false,
         ),
         isSelected = true,
-        activityCount = 0,
-        broadcastCount = 1,
-        serviceCount = 0,
-        contentProviderCount = 9,
     )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.LocalSearchResult(
-        filter = listOf(filterAppItem),
+        components = listOf(filterAppItem),
         isSelectedMode = true,
         selectedAppCount = 1,
     )

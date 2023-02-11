@@ -48,14 +48,14 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.feature.search.R
-import com.merxury.blocker.feature.search.model.FilterAppItem
+import com.merxury.blocker.feature.search.model.FilteredComponentItem
+import com.merxury.blocker.feature.search.model.InstalledAppItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppListItem(
-    filterAppItem: FilterAppItem,
+    filterAppItem: FilteredComponentItem,
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
@@ -149,7 +149,7 @@ private fun AppIcon(
 
 @Composable
 private fun AppContent(
-    appItem: FilterAppItem,
+    appItem: FilteredComponentItem,
     modifier: Modifier = Modifier,
 ) {
     var count = 0
@@ -162,17 +162,17 @@ private fun AppContent(
             modifier = modifier,
             horizontalArrangement = Arrangement.Start,
         ) {
-            if (appItem.serviceCount != 0) {
+            if (appItem.service.isNotEmpty()) {
                 Text(
                     text = stringResource(
                         id = R.string.service_count,
-                        appItem.serviceCount,
+                        appItem.service.size,
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                 )
                 count++
             }
-            if (appItem.broadcastCount != 0) {
+            if (appItem.receiver.isNotEmpty()) {
                 if (count != 0) {
                     Text(
                         text = stringResource(id = R.string.delimiter),
@@ -182,14 +182,14 @@ private fun AppContent(
                 Text(
                     text = stringResource(
                         id = R.string.broadcast_count,
-                        appItem.broadcastCount,
+                        appItem.receiver.size,
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                 )
 
                 count++
             }
-            if (appItem.activityCount != 0) {
+            if (appItem.activity.isNotEmpty()) {
                 if (count != 0) {
                     Text(
                         text = stringResource(id = R.string.delimiter),
@@ -199,12 +199,12 @@ private fun AppContent(
                 Text(
                     text = stringResource(
                         id = R.string.activity_count,
-                        appItem.activityCount,
+                        appItem.activity.size,
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                 )
             }
-            if (appItem.contentProviderCount != 0) {
+            if (appItem.provider.isNotEmpty()) {
                 if (count != 0) {
                     Text(
                         text = stringResource(id = R.string.delimiter),
@@ -214,7 +214,7 @@ private fun AppContent(
                 Text(
                     text = stringResource(
                         id = R.string.content_provider_count,
-                        appItem.contentProviderCount,
+                        appItem.provider.size,
                     ),
                     style = MaterialTheme.typography.bodyMedium,
                 )
@@ -227,12 +227,12 @@ private fun AppContent(
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppListItemPreview() {
-    val filterAppItem = FilterAppItem(
-        app = Application(label = "Blocker"),
-        activityCount = 20,
-        broadcastCount = 2,
-        serviceCount = 6,
-        contentProviderCount = 12,
+    val filterAppItem = FilteredComponentItem(
+        app = InstalledAppItem(
+            packageName = "com.merxury.blocker",
+            label = "Blocker",
+            isSystem = false,
+        ),
         isSelected = true,
     )
     BlockerTheme {
@@ -251,12 +251,12 @@ fun AppListItemPreview() {
 @Composable
 @Preview
 fun AppListItemWithoutServicePreview() {
-    val filterAppItem = FilterAppItem(
-        app = Application(label = "Blocker"),
-        activityCount = 0,
-        broadcastCount = 0,
-        serviceCount = 0,
-        contentProviderCount = 9,
+    val filterAppItem = FilteredComponentItem(
+        app = InstalledAppItem(
+            packageName = "com.merxury.blocker",
+            label = "Blocker",
+            isSystem = false,
+        ),
     )
     BlockerTheme {
         Surface {
