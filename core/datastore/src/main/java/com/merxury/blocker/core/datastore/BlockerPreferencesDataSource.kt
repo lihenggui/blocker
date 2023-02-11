@@ -26,11 +26,8 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
-import timber.log.Timber
-import java.io.IOException
 import javax.inject.Inject
+import kotlinx.coroutines.flow.map
 
 class BlockerPreferencesDataSource @Inject constructor(
     private val userPreferences: DataStore<UserPreferences>,
@@ -44,6 +41,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 ThemeBrandProto.UNRECOGNIZED,
                 ThemeBrandProto.THEME_BRAND_DEFAULT,
                 -> ThemeBrand.DEFAULT
+
                 ThemeBrandProto.THEME_BRAND_ANDROID -> ThemeBrand.ANDROID
             },
             darkThemeConfig = when (it.darkThemeConfig) {
@@ -53,6 +51,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 DarkThemeConfigProto.DARK_THEME_CONFIG_FOLLOW_SYSTEM,
                 ->
                     DarkThemeConfig.FOLLOW_SYSTEM
+
                 DarkThemeConfigProto.DARK_THEME_CONFIG_LIGHT -> DarkThemeConfig.LIGHT
                 DarkThemeConfigProto.DARK_THEME_CONFIG_DARK -> DarkThemeConfig.DARK
             },
@@ -61,6 +60,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 ControllerTypeProto.UNRECOGNIZED,
                 ControllerTypeProto.IFW,
                 -> ControllerType.IFW
+
                 ControllerTypeProto.PM -> ControllerType.PM
                 ControllerTypeProto.SHIZUKU -> ControllerType.SHIZUKU
             },
@@ -69,6 +69,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 RuleServerProviderProto.UNRECOGNIZED,
                 RuleServerProviderProto.GITLAB,
                 -> RuleServerProvider.GITLAB
+
                 RuleServerProviderProto.GITHUB -> RuleServerProvider.GITHUB
             },
             ruleBackupFolder = it.ruleBackupFolder,
@@ -82,14 +83,19 @@ class BlockerPreferencesDataSource @Inject constructor(
                 AppSortingProto.APP_NAME_ASCENDING,
                 ->
                     AppSorting.NAME_ASCENDING
+
                 AppSortingProto.APP_NAME_DESCENDING ->
                     AppSorting.NAME_DESCENDING
+
                 AppSortingProto.FIRST_INSTALL_TIME_ASCENDING ->
                     AppSorting.FIRST_INSTALL_TIME_ASCENDING
+
                 AppSortingProto.FIRST_INSTALL_TIME_DESCENDING ->
                     AppSorting.FIRST_INSTALL_TIME_DESCENDING
+
                 AppSortingProto.LAST_UPDATE_TIME_ASCENDING ->
                     AppSorting.LAST_UPDATE_TIME_ASCENDING
+
                 AppSortingProto.LAST_UPDATE_TIME_DESCENDING ->
                     AppSorting.LAST_UPDATE_TIME_DESCENDING
             },
@@ -99,6 +105,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 ComponentSortingProto.COMPONENT_NAME_ASCENDING,
                 ->
                     ComponentSorting.NAME_ASCENDING
+
                 ComponentSortingProto.COMPONENT_NAME_DESCENDING ->
                     ComponentSorting.NAME_DESCENDING
             },
@@ -108,10 +115,12 @@ class BlockerPreferencesDataSource @Inject constructor(
                 ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST,
                 ->
                     ComponentShowPriority.ENABLED_COMPONENTS_FIRST
+
                 ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST ->
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST
             },
             useDynamicColor = it.useDynamicColor,
+            componentDatabaseInitialized = it.componentDatabaseInitialized,
         )
     }
 
@@ -132,6 +141,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 this.darkThemeConfig = when (darkThemeConfig) {
                     DarkThemeConfig.FOLLOW_SYSTEM ->
                         DarkThemeConfigProto.DARK_THEME_CONFIG_FOLLOW_SYSTEM
+
                     DarkThemeConfig.LIGHT -> DarkThemeConfigProto.DARK_THEME_CONFIG_LIGHT
                     DarkThemeConfig.DARK -> DarkThemeConfigProto.DARK_THEME_CONFIG_DARK
                 }
@@ -208,10 +218,13 @@ class BlockerPreferencesDataSource @Inject constructor(
                     AppSorting.NAME_DESCENDING -> AppSortingProto.APP_NAME_DESCENDING
                     AppSorting.FIRST_INSTALL_TIME_ASCENDING ->
                         AppSortingProto.FIRST_INSTALL_TIME_ASCENDING
+
                     AppSorting.FIRST_INSTALL_TIME_DESCENDING ->
                         AppSortingProto.FIRST_INSTALL_TIME_DESCENDING
+
                     AppSorting.LAST_UPDATE_TIME_ASCENDING ->
                         AppSortingProto.LAST_UPDATE_TIME_ASCENDING
+
                     AppSorting.LAST_UPDATE_TIME_DESCENDING ->
                         AppSortingProto.LAST_UPDATE_TIME_DESCENDING
                 }
@@ -225,6 +238,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 this.componentShowPriority = when (priority) {
                     ComponentShowPriority.ENABLED_COMPONENTS_FIRST ->
                         ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST
+
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST ->
                         ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST
                 }
@@ -232,32 +246,11 @@ class BlockerPreferencesDataSource @Inject constructor(
         }
     }
 
-    suspend fun getChangeListVersions() = userPreferences.data
-        .map {
-            ChangeListVersions(
-                generalRuleVersion = it.generalRuleChangeListVersion,
-                onlineComponentVersion = it.onlineComponentChangeListVersion,
-            )
-        }
-        .firstOrNull() ?: ChangeListVersions()
-
-    suspend fun updateChangeListVersion(update: ChangeListVersions.() -> ChangeListVersions) {
-        try {
-            userPreferences.updateData { currentPreferences ->
-                val updatedChangeListVersions = update(
-                    ChangeListVersions(
-                        generalRuleVersion = currentPreferences.generalRuleChangeListVersion,
-                        onlineComponentVersion = currentPreferences.onlineComponentChangeListVersion,
-                    ),
-                )
-                currentPreferences.copy {
-                    generalRuleChangeListVersion = updatedChangeListVersions.generalRuleVersion
-                    onlineComponentChangeListVersion =
-                        updatedChangeListVersions.onlineComponentVersion
-                }
+    suspend fun setComponentDatabaseInitialized() {
+        userPreferences.updateData {
+            it.copy {
+                this.componentDatabaseInitialized = true
             }
-        } catch (ioException: IOException) {
-            Timber.e("Failed to update user preferences", ioException)
         }
     }
 }
