@@ -16,9 +16,11 @@
 
 package com.merxury.blocker.feature.search.model
 
+import android.content.pm.PackageManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.data.respository.app.AppRepository
+import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
@@ -29,10 +31,12 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
+    private val pm: PackageManager,
     private val appRepository: AppRepository,
 ) : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
@@ -62,11 +66,16 @@ class SearchViewModel @Inject constructor(
     }
 
     fun search(keywords: String) {
-        // TODO
+        val searchAppFlow = appRepository.searchInstalledApplications(keywords)
+            .map { list ->
+                list.map { app ->
+                    val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
+                    app.toInstalledAppItem(packageInfo)
+                }
+            }
     }
 
     fun search(keywords: List<String>) {
-
     }
 
     fun onSearchTextChanged(changedSearchText: TextFieldValue) {
