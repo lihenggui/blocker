@@ -66,7 +66,14 @@ class AppDetailViewModel @Inject constructor(
     val tabState: StateFlow<TabState> = _tabState.asStateFlow()
 
     init {
+        loadTabInfo()
         load()
+    }
+
+    private fun loadTabInfo() {
+        val screen = appPackageNameArgs.screen
+        Timber.v("Update tab info: $screen")
+        _tabState.update { it.copy(currentIndex = screen.tabPosition) }
     }
 
     fun switchTab(newIndex: Int) {
