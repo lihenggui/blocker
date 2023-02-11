@@ -16,20 +16,6 @@
 
 package com.merxury.blocker.core.model.preference
 
-import com.merxury.blocker.core.model.data.ControllerType
-
-data class UserPreferenceData(
-    val themeBrand: ThemeBrand,
-    val darkThemeConfig: DarkThemeConfig,
-    val useDynamicColor: Boolean,
-    val controllerType: ControllerType,
-    val ruleServerProvider: RuleServerProvider,
-    val ruleBackupFolder: String,
-    val backupSystemApp: Boolean,
-    val restoreSystemApp: Boolean,
-    val showSystemApps: Boolean,
-    val showServiceInfo: Boolean,
-    val appSorting: AppSorting,
-    val componentSorting: ComponentSorting,
-    val componentShowPriority: ComponentShowPriority,
+data class AppPropertiesData(
+    val componentDatabaseInitialized: Boolean = false,
 )

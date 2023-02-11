@@ -41,5 +41,5 @@ message UserPreferences {
     ComponentSortingProto component_sorting = 11;
     ComponentShowPriorityProto component_show_priority = 12;
     bool use_dynamic_color = 14;
-    bool component_database_initialized = 15;
+
 }
