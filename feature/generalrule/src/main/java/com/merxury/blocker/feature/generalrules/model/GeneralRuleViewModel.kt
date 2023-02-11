@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.generalrules.model
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.ErrorMessage
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,6 +40,7 @@ import javax.inject.Inject
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
     private val generalRuleRepository: GeneralRuleRepository,
+    private val userDataRepository: UserDataRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<GeneralRuleUiState>(Loading)
     val uiState: StateFlow<GeneralRuleUiState> = _uiState.asStateFlow()
@@ -57,8 +60,12 @@ class GeneralRulesViewModel @Inject constructor(
         generalRuleRepository.getGeneralRules()
             .onStart { _uiState.emit(Loading) }
             .catch { _uiState.emit(Error(it.toErrorMessage())) }
-            .collect {
-                _uiState.emit(Success(it))
+            .collect { rules ->
+                val serverUrl = userDataRepository.userData
+                    .first()
+                    .ruleServerProvider
+                    .baseUrl
+                _uiState.emit(Success(rules, serverUrl))
             }
     }
 
@@ -75,6 +82,7 @@ sealed interface GeneralRuleUiState {
     object Loading : GeneralRuleUiState
     class Success(
         val rules: List<GeneralRule>,
+        val serverUrl: String,
     ) : GeneralRuleUiState
 
     class Error(val message: ErrorMessage) : GeneralRuleUiState
