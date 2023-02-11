@@ -16,26 +16,21 @@
 
 package com.merxury.blocker.feature.generalrules.component
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -52,51 +47,85 @@ fun RuleCard(item: GeneralRule, serverUrl: String) {
             .padding(8.dp),
         onClick = {},
     ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Row(
-                modifier = Modifier.padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                AsyncImage(
-                    modifier = Modifier.size(40.dp),
-                    model = Builder(LocalContext.current)
-                        .data(serverUrl + item.iconUrl)
-                        .error(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
-                        .placeholder(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = stringResource(id = R.string.rule_icon_description),
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(text = item.name, style = MaterialTheme.typography.bodyLarge)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    item.company?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+        ConstraintLayout {
+            val (icon, name, company, ruleIcon, keywords) = createRefs()
+            val iconEndGuideline = createGuidelineFromStart(72.dp)
+            AsyncImage(
+                modifier = Modifier
+                    .constrainAs(icon) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
                     }
-                }
-            }
-        }
-        Column {
-            Row(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                Icon(
-                    modifier = Modifier
-                        .padding(4.dp)
-                        .size(20.dp),
-                    imageVector = BlockerIcons.SubdirectoryArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                    .padding(16.dp)
+                    .size(40.dp),
+                model = Builder(LocalContext.current)
+                    .data(serverUrl + item.iconUrl)
+                    .error(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
+                    .placeholder(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = stringResource(id = R.string.rule_icon_description),
+            )
+            Text(
+                text = item.name, style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .padding(top = 16.dp, end = 16.dp)
+                    .constrainAs(name) {
+                        linkTo(
+                            start = iconEndGuideline,
+                            end = parent.end,
+                            bias = 0F,
+                        )
+                        top.linkTo(icon.top)
+                    },
+            )
+            item.company?.let {
                 Text(
-                    text = item.searchKeyword.joinToString(separator = "\n"),
+                    text = it,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .constrainAs(company) {
+                            linkTo(
+                                start = iconEndGuideline,
+                                end = parent.end,
+                                bias = 0F,
+                            )
+                            top.linkTo(name.bottom)
+                        }
+                        .padding(top = 4.dp, end = 16.dp),
                 )
             }
+            val titleBarrier = createBottomBarrier(icon, name, company)
+            Icon(
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .size(20.dp)
+                    .constrainAs(ruleIcon) {
+                        top.linkTo(titleBarrier)
+                        start.linkTo(parent.start)
+                        end.linkTo(iconEndGuideline)
+                    },
+                imageVector = BlockerIcons.SubdirectoryArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = item.searchKeyword.joinToString("\n"),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(end = 16.dp, bottom = 16.dp)
+                    .constrainAs(keywords) {
+                        linkTo(
+                            start = iconEndGuideline,
+                            end = parent.end,
+                            bias = 0F,
+                        )
+                        top.linkTo(titleBarrier)
+                        end.linkTo(parent.end)
+                    },
+            )
         }
     }
 }

@@ -30,6 +30,7 @@ androidxUiAutomator = "2.2.0"
 androidxWork = "2.8.0"
 appiconloader = "1.5.0"
 coil = "2.2.2"
+constraintLayoutCompose = "1.0.1"
 firebase = "31.2.1"
 firebaseCrashlytics = "2.9.4"
 firebasePerf = "1.4.2"
@@ -82,6 +83,7 @@ androidx-compose-ui-testManifest = { group = "androidx.compose.ui", name = "ui-t
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-compose-ui-util = { group = "androidx.compose.ui", name = "ui-util" }
+androidx-constraintlayout-compose = { group = "androidx.constraintlayout", name="constraintlayout-compose", version.ref = "constraintLayoutCompose"}
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxCoreSplashscreen" }
 androidx-dataStore-core = { group = "androidx.datastore", name = "datastore", version.ref = "androidxDataStore" }
@@ -143,7 +145,6 @@ material = "com.google.android.material:material:1.8.0"
 androidx-recyclerview = "androidx.recyclerview:recyclerview:1.2.1"
 androidx-swiperefreshlayout = "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 androidx-constraintlayout = "androidx.constraintlayout:constraintlayout:2.1.4"
-androidx-constraintlayout-compose = "androidx.constraintlayout:constraintlayout-compose:1.0.1"
 androidx-documentfile = "androidx.documentfile:documentfile:1.0.1"
 androidx-preference-ktx = "androidx.preference:preference-ktx:1.2.0"
 androidx-annotation = "androidx.annotation:annotation:1.5.0"
