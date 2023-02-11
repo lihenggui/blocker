@@ -31,6 +31,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
@@ -51,7 +52,7 @@ fun RuleCard(
             .padding(8.dp),
         onClick = { onCardClick(item) },
     ) {
-        ConstraintLayout {
+        ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
             val (icon, name, company, ruleIcon, keywords) = createRefs()
             val iconEndGuideline = createGuidelineFromStart(72.dp)
             AsyncImage(
@@ -81,6 +82,7 @@ fun RuleCard(
                             bias = 0F,
                         )
                         top.linkTo(icon.top)
+                        width = Dimension.fillToConstraints
                     },
             )
             item.company?.let {
@@ -96,6 +98,7 @@ fun RuleCard(
                                 bias = 0F,
                             )
                             top.linkTo(name.bottom)
+                            width = Dimension.fillToConstraints
                         }
                         .padding(top = 4.dp, end = 16.dp),
                 )
@@ -127,7 +130,7 @@ fun RuleCard(
                             bias = 0F,
                         )
                         top.linkTo(titleBarrier)
-                        end.linkTo(parent.end)
+                        width = Dimension.fillToConstraints
                     },
             )
         }
