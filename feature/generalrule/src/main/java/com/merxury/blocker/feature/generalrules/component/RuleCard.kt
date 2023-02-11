@@ -45,7 +45,7 @@ import com.merxury.blocker.feature.generalrule.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RuleCard(item: GeneralRule) {
+fun RuleCard(item: GeneralRule, serverUrl: String) {
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -60,7 +60,7 @@ fun RuleCard(item: GeneralRule) {
                 AsyncImage(
                     modifier = Modifier.size(40.dp),
                     model = Builder(LocalContext.current)
-                        .data(item.iconUrl)
+                        .data(serverUrl + item.iconUrl)
                         .error(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
                         .placeholder(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
                         .crossfade(true)
@@ -120,6 +120,6 @@ fun RuleBasicInfoPreview() {
         searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
     )
     BlockerTheme {
-        RuleCard(item = item)
+        RuleCard(item = item, serverUrl = "")
     }
 }
