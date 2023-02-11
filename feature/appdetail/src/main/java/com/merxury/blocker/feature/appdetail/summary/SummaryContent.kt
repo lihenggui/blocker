@@ -54,7 +54,7 @@ import java.util.Locale
 fun SummaryContent(
     app: Application,
     modifier: Modifier = Modifier,
-    onComposing: (AppBarActionState) -> Unit = { },
+    onComposing: (AppBarActionState) -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
     viewModel: SummaryViewModel = hiltViewModel(),
 ) {
