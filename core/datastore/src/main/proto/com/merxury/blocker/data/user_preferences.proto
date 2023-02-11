@@ -40,7 +40,6 @@ message UserPreferences {
     AppSortingProto app_sorting = 10;
     ComponentSortingProto component_sorting = 11;
     ComponentShowPriorityProto component_show_priority = 12;
-    int32 generalRuleChangeListVersion = 13;
-    int32 onlineComponentChangeListVersion = 14;
-    bool use_dynamic_color = 15;
+    bool use_dynamic_color = 14;
+    bool component_database_initialized = 15;
 }
