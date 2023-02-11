@@ -111,7 +111,10 @@ fun GeneralRulesScreen(
                 }
 
                 is Success -> {
-                    GeneralRulesContent(uiState = uiState)
+                    GeneralRulesContent(
+                        rules = uiState.rules,
+                        serverUrl = uiState.serverUrl,
+                    )
                 }
 
                 is Error -> {
@@ -129,16 +132,20 @@ fun ErrorScreen(message: ErrorMessage) {
 
 @Composable
 fun GeneralRulesContent(
+    rules: List<GeneralRule>,
+    serverUrl: String,
     modifier: Modifier = Modifier,
-    uiState: Success,
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
         modifier = modifier,
         state = listState,
     ) {
-        items(uiState.rules, key = { it.id }) {
-            RuleCard(item = it)
+        items(rules, key = { it.id }) {
+            RuleCard(
+                item = it,
+                serverUrl = serverUrl,
+            )
         }
     }
 }
@@ -160,6 +167,7 @@ fun GeneralRuleScreenPreview() {
                 sideEffect = "Unknown",
                 safeToBlock = true,
                 contributors = listOf("Online contributor"),
+                searchKeyword = listOf("androidx.google.example1"),
             ),
             GeneralRule(
                 id = 2,
@@ -174,8 +182,15 @@ fun GeneralRuleScreenPreview() {
                 sideEffect = "Background works won't be able to execute",
                 safeToBlock = false,
                 contributors = listOf("Google"),
+                searchKeyword = listOf(
+                    "androidx.google.example1",
+                    "androidx.google.example2",
+                    "androidx.google.example3",
+                    "androidx.google.example4",
+                ),
             ),
         ),
+        serverUrl = "",
     )
     BlockerTheme {
         GeneralRulesScreen(uiState = uiState)
