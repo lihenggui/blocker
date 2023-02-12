@@ -50,15 +50,16 @@ class LocalComponentRepository @Inject constructor(
                 list.map { it.toComponentInfo() }
             }
 
-    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> = flow {
-        emit(Result.Loading)
-        val latestComponents = localDataSource.getComponentList(packageName, type)
-            .map { list ->
-                list.map { it.toAppComponentEntity() }
-            }
-            .first()
-        appComponentDao.upsertComponentList(latestComponents)
-    }
+    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> =
+        flow {
+            emit(Result.Loading)
+            val latestComponents = localDataSource.getComponentList(packageName, type)
+                .map { list ->
+                    list.map { it.toAppComponentEntity() }
+                }
+                .first()
+            appComponentDao.upsertComponentList(latestComponents)
+        }
 
     override fun controlComponent(
         packageName: String,
@@ -74,6 +75,11 @@ class LocalComponentRepository @Inject constructor(
         }
         updateComponentStatus(packageName, componentName)
     }
+
+    override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
+        .map { list ->
+            list.map { it.toComponentInfo() }
+        }
 
     private suspend fun controlInIfwMode(
         packageName: String,
