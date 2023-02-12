@@ -20,46 +20,44 @@ import com.merxury.blocker.core.controllers.ifw.IfwController
 import com.merxury.blocker.core.controllers.root.RootController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.database.app.AppComponentDao
+import com.merxury.blocker.core.database.app.toAppComponentEntity
+import com.merxury.blocker.core.database.app.toComponentInfo
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.result.Result
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
 class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
+    private val appComponentDao: AppComponentDao,
     private val userDataRepository: UserDataRepository,
     private val pmController: RootController,
     private val ifwController: IfwController,
     private val shizukuController: ShizukuController,
 ) : ComponentRepository {
 
-    private val latestListMutex = Mutex()
-    private var cachedList: MutableList<ComponentInfo> = mutableListOf()
-    private val _data = MutableSharedFlow<List<ComponentInfo>>(
-        replay = 1,
-        extraBufferCapacity = 1,
-    )
-    val data = _data.asSharedFlow()
+    override fun getComponentList(packageName: String, type: ComponentType) =
+        appComponentDao.getByPackageNameAndType(packageName, type)
+            .map { list ->
+                list.map { it.toComponentInfo() }
+            }
 
-    override fun getComponentList(packageName: String, type: ComponentType) = flow {
-        val newList = localDataSource.getComponentList(packageName, type)
+    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> = flow {
+        emit(Result.Loading)
+        val latestComponents = localDataSource.getComponentList(packageName, type)
+            .map { list ->
+                list.map { it.toAppComponentEntity() }
+            }
             .first()
-            .toMutableList()
-        latestListMutex.withLock {
-            cachedList = newList
-        }
-        _data.emit(cachedList)
-        emit(Unit)
+        appComponentDao.upsertComponentList(latestComponents)
     }
 
     override fun controlComponent(
@@ -69,13 +67,12 @@ class LocalComponentRepository @Inject constructor(
     ): Flow<Boolean> = flow {
         Timber.d("Control $packageName/$componentName to state $newState")
         val userData = userDataRepository.userData.first()
-        val result = when (userData.controllerType) {
+        when (userData.controllerType) {
             IFW -> controlInIfwMode(packageName, componentName, newState)
             PM -> controlInPmMode(packageName, componentName, newState)
             SHIZUKU -> controlInShizukuMode(packageName, componentName, newState)
         }
         updateComponentStatus(packageName, componentName)
-        emit(result)
     }
 
     private suspend fun controlInIfwMode(
@@ -126,18 +123,12 @@ class LocalComponentRepository @Inject constructor(
     }
 
     private suspend fun updateComponentStatus(packageName: String, componentName: String) {
-        latestListMutex.withLock {
-            val position = cachedList.indexOfFirst { it.name == componentName }
-            if (position == -1) {
-                Timber.w("Can't find $componentName in the cached list.")
-                return
-            }
-            val newComponentInfo = cachedList[position].copy(
-                pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
-                ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
-            )
-            cachedList[position] = newComponentInfo
-        }
-        _data.emit(cachedList)
+        val component = appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
+            ?: return
+        val newState = component.copy(
+            pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
+            ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
+        )
+        appComponentDao.update(newState)
     }
 }

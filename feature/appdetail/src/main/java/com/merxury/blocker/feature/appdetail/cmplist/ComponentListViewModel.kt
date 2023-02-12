@@ -73,7 +73,7 @@ class ComponentListViewModel @AssistedInject constructor(
 
     init {
         listenDataChange()
-        getComponentList()
+        updateComponentList()
     }
 
     fun dismissAlert() = viewModelScope.launch {
@@ -93,14 +93,15 @@ class ComponentListViewModel @AssistedInject constructor(
     }
 
     private fun listenDataChange() = viewModelScope.launch {
-        componentRepository.data.collect { list ->
-            stateList.clear()
-            val userData = userDataRepository.userData.first()
-            val componentItemList = list.map { it.toComponentInfo() }
-            val sortedList = sortList(componentItemList, userData.componentSorting)
-            stateList.addAll(sortedList)
-            _uiState.emit(Success(stateList))
-        }
+        componentRepository.getComponentList(packageName, type)
+            .collect { list ->
+                stateList.clear()
+                val userData = userDataRepository.userData.first()
+                val componentItemList = list.map { it.toComponentInfo() }
+                val sortedList = sortList(componentItemList, userData.componentSorting)
+                stateList.addAll(sortedList)
+                _uiState.emit(Success(stateList))
+            }
     }
 
     private suspend fun sortList(
@@ -113,8 +114,8 @@ class ComponentListViewModel @AssistedInject constructor(
         }
     }
 
-    private fun getComponentList() = viewModelScope.launch {
-        componentRepository.getComponentList(packageName, type)
+    private fun updateComponentList() = viewModelScope.launch {
+        componentRepository.updateComponentList(packageName, type)
             .onStart {
                 Timber.d("getComponentList $packageName, $type")
                 _uiState.emit(Loading)
