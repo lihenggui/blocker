@@ -31,4 +31,6 @@ interface ComponentRepository {
         componentName: String,
         newState: Boolean,
     ): Flow<Boolean>
+
+    fun searchComponent(keyword: String): Flow<List<ComponentInfo>>
 }
