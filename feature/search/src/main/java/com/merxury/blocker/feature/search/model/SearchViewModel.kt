@@ -16,24 +16,33 @@
 
 package com.merxury.blocker.feature.search.model
 
+import android.content.pm.PackageManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
-import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.data.respository.app.AppRepository
+import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
-class LocalSearchViewModel @Inject constructor() : ViewModel() {
+class SearchViewModel @Inject constructor(
+    private val pm: PackageManager,
+    private val appRepository: AppRepository,
+) : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
     private val _localSearchUiState =
-        MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.NoSearch)
+        MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
 
     private val _tabState = MutableStateFlow(
@@ -54,6 +63,19 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
                 it.copy(currentIndex = newIndex)
             }
         }
+    }
+
+    fun search(keywords: String) {
+        val searchAppFlow = appRepository.searchInstalledApplications(keywords)
+            .map { list ->
+                list.map { app ->
+                    val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
+                    app.toInstalledAppItem(packageInfo)
+                }
+            }
+    }
+
+    fun search(keywords: List<String>) {
     }
 
     fun onSearchTextChanged(changedSearchText: TextFieldValue) {
@@ -86,12 +108,14 @@ class LocalSearchViewModel @Inject constructor() : ViewModel() {
 }
 
 sealed interface LocalSearchUiState {
-    object NoSearch : LocalSearchUiState
+    object Idle : LocalSearchUiState
     object Loading : LocalSearchUiState
     class LocalSearchResult(
-        val filter: List<FilterAppItem>,
-        val isSelectedMode: Boolean,
-        val selectedAppCount: Int,
+        val apps: List<InstalledApp> = listOf(),
+        val components: List<FilteredComponentItem> = listOf(),
+        val rules: List<GeneralRule> = listOf(),
+        val isSelectedMode: Boolean = false,
+        val selectedAppCount: Int = 0,
     ) : LocalSearchUiState
 
     class Error(val message: ErrorMessage) : LocalSearchUiState
@@ -101,12 +125,12 @@ data class SearchBoxUiState(
     val keyword: TextFieldValue = TextFieldValue(),
 )
 
-data class FilterAppItem(
-    val app: Application = Application(),
-    val activityCount: Int = 0,
-    val broadcastCount: Int = 0,
-    val serviceCount: Int = 0,
-    val contentProviderCount: Int = 0,
+data class FilteredComponentItem(
+    val app: InstalledAppItem,
+    val activity: List<ComponentInfo> = listOf(),
+    val service: List<ComponentInfo> = listOf(),
+    val receiver: List<ComponentInfo> = listOf(),
+    val provider: List<ComponentInfo> = listOf(),
     val isSelected: Boolean = false,
 )
 

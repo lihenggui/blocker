@@ -51,6 +51,9 @@ interface InstalledAppDao {
     @Query("SELECT * FROM installed_app WHERE package_name = :packageName")
     suspend fun getByPackageName(packageName: String): InstalledAppEntity?
 
+    @Query("SELECT * FROM installed_app WHERE package_name IN (:keyword)")
+    fun getByPackageNameContains(keyword: String): Flow<List<InstalledAppEntity>>
+
     @Query("SELECT COUNT(package_name) FROM installed_app")
     suspend fun getCount(): Int
 
