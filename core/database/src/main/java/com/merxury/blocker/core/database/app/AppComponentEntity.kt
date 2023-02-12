@@ -41,6 +41,16 @@ fun AppComponentEntity.toComponentInfo() = ComponentInfo(
     name = componentName,
     simpleName = componentName.substringAfterLast('.'),
     type = type,
+    exported = exported,
+    ifwBlocked = ifwBlocked,
+    pmBlocked = pmBlocked,
+)
+
+fun ComponentInfo.toAppComponentEntity() = AppComponentEntity(
+    packageName = packageName,
+    componentName = name,
+    type = type,
+    exported = exported,
     ifwBlocked = ifwBlocked,
     pmBlocked = pmBlocked,
 )
