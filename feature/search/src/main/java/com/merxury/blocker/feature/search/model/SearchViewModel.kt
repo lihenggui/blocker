@@ -20,6 +20,7 @@ import android.content.pm.PackageManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.data.respository.app.AppRepository
+import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -27,6 +28,7 @@ import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,6 +40,7 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val pm: PackageManager,
     private val appRepository: AppRepository,
+    private val componentRepository: ComponentRepository,
 ) : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
@@ -73,6 +76,12 @@ class SearchViewModel @Inject constructor(
                     app.toInstalledAppItem(packageInfo)
                 }
             }
+        // Organized by <PackageName, List<Component>>
+        val searchComponentFlow: Flow<Map<String, List<ComponentInfo>>> =
+            componentRepository.searchComponent(keywords)
+                .map { list ->
+                    list.groupBy { it.packageName }
+                }
     }
 
     fun search(keywords: List<String>) {
