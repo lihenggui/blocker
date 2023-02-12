@@ -84,8 +84,10 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun search(keywords: String) {
-        val searchAppFlow = appRepository.searchInstalledApplications(keywords)
+    fun search(changedSearchText: TextFieldValue) {
+        _searchBoxUiState.update { it.copy(keyword = changedSearchText) }
+        val keyword = changedSearchText.text
+        val searchAppFlow = appRepository.searchInstalledApplications(keyword)
             .map { list ->
                 list.map { app ->
                     val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
@@ -94,12 +96,12 @@ class SearchViewModel @Inject constructor(
             }
         // Organized by <PackageName, List<Component>>
         val searchComponentFlow: Flow<Map<String, List<ComponentInfo>>> =
-            componentRepository.searchComponent(keywords)
+            componentRepository.searchComponent(keyword)
                 .map { list ->
                     list.groupBy { it.packageName }
                 }
 
-        val searchGeneralRuleFlow = generalRuleRepository.searchGeneralRule(keywords)
+        val searchGeneralRuleFlow = generalRuleRepository.searchGeneralRule(keyword)
         val searchFlow = combine(
             searchAppFlow,
             searchComponentFlow,
@@ -127,6 +129,7 @@ class SearchViewModel @Inject constructor(
                 rules = rules,
             )
         }
+        searchJob?.cancel()
         searchJob = viewModelScope.launch {
             searchFlow.flowOn(ioDispatcher)
                 .collect {
@@ -138,23 +141,19 @@ class SearchViewModel @Inject constructor(
     fun search(keywords: List<String>) {
     }
 
-    fun onSearchTextChanged(changedSearchText: TextFieldValue) {
-        _searchBoxUiState.update { it.copy(keyword = changedSearchText) }
-    }
-
-    fun onClearClick() {
+    fun resetSearchState() {
         _searchBoxUiState.update { SearchBoxUiState() }
     }
 
-    fun onSelectAll() {
+    fun selectAll() {
         // TODO
     }
 
-    fun onBlockAll() {
+    fun blockAll() {
         // TODO
     }
 
-    fun onCheckAll() {
+    fun checkAll() {
         // TODO
     }
 
@@ -162,7 +161,7 @@ class SearchViewModel @Inject constructor(
         // TODO, isSelectedMode = true
     }
 
-    fun onSelectItem(select: Boolean) {
+    fun selectItem(select: Boolean) {
         // TODO
     }
 }
