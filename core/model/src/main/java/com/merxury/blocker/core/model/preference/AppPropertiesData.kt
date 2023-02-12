@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Blocker
- * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +14,8 @@
  * limitations under the License.
  */
 
-plugins {
-    id("blocker.android.feature")
-    id("blocker.android.library.compose")
-    id("blocker.android.library.jacoco")
-}
-android {
-    namespace = "com.merxury.blocker.feature.generalrule"
-}
-dependencies {
-    implementation(project(":core:database"))
-    implementation(libs.androidx.constraintlayout.compose)
-}
+package com.merxury.blocker.core.model.preference
+
+data class AppPropertiesData(
+    val componentDatabaseInitialized: Boolean = false,
+)

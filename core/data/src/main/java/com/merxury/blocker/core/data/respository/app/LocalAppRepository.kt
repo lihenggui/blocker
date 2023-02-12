@@ -97,4 +97,11 @@ class LocalAppRepository @Inject constructor(
             emit(Error(exception))
         }
         .flowOn(ioDispatcher)
+
+    override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> {
+        return installedAppDao.getByPackageNameContains(keyword)
+            .transform { list ->
+                emit(list.map { it.asExternalModel() })
+            }
+    }
 }
