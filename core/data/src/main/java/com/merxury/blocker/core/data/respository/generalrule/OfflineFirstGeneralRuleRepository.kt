@@ -65,6 +65,11 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
         }
         .flowOn(ioDispatcher)
 
+    override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> {
+        return generalRuleDao.searchGeneralRule(keyword)
+            .map { it.map(GeneralRuleEntity::asExternalModel) }
+    }
+
     private suspend fun compareAndUpdateCache(networkRules: List<GeneralRuleEntity>) {
         withContext(ioDispatcher) {
             val currentCache = generalRuleDao.getGeneralRuleEntities().first()
