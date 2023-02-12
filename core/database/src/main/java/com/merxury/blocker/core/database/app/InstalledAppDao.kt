@@ -60,6 +60,9 @@ interface InstalledAppDao {
     @Query("SELECT * FROM installed_app")
     fun getInstalledApps(): Flow<List<InstalledAppEntity>>
 
+    @Query("SELECT * FROM installed_app WHERE package_name = :packageName")
+    fun getInstalledApp(packageName: String): Flow<InstalledAppEntity?>
+
     @Upsert
     fun upsertInstalledApp(app: InstalledAppEntity)
 
