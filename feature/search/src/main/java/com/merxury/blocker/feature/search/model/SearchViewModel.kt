@@ -19,22 +19,34 @@ package com.merxury.blocker.feature.search.model
 import android.content.pm.PackageManager
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,12 +55,14 @@ class SearchViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val generalRuleRepository: GeneralRuleRepository,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
     private val _localSearchUiState =
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
+    private var searchJob: Job? = null
 
     private val _tabState = MutableStateFlow(
         SearchTabState(
@@ -86,6 +100,39 @@ class SearchViewModel @Inject constructor(
                 }
 
         val searchGeneralRuleFlow = generalRuleRepository.searchGeneralRule(keywords)
+        val searchFlow = combine(
+            searchAppFlow,
+            searchComponentFlow,
+            searchGeneralRuleFlow,
+        ) { apps, components, rules ->
+            // Group component list by packages
+            val filteredComponents = components.map { (packageName, componentList) ->
+                val app = appRepository.getApplication(packageName).first()
+                if (app != null) {
+                    FilteredComponentItem(
+                        app = app.toInstalledAppItem(pm.getPackageInfoCompat(packageName, 0)),
+                        activity = componentList.filter { it.type == ACTIVITY },
+                        service = componentList.filter { it.type == SERVICE },
+                        receiver = componentList.filter { it.type == RECEIVER },
+                        provider = componentList.filter { it.type == PROVIDER },
+                    )
+                } else {
+                    null
+                }
+            }
+                .filterNotNull()
+            LocalSearchUiState.Success(
+                apps = apps,
+                components = filteredComponents,
+                rules = rules,
+            )
+        }
+        searchJob = viewModelScope.launch {
+            searchFlow.flowOn(ioDispatcher)
+                .collect {
+                    _localSearchUiState.emit(it)
+                }
+        }
     }
 
     fun search(keywords: List<String>) {
@@ -123,8 +170,8 @@ class SearchViewModel @Inject constructor(
 sealed interface LocalSearchUiState {
     object Idle : LocalSearchUiState
     object Loading : LocalSearchUiState
-    class LocalSearchResult(
-        val apps: List<InstalledApp> = listOf(),
+    class Success(
+        val apps: List<InstalledAppItem> = listOf(),
         val components: List<FilteredComponentItem> = listOf(),
         val rules: List<GeneralRule> = listOf(),
         val isSelectedMode: Boolean = false,
