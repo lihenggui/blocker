@@ -50,6 +50,8 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
@@ -70,6 +72,7 @@ class ComponentListViewModel @AssistedInject constructor(
         _errorState.tryEmit(throwable.toErrorMessage())
     }
     private val stateList = mutableStateListOf<ComponentItem>()
+    private val listMutex = Mutex()
 
     init {
         listenDataChange()
@@ -95,13 +98,39 @@ class ComponentListViewModel @AssistedInject constructor(
     private fun listenDataChange() = viewModelScope.launch {
         componentRepository.getComponentList(packageName, type)
             .collect { list ->
-                stateList.clear()
                 val userData = userDataRepository.userData.first()
-                val componentItemList = list.map { it.toComponentInfo() }
+                val componentItemList = list.map { it.toComponentItem() }
                 val sortedList = sortList(componentItemList, userData.componentSorting)
-                stateList.addAll(sortedList)
+                updateStateList(sortedList)
                 _uiState.emit(Success(stateList))
             }
+    }
+
+    private suspend fun updateStateList(newList: List<ComponentItem>) = withContext(cpuDispatcher) {
+        if (newList.size < stateList.size) {
+            listMutex.withLock {
+                // Make list size the same
+                stateList.filter { origItem ->
+                    newList.none { newItem ->
+                        origItem.name == newItem.name
+                    }
+                }.forEach {
+                    stateList.remove(it)
+                }
+            }
+        }
+        newList.forEachIndexed { index, newItem ->
+            listMutex.withLock {
+                val origItem = stateList.getOrNull(index)
+                if (origItem == null) {
+                    stateList.add(newItem)
+                } else {
+                    if (origItem != newItem) {
+                        stateList[index] = newItem
+                    }
+                }
+            }
+        }
     }
 
     private suspend fun sortList(
@@ -172,7 +201,7 @@ data class ComponentItem(
     fun enabled() = !(pmBlocked || ifwBlocked)
 }
 
-private fun ComponentInfo.toComponentInfo() = ComponentItem(
+private fun ComponentInfo.toComponentItem() = ComponentItem(
     name = name,
     simpleName = simpleName,
     packageName = packageName,
