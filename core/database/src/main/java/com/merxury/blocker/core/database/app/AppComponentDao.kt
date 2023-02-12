@@ -23,6 +23,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import com.merxury.blocker.core.model.ComponentType
 import kotlinx.coroutines.flow.Flow
 
@@ -64,4 +65,7 @@ interface AppComponentDao {
     @Transaction
     @Query("SELECT * FROM app_component WHERE component_name LIKE '%' || :searchKeyword || '%'")
     suspend fun getByName(searchKeyword: String): List<AppComponentEntity>
+
+    @Upsert
+    suspend fun upsertComponentList(componentList: List<AppComponentEntity>)
 }
