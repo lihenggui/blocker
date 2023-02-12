@@ -192,7 +192,7 @@ fun SearchScreen(
                         }
                     }
 
-                    is LocalSearchUiState.LocalSearchResult -> {
+                    is LocalSearchUiState.Success -> {
                         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
                         when (tabState.currentIndex) {
                             0 -> {
@@ -239,7 +239,7 @@ fun TopBar(
     onBlockAll: () -> Unit,
     onCheckAll: () -> Unit,
 ) {
-    if (localSearchUiState is LocalSearchUiState.LocalSearchResult &&
+    if (localSearchUiState is LocalSearchUiState.Success &&
         localSearchUiState.isSelectedMode
     ) {
         SelectedAppTopBar(
@@ -402,7 +402,7 @@ fun SearchScreenPreview() {
         ),
     )
     val searchBoxUiState = SearchBoxUiState()
-    val localSearchUiState = LocalSearchUiState.LocalSearchResult(
+    val localSearchUiState = LocalSearchUiState.Success(
         components = listOf(filterAppItem),
         isSelectedMode = false,
         selectedAppCount = 0,
@@ -446,7 +446,7 @@ fun SearchScreenSelectedPreview() {
         isSelected = true,
     )
     val searchBoxUiState = SearchBoxUiState()
-    val localSearchUiState = LocalSearchUiState.LocalSearchResult(
+    val localSearchUiState = LocalSearchUiState.Success(
         components = listOf(filterAppItem),
         isSelectedMode = true,
         selectedAppCount = 1,
