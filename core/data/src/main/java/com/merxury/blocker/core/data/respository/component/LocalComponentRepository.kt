@@ -28,12 +28,12 @@ import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.result.Result
-import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
+import javax.inject.Inject
 
 class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
