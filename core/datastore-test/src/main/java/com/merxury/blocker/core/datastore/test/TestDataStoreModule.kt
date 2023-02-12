@@ -19,6 +19,8 @@ package com.merxury.blocker.core.datastore.test
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
+import com.merxury.blocker.core.datastore.AppProperties
+import com.merxury.blocker.core.datastore.AppPropertiesSerializer
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
 import com.merxury.blocker.core.datastore.di.DataStoreModule
@@ -26,8 +28,8 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
-import org.junit.rules.TemporaryFolder
 import javax.inject.Singleton
+import org.junit.rules.TemporaryFolder
 
 @Module
 @TestInstallIn(
@@ -43,6 +45,14 @@ object TestDataStoreModule {
         tmpFolder: TemporaryFolder,
     ): DataStore<UserPreferences> =
         tmpFolder.testUserPreferencesDataStore(userPreferencesSerializer)
+
+    @Provides
+    @Singleton
+    fun providesAppPropertiesDataStore(
+        appPropertiesSerializer: AppPropertiesSerializer,
+        tmpFolder: TemporaryFolder,
+    ): DataStore<AppProperties> =
+        tmpFolder.testAppPropertiesDataStore(appPropertiesSerializer)
 }
 
 fun TemporaryFolder.testUserPreferencesDataStore(
@@ -51,4 +61,12 @@ fun TemporaryFolder.testUserPreferencesDataStore(
     serializer = userPreferencesSerializer,
 ) {
     newFile("user_preferences_test.pb")
+}
+
+fun TemporaryFolder.testAppPropertiesDataStore(
+    appPropertiesSerializer: AppPropertiesSerializer = AppPropertiesSerializer(),
+) = DataStoreFactory.create(
+    serializer = appPropertiesSerializer,
+) {
+    newFile("app_properties_test.pb")
 }
