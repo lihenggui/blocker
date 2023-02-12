@@ -58,6 +58,7 @@ class LocalComponentDataSource @Inject constructor(
                     simpleName = it.getSimpleName(),
                     packageName = it.packageName,
                     type = type,
+                    exported = it.exported,
                     pmBlocked = !pmController.checkComponentEnableState(packageName, it.name),
                     ifwBlocked = !ifwController.checkComponentEnableState(packageName, it.name),
                 )
