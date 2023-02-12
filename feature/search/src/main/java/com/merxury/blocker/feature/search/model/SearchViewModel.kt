@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -41,6 +42,7 @@ class SearchViewModel @Inject constructor(
     private val pm: PackageManager,
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
+    private val generalRuleRepository: GeneralRuleRepository,
 ) : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
@@ -82,6 +84,8 @@ class SearchViewModel @Inject constructor(
                 .map { list ->
                     list.groupBy { it.packageName }
                 }
+
+        val searchGeneralRuleFlow = generalRuleRepository.searchGeneralRule(keywords)
     }
 
     fun search(keywords: List<String>) {

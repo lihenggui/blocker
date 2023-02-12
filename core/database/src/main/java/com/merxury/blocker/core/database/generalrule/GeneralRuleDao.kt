@@ -42,6 +42,9 @@ interface GeneralRuleDao {
     @Query("SELECT * FROM general_rules")
     fun getGeneralRuleEntities(): Flow<List<GeneralRuleEntity>>
 
+    @Query("SELECT * FROM general_rules WHERE name LIKE '%' || :keyword || '%'")
+    fun searchGeneralRule(keyword: String): Flow<List<GeneralRuleEntity>>
+
     /**
      * Deletes rows in the db matching the specified [ids]
      */
