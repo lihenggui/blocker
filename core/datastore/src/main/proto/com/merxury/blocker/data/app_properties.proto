@@ -20,4 +20,5 @@ option java_multiple_files = true;
 
 message AppProperties {
   bool component_database_initialized = 1;
+  bool general_rule_database_initialized = 2;
 }
