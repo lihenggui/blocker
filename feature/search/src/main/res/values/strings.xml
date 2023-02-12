@@ -18,7 +18,7 @@
     <string name="application">App ( %1$d )</string>
     <string name="component">Component ( %1$d )</string>
     <string name="online_rule">Online rule ( %1$d )</string>
-    <string name="searching">searching</string>
+    <string name="searching">Searching</string>
     <string name="activity_count">%1$d Activity</string>
     <string name="content_provider_count">%1$d Content provider</string>
     <string name="broadcast_count">%1$d Broadcast</string>

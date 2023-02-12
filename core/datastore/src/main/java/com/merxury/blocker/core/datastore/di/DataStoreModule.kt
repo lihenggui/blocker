@@ -20,6 +20,8 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.dataStoreFile
+import com.merxury.blocker.core.datastore.AppProperties
+import com.merxury.blocker.core.datastore.AppPropertiesSerializer
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -50,5 +52,19 @@ object DataStoreModule {
             scope = CoroutineScope(ioDispatcher + SupervisorJob()),
         ) {
             context.dataStoreFile("user_preferences.pb")
+        }
+
+    @Provides
+    @Singleton
+    fun providesAppPropertiesDataStore(
+        @ApplicationContext context: Context,
+        @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
+        appPropertiesSerializer: AppPropertiesSerializer,
+    ): DataStore<AppProperties> =
+        DataStoreFactory.create(
+            serializer = appPropertiesSerializer,
+            scope = CoroutineScope(ioDispatcher + SupervisorJob()),
+        ) {
+            context.dataStoreFile("app_properties.pb")
         }
 }

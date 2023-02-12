@@ -71,12 +71,12 @@ import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.Screen.Activity
+import com.merxury.blocker.feature.appdetail.Screen.Detail
+import com.merxury.blocker.feature.appdetail.Screen.Provider
+import com.merxury.blocker.feature.appdetail.Screen.Receiver
+import com.merxury.blocker.feature.appdetail.Screen.Service
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Activity
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Detail
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Provider
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Receiver
-import com.merxury.blocker.feature.appdetail.navigation.Screen.Service
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
