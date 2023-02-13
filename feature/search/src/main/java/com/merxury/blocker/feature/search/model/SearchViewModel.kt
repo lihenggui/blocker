@@ -25,6 +25,8 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
+import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
@@ -35,6 +37,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -47,7 +50,6 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -55,6 +57,7 @@ class SearchViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val generalRuleRepository: GeneralRuleRepository,
+    private val initializeDatabaseUseCase: InitializeDatabaseUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
@@ -75,6 +78,21 @@ class SearchViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<SearchTabState> = _tabState.asStateFlow()
+
+    init {
+        load()
+    }
+
+    private fun load() = viewModelScope.launch {
+        initializeDatabaseUseCase.invoke()
+            .collect {
+                if (it is InitializeState.Initializing) {
+                    _localSearchUiState.emit(LocalSearchUiState.Initializing(it.processingName))
+                } else {
+                    _localSearchUiState.emit(LocalSearchUiState.Idle)
+                }
+            }
+    }
 
     fun switchTab(newIndex: Int) {
         if (newIndex != tabState.value.currentIndex) {
