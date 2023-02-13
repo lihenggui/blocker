@@ -37,7 +37,6 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
@@ -50,6 +49,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -125,6 +126,7 @@ class SearchViewModel @Inject constructor(
             searchComponentFlow,
             searchGeneralRuleFlow,
         ) { apps, components, rules ->
+            Timber.v("Fild ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             // Group component list by packages
             val filteredComponents = components.map { (packageName, componentList) ->
                 val app = appRepository.getApplication(packageName).first()
@@ -150,8 +152,15 @@ class SearchViewModel @Inject constructor(
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             searchFlow.flowOn(ioDispatcher)
-                .collect {
-                    _localSearchUiState.emit(it)
+                .collect { searchResult ->
+                    _localSearchUiState.emit(searchResult)
+                    _tabState.update {
+                        it.copy(
+                            appCount = searchResult.apps.size,
+                            componentCount = searchResult.components.size,
+                            rulesCount = searchResult.rules.size,
+                        )
+                    }
                 }
         }
     }
