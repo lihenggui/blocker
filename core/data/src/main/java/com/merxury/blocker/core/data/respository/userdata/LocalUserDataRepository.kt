@@ -16,6 +16,18 @@
 
 package com.merxury.blocker.core.data.respository.userdata
 
+import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.data.respository.logAppSortingChanged
+import com.merxury.blocker.core.data.respository.logBackupSystemAppPreferenceChanged
+import com.merxury.blocker.core.data.respository.logComponentShowPriorityPreferenceChanged
+import com.merxury.blocker.core.data.respository.logControllerTypeChanged
+import com.merxury.blocker.core.data.respository.logDarkThemeConfigChanged
+import com.merxury.blocker.core.data.respository.logDynamicColorPreferenceChanged
+import com.merxury.blocker.core.data.respository.logRestoreSystemAppPreferenceChanged
+import com.merxury.blocker.core.data.respository.logRuleServerProviderChanged
+import com.merxury.blocker.core.data.respository.logShowServiceInfoPreferenceChanged
+import com.merxury.blocker.core.data.respository.logShowSystemAppPreferenceChanged
+import com.merxury.blocker.core.data.respository.logThemeChanged
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -29,43 +41,66 @@ import javax.inject.Inject
 
 class LocalUserDataRepository @Inject constructor(
     private val blockerPreferenceDataSource: BlockerPreferencesDataSource,
+    private val analyticsHelper: AnalyticsHelper,
 ) : UserDataRepository {
     override val userData: Flow<UserPreferenceData>
         get() = blockerPreferenceDataSource.userData
 
-    override suspend fun setThemeBrand(themeBrand: ThemeBrand) =
+    override suspend fun setThemeBrand(themeBrand: ThemeBrand) {
         blockerPreferenceDataSource.setThemeBrand(themeBrand)
+        analyticsHelper.logThemeChanged(themeBrand.name)
+    }
 
-    override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) =
+    override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         blockerPreferenceDataSource.setDarkThemeConfig(darkThemeConfig)
+        analyticsHelper.logDarkThemeConfigChanged(darkThemeConfig.name)
+    }
 
-    override suspend fun setDynamicColorPreference(useDynamicColor: Boolean) =
+    override suspend fun setDynamicColorPreference(useDynamicColor: Boolean) {
         blockerPreferenceDataSource.setDynamicColorPreference(useDynamicColor)
+        analyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor)
+    }
 
-    override suspend fun setControllerType(controllerType: ControllerType) =
+    override suspend fun setControllerType(controllerType: ControllerType) {
         blockerPreferenceDataSource.setControllerType(controllerType)
+        analyticsHelper.logControllerTypeChanged(controllerType.name)
+    }
 
-    override suspend fun setRuleServerProvider(serverProvider: RuleServerProvider) =
+    override suspend fun setRuleServerProvider(serverProvider: RuleServerProvider) {
         blockerPreferenceDataSource.setRuleServerProvider(serverProvider)
+        analyticsHelper.logRuleServerProviderChanged(serverProvider.name)
+    }
 
     override suspend fun setRuleBackupFolder(folder: String) =
         blockerPreferenceDataSource.setRuleBackupFolder(folder)
 
-    override suspend fun setBackupSystemApp(shouldBackup: Boolean) =
+    override suspend fun setBackupSystemApp(shouldBackup: Boolean) {
         blockerPreferenceDataSource.setBackupSystemApp(shouldBackup)
+        analyticsHelper.logBackupSystemAppPreferenceChanged(shouldBackup)
+    }
 
-    override suspend fun setRestoreSystemApp(shouldRestore: Boolean) =
+    override suspend fun setRestoreSystemApp(shouldRestore: Boolean) {
         blockerPreferenceDataSource.setRestoreSystemApp(shouldRestore)
+        analyticsHelper.logRestoreSystemAppPreferenceChanged(shouldRestore)
+    }
 
-    override suspend fun setShowSystemApps(shouldShowSystemApps: Boolean) =
+    override suspend fun setShowSystemApps(shouldShowSystemApps: Boolean) {
         blockerPreferenceDataSource.setShowSystemApps(shouldShowSystemApps)
+        analyticsHelper.logShowSystemAppPreferenceChanged(shouldShowSystemApps)
+    }
 
-    override suspend fun setShowServiceInfo(shouldShowServiceInfo: Boolean) =
+    override suspend fun setShowServiceInfo(shouldShowServiceInfo: Boolean) {
         blockerPreferenceDataSource.setShowServiceInfo(shouldShowServiceInfo)
+        analyticsHelper.logShowServiceInfoPreferenceChanged(shouldShowServiceInfo)
+    }
 
-    override suspend fun setAppSorting(sorting: AppSorting) =
+    override suspend fun setAppSorting(sorting: AppSorting) {
         blockerPreferenceDataSource.setAppSorting(sorting)
+        analyticsHelper.logAppSortingChanged(sorting.name)
+    }
 
-    override suspend fun setComponentShowPriority(priority: ComponentShowPriority) =
+    override suspend fun setComponentShowPriority(priority: ComponentShowPriority) {
         blockerPreferenceDataSource.setComponentShowPriority(priority)
+        analyticsHelper.logComponentShowPriorityPreferenceChanged(priority.name)
+    }
 }
