@@ -68,4 +68,8 @@ interface AppComponentDao {
 
     @Upsert
     suspend fun upsertComponentList(componentList: List<AppComponentEntity>)
+
+    @Transaction
+    @Query("SELECT * FROM app_component WHERE component_name LIKE '%' || :searchKeyword || '%'")
+    fun searchByKeyword(searchKeyword: String): Flow<List<AppComponentEntity>>
 }

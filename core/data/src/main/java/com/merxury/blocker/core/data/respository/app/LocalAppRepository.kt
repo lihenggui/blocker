@@ -32,6 +32,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.transform
 import timber.log.Timber
@@ -99,9 +100,14 @@ class LocalAppRepository @Inject constructor(
         .flowOn(ioDispatcher)
 
     override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> {
-        return installedAppDao.getByPackageNameContains(keyword)
+        return installedAppDao.getByPackageNameOrLabelContains(keyword)
             .transform { list ->
                 emit(list.map { it.asExternalModel() })
             }
+    }
+
+    override fun getApplication(packageName: String): Flow<InstalledApp?> {
+        return installedAppDao.getInstalledApp(packageName)
+            .map { it?.asExternalModel() }
     }
 }

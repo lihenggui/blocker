@@ -51,14 +51,17 @@ interface InstalledAppDao {
     @Query("SELECT * FROM installed_app WHERE package_name = :packageName")
     suspend fun getByPackageName(packageName: String): InstalledAppEntity?
 
-    @Query("SELECT * FROM installed_app WHERE package_name IN (:keyword)")
-    fun getByPackageNameContains(keyword: String): Flow<List<InstalledAppEntity>>
+    @Query("SELECT * FROM installed_app WHERE package_name LIKE '%' ||(:keyword)|| '%' OR label LIKE '%' ||(:keyword)|| '%'")
+    fun getByPackageNameOrLabelContains(keyword: String): Flow<List<InstalledAppEntity>>
 
     @Query("SELECT COUNT(package_name) FROM installed_app")
     suspend fun getCount(): Int
 
     @Query("SELECT * FROM installed_app")
     fun getInstalledApps(): Flow<List<InstalledAppEntity>>
+
+    @Query("SELECT * FROM installed_app WHERE package_name = :packageName")
+    fun getInstalledApp(packageName: String): Flow<InstalledAppEntity?>
 
     @Upsert
     fun upsertInstalledApp(app: InstalledAppEntity)
