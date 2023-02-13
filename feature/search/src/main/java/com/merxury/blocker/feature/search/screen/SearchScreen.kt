@@ -87,14 +87,14 @@ fun SearchRoute(
         tabState = tabState,
         localSearchUiState = localSearchUiState,
         switchTab = viewModel::switchTab,
-        onSearchTextChanged = viewModel::onSearchTextChanged,
-        onClearClick = viewModel::onClearClick,
+        onSearchTextChanged = viewModel::search,
+        onClearClick = viewModel::resetSearchState,
         onNavigationClick = { viewModel.switchSelectedMode(false) },
-        onSelectAll = viewModel::onSelectAll,
-        onBlockAll = viewModel::onBlockAll,
-        onCheckAll = viewModel::onCheckAll,
+        onSelectAll = viewModel::selectAll,
+        onBlockAll = viewModel::blockAll,
+        onCheckAll = viewModel::checkAll,
         switchSelectedMode = viewModel::switchSelectedMode,
-        onSelect = viewModel::onSelectItem,
+        onSelect = viewModel::selectItem,
         navigationToSearchedAppDetail = navigationToSearchedAppDetail,
     )
 }
@@ -167,6 +167,16 @@ fun SearchScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 when (localSearchUiState) {
+                    is LocalSearchUiState.Initializing -> {
+                        Column(
+                            modifier = modifier
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            LoadingScreen(localSearchUiState.processingName)
+                        }
+                    }
                     LocalSearchUiState.Idle -> {
                         Column(
                             modifier = modifier
@@ -192,7 +202,7 @@ fun SearchScreen(
                         }
                     }
 
-                    is LocalSearchUiState.LocalSearchResult -> {
+                    is LocalSearchUiState.Success -> {
                         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
                         when (tabState.currentIndex) {
                             0 -> {
@@ -239,7 +249,7 @@ fun TopBar(
     onBlockAll: () -> Unit,
     onCheckAll: () -> Unit,
 ) {
-    if (localSearchUiState is LocalSearchUiState.LocalSearchResult &&
+    if (localSearchUiState is LocalSearchUiState.Success &&
         localSearchUiState.isSelectedMode
     ) {
         SelectedAppTopBar(
@@ -331,6 +341,18 @@ fun NoSearchScreen() {
 }
 
 @Composable
+fun LoadingScreen(processingName: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        BlockerLoadingWheel(contentDesc = processingName)
+        Text(
+            text = processingName,
+            color = MaterialTheme.colorScheme.outline,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
+}
+
+@Composable
 fun SearchResultContent(
     modifier: Modifier = Modifier,
     appList: List<FilteredComponentItem>,
@@ -402,7 +424,7 @@ fun SearchScreenPreview() {
         ),
     )
     val searchBoxUiState = SearchBoxUiState()
-    val localSearchUiState = LocalSearchUiState.LocalSearchResult(
+    val localSearchUiState = LocalSearchUiState.Success(
         components = listOf(filterAppItem),
         isSelectedMode = false,
         selectedAppCount = 0,
@@ -446,7 +468,7 @@ fun SearchScreenSelectedPreview() {
         isSelected = true,
     )
     val searchBoxUiState = SearchBoxUiState()
-    val localSearchUiState = LocalSearchUiState.LocalSearchResult(
+    val localSearchUiState = LocalSearchUiState.Success(
         components = listOf(filterAppItem),
         isSelectedMode = true,
         selectedAppCount = 1,

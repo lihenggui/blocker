@@ -24,6 +24,7 @@ import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.toAppComponentEntity
 import com.merxury.blocker.core.database.app.toComponentInfo
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
@@ -50,15 +51,16 @@ class LocalComponentRepository @Inject constructor(
                 list.map { it.toComponentInfo() }
             }
 
-    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> = flow {
-        emit(Result.Loading)
-        val latestComponents = localDataSource.getComponentList(packageName, type)
-            .map { list ->
-                list.map { it.toAppComponentEntity() }
-            }
-            .first()
-        appComponentDao.upsertComponentList(latestComponents)
-    }
+    override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> =
+        flow {
+            emit(Result.Loading)
+            val latestComponents = localDataSource.getComponentList(packageName, type)
+                .map { list ->
+                    list.map { it.toAppComponentEntity() }
+                }
+                .first()
+            appComponentDao.upsertComponentList(latestComponents)
+        }
 
     override fun controlComponent(
         packageName: String,
@@ -73,6 +75,16 @@ class LocalComponentRepository @Inject constructor(
             SHIZUKU -> controlInShizukuMode(packageName, componentName, newState)
         }
         updateComponentStatus(packageName, componentName)
+    }
+
+    override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
+        .map { list ->
+            list.map { it.toComponentInfo() }
+        }
+
+    override suspend fun saveComponents(components: List<ComponentInfo>) {
+        val entities = components.map { it.toAppComponentEntity() }
+        appComponentDao.upsertComponentList(entities)
     }
 
     private suspend fun controlInIfwMode(

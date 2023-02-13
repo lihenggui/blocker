@@ -27,6 +27,7 @@ class BlockerAppPropertiesDataStore @Inject constructor(
     val appPropertiesData = appProperties.data.map {
         AppPropertiesData(
             componentDatabaseInitialized = it.componentDatabaseInitialized,
+            generalRuleDatabaseInitialized = it.generalRuleDatabaseInitialized,
         )
     }
 
@@ -34,6 +35,14 @@ class BlockerAppPropertiesDataStore @Inject constructor(
         appProperties.updateData {
             it.copy {
                 componentDatabaseInitialized = true
+            }
+        }
+    }
+
+    suspend fun markGeneralRuleDatabaseInitialized() {
+        appProperties.updateData {
+            it.copy {
+                generalRuleDatabaseInitialized = true
             }
         }
     }
