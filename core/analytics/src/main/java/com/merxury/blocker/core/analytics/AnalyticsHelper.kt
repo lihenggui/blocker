@@ -15,21 +15,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.designsystem.theme
-
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
+package com.merxury.blocker.core.analytics
 
 /**
- * A class to model background color and tonal elevation values for Blocker.
+ * Interface for logging analytics events. See `FirebaseAnalyticsHelper` and
+ * `StubAnalyticsHelper` for implementations.
  */
-@Immutable
-data class TintTheme(
-    val iconTint: Color? = null,
-)
-
-/**
- * A composition local for [TintTheme].
- */
-val LocalTintTheme = staticCompositionLocalOf { TintTheme() }
+interface AnalyticsHelper {
+    fun logEvent(event: AnalyticsEvent)
+}

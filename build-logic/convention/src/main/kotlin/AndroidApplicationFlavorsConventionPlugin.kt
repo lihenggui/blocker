@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Blocker
- * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +14,18 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.designsystem.theme
+import com.android.build.api.dsl.ApplicationExtension
+import com.merxury.blocker.configureFlavors
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.configure
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
-
-/**
- * A class to model background color and tonal elevation values for Blocker.
- */
-@Immutable
-data class TintTheme(
-    val iconTint: Color? = null,
-)
-
-/**
- * A composition local for [TintTheme].
- */
-val LocalTintTheme = staticCompositionLocalOf { TintTheme() }
+class AndroidApplicationFlavorsConventionPlugin : Plugin<Project> {
+    override fun apply(target: Project) {
+        with(target) {
+            extensions.configure<ApplicationExtension> {
+                configureFlavors(this)
+            }
+        }
+    }
+}

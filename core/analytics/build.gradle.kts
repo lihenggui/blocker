@@ -14,22 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id("blocker.android.library")
+    id("blocker.android.library.compose")
+    id("blocker.android.hilt")
+}
 
-package com.merxury.blocker.core.designsystem.theme
+android {
+    namespace = "com.merxury.blocker.core.analytics"
+}
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
+dependencies {
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.core.ktx)
 
-/**
- * A class to model background color and tonal elevation values for Blocker.
- */
-@Immutable
-data class TintTheme(
-    val iconTint: Color? = null,
-)
-
-/**
- * A composition local for [TintTheme].
- */
-val LocalTintTheme = staticCompositionLocalOf { TintTheme() }
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.analytics)
+}

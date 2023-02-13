@@ -25,6 +25,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,6 +39,8 @@ import androidx.metrics.performance.JankStats
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.merxury.blocker.MainActivityUiState.Loading
 import com.merxury.blocker.MainActivityUiState.Success
+import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
@@ -61,6 +64,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var networkMonitor: NetworkMonitor
+
+    @Inject
+    lateinit var analyticsHelper: AnalyticsHelper
 
     val viewModel: MainActivityViewModel by viewModels()
 
@@ -104,16 +110,17 @@ class MainActivity : ComponentActivity() {
                 systemUiController.systemBarsDarkContentEnabled = !darkTheme
                 onDispose {}
             }
-
-            BlockerTheme(
-                darkTheme = darkTheme,
-                androidTheme = shouldUseAndroidTheme(uiState),
-                disableDynamicTheming = shouldDisableDynamicTheming(uiState),
-            ) {
-                BlockerApp(
-                    networkMonitor = networkMonitor,
-                    windowSizeClass = calculateWindowSizeClass(this),
-                )
+            CompositionLocalProvider(LocalAnalyticsHelper provides analyticsHelper) {
+                BlockerTheme(
+                    darkTheme = darkTheme,
+                    androidTheme = shouldUseAndroidTheme(uiState),
+                    disableDynamicTheming = shouldDisableDynamicTheming(uiState),
+                ) {
+                    BlockerApp(
+                        networkMonitor = networkMonitor,
+                        windowSizeClass = calculateWindowSizeClass(this),
+                    )
+                }
             }
         }
     }
