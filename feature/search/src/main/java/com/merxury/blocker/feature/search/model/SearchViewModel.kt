@@ -167,6 +167,7 @@ class SearchViewModel @Inject constructor(
 }
 
 sealed interface LocalSearchUiState {
+    class Initializing(val processingName: String) : LocalSearchUiState
     object Idle : LocalSearchUiState
     object Loading : LocalSearchUiState
     class Success(
