@@ -29,6 +29,8 @@ java {
 dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
+    compileOnly(libs.firebase.performance.gradle)
+    compileOnly(libs.firebase.crashlytics.gradle)
     compileOnly(libs.ksp.gradlePlugin)
 }
 
@@ -75,8 +77,12 @@ gradlePlugin {
             implementationClass = "AndroidRoomConventionPlugin"
         }
         register("firebase") {
-            id = "blocker.firebase"
-            implementationClass = "FirebaseConventionPlugin"
+            id = "blocker.android.application.firebase"
+            implementationClass = "AndroidApplicationFirebaseConventionPlugin"
+        }
+        register("androidFlavors") {
+            id = "blocker.android.application.flavors"
+            implementationClass = "AndroidApplicationFlavorsConventionPlugin"
         }
     }
 }

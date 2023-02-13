@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.designsystem.theme
+package com.merxury.blocker.core.analytics
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
+import android.util.Log
+import javax.inject.Inject
+import javax.inject.Singleton
 
-/**
- * A class to model background color and tonal elevation values for Blocker.
- */
-@Immutable
-data class TintTheme(
-    val iconTint: Color? = null,
-)
+private const val TAG = "StubAnalyticsHelper"
 
 /**
- * A composition local for [TintTheme].
+ * An implementation of AnalyticsHelper just writes the events to logcat. Used in builds where no
+ * analytics events should be sent to a backend.
  */
-val LocalTintTheme = staticCompositionLocalOf { TintTheme() }
+@Singleton
+class StubAnalyticsHelper @Inject constructor() : AnalyticsHelper {
+    override fun logEvent(event: AnalyticsEvent) {
+        Log.d(TAG, "Received analytics event: $event")
+    }
+}

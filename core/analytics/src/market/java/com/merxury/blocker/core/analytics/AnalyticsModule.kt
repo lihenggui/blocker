@@ -1,5 +1,4 @@
 /*
- * Copyright 2023 Blocker
  * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,21 +14,16 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.designsystem.theme
+package com.merxury.blocker.core.analytics
 
-import androidx.compose.runtime.Immutable
-import androidx.compose.runtime.staticCompositionLocalOf
-import androidx.compose.ui.graphics.Color
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 
-/**
- * A class to model background color and tonal elevation values for Blocker.
- */
-@Immutable
-data class TintTheme(
-    val iconTint: Color? = null,
-)
-
-/**
- * A composition local for [TintTheme].
- */
-val LocalTintTheme = staticCompositionLocalOf { TintTheme() }
+@Module
+@InstallIn(SingletonComponent::class)
+abstract class AnalyticsModule {
+    @Binds
+    abstract fun bindsAnalyticsHelper(analyticsHelperImpl: FirebaseAnalyticsHelper): AnalyticsHelper
+}
