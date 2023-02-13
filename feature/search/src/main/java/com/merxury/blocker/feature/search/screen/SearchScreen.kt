@@ -167,6 +167,16 @@ fun SearchScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 when (localSearchUiState) {
+                    is LocalSearchUiState.Initializing -> {
+                        Column(
+                            modifier = modifier
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            LoadingScreen(localSearchUiState.processingName)
+                        }
+                    }
                     LocalSearchUiState.Idle -> {
                         Column(
                             modifier = modifier
@@ -324,6 +334,18 @@ fun NoSearchScreen() {
         )
         Text(
             text = stringResource(id = string.no_search_result),
+            color = MaterialTheme.colorScheme.outline,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
+}
+
+@Composable
+fun LoadingScreen(processingName: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        BlockerLoadingWheel(contentDesc = processingName)
+        Text(
+            text = processingName,
             color = MaterialTheme.colorScheme.outline,
             style = MaterialTheme.typography.bodyLarge,
         )
