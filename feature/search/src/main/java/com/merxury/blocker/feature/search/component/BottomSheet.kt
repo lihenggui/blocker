@@ -106,12 +106,10 @@ fun InfoSection(
                 maxLines = 2,
             )
             Text(text = filterApp.app.packageName, style = MaterialTheme.typography.bodyMedium)
-            if (versionName != null) {
-                Text(
-                    text = versionName,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
+            Text(
+                text = versionName,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
         Spacer(modifier = Modifier.weight(1f))
         AsyncImage(
