@@ -24,6 +24,7 @@ import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.toAppComponentEntity
 import com.merxury.blocker.core.database.app.toComponentInfo
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
@@ -80,6 +81,11 @@ class LocalComponentRepository @Inject constructor(
         .map { list ->
             list.map { it.toComponentInfo() }
         }
+
+    override suspend fun saveComponents(components: List<ComponentInfo>) {
+        val entities = components.map { it.toAppComponentEntity() }
+        appComponentDao.upsertComponentList(entities)
+    }
 
     private suspend fun controlInIfwMode(
         packageName: String,
