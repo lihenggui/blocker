@@ -28,4 +28,6 @@ interface AppRepository {
     fun updateApplicationList(): Flow<Result<Unit>>
 
     fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>>
+
+    fun getApplication(packageName: String): Flow<InstalledApp?>
 }
