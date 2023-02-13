@@ -33,4 +33,6 @@ interface ComponentRepository {
     ): Flow<Boolean>
 
     fun searchComponent(keyword: String): Flow<List<ComponentInfo>>
+
+    suspend fun saveComponents(components: List<ComponentInfo>)
 }

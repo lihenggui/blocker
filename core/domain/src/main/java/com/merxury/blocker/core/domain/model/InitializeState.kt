@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-plugins {
-    id("blocker.android.library")
-    id("blocker.android.library.jacoco")
-    kotlin("kapt")
-}
 
-android {
-    namespace = "com.merxury.blocker.core.domain"
-}
+package com.merxury.blocker.core.domain.model
 
-dependencies {
-
-    implementation(project(":core:data"))
-    implementation(project(":core:model"))
-
-    testImplementation(project(":core:testing"))
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.datetime)
-    implementation(libs.hilt.android)
-    implementation(libs.timber)
-    kapt(libs.hilt.compiler)
+sealed class InitializeState {
+    class Initializing(val processingName: String) : InitializeState()
+    object Done : InitializeState()
 }
