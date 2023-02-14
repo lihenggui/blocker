@@ -15,15 +15,9 @@
  */
 plugins {
     id("blocker.android.library")
-    kotlin("kapt")
-    id("dagger.hilt.android.plugin")
+    id("blocker.android.hilt")
 }
 
 android {
     namespace = "com.merxury.blocker.uitesthiltmanifest"
-}
-
-dependencies {
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
 }

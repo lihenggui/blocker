@@ -24,7 +24,6 @@ android {
     namespace = "com.merxury.blocker.core.model"
 }
 
-
 dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)
