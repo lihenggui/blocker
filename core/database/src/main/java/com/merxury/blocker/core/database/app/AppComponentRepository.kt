@@ -17,24 +17,13 @@
 package com.merxury.blocker.core.database.app
 
 import com.merxury.blocker.core.model.ComponentType
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class AppComponentRepository @Inject constructor(private val appComponentDao: AppComponentDao) {
-    suspend fun getAppComponents(packageName: String): List<AppComponentEntity> {
-        return appComponentDao.getByPackageName(packageName)
-    }
 
     suspend fun getAppComponent(packageName: String, componentName: String): AppComponentEntity? {
         return appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
-    }
-
-    suspend fun getAppComponentByType(
-        packageName: String,
-        type: ComponentType,
-    ): List<AppComponentEntity> {
-        return appComponentDao.getByPackageNameAndType(packageName, type)
     }
 
     suspend fun getAppComponentByName(keyword: String): List<AppComponentEntity> {
@@ -47,5 +36,16 @@ class AppComponentRepository @Inject constructor(private val appComponentDao: Ap
 
     suspend fun deleteAll() {
         appComponentDao.deleteAll()
+    }
+
+    fun getAppComponents(packageName: String): Flow<List<AppComponentEntity>> {
+        return appComponentDao.getByPackageName(packageName)
+    }
+
+    fun getAppComponentByType(
+        packageName: String,
+        type: ComponentType,
+    ): Flow<List<AppComponentEntity>> {
+        return appComponentDao.getByPackageNameAndType(packageName, type)
     }
 }

@@ -21,9 +21,10 @@ import com.merxury.blocker.BlockerBuildType
 plugins {
     id("blocker.android.application")
     id("blocker.android.application.compose")
+    id("blocker.android.application.flavors")
     id("blocker.android.application.jacoco")
     id("blocker.android.hilt")
-    id("blocker.firebase")
+    id("blocker.android.application.firebase")
     id("jacoco")
     id("kotlin-parcelize")
     alias(libs.plugins.ksp)
@@ -96,6 +97,7 @@ dependencies {
     implementation(project(":feature:search"))
     implementation(project(":feature:settings"))
 
+    implementation(project(":core:analytics"))
     implementation(project(":core:ui"))
     implementation(project(":core:designsystem"))
     implementation(project(":core:data"))

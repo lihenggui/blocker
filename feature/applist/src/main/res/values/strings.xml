@@ -27,11 +27,15 @@
     <string name="sort_menu">Sort menu</string>
     <string name="name_asc">Name (Ascending)</string>
     <string name="name_desc">Name (Descending)</string>
-    <string name="installation_date">First Install Date</string>
-    <string name="last_update_time">Last Update Time</string>
+    <string name="installation_date_asc">First Install Date (Ascending)</string>
+    <string name="installation_date_desc">First Install Dat (Descending)</string>
+    <string name="last_update_time_asc">Last Update Time (Ascending)</string>
+    <string name="last_update_time_desc">Last Update Time (Descending)</string>
     <string name="more_menu">More menu</string>
     <string name="settings">Settings</string>
     <string name="support_and_feedback">Support and feedback</string>
     <string name="app_name">Blocker</string>
     <string name="version_code_template" translatable="false">%1$s (%2$s)</string>
+    <string name="running">Running</string>
+    <string name="disabled">Disabled</string>
 </resources>

@@ -27,10 +27,14 @@
     <string name="sort_menu">Сортировать меню</string>
     <string name="name_asc">Название ↑</string>
     <string name="name_desc">Название ↓</string>
-    <string name="installation_date">Дата первой установки</string>
-    <string name="last_update_time">Время последнего обновления</string>
+    <string name="installation_date_asc">First Install Date ↑</string>
+    <string name="installation_date_desc">First Install Dat ↓</string>
+    <string name="last_update_time_asc">Last Update Time ↑</string>
+    <string name="last_update_time_desc">Last Update Time ↓</string>
     <string name="more_menu">Больше меню</string>
     <string name="settings">Настройки</string>
     <string name="support_and_feedback">поддержка и обратная связь</string>
     <string name="app_name">Blocker</string>
+    <string name="running">Бег</string>
+    <string name="disabled">Неполноценный</string>
 </resources>

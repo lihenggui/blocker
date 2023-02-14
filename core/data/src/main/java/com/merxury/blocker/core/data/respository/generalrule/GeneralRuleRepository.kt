@@ -31,4 +31,6 @@ interface GeneralRuleRepository {
      * And emit results in a flow for application to listen
      */
     fun updateGeneralRule(): Flow<Result<Unit>>
+
+    fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>>
 }
