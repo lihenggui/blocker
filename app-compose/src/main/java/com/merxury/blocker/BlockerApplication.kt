@@ -22,7 +22,6 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
-import coil.decode.SvgDecoder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.topjohnwu.superuser.Shell
@@ -31,10 +30,9 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import me.zhanghai.android.appiconloader.coil.AppIconFetcher
-import me.zhanghai.android.appiconloader.coil.AppIconKeyer
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Provider
 
 /**
  * [Application] class for Blocker
@@ -49,6 +47,10 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
 
     @Inject
     lateinit var userDataRepository: UserDataRepository
+
+    @Inject
+    lateinit var imageLoader: Provider<ImageLoader>
+
     private val applicationScope = MainScope()
 
     override fun onCreate() {
@@ -64,23 +66,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
         initServerProvider()
     }
 
-    /**
-     * Since we're displaying SVGs and application icons in the app, Coil needs an ImageLoader
-     * which supports this format. During Coil's initialization it will call
-     * `applicationContext.newImageLoader()` to obtain an ImageLoader.
-     *
-     * @see https://github.com/coil-kt/coil/blob/main/coil-singleton/src/main/java/coil/Coil.kt#L63
-     */
-    override fun newImageLoader(): ImageLoader {
-        val iconSize = resources.getDimensionPixelSize(R.dimen.app_icon_size)
-        return ImageLoader.Builder(this)
-            .components {
-                add(SvgDecoder.Factory())
-                add(AppIconKeyer())
-                add(AppIconFetcher.Factory(iconSize, true, this@BlockerApplication))
-            }
-            .build()
-    }
+    override fun newImageLoader(): ImageLoader = imageLoader.get()
 
     override fun getWorkManagerConfiguration(): Configuration =
         Configuration.Builder()
