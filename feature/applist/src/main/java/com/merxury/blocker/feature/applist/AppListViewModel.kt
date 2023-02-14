@@ -45,6 +45,7 @@ import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.AppListUiState.Success
 import com.merxury.blocker.feature.applist.state.AppStateCache
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -56,11 +57,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.datetime.Instant
 import timber.log.Timber
-import javax.inject.Inject
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
@@ -79,7 +77,6 @@ class AppListViewModel @Inject constructor(
     private val _appListFlow = MutableStateFlow(_appList)
     val appListFlow: StateFlow<List<AppItem>>
         get() = _appListFlow
-    private val appListMutex = Mutex()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
@@ -92,7 +89,7 @@ class AppListViewModel @Inject constructor(
         listenShowSystemAppsChanges()
     }
 
-    fun loadData() = viewModelScope.launch {
+    fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
         appRepository.getApplicationList()
             .onStart {
                 _uiState.emit(AppListUiState.Loading)
@@ -164,32 +161,28 @@ class AppListViewModel @Inject constructor(
         userDataRepository.setAppSorting(sorting)
     }
 
-    fun updateServiceStatus(packageName: String) = viewModelScope.launch(
+    fun updateServiceStatus(packageName: String, index: Int) = viewModelScope.launch(
         context = ioDispatcher + exceptionHandler,
     ) {
         val userData = userDataRepository.userData.first()
         if (!userData.showServiceInfo) {
             return@launch
         }
-        appListMutex.withLock {
-            // Avoid ConcurrentModificationException
-            val itemIndex = _appList.indexOfFirst { it.packageName == packageName }
-            val oldItem = _appList.getOrNull(itemIndex) ?: return@launch
-            if (oldItem.appServiceStatus != null) {
-                // Don't get service info again
-                return@launch
-            }
-            Timber.d("Get service status for $packageName")
-            val status = AppStateCache.get(getApplication(), packageName)
-            val serviceStatus = AppServiceStatus(
-                packageName = status.packageName,
-                running = status.running,
-                blocked = status.blocked,
-                total = status.total,
-            )
-            val newItem = oldItem.copy(appServiceStatus = serviceStatus)
-            _appList[itemIndex] = newItem
+        val oldItem = _appList.getOrNull(index) ?: return@launch
+        if (oldItem.appServiceStatus != null) {
+            // Don't get service info again
+            return@launch
         }
+        Timber.d("Get service status for $packageName")
+        val status = AppStateCache.get(getApplication(), packageName)
+        val serviceStatus = AppServiceStatus(
+            packageName = status.packageName,
+            running = status.running,
+            blocked = status.blocked,
+            total = status.total,
+        )
+        val newItem = oldItem.copy(appServiceStatus = serviceStatus)
+        _appList[index] = newItem
     }
 
     fun dismissDialog() = viewModelScope.launch {

@@ -29,7 +29,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
@@ -102,7 +102,7 @@ fun AppListScreen(
     onUninstallClick: (String) -> Unit,
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
-    onServiceStateUpdate: (String) -> Unit,
+    onServiceStateUpdate: (String, Int) -> Unit,
     onSortingUpdate: (AppSorting) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
@@ -182,7 +182,7 @@ fun AppListContent(
     onUninstallClick: (String) -> Unit,
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
-    onServiceStateUpdate: (String) -> Unit,
+    onServiceStateUpdate: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -191,16 +191,16 @@ fun AppListContent(
             modifier = modifier,
             state = listState,
         ) {
-            items(appList.value, key = { it.packageName }) {
+            itemsIndexed(appList.value, key = { _, item -> item.packageName }) {index, item ->
                 AppListItem(
-                    label = it.label,
-                    packageName = it.packageName,
-                    versionName = it.versionName,
-                    versionCode = it.versionCode,
-                    packageInfo = it.packageInfo,
-                    isAppEnabled = it.enabled,
-                    isAppRunning = it.isRunning,
-                    appServiceStatus = it.appServiceStatus,
+                    label = item.label,
+                    packageName = item.packageName,
+                    versionName = item.versionName,
+                    versionCode = item.versionCode,
+                    packageInfo = item.packageInfo,
+                    isAppEnabled = item.enabled,
+                    isAppRunning = item.isRunning,
+                    appServiceStatus = item.appServiceStatus,
                     onClick = onAppItemClick,
                     onClearCacheClick = onClearCacheClick,
                     onClearDataClick = onClearDataClick,
@@ -210,7 +210,7 @@ fun AppListContent(
                     onDisableClick = onDisableClick,
                 )
                 LaunchedEffect(true) {
-                    onServiceStateUpdate(it.packageName)
+                    onServiceStateUpdate(item.packageName, index)
                 }
             }
         }
