@@ -36,8 +36,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -63,8 +64,10 @@ fun AppListRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
+    val appList = viewModel.appListFlow.collectAsState()
     AppListScreen(
         uiState = uiState,
+        appList = appList,
         onAppItemClick = navigateToAppDetail,
         onClearCacheClick = viewModel::clearCache,
         onClearDataClick = viewModel::clearData,
@@ -91,6 +94,7 @@ fun AppListRoute(
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
+    appList: State<List<AppItem>>,
     onAppItemClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit,
     onClearDataClick: (String) -> Unit,
@@ -149,7 +153,7 @@ fun AppListScreen(
 
                 is AppListUiState.Success -> {
                     AppListContent(
-                        appList = uiState.appList,
+                        appList = appList,
                         onAppItemClick = onAppItemClick,
                         onClearCacheClick = onClearCacheClick,
                         onClearDataClick = onClearDataClick,
@@ -170,7 +174,7 @@ fun AppListScreen(
 
 @Composable
 fun AppListContent(
-    appList: SnapshotStateList<AppItem>,
+    appList: State<List<AppItem>>,
     onAppItemClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit,
     onClearDataClick: (String) -> Unit,
@@ -187,7 +191,7 @@ fun AppListContent(
             modifier = modifier,
             state = listState,
         ) {
-            items(appList, key = { it.packageName }) {
+            items(appList.value, key = { it.packageName }) {
                 AppListItem(
                     label = it.label,
                     packageName = it.packageName,
