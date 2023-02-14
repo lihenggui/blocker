@@ -15,33 +15,39 @@
  */
 
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
-import com.android.build.gradle.AppPlugin
+import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import com.merxury.blocker.BlockerFlavor
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
 
 class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
-            plugins.withType(AppPlugin::class.java) {
-                val extension =
-                    extensions.getByName("androidComponents") as ApplicationAndroidComponentsExtension
-                extension.beforeVariants {
-                    if (it.flavorName?.contains(BlockerFlavor.market.name) == true) {
-                        pluginManager.apply("com.google.gms.google-services")
-                        pluginManager.apply("com.google.firebase.crashlytics")
-                    }
-                }
-            }
             val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
             dependencies {
                 val bom = libs.findLibrary("firebase-bom").get()
-                add("marketImplementation", platform(bom))
-                add("marketImplementation", libs.findLibrary("firebase-analytics").get())
-                add("marketImplementation", libs.findLibrary("firebase-crashlytics").get())
+                "marketImplementation"(platform(bom))
+                "marketImplementation"(libs.findLibrary("firebase.analytics").get())
+                "marketImplementation"(libs.findLibrary("firebase.crashlytics").get())
+            }
+            extensions.configure<ApplicationAndroidComponentsExtension> {
+                beforeVariants {
+                    if (it.flavorName?.contains(BlockerFlavor.market.name) == true) {
+                        pluginManager.apply("com.google.gms.google-services")
+                        pluginManager.apply("com.google.firebase.crashlytics")
+                        finalizeDsl { extension ->
+                            extension.buildTypes.forEach { buildType ->
+                                buildType.configure<CrashlyticsExtension> {
+                                    mappingFileUploadEnabled = !buildType.isDebuggable
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
