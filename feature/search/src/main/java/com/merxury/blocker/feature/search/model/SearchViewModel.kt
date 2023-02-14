@@ -126,15 +126,13 @@ class SearchViewModel @Inject constructor(
                         !app.isSystem
                     }
                 }.sortedWith(
-                    compareBy {
-                        when (sorting) {
-                            NAME_ASCENDING -> it.label
-                            NAME_DESCENDING -> it.label
-                            FIRST_INSTALL_TIME_ASCENDING -> it.firstInstallTime
-                            FIRST_INSTALL_TIME_DESCENDING -> it.firstInstallTime
-                            LAST_UPDATE_TIME_ASCENDING -> it.lastUpdateTime
-                            LAST_UPDATE_TIME_DESCENDING -> it.lastUpdateTime
-                        }
+                    when (sorting) {
+                        NAME_ASCENDING -> compareBy { it.label }
+                        NAME_DESCENDING -> compareByDescending { it.label }
+                        FIRST_INSTALL_TIME_ASCENDING -> compareBy { it.firstInstallTime }
+                        FIRST_INSTALL_TIME_DESCENDING -> compareByDescending { it.firstInstallTime }
+                        LAST_UPDATE_TIME_ASCENDING -> compareBy { it.lastUpdateTime }
+                        LAST_UPDATE_TIME_DESCENDING -> compareByDescending { it.lastUpdateTime }
                     },
                 ).map { app ->
                     val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
