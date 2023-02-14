@@ -16,11 +16,18 @@
 
 package com.merxury.blocker.core.data.respository.app
 
-import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
 interface AppRepository {
-    fun getApplicationList(): Flow<List<Application>>
+    fun getApplicationList(): Flow<List<InstalledApp>>
 
-    fun getThirdPartyApplicationList(): Flow<List<Application>>
+    fun updateApplication(packageName: String): Flow<Result<Unit>>
+
+    fun updateApplicationList(): Flow<Result<Unit>>
+
+    fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>>
+
+    fun getApplication(packageName: String): Flow<InstalledApp?>
 }

@@ -1,19 +1,19 @@
 [versions]
-accompanist = "0.28.0"
+accompanist = "0.29.1-alpha"
 androidDesugarJdkLibs = "2.0.2"
 androidGradlePlugin = "7.4.1"
 androidxActivity = "1.6.1"
-androidxAppCompat = "1.6.0"
-androidxBrowser = "1.4.0"
+androidxAppCompat = "1.6.1"
+androidxBrowser = "1.5.0"
 androidxComposeBom = "2023.01.00"
-androidxComposeCompiler = "1.4.0"
+androidxComposeCompiler = "1.4.2"
 androidxComposeRuntimeTracing = "1.0.0-alpha01"
 androidxCore = "1.9.0"
 androidxCoreSplashscreen = "1.0.0"
 androidxDataStore = "1.0.0"
 androidxEspresso = "3.5.1"
 androidxHiltNavigationCompose = "1.0.0"
-androidxLifecycle = "2.6.0-alpha05"
+androidxLifecycle = "2.6.0-beta01"
 androidxMacroBenchmark = "1.1.1"
 androidxComposeMaterial = "1.3.1"
 androidxNavigation = "2.5.3"
@@ -27,22 +27,23 @@ androidxTestRunner = "1.5.2"
 androidxTestRules = "1.5.0"
 androidxTracing = "1.1.0"
 androidxUiAutomator = "2.2.0"
-androidxWork = "2.7.1"
+androidxWork = "2.8.0"
 appiconloader = "1.5.0"
 coil = "2.2.2"
-firebase = "31.2.0"
-firebaseCrashlytics = "2.9.2"
-firebasePerf = "1.4.2"
-googleServices = "4.3.15"
-hilt = "2.44.2"
+constraintLayoutCompose = "1.0.1"
+firebaseBom = "31.2.1"
+firebaseCrashlyticsPlugin = "2.9.4"
+firebasePerfPlugin = "1.4.2"
+gmsPlugin = "4.3.15"
+hilt = "2.45"
 hiltExt = "1.0.0"
 jacoco = "0.8.7"
 junit4 = "4.13.2"
-kotlin = "1.8.0"
+kotlin = "1.8.10"
 kotlinxCoroutines = "1.6.4"
 kotlinxDatetime = "0.4.0"
 kotlinxSerializationJson = "1.4.1"
-ksp = "1.8.0-1.0.9"
+ksp = "1.8.10-1.0.9"
 libsu = "5.0.4"
 lint = "30.4.1"
 okhttp = "4.10.0"
@@ -82,6 +83,7 @@ androidx-compose-ui-testManifest = { group = "androidx.compose.ui", name = "ui-t
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-compose-ui-util = { group = "androidx.compose.ui", name = "ui-util" }
+androidx-constraintlayout-compose = { group = "androidx.constraintlayout", name="constraintlayout-compose", version.ref = "constraintLayoutCompose"}
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidxCore" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "androidxCoreSplashscreen" }
 androidx-dataStore-core = { group = "androidx.datastore", name = "datastore", version.ref = "androidxDataStore" }
@@ -110,10 +112,13 @@ appiconloader-coil = { group = "me.zhanghai.android.appiconloader", name = "appi
 coil-kt = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebase"}
-firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
-firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
-firebase-perf = { group = "com.google.firebase", name = "firebase-perf-ktx"}
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref="firebaseBom"}
+firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx"}
+firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx"}
+firebase-crashlytics-gradle = { group = "com.google.firebase", name="firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin"}
+firebase-performance = { group = "com.google.firebase", name = "firebase-perf-ktx"}
+firebase-performance-gradle = { group = "com.google.firebase", name = "perf-plugin", version.ref = "firebasePerfPlugin"}
+google-services = { module = "com.google.gms:google-services", version.ref = "gmsPlugin" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
@@ -140,7 +145,6 @@ material = "com.google.android.material:material:1.8.0"
 androidx-recyclerview = "androidx.recyclerview:recyclerview:1.2.1"
 androidx-swiperefreshlayout = "androidx.swiperefreshlayout:swiperefreshlayout:1.1.0"
 androidx-constraintlayout = "androidx.constraintlayout:constraintlayout:2.1.4"
-androidx-constraintlayout-compose = "androidx.constraintlayout:constraintlayout-compose:1.0.1"
 androidx-documentfile = "androidx.documentfile:documentfile:1.0.1"
 androidx-preference-ktx = "androidx.preference:preference-ktx:1.2.0"
 androidx-annotation = "androidx.annotation:annotation:1.5.0"
@@ -162,14 +166,15 @@ timber = "com.jakewharton.timber:timber:5.0.1"
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlytics"}
-firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "firebasePerf"}
-google-services = {id = "com.google.gms.google-services", version.ref = "googleServices"}
+firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin"}
+firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "firebasePerfPlugin"}
+gms = { id = "com.google.gms.google-services", version.ref = "gmsPlugin"}
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

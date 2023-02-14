@@ -23,7 +23,9 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import androidx.room.Upsert
 import com.merxury.blocker.core.model.ComponentType
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppComponentDao {
@@ -43,7 +45,7 @@ interface AppComponentDao {
     suspend fun deleteAll(): Int
 
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName")
-    suspend fun getByPackageName(packageName: String): List<AppComponentEntity>
+    fun getByPackageName(packageName: String): Flow<List<AppComponentEntity>>
 
     @Query(
         "SELECT * FROM app_component WHERE package_name LIKE :packageName " +
@@ -55,12 +57,19 @@ interface AppComponentDao {
     ): AppComponentEntity?
 
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName AND type = :type")
-    suspend fun getByPackageNameAndType(
+    fun getByPackageNameAndType(
         packageName: String,
         type: ComponentType,
-    ): List<AppComponentEntity>
+    ): Flow<List<AppComponentEntity>>
 
     @Transaction
     @Query("SELECT * FROM app_component WHERE component_name LIKE '%' || :searchKeyword || '%'")
     suspend fun getByName(searchKeyword: String): List<AppComponentEntity>
+
+    @Upsert
+    suspend fun upsertComponentList(componentList: List<AppComponentEntity>)
+
+    @Transaction
+    @Query("SELECT * FROM app_component WHERE component_name LIKE '%' || :searchKeyword || '%'")
+    fun searchByKeyword(searchKeyword: String): Flow<List<AppComponentEntity>>
 }

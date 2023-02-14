@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
 
-class FirebaseConventionPlugin : Plugin<Project> {
+class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         with(target) {
             plugins.withType(AppPlugin::class.java) {

@@ -25,6 +25,8 @@ data class InstalledApp(
     val packageName: String = "",
     val versionName: String = "",
     val versionCode: Long = 0,
+    val minSdkVersion: Int = 0,
+    val targetSdkVersion: Int = 0,
     val firstInstallTime: Instant? = null,
     val lastUpdateTime: Instant? = null,
     val isEnabled: Boolean = true,

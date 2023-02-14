@@ -41,16 +41,16 @@ import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.model.BottomSheetViewModel
-import com.merxury.blocker.feature.search.model.FilterAppItem
+import com.merxury.blocker.feature.search.model.FilteredComponentItem
+import com.merxury.blocker.feature.search.model.InstalledAppItem
 
 @Composable
 fun BottomSheetRoute(
     modifier: Modifier = Modifier,
-    app: FilterAppItem,
+    app: FilteredComponentItem,
     viewModel: BottomSheetViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -60,7 +60,7 @@ fun BottomSheetRoute(
 @Composable
 fun BottomSheet(
     modifier: Modifier = Modifier,
-    filterApp: FilterAppItem,
+    filterApp: FilteredComponentItem,
     tabState: TabState,
     switchTab: (Int) -> Unit,
 ) {
@@ -90,7 +90,7 @@ fun BottomSheet(
 @Composable
 fun InfoSection(
     modifier: Modifier = Modifier,
-    filterApp: FilterAppItem,
+    filterApp: FilteredComponentItem,
 ) {
     val versionName = filterApp.app.versionName
     Row(
@@ -106,12 +106,10 @@ fun InfoSection(
                 maxLines = 2,
             )
             Text(text = filterApp.app.packageName, style = MaterialTheme.typography.bodyMedium)
-            if (versionName != null) {
-                Text(
-                    text = versionName,
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
+            Text(
+                text = versionName,
+                style = MaterialTheme.typography.bodyMedium,
+            )
         }
         Spacer(modifier = Modifier.weight(1f))
         AsyncImage(
@@ -130,13 +128,11 @@ fun InfoSection(
 @Composable
 @Preview
 fun BottomSheetPreview() {
-    val app = FilterAppItem(
-        app = Application(
+    val app = FilteredComponentItem(
+        app = InstalledAppItem(
+            packageName = "com.merxury.blocker",
             label = "Blocker",
-            packageName = "com.mercury.blocker",
-            versionName = "1.2.69-alpha",
-            isEnabled = false,
-            packageInfo = null,
+            isSystem = false,
         ),
     )
     val tabState = TabState(

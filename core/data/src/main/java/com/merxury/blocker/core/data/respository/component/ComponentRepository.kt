@@ -17,14 +17,22 @@
 package com.merxury.blocker.core.data.respository.component
 
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
 interface ComponentRepository {
-    fun getComponentList(packageName: String, type: ComponentType): Flow<Unit>
+    fun getComponentList(packageName: String, type: ComponentType): Flow<List<ComponentInfo>>
+
+    fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>>
 
     fun controlComponent(
         packageName: String,
         componentName: String,
         newState: Boolean,
     ): Flow<Boolean>
+
+    fun searchComponent(keyword: String): Flow<List<ComponentInfo>>
+
+    suspend fun saveComponents(components: List<ComponentInfo>)
 }

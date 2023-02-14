@@ -20,67 +20,52 @@ import android.net.Uri
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
+import com.merxury.blocker.feature.appdetail.Screen
 
 @VisibleForTesting
 internal const val packageNameArg = "packageName"
 
-internal class AppDetailArgs(val packageName: String) {
+@VisibleForTesting
+internal const val screenArg = "screen"
+
+internal class AppDetailArgs(val packageName: String, val screen: Screen = Screen.Detail) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
-        this(stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])))
+        this(
+            stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])),
+            Screen.fromName(savedStateHandle[screenArg]),
+        )
 }
 
-fun NavController.navigateToAppDetail(packageName: String) {
+fun NavController.navigateToAppDetail(packageName: String, screen: Screen = Screen.Detail) {
     val encodedId = Uri.encode(packageName)
-    this.navigate("app_detail_route/$encodedId")
+    this.navigate("app_detail_route/$encodedId?screen=${screen.name}") {
+        // Pop up to the start destination of the graph to
+        // avoid building up a large stack of destinations
+        // on the back stack as users select items
+        popUpTo(graph.findStartDestination().id) {
+            saveState = true
+        }
+        // Avoid multiple copies of the same destination when
+        // reselecting the same item
+        launchSingleTop = true
+    }
 }
 
 fun NavGraphBuilder.detailScreen(onBackClick: () -> Unit) {
     composable(
-        route = "app_detail_route/{$packageNameArg}",
+        route = "app_detail_route/{$packageNameArg}?screen={$screenArg}",
         arguments = listOf(
             navArgument(packageNameArg) { type = NavType.StringType },
+            navArgument(screenArg) { type = NavType.StringType },
         ),
     ) {
         AppDetailRoute(onBackClick = onBackClick)
-    }
-}
-
-sealed class Screen(val name: String, val tabPosition: Int) {
-    object Detail : Screen(DETAIL, tabPosition = 0)
-    object Receiver : Screen(RECEIVER, tabPosition = 1)
-    object Service : Screen(SERVICE, tabPosition = 2)
-    object Activity : Screen(ACTIVITY, tabPosition = 3)
-    object Provider : Screen(PROVIDER, tabPosition = 4)
-
-    companion object {
-        private const val DETAIL = "detail"
-        private const val RECEIVER = "receiver"
-        private const val SERVICE = "service"
-        private const val ACTIVITY = "activity"
-        private const val PROVIDER = "provider"
-
-        fun fromName(name: String?): Screen = when (name) {
-            DETAIL -> Detail
-            RECEIVER -> Receiver
-            SERVICE -> Service
-            ACTIVITY -> Activity
-            PROVIDER -> Provider
-            else -> throw IllegalArgumentException("Invalid screen name in detail page")
-        }
-
-        fun fromPosition(pos: Int): Screen = when (pos) {
-            Detail.tabPosition -> Detail
-            Receiver.tabPosition -> Receiver
-            Service.tabPosition -> Service
-            Activity.tabPosition -> Activity
-            Provider.tabPosition -> Provider
-            else -> throw IllegalArgumentException("Invalid tab position in detail page")
-        }
     }
 }

@@ -22,6 +22,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -31,5 +32,14 @@ object SysModule {
         app: Application,
     ): PackageManager {
         return app.packageManager
+    }
+
+    @Singleton
+    @Provides
+    @AppPackageName
+    fun provideAppPackageName(
+        app: Application,
+    ): String {
+        return app.packageName
     }
 }

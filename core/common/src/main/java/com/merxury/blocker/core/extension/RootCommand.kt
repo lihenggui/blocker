@@ -16,6 +16,7 @@
 package com.merxury.blocker.core.extension
 
 import android.text.TextUtils
+import com.merxury.blocker.core.utils.PermissionUtils
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -26,8 +27,8 @@ import kotlinx.coroutines.withContext
  */
 suspend fun String.exec(dispatcher: CoroutineDispatcher = Dispatchers.IO): String? =
     withContext(dispatcher) {
-        val rootGranted = Shell.isAppGrantedRoot()
-        if (rootGranted == null || rootGranted == false) {
+        val rootGranted = PermissionUtils.isRootAvailable(dispatcher)
+        if (!rootGranted) {
             throw RuntimeException("Root unavailable")
         }
         val result = Shell.cmd(this@exec).exec().out
