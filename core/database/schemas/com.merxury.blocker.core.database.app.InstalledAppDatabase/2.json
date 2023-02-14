@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "a9699d2d97419ee98226c0e14268fac6",
+    "identityHash": "c853f533d14472564738e97e070c57a4",
     "entities": [
       {
         "tableName": "installed_app",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`package_name` TEXT NOT NULL, `version_name` TEXT NOT NULL, `version_code` INTEGER NOT NULL, `first_install_time` INTEGER, `last_update_time` INTEGER, `is_enabled` INTEGER NOT NULL, `is_system` INTEGER NOT NULL, `label` TEXT NOT NULL, PRIMARY KEY(`package_name`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`package_name` TEXT NOT NULL, `version_name` TEXT NOT NULL, `version_code` INTEGER NOT NULL, `min_sdk_version` INTEGER NOT NULL, `target_sdk_version` INTEGER NOT NULL, `first_install_time` INTEGER, `last_update_time` INTEGER, `is_enabled` INTEGER NOT NULL, `is_system` INTEGER NOT NULL, `label` TEXT NOT NULL, PRIMARY KEY(`package_name`))",
         "fields": [
           {
             "fieldPath": "packageName",
@@ -23,6 +23,18 @@
           {
             "fieldPath": "versionCode",
             "columnName": "version_code",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "minSdkVersion",
+            "columnName": "min_sdk_version",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "targetSdkVersion",
+            "columnName": "target_sdk_version",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -142,7 +154,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'a9699d2d97419ee98226c0e14268fac6')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'c853f533d14472564738e97e070c57a4')"
     ]
   }
 }

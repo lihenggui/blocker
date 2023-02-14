@@ -17,7 +17,6 @@
 
 package com.merxury.blocker.core.designsystem.component
 
-import android.R.string
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,8 +30,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,54 +79,6 @@ fun BlockerTopAppBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BlockerCollapsingTopAppBar(
-    modifier: Modifier = Modifier,
-    title: String,
-    content: @Composable () -> Unit = {},
-    isCollapsed: Boolean,
-    scrollBehavior: TopAppBarScrollBehavior,
-    actions: @Composable () -> Unit,
-    onNavigationClick: () -> Unit = {},
-) {
-    LargeTopAppBar(
-        title = {
-            Row(
-                modifier = modifier
-                    .fillMaxWidth(),
-            ) {
-                Column {
-                    Text(
-                        text = title,
-                        maxLines = 2,
-                    )
-                    if (!isCollapsed) {
-                        content()
-                    }
-                }
-            }
-        },
-        navigationIcon = {
-            IconButton(onClick = onNavigationClick) {
-                Icon(
-                    imageVector = BlockerIcons.Back,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        },
-        actions = {
-            actions()
-        },
-        scrollBehavior = scrollBehavior,
-        colors = TopAppBarDefaults.largeTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
 fun BlockerLargeTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
@@ -168,7 +117,7 @@ fun BlockerLargeTopAppBar(
 fun BlockerTopAppBarNaviActionsPreview() {
     BlockerTheme {
         BlockerTopAppBar(
-            title = stringResource(id = string.untitled),
+            title = stringResource(id = android.R.string.untitled),
             hasNavigationIcon = true,
             actions = {
                 IconButton(onClick = {}) {
@@ -189,42 +138,7 @@ fun BlockerTopAppBarNaviActionsPreview() {
 fun BlockerHomeTopAppBarPreview() {
     BlockerTheme {
         BlockerTopAppBar(
-            title = stringResource(id = string.untitled),
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview("Collapsing Top App Bar ")
-@Composable
-fun BlockerCollapsingTopAppBarPreview() {
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
-    BlockerTheme {
-        BlockerCollapsingTopAppBar(
-            title = "Blocker",
-            content = {
-                Text(text = "app.packageName", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "1.0.0", style = MaterialTheme.typography.bodyMedium)
-            },
-            isCollapsed = false,
-            scrollBehavior = scrollBehavior,
-            actions = {
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = BlockerIcons.Share,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-                IconButton(onClick = {}) {
-                    Icon(
-                        imageVector = BlockerIcons.Find,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            },
+            title = stringResource(id = android.R.string.untitled),
         )
     }
 }
