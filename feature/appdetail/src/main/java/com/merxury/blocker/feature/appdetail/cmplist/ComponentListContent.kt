@@ -74,6 +74,7 @@ fun ComponentListContentRoute(
         modifier = modifier,
         onStopServiceClick = viewModel::stopService,
         onLaunchActivityClick = viewModel::launchActivity,
+        updateServiceRunningState = viewModel::updateServiceRunningState,
         onCopyNameClick = { name ->
             clipboardManager.setText(AnnotatedString(name))
         },
@@ -119,6 +120,7 @@ fun ComponentListContent(
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
     onCopyFullNameClick: (String) -> Unit,
+    updateServiceRunningState: (String, String, Int) -> Unit,
     onSwitch: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -143,6 +145,7 @@ fun ComponentListContent(
             ComponentListContent(
                 components = list,
                 onSwitchClick = onSwitch,
+                updateServiceRunningState = updateServiceRunningState,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,

@@ -37,6 +37,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -68,6 +69,7 @@ fun ComponentListContent(
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
     onCopyFullNameClick: (String) -> Unit,
+    updateServiceRunningState: (String, String, Int) -> Unit,
     onSwitchClick: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -91,13 +93,16 @@ fun ComponentListContent(
                 packageName = item.packageName,
                 enabled = item.enabled(),
                 type = item.type,
-                isServiceRunning = false,
+                isServiceRunning = item.isRunning,
                 onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
                 onLaunchActivityClick = { onLaunchActivityClick(item.packageName, item.name) },
                 onCopyNameClick = { onCopyNameClick(item.simpleName) },
                 onCopyFullNameClick = { onCopyFullNameClick(item.name) },
                 onSwitchClick = onSwitchClick,
             )
+            LaunchedEffect(true) {
+                updateServiceRunningState(item.packageName, item.name, index)
+            }
         }
     }
 }
