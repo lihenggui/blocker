@@ -191,7 +191,7 @@ fun AppListContent(
             modifier = modifier,
             state = listState,
         ) {
-            itemsIndexed(appList.value, key = { _, item -> item.packageName }) {index, item ->
+            itemsIndexed(appList.value, key = { _, item -> item.packageName }) { index, item ->
                 AppListItem(
                     label = item.label,
                     packageName = item.packageName,
