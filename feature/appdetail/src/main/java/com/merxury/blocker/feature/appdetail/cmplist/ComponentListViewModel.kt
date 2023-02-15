@@ -28,6 +28,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
@@ -95,20 +96,21 @@ class ComponentListViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateServiceRunningState(packageName: String, name: String, position: Int) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val serviceHelper = ServiceHelper(packageName)
-            val isRunning = serviceHelper.isServiceRunning(name)
-            _componentList[position] = _componentList[position].copy(isRunning = isRunning)
-        }
-    }
-
     private fun listenDataChange() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
         componentRepository.getComponentList(packageName, type)
             .collect { list ->
                 val userData = userDataRepository.userData.first()
                 val sorting = userData.componentSorting
-                _componentList = list.map { it.toComponentItem() }
+                _componentList = list.map {
+                    it.toComponentItem(
+                        if (type == SERVICE) {
+                            val serviceHelper = ServiceHelper(packageName)
+                            serviceHelper.isServiceRunning(it.name)
+                        } else {
+                            false
+                        },
+                    )
+                }
                     .sortedWith(componentComparator(sorting))
                     .toMutableStateList()
                 _componentListFlow.value = _componentList
@@ -181,7 +183,7 @@ data class ComponentItem(
     fun enabled() = !(pmBlocked || ifwBlocked)
 }
 
-private fun ComponentInfo.toComponentItem() = ComponentItem(
+private fun ComponentInfo.toComponentItem(isRunning: Boolean = false) = ComponentItem(
     name = name,
     simpleName = simpleName,
     packageName = packageName,
@@ -189,6 +191,7 @@ private fun ComponentInfo.toComponentItem() = ComponentItem(
     pmBlocked = pmBlocked,
     ifwBlocked = ifwBlocked,
     description = description,
+    isRunning = isRunning,
 )
 
 sealed interface ComponentListUiState {
