@@ -45,7 +45,6 @@ import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.AppListUiState.Success
 import com.merxury.blocker.feature.applist.state.AppStateCache
 import dagger.hilt.android.lifecycle.HiltViewModel
-import javax.inject.Inject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +58,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Instant
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
@@ -103,16 +103,7 @@ class AppListViewModel @Inject constructor(
                     list
                 } else {
                     list.filterNot { it.isSystem }
-                }.sortedWith(
-                    when (sortType) {
-                        NAME_ASCENDING -> compareBy { it.label.lowercase() }
-                        NAME_DESCENDING -> compareByDescending { it.label.lowercase() }
-                        FIRST_INSTALL_TIME_ASCENDING -> compareBy { it.firstInstallTime }
-                        FIRST_INSTALL_TIME_DESCENDING -> compareByDescending { it.firstInstallTime }
-                        LAST_UPDATE_TIME_ASCENDING -> compareBy { it.lastUpdateTime }
-                        LAST_UPDATE_TIME_DESCENDING -> compareByDescending { it.lastUpdateTime }
-                    },
-                ).map { installedApp ->
+                }.map { installedApp ->
                     AppItem(
                         label = installedApp.label,
                         packageName = installedApp.packageName,
@@ -127,11 +118,23 @@ class AppListViewModel @Inject constructor(
                         appServiceStatus = null,
                         packageInfo = pm.getPackageInfoCompat(installedApp.packageName, 0),
                     )
-                }.toMutableStateList()
+                }.sortedWith(
+                    appComparator(sortType),
+                ).toMutableStateList()
                 _appListFlow.value = _appList
                 _uiState.emit(Success)
             }
     }
+
+    private fun appComparator(sortType: AppSorting): Comparator<AppItem> =
+        when (sortType) {
+            NAME_ASCENDING -> compareBy { it.label.lowercase() }
+            NAME_DESCENDING -> compareByDescending { it.label.lowercase() }
+            FIRST_INSTALL_TIME_ASCENDING -> compareBy { it.firstInstallTime }
+            FIRST_INSTALL_TIME_DESCENDING -> compareByDescending { it.firstInstallTime }
+            LAST_UPDATE_TIME_ASCENDING -> compareBy { it.lastUpdateTime }
+            LAST_UPDATE_TIME_DESCENDING -> compareByDescending { it.lastUpdateTime }
+        }
 
     private fun updateInstalledAppList() = viewModelScope.launch {
         appRepository.updateApplicationList().collect {
@@ -141,12 +144,17 @@ class AppListViewModel @Inject constructor(
         }
     }
 
-    private fun listenSortingChanges() = viewModelScope.launch {
+    private fun listenSortingChanges() = viewModelScope.launch(cpuDispatcher) {
         userDataRepository.userData
             .map { it.appSorting }
             .distinctUntilChanged()
             .drop(1)
-            .collect { loadData() }
+            .collect { sorting ->
+                val newList = _appList.toMutableList()
+                newList.sortWith(appComparator(sorting))
+                _appList = newList.toMutableStateList()
+                _appListFlow.value = _appList
+            }
     }
 
     private fun listenShowSystemAppsChanges() = viewModelScope.launch {
