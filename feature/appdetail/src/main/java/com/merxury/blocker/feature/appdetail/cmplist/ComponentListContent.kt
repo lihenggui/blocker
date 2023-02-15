@@ -25,6 +25,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,9 +65,11 @@ fun ComponentListContentRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
+    val componentList = viewModel.componentListFlow.collectAsState()
     val clipboardManager = LocalClipboardManager.current
     ComponentListContent(
         uiState = uiState,
+        list = componentList,
         onSwitch = viewModel::controlComponent,
         modifier = modifier,
         onStopServiceClick = viewModel::stopService,
@@ -110,6 +114,7 @@ fun componentListViewModel(packageName: String, type: ComponentType): ComponentL
 @Composable
 fun ComponentListContent(
     uiState: ComponentListUiState,
+    list: State<List<ComponentItem>>,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
@@ -136,7 +141,7 @@ fun ComponentListContent(
 
         is ComponentListUiState.Success -> {
             ComponentListContent(
-                components = uiState.list,
+                components = list,
                 onSwitchClick = onSwitch,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
