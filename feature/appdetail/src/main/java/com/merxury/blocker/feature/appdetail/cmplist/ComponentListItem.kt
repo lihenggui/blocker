@@ -86,7 +86,7 @@ fun ComponentListContent(
         itemsIndexed(
             items = components.value,
             key = { _, item -> item.name },
-        ) {index, item ->
+        ) { index, item ->
             ComponentListItem(
                 simpleName = item.simpleName,
                 name = item.name,
@@ -100,8 +100,10 @@ fun ComponentListContent(
                 onCopyFullNameClick = { onCopyFullNameClick(item.name) },
                 onSwitchClick = onSwitchClick,
             )
-            LaunchedEffect(true) {
-                updateServiceRunningState(item.packageName, item.name, index)
+            if (item.type == SERVICE) {
+                LaunchedEffect(true) {
+                    updateServiceRunningState(item.packageName, item.name, index)
+                }
             }
         }
     }
