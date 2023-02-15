@@ -29,7 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,11 +37,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -63,7 +63,7 @@ import com.merxury.blocker.feature.appdetail.R
 
 @Composable
 fun ComponentListContent(
-    components: SnapshotStateList<ComponentItem>,
+    components: State<List<ComponentItem>>,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
@@ -71,7 +71,7 @@ fun ComponentListContent(
     onSwitchClick: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (components.isEmpty()) {
+    if (components.value.isEmpty()) {
         NoComponentScreen()
         return
     }
@@ -81,21 +81,21 @@ fun ComponentListContent(
         modifier = modifier,
         state = listState,
     ) {
-        items(
-            items = components,
-            key = { it.name },
-        ) {
+        itemsIndexed(
+            items = components.value,
+            key = { _, item -> item.name },
+        ) {index, item ->
             ComponentListItem(
-                simpleName = it.simpleName,
-                name = it.name,
-                packageName = it.packageName,
-                enabled = it.enabled(),
-                type = it.type,
+                simpleName = item.simpleName,
+                name = item.name,
+                packageName = item.packageName,
+                enabled = item.enabled(),
+                type = item.type,
                 isServiceRunning = false,
-                onStopServiceClick = { onStopServiceClick(it.packageName, it.name) },
-                onLaunchActivityClick = { onLaunchActivityClick(it.packageName, it.name) },
-                onCopyNameClick = { onCopyNameClick(it.simpleName) },
-                onCopyFullNameClick = { onCopyFullNameClick(it.name) },
+                onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
+                onLaunchActivityClick = { onLaunchActivityClick(item.packageName, item.name) },
+                onCopyNameClick = { onCopyNameClick(item.simpleName) },
+                onCopyFullNameClick = { onCopyFullNameClick(item.name) },
                 onSwitchClick = onSwitchClick,
             )
         }
