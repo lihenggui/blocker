@@ -135,7 +135,7 @@ fun SearchScreen(
     BlockerModalBottomSheetLayout(
         sheetState = sheetState,
         sheetContent = {
-            // TODO
+            BlockerLoadingWheel(contentDesc = "")
         },
     ) {
         Scaffold(
@@ -205,8 +205,12 @@ fun SearchScreen(
                         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
                         when (tabState.currentIndex) {
                             0 -> {
-                                SearchResultContent(
-                                    appList = localSearchUiState.components,
+
+                            }
+
+                            1 -> {
+                                ComponentSearchResultContent(
+                                    componentList = localSearchUiState.components,
                                     isSelectedMode = localSearchUiState.isSelectedMode,
                                     switchSelectedMode = switchSelectedMode,
                                     onSelect = onSelect,
@@ -221,8 +225,6 @@ fun SearchScreen(
                                     },
                                 )
                             }
-
-                            1 -> {}
                             2 -> {}
                         }
                     }
@@ -352,9 +354,9 @@ fun LoadingScreen(processingName: String) {
 }
 
 @Composable
-fun SearchResultContent(
+fun ComponentSearchResultContent(
     modifier: Modifier = Modifier,
-    appList: List<FilteredComponentItem>,
+    componentList: List<FilteredComponentItem>,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
@@ -366,7 +368,7 @@ fun SearchResultContent(
             modifier = modifier,
             state = listState,
         ) {
-            items(appList, key = { it.app.packageName }) {
+            items(componentList, key = { it.app.packageName }) {
                 AppListItem(
                     filterAppItem = it,
                     isSelectedMode = isSelectedMode,
