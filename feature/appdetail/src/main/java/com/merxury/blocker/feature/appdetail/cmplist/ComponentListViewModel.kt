@@ -17,7 +17,7 @@
 package com.merxury.blocker.feature.appdetail.cmplist
 
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -28,12 +28,14 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Error
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Success
@@ -50,9 +52,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class ComponentListViewModel @AssistedInject constructor(
@@ -71,8 +70,10 @@ class ComponentListViewModel @AssistedInject constructor(
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
     }
-    private val stateList = mutableStateListOf<ComponentItem>()
-    private val listMutex = Mutex()
+    private var _componentList = mutableStateListOf<ComponentItem>()
+    private val _componentListFlow = MutableStateFlow(_componentList)
+    val componentListFlow: StateFlow<List<ComponentItem>>
+        get() = _componentListFlow
 
     init {
         listenDataChange()
@@ -95,51 +96,36 @@ class ComponentListViewModel @AssistedInject constructor(
         }
     }
 
-    private fun listenDataChange() = viewModelScope.launch {
+    private fun listenDataChange() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
         componentRepository.getComponentList(packageName, type)
             .collect { list ->
                 val userData = userDataRepository.userData.first()
-                val componentItemList = list.map { it.toComponentItem() }
-                val sortedList = sortList(componentItemList, userData.componentSorting)
-                updateStateList(sortedList)
-                _uiState.emit(Success(stateList))
+                val sorting = userData.componentSorting
+                val serviceHelper = ServiceHelper(packageName)
+                if (type == SERVICE) {
+                    serviceHelper.refresh()
+                }
+                _componentList = list.map {
+                    it.toComponentItem(
+                        if (type == SERVICE) {
+                            serviceHelper.isServiceRunning(it.name)
+                        } else {
+                            false
+                        },
+                    )
+                }
+                    .sortedWith(componentComparator(sorting))
+                    .sortedByDescending { it.isRunning }
+                    .toMutableStateList()
+                _componentListFlow.value = _componentList
+                _uiState.emit(Success)
             }
     }
 
-    private suspend fun updateStateList(newList: List<ComponentItem>) = withContext(cpuDispatcher) {
-        if (newList.size < stateList.size) {
-            listMutex.withLock {
-                // Make list size the same
-                stateList.filter { origItem ->
-                    newList.none { newItem ->
-                        origItem.name == newItem.name
-                    }
-                }.forEach {
-                    stateList.remove(it)
-                }
-            }
-        }
-        newList.forEachIndexed { index, newItem ->
-            listMutex.withLock {
-                val origItem = stateList.getOrNull(index)
-                if (origItem == null) {
-                    stateList.add(newItem)
-                } else {
-                    if (origItem != newItem) {
-                        stateList[index] = newItem
-                    }
-                }
-            }
-        }
-    }
-
-    private suspend fun sortList(
-        list: List<ComponentItem>,
-        sort: ComponentSorting,
-    ): List<ComponentItem> = withContext(cpuDispatcher) {
-        when (sort) {
-            NAME_ASCENDING -> list.sortedBy { it.simpleName }
-            NAME_DESCENDING -> list.sortedByDescending { it.simpleName }
+    private fun componentComparator(sort: ComponentSorting): Comparator<ComponentItem> {
+        return when (sort) {
+            NAME_ASCENDING -> compareBy { it.simpleName }
+            NAME_DESCENDING -> compareByDescending { it.simpleName }
         }
     }
 
@@ -201,7 +187,7 @@ data class ComponentItem(
     fun enabled() = !(pmBlocked || ifwBlocked)
 }
 
-private fun ComponentInfo.toComponentItem() = ComponentItem(
+private fun ComponentInfo.toComponentItem(isRunning: Boolean = false) = ComponentItem(
     name = name,
     simpleName = simpleName,
     packageName = packageName,
@@ -209,12 +195,11 @@ private fun ComponentInfo.toComponentItem() = ComponentItem(
     pmBlocked = pmBlocked,
     ifwBlocked = ifwBlocked,
     description = description,
+    isRunning = isRunning,
 )
 
 sealed interface ComponentListUiState {
     object Loading : ComponentListUiState
     class Error(val error: ErrorMessage) : ComponentListUiState
-    data class Success(
-        val list: SnapshotStateList<ComponentItem>,
-    ) : ComponentListUiState
+    object Success : ComponentListUiState
 }

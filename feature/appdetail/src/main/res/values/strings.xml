@@ -55,4 +55,5 @@
     <string name="copy_full_name">Copy full name</string>
     <string name="launch_activity">Launch activity</string>
     <string name="stop_service">Stop service</string>
+    <string name="running">Running</string>
 </resources>
