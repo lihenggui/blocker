@@ -53,4 +53,5 @@
     <string name="copy_full_name">複製完整組件名</string>
     <string name="launch_activity">複製包名</string>
     <string name="stop_service">停止服務</string>
+    <string name="running">運行中</string>
 </resources>

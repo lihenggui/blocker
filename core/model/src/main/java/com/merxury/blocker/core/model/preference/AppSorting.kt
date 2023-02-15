@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.model.preference
 
+// TODO: Separate ASCENDING and DESCENDING into two enums
 enum class AppSorting {
     NAME_ASCENDING,
     NAME_DESCENDING,
