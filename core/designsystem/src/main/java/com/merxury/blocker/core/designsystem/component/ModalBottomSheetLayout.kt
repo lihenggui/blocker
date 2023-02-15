@@ -61,9 +61,8 @@ fun BlockerModalBottomSheetLayout(
             }
         },
         modifier = Modifier.fillMaxSize(),
-    ) {
-        screenContent()
-    }
+        content = { screenContent() },
+    )
 }
 
 @Composable
