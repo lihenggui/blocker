@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -45,6 +46,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -141,10 +144,30 @@ fun ComponentListItem(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.fillMaxWidth(0.8f)) {
-            Text(
-                text = simpleName,
-                style = MaterialTheme.typography.bodyLarge,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    modifier = Modifier.weight(1F),
+                    text = simpleName,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                if (isServiceRunning) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    val indicatorColor = MaterialTheme.colorScheme.tertiary
+                    Text(
+                        modifier = Modifier
+                            .drawBehind {
+                                drawRoundRect(
+                                    color = indicatorColor,
+                                    cornerRadius = CornerRadius(x = 4.dp.toPx(), y = 4.dp.toPx()),
+                                )
+                            }
+                            .padding(horizontal = 2.dp, vertical = 1.dp),
+                        text = stringResource(id = R.string.running),
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
             Text(
                 text = name,
                 style = MaterialTheme.typography.bodySmall,
