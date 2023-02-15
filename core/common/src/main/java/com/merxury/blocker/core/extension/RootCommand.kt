@@ -15,7 +15,6 @@
  */
 package com.merxury.blocker.core.extension
 
-import android.text.TextUtils
 import com.merxury.blocker.core.utils.PermissionUtils
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
@@ -25,12 +24,24 @@ import kotlinx.coroutines.withContext
 /**
  * Created by Mercury on 2018/2/4.
  */
-suspend fun String.exec(dispatcher: CoroutineDispatcher = Dispatchers.IO): String? =
+suspend fun String.exec(dispatcher: CoroutineDispatcher = Dispatchers.IO): ShellResult =
     withContext(dispatcher) {
         val rootGranted = PermissionUtils.isRootAvailable(dispatcher)
         if (!rootGranted) {
             throw RuntimeException("Root unavailable")
         }
-        val result = Shell.cmd(this@exec).exec().out
-        return@withContext TextUtils.join("\n", result)
+        val result = Shell.cmd(this@exec).exec()
+        return@withContext ShellResult(
+            result.out,
+            result.err,
+            result.code,
+            result.isSuccess,
+        )
     }
+
+data class ShellResult(
+    val out: List<String>,
+    val err: List<String>,
+    val code: Int,
+    val isSuccess: Boolean,
+)
