@@ -101,10 +101,13 @@ class ComponentListViewModel @AssistedInject constructor(
             .collect { list ->
                 val userData = userDataRepository.userData.first()
                 val sorting = userData.componentSorting
+                val serviceHelper = ServiceHelper(packageName)
+                if (type == SERVICE) {
+                    serviceHelper.refresh()
+                }
                 _componentList = list.map {
                     it.toComponentItem(
                         if (type == SERVICE) {
-                            val serviceHelper = ServiceHelper(packageName)
                             serviceHelper.isServiceRunning(it.name)
                         } else {
                             false
@@ -112,6 +115,7 @@ class ComponentListViewModel @AssistedInject constructor(
                     )
                 }
                     .sortedWith(componentComparator(sorting))
+                    .sortedByDescending { it.isRunning }
                     .toMutableStateList()
                 _componentListFlow.value = _componentList
                 _uiState.emit(Success)
