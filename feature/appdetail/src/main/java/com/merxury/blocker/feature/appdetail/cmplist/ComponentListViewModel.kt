@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Error
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Loading
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Success
@@ -91,6 +92,14 @@ class ComponentListViewModel @AssistedInject constructor(
     fun stopService(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             "am stopservice $packageName/$componentName".exec()
+        }
+    }
+
+    fun updateServiceRunningState(packageName: String, name: String, position: Int) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val serviceHelper = ServiceHelper(packageName)
+            val isRunning = serviceHelper.isServiceRunning(name)
+            _componentList[position] = _componentList[position].copy(isRunning = isRunning)
         }
     }
 
