@@ -20,32 +20,6 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-fun AnalyticsHelper.logNewsResourceBookmarkToggled(newsResourceId: String, isBookmarked: Boolean) {
-    val eventType = if (isBookmarked) "news_resource_saved" else "news_resource_unsaved"
-    val paramKey = if (isBookmarked) "saved_news_resource_id" else "unsaved_news_resource_id"
-    logEvent(
-        AnalyticsEvent(
-            type = eventType,
-            extras = listOf(
-                Param(key = paramKey, value = newsResourceId),
-            ),
-        ),
-    )
-}
-
-fun AnalyticsHelper.logTopicFollowToggled(followedTopicId: String, isFollowed: Boolean) {
-    val eventType = if (isFollowed) "topic_followed" else "topic_unfollowed"
-    val paramKey = if (isFollowed) "followed_topic_id" else "unfollowed_topic_id"
-    logEvent(
-        AnalyticsEvent(
-            type = eventType,
-            extras = listOf(
-                Param(key = paramKey, value = followedTopicId),
-            ),
-        ),
-    )
-}
-
 fun AnalyticsHelper.logThemeChanged(themeName: String) =
     logEvent(
         AnalyticsEvent(
@@ -76,9 +50,82 @@ fun AnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor: Boolean) =
         ),
     )
 
-fun AnalyticsHelper.logOnboardingStateChanged(shouldHideOnboarding: Boolean) {
-    val eventType = if (shouldHideOnboarding) "onboarding_complete" else "onboarding_reset"
+fun AnalyticsHelper.logControllerTypeChanged(controllerName: String) =
     logEvent(
-        AnalyticsEvent(type = eventType),
+        AnalyticsEvent(
+            type = "controller_type_changed",
+            extras = listOf(
+                Param(key = "controller_type", value = controllerName),
+            ),
+        ),
     )
-}
+
+fun AnalyticsHelper.logBackupSystemAppPreferenceChanged(backupSystemApp: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "backup_system_app_preference_changed",
+            extras = listOf(
+                Param(key = "backup_system_app_preference", value = backupSystemApp.toString()),
+            ),
+        ),
+    )
+
+fun AnalyticsHelper.logRestoreSystemAppPreferenceChanged(restoreSystemApp: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "restore_system_app_preference_changed",
+            extras = listOf(
+                Param(key = "restore_system_app_preference", value = restoreSystemApp.toString()),
+            ),
+        ),
+    )
+
+fun AnalyticsHelper.logRuleServerProviderChanged(ruleServerProviderName: String) =
+    logEvent(
+        AnalyticsEvent(
+            type = "rule_server_provider_changed",
+            extras = listOf(
+                Param(key = "rule_server_provider", value = ruleServerProviderName),
+            ),
+        ),
+    )
+
+fun AnalyticsHelper.logAppSortingChanged(appSortingName: String) =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_sorting_changed",
+            extras = listOf(
+                Param(key = "app_sorting", value = appSortingName),
+            ),
+        ),
+    )
+
+fun AnalyticsHelper.logShowServiceInfoPreferenceChanged(showServiceInfo: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "show_service_info_preference_changed",
+            extras = listOf(
+                Param(key = "show_service_info_preference", value = showServiceInfo.toString()),
+            ),
+        ),
+    )
+
+fun AnalyticsHelper.logShowSystemAppPreferenceChanged(showSystemApp: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "show_system_app_preference_changed",
+            extras = listOf(
+                Param(key = "show_system_app_preference", value = showSystemApp.toString()),
+            ),
+        ),
+    )
+
+fun AnalyticsHelper.logComponentShowPriorityPreferenceChanged(componentShowPriority: String) =
+    logEvent(
+        AnalyticsEvent(
+            type = "component_show_priority_preference_changed",
+            extras = listOf(
+                Param(key = "component_show_priority_preference", value = componentShowPriority),
+            ),
+        ),
+    )

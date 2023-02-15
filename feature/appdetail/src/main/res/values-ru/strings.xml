@@ -54,4 +54,5 @@
     <string name="copy_full_name">Копировать имя пакета</string>
     <string name="launch_activity">Запуск активности</string>
     <string name="stop_service">Остановить службу</string>
+    <string name="running">Запущен</string>
 </resources>
