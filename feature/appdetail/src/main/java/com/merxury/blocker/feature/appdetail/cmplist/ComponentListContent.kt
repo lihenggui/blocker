@@ -44,9 +44,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerTextField
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
+import com.merxury.blocker.feature.appdetail.AppBarUiState
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.TopAppBarUiState
 import dagger.hilt.android.EntryPointAccessors
 
 @Composable
@@ -58,7 +58,7 @@ fun ComponentListContentRoute(
         packageName = packageName,
         type = type,
     ),
-    topAppBarUiState: TopAppBarUiState,
+    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
     onComposing: (AppBarActionState) -> Unit = {},
@@ -156,7 +156,7 @@ fun ComponentListContent(
 }
 
 fun actions(
-    topAppBarUiState: TopAppBarUiState,
+    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onComposing: (AppBarActionState) -> Unit,
     onSearchModeChanged: (Boolean) -> Unit,
