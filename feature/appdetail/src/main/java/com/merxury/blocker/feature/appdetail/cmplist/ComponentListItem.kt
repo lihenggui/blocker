@@ -28,8 +28,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,14 +38,16 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -63,7 +66,7 @@ import com.merxury.blocker.feature.appdetail.R
 
 @Composable
 fun ComponentListContent(
-    components: SnapshotStateList<ComponentItem>,
+    components: State<List<ComponentItem>>,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
@@ -71,7 +74,7 @@ fun ComponentListContent(
     onSwitchClick: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (components.isEmpty()) {
+    if (components.value.isEmpty()) {
         NoComponentScreen()
         return
     }
@@ -81,21 +84,21 @@ fun ComponentListContent(
         modifier = modifier,
         state = listState,
     ) {
-        items(
-            items = components,
-            key = { it.name },
-        ) {
+        itemsIndexed(
+            items = components.value,
+            key = { _, item -> item.name },
+        ) { index, item ->
             ComponentListItem(
-                simpleName = it.simpleName,
-                name = it.name,
-                packageName = it.packageName,
-                enabled = it.enabled(),
-                type = it.type,
-                isServiceRunning = false,
-                onStopServiceClick = { onStopServiceClick(it.packageName, it.name) },
-                onLaunchActivityClick = { onLaunchActivityClick(it.packageName, it.name) },
-                onCopyNameClick = { onCopyNameClick(it.simpleName) },
-                onCopyFullNameClick = { onCopyFullNameClick(it.name) },
+                simpleName = item.simpleName,
+                name = item.name,
+                packageName = item.packageName,
+                enabled = item.enabled(),
+                type = item.type,
+                isServiceRunning = item.isRunning,
+                onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
+                onLaunchActivityClick = { onLaunchActivityClick(item.packageName, item.name) },
+                onCopyNameClick = { onCopyNameClick(item.simpleName) },
+                onCopyFullNameClick = { onCopyFullNameClick(item.name) },
                 onSwitchClick = onSwitchClick,
             )
         }
@@ -141,10 +144,30 @@ fun ComponentListItem(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.fillMaxWidth(0.8f)) {
-            Text(
-                text = simpleName,
-                style = MaterialTheme.typography.bodyLarge,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    modifier = Modifier.weight(1F),
+                    text = simpleName,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                if (isServiceRunning) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    val indicatorColor = MaterialTheme.colorScheme.tertiary
+                    Text(
+                        modifier = Modifier
+                            .drawBehind {
+                                drawRoundRect(
+                                    color = indicatorColor,
+                                    cornerRadius = CornerRadius(x = 4.dp.toPx(), y = 4.dp.toPx()),
+                                )
+                            }
+                            .padding(horizontal = 2.dp, vertical = 1.dp),
+                        text = stringResource(id = R.string.running),
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
+            }
             Text(
                 text = name,
                 style = MaterialTheme.typography.bodySmall,
