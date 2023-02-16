@@ -101,7 +101,7 @@ fun AppDetailRoute(
         topAppBarUiState = topAppBarUiState,
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
-        onComposing = viewModel::updateAppBarAction,
+        onToolbarActionUpdated = viewModel::updateAppBarAction,
     )
 }
 
@@ -116,7 +116,7 @@ fun AppDetailScreen(
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
-    onComposing: (AppBarActionState) -> Unit = {},
+    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
 ) {
     when (uiState) {
         is AppInfoUiState.Loading -> {
@@ -143,7 +143,7 @@ fun AppDetailScreen(
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onToolbarActionUpdated = onToolbarActionUpdated,
             )
         }
 
@@ -163,7 +163,7 @@ fun AppDetailContent(
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
-    onComposing: (AppBarActionState) -> Unit = {},
+    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -238,7 +238,7 @@ fun AppDetailContent(
             topAppBarUiState = topAppBarUiState,
             onSearchTextChanged = onSearchTextChanged,
             onSearchModeChanged = onSearchModeChanged,
-            onComposing = onComposing,
+            onToolbarActionUpdated = onToolbarActionUpdated,
         )
     }
 }
@@ -259,7 +259,7 @@ fun AppDetailTabContent(
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
-    onComposing: (AppBarActionState) -> Unit = {},
+    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
 ) {
     Column(
         modifier = modifier,
@@ -279,7 +279,7 @@ fun AppDetailTabContent(
             Detail ->
                 SummaryContent(
                     app = app,
-                    onComposing = onComposing,
+                    onToolbarActionUpdated = onToolbarActionUpdated,
                 )
 
             Receiver -> ComponentListContentRoute(
@@ -288,7 +288,7 @@ fun AppDetailTabContent(
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onAppBarActionUpdated = onToolbarActionUpdated,
             )
 
             Service -> ComponentListContentRoute(
@@ -297,7 +297,7 @@ fun AppDetailTabContent(
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onAppBarActionUpdated = onToolbarActionUpdated,
             )
 
             Activity -> ComponentListContentRoute(
@@ -306,7 +306,7 @@ fun AppDetailTabContent(
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onAppBarActionUpdated = onToolbarActionUpdated,
             )
 
             Provider -> ComponentListContentRoute(
@@ -315,7 +315,7 @@ fun AppDetailTabContent(
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onAppBarActionUpdated = onToolbarActionUpdated,
             )
         }
     }
@@ -358,7 +358,7 @@ fun AppDetailScreenPreview() {
                 switchTab = {},
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
-                onComposing = {},
+                onToolbarActionUpdated = {},
                 onSearchModeChanged = {},
             )
         }
@@ -397,7 +397,7 @@ fun AppDetailScreenCollapsedPreview() {
                 switchTab = {},
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
-                onComposing = {},
+                onToolbarActionUpdated = {},
                 onSearchModeChanged = {},
             )
         }
