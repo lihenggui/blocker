@@ -27,6 +27,11 @@ import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.Screen.Activity
+import com.merxury.blocker.feature.appdetail.Screen.Detail
+import com.merxury.blocker.feature.appdetail.Screen.Provider
+import com.merxury.blocker.feature.appdetail.Screen.Receiver
+import com.merxury.blocker.feature.appdetail.Screen.Service
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,13 +57,13 @@ class AppDetailViewModel @Inject constructor(
     private val _tabState = MutableStateFlow(
         AppDetailTabState(
             items = listOf(
-                Screen.Detail,
-                Screen.Receiver,
-                Screen.Service,
-                Screen.Activity,
-                Screen.Provider,
+                Detail,
+                Receiver,
+                Service,
+                Activity,
+                Provider,
             ),
-            selectedItem = Screen.Detail,
+            selectedItem = Detail,
         ),
     )
     val tabState: StateFlow<AppDetailTabState> = _tabState.asStateFlow()
@@ -90,11 +95,11 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun onSearchTextChanged(changedSearchText: TextFieldValue) {
+    fun search(changedSearchText: TextFieldValue) {
         _appBarUiState.update { it.copy(keyword = changedSearchText) }
     }
 
-    fun onSearchModeChange(isSearchMode: Boolean) {
+    fun changeSearchMode(isSearchMode: Boolean) {
         _appBarUiState.update {
             it.copy(
                 isSearchMode = isSearchMode,
@@ -102,7 +107,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun onComposing(actions: AppBarActionState) {
+    fun updateAppBarAction(actions: AppBarActionState) {
         _appBarUiState.update {
             it.copy(actions = actions)
         }
