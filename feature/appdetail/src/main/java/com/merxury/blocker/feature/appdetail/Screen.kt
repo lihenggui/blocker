@@ -16,15 +16,15 @@
 
 package com.merxury.blocker.feature.appdetail
 
-sealed class Screen(val name: String, val tabPosition: Int) {
-    object Detail : Screen(DETAIL, tabPosition = 0)
-    object Receiver : Screen(RECEIVER, tabPosition = 1)
-    object Service : Screen(SERVICE, tabPosition = 2)
-    object Activity : Screen(ACTIVITY, tabPosition = 3)
-    object Provider : Screen(PROVIDER, tabPosition = 4)
+sealed class Screen(val name: String, val title: Int = 0) {
+    object Detail : Screen(DETAIL, title = R.string.app_info)
+    object Receiver : Screen(RECEIVER, title = R.string.receiver)
+    object Service : Screen(SERVICE, title = R.string.service)
+    object Activity : Screen(ACTIVITY, title = R.string.activity)
+    object Provider : Screen(PROVIDER, title = R.string.content_provider)
 
     override fun toString(): String {
-        return "Screen name = $name, tabPosition = $tabPosition"
+        return "Screen name = $name"
     }
 
     companion object {
@@ -41,15 +41,6 @@ sealed class Screen(val name: String, val tabPosition: Int) {
             ACTIVITY -> Activity
             PROVIDER -> Provider
             else -> throw IllegalArgumentException("Invalid screen name in detail page")
-        }
-
-        fun fromPosition(pos: Int): Screen = when (pos) {
-            Detail.tabPosition -> Detail
-            Receiver.tabPosition -> Receiver
-            Service.tabPosition -> Service
-            Activity.tabPosition -> Activity
-            Provider.tabPosition -> Provider
-            else -> throw IllegalArgumentException("Invalid tab position in detail page")
         }
     }
 }
