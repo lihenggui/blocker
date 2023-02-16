@@ -205,7 +205,6 @@ fun SearchScreen(
                         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
                         when (tabState.currentIndex) {
                             0 -> {
-
                             }
 
                             1 -> {
