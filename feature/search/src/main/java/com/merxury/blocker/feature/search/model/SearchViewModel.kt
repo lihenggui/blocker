@@ -140,11 +140,31 @@ class SearchViewModel @Inject constructor(
                 }
                 emit(filteredList)
             }
-        // Organized by <PackageName, List<Component>>
-        val searchComponentFlow: Flow<Map<String, List<ComponentInfo>>> =
+
+        val searchComponentFlow: Flow<List<FilteredComponentItem>> =
             componentRepository.searchComponent(keyword)
                 .map { list ->
                     list.groupBy { it.packageName }
+                        .toSortedMap()
+                        .map MapToUiModel@{ (packageName, componentList) ->
+                            // Map to UI model
+                            val app = appRepository.getApplication(packageName).first()
+                                ?: return@MapToUiModel null
+                            Timber.v("Found ${componentList.size} components for $packageName")
+                            FilteredComponentItem(
+                                app = app.toInstalledAppItem(
+                                    pm.getPackageInfoCompat(
+                                        packageName,
+                                        0,
+                                    ),
+                                ),
+                                activity = componentList.filter { it.type == ACTIVITY },
+                                service = componentList.filter { it.type == SERVICE },
+                                receiver = componentList.filter { it.type == RECEIVER },
+                                provider = componentList.filter { it.type == PROVIDER },
+                            )
+                        }
+                        .filterNotNull()
                 }
 
         val searchGeneralRuleFlow = generalRuleRepository.searchGeneralRule(keyword)
@@ -154,25 +174,9 @@ class SearchViewModel @Inject constructor(
             searchGeneralRuleFlow,
         ) { apps, components, rules ->
             Timber.v("Fild ${apps.size} apps, ${components.size} components, ${rules.size} rules")
-            // Group component list by packages
-            val filteredComponents = components.map { (packageName, componentList) ->
-                val app = appRepository.getApplication(packageName).first()
-                if (app != null) {
-                    FilteredComponentItem(
-                        app = app.toInstalledAppItem(pm.getPackageInfoCompat(packageName, 0)),
-                        activity = componentList.filter { it.type == ACTIVITY },
-                        service = componentList.filter { it.type == SERVICE },
-                        receiver = componentList.filter { it.type == RECEIVER },
-                        provider = componentList.filter { it.type == PROVIDER },
-                    )
-                } else {
-                    null
-                }
-            }
-                .filterNotNull()
             LocalSearchUiState.Success(
                 apps = apps,
-                components = filteredComponents,
+                components = components,
                 rules = rules,
             )
         }

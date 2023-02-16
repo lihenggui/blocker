@@ -40,7 +40,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -136,7 +135,7 @@ fun SearchScreen(
     BlockerModalBottomSheetLayout(
         sheetState = sheetState,
         sheetContent = {
-            // TODO
+            BlockerLoadingWheel(contentDesc = "")
         },
     ) {
         Scaffold(
@@ -206,8 +205,11 @@ fun SearchScreen(
                         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
                         when (tabState.currentIndex) {
                             0 -> {
-                                SearchResultContent(
-                                    appList = localSearchUiState.components,
+                            }
+
+                            1 -> {
+                                ComponentSearchResultContent(
+                                    componentList = localSearchUiState.components,
                                     isSelectedMode = localSearchUiState.isSelectedMode,
                                     switchSelectedMode = switchSelectedMode,
                                     onSelect = onSelect,
@@ -222,8 +224,6 @@ fun SearchScreen(
                                     },
                                 )
                             }
-
-                            1 -> {}
                             2 -> {}
                         }
                     }
@@ -353,22 +353,21 @@ fun LoadingScreen(processingName: String) {
 }
 
 @Composable
-fun SearchResultContent(
+fun ComponentSearchResultContent(
     modifier: Modifier = Modifier,
-    appList: List<FilteredComponentItem>,
+    componentList: List<FilteredComponentItem>,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
     onClick: () -> Unit,
 ) {
-    val listContent = remember { appList }
     val listState = rememberLazyListState()
     Box(modifier) {
         LazyColumn(
             modifier = modifier,
             state = listState,
         ) {
-            items(listContent, key = { it.app.label }) {
+            items(componentList, key = { it.app.packageName }) {
                 AppListItem(
                     filterAppItem = it,
                     isSelectedMode = isSelectedMode,
