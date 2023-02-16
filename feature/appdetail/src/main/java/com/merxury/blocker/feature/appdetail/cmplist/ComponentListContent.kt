@@ -61,7 +61,7 @@ fun ComponentListContentRoute(
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
-    onComposing: (AppBarActionState) -> Unit = {},
+    onAppBarActionUpdated: (AppBarActionState) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
@@ -88,11 +88,11 @@ fun ComponentListContentRoute(
             onDismissRequest = viewModel::dismissAlert,
         )
     }
-    LaunchedEffect(topAppBarUiState) {
-        actions(
+    LaunchedEffect(topAppBarUiState.keyword, topAppBarUiState.isSearchMode) {
+        updateAppBarActions(
             topAppBarUiState = topAppBarUiState,
             onSearchTextChanged = onSearchTextChanged,
-            onComposing = onComposing,
+            onToolbarActionUpdated = onAppBarActionUpdated,
             onSearchModeChanged = onSearchModeChanged,
         )
     }
@@ -155,13 +155,13 @@ fun ComponentListContent(
     }
 }
 
-fun actions(
+fun updateAppBarActions(
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
-    onComposing: (AppBarActionState) -> Unit,
+    onToolbarActionUpdated: (AppBarActionState) -> Unit,
     onSearchModeChanged: (Boolean) -> Unit,
 ) {
-    onComposing(
+    onToolbarActionUpdated(
         AppBarActionState(
             actions = {
                 if (topAppBarUiState.isSearchMode) {
