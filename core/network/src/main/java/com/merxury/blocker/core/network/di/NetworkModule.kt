@@ -20,6 +20,7 @@ package com.merxury.blocker.core.network.di
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
+import com.merxury.blocker.core.network.BuildConfig
 import com.merxury.blocker.core.network.model.GitHub
 import com.merxury.blocker.core.network.model.GitLab
 import com.merxury.blocker.core.network.retrofit.BlockerNetworkApi
@@ -30,6 +31,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -39,6 +41,19 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun okHttpCallFactory(): Call.Factory = OkHttpClient.Builder()
+        .addInterceptor(
+            HttpLoggingInterceptor()
+                .apply {
+                    if (BuildConfig.DEBUG) {
+                        setLevel(HttpLoggingInterceptor.Level.BODY)
+                    }
+                },
+        )
+        .build()
 
     @Provides
     @Singleton
@@ -59,29 +74,28 @@ object NetworkModule {
     @Provides
     @GitHub
     fun provideGitHubNetworkApi(
+        okHttpCallFactory: Call.Factory,
         networkJson: Json,
-    ): BlockerNetworkApi = provideBlockerNetworkApi(networkJson, RuleServerProvider.GITHUB.baseUrl)
+    ): BlockerNetworkApi =
+        provideBlockerNetworkApi(okHttpCallFactory, networkJson, RuleServerProvider.GITHUB.baseUrl)
 
     @Singleton
     @Provides
     @GitLab
     fun provideGitLabNetworkApi(
+        okHttpCallFactory: Call.Factory,
         networkJson: Json,
-    ): BlockerNetworkApi = provideBlockerNetworkApi(networkJson, RuleServerProvider.GITLAB.baseUrl)
+    ): BlockerNetworkApi =
+        provideBlockerNetworkApi(okHttpCallFactory, networkJson, RuleServerProvider.GITLAB.baseUrl)
 
-    private fun provideBlockerNetworkApi(networkJson: Json, url: String): BlockerNetworkApi {
+    private fun provideBlockerNetworkApi(
+        okHttpCallFactory: Call.Factory,
+        networkJson: Json,
+        url: String,
+    ): BlockerNetworkApi {
         return Retrofit.Builder()
             .baseUrl(url)
-            .client(
-                OkHttpClient.Builder()
-                    .addInterceptor(
-                        // TODO: Decide logging logic
-                        HttpLoggingInterceptor().apply {
-                            setLevel(HttpLoggingInterceptor.Level.BODY)
-                        },
-                    )
-                    .build(),
-            )
+            .callFactory(okHttpCallFactory)
             .addConverterFactory(
                 @OptIn(ExperimentalSerializationApi::class)
                 networkJson.asConverterFactory("application/json".toMediaType()),

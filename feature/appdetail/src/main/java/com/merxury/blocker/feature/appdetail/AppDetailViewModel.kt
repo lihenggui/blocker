@@ -23,12 +23,15 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.Application
-import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
-import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.Screen.Activity
+import com.merxury.blocker.feature.appdetail.Screen.Detail
+import com.merxury.blocker.feature.appdetail.Screen.Provider
+import com.merxury.blocker.feature.appdetail.Screen.Receiver
+import com.merxury.blocker.feature.appdetail.Screen.Service
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -49,21 +52,21 @@ class AppDetailViewModel @Inject constructor(
     private val _uiState: MutableStateFlow<AppInfoUiState> =
         MutableStateFlow(Loading)
     val uiState: StateFlow<AppInfoUiState> = _uiState
-    private val _topAppBarUiState = MutableStateFlow(TopAppBarUiState())
-    val topAppBarUiState: StateFlow<TopAppBarUiState> = _topAppBarUiState.asStateFlow()
+    private val _appBarUiState = MutableStateFlow(AppBarUiState())
+    val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
     private val _tabState = MutableStateFlow(
-        TabState(
-            titles = listOf(
-                string.app_info,
-                string.receiver,
-                string.service,
-                string.activity,
-                string.content_provider,
+        AppDetailTabState(
+            items = listOf(
+                Detail,
+                Receiver,
+                Service,
+                Activity,
+                Provider,
             ),
-            currentIndex = 0,
+            selectedItem = Detail,
         ),
     )
-    val tabState: StateFlow<TabState> = _tabState.asStateFlow()
+    val tabState: StateFlow<AppDetailTabState> = _tabState.asStateFlow()
 
     init {
         loadTabInfo()
@@ -72,14 +75,14 @@ class AppDetailViewModel @Inject constructor(
 
     private fun loadTabInfo() {
         val screen = appPackageNameArgs.screen
-        Timber.v("Update tab info: $screen")
-        _tabState.update { it.copy(currentIndex = screen.tabPosition) }
+        Timber.v("Jump to tab: $screen")
+        _tabState.update { it.copy(selectedItem = screen) }
     }
 
-    fun switchTab(newIndex: Int) {
-        if (newIndex != tabState.value.currentIndex) {
+    fun switchTab(newScreen: Screen) {
+        if (newScreen != tabState.value.selectedItem) {
             _tabState.update {
-                it.copy(currentIndex = newIndex)
+                it.copy(selectedItem = newScreen)
             }
         }
     }
@@ -92,20 +95,20 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun onSearchTextChanged(changedSearchText: TextFieldValue) {
-        _topAppBarUiState.update { it.copy(keyword = changedSearchText) }
+    fun search(changedSearchText: TextFieldValue) {
+        _appBarUiState.update { it.copy(keyword = changedSearchText) }
     }
 
-    fun onSearchModeChange(isSearchMode: Boolean) {
-        _topAppBarUiState.update {
+    fun changeSearchMode(isSearchMode: Boolean) {
+        _appBarUiState.update {
             it.copy(
                 isSearchMode = isSearchMode,
             )
         }
     }
 
-    fun onComposing(actions: AppBarActionState) {
-        _topAppBarUiState.update {
+    fun updateAppBarAction(actions: AppBarActionState) {
+        _appBarUiState.update {
             it.copy(actions = actions)
         }
     }
@@ -131,8 +134,22 @@ sealed interface AppInfoUiState {
     ) : AppInfoUiState
 }
 
-data class TopAppBarUiState(
+data class AppBarUiState(
     val keyword: TextFieldValue = TextFieldValue(),
     val isSearchMode: Boolean = false,
     val actions: AppBarActionState = AppBarActionState(),
 )
+
+data class AppDetailTabState(
+    val items: List<Screen>,
+    val selectedItem: Screen,
+) {
+    fun currentIndex(): Int {
+        val currentIndex = items.indexOf(selectedItem)
+        if (currentIndex == -1) {
+            Timber.w("Can't find index of $selectedItem, returning to default page.")
+            return 0
+        }
+        return currentIndex
+    }
+}
