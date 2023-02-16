@@ -99,9 +99,9 @@ fun AppDetailRoute(
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
         topAppBarUiState = topAppBarUiState,
-        onSearchTextChanged = viewModel::onSearchTextChanged,
-        onSearchModeChanged = viewModel::onSearchModeChange,
-        onComposing = viewModel::onComposing,
+        onSearchTextChanged = viewModel::search,
+        onSearchModeChanged = viewModel::changeSearchMode,
+        onComposing = viewModel::updateAppBarAction,
     )
 }
 
