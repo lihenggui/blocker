@@ -25,6 +25,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,9 +44,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerTextField
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
+import com.merxury.blocker.feature.appdetail.AppBarUiState
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.TopAppBarUiState
 import dagger.hilt.android.EntryPointAccessors
 
 @Composable
@@ -56,16 +58,18 @@ fun ComponentListContentRoute(
         packageName = packageName,
         type = type,
     ),
-    topAppBarUiState: TopAppBarUiState,
+    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
     onComposing: (AppBarActionState) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
+    val componentList = viewModel.componentListFlow.collectAsState()
     val clipboardManager = LocalClipboardManager.current
     ComponentListContent(
         uiState = uiState,
+        list = componentList,
         onSwitch = viewModel::controlComponent,
         modifier = modifier,
         onStopServiceClick = viewModel::stopService,
@@ -110,6 +114,7 @@ fun componentListViewModel(packageName: String, type: ComponentType): ComponentL
 @Composable
 fun ComponentListContent(
     uiState: ComponentListUiState,
+    list: State<List<ComponentItem>>,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
@@ -136,7 +141,7 @@ fun ComponentListContent(
 
         is ComponentListUiState.Success -> {
             ComponentListContent(
-                components = uiState.list,
+                components = list,
                 onSwitchClick = onSwitch,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
@@ -151,7 +156,7 @@ fun ComponentListContent(
 }
 
 fun actions(
-    topAppBarUiState: TopAppBarUiState,
+    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onComposing: (AppBarActionState) -> Unit,
     onSearchModeChanged: (Boolean) -> Unit,

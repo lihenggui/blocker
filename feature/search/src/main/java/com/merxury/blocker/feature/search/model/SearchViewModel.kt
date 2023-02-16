@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
@@ -34,6 +35,12 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_DESCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,6 +51,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -59,6 +67,7 @@ class SearchViewModel @Inject constructor(
     private val componentRepository: ComponentRepository,
     private val generalRuleRepository: GeneralRuleRepository,
     private val initializeDatabaseUseCase: InitializeDatabaseUseCase,
+    private val userDataRepository: UserDataRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
@@ -107,17 +116,55 @@ class SearchViewModel @Inject constructor(
         _searchBoxUiState.update { it.copy(keyword = changedSearchText) }
         val keyword = changedSearchText.text
         val searchAppFlow = appRepository.searchInstalledApplications(keyword)
-            .map { list ->
-                list.map { app ->
+            .combineTransform(userDataRepository.userData) { list, userSetting ->
+                val showSystemApps = userSetting.showSystemApps
+                val sorting = userSetting.appSorting
+                val filteredList = list.filter { app ->
+                    if (showSystemApps) {
+                        true
+                    } else {
+                        !app.isSystem
+                    }
+                }.sortedWith(
+                    when (sorting) {
+                        NAME_ASCENDING -> compareBy { it.label }
+                        NAME_DESCENDING -> compareByDescending { it.label }
+                        FIRST_INSTALL_TIME_ASCENDING -> compareBy { it.firstInstallTime }
+                        FIRST_INSTALL_TIME_DESCENDING -> compareByDescending { it.firstInstallTime }
+                        LAST_UPDATE_TIME_ASCENDING -> compareBy { it.lastUpdateTime }
+                        LAST_UPDATE_TIME_DESCENDING -> compareByDescending { it.lastUpdateTime }
+                    },
+                ).map { app ->
                     val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
                     app.toInstalledAppItem(packageInfo)
                 }
+                emit(filteredList)
             }
-        // Organized by <PackageName, List<Component>>
-        val searchComponentFlow: Flow<Map<String, List<ComponentInfo>>> =
+
+        val searchComponentFlow: Flow<List<FilteredComponentItem>> =
             componentRepository.searchComponent(keyword)
                 .map { list ->
                     list.groupBy { it.packageName }
+                        .toSortedMap()
+                        .map MapToUiModel@{ (packageName, componentList) ->
+                            // Map to UI model
+                            val app = appRepository.getApplication(packageName).first()
+                                ?: return@MapToUiModel null
+                            Timber.v("Found ${componentList.size} components for $packageName")
+                            FilteredComponentItem(
+                                app = app.toInstalledAppItem(
+                                    pm.getPackageInfoCompat(
+                                        packageName,
+                                        0,
+                                    ),
+                                ),
+                                activity = componentList.filter { it.type == ACTIVITY },
+                                service = componentList.filter { it.type == SERVICE },
+                                receiver = componentList.filter { it.type == RECEIVER },
+                                provider = componentList.filter { it.type == PROVIDER },
+                            )
+                        }
+                        .filterNotNull()
                 }
 
         val searchGeneralRuleFlow = generalRuleRepository.searchGeneralRule(keyword)
@@ -127,25 +174,9 @@ class SearchViewModel @Inject constructor(
             searchGeneralRuleFlow,
         ) { apps, components, rules ->
             Timber.v("Fild ${apps.size} apps, ${components.size} components, ${rules.size} rules")
-            // Group component list by packages
-            val filteredComponents = components.map { (packageName, componentList) ->
-                val app = appRepository.getApplication(packageName).first()
-                if (app != null) {
-                    FilteredComponentItem(
-                        app = app.toInstalledAppItem(pm.getPackageInfoCompat(packageName, 0)),
-                        activity = componentList.filter { it.type == ACTIVITY },
-                        service = componentList.filter { it.type == SERVICE },
-                        receiver = componentList.filter { it.type == RECEIVER },
-                        provider = componentList.filter { it.type == PROVIDER },
-                    )
-                } else {
-                    null
-                }
-            }
-                .filterNotNull()
             LocalSearchUiState.Success(
                 apps = apps,
-                components = filteredComponents,
+                components = components,
                 rules = rules,
             )
         }

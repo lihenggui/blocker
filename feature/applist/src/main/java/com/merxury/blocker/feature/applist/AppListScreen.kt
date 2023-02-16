@@ -22,22 +22,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumedWindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -63,8 +64,10 @@ fun AppListRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
+    val appList = viewModel.appListFlow.collectAsState()
     AppListScreen(
         uiState = uiState,
+        appList = appList,
         onAppItemClick = navigateToAppDetail,
         onClearCacheClick = viewModel::clearCache,
         onClearDataClick = viewModel::clearData,
@@ -91,6 +94,7 @@ fun AppListRoute(
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
+    appList: State<List<AppItem>>,
     onAppItemClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit,
     onClearDataClick: (String) -> Unit,
@@ -98,7 +102,7 @@ fun AppListScreen(
     onUninstallClick: (String) -> Unit,
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
-    onServiceStateUpdate: (String) -> Unit,
+    onServiceStateUpdate: (String, Int) -> Unit,
     onSortingUpdate: (AppSorting) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
@@ -122,7 +126,7 @@ fun AppListScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
-                .consumedWindowInsets(padding)
+                .consumeWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
                         WindowInsetsSides.Horizontal,
@@ -149,7 +153,7 @@ fun AppListScreen(
 
                 is AppListUiState.Success -> {
                     AppListContent(
-                        appList = uiState.appList,
+                        appList = appList,
                         onAppItemClick = onAppItemClick,
                         onClearCacheClick = onClearCacheClick,
                         onClearDataClick = onClearDataClick,
@@ -170,7 +174,7 @@ fun AppListScreen(
 
 @Composable
 fun AppListContent(
-    appList: SnapshotStateList<AppItem>,
+    appList: State<List<AppItem>>,
     onAppItemClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit,
     onClearDataClick: (String) -> Unit,
@@ -178,7 +182,7 @@ fun AppListContent(
     onUninstallClick: (String) -> Unit,
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
-    onServiceStateUpdate: (String) -> Unit,
+    onServiceStateUpdate: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -187,16 +191,16 @@ fun AppListContent(
             modifier = modifier,
             state = listState,
         ) {
-            items(appList, key = { it.packageName }) {
+            itemsIndexed(appList.value, key = { _, item -> item.packageName }) { index, item ->
                 AppListItem(
-                    label = it.label,
-                    packageName = it.packageName,
-                    versionName = it.versionName,
-                    versionCode = it.versionCode,
-                    packageInfo = it.packageInfo,
-                    isAppEnabled = it.enabled,
-                    isAppRunning = it.isRunning,
-                    appServiceStatus = it.appServiceStatus,
+                    label = item.label,
+                    packageName = item.packageName,
+                    versionName = item.versionName,
+                    versionCode = item.versionCode,
+                    packageInfo = item.packageInfo,
+                    isAppEnabled = item.enabled,
+                    isAppRunning = item.isRunning,
+                    appServiceStatus = item.appServiceStatus,
                     onClick = onAppItemClick,
                     onClearCacheClick = onClearCacheClick,
                     onClearDataClick = onClearDataClick,
@@ -206,7 +210,7 @@ fun AppListContent(
                     onDisableClick = onDisableClick,
                 )
                 LaunchedEffect(true) {
-                    onServiceStateUpdate(it.packageName)
+                    onServiceStateUpdate(item.packageName, index)
                 }
             }
         }
