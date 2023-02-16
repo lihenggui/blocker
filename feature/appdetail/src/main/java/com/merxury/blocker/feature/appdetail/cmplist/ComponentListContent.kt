@@ -88,7 +88,7 @@ fun ComponentListContentRoute(
             onDismissRequest = viewModel::dismissAlert,
         )
     }
-    LaunchedEffect(true) {
+    LaunchedEffect(topAppBarUiState.keyword, topAppBarUiState.isSearchMode) {
         actions(
             topAppBarUiState = topAppBarUiState,
             onSearchTextChanged = onSearchTextChanged,
