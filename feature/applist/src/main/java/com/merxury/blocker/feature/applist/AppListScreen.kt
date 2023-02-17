@@ -199,7 +199,7 @@ fun AppListContent(
                     versionName = item.versionName,
                     versionCode = item.versionCode,
                     packageInfo = item.packageInfo,
-                    isAppEnabled = item.enabled,
+                    isAppEnabled = item.isEnabled,
                     isAppRunning = item.isRunning,
                     appServiceStatus = item.appServiceStatus,
                     onClick = onAppItemClick,

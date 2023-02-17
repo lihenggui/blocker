@@ -41,6 +41,8 @@ import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASC
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
+import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
@@ -139,7 +141,7 @@ class SearchViewModel @Inject constructor(
                     },
                 ).map { app ->
                     val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
-                    app.toInstalledAppItem(packageInfo)
+                    app.toAppItem(packageInfo)
                 }
                 emit(filteredList)
             }
@@ -155,11 +157,8 @@ class SearchViewModel @Inject constructor(
                                 ?: return@MapToUiModel null
                             Timber.v("Found ${componentList.size} components for $packageName")
                             FilteredComponentItem(
-                                app = app.toInstalledAppItem(
-                                    pm.getPackageInfoCompat(
-                                        packageName,
-                                        0,
-                                    ),
+                                app = app.toAppItem(
+                                    packageInfo = pm.getPackageInfoCompat(packageName, 0),
                                 ),
                                 activity = componentList.filter { it.type == ACTIVITY },
                                 service = componentList.filter { it.type == SERVICE },
@@ -236,7 +235,7 @@ sealed interface LocalSearchUiState {
     object Idle : LocalSearchUiState
     object Loading : LocalSearchUiState
     class Success(
-        val apps: List<InstalledAppItem> = listOf(),
+        val apps: List<AppItem> = listOf(),
         val components: List<FilteredComponentItem> = listOf(),
         val rules: List<GeneralRule> = listOf(),
         val isSelectedMode: Boolean = false,
@@ -251,7 +250,7 @@ data class SearchBoxUiState(
 )
 
 data class FilteredComponentItem(
-    val app: InstalledAppItem,
+    val app: AppItem,
     val activity: List<ComponentInfo> = listOf(),
     val service: List<ComponentInfo> = listOf(),
     val receiver: List<ComponentInfo> = listOf(),

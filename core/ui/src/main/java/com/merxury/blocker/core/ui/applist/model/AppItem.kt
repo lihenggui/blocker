@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.ui.applist.model
 
 import android.content.pm.PackageInfo
+import com.merxury.blocker.core.model.data.InstalledApp
 import kotlinx.datetime.Instant
 
 /**
@@ -25,14 +26,36 @@ import kotlinx.datetime.Instant
  */
 data class AppItem(
     val label: String,
-    val packageName: String,
-    val versionName: String,
-    val versionCode: Long,
-    val isSystem: Boolean,
-    val isRunning: Boolean,
-    val enabled: Boolean,
-    val firstInstallTime: Instant?,
-    val lastUpdateTime: Instant?,
-    val appServiceStatus: AppServiceStatus?,
-    val packageInfo: PackageInfo?,
+    val packageName: String = "",
+    val versionName: String = "",
+    val versionCode: Long = 0,
+    val minSdkVersion: Int = 0,
+    val targetSdkVersion: Int = 0,
+    val isSystem: Boolean = false,
+    val isRunning: Boolean = false,
+    val isEnabled: Boolean = true,
+    val firstInstallTime: Instant? = null,
+    val lastUpdateTime: Instant? = null,
+    val appServiceStatus: AppServiceStatus? = null,
+    val packageInfo: PackageInfo? = null,
+)
+
+fun InstalledApp.toAppItem(
+    packageInfo: PackageInfo? = null,
+    appServiceStatus: AppServiceStatus? = null,
+    isRunning: Boolean = false,
+) = AppItem(
+    packageName = packageName,
+    versionName = versionName,
+    versionCode = versionCode,
+    minSdkVersion = minSdkVersion,
+    targetSdkVersion = targetSdkVersion,
+    firstInstallTime = firstInstallTime,
+    lastUpdateTime = lastUpdateTime,
+    isEnabled = isEnabled,
+    isSystem = isSystem,
+    label = label,
+    appServiceStatus = appServiceStatus,
+    isRunning = isRunning,
+    packageInfo = packageInfo,
 )
