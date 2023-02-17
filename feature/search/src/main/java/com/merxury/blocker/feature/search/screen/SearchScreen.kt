@@ -162,69 +162,56 @@ fun SearchScreen(
                             WindowInsetsSides.Horizontal,
                         ),
                     ),
-                verticalArrangement = Arrangement.Top,
+                verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 when (localSearchUiState) {
                     is LocalSearchUiState.Initializing -> {
-                        Column(
-                            modifier = modifier
-                                .fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            LoadingScreen(localSearchUiState.processingName)
-                        }
+                        LoadingScreen(localSearchUiState.processingName)
                     }
+
                     LocalSearchUiState.Idle -> {
-                        Column(
-                            modifier = modifier
-                                .fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            NoSearchScreen()
-                        }
+                        NoSearchScreen()
                     }
 
                     LocalSearchUiState.Loading -> {
-                        Column(
-                            modifier = modifier
-                                .fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                        ) {
-                            BlockerLoadingWheel(
-                                modifier = modifier,
-                                contentDesc = stringResource(id = string.searching),
-                            )
-                        }
+                        BlockerLoadingWheel(
+                            modifier = modifier,
+                            contentDesc = stringResource(id = string.searching),
+                        )
                     }
 
                     is LocalSearchUiState.Success -> {
-                        SearchResultTabRow(tabState = tabState, switchTab = switchTab)
-                        when (tabState.currentIndex) {
-                            0 -> {
-                            }
+                        Column(
+                            modifier = modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Top,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            SearchResultTabRow(tabState = tabState, switchTab = switchTab)
+                            when (tabState.currentIndex) {
+                                0 -> {
+                                }
 
-                            1 -> {
-                                ComponentSearchResultContent(
-                                    componentList = localSearchUiState.components,
-                                    isSelectedMode = localSearchUiState.isSelectedMode,
-                                    switchSelectedMode = switchSelectedMode,
-                                    onSelect = onSelect,
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            if (sheetState.isVisible) {
-                                                sheetState.hide()
-                                            } else {
-                                                sheetState.animateTo(HalfExpanded)
+                                1 -> {
+                                    ComponentSearchResultContent(
+                                        componentList = localSearchUiState.components,
+                                        isSelectedMode = localSearchUiState.isSelectedMode,
+                                        switchSelectedMode = switchSelectedMode,
+                                        onSelect = onSelect,
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                if (sheetState.isVisible) {
+                                                    sheetState.hide()
+                                                } else {
+                                                    sheetState.animateTo(HalfExpanded)
+                                                }
                                             }
-                                        }
-                                    },
-                                )
+                                        },
+                                    )
+                                }
+
+                                2 -> {}
                             }
-                            2 -> {}
                         }
                     }
 
@@ -383,6 +370,38 @@ fun ComponentSearchResultContent(
 @Composable
 @Preview
 fun SearchScreenEmptyPreview() {
+    val searchBoxUiState = SearchBoxUiState()
+    val localSearchUiState = LocalSearchUiState.Loading
+    val tabState = SearchTabState(
+        titles = listOf(
+            string.application,
+            string.component,
+            string.online_rule,
+        ),
+        currentIndex = 0,
+    )
+    BlockerTheme {
+        SearchScreen(
+            searchBoxUiState = searchBoxUiState,
+            localSearchUiState = localSearchUiState,
+            onSearchTextChanged = {},
+            onClearClick = {},
+            tabState = tabState,
+            switchTab = {},
+            onNavigationClick = {},
+            onSelectAll = {},
+            onBlockAll = {},
+            onCheckAll = {},
+            switchSelectedMode = {},
+            onSelect = {},
+            navigationToSearchedAppDetail = {},
+        )
+    }
+}
+
+@Composable
+@Preview
+fun SearchScreenNoResultPreview() {
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Idle
     val tabState = SearchTabState(
