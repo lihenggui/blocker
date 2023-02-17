@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.applist.component
+package com.merxury.blocker.core.ui.applist
 
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerDropdownMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.feature.applist.R
+import com.merxury.blocker.core.ui.R
 
 @Composable
 fun AppListItemMenuList(

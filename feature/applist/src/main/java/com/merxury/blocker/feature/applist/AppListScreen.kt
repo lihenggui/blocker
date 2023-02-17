@@ -48,9 +48,10 @@ import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.ui.applist.AppListItem
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.applist.R.string
-import com.merxury.blocker.feature.applist.component.AppListItem
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
 
