@@ -43,9 +43,11 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
+import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,6 +57,7 @@ import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -182,7 +185,11 @@ class SearchViewModel @Inject constructor(
         }
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
+            delay(500)
             searchFlow.flowOn(ioDispatcher)
+                .onStart {
+                    _localSearchUiState.emit(Loading)
+                }
                 .collect { searchResult ->
                     _localSearchUiState.emit(searchResult)
                     _tabState.update {
