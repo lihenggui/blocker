@@ -106,7 +106,7 @@ fun AppListItem(
                 )
                 .padding(horizontal = 8.dp, vertical = 10.dp),
 
-            ) {
+        ) {
             AppIcon(
                 info = filterAppItem.app.packageInfo,
                 isSelectedMode = isSelectedMode,
