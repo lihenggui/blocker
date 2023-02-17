@@ -22,7 +22,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -48,6 +47,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.feature.search.R
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
 import com.merxury.blocker.feature.search.model.InstalledAppItem
@@ -100,7 +101,7 @@ fun AppListItem(
                 )
                 .padding(horizontal = 8.dp, vertical = 10.dp),
 
-        ) {
+            ) {
             AppIcon(
                 info = filterAppItem.app.packageInfo,
                 isSelectedMode = isSelectedMode,
@@ -152,81 +153,74 @@ private fun AppContent(
     appItem: FilteredComponentItem,
     modifier: Modifier = Modifier,
 ) {
-    var count = 0
     Column(modifier) {
         Text(
             text = appItem.app.label,
             style = MaterialTheme.typography.bodyLarge,
         )
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.Start,
-        ) {
-            if (appItem.service.isNotEmpty()) {
-                Text(
-                    text = stringResource(
-                        id = R.string.service_count,
-                        appItem.service.size,
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                count++
-            }
-            if (appItem.receiver.isNotEmpty()) {
-                if (count != 0) {
-                    Text(
-                        text = stringResource(id = R.string.delimiter),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Text(
-                    text = stringResource(
-                        id = R.string.broadcast_count,
-                        appItem.receiver.size,
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-
-                count++
-            }
-            if (appItem.activity.isNotEmpty()) {
-                if (count != 0) {
-                    Text(
-                        text = stringResource(id = R.string.delimiter),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Text(
-                    text = stringResource(
-                        id = R.string.activity_count,
-                        appItem.activity.size,
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            if (appItem.provider.isNotEmpty()) {
-                if (count != 0) {
-                    Text(
-                        text = stringResource(id = R.string.delimiter),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Text(
-                    text = stringResource(
-                        id = R.string.content_provider_count,
-                        appItem.provider.size,
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
+        Text(
+            text = getComponentInfo(appItem = appItem),
+            style = MaterialTheme.typography.bodyLarge,
+        )
     }
+}
+
+@Composable
+private fun getComponentInfo(
+    appItem: FilteredComponentItem,
+): String {
+    var componentInfo = ""
+    var count = 0
+    if (appItem.service.isNotEmpty()) {
+        componentInfo = stringResource(
+            id = R.string.service_count,
+            appItem.service.size,
+        )
+        count++
+    }
+    if (appItem.receiver.isNotEmpty()) {
+        if (count != 0) {
+            componentInfo += stringResource(id = R.string.delimiter)
+        }
+        componentInfo += stringResource(
+            id = R.string.broadcast_count,
+            appItem.receiver.size,
+        )
+        count++
+    }
+    if (appItem.activity.isNotEmpty()) {
+        if (count != 0) {
+            componentInfo += stringResource(id = R.string.delimiter)
+        }
+        componentInfo += stringResource(
+            id = R.string.activity_count,
+            appItem.activity.size,
+        )
+    }
+    if (appItem.provider.isNotEmpty()) {
+        if (count != 0) {
+            componentInfo += stringResource(id = R.string.delimiter)
+        }
+        componentInfo += stringResource(
+            id = R.string.content_provider_count,
+            appItem.provider.size,
+        )
+    }
+    return componentInfo
 }
 
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppListItemPreview() {
+    val componentInfo = ComponentInfo(
+        name = "component",
+        simpleName = "com",
+        packageName = "blocker",
+        type = ACTIVITY,
+        exported = false,
+        pmBlocked = false,
+    )
     val filterAppItem = FilteredComponentItem(
         app = InstalledAppItem(
             packageName = "com.merxury.blocker",
@@ -234,6 +228,10 @@ fun AppListItemPreview() {
             isSystem = false,
         ),
         isSelected = true,
+        activity = listOf(componentInfo),
+        service = listOf(componentInfo),
+        receiver = listOf(componentInfo),
+        provider = listOf(componentInfo),
     )
     BlockerTheme {
         Surface {
@@ -251,12 +249,24 @@ fun AppListItemPreview() {
 @Composable
 @Preview
 fun AppListItemWithoutServicePreview() {
+    val componentInfo = ComponentInfo(
+        name = "component",
+        simpleName = "com",
+        packageName = "blocker",
+        type = ACTIVITY,
+        exported = false,
+        pmBlocked = false,
+    )
     val filterAppItem = FilteredComponentItem(
         app = InstalledAppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
             isSystem = false,
         ),
+        activity = listOf(componentInfo),
+        service = listOf(componentInfo),
+        receiver = listOf(componentInfo),
+        provider = listOf(componentInfo),
     )
     BlockerTheme {
         Surface {
