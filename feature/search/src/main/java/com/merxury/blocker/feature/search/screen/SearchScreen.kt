@@ -62,6 +62,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.component.AppListItem
+import com.merxury.blocker.feature.search.component.BottomSheetRoute
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.component.SelectedAppTopBar
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
@@ -135,7 +136,9 @@ fun SearchScreen(
     BlockerModalBottomSheetLayout(
         sheetState = sheetState,
         sheetContent = {
-            BlockerLoadingWheel(contentDesc = "")
+            if (localSearchUiState is LocalSearchUiState.Success) {
+                BottomSheetRoute(app = localSearchUiState.apps[1])
+            }
         },
     ) {
         Scaffold(
