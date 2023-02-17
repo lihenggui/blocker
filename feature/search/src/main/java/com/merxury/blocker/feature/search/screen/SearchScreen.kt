@@ -42,7 +42,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -102,6 +104,7 @@ fun SearchRoute(
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalLayoutApi::class,
+    ExperimentalComposeUiApi::class,
 )
 @Composable
 fun SearchScreen(
@@ -133,6 +136,7 @@ fun SearchScreen(
         navigationToSearchedAppDetail()
         // TODO
     }
+    val keyboardController = LocalSoftwareKeyboardController.current
     BlockerModalBottomSheetLayout(
         sheetState = sheetState,
         sheetContent = {
@@ -209,6 +213,7 @@ fun SearchScreen(
                                                     sheetState.animateTo(HalfExpanded)
                                                 }
                                             }
+                                            keyboardController?.hide()
                                         },
                                     )
                                 }

@@ -57,6 +57,7 @@ fun BlockerTextField(
     keyword: TextFieldValue,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
 ) {
     var showClearButton by remember { mutableStateOf(false) }
@@ -88,7 +89,7 @@ fun BlockerTextField(
         },
         maxLines = 1,
         singleLine = true,
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+        keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(
             onDone = {
                 keyboardController?.hide()
