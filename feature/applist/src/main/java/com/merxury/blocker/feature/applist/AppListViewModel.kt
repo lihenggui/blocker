@@ -112,7 +112,7 @@ class AppListViewModel @Inject constructor(
                         isSystem = ApplicationUtil.isSystemApp(pm, installedApp.packageName),
                         // TODO detect if an app is running or not
                         isRunning = false,
-                        enabled = installedApp.isEnabled,
+                        isEnabled = installedApp.isEnabled,
                         firstInstallTime = installedApp.firstInstallTime,
                         lastUpdateTime = installedApp.lastUpdateTime,
                         appServiceStatus = null,

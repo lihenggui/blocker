@@ -61,6 +61,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.component.AppListItem
@@ -68,7 +69,6 @@ import com.merxury.blocker.feature.search.component.BottomSheetRoute
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.component.SelectedAppTopBar
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
-import com.merxury.blocker.feature.search.model.InstalledAppItem
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
 import com.merxury.blocker.feature.search.model.SearchTabState
@@ -443,7 +443,7 @@ fun SearchScreenNoResultPreview() {
 @Preview
 fun SearchScreenPreview() {
     val filterAppItem = FilteredComponentItem(
-        app = InstalledAppItem(
+        app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
             isSystem = false,
@@ -486,7 +486,7 @@ fun SearchScreenPreview() {
 @Preview
 fun SearchScreenSelectedPreview() {
     val filterAppItem = FilteredComponentItem(
-        app = InstalledAppItem(
+        app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
             isSystem = false,

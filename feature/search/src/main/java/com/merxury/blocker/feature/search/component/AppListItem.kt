@@ -50,9 +50,9 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.feature.search.R
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
-import com.merxury.blocker.feature.search.model.InstalledAppItem
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -223,7 +223,7 @@ fun AppListItemPreview() {
         pmBlocked = false,
     )
     val filterAppItem = FilteredComponentItem(
-        app = InstalledAppItem(
+        app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
             isSystem = false,
@@ -259,7 +259,7 @@ fun AppListItemWithoutServicePreview() {
         pmBlocked = false,
     )
     val filterAppItem = FilteredComponentItem(
-        app = InstalledAppItem(
+        app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
             isSystem = false,

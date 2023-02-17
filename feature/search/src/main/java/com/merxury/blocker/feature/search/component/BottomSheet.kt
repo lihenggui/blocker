@@ -48,14 +48,14 @@ import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.model.BottomSheetViewModel
-import com.merxury.blocker.feature.search.model.InstalledAppItem
 
 @Composable
 fun BottomSheetRoute(
     modifier: Modifier = Modifier,
-    app: InstalledAppItem,
+    app: AppItem,
     viewModel: BottomSheetViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -70,7 +70,7 @@ fun BottomSheetRoute(
 @Composable
 fun BottomSheet(
     modifier: Modifier = Modifier,
-    filterApp: InstalledAppItem,
+    filterApp: AppItem,
     tabState: TabState,
     switchTab: (Int) -> Unit,
 ) {
@@ -102,7 +102,7 @@ fun BottomSheet(
 @Composable
 fun InfoSection(
     modifier: Modifier = Modifier,
-    filterApp: InstalledAppItem,
+    filterApp: AppItem,
 ) {
     val versionName = filterApp.versionName
     Row(
@@ -156,7 +156,7 @@ fun InfoSection(
 @Composable
 @Preview
 fun BottomSheetPreview() {
-    val app = InstalledAppItem(
+    val app = AppItem(
         packageName = "com.merxury.blocker",
         label = "Blocker test long name",
         versionName = "23.12.20",
