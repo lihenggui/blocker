@@ -81,15 +81,17 @@ fun BottomSheet(
         )
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
-        ) {
-            tabState.titles.forEachIndexed { index, titleRes ->
-                BlockerTab(
-                    selected = index == tabState.currentIndex,
-                    onClick = { switchTab(index) },
-                    text = { Text(text = stringResource(id = titleRes)) },
-                )
-            }
-        }
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            tabs = {
+                tabState.titles.forEachIndexed { index, titleRes ->
+                    BlockerTab(
+                        selected = index == tabState.currentIndex,
+                        onClick = { switchTab(index) },
+                        text = { Text(text = stringResource(id = titleRes)) },
+                    )
+                }
+            },
+        )
         when (tabState.currentIndex) {
             0 -> {}
             1 -> {}
