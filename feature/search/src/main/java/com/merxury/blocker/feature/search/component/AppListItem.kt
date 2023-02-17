@@ -38,8 +38,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,7 +55,7 @@ import com.merxury.blocker.feature.search.R
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
 import com.merxury.blocker.feature.search.model.InstalledAppItem
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun AppListItem(
     filterAppItem: FilteredComponentItem,
@@ -63,6 +65,7 @@ fun AppListItem(
     onSelect: (Boolean) -> Unit,
     onClick: () -> Unit,
 ) {
+    val keyboardController = LocalSoftwareKeyboardController.current
     val color = if (isSelectedMode) {
         MaterialTheme.colorScheme.tertiaryContainer
     } else {
@@ -88,11 +91,13 @@ fun AppListItem(
                         } else {
                             onSelect(!filterAppItem.isSelected)
                         }
+                        keyboardController?.hide()
                     },
                     onLongClick = {
                         if (!isSelectedMode) {
                             switchSelectedMode(true)
                         }
+                        keyboardController?.hide()
                     },
                 )
                 .background(
