@@ -85,7 +85,7 @@ fun GeneralRulesScreen(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(top = padding.calculateTopPadding())
                 .consumeWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
