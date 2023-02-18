@@ -32,6 +32,7 @@ import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.H
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
 import com.merxury.blocker.feature.search.model.SearchTabItem
@@ -49,6 +50,7 @@ fun SearchResultScreen(
     onSelect: (Boolean) -> Unit,
     coroutineScope: CoroutineScope,
     sheetState: ModalBottomSheetState,
+    navigateToAppDetail: (String) -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
@@ -58,27 +60,36 @@ fun SearchResultScreen(
     ) {
         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
         when (tabState.currentIndex) {
-            0 -> {
-            }
+            0 -> AppSearchResultContent(
+                appList = localSearchUiState.apps,
+                onClick = { packageName ->
+                    navigateToAppDetail(packageName)
+                    keyboardController?.hide()
+                },
+                onClearCacheClick = {},
+                onClearDataClick = {},
+                onForceStopClick = {},
+                onUninstallClick = {},
+                onEnableClick = {},
+                onDisableClick = {},
+            )
 
-            1 -> {
-                ComponentSearchResultContent(
-                    componentList = localSearchUiState.components,
-                    isSelectedMode = localSearchUiState.isSelectedMode,
-                    switchSelectedMode = switchSelectedMode,
-                    onSelect = onSelect,
-                    onClick = {
-                        coroutineScope.launch {
-                            if (sheetState.isVisible) {
-                                sheetState.hide()
-                            } else {
-                                sheetState.animateTo(HalfExpanded)
-                            }
+            1 -> ComponentSearchResultContent(
+                componentList = localSearchUiState.components,
+                isSelectedMode = localSearchUiState.isSelectedMode,
+                switchSelectedMode = switchSelectedMode,
+                onSelect = onSelect,
+                onClick = {
+                    coroutineScope.launch {
+                        if (sheetState.isVisible) {
+                            sheetState.hide()
+                        } else {
+                            sheetState.animateTo(HalfExpanded)
                         }
-                        keyboardController?.hide()
-                    },
-                )
-            }
+                    }
+                    keyboardController?.hide()
+                },
+            )
 
             2 -> {}
         }
