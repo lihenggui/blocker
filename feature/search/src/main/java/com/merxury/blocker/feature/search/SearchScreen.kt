@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.search.screen
+package com.merxury.blocker.feature.search
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -28,38 +28,30 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.Expanded
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.HalfExpanded
 import com.merxury.blocker.core.designsystem.bottomsheet.rememberModalBottomSheetState
-import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
@@ -73,6 +65,10 @@ import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
 import com.merxury.blocker.feature.search.model.SearchTabState
 import com.merxury.blocker.feature.search.model.SearchViewModel
+import com.merxury.blocker.feature.search.screen.InitializingScreen
+import com.merxury.blocker.feature.search.screen.NoSearchResultScreen
+import com.merxury.blocker.feature.search.screen.SearchResultScreen
+import com.merxury.blocker.feature.search.screen.SearchingScreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -104,7 +100,6 @@ fun SearchRoute(
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalLayoutApi::class,
-    ExperimentalComposeUiApi::class,
 )
 @Composable
 fun SearchScreen(
@@ -136,7 +131,6 @@ fun SearchScreen(
         navigationToSearchedAppDetail()
         // TODO
     }
-    val keyboardController = LocalSoftwareKeyboardController.current
     BlockerModalBottomSheetLayout(
         sheetState = sheetState,
         sheetContent = {
@@ -173,59 +167,22 @@ fun SearchScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 when (localSearchUiState) {
-                    is LocalSearchUiState.Initializing -> {
-                        LoadingScreen(localSearchUiState.processingName)
-                    }
+                    LocalSearchUiState.Idle -> NoSearchResultScreen()
+                    LocalSearchUiState.Loading -> SearchingScreen()
+                    is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.message)
+                    is LocalSearchUiState.Initializing ->
+                        InitializingScreen(localSearchUiState.processingName)
 
-                    LocalSearchUiState.Idle -> {
-                        NoSearchScreen()
-                    }
-
-                    LocalSearchUiState.Loading -> {
-                        BlockerLoadingWheel(
-                            modifier = modifier,
-                            contentDesc = stringResource(id = string.searching),
-                        )
-                    }
-
-                    is LocalSearchUiState.Success -> {
-                        Column(
-                            modifier = modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Top,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            SearchResultTabRow(tabState = tabState, switchTab = switchTab)
-                            when (tabState.currentIndex) {
-                                0 -> {
-                                }
-
-                                1 -> {
-                                    ComponentSearchResultContent(
-                                        componentList = localSearchUiState.components,
-                                        isSelectedMode = localSearchUiState.isSelectedMode,
-                                        switchSelectedMode = switchSelectedMode,
-                                        onSelect = onSelect,
-                                        onClick = {
-                                            coroutineScope.launch {
-                                                if (sheetState.isVisible) {
-                                                    sheetState.hide()
-                                                } else {
-                                                    sheetState.animateTo(HalfExpanded)
-                                                }
-                                            }
-                                            keyboardController?.hide()
-                                        },
-                                    )
-                                }
-
-                                2 -> {}
-                            }
-                        }
-                    }
-
-                    is LocalSearchUiState.Error -> {
-                        ErrorScreen(localSearchUiState.message)
-                    }
+                    is LocalSearchUiState.Success -> SearchResultScreen(
+                        modifier,
+                        tabState,
+                        switchTab,
+                        localSearchUiState,
+                        switchSelectedMode,
+                        onSelect,
+                        coroutineScope,
+                        sheetState,
+                    )
                 }
             }
         }
@@ -314,37 +271,6 @@ fun SearchResultTabRow(
 @Composable
 fun ErrorScreen(message: ErrorMessage) {
     Text(text = message.message)
-}
-
-@Composable
-fun NoSearchScreen() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            imageVector = BlockerIcons.Inbox,
-            contentDescription = null,
-            modifier = Modifier
-                .size(96.dp)
-                .padding(8.dp),
-            tint = MaterialTheme.colorScheme.outline,
-        )
-        Text(
-            text = stringResource(id = string.no_search_result),
-            color = MaterialTheme.colorScheme.outline,
-            style = MaterialTheme.typography.bodyLarge,
-        )
-    }
-}
-
-@Composable
-fun LoadingScreen(processingName: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        BlockerLoadingWheel(contentDesc = processingName)
-        Text(
-            text = processingName,
-            color = MaterialTheme.colorScheme.outline,
-            style = MaterialTheme.typography.bodyLarge,
-        )
-    }
 }
 
 @Composable
