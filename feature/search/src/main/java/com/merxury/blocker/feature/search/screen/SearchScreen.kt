@@ -64,8 +64,8 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R.string
-import com.merxury.blocker.feature.search.component.AppListItem
 import com.merxury.blocker.feature.search.component.BottomSheetRoute
+import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.component.SelectedAppTopBar
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
@@ -363,8 +363,8 @@ fun ComponentSearchResultContent(
             state = listState,
         ) {
             items(componentList, key = { it.app.packageName }) {
-                AppListItem(
-                    filterAppItem = it,
+                FilteredComponentItem(
+                    items = it,
                     isSelectedMode = isSelectedMode,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
