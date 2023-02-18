@@ -38,9 +38,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,9 +52,10 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.feature.search.R
+import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppListItem(
     filterAppItem: FilteredComponentItem,
@@ -160,54 +161,53 @@ private fun AppContent(
             style = MaterialTheme.typography.bodyLarge,
         )
         Text(
-            text = getComponentInfo(appItem = appItem),
+            text = getComponentCountDescription(appItem = appItem),
             style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
 
 @Composable
-private fun getComponentInfo(
-    appItem: FilteredComponentItem,
-): String {
-    var componentInfo = ""
-    var count = 0
-    if (appItem.service.isNotEmpty()) {
-        componentInfo = stringResource(
-            id = R.string.service_count,
-            appItem.service.size,
-        )
-        count++
-    }
+private fun getComponentCountDescription(appItem: FilteredComponentItem): String {
+    val countDescriptions = mutableListOf<String>()
     if (appItem.receiver.isNotEmpty()) {
-        if (count != 0) {
-            componentInfo += stringResource(id = R.string.delimiter)
-        }
-        componentInfo += stringResource(
-            id = R.string.broadcast_count,
-            appItem.receiver.size,
+        countDescriptions.add(
+            pluralStringResource(
+                id = R.plurals.broadcast_count,
+                count = appItem.receiver.size,
+                appItem.receiver.size,
+            ),
         )
-        count++
+    }
+    if (appItem.service.isNotEmpty()) {
+        countDescriptions.add(
+            pluralStringResource(
+                id = R.plurals.service_count,
+                count = appItem.service.size,
+                appItem.service.size,
+            ),
+        )
     }
     if (appItem.activity.isNotEmpty()) {
-        if (count != 0) {
-            componentInfo += stringResource(id = R.string.delimiter)
-        }
-        componentInfo += stringResource(
-            id = R.string.activity_count,
-            appItem.activity.size,
+        countDescriptions.add(
+            pluralStringResource(
+                id = R.plurals.activity_count,
+                count = appItem.activity.size,
+                appItem.activity.size,
+            ),
         )
     }
     if (appItem.provider.isNotEmpty()) {
-        if (count != 0) {
-            componentInfo += stringResource(id = R.string.delimiter)
-        }
-        componentInfo += stringResource(
-            id = R.string.content_provider_count,
-            appItem.provider.size,
+        countDescriptions.add(
+            pluralStringResource(
+                id = R.plurals.content_provider_count,
+                count = appItem.provider.size,
+                appItem.provider.size,
+            ),
         )
     }
-    return componentInfo
+    return countDescriptions
+        .joinToString(separator = stringResource(id = string.delimiter))
 }
 
 @Composable
