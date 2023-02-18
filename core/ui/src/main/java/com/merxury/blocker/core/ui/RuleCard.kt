@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.generalrules.component
+package com.merxury.blocker.core.ui
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,7 +37,6 @@ import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.feature.generalrule.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
