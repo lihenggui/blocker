@@ -51,9 +51,9 @@ import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.feature.search.model.BottomSheetViewModel
-import com.merxury.blocker.feature.search.model.SearchResultTabState
 
 @Composable
 fun BottomSheetRoute(
@@ -74,7 +74,7 @@ fun BottomSheetRoute(
 fun BottomSheet(
     modifier: Modifier = Modifier,
     filterApp: AppItem,
-    tabState: SearchResultTabState,
+    tabState: TabState<AppDetailTabs>,
     switchTab: (AppDetailTabs) -> Unit,
 ) {
     Column(modifier = modifier.defaultMinSize(1.dp)) {
@@ -83,7 +83,7 @@ fun BottomSheet(
             filterApp = filterApp,
         )
         BlockerScrollableTabRow(
-            selectedTabIndex = tabState.currentIndex(),
+            selectedTabIndex = tabState.currentIndex,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
             tabs = {
                 tabState.items.forEachIndexed { index, item ->
@@ -95,7 +95,7 @@ fun BottomSheet(
                 }
             },
         )
-        when (tabState.currentIndex()) {
+        when (tabState.currentIndex) {
             0 -> {}
             1 -> {}
         }
@@ -165,7 +165,7 @@ fun BottomSheetPreview() {
         versionName = "23.12.20",
         isSystem = false,
     )
-    val tabState = SearchResultTabState(
+    val tabState = TabState(
         items = listOf(
             Service,
             Activity,
