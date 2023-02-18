@@ -335,9 +335,9 @@ fun CollapsingToolbarExpandedPreview() {
             progress = 1f,
             title = "Title with long name 0123456789",
             actions = {
-                BlockerTextField(
+                BlockerSearchTextField(
                     keyword = TextFieldValue("blocker"),
-                    onSearchTextChanged = { TextFieldValue() },
+                    onValueChange = {},
                     onClearClick = {},
                 )
                 IconButton(

@@ -39,7 +39,7 @@
         <item quantity="other">%1$d apps selected</item>
     </plurals>
     <string name="delimiter" translatable="false">&#160;/&#160;</string>
-    <string name="click_to_search">Click to search</string>
+    <string name="search_hint">Apps, components and rules</string>
     <string name="no_search_result">No search result yet</string>
     <string name="initializing_database">Initializing database</string>
 </resources>

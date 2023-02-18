@@ -40,7 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
-import com.merxury.blocker.core.designsystem.component.BlockerTextField
+import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
@@ -165,9 +165,9 @@ fun updateAppBarActions(
         AppBarActionState(
             actions = {
                 if (topAppBarUiState.isSearchMode) {
-                    BlockerTextField(
+                    BlockerSearchTextField(
                         keyword = topAppBarUiState.keyword,
-                        onSearchTextChanged = onSearchTextChanged,
+                        onValueChange = onSearchTextChanged,
                         onClearClick = {
                             onSearchTextChanged(
                                 TextFieldValue(),
