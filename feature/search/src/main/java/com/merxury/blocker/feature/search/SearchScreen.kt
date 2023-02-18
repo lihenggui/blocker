@@ -48,6 +48,7 @@ import com.merxury.blocker.core.designsystem.bottomsheet.rememberModalBottomShee
 import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.applist.AppListItem
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.feature.search.component.BottomSheetRoute
@@ -67,7 +68,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SearchRoute(
-    navigationToSearchedAppDetail: () -> Unit,
+    navigateToAppDetail: (String) -> Unit,
+    navigateToComponentsDetail: () -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
@@ -87,7 +89,8 @@ fun SearchRoute(
         onCheckAll = viewModel::checkAll,
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
-        navigationToSearchedAppDetail = navigationToSearchedAppDetail,
+        navigateToAppDetail = navigateToAppDetail,
+        navigateToComponentsDetail = navigateToComponentsDetail,
     )
 }
 
@@ -110,7 +113,8 @@ fun SearchScreen(
     onCheckAll: () -> Unit,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
-    navigationToSearchedAppDetail: () -> Unit,
+    navigateToAppDetail: (String) -> Unit = {},
+    navigateToComponentsDetail: () -> Unit = {},
 ) {
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
@@ -122,7 +126,7 @@ fun SearchScreen(
         coroutineScope.launch { sheetState.hide() }
     }
     if (sheetState.targetValue == Expanded) {
-        navigationToSearchedAppDetail()
+        navigateToComponentsDetail()
         // TODO
     }
     BlockerModalBottomSheetLayout(
@@ -174,6 +178,7 @@ fun SearchScreen(
                         onSelect,
                         coroutineScope,
                         sheetState,
+                        navigateToAppDetail,
                     )
                 }
             }
@@ -242,6 +247,47 @@ fun ComponentSearchResultContent(
 }
 
 @Composable
+fun AppSearchResultContent(
+    modifier: Modifier = Modifier,
+    appList: List<AppItem>,
+    onClick: (String) -> Unit,
+    onClearCacheClick: (String) -> Unit,
+    onClearDataClick: (String) -> Unit,
+    onForceStopClick: (String) -> Unit,
+    onUninstallClick: (String) -> Unit,
+    onEnableClick: (String) -> Unit,
+    onDisableClick: (String) -> Unit,
+) {
+    val listState = rememberLazyListState()
+    Box(modifier) {
+        LazyColumn(
+            modifier = modifier,
+            state = listState,
+        ) {
+            items(appList, key = { it.packageName }) {
+                AppListItem(
+                    label = it.label,
+                    packageName = it.packageName,
+                    versionName = it.versionName,
+                    versionCode = it.versionCode,
+                    isAppEnabled = it.isEnabled,
+                    isAppRunning = it.isRunning,
+                    packageInfo = it.packageInfo,
+                    appServiceStatus = it.appServiceStatus,
+                    onClick = onClick,
+                    onClearCacheClick = onClearCacheClick,
+                    onClearDataClick = onClearDataClick,
+                    onForceStopClick = onForceStopClick,
+                    onUninstallClick = onUninstallClick,
+                    onEnableClick = onEnableClick,
+                    onDisableClick = onDisableClick,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 @Preview
 fun SearchScreenEmptyPreview() {
     val searchBoxUiState = SearchBoxUiState()
@@ -268,7 +314,7 @@ fun SearchScreenEmptyPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            navigationToSearchedAppDetail = {},
+            navigateToComponentsDetail = {},
         )
     }
 }
@@ -300,7 +346,6 @@ fun SearchScreenNoResultPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            navigationToSearchedAppDetail = {},
         )
     }
 }
@@ -343,7 +388,6 @@ fun SearchScreenPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            navigationToSearchedAppDetail = {},
         )
     }
 }
@@ -387,7 +431,6 @@ fun SearchScreenSelectedPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            navigationToSearchedAppDetail = {},
         )
     }
 }
