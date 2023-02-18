@@ -76,8 +76,7 @@ fun FilteredComponentItem(
         RoundedCornerShape(0.dp)
     }
     Box(
-        modifier = modifier
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = modifier,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -101,10 +100,9 @@ fun FilteredComponentItem(
                     color = color,
                     shape = shape,
                 )
-                .padding(horizontal = 8.dp, vertical = 10.dp),
-
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            AppIcon(
+            SelectableAppIcon(
                 info = items.app.packageInfo,
                 isSelectedMode = isSelectedMode,
                 isSelected = items.isSelected,
@@ -117,7 +115,7 @@ fun FilteredComponentItem(
 }
 
 @Composable
-private fun AppIcon(
+private fun SelectableAppIcon(
     info: PackageInfo?,
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
@@ -128,14 +126,14 @@ private fun AppIcon(
         IconButton(onClick = { onSelect(false) }) {
             Icon(
                 imageVector = BlockerIcons.Check,
-                modifier = modifier.size(40.dp),
+                modifier = modifier.size(48.dp),
                 contentDescription = null,
             )
         }
     } else {
         AsyncImage(
             modifier = modifier
-                .size(40.dp)
+                .size(48.dp)
                 .clickable {
                     if (isSelectedMode) {
                         onSelect(true)
@@ -162,7 +160,8 @@ private fun AppContent(
         )
         Text(
             text = getComponentCountDescription(appItem = appItem),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
