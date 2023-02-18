@@ -19,13 +19,17 @@ package com.merxury.blocker.feature.search.model
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import com.merxury.blocker.core.decoder.StringDecoder
-import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.feature.search.R.string
+import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.AppDetailTabs.Activity
+import com.merxury.blocker.core.ui.AppDetailTabs.Provider
+import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,21 +39,32 @@ class BottomSheetViewModel @Inject constructor(
     stringDecoder: StringDecoder,
 ) : AndroidViewModel(app) {
     private val _tabState = MutableStateFlow(
-        TabState(
-            titles = listOf(
-                string.applicable_app,
-                string.illustrate,
-            ),
-            currentIndex = 0,
+        SearchResultTabState(
+            items = listOf(Receiver, Service, Activity, Provider),
+            selectedItem = Receiver,
         ),
     )
-    val tabState: StateFlow<TabState> = _tabState.asStateFlow()
+    val tabState: StateFlow<SearchResultTabState> = _tabState.asStateFlow()
 
-    fun switchTab(newIndex: Int) {
-        if (newIndex != tabState.value.currentIndex) {
+    fun switchTab(selectedItem: AppDetailTabs) {
+        if (selectedItem != tabState.value.selectedItem) {
             _tabState.update {
-                it.copy(currentIndex = newIndex)
+                it.copy(selectedItem = selectedItem)
             }
         }
+    }
+}
+
+data class SearchResultTabState(
+    val items: List<AppDetailTabs>,
+    val selectedItem: AppDetailTabs,
+) {
+    fun currentIndex(): Int {
+        val currentIndex = items.indexOf(selectedItem)
+        if (currentIndex == -1) {
+            Timber.w("Can't find index of $selectedItem, returning to default page.")
+            return 0
+        }
+        return currentIndex
     }
 }

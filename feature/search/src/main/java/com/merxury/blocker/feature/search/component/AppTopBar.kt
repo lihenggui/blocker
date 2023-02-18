@@ -48,7 +48,7 @@ fun SelectedAppTopBar(
     onCheckAll: () -> Unit,
 ) {
     BlockerLargeTopAppBar(
-        title = stringResource(id = string.selected_app, selectedAppCount),
+        title = selectedAppCount.toString(),
         navigation = {
             IconButton(onClick = onNavigationClick) {
                 Icon(
