@@ -29,4 +29,5 @@
     <string name="content_provider">内容提供者</string>
     <string name="activity">活动</string>
     <string name="service">服务</string>
+    <string name="rule_icon_description">规则图标</string>
 </resources>

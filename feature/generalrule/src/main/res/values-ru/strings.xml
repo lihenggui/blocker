@@ -20,5 +20,4 @@
     <string name="search">Поиск</string>
     <string name="icon">Значок</string>
     <string name="loading">Загрузка</string>
-    <string name="rule_icon_description">Значок правила</string>
 </resources>

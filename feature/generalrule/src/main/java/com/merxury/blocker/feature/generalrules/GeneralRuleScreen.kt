@@ -45,9 +45,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.RuleCard
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.feature.generalrule.R
-import com.merxury.blocker.feature.generalrules.component.RuleCard
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
