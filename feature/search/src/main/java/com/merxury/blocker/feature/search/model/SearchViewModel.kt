@@ -41,6 +41,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASC
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
@@ -83,16 +84,16 @@ class SearchViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     private val _tabState = MutableStateFlow(
-        SearchTabState(
-            titles = listOf(
-                R.string.application,
-                R.string.component,
-                R.string.online_rule,
+        TabState(
+            items = listOf(
+                SearchTabItem(R.string.application),
+                SearchTabItem(R.string.component),
+                SearchTabItem(R.string.online_rule),
             ),
-            currentIndex = 0,
+            selectedItem = SearchTabItem(R.string.application),
         ),
     )
-    val tabState: StateFlow<SearchTabState> = _tabState.asStateFlow()
+    val tabState: StateFlow<TabState<SearchTabItem>> = _tabState.asStateFlow()
 
     init {
         load()
@@ -109,10 +110,10 @@ class SearchViewModel @Inject constructor(
             }
     }
 
-    fun switchTab(newIndex: Int) {
-        if (newIndex != tabState.value.currentIndex) {
+    fun switchTab(newTab: SearchTabItem) {
+        if (newTab != tabState.value.selectedItem) {
             _tabState.update {
-                it.copy(currentIndex = newIndex)
+                it.copy(selectedItem = newTab)
             }
         }
     }
@@ -193,9 +194,20 @@ class SearchViewModel @Inject constructor(
                     _localSearchUiState.emit(searchResult)
                     _tabState.update {
                         it.copy(
-                            appCount = searchResult.apps.size,
-                            componentCount = searchResult.components.size,
-                            rulesCount = searchResult.rules.size,
+                            items = listOf(
+                                SearchTabItem(
+                                    title = R.string.application,
+                                    count = searchResult.apps.size,
+                                ),
+                                SearchTabItem(
+                                    title = R.string.component,
+                                    count = searchResult.components.size,
+                                ),
+                                SearchTabItem(
+                                    title = R.string.online_rule,
+                                    count = searchResult.rules.size,
+                                ),
+                            ),
                         )
                     }
                 }
@@ -258,10 +270,7 @@ data class FilteredComponentItem(
     val isSelected: Boolean = false,
 )
 
-data class SearchTabState(
-    val titles: List<Int>,
-    val currentIndex: Int,
-    val appCount: Int = 0,
-    val componentCount: Int = 0,
-    val rulesCount: Int = 0,
+data class SearchTabItem(
+    val title: Int,
+    val count: Int = 0,
 )
