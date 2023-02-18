@@ -57,8 +57,8 @@ import com.merxury.blocker.feature.search.model.FilteredComponentItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AppListItem(
-    filterAppItem: FilteredComponentItem,
+fun FilteredComponentItem(
+    items: FilteredComponentItem,
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
@@ -88,7 +88,7 @@ fun AppListItem(
                         if (!isSelectedMode) {
                             onClick()
                         } else {
-                            onSelect(!filterAppItem.isSelected)
+                            onSelect(!items.isSelected)
                         }
                     },
                     onLongClick = {
@@ -105,13 +105,13 @@ fun AppListItem(
 
         ) {
             AppIcon(
-                info = filterAppItem.app.packageInfo,
+                info = items.app.packageInfo,
                 isSelectedMode = isSelectedMode,
-                isSelected = filterAppItem.isSelected,
+                isSelected = items.isSelected,
                 onSelect = onSelect,
             )
             Spacer(modifier = Modifier.width(16.dp))
-            AppContent(appItem = filterAppItem)
+            AppContent(appItem = items)
         }
     }
 }
@@ -236,8 +236,8 @@ fun AppListItemPreview() {
     )
     BlockerTheme {
         Surface {
-            AppListItem(
-                filterAppItem = filterAppItem,
+            FilteredComponentItem(
+                items = filterAppItem,
                 isSelectedMode = true,
                 switchSelectedMode = {},
                 onSelect = {},
@@ -271,8 +271,8 @@ fun AppListItemWithoutServicePreview() {
     )
     BlockerTheme {
         Surface {
-            AppListItem(
-                filterAppItem = filterAppItem,
+            FilteredComponentItem(
+                items = filterAppItem,
                 isSelectedMode = false,
                 switchSelectedMode = {},
                 onSelect = {},
