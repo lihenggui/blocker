@@ -16,7 +16,9 @@
 
 package com.merxury.blocker.feature.search.screen
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -35,7 +37,11 @@ import com.merxury.blocker.feature.search.R.string
 
 @Composable
 fun NoSearchResultScreen() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         Icon(
             imageVector = BlockerIcons.Inbox,
             contentDescription = null,
