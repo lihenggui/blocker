@@ -29,6 +29,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -56,7 +57,7 @@ class AppDetailViewModel @Inject constructor(
     private val _appBarUiState = MutableStateFlow(AppBarUiState())
     val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
     private val _tabState = MutableStateFlow(
-        AppDetailTabState(
+        TabState(
             items = listOf(
                 Info,
                 Receiver,
@@ -67,7 +68,7 @@ class AppDetailViewModel @Inject constructor(
             selectedItem = Info,
         ),
     )
-    val tabState: StateFlow<AppDetailTabState> = _tabState.asStateFlow()
+    val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
 
     init {
         loadTabInfo()
@@ -140,17 +141,3 @@ data class AppBarUiState(
     val isSearchMode: Boolean = false,
     val actions: AppBarActionState = AppBarActionState(),
 )
-
-data class AppDetailTabState(
-    val items: List<AppDetailTabs>,
-    val selectedItem: AppDetailTabs,
-) {
-    fun currentIndex(): Int {
-        val currentIndex = items.indexOf(selectedItem)
-        if (currentIndex == -1) {
-            Timber.w("Can't find index of $selectedItem, returning to default page.")
-            return 0
-        }
-        return currentIndex
-    }
-}
