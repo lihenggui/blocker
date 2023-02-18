@@ -16,7 +16,19 @@
 
 package com.merxury.blocker.core.ui
 
-data class TabState(
-    val titles: List<Int>,
-    val currentIndex: Int,
-)
+import timber.log.Timber
+
+data class TabState<T>(
+    val items: List<T>,
+    val selectedItem: T,
+) {
+    val currentIndex: Int
+        get() {
+            val currentIndex = items.indexOf(selectedItem)
+            if (currentIndex == -1) {
+                Timber.w("Can't find index of $selectedItem, returning to default page.")
+                return 0
+            }
+            return currentIndex
+        }
+}
