@@ -72,6 +72,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
@@ -110,7 +111,7 @@ fun AppDetailRoute(
 @Composable
 fun AppDetailScreen(
     uiState: AppInfoUiState,
-    tabState: AppDetailTabState,
+    tabState: TabState<AppDetailTabs>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
@@ -157,7 +158,7 @@ fun AppDetailScreen(
 @Composable
 fun AppDetailContent(
     app: Application,
-    tabState: AppDetailTabState,
+    tabState: TabState<AppDetailTabs>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
@@ -256,7 +257,7 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
 fun AppDetailTabContent(
     modifier: Modifier = Modifier,
     app: Application,
-    tabState: AppDetailTabState,
+    tabState: TabState<AppDetailTabs>,
     switchTab: (AppDetailTabs) -> Unit,
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
@@ -267,12 +268,12 @@ fun AppDetailTabContent(
         modifier = modifier,
     ) {
         BlockerScrollableTabRow(
-            selectedTabIndex = tabState.currentIndex(),
+            selectedTabIndex = tabState.currentIndex,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ) {
             tabState.items.forEachIndexed { index, tabItem ->
                 BlockerTab(
-                    selected = index == tabState.currentIndex(),
+                    selected = index == tabState.currentIndex,
                     onClick = { switchTab(tabItem) },
                     text = { Text(text = stringResource(id = tabItem.title)) },
                 )
@@ -341,7 +342,7 @@ fun AppDetailScreenPreview() {
         lastUpdateTime = System.now(),
         packageInfo = null,
     )
-    val tabState = AppDetailTabState(
+    val tabState = TabState(
         items = listOf(
             Info,
             Receiver,
@@ -380,7 +381,7 @@ fun AppDetailScreenCollapsedPreview() {
         lastUpdateTime = System.now(),
         packageInfo = null,
     )
-    val tabState = AppDetailTabState(
+    val tabState = TabState(
         items = listOf(
             Info,
             Receiver,
