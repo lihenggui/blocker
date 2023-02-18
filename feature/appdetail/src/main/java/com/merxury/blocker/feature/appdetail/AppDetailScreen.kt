@@ -66,16 +66,17 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.AppDetailTabs.Activity
+import com.merxury.blocker.core.ui.AppDetailTabs.Info
+import com.merxury.blocker.core.ui.AppDetailTabs.Provider
+import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.Screen.Activity
-import com.merxury.blocker.feature.appdetail.Screen.Detail
-import com.merxury.blocker.feature.appdetail.Screen.Provider
-import com.merxury.blocker.feature.appdetail.Screen.Receiver
-import com.merxury.blocker.feature.appdetail.Screen.Service
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import kotlinx.coroutines.cancelChildren
@@ -112,7 +113,7 @@ fun AppDetailScreen(
     tabState: AppDetailTabState,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
-    switchTab: (Screen) -> Unit,
+    switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
@@ -159,7 +160,7 @@ fun AppDetailContent(
     tabState: AppDetailTabState,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
-    switchTab: (Screen) -> Unit,
+    switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
@@ -256,7 +257,7 @@ fun AppDetailTabContent(
     modifier: Modifier = Modifier,
     app: Application,
     tabState: AppDetailTabState,
-    switchTab: (Screen) -> Unit,
+    switchTab: (AppDetailTabs) -> Unit,
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
@@ -278,7 +279,7 @@ fun AppDetailTabContent(
             }
         }
         when (tabState.selectedItem) {
-            Detail ->
+            Info ->
                 SummaryContent(
                     app = app,
                     onToolbarActionUpdated = onToolbarActionUpdated,
@@ -342,13 +343,13 @@ fun AppDetailScreenPreview() {
     )
     val tabState = AppDetailTabState(
         items = listOf(
-            Detail,
+            Info,
             Receiver,
             Service,
             Activity,
             Provider,
         ),
-        selectedItem = Detail,
+        selectedItem = Info,
     )
     BlockerTheme {
         Surface {
@@ -381,13 +382,13 @@ fun AppDetailScreenCollapsedPreview() {
     )
     val tabState = AppDetailTabState(
         items = listOf(
-            Detail,
+            Info,
             Receiver,
             Service,
             Activity,
             Provider,
         ),
-        selectedItem = Detail,
+        selectedItem = Info,
     )
     BlockerTheme {
         Surface {
