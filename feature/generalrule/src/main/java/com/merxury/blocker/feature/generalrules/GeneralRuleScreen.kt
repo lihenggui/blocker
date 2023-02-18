@@ -32,7 +32,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -46,7 +45,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.feature.generalrule.R
 import com.merxury.blocker.feature.generalrules.component.RuleCard
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState
@@ -118,16 +117,11 @@ fun GeneralRulesScreen(
                 }
 
                 is Error -> {
-                    ErrorScreen(message = uiState.message)
+                    ErrorScreen(error = uiState.error)
                 }
             }
         }
     }
-}
-
-@Composable
-fun ErrorScreen(message: ErrorMessage) {
-    Text(text = message.message)
 }
 
 @Composable
