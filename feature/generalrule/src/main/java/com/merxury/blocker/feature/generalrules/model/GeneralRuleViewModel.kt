@@ -85,5 +85,5 @@ sealed interface GeneralRuleUiState {
         val serverUrl: String,
     ) : GeneralRuleUiState
 
-    class Error(val message: ErrorMessage) : GeneralRuleUiState
+    class Error(val error: ErrorMessage) : GeneralRuleUiState
 }
