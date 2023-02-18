@@ -16,12 +16,16 @@
 
 package com.merxury.blocker.feature.search.screen
 
+import android.content.res.Configuration
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
@@ -30,7 +34,11 @@ import com.merxury.blocker.feature.search.R.string
 
 @Composable
 fun SearchingScreen() {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ) {
         BlockerLoadingWheel(contentDesc = stringResource(id = string.searching))
         Text(
             text = stringResource(id = string.searching),
@@ -40,7 +48,7 @@ fun SearchingScreen() {
 }
 
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 private fun SearchingScreenPreview() {
     BlockerTheme {

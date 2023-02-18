@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.search
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -38,9 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -50,8 +47,6 @@ import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.E
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.HalfExpanded
 import com.merxury.blocker.core.designsystem.bottomsheet.rememberModalBottomSheetState
 import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLayout
-import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
-import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
@@ -163,8 +158,6 @@ fun SearchScreen(
                             WindowInsetsSides.Horizontal,
                         ),
                     ),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 when (localSearchUiState) {
                     LocalSearchUiState.Idle -> NoSearchResultScreen()
@@ -218,31 +211,6 @@ fun TopBar(
             onSearchTextChanged = onSearchTextChanged,
             onClearClick = onClearClick,
         )
-    }
-}
-
-@Composable
-fun SearchResultTabRow(
-    tabState: TabState<SearchTabItem>,
-    switchTab: (SearchTabItem) -> Unit,
-) {
-    BlockerScrollableTabRow(
-        selectedTabIndex = tabState.currentIndex,
-    ) {
-        tabState.items.forEachIndexed { index, tabItem ->
-            BlockerTab(
-                selected = index == tabState.currentIndex,
-                onClick = { switchTab(tabItem) },
-                text = {
-                    Text(
-                        text = stringResource(
-                            id = tabItem.title,
-                            tabItem.count,
-                        ),
-                    )
-                },
-            )
-        }
     }
 }
 
