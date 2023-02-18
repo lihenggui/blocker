@@ -53,9 +53,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLa
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.component.BottomSheetRoute
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
@@ -63,7 +63,7 @@ import com.merxury.blocker.feature.search.component.SelectedAppTopBar
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
-import com.merxury.blocker.feature.search.model.SearchTabState
+import com.merxury.blocker.feature.search.model.SearchTabItem
 import com.merxury.blocker.feature.search.model.SearchViewModel
 import com.merxury.blocker.feature.search.screen.InitializingScreen
 import com.merxury.blocker.feature.search.screen.NoSearchResultScreen
@@ -104,10 +104,10 @@ fun SearchRoute(
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
-    tabState: SearchTabState,
+    tabState: TabState<SearchTabItem>,
     searchBoxUiState: SearchBoxUiState,
     localSearchUiState: LocalSearchUiState,
-    switchTab: (Int) -> Unit,
+    switchTab: (SearchTabItem) -> Unit,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
     onNavigationClick: () -> Unit,
@@ -223,48 +223,26 @@ fun TopBar(
 
 @Composable
 fun SearchResultTabRow(
-    tabState: SearchTabState,
-    switchTab: (Int) -> Unit,
+    tabState: TabState<SearchTabItem>,
+    switchTab: (SearchTabItem) -> Unit,
 ) {
     BlockerScrollableTabRow(
         selectedTabIndex = tabState.currentIndex,
     ) {
-        BlockerTab(
-            selected = 0 == tabState.currentIndex,
-            onClick = { switchTab(0) },
-            text = {
-                Text(
-                    text = stringResource(
-                        id = tabState.titles[0],
-                        tabState.appCount,
-                    ),
-                )
-            },
-        )
-        BlockerTab(
-            selected = 1 == tabState.currentIndex,
-            onClick = { switchTab(1) },
-            text = {
-                Text(
-                    text = stringResource(
-                        id = tabState.titles[1],
-                        tabState.componentCount,
-                    ),
-                )
-            },
-        )
-        BlockerTab(
-            selected = 2 == tabState.currentIndex,
-            onClick = { switchTab(2) },
-            text = {
-                Text(
-                    text = stringResource(
-                        id = tabState.titles[2],
-                        tabState.rulesCount,
-                    ),
-                )
-            },
-        )
+        tabState.items.forEachIndexed { index, tabItem ->
+            BlockerTab(
+                selected = index == tabState.currentIndex,
+                onClick = { switchTab(tabItem) },
+                text = {
+                    Text(
+                        text = stringResource(
+                            id = tabItem.title,
+                            tabItem.count,
+                        ),
+                    )
+                },
+            )
+        }
     }
 }
 
@@ -306,13 +284,13 @@ fun ComponentSearchResultContent(
 fun SearchScreenEmptyPreview() {
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Loading
-    val tabState = SearchTabState(
-        titles = listOf(
-            string.application,
-            string.component,
-            string.online_rule,
+    val tabState = TabState(
+        items = listOf(
+            SearchTabItem(R.string.application),
+            SearchTabItem(R.string.component),
+            SearchTabItem(R.string.online_rule),
         ),
-        currentIndex = 0,
+        selectedItem = SearchTabItem(R.string.application),
     )
     BlockerTheme {
         SearchScreen(
@@ -338,13 +316,13 @@ fun SearchScreenEmptyPreview() {
 fun SearchScreenNoResultPreview() {
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Idle
-    val tabState = SearchTabState(
-        titles = listOf(
-            string.application,
-            string.component,
-            string.online_rule,
+    val tabState = TabState(
+        items = listOf(
+            SearchTabItem(R.string.application),
+            SearchTabItem(R.string.component),
+            SearchTabItem(R.string.online_rule),
         ),
-        currentIndex = 0,
+        selectedItem = SearchTabItem(R.string.application),
     )
     BlockerTheme {
         SearchScreen(
@@ -381,13 +359,13 @@ fun SearchScreenPreview() {
         isSelectedMode = false,
         selectedAppCount = 0,
     )
-    val tabState = SearchTabState(
-        titles = listOf(
-            string.application,
-            string.component,
-            string.online_rule,
+    val tabState = TabState(
+        items = listOf(
+            SearchTabItem(R.string.application),
+            SearchTabItem(R.string.component),
+            SearchTabItem(R.string.online_rule),
         ),
-        currentIndex = 0,
+        selectedItem = SearchTabItem(R.string.application),
     )
     BlockerTheme {
         SearchScreen(
@@ -425,13 +403,13 @@ fun SearchScreenSelectedPreview() {
         isSelectedMode = true,
         selectedAppCount = 1,
     )
-    val tabState = SearchTabState(
-        titles = listOf(
-            string.application,
-            string.component,
-            string.online_rule,
+    val tabState = TabState(
+        items = listOf(
+            SearchTabItem(R.string.application),
+            SearchTabItem(R.string.component),
+            SearchTabItem(R.string.online_rule),
         ),
-        currentIndex = 0,
+        selectedItem = SearchTabItem(R.string.application),
     )
     BlockerTheme {
         SearchScreen(

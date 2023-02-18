@@ -27,10 +27,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetState
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.HalfExpanded
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.SearchResultTabRow
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
-import com.merxury.blocker.feature.search.model.SearchTabState
+import com.merxury.blocker.feature.search.model.SearchTabItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -38,8 +39,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 fun SearchResultScreen(
     modifier: Modifier,
-    tabState: SearchTabState,
-    switchTab: (Int) -> Unit,
+    tabState: TabState<SearchTabItem>,
+    switchTab: (SearchTabItem) -> Unit,
     localSearchUiState: Success,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
