@@ -23,24 +23,25 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.AppDetailTabs.Activity
+import com.merxury.blocker.core.ui.AppDetailTabs.Info
+import com.merxury.blocker.core.ui.AppDetailTabs.Provider
+import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
-import com.merxury.blocker.feature.appdetail.Screen.Activity
-import com.merxury.blocker.feature.appdetail.Screen.Detail
-import com.merxury.blocker.feature.appdetail.Screen.Provider
-import com.merxury.blocker.feature.appdetail.Screen.Receiver
-import com.merxury.blocker.feature.appdetail.Screen.Service
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import javax.inject.Inject
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
@@ -57,13 +58,13 @@ class AppDetailViewModel @Inject constructor(
     private val _tabState = MutableStateFlow(
         AppDetailTabState(
             items = listOf(
-                Detail,
+                Info,
                 Receiver,
                 Service,
                 Activity,
                 Provider,
             ),
-            selectedItem = Detail,
+            selectedItem = Info,
         ),
     )
     val tabState: StateFlow<AppDetailTabState> = _tabState.asStateFlow()
@@ -74,15 +75,15 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private fun loadTabInfo() {
-        val screen = appPackageNameArgs.screen
+        val screen = appPackageNameArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
     }
 
-    fun switchTab(newScreen: Screen) {
-        if (newScreen != tabState.value.selectedItem) {
+    fun switchTab(newTab: AppDetailTabs) {
+        if (newTab != tabState.value.selectedItem) {
             _tabState.update {
-                it.copy(selectedItem = newScreen)
+                it.copy(selectedItem = newTab)
             }
         }
     }
@@ -141,8 +142,8 @@ data class AppBarUiState(
 )
 
 data class AppDetailTabState(
-    val items: List<Screen>,
-    val selectedItem: Screen,
+    val items: List<AppDetailTabs>,
+    val selectedItem: AppDetailTabs,
 ) {
     fun currentIndex(): Int {
         val currentIndex = items.indexOf(selectedItem)

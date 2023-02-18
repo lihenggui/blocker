@@ -87,7 +87,7 @@ fun ComponentListContent(
         itemsIndexed(
             items = components.value,
             key = { _, item -> item.name },
-        ) { index, item ->
+        ) { _, item ->
             ComponentListItem(
                 simpleName = item.simpleName,
                 name = item.name,

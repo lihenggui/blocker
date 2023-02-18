@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail
+package com.merxury.blocker.core.ui
 
-sealed class Screen(val name: String, val title: Int = 0) {
-    object Detail : Screen(DETAIL, title = R.string.app_info)
-    object Receiver : Screen(RECEIVER, title = R.string.receiver)
-    object Service : Screen(SERVICE, title = R.string.service)
-    object Activity : Screen(ACTIVITY, title = R.string.activity)
-    object Provider : Screen(PROVIDER, title = R.string.content_provider)
+sealed class AppDetailTabs(val name: String, val title: Int = 0) {
+    object Info : AppDetailTabs(INFO, title = R.string.app_info)
+    object Receiver : AppDetailTabs(RECEIVER, title = R.string.receiver)
+    object Service : AppDetailTabs(SERVICE, title = R.string.service)
+    object Activity : AppDetailTabs(ACTIVITY, title = R.string.activity)
+    object Provider : AppDetailTabs(PROVIDER, title = R.string.content_provider)
 
     override fun toString(): String {
         return "Screen name = $name"
     }
 
     companion object {
-        private const val DETAIL = "detail"
+        private const val INFO = "detail"
         private const val RECEIVER = "receiver"
         private const val SERVICE = "service"
         private const val ACTIVITY = "activity"
         private const val PROVIDER = "provider"
 
-        fun fromName(name: String?): Screen = when (name) {
-            DETAIL -> Detail
+        fun fromName(name: String?): AppDetailTabs = when (name) {
+            INFO -> Info
             RECEIVER -> Receiver
             SERVICE -> Service
             ACTIVITY -> Activity
