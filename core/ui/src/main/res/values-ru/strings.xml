@@ -35,4 +35,5 @@
     <string name="launch_activity">Запуск активности</string>
     <string name="stop_service">Остановить службу</string>
     <string name="no_components">Нет компонентов</string>
+    <string name="matched_rules">соответствует %1$d правилам</string>
 </resources>
