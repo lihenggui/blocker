@@ -118,7 +118,7 @@ fun BlockerTextFieldPreview() {
                 onValueChange = {},
                 onClearClick = {},
                 placeholder = {
-                    Text (text = "Search")
+                    Text(text = "Search")
                 },
                 colors = colors,
             )
