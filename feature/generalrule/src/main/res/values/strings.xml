@@ -16,7 +16,7 @@
   -->
 <resources>
     <string name="local_search">Local search</string>
-    <string name="general_rules">General rules</string>
+    <string name="rules">Rules</string>
     <string name="search">Search</string>
     <string name="icon">Icon</string>
     <string name="loading">Loading</string>

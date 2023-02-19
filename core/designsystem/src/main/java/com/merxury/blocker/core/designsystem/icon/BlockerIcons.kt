@@ -39,6 +39,7 @@ import androidx.compose.material.icons.outlined.Deselect
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.EventBusy
+import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.material.icons.outlined.FindInPage
@@ -82,6 +83,7 @@ object BlockerIcons {
     val SelectAll = Icons.Outlined.SelectAll
     val Inbox = Icons.Outlined.Inbox
     val ExpandMore = Icons.Outlined.ExpandMore
+    val ExpandLess = Icons.Outlined.ExpandLess
     val Tune = Icons.Outlined.Tune
     val Block = Icons.Outlined.Block
     val CheckCircle = Icons.Outlined.CheckCircle

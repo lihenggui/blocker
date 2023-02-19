@@ -48,8 +48,6 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.icon.Icon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.preference.ThemeBrand.ANDROID
-import com.merxury.blocker.core.model.preference.ThemeBrand.DEFAULT
 import com.merxury.blocker.feature.settings.R
 
 @Composable
@@ -163,10 +161,10 @@ fun DialogSettingsItemPreview() {
             SettingDialog(
                 titleRes = R.string.theme,
                 items = listOf(
-                    ANDROID to R.string.android,
-                    DEFAULT to R.string.theme_default,
+                    "Android" to R.string.android,
+                    "Default" to R.string.theme_default,
                 ),
-                selectedValue = DEFAULT to R.string.theme_default,
+                selectedValue = "Default" to R.string.theme_default,
                 onValueChange = {},
                 onDismiss = {},
             )
