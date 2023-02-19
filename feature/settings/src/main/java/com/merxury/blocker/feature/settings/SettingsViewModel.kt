@@ -30,7 +30,6 @@ import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
-import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
@@ -66,7 +65,6 @@ class SettingsViewModel @Inject constructor(
                         restoreSystemApp = userData.restoreSystemApp,
                         showSystemApps = userData.showSystemApps,
                         showServiceInfo = userData.showServiceInfo,
-                        themeBrand = userData.themeBrand,
                         darkThemeConfig = userData.darkThemeConfig,
                         useDynamicColor = userData.useDynamicColor,
                     ),
@@ -206,12 +204,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateThemeBrand(themeBrand: ThemeBrand) {
-        viewModelScope.launch {
-            userDataRepository.setThemeBrand(themeBrand)
-        }
-    }
-
     fun updateDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         viewModelScope.launch {
             userDataRepository.setDarkThemeConfig(darkThemeConfig)
@@ -233,7 +225,6 @@ data class UserEditableSettings(
     val restoreSystemApp: Boolean = false,
     val showSystemApps: Boolean = false,
     val showServiceInfo: Boolean = false,
-    val themeBrand: ThemeBrand,
     val darkThemeConfig: DarkThemeConfig,
     val useDynamicColor: Boolean,
 )

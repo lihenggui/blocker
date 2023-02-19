@@ -31,8 +31,6 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.DARK
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.LIGHT
-import com.merxury.blocker.core.model.preference.ThemeBrand
-import com.merxury.blocker.core.model.preference.ThemeBrand.BLOCKER
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.UserEditableSettings
 
@@ -41,7 +39,6 @@ fun ThemeSettings(
     modifier: Modifier = Modifier,
     settings: UserEditableSettings,
     supportDynamicColor: Boolean,
-    onChangeThemeBrand: (ThemeBrand) -> Unit,
     onChangeDynamicColorPreference: (useDynamicColor: Boolean) -> Unit,
     onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
 ) {
@@ -53,16 +50,7 @@ fun ThemeSettings(
             title = stringResource(id = string.theme),
             extraIconPadding = true,
         )
-        DialogSettingsItems(
-            titleRes = string.theme,
-            selectedItem = settings.themeBrand,
-            itemList = listOf(
-                BLOCKER to string.android,
-                BLOCKER to string.theme_default,
-            ),
-            onValueChange = onChangeThemeBrand,
-        )
-        if (settings.themeBrand == BLOCKER && supportDynamicColor) {
+        if (supportDynamicColor) {
             DialogSettingsItems(
                 titleRes = string.dynamic_color,
                 selectedItem = settings.useDynamicColor,
@@ -94,12 +82,10 @@ fun ThemeSettingsSettingsPreview() {
         Surface {
             ThemeSettings(
                 settings = UserEditableSettings(
-                    themeBrand = BLOCKER,
                     darkThemeConfig = DARK,
                     useDynamicColor = true,
                 ),
                 supportDynamicColor = true,
-                onChangeThemeBrand = {},
                 onChangeDynamicColorPreference = {},
                 onChangeDarkThemeConfig = {},
             )

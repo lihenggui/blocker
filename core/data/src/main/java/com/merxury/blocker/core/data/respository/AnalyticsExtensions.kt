@@ -20,16 +20,6 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-fun AnalyticsHelper.logThemeChanged(themeName: String) =
-    logEvent(
-        AnalyticsEvent(
-            type = "theme_changed",
-            extras = listOf(
-                Param(key = "theme_name", value = themeName),
-            ),
-        ),
-    )
-
 fun AnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfigName: String) =
     logEvent(
         AnalyticsEvent(

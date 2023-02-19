@@ -21,14 +21,11 @@ import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.Flow
 
 interface UserDataRepository {
     val userData: Flow<UserPreferenceData>
-
-    suspend fun setThemeBrand(themeBrand: ThemeBrand)
 
     suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig)
 
