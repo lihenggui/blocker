@@ -47,10 +47,10 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.ui.BlockerApp
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @AndroidEntryPoint
@@ -145,8 +145,7 @@ private fun shouldUseAndroidTheme(
 ): Boolean = when (uiState) {
     Loading -> false
     is Success -> when (uiState.userData.themeBrand) {
-        ThemeBrand.DEFAULT -> false
-        ThemeBrand.ANDROID -> true
+        ThemeBrand.BLOCKER -> false
     }
 }
 
