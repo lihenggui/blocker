@@ -168,7 +168,7 @@ fun BackgroundDynamic() {
 @ThemePreviews
 @Composable
 fun BackgroundAndroid() {
-    BlockerTheme(androidTheme = true) {
+    BlockerTheme(blockerTheme = true) {
         BlockerBackground(Modifier.size(100.dp), content = {})
     }
 }
@@ -192,7 +192,7 @@ fun GradientBackgroundDynamic() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundAndroid() {
-    BlockerTheme(androidTheme = true) {
+    BlockerTheme(blockerTheme = true) {
         BlockerGradientBackground(Modifier.size(100.dp), content = {})
     }
 }

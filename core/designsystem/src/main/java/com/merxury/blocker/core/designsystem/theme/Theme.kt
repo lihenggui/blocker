@@ -185,7 +185,7 @@ val DarkAndroidBackgroundTheme = BackgroundTheme(color = Color.Black)
  * Blocker theme.
  *
  * @param darkTheme Whether the theme should use a dark color scheme (follows system by default).
- * @param androidTheme Whether the theme should use the Android theme color scheme instead of the
+ * @param blockerTheme Whether the theme should use the Android theme color scheme instead of the
  *        default theme.
  * @param disableDynamicTheming If `true`, disables the use of dynamic theming, even when it is
  *        supported. This parameter has no effect if [androidTheme] is `true`.
@@ -193,13 +193,13 @@ val DarkAndroidBackgroundTheme = BackgroundTheme(color = Color.Black)
 @Composable
 fun BlockerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    androidTheme: Boolean = false,
+    blockerTheme: Boolean = false,
     disableDynamicTheming: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     // Color scheme
     val colorScheme = when {
-        androidTheme -> if (darkTheme) DarkAndroidColorScheme else LightAndroidColorScheme
+        blockerTheme -> if (darkTheme) DarkAndroidColorScheme else LightAndroidColorScheme
         !disableDynamicTheming && supportsDynamicTheming() -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
@@ -215,7 +215,7 @@ fun BlockerTheme(
         container = colorScheme.surface,
     )
     val gradientColors = when {
-        androidTheme -> if (darkTheme) DarkAndroidGradientColors else LightAndroidGradientColors
+        blockerTheme -> if (darkTheme) DarkAndroidGradientColors else LightAndroidGradientColors
         !disableDynamicTheming && supportsDynamicTheming() -> emptyGradientColors
         else -> defaultGradientColors
     }
@@ -225,11 +225,11 @@ fun BlockerTheme(
         tonalElevation = 2.dp,
     )
     val backgroundTheme = when {
-        androidTheme -> if (darkTheme) DarkAndroidBackgroundTheme else LightAndroidBackgroundTheme
+        blockerTheme -> if (darkTheme) DarkAndroidBackgroundTheme else LightAndroidBackgroundTheme
         else -> defaultBackgroundTheme
     }
     val tintTheme = when {
-        androidTheme -> TintTheme()
+        blockerTheme -> TintTheme()
         !disableDynamicTheming && supportsDynamicTheming() -> TintTheme(colorScheme.primary)
         else -> TintTheme()
     }
