@@ -134,7 +134,7 @@ fun AppListItem(
 }
 
 @Composable
-private fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
+fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
     AsyncImage(
         modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current)
