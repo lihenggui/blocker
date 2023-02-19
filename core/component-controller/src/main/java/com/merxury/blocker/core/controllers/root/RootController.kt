@@ -65,9 +65,8 @@ class RootController @Inject constructor(
         Timber.d("command:$comm, componentState is $state")
         return withContext(Dispatchers.IO) {
             try {
-                val commandOutput = comm.exec().orEmpty()
-                Timber.d("Command output: $commandOutput")
-                return@withContext !commandOutput.contains(FAILED_EXCEPTION_MSG)
+                val commandOutput = comm.exec()
+                return@withContext commandOutput.isSuccess
             } catch (e: Exception) {
                 throw e
             }
@@ -135,6 +134,5 @@ class RootController @Inject constructor(
     companion object {
         private const val DISABLE_COMPONENT_TEMPLATE = "pm disable %s/%s"
         private const val ENABLE_COMPONENT_TEMPLATE = "pm enable %s/%s"
-        private const val FAILED_EXCEPTION_MSG = "java.lang.IllegalArgumentException"
     }
 }

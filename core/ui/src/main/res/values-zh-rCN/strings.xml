@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright 2023 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<resources>
+    <string name="clear_cache">清理缓存</string>
+    <string name="clear_data">清除数据</string>
+    <string name="force_stop">强制停止</string>
+    <string name="uninstall">卸载</string>
+    <string name="enable">启用</string>
+    <string name="disable">禁用</string>
+    <string name="service_status_template">服务: 正在运行%1$d个, 已阻止%2$d个, 共计%3$d个.</string>
+    <string name="running">运行中</string>
+    <string name="disabled">已禁用</string>
+    <string name="app_info">应用信息</string>
+    <string name="receiver">广播接收器</string>
+    <string name="content_provider">内容提供者</string>
+    <string name="activity">活动</string>
+    <string name="service">服务</string>
+    <string name="rule_icon_description">规则图标</string>
+</resources>

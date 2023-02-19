@@ -14,42 +14,33 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail
+package com.merxury.blocker.core.ui
 
-sealed class Screen(val name: String, val tabPosition: Int) {
-    object Detail : Screen(DETAIL, tabPosition = 0)
-    object Receiver : Screen(RECEIVER, tabPosition = 1)
-    object Service : Screen(SERVICE, tabPosition = 2)
-    object Activity : Screen(ACTIVITY, tabPosition = 3)
-    object Provider : Screen(PROVIDER, tabPosition = 4)
+sealed class AppDetailTabs(val name: String, val title: Int = 0) {
+    object Info : AppDetailTabs(INFO, title = R.string.app_info)
+    object Receiver : AppDetailTabs(RECEIVER, title = R.string.receiver)
+    object Service : AppDetailTabs(SERVICE, title = R.string.service)
+    object Activity : AppDetailTabs(ACTIVITY, title = R.string.activity)
+    object Provider : AppDetailTabs(PROVIDER, title = R.string.content_provider)
 
     override fun toString(): String {
-        return "Screen name = $name, tabPosition = $tabPosition"
+        return "Screen name = $name"
     }
 
     companion object {
-        private const val DETAIL = "detail"
+        private const val INFO = "detail"
         private const val RECEIVER = "receiver"
         private const val SERVICE = "service"
         private const val ACTIVITY = "activity"
         private const val PROVIDER = "provider"
 
-        fun fromName(name: String?): Screen = when (name) {
-            DETAIL -> Detail
+        fun fromName(name: String?): AppDetailTabs = when (name) {
+            INFO -> Info
             RECEIVER -> Receiver
             SERVICE -> Service
             ACTIVITY -> Activity
             PROVIDER -> Provider
             else -> throw IllegalArgumentException("Invalid screen name in detail page")
-        }
-
-        fun fromPosition(pos: Int): Screen = when (pos) {
-            Detail.tabPosition -> Detail
-            Receiver.tabPosition -> Receiver
-            Service.tabPosition -> Service
-            Activity.tabPosition -> Activity
-            Provider.tabPosition -> Provider
-            else -> throw IllegalArgumentException("Invalid tab position in detail page")
         }
     }
 }

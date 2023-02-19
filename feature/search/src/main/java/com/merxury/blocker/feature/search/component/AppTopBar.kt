@@ -17,20 +17,24 @@
 package com.merxury.blocker.feature.search.component
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerLargeTopAppBar
-import com.merxury.blocker.core.designsystem.component.BlockerTextField
+import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -46,7 +50,7 @@ fun SelectedAppTopBar(
     onCheckAll: () -> Unit,
 ) {
     BlockerLargeTopAppBar(
-        title = stringResource(id = string.selected_app, selectedAppCount),
+        title = selectedAppCount.toString(),
         navigation = {
             IconButton(onClick = onNavigationClick) {
                 Icon(
@@ -97,10 +101,18 @@ fun SearchBar(
     BlockerTopAppBar(
         title = stringResource(id = string.searching),
         actions = {
-            BlockerTextField(
+            BlockerSearchTextField(
                 keyword = uiState.keyword,
-                onSearchTextChanged = onSearchTextChanged,
+                placeholder = {
+                    Text(
+                        text = stringResource(id = string.search_hint),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                },
+                onValueChange = onSearchTextChanged,
                 onClearClick = onClearClick,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 modifier = modifier.fillMaxWidth(),
                 colors = colors,
             )

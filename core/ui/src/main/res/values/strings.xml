@@ -16,5 +16,20 @@
      limitations under the License.
 -->
 <resources>
-
+    <string name="clear_cache">Clear cache</string>
+    <string name="clear_data">Clear data</string>
+    <string name="force_stop">Force stop</string>
+    <string name="uninstall">Uninstall</string>
+    <string name="enable">Enable</string>
+    <string name="disable">Disable</string>
+    <string name="running">Running</string>
+    <string name="disabled">Disabled</string>
+    <string name="version_code_template" translatable="false">%1$s (%2$s)</string>
+    <string name="service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
+    <string name="app_info">App info</string>
+    <string name="service">Service</string>
+    <string name="receiver">Receiver</string>
+    <string name="activity">Activity</string>
+    <string name="content_provider">Content Provider</string>
+    <string name="rule_icon_description">Rule icon</string>
 </resources>

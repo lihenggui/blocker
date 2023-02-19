@@ -41,22 +41,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun BlockerTextField(
+fun BlockerSearchTextField(
     modifier: Modifier = Modifier,
     keyword: TextFieldValue,
-    onSearchTextChanged: (TextFieldValue) -> Unit,
-    onClearClick: () -> Unit,
+    onValueChange: (TextFieldValue) -> Unit,
+    placeholder: @Composable (() -> Unit)? = null,
+    onClearClick: (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     colors: TextFieldColors = TextFieldDefaults.textFieldColors(),
 ) {
     var showClearButton by remember { mutableStateOf(false) }
@@ -68,9 +68,13 @@ fun BlockerTextField(
                 showClearButton = (focusState.isFocused)
             },
         value = keyword,
-        onValueChange = onSearchTextChanged,
-        placeholder = {
-            Text(text = stringResource(id = R.string.click_to_search))
+        onValueChange = onValueChange,
+        placeholder = placeholder,
+        leadingIcon = {
+            Icon(
+                imageVector = BlockerIcons.Search,
+                contentDescription = null,
+            )
         },
         trailingIcon = {
             AnimatedVisibility(
@@ -78,7 +82,7 @@ fun BlockerTextField(
                 enter = fadeIn(),
                 exit = fadeOut(),
             ) {
-                IconButton(onClick = { onClearClick() }) {
+                IconButton(onClick = { onClearClick?.invoke() }) {
                     Icon(
                         imageVector = BlockerIcons.Clear,
                         contentDescription = null,
@@ -88,7 +92,7 @@ fun BlockerTextField(
         },
         maxLines = 1,
         singleLine = true,
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+        keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(
             onDone = {
                 keyboardController?.hide()
@@ -109,10 +113,13 @@ fun BlockerTextFieldPreview() {
     )
     BlockerTheme {
         Surface {
-            BlockerTextField(
+            BlockerSearchTextField(
                 keyword = TextFieldValue(),
-                onSearchTextChanged = {},
+                onValueChange = {},
                 onClearClick = {},
+                placeholder = {
+                    Text(text = "Search")
+                },
                 colors = colors,
             )
         }
