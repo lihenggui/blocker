@@ -42,7 +42,6 @@ import com.merxury.blocker.core.model.data.GeneralRule
 @Composable
 fun RuleCard(
     item: GeneralRule,
-    serverUrl: String,
     onCardClick: (GeneralRule) -> Unit = { },
 ) {
     OutlinedCard(
@@ -63,7 +62,7 @@ fun RuleCard(
                     .padding(16.dp)
                     .size(40.dp),
                 model = Builder(LocalContext.current)
-                    .data(serverUrl + item.iconUrl)
+                    .data(item.iconUrl)
                     .error(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
                     .placeholder(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
                     .crossfade(true)
@@ -156,6 +155,6 @@ fun RuleBasicInfoPreview() {
         searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
     )
     BlockerTheme {
-        RuleCard(item = item, serverUrl = "")
+        RuleCard(item = item)
     }
 }
