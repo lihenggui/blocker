@@ -34,6 +34,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
+import com.merxury.blocker.feature.search.RuleSearchResultContent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
 import com.merxury.blocker.feature.search.model.SearchTabItem
 import kotlinx.coroutines.CoroutineScope
@@ -91,7 +92,10 @@ fun SearchResultScreen(
                 },
             )
 
-            2 -> {}
+            2 -> RuleSearchResultContent(
+                list = localSearchUiState.rules,
+                onClick = {},
+            )
         }
     }
 }
