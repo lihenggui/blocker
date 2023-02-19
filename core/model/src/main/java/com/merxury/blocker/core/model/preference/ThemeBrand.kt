@@ -17,5 +17,5 @@
 package com.merxury.blocker.core.model.preference
 
 enum class ThemeBrand {
-    DEFAULT, ANDROID
+    BLOCKER,
 }
