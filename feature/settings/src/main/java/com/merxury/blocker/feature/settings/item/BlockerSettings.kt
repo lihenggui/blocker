@@ -31,7 +31,6 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
-import com.merxury.blocker.core.model.preference.ThemeBrand.BLOCKER
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.UserEditableSettings
 
@@ -72,7 +71,6 @@ fun BlockerSettingsPreview() {
         Surface {
             BlockerSettings(
                 settings = UserEditableSettings(
-                    themeBrand = BLOCKER,
                     darkThemeConfig = FOLLOW_SYSTEM,
                     useDynamicColor = false,
                 ),
