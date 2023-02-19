@@ -40,9 +40,9 @@ import com.merxury.blocker.core.designsystem.theme.LocalBackgroundTheme
 import com.merxury.blocker.core.designsystem.theme.LocalGradientColors
 import com.merxury.blocker.core.designsystem.theme.LocalTintTheme
 import com.merxury.blocker.core.designsystem.theme.TintTheme
-import kotlin.test.assertEquals
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 
 /**
  * Tests [BlockerTheme] using different combinations of the theme mode parameters:
