@@ -30,4 +30,10 @@
     <string name="activity">Активити</string>
     <string name="content_provider">Поставщики</string>
     <string name="rule_icon_description">Значок правила</string>
+    <string name="copy_name">Скопировать полное имя</string>
+    <string name="copy_full_name">Копировать имя пакета</string>
+    <string name="launch_activity">Запуск активности</string>
+    <string name="stop_service">Остановить службу</string>
+    <string name="no_components">Нет компонентов</string>
+    <string name="matched_rules">соответствует %1$d правилам</string>
 </resources>
