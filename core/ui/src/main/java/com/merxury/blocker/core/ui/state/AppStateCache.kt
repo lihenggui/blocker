@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.applist.state
+package com.merxury.blocker.core.ui.state
 
 import android.content.ComponentName
 import android.content.Context
@@ -24,6 +24,10 @@ import com.merxury.ifw.IntentFirewallImpl
 
 object AppStateCache {
     private val cache = mutableMapOf<String, AppState>()
+
+    fun getOrNull(packageName: String): AppState? {
+        return cache[packageName]
+    }
 
     suspend fun get(context: Context, packageName: String): AppState {
         val cachedResult = cache[packageName]

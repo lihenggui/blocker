@@ -44,7 +44,6 @@ import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
-import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.ui.BlockerApp
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
@@ -113,7 +112,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(LocalAnalyticsHelper provides analyticsHelper) {
                 BlockerTheme(
                     darkTheme = darkTheme,
-                    androidTheme = shouldUseAndroidTheme(uiState),
+                    blockerTheme = shouldDisableDynamicTheming(uiState),
                     disableDynamicTheming = shouldDisableDynamicTheming(uiState),
                 ) {
                     BlockerApp(
@@ -133,20 +132,6 @@ class MainActivity : ComponentActivity() {
     override fun onPause() {
         super.onPause()
         lazyStats.get().isTrackingEnabled = false
-    }
-}
-
-/**
- * Returns `true` if the Android theme should be used, as a function of the [uiState].
- */
-@Composable
-private fun shouldUseAndroidTheme(
-    uiState: MainActivityUiState,
-): Boolean = when (uiState) {
-    Loading -> false
-    is Success -> when (uiState.userData.themeBrand) {
-        ThemeBrand.DEFAULT -> false
-        ThemeBrand.ANDROID -> true
     }
 }
 

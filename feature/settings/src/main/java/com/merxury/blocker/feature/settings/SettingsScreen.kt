@@ -62,8 +62,6 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
-import com.merxury.blocker.core.model.preference.ThemeBrand
-import com.merxury.blocker.core.model.preference.ThemeBrand.ANDROID
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
@@ -96,7 +94,6 @@ fun SettingsRoute(
         resetIfwRules = viewModel::resetIfwRules,
         onChangeControllerType = viewModel::updateControllerType,
         onChangeRuleServerProvider = viewModel::updateRuleServerProvider,
-        onChangeThemeBrand = viewModel::updateThemeBrand,
         onChangeDynamicColorPreference = viewModel::updateDynamicColorPreference,
         onChangeDarkThemeConfig = viewModel::updateDarkThemeConfig,
         importMatRules = viewModel::importMyAndroidToolsRules,
@@ -123,7 +120,6 @@ fun SettingsScreen(
     onChangeRuleBackupFolder: (Uri?) -> Unit,
     onChangeControllerType: (ControllerType) -> Unit,
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
-    onChangeThemeBrand: (ThemeBrand) -> Unit,
     onChangeDynamicColorPreference: (Boolean) -> Unit,
     onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
     exportRules: () -> Unit,
@@ -181,7 +177,6 @@ fun SettingsScreen(
                         onChangeRuleBackupFolder = onChangeRuleBackupFolder,
                         onChangeControllerType = onChangeControllerType,
                         onChangeRuleServerProvider = onChangeRuleServerProvider,
-                        onChangeThemeBrand = onChangeThemeBrand,
                         onChangeDynamicColorPreference = onChangeDynamicColorPreference,
                         onChangeDarkThemeConfig = onChangeDarkThemeConfig,
                         exportRules = exportRules,
@@ -208,7 +203,6 @@ fun SettingsContent(
     onChangeRuleBackupFolder: (Uri?) -> Unit,
     onChangeControllerType: (ControllerType) -> Unit,
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
-    onChangeThemeBrand: (ThemeBrand) -> Unit,
     onChangeDynamicColorPreference: (Boolean) -> Unit,
     onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
     exportRules: () -> Unit,
@@ -235,7 +229,6 @@ fun SettingsContent(
             modifier = modifier,
             settings = settings,
             supportDynamicColor = supportDynamicColor,
-            onChangeThemeBrand = onChangeThemeBrand,
             onChangeDynamicColorPreference = onChangeDynamicColorPreference,
             onChangeDarkThemeConfig = onChangeDarkThemeConfig,
         )
@@ -294,7 +287,6 @@ fun SettingsScreenPreview() {
                     restoreSystemApp = false,
                     showSystemApps = false,
                     showServiceInfo = true,
-                    themeBrand = ANDROID,
                     darkThemeConfig = FOLLOW_SYSTEM,
                     useDynamicColor = false,
                 ),
@@ -311,7 +303,6 @@ fun SettingsScreenPreview() {
             resetIfwRules = {},
             onChangeControllerType = {},
             onChangeRuleServerProvider = {},
-            onChangeThemeBrand = {},
             onChangeDynamicColorPreference = {},
             onChangeDarkThemeConfig = {},
             importMatRules = {},

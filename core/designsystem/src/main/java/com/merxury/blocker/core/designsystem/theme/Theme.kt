@@ -34,74 +34,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
 /**
- * Light default theme color scheme
+ * Light Blocker theme color scheme
  */
 @VisibleForTesting
-val LightDefaultColorScheme = lightColorScheme(
-    primary = Purple40,
-    onPrimary = Color.White,
-    primaryContainer = Purple90,
-    onPrimaryContainer = Purple10,
-    secondary = Orange40,
-    onSecondary = Color.White,
-    secondaryContainer = Orange90,
-    onSecondaryContainer = Orange10,
-    tertiary = Blue40,
-    onTertiary = Color.White,
-    tertiaryContainer = Blue90,
-    onTertiaryContainer = Blue10,
-    error = Red40,
-    onError = Color.White,
-    errorContainer = Red90,
-    onErrorContainer = Red10,
-    background = DarkPurpleGray99,
-    onBackground = DarkPurpleGray10,
-    surface = DarkPurpleGray99,
-    onSurface = DarkPurpleGray10,
-    surfaceVariant = PurpleGray90,
-    onSurfaceVariant = PurpleGray30,
-    inverseSurface = DarkPurpleGray20,
-    inverseOnSurface = DarkPurpleGray95,
-    outline = PurpleGray50,
-)
-
-/**
- * Dark default theme color scheme
- */
-@VisibleForTesting
-val DarkDefaultColorScheme = darkColorScheme(
-    primary = Purple80,
-    onPrimary = Purple20,
-    primaryContainer = Purple30,
-    onPrimaryContainer = Purple90,
-    secondary = Orange80,
-    onSecondary = Orange20,
-    secondaryContainer = Orange30,
-    onSecondaryContainer = Orange90,
-    tertiary = Blue80,
-    onTertiary = Blue20,
-    tertiaryContainer = Blue30,
-    onTertiaryContainer = Blue90,
-    error = Red80,
-    onError = Red20,
-    errorContainer = Red30,
-    onErrorContainer = Red90,
-    background = DarkPurpleGray10,
-    onBackground = DarkPurpleGray90,
-    surface = DarkPurpleGray10,
-    onSurface = DarkPurpleGray90,
-    surfaceVariant = PurpleGray30,
-    onSurfaceVariant = PurpleGray80,
-    inverseSurface = DarkPurpleGray90,
-    inverseOnSurface = DarkPurpleGray10,
-    outline = PurpleGray60,
-)
-
-/**
- * Light Android theme color scheme
- */
-@VisibleForTesting
-val LightAndroidColorScheme = lightColorScheme(
+val LightBlockerColorScheme = lightColorScheme(
     primary = Green40,
     onPrimary = Color.White,
     primaryContainer = Green90,
@@ -130,10 +66,10 @@ val LightAndroidColorScheme = lightColorScheme(
 )
 
 /**
- * Dark Android theme color scheme
+ * Dark Blocker theme color scheme
  */
 @VisibleForTesting
-val DarkAndroidColorScheme = darkColorScheme(
+val DarkBlockerColorScheme = darkColorScheme(
     primary = Green80,
     onPrimary = Green20,
     primaryContainer = Green30,
@@ -162,30 +98,30 @@ val DarkAndroidColorScheme = darkColorScheme(
 )
 
 /**
- * Light Android gradient colors
+ * Light Blocker gradient colors
  */
-val LightAndroidGradientColors = GradientColors(container = DarkGreenGray95)
+val LightBlockerGradientColors = GradientColors(container = DarkGreenGray95)
 
 /**
- * Dark Android gradient colors
+ * Dark Blocker gradient colors
  */
-val DarkAndroidGradientColors = GradientColors(container = Color.Black)
+val DarkBlockerGradientColors = GradientColors(container = Color.Black)
 
 /**
- * Light Android background theme
+ * Light Blocker background theme
  */
-val LightAndroidBackgroundTheme = BackgroundTheme(color = DarkGreenGray95)
+val LightBlockerBackgroundTheme = BackgroundTheme(color = DarkGreenGray95)
 
 /**
- * Dark Android background theme
+ * Dark Blocker background theme
  */
-val DarkAndroidBackgroundTheme = BackgroundTheme(color = Color.Black)
+val DarkBlockerBackgroundTheme = BackgroundTheme(color = Color.Black)
 
 /**
  * Blocker theme.
  *
  * @param darkTheme Whether the theme should use a dark color scheme (follows system by default).
- * @param androidTheme Whether the theme should use the Android theme color scheme instead of the
+ * @param blockerTheme Whether the theme should use the Blocker theme color scheme instead of the
  *        default theme.
  * @param disableDynamicTheming If `true`, disables the use of dynamic theming, even when it is
  *        supported. This parameter has no effect if [androidTheme] is `true`.
@@ -193,19 +129,17 @@ val DarkAndroidBackgroundTheme = BackgroundTheme(color = Color.Black)
 @Composable
 fun BlockerTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    androidTheme: Boolean = false,
+    blockerTheme: Boolean = false,
     disableDynamicTheming: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     // Color scheme
     val colorScheme = when {
-        androidTheme -> if (darkTheme) DarkAndroidColorScheme else LightAndroidColorScheme
         !disableDynamicTheming && supportsDynamicTheming() -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
-        else -> if (darkTheme) DarkDefaultColorScheme else LightDefaultColorScheme
+        else -> if (darkTheme) DarkBlockerColorScheme else LightBlockerColorScheme
     }
     // Gradient colors
     val emptyGradientColors = GradientColors(container = colorScheme.surfaceColorAtElevation(2.dp))
@@ -215,7 +149,7 @@ fun BlockerTheme(
         container = colorScheme.surface,
     )
     val gradientColors = when {
-        androidTheme -> if (darkTheme) DarkAndroidGradientColors else LightAndroidGradientColors
+        blockerTheme -> if (darkTheme) DarkBlockerGradientColors else LightBlockerGradientColors
         !disableDynamicTheming && supportsDynamicTheming() -> emptyGradientColors
         else -> defaultGradientColors
     }
@@ -225,11 +159,10 @@ fun BlockerTheme(
         tonalElevation = 2.dp,
     )
     val backgroundTheme = when {
-        androidTheme -> if (darkTheme) DarkAndroidBackgroundTheme else LightAndroidBackgroundTheme
+        blockerTheme -> if (darkTheme) DarkBlockerBackgroundTheme else LightBlockerBackgroundTheme
         else -> defaultBackgroundTheme
     }
     val tintTheme = when {
-        androidTheme -> TintTheme()
         !disableDynamicTheming && supportsDynamicTheming() -> TintTheme(colorScheme.primary)
         else -> TintTheme()
     }

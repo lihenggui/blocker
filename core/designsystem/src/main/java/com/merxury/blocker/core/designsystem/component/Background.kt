@@ -71,8 +71,7 @@ fun BlockerBackground(
  * of a [Box].
  *
  * @param modifier Modifier to be applied to the background.
- * @param topColor The top gradient color to be rendered.
- * @param bottomColor The bottom gradient color to be rendered.
+ * @param gradientColors The gradient colors to be rendered.
  * @param content The background content.
  */
 @Composable
@@ -168,7 +167,7 @@ fun BackgroundDynamic() {
 @ThemePreviews
 @Composable
 fun BackgroundAndroid() {
-    BlockerTheme(androidTheme = true) {
+    BlockerTheme(blockerTheme = true) {
         BlockerBackground(Modifier.size(100.dp), content = {})
     }
 }
@@ -192,7 +191,7 @@ fun GradientBackgroundDynamic() {
 @ThemePreviews
 @Composable
 fun GradientBackgroundAndroid() {
-    BlockerTheme(androidTheme = true) {
+    BlockerTheme(blockerTheme = true) {
         BlockerGradientBackground(Modifier.size(100.dp), content = {})
     }
 }

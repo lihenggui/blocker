@@ -24,7 +24,6 @@ import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -35,15 +34,6 @@ class BlockerPreferencesDataSource @Inject constructor(
 
     val userData = userPreferences.data.map {
         UserPreferenceData(
-            themeBrand = when (it.themeBrand) {
-                null,
-                ThemeBrandProto.THEME_BRAND_UNSPECIFIED,
-                ThemeBrandProto.UNRECOGNIZED,
-                ThemeBrandProto.THEME_BRAND_DEFAULT,
-                -> ThemeBrand.DEFAULT
-
-                ThemeBrandProto.THEME_BRAND_ANDROID -> ThemeBrand.ANDROID
-            },
             darkThemeConfig = when (it.darkThemeConfig) {
                 null,
                 DarkThemeConfigProto.DARK_THEME_CONFIG_UNSPECIFIED,
@@ -121,17 +111,6 @@ class BlockerPreferencesDataSource @Inject constructor(
             },
             useDynamicColor = it.useDynamicColor,
         )
-    }
-
-    suspend fun setThemeBrand(themeBrand: ThemeBrand) {
-        userPreferences.updateData {
-            it.copy {
-                this.themeBrand = when (themeBrand) {
-                    ThemeBrand.DEFAULT -> ThemeBrandProto.THEME_BRAND_DEFAULT
-                    ThemeBrand.ANDROID -> ThemeBrandProto.THEME_BRAND_ANDROID
-                }
-            }
-        }
     }
 
     suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {

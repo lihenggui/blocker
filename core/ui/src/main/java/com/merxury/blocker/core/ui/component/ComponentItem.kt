@@ -1,12 +1,11 @@
 /*
- * Copyright (C) 2022 Blocker
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,13 +14,19 @@
  * limitations under the License.
  */
 
-syntax = "proto3";
+package com.merxury.blocker.core.ui.component
 
-option java_package = "com.merxury.blocker.core.datastore";
-option java_multiple_files = true;
+import com.merxury.blocker.core.model.ComponentType
 
-enum ThemeBrandProto {
-  THEME_BRAND_UNSPECIFIED = 0;
-  THEME_BRAND_DEFAULT = 1;
-  THEME_BRAND_ANDROID = 2;
+data class ComponentItem(
+    val name: String,
+    val simpleName: String,
+    val packageName: String,
+    val type: ComponentType,
+    val pmBlocked: Boolean,
+    val ifwBlocked: Boolean = false,
+    val isRunning: Boolean = false,
+    val description: String? = null,
+) {
+    fun enabled() = !(pmBlocked || ifwBlocked)
 }
