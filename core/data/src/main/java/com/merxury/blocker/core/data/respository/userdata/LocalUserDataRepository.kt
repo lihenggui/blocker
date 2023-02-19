@@ -27,14 +27,12 @@ import com.merxury.blocker.core.data.respository.logRestoreSystemAppPreferenceCh
 import com.merxury.blocker.core.data.respository.logRuleServerProviderChanged
 import com.merxury.blocker.core.data.respository.logShowServiceInfoPreferenceChanged
 import com.merxury.blocker.core.data.respository.logShowSystemAppPreferenceChanged
-import com.merxury.blocker.core.data.respository.logThemeChanged
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.model.preference.ThemeBrand
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -45,11 +43,6 @@ class LocalUserDataRepository @Inject constructor(
 ) : UserDataRepository {
     override val userData: Flow<UserPreferenceData>
         get() = blockerPreferenceDataSource.userData
-
-    override suspend fun setThemeBrand(themeBrand: ThemeBrand) {
-        blockerPreferenceDataSource.setThemeBrand(themeBrand)
-        analyticsHelper.logThemeChanged(themeBrand.name)
-    }
 
     override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         blockerPreferenceDataSource.setDarkThemeConfig(darkThemeConfig)
