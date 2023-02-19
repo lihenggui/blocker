@@ -48,7 +48,7 @@ import kotlin.test.assertEquals
 
 /**
  * Tests [BlockerTheme] using different combinations of the theme mode parameters:
- * darkTheme, disableDynamicTheming, and androidTheme.
+ * darkTheme, disableDynamicTheming, and blockerTheme.
  *
  * It verifies that the various composition locals — [MaterialTheme], [LocalGradientColors] and
  * [LocalBackgroundTheme] — have the expected values for a given theme mode, as specified by the
@@ -60,12 +60,12 @@ class ThemeTest {
     val composeTestRule = createComposeRule()
 
     @Test
-    fun darkThemeFalse_dynamicColorFalse_androidThemeFalse() {
+    fun darkThemeFalse_dynamicColorFalse_blockerThemeFalse() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
                 disableDynamicTheming = true,
-                androidTheme = false,
+                blockerTheme = false,
             ) {
                 val colorScheme = LightDefaultColorScheme
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
@@ -80,12 +80,12 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeTrue_dynamicColorFalse_androidThemeFalse() {
+    fun darkThemeTrue_dynamicColorFalse_blockerThemeFalse() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
                 disableDynamicTheming = true,
-                androidTheme = false,
+                blockerTheme = false,
             ) {
                 val colorScheme = DarkDefaultColorScheme
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
@@ -100,12 +100,12 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeFalse_dynamicColorTrue_androidThemeFalse() {
+    fun darkThemeFalse_dynamicColorTrue_blockerThemeFalse() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
                 disableDynamicTheming = false,
-                androidTheme = false,
+                blockerTheme = false,
             ) {
                 val colorScheme = dynamicLightColorSchemeWithFallback()
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
@@ -120,12 +120,12 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeTrue_dynamicColorTrue_androidThemeFalse() {
+    fun darkThemeTrue_dynamicColorTrue_blockerThemeFalse() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
                 disableDynamicTheming = false,
-                androidTheme = false,
+                blockerTheme = false,
             ) {
                 val colorScheme = dynamicDarkColorSchemeWithFallback()
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
@@ -140,12 +140,12 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeFalse_dynamicColorFalse_androidThemeTrue() {
+    fun darkThemeFalse_dynamicColorFalse_blockerThemeTrue() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
                 disableDynamicTheming = true,
-                androidTheme = true,
+                blockerTheme = true,
             ) {
                 val colorScheme = LightAndroidColorScheme
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
@@ -160,12 +160,12 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeTrue_dynamicColorFalse_androidThemeTrue() {
+    fun darkThemeTrue_dynamicColorFalse_blockerThemeTrue() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
                 disableDynamicTheming = true,
-                androidTheme = true,
+                blockerTheme = true,
             ) {
                 val colorScheme = DarkAndroidColorScheme
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
@@ -180,12 +180,12 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeFalse_dynamicColorTrue_androidThemeTrue() {
+    fun darkThemeFalse_dynamicColorTrue_blockerThemeTrue() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = false,
                 disableDynamicTheming = false,
-                androidTheme = true,
+                blockerTheme = true,
             ) {
                 val colorScheme = LightAndroidColorScheme
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
@@ -200,12 +200,12 @@ class ThemeTest {
     }
 
     @Test
-    fun darkThemeTrue_dynamicColorTrue_androidThemeTrue() {
+    fun darkThemeTrue_dynamicColorTrue_blockerThemeTrue() {
         composeTestRule.setContent {
             BlockerTheme(
                 darkTheme = true,
                 disableDynamicTheming = false,
-                androidTheme = true,
+                blockerTheme = true,
             ) {
                 val colorScheme = DarkAndroidColorScheme
                 assertColorSchemesEqual(colorScheme, MaterialTheme.colorScheme)
