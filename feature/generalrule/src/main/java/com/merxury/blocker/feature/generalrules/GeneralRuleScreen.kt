@@ -109,16 +109,8 @@ fun GeneralRulesScreen(
                     }
                 }
 
-                is Success -> {
-                    GeneralRulesContent(
-                        rules = uiState.rules,
-                        serverUrl = uiState.serverUrl,
-                    )
-                }
-
-                is Error -> {
-                    ErrorScreen(error = uiState.error)
-                }
+                is Success -> GeneralRulesContent(rules = uiState.rules)
+                is Error -> ErrorScreen(error = uiState.error)
             }
         }
     }
@@ -127,7 +119,6 @@ fun GeneralRulesScreen(
 @Composable
 fun GeneralRulesContent(
     rules: List<GeneralRule>,
-    serverUrl: String,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -138,7 +129,6 @@ fun GeneralRulesContent(
         items(rules, key = { it.id }) {
             RuleCard(
                 item = it,
-                serverUrl = serverUrl,
             )
         }
     }
@@ -184,7 +174,6 @@ fun GeneralRuleScreenPreview() {
                 ),
             ),
         ),
-        serverUrl = "",
     )
     BlockerTheme {
         GeneralRulesScreen(uiState = uiState)

@@ -28,6 +28,7 @@ import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +36,6 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
@@ -65,7 +65,10 @@ class GeneralRulesViewModel @Inject constructor(
                     .first()
                     .ruleServerProvider
                     .baseUrl
-                _uiState.emit(Success(rules, serverUrl))
+                val updatedRules = rules.map {  rule ->
+                    rule.copy(iconUrl = serverUrl + rule.iconUrl)
+                }
+                _uiState.emit(Success(updatedRules))
             }
     }
 
@@ -82,7 +85,6 @@ sealed interface GeneralRuleUiState {
     object Loading : GeneralRuleUiState
     class Success(
         val rules: List<GeneralRule>,
-        val serverUrl: String,
     ) : GeneralRuleUiState
 
     class Error(val error: ErrorMessage) : GeneralRuleUiState
