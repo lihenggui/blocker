@@ -39,10 +39,8 @@ class BlockerPreferencesDataSource @Inject constructor(
                 null,
                 ThemeBrandProto.THEME_BRAND_UNSPECIFIED,
                 ThemeBrandProto.UNRECOGNIZED,
-                ThemeBrandProto.THEME_BRAND_DEFAULT,
-                -> ThemeBrand.DEFAULT
-
-                ThemeBrandProto.THEME_BRAND_ANDROID -> ThemeBrand.ANDROID
+                ThemeBrandProto.THEME_BRAND_BLOCKER,
+                -> ThemeBrand.BLOCKER
             },
             darkThemeConfig = when (it.darkThemeConfig) {
                 null,
@@ -127,8 +125,7 @@ class BlockerPreferencesDataSource @Inject constructor(
         userPreferences.updateData {
             it.copy {
                 this.themeBrand = when (themeBrand) {
-                    ThemeBrand.DEFAULT -> ThemeBrandProto.THEME_BRAND_DEFAULT
-                    ThemeBrand.ANDROID -> ThemeBrandProto.THEME_BRAND_ANDROID
+                    ThemeBrand.BLOCKER -> ThemeBrandProto.THEME_BRAND_BLOCKER
                 }
             }
         }

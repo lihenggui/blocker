@@ -32,8 +32,7 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig.DARK
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.LIGHT
 import com.merxury.blocker.core.model.preference.ThemeBrand
-import com.merxury.blocker.core.model.preference.ThemeBrand.ANDROID
-import com.merxury.blocker.core.model.preference.ThemeBrand.DEFAULT
+import com.merxury.blocker.core.model.preference.ThemeBrand.BLOCKER
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.UserEditableSettings
 
@@ -58,12 +57,12 @@ fun ThemeSettings(
             titleRes = string.theme,
             selectedItem = settings.themeBrand,
             itemList = listOf(
-                ANDROID to string.android,
-                DEFAULT to string.theme_default,
+                BLOCKER to string.android,
+                BLOCKER to string.theme_default,
             ),
             onValueChange = onChangeThemeBrand,
         )
-        if (settings.themeBrand == DEFAULT && supportDynamicColor) {
+        if (settings.themeBrand == BLOCKER && supportDynamicColor) {
             DialogSettingsItems(
                 titleRes = string.dynamic_color,
                 selectedItem = settings.useDynamicColor,
@@ -95,7 +94,7 @@ fun ThemeSettingsSettingsPreview() {
         Surface {
             ThemeSettings(
                 settings = UserEditableSettings(
-                    themeBrand = DEFAULT,
+                    themeBrand = BLOCKER,
                     darkThemeConfig = DARK,
                     useDynamicColor = true,
                 ),
