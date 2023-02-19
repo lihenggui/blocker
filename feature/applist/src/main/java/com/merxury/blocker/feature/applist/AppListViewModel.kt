@@ -38,13 +38,13 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.applist.model.AppServiceStatus
+import com.merxury.blocker.core.ui.applist.model.toAppServiceStatus
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.ui.state.AppStateCache
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.AppListUiState.Success
-import com.merxury.blocker.feature.applist.state.AppStateCache
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -115,7 +115,8 @@ class AppListViewModel @Inject constructor(
                         isEnabled = installedApp.isEnabled,
                         firstInstallTime = installedApp.firstInstallTime,
                         lastUpdateTime = installedApp.lastUpdateTime,
-                        appServiceStatus = null,
+                        appServiceStatus = AppStateCache.getOrNull(installedApp.packageName)
+                            ?.toAppServiceStatus(),
                         packageInfo = pm.getPackageInfoCompat(installedApp.packageName, 0),
                     )
                 }.sortedWith(
@@ -183,13 +184,7 @@ class AppListViewModel @Inject constructor(
         }
         Timber.d("Get service status for $packageName")
         val status = AppStateCache.get(getApplication(), packageName)
-        val serviceStatus = AppServiceStatus(
-            packageName = status.packageName,
-            running = status.running,
-            blocked = status.blocked,
-            total = status.total,
-        )
-        val newItem = oldItem.copy(appServiceStatus = serviceStatus)
+        val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
         _appList[index] = newItem
     }
 

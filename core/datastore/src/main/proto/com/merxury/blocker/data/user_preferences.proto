@@ -17,7 +17,6 @@
 syntax = "proto3";
 
 import "com/merxury/blocker/data/dark_theme_config.proto";
-import "com/merxury/blocker/data/theme_brand.proto";
 import "com/merxury/blocker/data/controller_type.proto";
 import "com/merxury/blocker/data/rule_server_provider.proto";
 import "com/merxury/blocker/data/app_sorting.proto";
@@ -28,18 +27,16 @@ option java_package = "com.merxury.blocker.core.datastore";
 option java_multiple_files = true;
 
 message UserPreferences {
-    ThemeBrandProto theme_brand = 1;
-    DarkThemeConfigProto dark_theme_config = 2;
-    ControllerTypeProto controller_type = 3;
-    RuleServerProviderProto rule_server_provider = 4;
-    string rule_backup_folder = 5;
-    bool backup_system_app = 6;
-    bool restore_system_app = 7;
-    bool show_system_apps = 8;
-    bool show_service_info = 9;
-    AppSortingProto app_sorting = 10;
-    ComponentSortingProto component_sorting = 11;
-    ComponentShowPriorityProto component_show_priority = 12;
-    bool use_dynamic_color = 14;
-
+    DarkThemeConfigProto dark_theme_config = 1;
+    ControllerTypeProto controller_type = 2;
+    RuleServerProviderProto rule_server_provider = 3;
+    string rule_backup_folder = 4;
+    bool backup_system_app = 5;
+    bool restore_system_app = 6;
+    bool show_system_apps = 7;
+    bool show_service_info = 8;
+    AppSortingProto app_sorting = 9;
+    ComponentSortingProto component_sorting = 10;
+    ComponentShowPriorityProto component_show_priority = 11;
+    bool use_dynamic_color = 12;
 }

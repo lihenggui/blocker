@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.preference
+package com.merxury.blocker.core.ui.component
 
-enum class ThemeBrand {
-    DEFAULT, ANDROID
-}
+import androidx.compose.runtime.State
+import com.merxury.blocker.core.ui.applist.model.AppItem
+
+data class MatchedApp(
+    val app: AppItem,
+    val component: State<List<ComponentItem>>,
+)

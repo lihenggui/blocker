@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.cmplist
+package com.merxury.blocker.core.ui.component
 
 import android.content.res.Configuration
 import android.view.MotionEvent
@@ -61,11 +61,11 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.TrackScrollJank
-import com.merxury.blocker.feature.appdetail.R
 
 @Composable
-fun ComponentListContent(
+fun ComponentList(
     components: State<List<ComponentItem>>,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
