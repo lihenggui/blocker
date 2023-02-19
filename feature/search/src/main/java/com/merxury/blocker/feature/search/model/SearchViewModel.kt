@@ -72,7 +72,7 @@ class SearchViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val generalRuleRepository: GeneralRuleRepository,
-    private val initializeDatabaseUseCase: InitializeDatabaseUseCase,
+    private val initializeDatabase: InitializeDatabaseUseCase,
     private val userDataRepository: UserDataRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -100,14 +100,13 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun load() = viewModelScope.launch {
-        initializeDatabaseUseCase.invoke()
-            .collect {
-                if (it is InitializeState.Initializing) {
-                    _localSearchUiState.emit(LocalSearchUiState.Initializing(it.processingName))
-                } else {
-                    _localSearchUiState.emit(LocalSearchUiState.Idle)
-                }
+        initializeDatabase().collect {
+            if (it is InitializeState.Initializing) {
+                _localSearchUiState.emit(LocalSearchUiState.Initializing(it.processingName))
+            } else {
+                _localSearchUiState.emit(LocalSearchUiState.Idle)
             }
+        }
     }
 
     fun switchTab(newTab: SearchTabItem) {
