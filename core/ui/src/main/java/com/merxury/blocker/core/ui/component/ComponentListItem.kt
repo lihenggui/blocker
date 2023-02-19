@@ -65,7 +65,7 @@ import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.TrackScrollJank
 
 @Composable
-fun ComponentListContent(
+fun ComponentList(
     components: State<List<ComponentItem>>,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
