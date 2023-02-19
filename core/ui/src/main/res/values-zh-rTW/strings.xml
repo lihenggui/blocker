@@ -30,4 +30,10 @@
     <string name="activity">活動</string>
     <string name="content_provider">內容提供者</string>
     <string name="rule_icon_description">規則圖標</string>
+    <string name="copy_name">複製組件名</string>
+    <string name="copy_full_name">複製完整組件名</string>
+    <string name="launch_activity">複製包名</string>
+    <string name="stop_service">停止服務</string>
+    <string name="no_components">無組件</string>
+    <string name="matched_rules">匹配 %1$d 條規則</string>
 </resources>
