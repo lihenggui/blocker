@@ -16,9 +16,18 @@
 
 package com.merxury.blocker.core.ui.applist.model
 
+import com.merxury.blocker.core.ui.state.AppState
+
 data class AppServiceStatus(
     val packageName: String,
     val running: Int = 0,
     val blocked: Int = 0,
     val total: Int = 0,
+)
+
+fun AppState.toAppServiceStatus() = AppServiceStatus(
+    packageName = packageName,
+    running = running,
+    blocked = blocked,
+    total = total,
 )
