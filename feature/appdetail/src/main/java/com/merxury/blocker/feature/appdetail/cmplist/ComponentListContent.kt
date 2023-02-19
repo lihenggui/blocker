@@ -43,6 +43,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.feature.appdetail.AppBarUiState
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
@@ -140,7 +141,7 @@ fun ComponentListContent(
         }
 
         is ComponentListUiState.Success -> {
-            ComponentListContent(
+            com.merxury.blocker.core.ui.component.ComponentListContent(
                 components = list,
                 onSwitchClick = onSwitch,
                 onStopServiceClick = onStopServiceClick,

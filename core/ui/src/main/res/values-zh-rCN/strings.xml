@@ -30,4 +30,9 @@
     <string name="activity">活动</string>
     <string name="service">服务</string>
     <string name="rule_icon_description">规则图标</string>
+    <string name="copy_name">复制组件名</string>
+    <string name="copy_full_name">复制完整组件名</string>
+    <string name="launch_activity">启动活动</string>
+    <string name="stop_service">停止服务</string>
+    <string name="no_components">无组件</string>
 </resources>

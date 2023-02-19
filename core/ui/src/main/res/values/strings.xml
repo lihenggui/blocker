@@ -32,4 +32,9 @@
     <string name="activity">Activity</string>
     <string name="content_provider">Content Provider</string>
     <string name="rule_icon_description">Rule icon</string>
+    <string name="copy_name">Copy name</string>
+    <string name="copy_full_name">Copy full name</string>
+    <string name="launch_activity">Launch activity</string>
+    <string name="stop_service">Stop service</string>
+    <string name="no_components">No components</string>
 </resources>
