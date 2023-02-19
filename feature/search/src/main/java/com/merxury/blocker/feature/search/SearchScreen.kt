@@ -47,6 +47,8 @@ import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.H
 import com.merxury.blocker.core.designsystem.bottomsheet.rememberModalBottomSheetState
 import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.RuleCard
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.AppListItem
 import com.merxury.blocker.core.ui.applist.model.AppItem
@@ -283,6 +285,28 @@ fun AppSearchResultContent(
                     onUninstallClick = onUninstallClick,
                     onEnableClick = onEnableClick,
                     onDisableClick = onDisableClick,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun RuleSearchResultContent(
+    modifier: Modifier = Modifier,
+    list: List<GeneralRule>,
+    onClick: (GeneralRule) -> Unit,
+) {
+    val listState = rememberLazyListState()
+    Box(modifier) {
+        LazyColumn(
+            modifier = modifier,
+            state = listState,
+        ) {
+            items(list, key = { it.id }) {
+                RuleCard(
+                    item = it,
+                    onCardClick = onClick,
                 )
             }
         }
