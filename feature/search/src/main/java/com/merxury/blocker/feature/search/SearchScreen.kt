@@ -133,7 +133,9 @@ fun SearchScreen(
         sheetState = sheetState,
         sheetContent = {
             if (localSearchUiState is LocalSearchUiState.Success) {
-                BottomSheetRoute(app = localSearchUiState.apps[1])
+                if (localSearchUiState.apps.isNotEmpty()) {
+                    BottomSheetRoute(app = localSearchUiState.apps.first())
+                }
             }
         },
     ) {
