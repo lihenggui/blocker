@@ -231,6 +231,10 @@ fun ComponentSearchResultContent(
     onSelect: (Boolean) -> Unit,
     onClick: () -> Unit,
 ) {
+    if (componentList.isEmpty()) {
+        NoSearchResultScreen()
+        return
+    }
     val listState = rememberLazyListState()
     Box(modifier) {
         LazyColumn(
@@ -262,6 +266,10 @@ fun AppSearchResultContent(
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
 ) {
+    if (appList.isEmpty()) {
+        NoSearchResultScreen()
+        return
+    }
     val listState = rememberLazyListState()
     Box(modifier) {
         LazyColumn(
@@ -297,6 +305,10 @@ fun RuleSearchResultContent(
     list: List<GeneralRule>,
     onClick: (GeneralRule) -> Unit,
 ) {
+    if (list.isEmpty()) {
+        NoSearchResultScreen()
+        return
+    }
     val listState = rememberLazyListState()
     Box(modifier) {
         LazyColumn(
