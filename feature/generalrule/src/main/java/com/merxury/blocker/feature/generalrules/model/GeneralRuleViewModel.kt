@@ -65,7 +65,7 @@ class GeneralRulesViewModel @Inject constructor(
                     .first()
                     .ruleServerProvider
                     .baseUrl
-                val updatedRules = rules.map {  rule ->
+                val updatedRules = rules.map { rule ->
                     rule.copy(iconUrl = serverUrl + rule.iconUrl)
                 }
                 _uiState.emit(Success(updatedRules))

@@ -61,6 +61,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -170,6 +171,18 @@ class SearchViewModel @Inject constructor(
                 }
 
         val searchGeneralRuleFlow = generalRuleRepository.searchGeneralRule(keyword)
+            .transform { list ->
+                val serverUrl = userDataRepository.userData
+                    .first()
+                    .ruleServerProvider
+                    .baseUrl
+                val listWithIconUrl = list.map { rule ->
+                    rule.copy(
+                        iconUrl = "$serverUrl${rule.iconUrl}",
+                    )
+                }
+                emit(listWithIconUrl)
+            }
         val searchFlow = combine(
             searchAppFlow,
             searchComponentFlow,
