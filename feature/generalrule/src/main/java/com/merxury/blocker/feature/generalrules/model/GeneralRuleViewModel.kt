@@ -65,7 +65,10 @@ class GeneralRulesViewModel @Inject constructor(
                     .first()
                     .ruleServerProvider
                     .baseUrl
-                _uiState.emit(Success(rules, serverUrl))
+                val updatedRules = rules.map { rule ->
+                    rule.copy(iconUrl = serverUrl + rule.iconUrl)
+                }
+                _uiState.emit(Success(updatedRules))
             }
     }
 
@@ -82,8 +85,7 @@ sealed interface GeneralRuleUiState {
     object Loading : GeneralRuleUiState
     class Success(
         val rules: List<GeneralRule>,
-        val serverUrl: String,
     ) : GeneralRuleUiState
 
-    class Error(val message: ErrorMessage) : GeneralRuleUiState
+    class Error(val error: ErrorMessage) : GeneralRuleUiState
 }

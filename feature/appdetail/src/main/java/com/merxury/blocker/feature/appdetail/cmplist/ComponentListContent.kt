@@ -40,13 +40,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
-import com.merxury.blocker.core.designsystem.component.BlockerTextField
+import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
+import com.merxury.blocker.feature.appdetail.AppBarUiState
 import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.TopAppBarUiState
 import dagger.hilt.android.EntryPointAccessors
 
 @Composable
@@ -58,10 +58,10 @@ fun ComponentListContentRoute(
         packageName = packageName,
         type = type,
     ),
-    topAppBarUiState: TopAppBarUiState,
+    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
-    onComposing: (AppBarActionState) -> Unit = {},
+    onAppBarActionUpdated: (AppBarActionState) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
@@ -88,11 +88,11 @@ fun ComponentListContentRoute(
             onDismissRequest = viewModel::dismissAlert,
         )
     }
-    LaunchedEffect(topAppBarUiState) {
-        actions(
+    LaunchedEffect(topAppBarUiState.keyword, topAppBarUiState.isSearchMode) {
+        updateAppBarActions(
             topAppBarUiState = topAppBarUiState,
             onSearchTextChanged = onSearchTextChanged,
-            onComposing = onComposing,
+            onToolbarActionUpdated = onAppBarActionUpdated,
             onSearchModeChanged = onSearchModeChanged,
         )
     }
@@ -155,19 +155,19 @@ fun ComponentListContent(
     }
 }
 
-fun actions(
-    topAppBarUiState: TopAppBarUiState,
+fun updateAppBarActions(
+    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
-    onComposing: (AppBarActionState) -> Unit,
+    onToolbarActionUpdated: (AppBarActionState) -> Unit,
     onSearchModeChanged: (Boolean) -> Unit,
 ) {
-    onComposing(
+    onToolbarActionUpdated(
         AppBarActionState(
             actions = {
                 if (topAppBarUiState.isSearchMode) {
-                    BlockerTextField(
+                    BlockerSearchTextField(
                         keyword = topAppBarUiState.keyword,
-                        onSearchTextChanged = onSearchTextChanged,
+                        onValueChange = onSearchTextChanged,
                         onClearClick = {
                             onSearchTextChanged(
                                 TextFieldValue(),

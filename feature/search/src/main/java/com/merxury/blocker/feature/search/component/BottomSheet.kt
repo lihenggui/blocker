@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.feature.search.component
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,17 +25,21 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
@@ -41,28 +47,35 @@ import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.AppDetailTabs.Activity
+import com.merxury.blocker.core.ui.AppDetailTabs.Provider
+import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.feature.search.R.string
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.feature.search.model.BottomSheetViewModel
-import com.merxury.blocker.feature.search.model.FilteredComponentItem
-import com.merxury.blocker.feature.search.model.InstalledAppItem
 
 @Composable
 fun BottomSheetRoute(
     modifier: Modifier = Modifier,
-    app: FilteredComponentItem,
+    app: AppItem,
     viewModel: BottomSheetViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    BottomSheet(filterApp = app, tabState = tabState, switchTab = viewModel::switchTab)
+    BottomSheet(
+        modifier = modifier,
+        filterApp = app,
+        tabState = tabState,
+        switchTab = viewModel::switchTab,
+    )
 }
 
 @Composable
 fun BottomSheet(
     modifier: Modifier = Modifier,
-    filterApp: FilteredComponentItem,
-    tabState: TabState,
-    switchTab: (Int) -> Unit,
+    filterApp: AppItem,
+    tabState: TabState<AppDetailTabs>,
+    switchTab: (AppDetailTabs) -> Unit,
 ) {
     Column(modifier = modifier.defaultMinSize(1.dp)) {
         InfoSection(
@@ -71,15 +84,17 @@ fun BottomSheet(
         )
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
-        ) {
-            tabState.titles.forEachIndexed { index, titleRes ->
-                BlockerTab(
-                    selected = index == tabState.currentIndex,
-                    onClick = { switchTab(index) },
-                    text = { Text(text = stringResource(id = titleRes)) },
-                )
-            }
-        }
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            tabs = {
+                tabState.items.forEachIndexed { index, item ->
+                    BlockerTab(
+                        selected = item == tabState.selectedItem,
+                        onClick = { switchTab(item) },
+                        text = { Text(text = stringResource(id = item.title)) },
+                    )
+                }
+            },
+        )
         when (tabState.currentIndex) {
             0 -> {}
             1 -> {}
@@ -90,34 +105,50 @@ fun BottomSheet(
 @Composable
 fun InfoSection(
     modifier: Modifier = Modifier,
-    filterApp: FilteredComponentItem,
+    filterApp: AppItem,
 ) {
-    val versionName = filterApp.app.versionName
+    val versionName = filterApp.versionName
     Row(
         modifier = modifier
             .fillMaxWidth()
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column {
+        Column(
+            modifier = modifier
+                .fillMaxWidth(0.7f),
+        ) {
             Text(
-                text = filterApp.app.label,
+                text = filterApp.label,
+                fontSize = 28.sp,
                 style = MaterialTheme.typography.bodyLarge,
-                maxLines = 2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
-            Text(text = filterApp.app.packageName, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                text = filterApp.packageName,
+                style = MaterialTheme.typography.bodySmall,
+                overflow = TextOverflow.Ellipsis,
+            )
             Text(
                 text = versionName,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Spacer(modifier = Modifier.weight(1f))
         AsyncImage(
-            modifier = modifier
+            modifier = Modifier
                 .size(80.dp)
-                .padding(vertical = 40.dp),
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(bounded = false),
+                    onClick = {
+                        // TODO
+                    },
+                ),
             model = Builder(LocalContext.current)
-                .data(filterApp.app.packageInfo)
+                .data(filterApp.packageInfo)
                 .crossfade(true)
                 .build(),
             contentDescription = null,
@@ -128,19 +159,19 @@ fun InfoSection(
 @Composable
 @Preview
 fun BottomSheetPreview() {
-    val app = FilteredComponentItem(
-        app = InstalledAppItem(
-            packageName = "com.merxury.blocker",
-            label = "Blocker",
-            isSystem = false,
-        ),
+    val app = AppItem(
+        packageName = "com.merxury.blocker",
+        label = "Blocker test long name",
+        versionName = "23.12.20",
+        isSystem = false,
     )
     val tabState = TabState(
-        titles = listOf(
-            string.applicable_app,
-            string.illustrate,
+        items = listOf(
+            Service,
+            Activity,
+            Provider,
         ),
-        currentIndex = 0,
+        selectedItem = Service,
     )
     BlockerTheme {
         Surface {

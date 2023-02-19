@@ -15,11 +15,6 @@
      limitations under the License.
 -->
 <resources>
-    <string name="app_info">App info</string>
-    <string name="service">Service</string>
-    <string name="receiver">Receiver</string>
-    <string name="activity">Activity</string>
-    <string name="content_provider">Content Provider</string>
     <string name="launch_app">Launch app</string>
     <string name="cannot_launch_this_app">Cannot launch this app</string>
     <string name="blocker_rules">Blocker rules</string>

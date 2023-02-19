@@ -173,5 +173,5 @@ object BlockerNavigationDefaults {
     fun navigationSelectedItemColor() = MaterialTheme.colorScheme.onPrimaryContainer
 
     @Composable
-    fun navigationIndicatorColor() = MaterialTheme.colorScheme.secondaryContainer
+    fun navigationIndicatorColor() = MaterialTheme.colorScheme.primaryContainer
 }

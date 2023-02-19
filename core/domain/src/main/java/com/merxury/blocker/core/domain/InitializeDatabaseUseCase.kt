@@ -54,7 +54,7 @@ class InitializeDatabaseUseCase @Inject constructor(
         .transform { installedAppList ->
             installedAppList.forEach {
                 val packageName = it.packageName
-                emit(InitializeState.Initializing(packageName))
+                emit(InitializeState.Initializing(it.label))
                 val activities = localDataSource.getComponentList(packageName, ACTIVITY).first()
                 val services = localDataSource.getComponentList(packageName, SERVICE).first()
                 val receivers = localDataSource.getComponentList(packageName, RECEIVER).first()

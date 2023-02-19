@@ -145,7 +145,14 @@ class IfwController @Inject constructor(
         packageName: String,
         componentName: String,
     ): Boolean {
-        init(packageName)
+        try {
+            init(packageName)
+        } catch (e: Throwable) {
+            // For checking purpose, we don't need to throw exception, just return true
+            // In the most of cases the component is not blocked by IFW
+            // No need to log the exception, there are too many components
+            return true
+        }
         return controller.getComponentEnableState(packageName, componentName)
     }
 

@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -65,17 +66,18 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.AppDetailTabs.Activity
+import com.merxury.blocker.core.ui.AppDetailTabs.Info
+import com.merxury.blocker.core.ui.AppDetailTabs.Provider
+import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.Screen.Activity
-import com.merxury.blocker.feature.appdetail.Screen.Detail
-import com.merxury.blocker.feature.appdetail.Screen.Provider
-import com.merxury.blocker.feature.appdetail.Screen.Receiver
-import com.merxury.blocker.feature.appdetail.Screen.Service
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import kotlinx.coroutines.cancelChildren
@@ -90,7 +92,7 @@ fun AppDetailRoute(
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val topAppBarUiState by viewModel.topAppBarUiState.collectAsStateWithLifecycle()
+    val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
 
     AppDetailScreen(
         uiState = uiState,
@@ -100,24 +102,24 @@ fun AppDetailRoute(
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
         topAppBarUiState = topAppBarUiState,
-        onSearchTextChanged = viewModel::onSearchTextChanged,
-        onSearchModeChanged = viewModel::onSearchModeChange,
-        onComposing = viewModel::onComposing,
+        onSearchTextChanged = viewModel::search,
+        onSearchModeChanged = viewModel::changeSearchMode,
+        onToolbarActionUpdated = viewModel::updateAppBarAction,
     )
 }
 
 @Composable
 fun AppDetailScreen(
     uiState: AppInfoUiState,
-    tabState: TabState,
+    tabState: TabState<AppDetailTabs>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
-    switchTab: (Int) -> Unit,
+    switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
-    topAppBarUiState: TopAppBarUiState,
+    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
-    onComposing: (AppBarActionState) -> Unit = {},
+    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
 ) {
     when (uiState) {
         is AppInfoUiState.Loading -> {
@@ -144,7 +146,7 @@ fun AppDetailScreen(
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onToolbarActionUpdated = onToolbarActionUpdated,
             )
         }
 
@@ -156,15 +158,15 @@ fun AppDetailScreen(
 @Composable
 fun AppDetailContent(
     app: Application,
-    tabState: TabState,
+    tabState: TabState<AppDetailTabs>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
-    switchTab: (Int) -> Unit,
+    switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
-    topAppBarUiState: TopAppBarUiState,
+    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
-    onComposing: (AppBarActionState) -> Unit = {},
+    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -239,7 +241,7 @@ fun AppDetailContent(
             topAppBarUiState = topAppBarUiState,
             onSearchTextChanged = onSearchTextChanged,
             onSearchModeChanged = onSearchModeChanged,
-            onComposing = onComposing,
+            onToolbarActionUpdated = onToolbarActionUpdated,
         )
     }
 }
@@ -255,68 +257,69 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
 fun AppDetailTabContent(
     modifier: Modifier = Modifier,
     app: Application,
-    tabState: TabState,
-    switchTab: (Int) -> Unit,
-    topAppBarUiState: TopAppBarUiState,
+    tabState: TabState<AppDetailTabs>,
+    switchTab: (AppDetailTabs) -> Unit,
+    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
-    onComposing: (AppBarActionState) -> Unit = {},
+    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
 ) {
     Column(
         modifier = modifier,
     ) {
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ) {
-            tabState.titles.forEachIndexed { index, titleRes ->
+            tabState.items.forEachIndexed { index, tabItem ->
                 BlockerTab(
                     selected = index == tabState.currentIndex,
-                    onClick = { switchTab(index) },
-                    text = { Text(text = stringResource(id = titleRes)) },
+                    onClick = { switchTab(tabItem) },
+                    text = { Text(text = stringResource(id = tabItem.title)) },
                 )
             }
         }
-        when (tabState.currentIndex) {
-            Detail.tabPosition ->
+        when (tabState.selectedItem) {
+            Info ->
                 SummaryContent(
                     app = app,
-                    onComposing = onComposing,
+                    onToolbarActionUpdated = onToolbarActionUpdated,
                 )
 
-            Receiver.tabPosition -> ComponentListContentRoute(
+            Receiver -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = RECEIVER,
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onAppBarActionUpdated = onToolbarActionUpdated,
             )
 
-            Service.tabPosition -> ComponentListContentRoute(
+            Service -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = SERVICE,
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onAppBarActionUpdated = onToolbarActionUpdated,
             )
 
-            Activity.tabPosition -> ComponentListContentRoute(
+            Activity -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = ACTIVITY,
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onAppBarActionUpdated = onToolbarActionUpdated,
             )
 
-            Provider.tabPosition -> ComponentListContentRoute(
+            Provider -> ComponentListContentRoute(
                 packageName = app.packageName,
                 type = PROVIDER,
                 topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onComposing = onComposing,
+                onAppBarActionUpdated = onToolbarActionUpdated,
             )
         }
     }
@@ -340,14 +343,14 @@ fun AppDetailScreenPreview() {
         packageInfo = null,
     )
     val tabState = TabState(
-        titles = listOf(
-            string.app_info,
-            string.service,
-            string.service,
-            string.activity,
-            string.content_provider,
+        items = listOf(
+            Info,
+            Receiver,
+            Service,
+            Activity,
+            Provider,
         ),
-        currentIndex = 0,
+        selectedItem = Info,
     )
     BlockerTheme {
         Surface {
@@ -357,9 +360,9 @@ fun AppDetailScreenPreview() {
                 onLaunchAppClick = {},
                 onBackClick = {},
                 switchTab = {},
-                topAppBarUiState = TopAppBarUiState(),
+                topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
-                onComposing = {},
+                onToolbarActionUpdated = {},
                 onSearchModeChanged = {},
             )
         }
@@ -379,14 +382,14 @@ fun AppDetailScreenCollapsedPreview() {
         packageInfo = null,
     )
     val tabState = TabState(
-        titles = listOf(
-            string.app_info,
-            string.receiver,
-            string.service,
-            string.activity,
-            string.content_provider,
+        items = listOf(
+            Info,
+            Receiver,
+            Service,
+            Activity,
+            Provider,
         ),
-        currentIndex = 0,
+        selectedItem = Info,
     )
     BlockerTheme {
         Surface {
@@ -396,9 +399,9 @@ fun AppDetailScreenCollapsedPreview() {
                 onLaunchAppClick = {},
                 onBackClick = {},
                 switchTab = {},
-                topAppBarUiState = TopAppBarUiState(),
+                topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
-                onComposing = {},
+                onToolbarActionUpdated = {},
                 onSearchModeChanged = {},
             )
         }

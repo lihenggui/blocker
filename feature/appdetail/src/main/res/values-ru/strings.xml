@@ -15,11 +15,6 @@
      limitations under the License.
 -->
 <resources>
-    <string name="app_info">Информация о приложении</string>
-    <string name="service">Службы</string>
-    <string name="receiver">Приемники</string>
-    <string name="activity">Активити</string>
-    <string name="content_provider">Поставщики</string>
     <string name="launch_app">запустить приложение</string>
     <string name="cannot_launch_this_app">Не удалось запустить это приложение</string>
     <string name="blocker_rules">правилBlocker</string>
