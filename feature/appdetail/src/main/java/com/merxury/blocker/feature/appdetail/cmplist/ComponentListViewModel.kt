@@ -33,6 +33,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
+import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ServiceHelper
@@ -173,19 +174,6 @@ class ComponentListViewModel @AssistedInject constructor(
 /**
  * Data representation for the component.
  */
-
-data class ComponentItem(
-    val name: String,
-    val simpleName: String,
-    val packageName: String,
-    val type: ComponentType,
-    val pmBlocked: Boolean,
-    val ifwBlocked: Boolean = false,
-    val isRunning: Boolean = false,
-    val description: String? = null,
-) {
-    fun enabled() = !(pmBlocked || ifwBlocked)
-}
 
 private fun ComponentInfo.toComponentItem(isRunning: Boolean = false) = ComponentItem(
     name = name,

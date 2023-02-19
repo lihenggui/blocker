@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.cmplist
+package com.merxury.blocker.core.ui.component
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.DpOffset
@@ -24,7 +24,7 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.feature.appdetail.R
+import com.merxury.blocker.core.ui.R
 
 @Composable
 fun ComponentItemMenu(
