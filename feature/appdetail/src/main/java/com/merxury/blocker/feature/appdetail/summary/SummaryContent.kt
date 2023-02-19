@@ -54,7 +54,7 @@ import java.util.Locale
 fun SummaryContent(
     app: Application,
     modifier: Modifier = Modifier,
-    onComposing: (AppBarActionState) -> Unit = {},
+    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
     listState: LazyListState = rememberLazyListState(),
     viewModel: SummaryViewModel = hiltViewModel(),
 ) {
@@ -80,7 +80,7 @@ fun SummaryContent(
         }
     }
     LaunchedEffect(true) {
-        onComposing(
+        onToolbarActionUpdated(
             AppBarActionState(
                 actions = {
                     IconButton(

@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.applist
 
 import android.content.Context
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
@@ -38,6 +37,8 @@ import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DES
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.applist.model.AppServiceStatus
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -56,7 +57,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -112,7 +112,7 @@ class AppListViewModel @Inject constructor(
                         isSystem = ApplicationUtil.isSystemApp(pm, installedApp.packageName),
                         // TODO detect if an app is running or not
                         isRunning = false,
-                        enabled = installedApp.isEnabled,
+                        isEnabled = installedApp.isEnabled,
                         firstInstallTime = installedApp.firstInstallTime,
                         lastUpdateTime = installedApp.lastUpdateTime,
                         appServiceStatus = null,
@@ -244,31 +244,6 @@ class AppListViewModel @Inject constructor(
         }
     }
 }
-
-data class AppServiceStatus(
-    val packageName: String,
-    val running: Int = 0,
-    val blocked: Int = 0,
-    val total: Int = 0,
-)
-
-/**
- * Data representation for the installed application.
- * App icon will be loaded by PackageName.
- */
-data class AppItem(
-    val label: String,
-    val packageName: String,
-    val versionName: String,
-    val versionCode: Long,
-    val isSystem: Boolean,
-    val isRunning: Boolean,
-    val enabled: Boolean,
-    val firstInstallTime: Instant?,
-    val lastUpdateTime: Instant?,
-    val appServiceStatus: AppServiceStatus?,
-    val packageInfo: PackageInfo?,
-)
 
 sealed interface AppListUiState {
     object Loading : AppListUiState

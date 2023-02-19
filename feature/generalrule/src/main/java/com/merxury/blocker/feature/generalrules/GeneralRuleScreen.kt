@@ -32,7 +32,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -46,9 +45,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.RuleCard
+import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.feature.generalrule.R
-import com.merxury.blocker.feature.generalrules.component.RuleCard
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
@@ -85,7 +84,7 @@ fun GeneralRulesScreen(
         Column(
             modifier = modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(top = padding.calculateTopPadding())
                 .consumeWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
@@ -110,30 +109,16 @@ fun GeneralRulesScreen(
                     }
                 }
 
-                is Success -> {
-                    GeneralRulesContent(
-                        rules = uiState.rules,
-                        serverUrl = uiState.serverUrl,
-                    )
-                }
-
-                is Error -> {
-                    ErrorScreen(message = uiState.message)
-                }
+                is Success -> GeneralRulesContent(rules = uiState.rules)
+                is Error -> ErrorScreen(error = uiState.error)
             }
         }
     }
 }
 
 @Composable
-fun ErrorScreen(message: ErrorMessage) {
-    Text(text = message.message)
-}
-
-@Composable
 fun GeneralRulesContent(
     rules: List<GeneralRule>,
-    serverUrl: String,
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
@@ -144,7 +129,6 @@ fun GeneralRulesContent(
         items(rules, key = { it.id }) {
             RuleCard(
                 item = it,
-                serverUrl = serverUrl,
             )
         }
     }
@@ -190,7 +174,6 @@ fun GeneralRuleScreenPreview() {
                 ),
             ),
         ),
-        serverUrl = "",
     )
     BlockerTheme {
         GeneralRulesScreen(uiState = uiState)

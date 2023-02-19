@@ -41,11 +41,16 @@ import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASC
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
+import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.feature.search.R
+import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -55,6 +60,8 @@ import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -66,7 +73,7 @@ class SearchViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val generalRuleRepository: GeneralRuleRepository,
-    private val initializeDatabaseUseCase: InitializeDatabaseUseCase,
+    private val initializeDatabase: InitializeDatabaseUseCase,
     private val userDataRepository: UserDataRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -78,36 +85,35 @@ class SearchViewModel @Inject constructor(
     private var searchJob: Job? = null
 
     private val _tabState = MutableStateFlow(
-        SearchTabState(
-            titles = listOf(
-                R.string.application,
-                R.string.component,
-                R.string.online_rule,
+        TabState(
+            items = listOf(
+                SearchTabItem(R.string.application),
+                SearchTabItem(R.string.component),
+                SearchTabItem(R.string.online_rule),
             ),
-            currentIndex = 0,
+            selectedItem = SearchTabItem(R.string.application),
         ),
     )
-    val tabState: StateFlow<SearchTabState> = _tabState.asStateFlow()
+    val tabState: StateFlow<TabState<SearchTabItem>> = _tabState.asStateFlow()
 
     init {
         load()
     }
 
     private fun load() = viewModelScope.launch {
-        initializeDatabaseUseCase.invoke()
-            .collect {
-                if (it is InitializeState.Initializing) {
-                    _localSearchUiState.emit(LocalSearchUiState.Initializing(it.processingName))
-                } else {
-                    _localSearchUiState.emit(LocalSearchUiState.Idle)
-                }
+        initializeDatabase().collect {
+            if (it is InitializeState.Initializing) {
+                _localSearchUiState.emit(LocalSearchUiState.Initializing(it.processingName))
+            } else {
+                _localSearchUiState.emit(LocalSearchUiState.Idle)
             }
+        }
     }
 
-    fun switchTab(newIndex: Int) {
-        if (newIndex != tabState.value.currentIndex) {
+    fun switchTab(newTab: SearchTabItem) {
+        if (newTab != tabState.value.selectedItem) {
             _tabState.update {
-                it.copy(currentIndex = newIndex)
+                it.copy(selectedItem = newTab)
             }
         }
     }
@@ -136,56 +142,84 @@ class SearchViewModel @Inject constructor(
                     },
                 ).map { app ->
                     val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
-                    app.toInstalledAppItem(packageInfo)
+                    app.toAppItem(packageInfo)
                 }
                 emit(filteredList)
             }
-        // Organized by <PackageName, List<Component>>
-        val searchComponentFlow: Flow<Map<String, List<ComponentInfo>>> =
+
+        val searchComponentFlow: Flow<List<FilteredComponentItem>> =
             componentRepository.searchComponent(keyword)
                 .map { list ->
                     list.groupBy { it.packageName }
+                        .toSortedMap()
+                        .map MapToUiModel@{ (packageName, componentList) ->
+                            // Map to UI model
+                            val app = appRepository.getApplication(packageName).first()
+                                ?: return@MapToUiModel null
+                            Timber.v("Found ${componentList.size} components for $packageName")
+                            FilteredComponentItem(
+                                app = app.toAppItem(
+                                    packageInfo = pm.getPackageInfoCompat(packageName, 0),
+                                ),
+                                activity = componentList.filter { it.type == ACTIVITY },
+                                service = componentList.filter { it.type == SERVICE },
+                                receiver = componentList.filter { it.type == RECEIVER },
+                                provider = componentList.filter { it.type == PROVIDER },
+                            )
+                        }
+                        .filterNotNull()
                 }
 
         val searchGeneralRuleFlow = generalRuleRepository.searchGeneralRule(keyword)
+            .transform { list ->
+                val serverUrl = userDataRepository.userData
+                    .first()
+                    .ruleServerProvider
+                    .baseUrl
+                val listWithIconUrl = list.map { rule ->
+                    rule.copy(
+                        iconUrl = "$serverUrl${rule.iconUrl}",
+                    )
+                }
+                emit(listWithIconUrl)
+            }
         val searchFlow = combine(
             searchAppFlow,
             searchComponentFlow,
             searchGeneralRuleFlow,
         ) { apps, components, rules ->
             Timber.v("Fild ${apps.size} apps, ${components.size} components, ${rules.size} rules")
-            // Group component list by packages
-            val filteredComponents = components.map { (packageName, componentList) ->
-                val app = appRepository.getApplication(packageName).first()
-                if (app != null) {
-                    FilteredComponentItem(
-                        app = app.toInstalledAppItem(pm.getPackageInfoCompat(packageName, 0)),
-                        activity = componentList.filter { it.type == ACTIVITY },
-                        service = componentList.filter { it.type == SERVICE },
-                        receiver = componentList.filter { it.type == RECEIVER },
-                        provider = componentList.filter { it.type == PROVIDER },
-                    )
-                } else {
-                    null
-                }
-            }
-                .filterNotNull()
             LocalSearchUiState.Success(
                 apps = apps,
-                components = filteredComponents,
+                components = components,
                 rules = rules,
             )
         }
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
+            delay(500)
             searchFlow.flowOn(ioDispatcher)
+                .onStart {
+                    _localSearchUiState.emit(Loading)
+                }
                 .collect { searchResult ->
                     _localSearchUiState.emit(searchResult)
                     _tabState.update {
                         it.copy(
-                            appCount = searchResult.apps.size,
-                            componentCount = searchResult.components.size,
-                            rulesCount = searchResult.rules.size,
+                            items = listOf(
+                                SearchTabItem(
+                                    title = R.string.application,
+                                    count = searchResult.apps.size,
+                                ),
+                                SearchTabItem(
+                                    title = R.string.component,
+                                    count = searchResult.components.size,
+                                ),
+                                SearchTabItem(
+                                    title = R.string.online_rule,
+                                    count = searchResult.rules.size,
+                                ),
+                            ),
                         )
                     }
                 }
@@ -225,7 +259,7 @@ sealed interface LocalSearchUiState {
     object Idle : LocalSearchUiState
     object Loading : LocalSearchUiState
     class Success(
-        val apps: List<InstalledAppItem> = listOf(),
+        val apps: List<AppItem> = listOf(),
         val components: List<FilteredComponentItem> = listOf(),
         val rules: List<GeneralRule> = listOf(),
         val isSelectedMode: Boolean = false,
@@ -240,7 +274,7 @@ data class SearchBoxUiState(
 )
 
 data class FilteredComponentItem(
-    val app: InstalledAppItem,
+    val app: AppItem,
     val activity: List<ComponentInfo> = listOf(),
     val service: List<ComponentInfo> = listOf(),
     val receiver: List<ComponentInfo> = listOf(),
@@ -248,10 +282,7 @@ data class FilteredComponentItem(
     val isSelected: Boolean = false,
 )
 
-data class SearchTabState(
-    val titles: List<Int>,
-    val currentIndex: Int,
-    val appCount: Int = 0,
-    val componentCount: Int = 0,
-    val rulesCount: Int = 0,
+data class SearchTabItem(
+    val title: Int,
+    val count: Int = 0,
 )

@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,18 +14,32 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="application">App ( %1$d )</string>
-    <string name="component">Component ( %1$d )</string>
-    <string name="online_rule">Online rule ( %1$d )</string>
+    <string name="application">App (%1$d)</string>
+    <string name="component">Component (%1$d)</string>
+    <string name="online_rule">Online rule (%1$d)</string>
     <string name="searching">Searching</string>
-    <string name="activity_count">%1$d Activity</string>
-    <string name="content_provider_count">%1$d Content provider</string>
-    <string name="broadcast_count">%1$d Broadcast</string>
-    <string name="service_count">%1$d Service</string>
-    <string name="delimiter"> / </string>
-    <string name="selected_app">%1$d apps selected</string>
-    <string name="click_to_search">Click to search</string>
+    <plurals name="activity_count">
+        <item quantity="one">%1$d Activity</item>
+        <item quantity="other">%1$d Activities</item>
+    </plurals>
+    <plurals name="content_provider_count">
+        <item quantity="one">%1$d Content provider</item>
+        <item quantity="other">%1$d Content providers</item>
+    </plurals>
+    <plurals name="broadcast_count">
+        <item quantity="one">%1$d Broadcast</item>
+        <item quantity="other">%1$d Broadcasts</item>
+    </plurals>
+    <plurals name="service_count">
+        <item quantity="one">%1$d Service</item>
+        <item quantity="other">%1$d Services</item>
+    </plurals>
+    <plurals name="selected_app_count">
+        <item quantity="one">%1$d app selected</item>
+        <item quantity="other">%1$d apps selected</item>
+    </plurals>
+    <string name="delimiter" translatable="false">&#160;/&#160;</string>
+    <string name="search_hint">Apps, components and rules</string>
     <string name="no_search_result">No search result yet</string>
-    <string name="applicable_app">Applicable_app</string>
-    <string name="illustrate">Illustrate</string>
+    <string name="initializing_database">Initializing database</string>
 </resources>

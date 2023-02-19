@@ -22,7 +22,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,14 +48,17 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.feature.search.R
+import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
-import com.merxury.blocker.feature.search.model.InstalledAppItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AppListItem(
-    filterAppItem: FilteredComponentItem,
+fun FilteredComponentItem(
+    items: FilteredComponentItem,
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
@@ -73,8 +76,7 @@ fun AppListItem(
         RoundedCornerShape(0.dp)
     }
     Box(
-        modifier = modifier
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+        modifier = modifier,
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -85,7 +87,7 @@ fun AppListItem(
                         if (!isSelectedMode) {
                             onClick()
                         } else {
-                            onSelect(!filterAppItem.isSelected)
+                            onSelect(!items.isSelected)
                         }
                     },
                     onLongClick = {
@@ -98,23 +100,22 @@ fun AppListItem(
                     color = color,
                     shape = shape,
                 )
-                .padding(horizontal = 8.dp, vertical = 10.dp),
-
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            AppIcon(
-                info = filterAppItem.app.packageInfo,
+            SelectableAppIcon(
+                info = items.app.packageInfo,
                 isSelectedMode = isSelectedMode,
-                isSelected = filterAppItem.isSelected,
+                isSelected = items.isSelected,
                 onSelect = onSelect,
             )
             Spacer(modifier = Modifier.width(16.dp))
-            AppContent(appItem = filterAppItem)
+            AppContent(appItem = items)
         }
     }
 }
 
 @Composable
-private fun AppIcon(
+private fun SelectableAppIcon(
     info: PackageInfo?,
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
@@ -125,14 +126,14 @@ private fun AppIcon(
         IconButton(onClick = { onSelect(false) }) {
             Icon(
                 imageVector = BlockerIcons.Check,
-                modifier = modifier.size(40.dp),
+                modifier = modifier.size(48.dp),
                 contentDescription = null,
             )
         }
     } else {
         AsyncImage(
             modifier = modifier
-                .size(40.dp)
+                .size(48.dp)
                 .clickable {
                     if (isSelectedMode) {
                         onSelect(true)
@@ -152,93 +153,90 @@ private fun AppContent(
     appItem: FilteredComponentItem,
     modifier: Modifier = Modifier,
 ) {
-    var count = 0
     Column(modifier) {
         Text(
             text = appItem.app.label,
             style = MaterialTheme.typography.bodyLarge,
         )
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.Start,
-        ) {
-            if (appItem.service.isNotEmpty()) {
-                Text(
-                    text = stringResource(
-                        id = R.string.service_count,
-                        appItem.service.size,
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-                count++
-            }
-            if (appItem.receiver.isNotEmpty()) {
-                if (count != 0) {
-                    Text(
-                        text = stringResource(id = R.string.delimiter),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Text(
-                    text = stringResource(
-                        id = R.string.broadcast_count,
-                        appItem.receiver.size,
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-
-                count++
-            }
-            if (appItem.activity.isNotEmpty()) {
-                if (count != 0) {
-                    Text(
-                        text = stringResource(id = R.string.delimiter),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Text(
-                    text = stringResource(
-                        id = R.string.activity_count,
-                        appItem.activity.size,
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-            if (appItem.provider.isNotEmpty()) {
-                if (count != 0) {
-                    Text(
-                        text = stringResource(id = R.string.delimiter),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                }
-                Text(
-                    text = stringResource(
-                        id = R.string.content_provider_count,
-                        appItem.provider.size,
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                )
-            }
-        }
+        Text(
+            text = getComponentCountDescription(appItem = appItem),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
+}
+
+@Composable
+private fun getComponentCountDescription(appItem: FilteredComponentItem): String {
+    val countDescriptions = mutableListOf<String>()
+    if (appItem.receiver.isNotEmpty()) {
+        countDescriptions.add(
+            pluralStringResource(
+                id = R.plurals.broadcast_count,
+                count = appItem.receiver.size,
+                appItem.receiver.size,
+            ),
+        )
+    }
+    if (appItem.service.isNotEmpty()) {
+        countDescriptions.add(
+            pluralStringResource(
+                id = R.plurals.service_count,
+                count = appItem.service.size,
+                appItem.service.size,
+            ),
+        )
+    }
+    if (appItem.activity.isNotEmpty()) {
+        countDescriptions.add(
+            pluralStringResource(
+                id = R.plurals.activity_count,
+                count = appItem.activity.size,
+                appItem.activity.size,
+            ),
+        )
+    }
+    if (appItem.provider.isNotEmpty()) {
+        countDescriptions.add(
+            pluralStringResource(
+                id = R.plurals.content_provider_count,
+                count = appItem.provider.size,
+                appItem.provider.size,
+            ),
+        )
+    }
+    return countDescriptions
+        .joinToString(separator = stringResource(id = string.delimiter))
 }
 
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppListItemPreview() {
+    val componentInfo = ComponentInfo(
+        name = "component",
+        simpleName = "com",
+        packageName = "blocker",
+        type = ACTIVITY,
+        exported = false,
+        pmBlocked = false,
+    )
     val filterAppItem = FilteredComponentItem(
-        app = InstalledAppItem(
+        app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
             isSystem = false,
         ),
         isSelected = true,
+        activity = listOf(componentInfo),
+        service = listOf(componentInfo),
+        receiver = listOf(componentInfo),
+        provider = listOf(componentInfo),
     )
     BlockerTheme {
         Surface {
-            AppListItem(
-                filterAppItem = filterAppItem,
+            FilteredComponentItem(
+                items = filterAppItem,
                 isSelectedMode = true,
                 switchSelectedMode = {},
                 onSelect = {},
@@ -251,17 +249,29 @@ fun AppListItemPreview() {
 @Composable
 @Preview
 fun AppListItemWithoutServicePreview() {
+    val componentInfo = ComponentInfo(
+        name = "component",
+        simpleName = "com",
+        packageName = "blocker",
+        type = ACTIVITY,
+        exported = false,
+        pmBlocked = false,
+    )
     val filterAppItem = FilteredComponentItem(
-        app = InstalledAppItem(
+        app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
             isSystem = false,
         ),
+        activity = listOf(componentInfo),
+        service = listOf(componentInfo),
+        receiver = listOf(componentInfo),
+        provider = listOf(componentInfo),
     )
     BlockerTheme {
         Surface {
-            AppListItem(
-                filterAppItem = filterAppItem,
+            FilteredComponentItem(
+                items = filterAppItem,
                 isSelectedMode = false,
                 switchSelectedMode = {},
                 onSelect = {},

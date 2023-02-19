@@ -15,11 +15,7 @@
      limitations under the License.
 -->
 <resources>
-    <string name="app_info">應用信息</string>
-    <string name="receiver">廣播接收器</string>
-    <string name="content_provider">內容提供者</string>
-    <string name="activity">活動</string>
-    <string name="service">服務</string>
+
     <string name="launch_app">啟動應用</string>
     <string name="cannot_launch_this_app">無法啟動這個應用</string>
     <string name="blocker_rules">Blocker規則</string>

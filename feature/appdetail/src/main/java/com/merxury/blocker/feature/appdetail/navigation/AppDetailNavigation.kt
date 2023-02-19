@@ -26,26 +26,26 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
+import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
-import com.merxury.blocker.feature.appdetail.Screen
 
 @VisibleForTesting
 internal const val packageNameArg = "packageName"
 
 @VisibleForTesting
-internal const val screenArg = "screen"
+internal const val tabArg = "tab"
 
-internal class AppDetailArgs(val packageName: String, val screen: Screen = Screen.Detail) {
+internal class AppDetailArgs(val packageName: String, val tabs: AppDetailTabs = AppDetailTabs.Info) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
         this(
             stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])),
-            Screen.fromName(savedStateHandle[screenArg]),
+            AppDetailTabs.fromName(savedStateHandle[tabArg]),
         )
 }
 
-fun NavController.navigateToAppDetail(packageName: String, screen: Screen = Screen.Detail) {
+fun NavController.navigateToAppDetail(packageName: String, tab: AppDetailTabs = AppDetailTabs.Info) {
     val encodedId = Uri.encode(packageName)
-    this.navigate("app_detail_route/$encodedId?screen=${screen.name}") {
+    this.navigate("app_detail_route/$encodedId?screen=${tab.name}") {
         // Pop up to the start destination of the graph to
         // avoid building up a large stack of destinations
         // on the back stack as users select items
@@ -60,10 +60,10 @@ fun NavController.navigateToAppDetail(packageName: String, screen: Screen = Scre
 
 fun NavGraphBuilder.detailScreen(onBackClick: () -> Unit) {
     composable(
-        route = "app_detail_route/{$packageNameArg}?screen={$screenArg}",
+        route = "app_detail_route/{$packageNameArg}?screen={$tabArg}",
         arguments = listOf(
             navArgument(packageNameArg) { type = NavType.StringType },
-            navArgument(screenArg) { type = NavType.StringType },
+            navArgument(tabArg) { type = NavType.StringType },
         ),
     ) {
         AppDetailRoute(onBackClick = onBackClick)

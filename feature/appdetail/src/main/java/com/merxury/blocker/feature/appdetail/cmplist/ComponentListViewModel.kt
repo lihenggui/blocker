@@ -86,13 +86,13 @@ class ComponentListViewModel @AssistedInject constructor(
 
     fun launchActivity(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am start -n $packageName/$componentName".exec()
+            "am start -n $packageName/$componentName".exec(ioDispatcher)
         }
     }
 
     fun stopService(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am stopservice $packageName/$componentName".exec()
+            "am stopservice $packageName/$componentName".exec(ioDispatcher)
         }
     }
 
