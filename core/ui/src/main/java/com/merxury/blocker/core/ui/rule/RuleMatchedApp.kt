@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.component
+package com.merxury.blocker.core.ui.rule
 
-import androidx.compose.runtime.State
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.component.ComponentItem
 
-data class MatchedApp(
+data class RuleMatchedApp(
     val app: AppItem,
-    val component: State<List<ComponentItem>>,
+    val componentList: List<ComponentItem>,
 )

@@ -147,7 +147,7 @@ fun ComponentListContent(
 
         is ComponentListUiState.Success -> {
             ComponentList(
-                components = list,
+                components = list.value,
                 modifier = modifier,
                 onSwitchClick = onSwitch,
                 onStopServiceClick = onStopServiceClick,
