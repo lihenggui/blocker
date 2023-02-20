@@ -16,10 +16,9 @@
 
 package com.merxury.blocker.core.ui.component
 
-import androidx.compose.runtime.State
 import com.merxury.blocker.core.ui.applist.model.AppItem
 
 data class MatchedApp(
     val app: AppItem,
-    val component: State<List<ComponentItem>>,
+    val componentList: List<ComponentItem>,
 )
