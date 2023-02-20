@@ -116,8 +116,6 @@ object BlockerIcons {
     val Error = Icons.Outlined.Error
 
     val Rectangle = R.drawable.ic_rectangle
-    val Export = R.drawable.ic_export
-    val Import = R.drawable.ic_import
     val Android = R.drawable.ic_android
     val GitHub = R.drawable.ic_github
     val Telegram = R.drawable.ic_telegram

@@ -64,8 +64,8 @@ fun RuleCard(
                     .size(40.dp),
                 model = Builder(LocalContext.current)
                     .data(item.iconUrl)
-                    .error(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
-                    .placeholder(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
+                    .error(BlockerIcons.Android)
+                    .placeholder(BlockerIcons.Android)
                     .crossfade(true)
                     .build(),
                 contentDescription = stringResource(id = string.rule_icon_description),
