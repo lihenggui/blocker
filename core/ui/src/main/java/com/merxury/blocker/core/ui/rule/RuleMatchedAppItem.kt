@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.component
+package com.merxury.blocker.core.ui.rule
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
@@ -33,6 +33,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -44,20 +48,23 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.applist.AppIcon
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.component.ComponentItem
+import com.merxury.blocker.core.ui.component.ComponentList
 
 @Composable
 fun MatchedComponentItem(
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
-    matchedApp: MatchedApp,
-    expanded: Boolean,
-    onClickExpandIcon: (Boolean) -> Unit,
+    ruleMatchedApp: RuleMatchedApp,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
     onCopyFullNameClick: (String) -> Unit,
     onSwitch: (String, String, Boolean) -> Unit,
 ) {
+    var expanded by remember {
+        mutableStateOf(false)
+    }
     val expandIcon = if (expanded) {
         BlockerIcons.ExpandLess
     } else {
@@ -75,14 +82,14 @@ fun MatchedComponentItem(
                     .clickable { }
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                AppIcon(matchedApp.app.packageInfo, iconModifier.size(48.dp))
+                AppIcon(ruleMatchedApp.app.packageInfo, iconModifier.size(48.dp))
                 Spacer(modifier = Modifier.width(16.dp))
                 MatchedAppInfo(
-                    label = matchedApp.app.label,
-                    matchedComponentCount = matchedApp.componentList.size,
+                    label = ruleMatchedApp.app.label,
+                    matchedComponentCount = ruleMatchedApp.componentList.size,
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { onClickExpandIcon(!expanded) }) {
+                IconButton(onClick = { expanded = !expanded }) {
                     Icon(
                         imageVector = expandIcon,
                         contentDescription = null,
@@ -92,7 +99,7 @@ fun MatchedComponentItem(
             Divider()
             if (expanded) {
                 ComponentList(
-                    components = matchedApp.componentList,
+                    components = ruleMatchedApp.componentList,
                     onStopServiceClick = onStopServiceClick,
                     onLaunchActivityClick = onLaunchActivityClick,
                     onCopyNameClick = onCopyNameClick,
@@ -141,7 +148,7 @@ fun MatchedComponentItemWithExpandPreview() {
         type = ACTIVITY,
         pmBlocked = false,
     )
-    val matchedApp = MatchedApp(
+    val ruleMatchedApp = RuleMatchedApp(
         app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
@@ -152,9 +159,7 @@ fun MatchedComponentItemWithExpandPreview() {
     BlockerTheme {
         Surface {
             MatchedComponentItem(
-                matchedApp = matchedApp,
-                expanded = true,
-                onClickExpandIcon = {},
+                ruleMatchedApp = ruleMatchedApp,
                 onCopyFullNameClick = {},
                 onCopyNameClick = {},
                 onLaunchActivityClick = { _, _ -> },
@@ -175,7 +180,7 @@ fun MatchedComponentItemPreview() {
         type = ACTIVITY,
         pmBlocked = false,
     )
-    val matchedApp = MatchedApp(
+    val ruleMatchedApp = RuleMatchedApp(
         app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
@@ -186,9 +191,7 @@ fun MatchedComponentItemPreview() {
     BlockerTheme {
         Surface {
             MatchedComponentItem(
-                matchedApp = matchedApp,
-                expanded = false,
-                onClickExpandIcon = {},
+                ruleMatchedApp = ruleMatchedApp,
                 onCopyFullNameClick = {},
                 onCopyNameClick = {},
                 onLaunchActivityClick = { _, _ -> },
