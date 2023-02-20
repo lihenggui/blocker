@@ -93,7 +93,10 @@ fun ComponentListContentRoute(
     LaunchedEffect(topAppBarUiState.keyword, topAppBarUiState.isSearchMode) {
         updateAppBarActions(
             topAppBarUiState = topAppBarUiState,
-            onSearchTextChanged = onSearchTextChanged,
+            onSearchTextChanged = { newSearchText ->
+                onSearchTextChanged(newSearchText)
+                viewModel.filter(newSearchText.text)
+            },
             onToolbarActionUpdated = onAppBarActionUpdated,
             onSearchModeChanged = onSearchModeChanged,
         )
@@ -117,12 +120,12 @@ fun componentListViewModel(packageName: String, type: ComponentType): ComponentL
 fun ComponentListContent(
     uiState: ComponentListUiState,
     list: State<List<ComponentItem>>,
-    onStopServiceClick: (String, String) -> Unit,
-    onLaunchActivityClick: (String, String) -> Unit,
-    onCopyNameClick: (String) -> Unit,
-    onCopyFullNameClick: (String) -> Unit,
-    onSwitch: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (uiState) {
         ComponentListUiState.Loading -> {
@@ -144,12 +147,12 @@ fun ComponentListContent(
         is ComponentListUiState.Success -> {
             ComponentList(
                 components = list,
+                modifier = modifier,
                 onSwitchClick = onSwitch,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
-                modifier = modifier,
             )
         }
 
