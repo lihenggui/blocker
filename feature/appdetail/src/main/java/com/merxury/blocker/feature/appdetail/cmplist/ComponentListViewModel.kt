@@ -89,6 +89,18 @@ class ComponentListViewModel @AssistedInject constructor(
         _componentListFlow.value = _componentList
     }
 
+    fun blockAllComponents() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        _componentList.forEach {
+            controlComponentInternal(it.packageName, it.name, false)
+        }
+    }
+
+    fun enableAllComponents() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        _componentList.forEach {
+            controlComponentInternal(it.packageName, it.name, true)
+        }
+    }
+
     fun dismissAlert() = viewModelScope.launch {
         _errorState.emit(null)
     }
@@ -160,6 +172,14 @@ class ComponentListViewModel @AssistedInject constructor(
         componentName: String,
         enabled: Boolean,
     ) = viewModelScope.launch {
+        controlComponentInternal(packageName, componentName, enabled)
+    }
+
+    private suspend fun controlComponentInternal(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) {
         componentRepository.controlComponent(packageName, componentName, enabled)
             .catch { exception ->
                 _errorState.emit(exception.toErrorMessage())

@@ -39,9 +39,11 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
+import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.component.ComponentItem
@@ -100,6 +102,8 @@ fun ComponentListContentRoute(
             },
             onToolbarActionUpdated = onAppBarActionUpdated,
             onSearchModeChanged = onSearchModeChanged,
+            blockAllComponents = viewModel::blockAllComponents,
+            enableAllComponents = viewModel::enableAllComponents,
         )
     }
 }
@@ -166,6 +170,8 @@ fun updateAppBarActions(
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onToolbarActionUpdated: (AppBarActionState) -> Unit,
     onSearchModeChanged: (Boolean) -> Unit,
+    blockAllComponents: () -> Unit,
+    enableAllComponents: () -> Unit,
 ) {
     onToolbarActionUpdated(
         AppBarActionState(
@@ -197,17 +203,33 @@ fun updateAppBarActions(
                         )
                     }
                 }
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.then(Modifier.size(24.dp)),
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.More,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
+                MoreActionMenu(
+                    blockAllComponents = blockAllComponents,
+                    enableAllComponents = enableAllComponents,
+                )
             },
         ),
+    )
+}
+
+@Composable
+fun MoreActionMenu(
+    blockAllComponents: () -> Unit,
+    enableAllComponents: () -> Unit,
+) {
+    val items = listOf(
+        DropDownMenuItem(
+            string.block_all_of_this_page,
+            blockAllComponents,
+        ),
+        DropDownMenuItem(
+            string.enable_all_of_this_page,
+            enableAllComponents,
+        ),
+    )
+    BlockerAppTopBarMenu(
+        menuIcon = BlockerIcons.MoreVert,
+        menuIconDesc = string.more_menu,
+        menuList = items,
     )
 }
