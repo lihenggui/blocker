@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui
+package com.merxury.blocker.core.ui.rule
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,6 +37,7 @@ import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.R.string
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +68,7 @@ fun RuleCard(
                     .placeholder(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
                     .crossfade(true)
                     .build(),
-                contentDescription = stringResource(id = R.string.rule_icon_description),
+                contentDescription = stringResource(id = string.rule_icon_description),
             )
             Text(
                 text = item.name,
