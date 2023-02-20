@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui.component
 
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -39,9 +41,9 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.applist.AppIcon
+import com.merxury.blocker.core.ui.applist.model.AppItem
 
 @Composable
 fun MatchedComponentItem(
@@ -62,36 +64,42 @@ fun MatchedComponentItem(
         BlockerIcons.ExpandMore
     }
     Box {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Column(
             modifier = modifier
-                .fillMaxWidth()
-                .clickable { }
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .fillMaxWidth(),
         ) {
-            AppIcon(matchedApp.app.packageInfo, iconModifier.size(48.dp))
-            Spacer(modifier = Modifier.width(16.dp))
-            MatchedAppInfo(
-                label = matchedApp.app.label,
-                matchedComponentCount = matchedApp.component.value.size,
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { onClickExpandIcon(!expanded) }) {
-                Icon(
-                    imageVector = expandIcon,
-                    contentDescription = null,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier
+                    .fillMaxWidth()
+                    .clickable { }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+            ) {
+                AppIcon(matchedApp.app.packageInfo, iconModifier.size(48.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                MatchedAppInfo(
+                    label = matchedApp.app.label,
+                    matchedComponentCount = matchedApp.componentList.size,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                IconButton(onClick = { onClickExpandIcon(!expanded) }) {
+                    Icon(
+                        imageVector = expandIcon,
+                        contentDescription = null,
+                    )
+                }
+            }
+            Divider()
+            if (expanded) {
+                ComponentList(
+                    components = matchedApp.componentList,
+                    onStopServiceClick = onStopServiceClick,
+                    onLaunchActivityClick = onLaunchActivityClick,
+                    onCopyNameClick = onCopyNameClick,
+                    onCopyFullNameClick = onCopyFullNameClick,
+                    onSwitchClick = onSwitch,
                 )
             }
-        }
-        if (expanded) {
-            ComponentList(
-                components = matchedApp.component,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-                onSwitchClick = onSwitch,
-            )
         }
     }
 }
@@ -117,34 +125,42 @@ private fun MatchedAppInfo(
 
 @Composable
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun MatchedComponentItemWithExpandPreview() {
-    val componentInfo = ComponentItem(
-        name = "component",
-        simpleName = "com",
+    val componentInfo1 = ComponentItem(
+        name = "component name component name component name component name ",
+        simpleName = "simple name simple name",
         packageName = "blocker",
         type = ACTIVITY,
         pmBlocked = false,
     )
-//    val matchedApp = MatchedApp(
-//        app = AppItem(
-//            packageName = "com.merxury.blocker",
-//            label = "Blocker",
-//            isSystem = false,
-//        ),
-//        componentInfo =
-//    )
+    val componentInfo2 = ComponentItem(
+        name = "component2 name component2 name component2 name component2 name ",
+        simpleName = "simple2 name simple2 name",
+        packageName = "blocker2",
+        type = ACTIVITY,
+        pmBlocked = false,
+    )
+    val matchedApp = MatchedApp(
+        app = AppItem(
+            packageName = "com.merxury.blocker",
+            label = "Blocker",
+            isSystem = false,
+        ),
+        componentList = listOf(componentInfo1, componentInfo2),
+    )
     BlockerTheme {
         Surface {
-//            MatchedComponentItem(
-//                matchedApp = matchedApp,
-//                expanded = true,
-//                onClickExpandIcon = {},
-//                onCopyFullNameClick = {},
-//                onCopyNameClick = {},
-//                onLaunchActivityClick = { _, _ -> },
-//                onStopServiceClick = { _, _ -> },
-//                onSwitch = { _, _, _ -> },
-//            )
+            MatchedComponentItem(
+                matchedApp = matchedApp,
+                expanded = true,
+                onClickExpandIcon = {},
+                onCopyFullNameClick = {},
+                onCopyNameClick = {},
+                onLaunchActivityClick = { _, _ -> },
+                onStopServiceClick = { _, _ -> },
+                onSwitch = { _, _, _ -> },
+            )
         }
     }
 }
@@ -152,34 +168,33 @@ fun MatchedComponentItemWithExpandPreview() {
 @Composable
 @Preview
 fun MatchedComponentItemPreview() {
-    val componentInfo = ComponentInfo(
+    val componentInfo = ComponentItem(
         name = "component",
         simpleName = "com",
         packageName = "blocker",
         type = ACTIVITY,
-        exported = false,
         pmBlocked = false,
     )
-//    val matchedApp = MatchedApp(
-//        app = AppItem(
-//            packageName = "com.merxury.blocker",
-//            label = "Blocker",
-//            isSystem = false,
-//        ),
-//        component =,
-//    )
+    val matchedApp = MatchedApp(
+        app = AppItem(
+            packageName = "com.merxury.blocker",
+            label = "Blocker",
+            isSystem = false,
+        ),
+        componentList = listOf(componentInfo),
+    )
     BlockerTheme {
         Surface {
-//            MatchedComponentItem(
-//                matchedApp = matchedApp,
-//                expanded = false,
-//                onClickExpandIcon = {},
-//                onCopyFullNameClick = {},
-//                onCopyNameClick = {},
-//                onLaunchActivityClick = { _, _ -> },
-//                onStopServiceClick = { _, _ -> },
-//                onSwitch = { _, _, _ -> },
-//            )
+            MatchedComponentItem(
+                matchedApp = matchedApp,
+                expanded = false,
+                onClickExpandIcon = {},
+                onCopyFullNameClick = {},
+                onCopyNameClick = {},
+                onLaunchActivityClick = { _, _ -> },
+                onStopServiceClick = { _, _ -> },
+                onSwitch = { _, _, _ -> },
+            )
         }
     }
 }
