@@ -48,10 +48,10 @@ import com.merxury.blocker.core.designsystem.bottomsheet.rememberModalBottomShee
 import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.ui.RuleCard
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.AppListItem
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.rule.RuleCard
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.feature.search.component.BottomSheetRoute
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
