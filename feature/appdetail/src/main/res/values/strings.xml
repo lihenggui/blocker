@@ -51,4 +51,5 @@
     <string name="launch_activity">Launch activity</string>
     <string name="stop_service">Stop service</string>
     <string name="running">Running</string>
+    <string name="search_components">Search components</string>
 </resources>
