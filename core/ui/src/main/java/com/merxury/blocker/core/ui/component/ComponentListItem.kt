@@ -38,7 +38,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -66,7 +65,7 @@ import com.merxury.blocker.core.ui.TrackScrollJank
 
 @Composable
 fun ComponentList(
-    components: State<List<ComponentItem>>,
+    components: List<ComponentItem>,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
@@ -74,7 +73,7 @@ fun ComponentList(
     onSwitchClick: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    if (components.value.isEmpty()) {
+    if (components.isEmpty()) {
         NoComponentScreen()
         return
     }
@@ -85,7 +84,7 @@ fun ComponentList(
         state = listState,
     ) {
         itemsIndexed(
-            items = components.value,
+            items = components,
             key = { _, item -> item.name },
         ) { _, item ->
             ComponentListItem(
