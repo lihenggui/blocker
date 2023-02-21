@@ -33,7 +33,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -45,12 +44,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
-import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.ui.applist.AppListItem
 import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.screen.ErrorScreen
+import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
@@ -138,18 +137,7 @@ fun AppListScreen(
         ) {
             when (uiState) {
                 AppListUiState.Loading -> {
-                    Column(
-                        modifier = modifier
-                            .fillMaxSize()
-                            .padding(padding),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        BlockerLoadingWheel(
-                            modifier = modifier,
-                            contentDesc = stringResource(id = string.loading),
-                        )
-                    }
+                    LoadingScreen()
                 }
 
                 is AppListUiState.Success -> {
@@ -167,7 +155,7 @@ fun AppListScreen(
                     )
                 }
 
-                is AppListUiState.Error -> ErrorAppListScreen(uiState.error)
+                is AppListUiState.Error -> ErrorScreen(uiState.error)
             }
         }
     }
@@ -216,9 +204,4 @@ fun AppListContent(
             }
         }
     }
-}
-
-@Composable
-fun ErrorAppListScreen(message: ErrorMessage) {
-    Text(text = message.message)
 }

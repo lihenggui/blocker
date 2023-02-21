@@ -41,12 +41,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
-import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.rule.RuleCard
 import com.merxury.blocker.core.ui.screen.ErrorScreen
+import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.generalrule.R
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
@@ -56,11 +56,15 @@ import com.merxury.blocker.feature.generalrules.model.GeneralRulesViewModel
 
 @Composable
 fun GeneralRulesRoute(
+    navigateToRuleDetail: (Int) -> Unit,
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-    GeneralRulesScreen(uiState = uiState)
+    GeneralRulesScreen(
+        uiState = uiState,
+        navigateToRuleDetail = navigateToRuleDetail,
+    )
     if (errorState != null) {
         BlockerErrorAlertDialog(
             title = errorState?.message.orEmpty(),
@@ -75,6 +79,7 @@ fun GeneralRulesRoute(
 fun GeneralRulesScreen(
     modifier: Modifier = Modifier,
     uiState: GeneralRuleUiState,
+    navigateToRuleDetail: (Int) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -96,20 +101,14 @@ fun GeneralRulesScreen(
         ) {
             when (uiState) {
                 Loading -> {
-                    Column(
-                        modifier = modifier
-                            .fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        BlockerLoadingWheel(
-                            modifier = modifier,
-                            contentDesc = stringResource(id = R.string.loading),
-                        )
-                    }
+                    LoadingScreen()
                 }
 
-                is Success -> GeneralRulesContent(rules = uiState.rules)
+                is Success -> GeneralRulesContent(
+                    rules = uiState.rules,
+                    navigateToRuleDetail = navigateToRuleDetail,
+                )
+
                 is Error -> ErrorScreen(error = uiState.error)
             }
         }
@@ -120,6 +119,7 @@ fun GeneralRulesScreen(
 fun GeneralRulesContent(
     rules: List<GeneralRule>,
     modifier: Modifier = Modifier,
+    navigateToRuleDetail: (Int) -> Unit,
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
@@ -129,6 +129,7 @@ fun GeneralRulesContent(
         items(rules, key = { it.id }) {
             RuleCard(
                 item = it,
+                onCardClick = navigateToRuleDetail,
             )
         }
     }
@@ -176,6 +177,6 @@ fun GeneralRuleScreenPreview() {
         ),
     )
     BlockerTheme {
-        GeneralRulesScreen(uiState = uiState)
+        GeneralRulesScreen(uiState = uiState, navigateToRuleDetail = {})
     }
 }

@@ -19,7 +19,6 @@ package com.merxury.blocker.feature.ruledetail
 import android.content.res.Configuration
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -39,7 +38,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -52,7 +50,6 @@ import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
-import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
@@ -63,6 +60,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.component.ComponentItem
+import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
@@ -70,6 +68,7 @@ import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppList
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.screen.ErrorScreen
+import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.ruledetail.component.RuleDescription
@@ -116,16 +115,7 @@ fun RuleDetailScreen(
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
-            Column(
-                modifier = modifier,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                BlockerLoadingWheel(
-                    modifier = modifier,
-                    contentDesc = "",
-                )
-            }
+            LoadingScreen()
         }
 
         is RuleInfoUiState.Success -> {
@@ -324,6 +314,100 @@ fun RuleDetailScreenPreView() {
     val ruleInfoUiState = RuleInfoUiState.Success(
         ruleInfo = item,
     )
+    val tabState = TabState(
+        items = listOf(
+            Description,
+            Applicable,
+        ),
+        selectedItem = Description,
+    )
+    BlockerTheme {
+        Surface {
+            RuleDetailScreen(
+                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
+                ruleInfoUiState = ruleInfoUiState,
+                onBackClick = {},
+                tabState = tabState,
+                switchTab = {},
+                onStopServiceClick = { _, _ -> },
+                onLaunchActivityClick = { _, _ -> },
+                onCopyNameClick = { _ -> },
+                onCopyFullNameClick = { _ -> },
+                onSwitch = { _, _, _ -> },
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun RuleDetailScreenLoadingPreView() {
+    val componentInfo = ComponentItem(
+        name = "component",
+        simpleName = "com",
+        packageName = "blocker",
+        type = ACTIVITY,
+        pmBlocked = false,
+    )
+    val ruleMatchedApp = RuleMatchedApp(
+        app = AppItem(
+            packageName = "com.merxury.blocker",
+            label = "Blocker",
+            isSystem = false,
+        ),
+        componentList = listOf(componentInfo),
+    )
+    val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
+        list = listOf(ruleMatchedApp),
+    )
+    val ruleInfoUiState = RuleInfoUiState.Loading
+    val tabState = TabState(
+        items = listOf(
+            Description,
+            Applicable,
+        ),
+        selectedItem = Description,
+    )
+    BlockerTheme {
+        Surface {
+            RuleDetailScreen(
+                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
+                ruleInfoUiState = ruleInfoUiState,
+                onBackClick = {},
+                tabState = tabState,
+                switchTab = {},
+                onStopServiceClick = { _, _ -> },
+                onLaunchActivityClick = { _, _ -> },
+                onCopyNameClick = { _ -> },
+                onCopyFullNameClick = { _ -> },
+                onSwitch = { _, _, _ -> },
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun RuleDetailScreenErrorPreView() {
+    val componentInfo = ComponentItem(
+        name = "component",
+        simpleName = "com",
+        packageName = "blocker",
+        type = ACTIVITY,
+        pmBlocked = false,
+    )
+    val ruleMatchedApp = RuleMatchedApp(
+        app = AppItem(
+            packageName = "com.merxury.blocker",
+            label = "Blocker",
+            isSystem = false,
+        ),
+        componentList = listOf(componentInfo),
+    )
+    val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
+        list = listOf(ruleMatchedApp),
+    )
+    val ruleInfoUiState = RuleInfoUiState.Error(ErrorMessage("Error"))
     val tabState = TabState(
         items = listOf(
             Description,

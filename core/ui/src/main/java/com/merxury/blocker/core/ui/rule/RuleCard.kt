@@ -43,13 +43,13 @@ import com.merxury.blocker.core.ui.R.string
 @Composable
 fun RuleCard(
     item: GeneralRule,
-    onCardClick: (GeneralRule) -> Unit = { },
+    onCardClick: (Int) -> Unit = { },
 ) {
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        onClick = { onCardClick(item) },
+        onClick = { onCardClick(item.id) },
     ) {
         ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
             val (icon, name, company, ruleIcon, keywords) = createRefs()

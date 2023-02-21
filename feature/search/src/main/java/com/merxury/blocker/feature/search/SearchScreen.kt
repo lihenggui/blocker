@@ -303,7 +303,7 @@ fun AppSearchResultContent(
 fun RuleSearchResultContent(
     modifier: Modifier = Modifier,
     list: List<GeneralRule>,
-    onClick: (GeneralRule) -> Unit,
+    onClick: (Int) -> Unit,
 ) {
     if (list.isEmpty()) {
         NoSearchResultScreen()

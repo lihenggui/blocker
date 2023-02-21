@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.ruledetail.model
 
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
-import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.ErrorMessage
@@ -27,7 +26,7 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
-import com.merxury.blocker.feature.ruledetail.navigation.RuleArgs
+import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,9 +39,8 @@ import javax.inject.Inject
 class RuleDetailViewModel @Inject constructor(
     app: android.app.Application,
     savedStateHandle: SavedStateHandle,
-    stringDecoder: StringDecoder,
 ) : AndroidViewModel(app) {
-    private val ruleArgs: RuleArgs = RuleArgs(savedStateHandle, stringDecoder)
+    private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
     private val _ruleMatchedAppListUiState: MutableStateFlow<RuleMatchedAppListUiState> =
         MutableStateFlow(Loading)
     val ruleMatchedAppListUiState: StateFlow<RuleMatchedAppListUiState> =
@@ -95,7 +93,7 @@ class RuleDetailViewModel @Inject constructor(
     }
 
     private fun loadTabInfo() {
-        val screen = ruleArgs.tabs
+        val screen = ruleIdArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
     }
