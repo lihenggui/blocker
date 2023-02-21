@@ -100,12 +100,13 @@ fun BlockerScrollableTabRow(
 fun BlockerTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
+    containerColor: Color = TabRowDefaults.containerColor,
     tabs: @Composable () -> Unit,
 ) {
     TabRow(
         selectedTabIndex = selectedTabIndex,
         modifier = modifier,
-        containerColor = Color.Transparent,
+        containerColor = containerColor,
         contentColor = MaterialTheme.colorScheme.onSurface,
         indicator = { tabPositions ->
             TabRowDefaults.Indicator(
