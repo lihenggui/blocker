@@ -38,4 +38,6 @@
     <string name="stop_service">Stop service</string>
     <string name="no_components">No components</string>
     <string name="matched_rules">match %1$d rules</string>
+    <string name="description">Description</string>
+    <string name="applicable_application">Applicable app</string>
 </resources>

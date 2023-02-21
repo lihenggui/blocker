@@ -96,6 +96,7 @@ dependencies {
     implementation(project(":feature:generalrule"))
     implementation(project(":feature:search"))
     implementation(project(":feature:settings"))
+    implementation(project(":feature:ruledetail"))
 
     implementation(project(":core:analytics"))
     implementation(project(":core:ui"))
