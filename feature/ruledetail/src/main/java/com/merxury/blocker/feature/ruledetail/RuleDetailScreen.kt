@@ -50,8 +50,8 @@ import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
-import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
+import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -120,6 +120,7 @@ fun RuleDetailScreen(
 
         is RuleInfoUiState.Success -> {
             RuleDetailContent(
+                modifier = modifier,
                 ruleMatchedAppListUiState = ruleMatchedAppListUiState,
                 ruleInfoUiState = ruleInfoUiState,
                 onBackClick = onBackClick,
@@ -247,7 +248,7 @@ fun RuleDetailTabContent(
     Column(
         modifier = modifier,
     ) {
-        BlockerScrollableTabRow(
+        BlockerTabRow(
             selectedTabIndex = tabState.currentIndex,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ) {
