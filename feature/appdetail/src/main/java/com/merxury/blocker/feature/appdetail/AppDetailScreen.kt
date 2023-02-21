@@ -20,7 +20,6 @@ import android.content.res.Configuration
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -40,7 +39,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -55,7 +53,6 @@ import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
-import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
@@ -73,6 +70,8 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.screen.ErrorScreen
+import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
@@ -123,16 +122,7 @@ fun AppDetailScreen(
 ) {
     when (uiState) {
         is AppInfoUiState.Loading -> {
-            Column(
-                modifier = modifier,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                BlockerLoadingWheel(
-                    modifier = modifier,
-                    contentDesc = stringResource(id = string.loading),
-                )
-            }
+            LoadingScreen()
         }
 
         is Success -> {
@@ -150,7 +140,7 @@ fun AppDetailScreen(
             )
         }
 
-        is AppInfoUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
+        is AppInfoUiState.Error -> ErrorScreen(uiState.error)
     }
 }
 
@@ -323,11 +313,6 @@ fun AppDetailTabContent(
             )
         }
     }
-}
-
-@Composable
-fun ErrorAppDetailScreen(message: String) {
-    Text(text = message)
 }
 
 @Composable

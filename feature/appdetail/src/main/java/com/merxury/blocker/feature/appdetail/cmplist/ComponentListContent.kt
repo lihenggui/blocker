@@ -16,10 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail.cmplist
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +26,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -41,16 +37,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
-import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.ComponentList
+import com.merxury.blocker.core.ui.screen.ErrorScreen
+import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.feature.appdetail.AppBarUiState
-import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
 import dagger.hilt.android.EntryPointAccessors
 
@@ -134,19 +130,7 @@ fun ComponentListContent(
 ) {
     when (uiState) {
         ComponentListUiState.Loading -> {
-            LazyColumn(
-                modifier = modifier
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                item {
-                    BlockerLoadingWheel(
-                        modifier = modifier,
-                        contentDesc = stringResource(id = string.loading),
-                    )
-                }
-            }
+            LoadingScreen()
         }
 
         is ComponentListUiState.Success -> {
@@ -161,7 +145,7 @@ fun ComponentListContent(
             )
         }
 
-        is ComponentListUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
+        is ComponentListUiState.Error -> ErrorScreen(uiState.error)
     }
 }
 
