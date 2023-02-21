@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.search.component
+package com.merxury.blocker.core.ui.bottomSheet
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -30,87 +29,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
-import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
-import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.AppDetailTabs.Activity
-import com.merxury.blocker.core.ui.AppDetailTabs.Provider
-import com.merxury.blocker.core.ui.AppDetailTabs.Service
-import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.bottomSheet.BottomSheetTopBar
-import com.merxury.blocker.feature.search.model.BottomSheetViewModel
 
 @Composable
-fun BottomSheetRoute(
+fun BottomSheetTopBar(
     modifier: Modifier = Modifier,
-    app: AppItem,
-    viewModel: BottomSheetViewModel = hiltViewModel(),
+    title: String,
+    subTitle: String,
+    summary: String? = null,
+    iconSource: Any? = null,
 ) {
-    val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    BottomSheet(
-        modifier = modifier,
-        filterApp = app,
-        tabState = tabState,
-        switchTab = viewModel::switchTab,
-    )
-}
-
-@Composable
-fun BottomSheet(
-    modifier: Modifier = Modifier,
-    filterApp: AppItem,
-    tabState: TabState<AppDetailTabs>,
-    switchTab: (AppDetailTabs) -> Unit,
-) {
-    Column(modifier = modifier.defaultMinSize(1.dp)) {
-        BottomSheetTopBar(
-            title = filterApp.label,
-            subTitle = filterApp.packageName,
-            summary = filterApp.versionName,
-            iconSource = filterApp.packageInfo,
-        )
-        BlockerScrollableTabRow(
-            selectedTabIndex = tabState.currentIndex,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            tabs = {
-                tabState.items.forEachIndexed { index, item ->
-                    BlockerTab(
-                        selected = item == tabState.selectedItem,
-                        onClick = { switchTab(item) },
-                        text = { Text(text = stringResource(id = item.title)) },
-                    )
-                }
-            },
-        )
-        when (tabState.currentIndex) {
-            0 -> {}
-            1 -> {}
-        }
-    }
-}
-
-@Composable
-fun InfoSection(
-    modifier: Modifier = Modifier,
-    filterApp: AppItem,
-) {
-    val versionName = filterApp.versionName
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -122,22 +62,24 @@ fun InfoSection(
                 .fillMaxWidth(0.7f),
         ) {
             Text(
-                text = filterApp.label,
+                text = title,
                 fontSize = 28.sp,
                 style = MaterialTheme.typography.bodyLarge,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = filterApp.packageName,
+                text = subTitle,
                 style = MaterialTheme.typography.bodySmall,
                 overflow = TextOverflow.Ellipsis,
             )
-            Text(
-                text = versionName,
-                style = MaterialTheme.typography.bodySmall,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (summary != null) {
+                Text(
+                    text = summary,
+                    style = MaterialTheme.typography.bodySmall,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
         Spacer(modifier = Modifier.weight(1f))
         AsyncImage(
@@ -151,7 +93,7 @@ fun InfoSection(
                     },
                 ),
             model = Builder(LocalContext.current)
-                .data(filterApp.packageInfo)
+                .data(iconSource)
                 .crossfade(true)
                 .build(),
             contentDescription = null,
@@ -161,24 +103,48 @@ fun InfoSection(
 
 @Composable
 @Preview
-fun BottomSheetPreview() {
+fun BottomSheetAppPreview() {
     val app = AppItem(
         packageName = "com.merxury.blocker",
         label = "Blocker test long name",
         versionName = "23.12.20",
         isSystem = false,
     )
-    val tabState = TabState(
-        items = listOf(
-            Service,
-            Activity,
-            Provider,
-        ),
-        selectedItem = Service,
+    BlockerTheme {
+        Surface {
+            BottomSheetTopBar(
+                title = app.label,
+                subTitle = app.packageName,
+                summary = app.versionName,
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun BottomSheetRulePreview() {
+    val rule = GeneralRule(
+        id = 2,
+        name = "Android WorkerManager",
+        iconUrl = null,
+        company = "Google",
+        description = "WorkManager is the recommended solution for persistent work. " +
+            "Work is persistent when it remains scheduled through app restarts and " +
+            "system reboots. Because most background processing is best accomplished " +
+            "through persistent work, WorkManager is the primary recommended API for " +
+            "background processing.",
+        sideEffect = "Background works won't be able to execute",
+        safeToBlock = false,
+        contributors = listOf("Google"),
+        searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
     )
     BlockerTheme {
         Surface {
-            BottomSheet(filterApp = app, tabState = tabState, switchTab = {})
+            BottomSheetTopBar(
+                title = rule.name,
+                subTitle = rule.company ?: "",
+            )
         }
     }
 }
