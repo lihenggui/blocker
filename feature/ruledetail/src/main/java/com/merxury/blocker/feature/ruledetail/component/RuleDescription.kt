@@ -45,7 +45,7 @@ fun RuleDescription(
             .fillMaxWidth()
             .padding(16.dp),
     ) {
-        InfoItemHeading(description = listOf(ruleInfoUiState.ruleInfo.description.toString()))
+        InfoItemHeading(description = listOf(ruleInfoUiState.ruleInfo.description))
         InfoItemHeading(
             heading = stringResource(id = R.string.safe_to_block),
             description = listOf(
@@ -72,7 +72,7 @@ fun RuleDescription(
 @Composable
 fun InfoItemHeading(
     heading: String? = null,
-    description: List<String>,
+    description: List<String?>,
 ) {
     Column(modifier = Modifier.padding(vertical = 6.dp)) {
         if (heading != null) {
@@ -84,7 +84,10 @@ fun InfoItemHeading(
             )
         }
         description.forEach {
-            Text(text = it, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = it ?: stringResource(id = R.string.no_description),
+                style = MaterialTheme.typography.bodyLarge,
+            )
         }
     }
 }
