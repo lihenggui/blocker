@@ -74,6 +74,7 @@ fun SearchResultScreen(
                 onUninstallClick = {},
                 onEnableClick = {},
                 onDisableClick = {},
+                onServiceStateUpdate = { _, _ -> },
             )
 
             1 -> ComponentSearchResultContent(

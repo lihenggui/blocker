@@ -49,7 +49,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLa
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.applist.AppListItem
+import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
@@ -269,38 +269,24 @@ fun AppSearchResultContent(
     onUninstallClick: (String) -> Unit,
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
+    onServiceStateUpdate: (String, Int) -> Unit,
 ) {
     if (appList.isEmpty()) {
         NoSearchResultScreen()
         return
     }
-    val listState = rememberLazyListState()
-    Box(modifier) {
-        LazyColumn(
-            modifier = modifier,
-            state = listState,
-        ) {
-            items(appList, key = { it.packageName }) {
-                AppListItem(
-                    label = it.label,
-                    packageName = it.packageName,
-                    versionName = it.versionName,
-                    versionCode = it.versionCode,
-                    isAppEnabled = it.isEnabled,
-                    isAppRunning = it.isRunning,
-                    packageInfo = it.packageInfo,
-                    appServiceStatus = it.appServiceStatus,
-                    onClick = onClick,
-                    onClearCacheClick = onClearCacheClick,
-                    onClearDataClick = onClearDataClick,
-                    onForceStopClick = onForceStopClick,
-                    onUninstallClick = onUninstallClick,
-                    onEnableClick = onEnableClick,
-                    onDisableClick = onDisableClick,
-                )
-            }
-        }
-    }
+    AppList(
+        appList = appList,
+        onAppItemClick = onClick,
+        onClearCacheClick = onClearCacheClick,
+        onClearDataClick = onClearDataClick,
+        onForceStopClick = onForceStopClick,
+        onUninstallClick = onUninstallClick,
+        onEnableClick = onEnableClick,
+        onDisableClick = onDisableClick,
+        onServiceStateUpdate = onServiceStateUpdate,
+        modifier = modifier,
+    )
 }
 
 @Composable
