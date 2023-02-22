@@ -19,6 +19,8 @@ package com.merxury.blocker.feature.ruledetail.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,6 +41,7 @@ fun RuleDescription(
 ) {
     Column(
         modifier = modifier
+            .verticalScroll(rememberScrollState())
             .fillMaxWidth()
             .padding(16.dp),
     ) {
@@ -62,10 +65,6 @@ fun RuleDescription(
         InfoItemHeading(
             heading = stringResource(id = R.string.contributors),
             description = ruleInfoUiState.ruleInfo.contributors,
-        )
-        InfoItemHeading(
-            heading = stringResource(id = R.string.search_keyword),
-            description = ruleInfoUiState.ruleInfo.searchKeyword,
         )
     }
 }
