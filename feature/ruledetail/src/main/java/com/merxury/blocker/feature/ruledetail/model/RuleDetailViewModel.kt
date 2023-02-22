@@ -120,7 +120,6 @@ class RuleDetailViewModel @Inject constructor(
         _ruleMatchedAppListUiState.emit(RuleMatchedAppListUiState.Success(searchResult))
     }
 
-
     fun switchTab(newTab: RuleDetailTabs) {
         if (newTab != tabState.value.selectedItem) {
             _tabState.update {
