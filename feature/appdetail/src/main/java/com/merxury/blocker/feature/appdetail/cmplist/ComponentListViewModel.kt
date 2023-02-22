@@ -71,6 +71,8 @@ class ComponentListViewModel @AssistedInject constructor(
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
     }
+    private var _unfilteredList: List<ComponentInfo> = listOf()
+    private var currentFilterKeyword = ""
     private var _componentList = mutableStateListOf<ComponentItem>()
     private val _componentListFlow = MutableStateFlow(_componentList)
     val componentListFlow: StateFlow<List<ComponentItem>>
@@ -79,6 +81,24 @@ class ComponentListViewModel @AssistedInject constructor(
     init {
         listenDataChange()
         updateComponentList()
+    }
+
+    fun filter(keyword: String) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+        currentFilterKeyword = keyword
+        sortAndConvertToComponentItem(currentFilterKeyword)
+        _componentListFlow.value = _componentList
+    }
+
+    fun blockAllComponents() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        _componentList.forEach {
+            controlComponentInternal(it.packageName, it.name, false)
+        }
+    }
+
+    fun enableAllComponents() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        _componentList.forEach {
+            controlComponentInternal(it.packageName, it.name, true)
+        }
     }
 
     fun dismissAlert() = viewModelScope.launch {
@@ -100,27 +120,34 @@ class ComponentListViewModel @AssistedInject constructor(
     private fun listenDataChange() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
         componentRepository.getComponentList(packageName, type)
             .collect { list ->
-                val userData = userDataRepository.userData.first()
-                val sorting = userData.componentSorting
-                val serviceHelper = ServiceHelper(packageName)
-                if (type == SERVICE) {
-                    serviceHelper.refresh()
-                }
-                _componentList = list.map {
-                    it.toComponentItem(
-                        if (type == SERVICE) {
-                            serviceHelper.isServiceRunning(it.name)
-                        } else {
-                            false
-                        },
-                    )
-                }
-                    .sortedWith(componentComparator(sorting))
-                    .sortedByDescending { it.isRunning }
-                    .toMutableStateList()
+                _unfilteredList = list
+                sortAndConvertToComponentItem(currentFilterKeyword)
                 _componentListFlow.value = _componentList
                 _uiState.emit(Success)
             }
+    }
+
+    private suspend fun sortAndConvertToComponentItem(filterKeyword: String) {
+        val userData = userDataRepository.userData.first()
+        val sorting = userData.componentSorting
+        val serviceHelper = ServiceHelper(packageName)
+        if (type == SERVICE) {
+            serviceHelper.refresh()
+        }
+        _componentList = _unfilteredList
+            .filter { it.name.contains(filterKeyword, ignoreCase = true) }
+            .map {
+                it.toComponentItem(
+                    if (type == SERVICE) {
+                        serviceHelper.isServiceRunning(it.name)
+                    } else {
+                        false
+                    },
+                )
+            }
+            .sortedWith(componentComparator(sorting))
+            .sortedByDescending { it.isRunning }
+            .toMutableStateList()
     }
 
     private fun componentComparator(sort: ComponentSorting): Comparator<ComponentItem> {
@@ -145,6 +172,14 @@ class ComponentListViewModel @AssistedInject constructor(
         componentName: String,
         enabled: Boolean,
     ) = viewModelScope.launch {
+        controlComponentInternal(packageName, componentName, enabled)
+    }
+
+    private suspend fun controlComponentInternal(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) {
         componentRepository.controlComponent(packageName, componentName, enabled)
             .catch { exception ->
                 _errorState.emit(exception.toErrorMessage())

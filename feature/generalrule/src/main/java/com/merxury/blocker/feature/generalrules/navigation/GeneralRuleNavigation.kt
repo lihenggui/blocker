@@ -28,8 +28,12 @@ fun NavController.navigateToGeneralRule(navOptions: NavOptions? = null) {
     this.navigate(generalRuleRoute, navOptions)
 }
 
-fun NavGraphBuilder.generalRuleScreen() {
+fun NavGraphBuilder.generalRuleScreen(
+    navigateToRuleDetail: (Int) -> Unit,
+) {
     composable(route = generalRuleRoute) {
-        GeneralRulesRoute()
+        GeneralRulesRoute(
+            navigateToRuleDetail,
+        )
     }
 }

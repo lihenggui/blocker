@@ -16,19 +16,16 @@
 
 package com.merxury.blocker.feature.appdetail.cmplist
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -38,16 +35,18 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
-import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
+import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.ComponentList
+import com.merxury.blocker.core.ui.screen.ErrorScreen
+import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.feature.appdetail.AppBarUiState
-import com.merxury.blocker.feature.appdetail.ErrorAppDetailScreen
 import com.merxury.blocker.feature.appdetail.R.string
 import dagger.hilt.android.EntryPointAccessors
 
@@ -93,9 +92,14 @@ fun ComponentListContentRoute(
     LaunchedEffect(topAppBarUiState.keyword, topAppBarUiState.isSearchMode) {
         updateAppBarActions(
             topAppBarUiState = topAppBarUiState,
-            onSearchTextChanged = onSearchTextChanged,
+            onSearchTextChanged = { newSearchText ->
+                onSearchTextChanged(newSearchText)
+                viewModel.filter(newSearchText.text)
+            },
             onToolbarActionUpdated = onAppBarActionUpdated,
             onSearchModeChanged = onSearchModeChanged,
+            blockAllComponents = viewModel::blockAllComponents,
+            enableAllComponents = viewModel::enableAllComponents,
         )
     }
 }
@@ -117,43 +121,31 @@ fun componentListViewModel(packageName: String, type: ComponentType): ComponentL
 fun ComponentListContent(
     uiState: ComponentListUiState,
     list: State<List<ComponentItem>>,
-    onStopServiceClick: (String, String) -> Unit,
-    onLaunchActivityClick: (String, String) -> Unit,
-    onCopyNameClick: (String) -> Unit,
-    onCopyFullNameClick: (String) -> Unit,
-    onSwitch: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (uiState) {
         ComponentListUiState.Loading -> {
-            LazyColumn(
-                modifier = modifier
-                    .fillMaxSize(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                item {
-                    BlockerLoadingWheel(
-                        modifier = modifier,
-                        contentDesc = stringResource(id = string.loading),
-                    )
-                }
-            }
+            LoadingScreen()
         }
 
         is ComponentListUiState.Success -> {
             ComponentList(
-                components = list,
+                components = list.value,
+                modifier = modifier,
                 onSwitchClick = onSwitch,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
-                modifier = modifier,
             )
         }
 
-        is ComponentListUiState.Error -> ErrorAppDetailScreen(uiState.error.message)
+        is ComponentListUiState.Error -> ErrorScreen(uiState.error)
     }
 }
 
@@ -162,6 +154,8 @@ fun updateAppBarActions(
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onToolbarActionUpdated: (AppBarActionState) -> Unit,
     onSearchModeChanged: (Boolean) -> Unit,
+    blockAllComponents: () -> Unit,
+    enableAllComponents: () -> Unit,
 ) {
     onToolbarActionUpdated(
         AppBarActionState(
@@ -170,10 +164,15 @@ fun updateAppBarActions(
                     BlockerSearchTextField(
                         keyword = topAppBarUiState.keyword,
                         onValueChange = onSearchTextChanged,
+                        placeholder = {
+                            Text(text = stringResource(id = string.search_components))
+                        },
                         onClearClick = {
-                            onSearchTextChanged(
-                                TextFieldValue(),
-                            )
+                            if (topAppBarUiState.keyword.text.isEmpty()) {
+                                onSearchModeChanged(false)
+                                return@BlockerSearchTextField
+                            }
+                            onSearchTextChanged(TextFieldValue())
                         },
                     )
                 } else {
@@ -188,17 +187,33 @@ fun updateAppBarActions(
                         )
                     }
                 }
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.then(Modifier.size(24.dp)),
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.More,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
+                MoreActionMenu(
+                    blockAllComponents = blockAllComponents,
+                    enableAllComponents = enableAllComponents,
+                )
             },
         ),
+    )
+}
+
+@Composable
+fun MoreActionMenu(
+    blockAllComponents: () -> Unit,
+    enableAllComponents: () -> Unit,
+) {
+    val items = listOf(
+        DropDownMenuItem(
+            string.block_all_of_this_page,
+            blockAllComponents,
+        ),
+        DropDownMenuItem(
+            string.enable_all_of_this_page,
+            enableAllComponents,
+        ),
+    )
+    BlockerAppTopBarMenu(
+        menuIcon = BlockerIcons.MoreVert,
+        menuIconDesc = string.more_menu,
+        menuList = items,
     )
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui
+package com.merxury.blocker.core.ui.rule
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,18 +37,19 @@ import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.R.string
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RuleCard(
     item: GeneralRule,
-    onCardClick: (GeneralRule) -> Unit = { },
+    onCardClick: (Int) -> Unit = { },
 ) {
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
-        onClick = { onCardClick(item) },
+        onClick = { onCardClick(item.id) },
     ) {
         ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
             val (icon, name, company, ruleIcon, keywords) = createRefs()
@@ -63,11 +64,11 @@ fun RuleCard(
                     .size(40.dp),
                 model = Builder(LocalContext.current)
                     .data(item.iconUrl)
-                    .error(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
-                    .placeholder(com.merxury.blocker.core.designsystem.R.drawable.ic_android)
+                    .error(BlockerIcons.Android)
+                    .placeholder(BlockerIcons.Android)
                     .crossfade(true)
                     .build(),
-                contentDescription = stringResource(id = R.string.rule_icon_description),
+                contentDescription = stringResource(id = string.rule_icon_description),
             )
             Text(
                 text = item.name,

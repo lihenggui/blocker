@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.component
+plugins {
+    id("blocker.android.feature")
+    id("blocker.android.library.compose")
+    id("blocker.android.library.jacoco")
+}
 
-import androidx.compose.runtime.State
-import com.merxury.blocker.core.ui.applist.model.AppItem
-
-data class MatchedApp(
-    val app: AppItem,
-    val component: State<List<ComponentItem>>,
-)
+android {
+    namespace = "com.merxury.blocker.feature.ruledetail"
+}
+dependencies {
+    implementation(project(":core:component-controller"))
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.androidx.constraintlayout.compose)
+}

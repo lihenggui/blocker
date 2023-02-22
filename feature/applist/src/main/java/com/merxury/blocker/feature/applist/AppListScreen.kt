@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.applist
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
@@ -28,15 +27,9 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,12 +38,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
-import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.model.preference.AppSorting
-import com.merxury.blocker.core.ui.applist.AppListItem
+import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.screen.ErrorScreen
+import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
@@ -68,7 +61,7 @@ fun AppListRoute(
     val appList = viewModel.appListFlow.collectAsState()
     AppListScreen(
         uiState = uiState,
-        appList = appList,
+        appList = appList.value,
         onAppItemClick = navigateToAppDetail,
         onClearCacheClick = viewModel::clearCache,
         onClearDataClick = viewModel::clearData,
@@ -95,7 +88,7 @@ fun AppListRoute(
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
-    appList: State<List<AppItem>>,
+    appList: List<AppItem>,
     onAppItemClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit,
     onClearDataClick: (String) -> Unit,
@@ -138,22 +131,11 @@ fun AppListScreen(
         ) {
             when (uiState) {
                 AppListUiState.Loading -> {
-                    Column(
-                        modifier = modifier
-                            .fillMaxSize()
-                            .padding(padding),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        BlockerLoadingWheel(
-                            modifier = modifier,
-                            contentDesc = stringResource(id = string.loading),
-                        )
-                    }
+                    LoadingScreen()
                 }
 
                 is AppListUiState.Success -> {
-                    AppListContent(
+                    AppList(
                         appList = appList,
                         onAppItemClick = onAppItemClick,
                         onClearCacheClick = onClearCacheClick,
@@ -167,58 +149,8 @@ fun AppListScreen(
                     )
                 }
 
-                is AppListUiState.Error -> ErrorAppListScreen(uiState.error)
+                is AppListUiState.Error -> ErrorScreen(uiState.error)
             }
         }
     }
-}
-
-@Composable
-fun AppListContent(
-    appList: State<List<AppItem>>,
-    onAppItemClick: (String) -> Unit,
-    onClearCacheClick: (String) -> Unit,
-    onClearDataClick: (String) -> Unit,
-    onForceStopClick: (String) -> Unit,
-    onUninstallClick: (String) -> Unit,
-    onEnableClick: (String) -> Unit,
-    onDisableClick: (String) -> Unit,
-    onServiceStateUpdate: (String, Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val listState = rememberLazyListState()
-    Box(modifier) {
-        LazyColumn(
-            modifier = modifier,
-            state = listState,
-        ) {
-            itemsIndexed(appList.value, key = { _, item -> item.packageName }) { index, item ->
-                AppListItem(
-                    label = item.label,
-                    packageName = item.packageName,
-                    versionName = item.versionName,
-                    versionCode = item.versionCode,
-                    packageInfo = item.packageInfo,
-                    isAppEnabled = item.isEnabled,
-                    isAppRunning = item.isRunning,
-                    appServiceStatus = item.appServiceStatus,
-                    onClick = onAppItemClick,
-                    onClearCacheClick = onClearCacheClick,
-                    onClearDataClick = onClearDataClick,
-                    onForceStopClick = onForceStopClick,
-                    onUninstallClick = onUninstallClick,
-                    onEnableClick = onEnableClick,
-                    onDisableClick = onDisableClick,
-                )
-                LaunchedEffect(true) {
-                    onServiceStateUpdate(item.packageName, index)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun ErrorAppListScreen(message: ErrorMessage) {
-    Text(text = message.message)
 }
