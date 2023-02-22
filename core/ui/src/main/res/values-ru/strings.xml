@@ -39,4 +39,5 @@
     <string name="description">Описание</string>
     <string name="applicable_application">Применимое приложение</string>
     <string name="loading">Загрузка</string>
+    <string name="no_applicable_app">Нет применимого приложения</string>
 </resources>
