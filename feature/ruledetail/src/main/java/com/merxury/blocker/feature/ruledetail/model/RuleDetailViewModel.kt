@@ -23,6 +23,7 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getPackageInfoCompat
@@ -57,6 +58,7 @@ class RuleDetailViewModel @Inject constructor(
     private val pm: PackageManager,
     private val ruleRepository: GeneralRuleRepository,
     private val appRepository: AppRepository,
+    private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(app) {
@@ -87,8 +89,16 @@ class RuleDetailViewModel @Inject constructor(
 
     private fun loadData() = viewModelScope.launch {
         val ruleId = ruleIdArgs.ruleId
-        val rule = ruleRepository.getGeneralRule(ruleId).first()
-        _ruleInfoUiState.update { RuleInfoUiState.Success(rule) }
+        val baseUrl = userDataRepository.userData
+            .first()
+            .ruleServerProvider
+            .baseUrl
+        val rule = ruleRepository.getGeneralRule(ruleId)
+            .first()
+        val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
+        _ruleInfoUiState.update {
+            RuleInfoUiState.Success(ruleWithIcon)
+        }
         loadMatchedApps(rule.searchKeyword)
     }
 
