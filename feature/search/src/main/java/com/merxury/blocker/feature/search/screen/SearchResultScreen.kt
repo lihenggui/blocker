@@ -52,6 +52,7 @@ fun SearchResultScreen(
     coroutineScope: CoroutineScope,
     sheetState: ModalBottomSheetState,
     navigateToAppDetail: (String) -> Unit = {},
+    navigateToRuleDetail: (Int) -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
@@ -73,6 +74,7 @@ fun SearchResultScreen(
                 onUninstallClick = {},
                 onEnableClick = {},
                 onDisableClick = {},
+                onServiceStateUpdate = { _, _ -> },
             )
 
             1 -> ComponentSearchResultContent(
@@ -94,7 +96,7 @@ fun SearchResultScreen(
 
             2 -> RuleSearchResultContent(
                 list = localSearchUiState.rules,
-                onClick = {},
+                onClick = navigateToRuleDetail,
             )
         }
     }
