@@ -36,4 +36,7 @@
     <string name="stop_service">停止服务</string>
     <string name="no_components">无组件</string>
     <string name="matched_rules">匹配 %1$d 条规则</string>
+    <string name="description">描述</string>
+    <string name="applicable_application">适用应用程序</string>
+    <string name="loading">正在加载</string>
 </resources>
