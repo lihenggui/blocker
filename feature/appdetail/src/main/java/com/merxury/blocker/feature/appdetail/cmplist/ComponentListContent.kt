@@ -174,6 +174,7 @@ fun updateAppBarActions(
                             }
                             onSearchTextChanged(TextFieldValue())
                         },
+                        modifier = Modifier.weight(1f),
                     )
                 } else {
                     IconButton(
