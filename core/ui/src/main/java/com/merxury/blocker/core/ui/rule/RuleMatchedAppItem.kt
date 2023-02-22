@@ -75,7 +75,7 @@ fun MatchedComponentItem(
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
                 .fillMaxWidth()
-                .clickable { }
+                .clickable { expanded = !expanded }
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             AppIcon(ruleMatchedApp.app.packageInfo, iconModifier.size(48.dp))
@@ -83,8 +83,8 @@ fun MatchedComponentItem(
             MatchedAppInfo(
                 label = ruleMatchedApp.app.label,
                 matchedComponentCount = ruleMatchedApp.componentList.size,
+                modifier = modifier.weight(1f),
             )
-            Spacer(modifier = Modifier.weight(1f))
             IconButton(onClick = { expanded = !expanded }) {
                 Icon(
                     imageVector = expandIcon,
@@ -187,7 +187,7 @@ fun MatchedComponentItemPreview() {
     val ruleMatchedApp = RuleMatchedApp(
         app = AppItem(
             packageName = "com.merxury.blocker",
-            label = "Blocker",
+            label = "Blocker component name test long name",
             isSystem = false,
         ),
         componentList = listOf(componentInfo),
