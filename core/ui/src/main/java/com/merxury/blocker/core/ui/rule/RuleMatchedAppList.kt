@@ -41,7 +41,7 @@ fun RuleMatchedAppList(
         RuleMatchedAppListUiState.Loading -> {}
         is RuleMatchedAppListUiState.Success -> {
             LazyColumn {
-                items(ruleMatchedAppListUiState.list, key = { it }) { ruleMatchedApp ->
+                items(ruleMatchedAppListUiState.list, key = { it.app.label }) { ruleMatchedApp ->
                     MatchedComponentItem(
                         ruleMatchedApp = ruleMatchedApp,
                         onStopServiceClick = onStopServiceClick,
