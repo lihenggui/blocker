@@ -50,4 +50,5 @@
     <string name="launch_activity">Запуск активности</string>
     <string name="stop_service">Остановить службу</string>
     <string name="running">Запущен</string>
+    <string name="search_components">Поиск компонентов</string>
 </resources>

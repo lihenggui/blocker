@@ -16,34 +16,19 @@
 
 package com.merxury.blocker.feature.search.component
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
-import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -53,6 +38,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.bottomSheet.BottomSheetTopBar
 import com.merxury.blocker.feature.search.model.BottomSheetViewModel
 
 @Composable
@@ -78,9 +64,11 @@ fun BottomSheet(
     switchTab: (AppDetailTabs) -> Unit,
 ) {
     Column(modifier = modifier.defaultMinSize(1.dp)) {
-        InfoSection(
-            modifier = modifier,
-            filterApp = filterApp,
+        BottomSheetTopBar(
+            title = filterApp.label,
+            subTitle = filterApp.packageName,
+            summary = filterApp.versionName,
+            iconSource = filterApp.packageInfo,
         )
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
@@ -99,60 +87,6 @@ fun BottomSheet(
             0 -> {}
             1 -> {}
         }
-    }
-}
-
-@Composable
-fun InfoSection(
-    modifier: Modifier = Modifier,
-    filterApp: AppItem,
-) {
-    val versionName = filterApp.versionName
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(
-            modifier = modifier
-                .fillMaxWidth(0.7f),
-        ) {
-            Text(
-                text = filterApp.label,
-                fontSize = 28.sp,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = filterApp.packageName,
-                style = MaterialTheme.typography.bodySmall,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = versionName,
-                style = MaterialTheme.typography.bodySmall,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        Spacer(modifier = Modifier.weight(1f))
-        AsyncImage(
-            modifier = Modifier
-                .size(80.dp)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(bounded = false),
-                    onClick = {
-                        // TODO
-                    },
-                ),
-            model = Builder(LocalContext.current)
-                .data(filterApp.packageInfo)
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-        )
     }
 }
 
