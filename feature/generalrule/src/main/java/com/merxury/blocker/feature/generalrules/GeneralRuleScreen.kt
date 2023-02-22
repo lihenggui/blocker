@@ -27,9 +27,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -44,7 +41,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.ui.rule.RuleCard
+import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.generalrule.R
@@ -104,33 +101,13 @@ fun GeneralRulesScreen(
                     LoadingScreen()
                 }
 
-                is Success -> GeneralRulesContent(
+                is Success -> GeneralRulesList(
                     rules = uiState.rules,
-                    navigateToRuleDetail = navigateToRuleDetail,
+                    onClick = navigateToRuleDetail,
                 )
 
                 is Error -> ErrorScreen(error = uiState.error)
             }
-        }
-    }
-}
-
-@Composable
-fun GeneralRulesContent(
-    rules: List<GeneralRule>,
-    modifier: Modifier = Modifier,
-    navigateToRuleDetail: (Int) -> Unit,
-) {
-    val listState = rememberLazyListState()
-    LazyColumn(
-        modifier = modifier,
-        state = listState,
-    ) {
-        items(rules, key = { it.id }) {
-            RuleCard(
-                item = it,
-                onCardClick = navigateToRuleDetail,
-            )
         }
     }
 }
