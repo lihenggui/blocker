@@ -52,6 +52,7 @@ fun SearchResultScreen(
     coroutineScope: CoroutineScope,
     sheetState: ModalBottomSheetState,
     navigateToAppDetail: (String) -> Unit = {},
+    navigateToRuleDetail: (Int) -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
@@ -94,7 +95,7 @@ fun SearchResultScreen(
 
             2 -> RuleSearchResultContent(
                 list = localSearchUiState.rules,
-                onClick = {},
+                onClick = navigateToRuleDetail,
             )
         }
     }

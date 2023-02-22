@@ -51,7 +51,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.AppListItem
 import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.rule.RuleCard
+import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.feature.search.component.BottomSheetRoute
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
@@ -72,6 +72,7 @@ import kotlinx.coroutines.launch
 fun SearchRoute(
     navigateToAppDetail: (String) -> Unit,
     navigateToComponentsDetail: () -> Unit,
+    navigateToRuleDetail: (Int) -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {
     val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
@@ -93,6 +94,7 @@ fun SearchRoute(
         onSelect = viewModel::selectItem,
         navigateToAppDetail = navigateToAppDetail,
         navigateToComponentsDetail = navigateToComponentsDetail,
+        navigateToRuleDetail = navigateToRuleDetail,
     )
 }
 
@@ -117,6 +119,7 @@ fun SearchScreen(
     onSelect: (Boolean) -> Unit,
     navigateToAppDetail: (String) -> Unit = {},
     navigateToComponentsDetail: () -> Unit = {},
+    navigateToRuleDetail: (Int) -> Unit = {},
 ) {
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
@@ -174,15 +177,16 @@ fun SearchScreen(
                         InitializingScreen(localSearchUiState.processingName)
 
                     is LocalSearchUiState.Success -> SearchResultScreen(
-                        modifier,
-                        tabState,
-                        switchTab,
-                        localSearchUiState,
-                        switchSelectedMode,
-                        onSelect,
-                        coroutineScope,
-                        sheetState,
-                        navigateToAppDetail,
+                        modifier = modifier,
+                        tabState = tabState,
+                        switchTab = switchTab,
+                        localSearchUiState = localSearchUiState,
+                        switchSelectedMode = switchSelectedMode,
+                        onSelect = onSelect,
+                        coroutineScope = coroutineScope,
+                        sheetState = sheetState,
+                        navigateToAppDetail = navigateToAppDetail,
+                        navigateToRuleDetail = navigateToRuleDetail,
                     )
                 }
             }
@@ -309,20 +313,11 @@ fun RuleSearchResultContent(
         NoSearchResultScreen()
         return
     }
-    val listState = rememberLazyListState()
-    Box(modifier) {
-        LazyColumn(
-            modifier = modifier,
-            state = listState,
-        ) {
-            items(list, key = { it.id }) {
-                RuleCard(
-                    item = it,
-                    onCardClick = onClick,
-                )
-            }
-        }
-    }
+    GeneralRulesList(
+        modifier = modifier,
+        rules = list,
+        onClick = onClick,
+    )
 }
 
 @Composable
