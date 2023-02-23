@@ -350,7 +350,6 @@ fun CollapsingToolbarExpandedPreview() {
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
-
             },
             subtitle = "packageName with long long long name 0123456789",
             summary = "versionCode with long long long name 0123456789",
