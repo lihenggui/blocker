@@ -23,14 +23,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
+import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.search.R
@@ -43,17 +43,15 @@ fun InitializingScreen(processingName: String) {
         verticalArrangement = Arrangement.Center,
     ) {
         BlockerLoadingWheel(contentDesc = processingName)
-        Text(
+        BlockerBodyMediumText(
             text = stringResource(id = R.string.initializing_database),
             color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(modifier = Modifier.size(8.dp))
-        Text(
+        BlockerBodyLargeText(
             text = processingName,
             color = MaterialTheme.colorScheme.outline,
-            style = MaterialTheme.typography.bodyLarge,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
         )
     }
 }

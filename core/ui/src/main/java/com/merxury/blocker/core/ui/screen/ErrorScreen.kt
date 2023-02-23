@@ -20,16 +20,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
+import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.data.ErrorMessage
@@ -41,19 +40,14 @@ fun ErrorScreen(error: ErrorMessage) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(
+        BlockerDisplayIcon(
             imageVector = BlockerIcons.Error,
             contentDescription = null,
-            modifier = Modifier
-                .size(96.dp)
-                .padding(8.dp),
             tint = MaterialTheme.colorScheme.errorContainer,
         )
-        Text(
+        BlockerBodyMediumText(
             modifier = Modifier.padding(16.dp),
             text = error.message,
-            color = MaterialTheme.colorScheme.outline,
-            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }

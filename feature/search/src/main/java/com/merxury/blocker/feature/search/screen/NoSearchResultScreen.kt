@@ -19,18 +19,14 @@ package com.merxury.blocker.feature.search.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
+import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.search.R.string
@@ -42,18 +38,12 @@ fun NoSearchResultScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(
+        BlockerDisplayIcon(
             imageVector = BlockerIcons.Inbox,
             contentDescription = null,
-            modifier = Modifier
-                .size(96.dp)
-                .padding(8.dp),
-            tint = MaterialTheme.colorScheme.outline,
         )
-        Text(
+        BlockerBodyMediumText(
             text = stringResource(id = string.no_search_result),
-            color = MaterialTheme.colorScheme.outline,
-            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }

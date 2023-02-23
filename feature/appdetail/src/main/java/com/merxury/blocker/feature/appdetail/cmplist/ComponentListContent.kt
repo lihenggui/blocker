@@ -17,9 +17,7 @@
 package com.merxury.blocker.feature.appdetail.cmplist
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +37,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
+import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.component.ComponentItem
@@ -181,10 +180,9 @@ fun updateAppBarActions(
                         onClick = { onSearchModeChanged(true) },
                         modifier = Modifier.then(Modifier.size(24.dp)),
                     ) {
-                        Icon(
+                        BlockerActionIcon(
                             imageVector = BlockerIcons.Search,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }

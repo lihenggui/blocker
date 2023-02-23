@@ -23,7 +23,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -34,6 +33,8 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
+import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
+import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -70,9 +71,8 @@ fun RuleCard(
                     .build(),
                 contentDescription = stringResource(id = string.rule_icon_description),
             )
-            Text(
+            BlockerBodyLargeText(
                 text = item.name,
-                style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .padding(top = 16.dp, end = 16.dp)
                     .constrainAs(name) {
@@ -86,10 +86,8 @@ fun RuleCard(
                     },
             )
             item.company?.let {
-                Text(
+                BlockerBodyMediumText(
                     text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .constrainAs(company) {
                             linkTo(
@@ -117,10 +115,8 @@ fun RuleCard(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.outline,
             )
-            Text(
+            BlockerBodyMediumText(
                 text = item.searchKeyword.joinToString("\n"),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .padding(end = 16.dp, bottom = 16.dp)
                     .constrainAs(keywords) {
