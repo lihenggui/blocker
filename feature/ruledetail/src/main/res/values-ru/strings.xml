@@ -21,4 +21,5 @@
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="unknow">неизвестно</string>
+    <string name="no_description">Нет описания</string>
 </resources>

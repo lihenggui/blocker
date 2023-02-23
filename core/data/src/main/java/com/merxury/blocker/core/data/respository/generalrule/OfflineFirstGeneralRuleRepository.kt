@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -45,6 +46,11 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
     override fun getGeneralRules(): Flow<List<GeneralRule>> {
         return generalRuleDao.getGeneralRuleEntities()
             .map { it.map(GeneralRuleEntity::asExternalModel) }
+    }
+
+    override fun getGeneralRule(id: Int): Flow<GeneralRule> {
+        return generalRuleDao.getGeneralRuleEntity(id)
+            .mapNotNull { it?.asExternalModel() }
     }
 
     override fun updateGeneralRule(): Flow<Result<Unit>> = flow {

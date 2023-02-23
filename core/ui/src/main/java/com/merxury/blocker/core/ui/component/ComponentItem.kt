@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.ui.component
 
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.data.ComponentInfo
 
 data class ComponentItem(
     val name: String,
@@ -30,3 +31,14 @@ data class ComponentItem(
 ) {
     fun enabled() = !(pmBlocked || ifwBlocked)
 }
+
+fun ComponentInfo.toComponentItem(isRunning: Boolean = false) = ComponentItem(
+    name = name,
+    simpleName = simpleName,
+    packageName = packageName,
+    type = type,
+    pmBlocked = pmBlocked,
+    ifwBlocked = ifwBlocked,
+    description = description,
+    isRunning = isRunning,
+)
