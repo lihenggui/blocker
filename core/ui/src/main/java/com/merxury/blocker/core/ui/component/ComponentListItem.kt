@@ -61,7 +61,6 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.TrackScrollJank
 
@@ -162,7 +161,8 @@ fun ComponentListItem(
                                 )
                             }
                             .padding(horizontal = 2.dp, vertical = 1.dp),
-                        text = stringResource(id = R.string.running),
+                        text = stringResource(id = string.running),
+                        color = MaterialTheme.colorScheme.onTertiary,
                     )
                 }
             }
