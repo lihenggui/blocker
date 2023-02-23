@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail.cmplist
 
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
@@ -178,7 +176,6 @@ fun updateAppBarActions(
                 } else {
                     IconButton(
                         onClick = { onSearchModeChanged(true) },
-                        modifier = Modifier.then(Modifier.size(24.dp)),
                     ) {
                         BlockerActionIcon(
                             imageVector = BlockerIcons.Search,
