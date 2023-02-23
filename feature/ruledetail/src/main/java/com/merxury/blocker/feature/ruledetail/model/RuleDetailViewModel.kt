@@ -16,22 +16,38 @@
 
 package com.merxury.blocker.feature.ruledetail.model
 
+import android.content.pm.PackageManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.app.AppRepository
+import com.merxury.blocker.core.data.respository.component.ComponentRepository
+import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.applist.model.toAppItem
+import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
+import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
 import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -39,6 +55,12 @@ import javax.inject.Inject
 class RuleDetailViewModel @Inject constructor(
     app: android.app.Application,
     savedStateHandle: SavedStateHandle,
+    private val pm: PackageManager,
+    private val ruleRepository: GeneralRuleRepository,
+    private val appRepository: AppRepository,
+    private val userDataRepository: UserDataRepository,
+    private val componentRepository: ComponentRepository,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(app) {
     private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
     private val _ruleMatchedAppListUiState: MutableStateFlow<RuleMatchedAppListUiState> =
@@ -62,6 +84,40 @@ class RuleDetailViewModel @Inject constructor(
 
     init {
         loadTabInfo()
+        loadData()
+    }
+
+    private fun loadData() = viewModelScope.launch {
+        val ruleId = ruleIdArgs.ruleId
+        val baseUrl = userDataRepository.userData
+            .first()
+            .ruleServerProvider
+            .baseUrl
+        val rule = ruleRepository.getGeneralRule(ruleId)
+            .first()
+        val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
+        _ruleInfoUiState.update {
+            RuleInfoUiState.Success(ruleWithIcon)
+        }
+        loadMatchedApps(rule.searchKeyword)
+    }
+
+    private suspend fun loadMatchedApps(keywords: List<String>) {
+        val matchedComponents = mutableListOf<ComponentInfo>()
+        for (keyword in keywords) {
+            val components = componentRepository.searchComponent(keyword).first()
+            matchedComponents.addAll(components)
+        }
+        Timber.v("Find ${matchedComponents.size} matched components for rule: $keywords")
+        val searchResult = matchedComponents.groupBy { it.packageName }
+            .mapNotNull { (packageName, components) ->
+                val app = appRepository.getApplication(packageName).first() ?: return@mapNotNull null
+                val packageInfo = pm.getPackageInfoCompat(packageName, 0)
+                val appItem = app.toAppItem(packageInfo = packageInfo)
+                val searchedComponentItem = components.map { it.toComponentItem() }
+                RuleMatchedApp(appItem, searchedComponentItem)
+            }
+        _ruleMatchedAppListUiState.emit(RuleMatchedAppListUiState.Success(searchResult))
     }
 
     fun switchTab(newTab: RuleDetailTabs) {

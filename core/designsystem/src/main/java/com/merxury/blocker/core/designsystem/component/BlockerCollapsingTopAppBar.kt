@@ -22,13 +22,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -46,6 +47,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -87,7 +89,7 @@ fun BlockerCollapsingTopAppBar(
         modifier = modifier,
     ) {
         Box(
-            modifier = Modifier
+            modifier = modifier
                 .statusBarsPadding()
                 .padding(horizontal = contentPadding)
                 .fillMaxSize(),
@@ -113,8 +115,10 @@ fun BlockerCollapsingTopAppBar(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Row(
-                    modifier = Modifier.wrapContentSize(),
-                    horizontalArrangement = Arrangement.spacedBy(contentPadding),
+                    modifier = modifier
+                        .fillMaxWidth()
+                        .padding(end = contentPadding),
+                    horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (actions != null) {
@@ -206,7 +210,7 @@ private fun CollapsingToolbarLayout(
                 ),
             )
             actionsIcon.placeRelative(
-                x = constraints.maxWidth - actionsIcon.width,
+                x = navigationIcon.width,
                 y = MinToolbarHeight.roundToPx() / 2 - actionsIcon.height / 2,
             )
             subtitle.placeRelative(
@@ -267,6 +271,7 @@ fun CollapsingToolbarCollapsedPreview() {
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
+                Spacer(modifier = Modifier.width(contentPadding))
                 IconButton(
                     onClick = {},
                     modifier = Modifier.then(Modifier.size(24.dp)),
@@ -306,6 +311,7 @@ fun CollapsingToolbarHalfwayPreview() {
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
+                Spacer(modifier = Modifier.width(contentPadding))
                 IconButton(
                     onClick = {},
                     modifier = Modifier.then(Modifier.size(24.dp)),
@@ -328,6 +334,7 @@ fun CollapsingToolbarHalfwayPreview() {
 }
 
 @Preview
+@Preview(device = Devices.TABLET)
 @Composable
 fun CollapsingToolbarExpandedPreview() {
     BlockerTheme {
@@ -339,6 +346,7 @@ fun CollapsingToolbarExpandedPreview() {
                     keyword = TextFieldValue("blocker"),
                     onValueChange = {},
                     onClearClick = {},
+                    modifier = Modifier.weight(1f),
                 )
                 IconButton(
                     onClick = {},

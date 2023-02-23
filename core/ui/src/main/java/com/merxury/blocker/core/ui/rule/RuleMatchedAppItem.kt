@@ -17,8 +17,8 @@
 package com.merxury.blocker.core.ui.rule
 
 import android.content.res.Configuration
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,7 +49,7 @@ import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.applist.AppIcon
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.component.ComponentItem
-import com.merxury.blocker.core.ui.component.ComponentList
+import com.merxury.blocker.core.ui.component.ComponentListItem
 
 @Composable
 fun MatchedComponentItem(
@@ -70,42 +70,46 @@ fun MatchedComponentItem(
     } else {
         BlockerIcons.ExpandMore
     }
-    Box {
-        Column(
+    Column(modifier = modifier.animateContentSize()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .clickable { expanded = !expanded }
+                .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = modifier
-                    .fillMaxWidth()
-                    .clickable { }
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            ) {
-                AppIcon(ruleMatchedApp.app.packageInfo, iconModifier.size(48.dp))
-                Spacer(modifier = Modifier.width(16.dp))
-                MatchedAppInfo(
-                    label = ruleMatchedApp.app.label,
-                    matchedComponentCount = ruleMatchedApp.componentList.size,
+            AppIcon(ruleMatchedApp.app.packageInfo, iconModifier.size(48.dp))
+            Spacer(modifier = Modifier.width(16.dp))
+            MatchedAppInfo(
+                label = ruleMatchedApp.app.label,
+                matchedComponentCount = ruleMatchedApp.componentList.size,
+                modifier = modifier.weight(1f),
+            )
+            IconButton(onClick = { expanded = !expanded }) {
+                Icon(
+                    imageVector = expandIcon,
+                    contentDescription = null,
                 )
-                Spacer(modifier = Modifier.weight(1f))
-                IconButton(onClick = { expanded = !expanded }) {
-                    Icon(
-                        imageVector = expandIcon,
-                        contentDescription = null,
+            }
+        }
+        Divider()
+        if (expanded) {
+            Column {
+                ruleMatchedApp.componentList.forEach {
+                    ComponentListItem(
+                        simpleName = it.simpleName,
+                        name = it.name,
+                        packageName = it.packageName,
+                        enabled = it.enabled(),
+                        type = it.type,
+                        isServiceRunning = it.isRunning,
+                        onStopServiceClick = { onStopServiceClick(it.packageName, it.name) },
+                        onLaunchActivityClick = { onLaunchActivityClick(it.packageName, it.name) },
+                        onCopyNameClick = { onCopyNameClick(it.simpleName) },
+                        onCopyFullNameClick = { onCopyFullNameClick(it.name) },
+                        onSwitchClick = onSwitch,
                     )
                 }
-            }
-            Divider()
-            if (expanded) {
-                ComponentList(
-                    components = ruleMatchedApp.componentList,
-                    onStopServiceClick = onStopServiceClick,
-                    onLaunchActivityClick = onLaunchActivityClick,
-                    onCopyNameClick = onCopyNameClick,
-                    onCopyFullNameClick = onCopyFullNameClick,
-                    onSwitchClick = onSwitch,
-                )
             }
         }
     }
@@ -183,7 +187,7 @@ fun MatchedComponentItemPreview() {
     val ruleMatchedApp = RuleMatchedApp(
         app = AppItem(
             packageName = "com.merxury.blocker",
-            label = "Blocker",
+            label = "Blocker component name test long name",
             isSystem = false,
         ),
         componentList = listOf(componentInfo),
