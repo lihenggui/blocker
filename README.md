@@ -1,4 +1,4 @@
-[中文README](https://github.com/lihenggui/blocker/blob/master/README.zh-CN.md)
+[中文README](https://github.com/lihenggui/blocker/blob/main/README.zh-CN.md)
 
 ## Telegram discussion group
 https://t.me/blockerandroid
