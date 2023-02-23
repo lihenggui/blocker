@@ -19,9 +19,7 @@ package com.merxury.blocker.feature.search.component
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -36,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerLargeTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.search.R.string
@@ -53,33 +52,29 @@ fun SelectedAppTopBar(
         title = selectedAppCount.toString(),
         navigation = {
             IconButton(onClick = onNavigationClick) {
-                Icon(
+                BlockerActionIcon(
                     imageVector = BlockerIcons.Close,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         },
         actions = {
             IconButton(onClick = onSelectAll) {
-                Icon(
+                BlockerActionIcon(
                     imageVector = BlockerIcons.SelectAll,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             IconButton(onClick = onBlockAll) {
-                Icon(
+                BlockerActionIcon(
                     imageVector = BlockerIcons.Block,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
             IconButton(onClick = onCheckAll) {
-                Icon(
+                BlockerActionIcon(
                     imageVector = BlockerIcons.CheckCircle,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         },

@@ -42,6 +42,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 
 @Composable
@@ -57,7 +58,7 @@ fun BlockerAppTopBarMenu(
                 expanded.value = true
             },
         ) {
-            Icon(
+            BlockerActionIcon(
                 imageVector = menuIcon,
                 contentDescription = stringResource(id = menuIconDesc),
             )
