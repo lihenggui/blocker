@@ -203,8 +203,9 @@ fun NoComponentScreen() {
             imageVector = BlockerIcons.Deselect,
             contentDescription = null,
         )
-        BlockerBodyMediumText(
+        BlockerBodyLargeText(
             text = stringResource(id = string.no_components),
+            color = MaterialTheme.colorScheme.outline,
         )
     }
 }
