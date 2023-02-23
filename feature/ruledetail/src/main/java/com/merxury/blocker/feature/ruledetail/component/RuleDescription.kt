@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.feature.ruledetail.R
@@ -83,10 +84,13 @@ fun InfoItemHeading(
                 modifier = Modifier.padding(vertical = 16.dp),
             )
         }
-        description.forEach {
-            Text(
-                text = it ?: stringResource(id = R.string.no_description),
-                style = MaterialTheme.typography.bodyLarge,
+        description.forEach { string ->
+            BlockerBodyLargeText(
+                text = if (string.isNullOrEmpty()) {
+                    stringResource(id = R.string.no_description)
+                } else {
+                    string
+                },
             )
         }
     }

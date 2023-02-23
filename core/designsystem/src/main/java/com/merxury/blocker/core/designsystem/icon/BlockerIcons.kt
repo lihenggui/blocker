@@ -18,6 +18,8 @@
 package com.merxury.blocker.core.designsystem.icon
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Apps
@@ -66,7 +68,13 @@ import androidx.compose.material.icons.rounded.ArrowDropUp
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ShortText
 import androidx.compose.material.icons.rounded.ViewDay
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.R
 
 /**
@@ -134,4 +142,35 @@ object BlockerIcons {
 sealed class Icon {
     data class ImageVectorIcon(val imageVector: ImageVector) : Icon()
     data class DrawableResourceIcon(@DrawableRes val id: Int) : Icon()
+}
+
+@Composable
+fun BlockerActionIcon(
+    modifier: Modifier = Modifier,
+    imageVector: ImageVector,
+    contentDescription: String?,
+    tint: Color = MaterialTheme.colorScheme.onSurface,
+) {
+    Icon(
+        modifier = modifier,
+        imageVector = imageVector,
+        contentDescription = contentDescription,
+        tint = tint,
+    )
+}
+
+@Composable
+fun BlockerDisplayIcon(
+    imageVector: ImageVector,
+    contentDescription: String?,
+    tint: Color = MaterialTheme.colorScheme.outline,
+) {
+    Icon(
+        modifier = Modifier
+            .size(96.dp)
+            .padding(8.dp),
+        imageVector = imageVector,
+        contentDescription = contentDescription,
+        tint = tint,
+    )
 }

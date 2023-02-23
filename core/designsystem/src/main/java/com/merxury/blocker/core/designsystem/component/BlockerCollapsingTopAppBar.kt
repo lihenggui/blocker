@@ -35,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -46,7 +45,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -105,14 +103,12 @@ fun BlockerCollapsingTopAppBar(
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
-                Text(
+                BlockerBodyLargeText(
                     text = title,
-                    fontSize = titleSize,
-                    style = MaterialTheme.typography.bodyLarge,
                     maxLines = 1,
+                    fontSize = titleSize,
                     modifier = Modifier
                         .fillMaxWidth(0.7f),
-                    overflow = TextOverflow.Ellipsis,
                 )
                 Row(
                     modifier = modifier
@@ -125,21 +121,17 @@ fun BlockerCollapsingTopAppBar(
                         actions()
                     }
                 }
-                Text(
+                BlockerBodySmallText(
                     text = subtitle,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.bodySmall,
-                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 2,
                     modifier = Modifier
                         .padding(vertical = padding)
                         .fillMaxWidth(0.7f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
-                Text(
+                BlockerBodySmallText(
                     text = summary,
-                    maxLines = 1,
-                    style = MaterialTheme.typography.bodySmall,
-                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 2,
                     modifier = Modifier
                         .padding(vertical = padding)
                         .fillMaxWidth(0.7f)
