@@ -1,6 +1,13 @@
 ## 介绍
 Blocker是一款操作Android应用程序四大组件的程序。它支持多种不同的控制器控制组件，目前支持的有使用软件包管理器方式（PackageManager）和意图防火墙模式（Intent Firewall）。支持无缝切换使用模式，导入导出Blocker规则，导入导出纯IFW规则，兼容MyAndroidTools规则导入，或是将其转换为Intent Firewall规则导入。
 
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+     height="80">](https://f-droid.org/packages/com.merxury.blocker/)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
+     alt="Get it on Google Play"
+     height="80">](https://play.google.com/store/apps/details?id=com.merxury.blocker)
+
 ## Telegram讨论群
 https://t.me/blockerandroid
 
@@ -47,7 +54,3 @@ Shizuku是由Rikka开发的应用，具体请参见[RikkaApps/Shizuku](https://g
 在Android Oreo之后，Package Manager在更改组件状态的时候新增加了一个匹配规则，当应用程序为Test-Only版本的时候，用户可以随意通过命令行的PM应用程序控制应用程序组件状态。Shizuku的API运行在Shell权限下，我们可以修改APK，将其状态位设置为Test-Only，通过Shizuku提供的高权限API控制组件。
 
 修改应用至Test-Only模式请参考Github下的Wiki教程[[实验性功能] [开发者向]如何免Root控制应用程序组件](https://github.com/lihenggui/blocker/wiki/%5B%E5%AE%9E%E9%AA%8C%E6%80%A7%E5%8A%9F%E8%83%BD%5D-%5B%E5%BC%80%E5%8F%91%E8%80%85%E5%90%91%5D%E5%A6%82%E4%BD%95%E5%85%8DRoot%E6%8E%A7%E5%88%B6%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%BB%84%E4%BB%B6)
-## 计划
-1. 增加在线规则下发应用
-2. 支持组件评论
-3. 重构现有的代码
