@@ -34,6 +34,7 @@ import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.component.ComponentItem
+import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ServiceHelper
@@ -205,21 +206,6 @@ class ComponentListViewModel @AssistedInject constructor(
         }
     }
 }
-
-/**
- * Data representation for the component.
- */
-
-private fun ComponentInfo.toComponentItem(isRunning: Boolean = false) = ComponentItem(
-    name = name,
-    simpleName = simpleName,
-    packageName = packageName,
-    type = type,
-    pmBlocked = pmBlocked,
-    ifwBlocked = ifwBlocked,
-    description = description,
-    isRunning = isRunning,
-)
 
 sealed interface ComponentListUiState {
     object Loading : ComponentListUiState

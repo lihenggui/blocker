@@ -19,6 +19,8 @@ package com.merxury.blocker.feature.ruledetail.component
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -39,10 +41,11 @@ fun RuleDescription(
 ) {
     Column(
         modifier = modifier
+            .verticalScroll(rememberScrollState())
             .fillMaxWidth()
             .padding(16.dp),
     ) {
-        InfoItemHeading(description = listOf(ruleInfoUiState.ruleInfo.description.toString()))
+        InfoItemHeading(description = listOf(ruleInfoUiState.ruleInfo.description))
         InfoItemHeading(
             heading = stringResource(id = R.string.safe_to_block),
             description = listOf(
@@ -63,17 +66,13 @@ fun RuleDescription(
             heading = stringResource(id = R.string.contributors),
             description = ruleInfoUiState.ruleInfo.contributors,
         )
-        InfoItemHeading(
-            heading = stringResource(id = R.string.search_keyword),
-            description = ruleInfoUiState.ruleInfo.searchKeyword,
-        )
     }
 }
 
 @Composable
 fun InfoItemHeading(
     heading: String? = null,
-    description: List<String>,
+    description: List<String?>,
 ) {
     Column(modifier = Modifier.padding(vertical = 6.dp)) {
         if (heading != null) {
@@ -85,7 +84,10 @@ fun InfoItemHeading(
             )
         }
         description.forEach {
-            Text(text = it, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = it ?: stringResource(id = R.string.no_description),
+                style = MaterialTheme.typography.bodyLarge,
+            )
         }
     }
 }

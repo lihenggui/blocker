@@ -26,6 +26,8 @@ interface GeneralRuleRepository {
      */
     fun getGeneralRules(): Flow<List<GeneralRule>>
 
+    fun getGeneralRule(id: Int): Flow<GeneralRule>
+
     /**
      * Update the general rule from the backend API
      * And emit results in a flow for application to listen

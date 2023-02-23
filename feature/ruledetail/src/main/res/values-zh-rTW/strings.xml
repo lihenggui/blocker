@@ -21,4 +21,5 @@
     <string name="yes">是</string>
     <string name="no">否</string>
     <string name="unknow">未知</string>
+    <string name="no_description">無描述</string>
 </resources>
