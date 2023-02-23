@@ -33,12 +33,11 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.feature.ruledetail.R
-import com.merxury.blocker.feature.ruledetail.model.RuleInfoUiState
 
 @Composable
 fun RuleDescription(
     modifier: Modifier = Modifier,
-    ruleInfoUiState: RuleInfoUiState.Success,
+    rule: GeneralRule,
 ) {
     Column(
         modifier = modifier
@@ -46,11 +45,11 @@ fun RuleDescription(
             .fillMaxWidth()
             .padding(16.dp),
     ) {
-        InfoItemHeading(description = listOf(ruleInfoUiState.ruleInfo.description))
+        InfoItemHeading(description = listOf(rule.description))
         InfoItemHeading(
             heading = stringResource(id = R.string.safe_to_block),
             description = listOf(
-                if (ruleInfoUiState.ruleInfo.safeToBlock == true) {
+                if (rule.safeToBlock == true) {
                     stringResource(id = R.string.yes)
                 } else {
                     stringResource(id = R.string.no)
@@ -60,12 +59,12 @@ fun RuleDescription(
         InfoItemHeading(
             heading = stringResource(id = R.string.side_effect),
             description = listOf(
-                ruleInfoUiState.ruleInfo.sideEffect ?: stringResource(id = R.string.unknow),
+                rule.sideEffect ?: stringResource(id = R.string.unknow),
             ),
         )
         InfoItemHeading(
             heading = stringResource(id = R.string.contributors),
-            description = ruleInfoUiState.ruleInfo.contributors,
+            description = rule.contributors,
         )
     }
 }
@@ -114,12 +113,9 @@ fun RuleDescriptionPreview() {
         contributors = listOf("Google"),
         searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
     )
-    val ruleInfoUiState = RuleInfoUiState.Success(
-        ruleInfo = item,
-    )
     BlockerTheme {
         Surface {
-            RuleDescription(ruleInfoUiState = ruleInfoUiState)
+            RuleDescription(rule = item)
         }
     }
 }
