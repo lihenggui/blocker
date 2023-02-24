@@ -65,7 +65,7 @@ fun SearchResultScreen(
         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
         when (tabState.currentIndex) {
             0 -> AppSearchResultContent(
-                appList = localSearchUiState.apps,
+                appList = localSearchUiState.appTabUiState.list,
                 onClick = { packageName ->
                     navigateToAppDetail(packageName)
                     keyboardController?.hide()
@@ -80,7 +80,7 @@ fun SearchResultScreen(
             )
 
             1 -> ComponentSearchResultContent(
-                components = localSearchUiState.components,
+                componentTabUiState = localSearchUiState.componentTabUiState,
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
                 hideBottomSheet = {
@@ -97,7 +97,7 @@ fun SearchResultScreen(
             )
 
             2 -> RuleSearchResultContent(
-                list = localSearchUiState.rules,
+                list = localSearchUiState.ruleTabUiState.list,
                 onClick = navigateToRuleDetail,
             )
         }
