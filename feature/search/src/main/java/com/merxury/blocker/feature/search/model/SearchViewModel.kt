@@ -269,7 +269,7 @@ class SearchViewModel @Inject constructor(
         // TODO
     }
 
-    fun clickItem(item: FilteredComponentItem) {
+    fun openComponentFilterResult(item: FilteredComponentItem) {
         val tabs = mutableStateListOf<SearchScreenTabs>()
         if (item.receiver.isNotEmpty()) {
             tabs.add(SearchScreenTabs.Receiver(count = item.receiver.size))
@@ -285,6 +285,15 @@ class SearchViewModel @Inject constructor(
         }
         _bottomSheetTabState.update {
             it.copy(items = tabs)
+        }
+        _localSearchUiState.update {
+            // Ignore event if not in success state
+            if (it !is LocalSearchUiState.Success) return@update it
+            it.copy(
+                componentTabUiState = it.componentTabUiState.copy(
+                    currentOpeningItem = item,
+                ),
+            )
         }
     }
 }
