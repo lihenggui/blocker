@@ -27,17 +27,16 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomSheet.BottomSheetTopBar
-import com.merxury.blocker.feature.search.R
+import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
-import com.merxury.blocker.feature.search.model.SearchTabItem
 import com.merxury.blocker.feature.search.screen.SearchResultTabRow
 
 @Composable
 fun BottomSheet(
     modifier: Modifier = Modifier,
     filterApp: FilteredComponentItem,
-    tabState: TabState<SearchTabItem>,
-    switchTab: (SearchTabItem) -> Unit,
+    tabState: TabState<SearchScreenTabs>,
+    switchTab: (SearchScreenTabs) -> Unit,
 ) {
     Column(modifier = modifier.defaultMinSize(1.dp)) {
         BottomSheetTopBar(
@@ -68,9 +67,10 @@ fun BottomSheetPreview() {
     )
     val bottomSheetTabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.receiver, 1),
+            SearchScreenTabs.Receiver(1),
+            SearchScreenTabs.Service(1),
         ),
-        selectedItem = SearchTabItem(R.string.receiver),
+        selectedItem = SearchScreenTabs.Receiver(1),
     )
     BlockerTheme {
         Surface {

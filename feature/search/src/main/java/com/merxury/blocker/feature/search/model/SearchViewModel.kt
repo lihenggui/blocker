@@ -46,7 +46,7 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.feature.search.R
+import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -88,27 +88,27 @@ class SearchViewModel @Inject constructor(
     private val _tabState = MutableStateFlow(
         TabState(
             items = listOf(
-                SearchTabItem(R.string.application),
-                SearchTabItem(R.string.component),
-                SearchTabItem(R.string.online_rule),
+                SearchScreenTabs.App(),
+                SearchScreenTabs.Component(),
+                SearchScreenTabs.Rule(),
             ),
-            selectedItem = SearchTabItem(R.string.application),
+            selectedItem = SearchScreenTabs.App(),
         ),
     )
-    val tabState: StateFlow<TabState<SearchTabItem>> = _tabState.asStateFlow()
+    val tabState: StateFlow<TabState<SearchScreenTabs>> = _tabState.asStateFlow()
 
     private val _bottomSheetTabState = MutableStateFlow(
         TabState(
             items = listOf(
-                SearchTabItem(R.string.receiver),
-                SearchTabItem(R.string.service),
-                SearchTabItem(R.string.activity),
-                SearchTabItem(R.string.content_provider),
+                SearchScreenTabs.Receiver(),
+                SearchScreenTabs.Service(),
+                SearchScreenTabs.Activity(),
+                SearchScreenTabs.Provider(),
             ),
-            selectedItem = SearchTabItem(R.string.receiver),
+            selectedItem = SearchScreenTabs.Receiver(),
         ),
     )
-    val bottomSheetTabState: StateFlow<TabState<SearchTabItem>> = _bottomSheetTabState.asStateFlow()
+    val bottomSheetTabState: StateFlow<TabState<SearchScreenTabs>> = _bottomSheetTabState.asStateFlow()
 
     init {
         load()
@@ -124,7 +124,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun switchTab(newTab: SearchTabItem) {
+    fun switchTab(newTab: SearchScreenTabs) {
         if (newTab != tabState.value.selectedItem) {
             _tabState.update {
                 it.copy(selectedItem = newTab)
@@ -132,7 +132,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun switchBottomSheetTab(newTab: SearchTabItem) {
+    fun switchBottomSheetTab(newTab: SearchScreenTabs) {
         if (newTab != bottomSheetTabState.value.selectedItem) {
             _bottomSheetTabState.update {
                 it.copy(selectedItem = newTab)
@@ -229,16 +229,13 @@ class SearchViewModel @Inject constructor(
                     _tabState.update {
                         it.copy(
                             items = listOf(
-                                SearchTabItem(
-                                    title = R.string.application,
+                                SearchScreenTabs.App(
                                     count = searchResult.appTabUiState.list.size,
                                 ),
-                                SearchTabItem(
-                                    title = R.string.component,
+                                SearchScreenTabs.Component(
                                     count = searchResult.componentTabUiState.list.size,
                                 ),
-                                SearchTabItem(
-                                    title = R.string.online_rule,
+                                SearchScreenTabs.Rule(
                                     count = searchResult.ruleTabUiState.list.size,
                                 ),
                             ),
@@ -246,9 +243,6 @@ class SearchViewModel @Inject constructor(
                     }
                 }
         }
-    }
-
-    fun search(keywords: List<String>) {
     }
 
     fun resetSearchState() {
@@ -276,18 +270,18 @@ class SearchViewModel @Inject constructor(
     }
 
     fun clickItem(item: FilteredComponentItem) {
-        val tabs = mutableStateListOf<SearchTabItem>()
+        val tabs = mutableStateListOf<SearchScreenTabs>()
         if (item.receiver.isNotEmpty()) {
-            tabs.add(SearchTabItem(title = R.string.receiver, count = item.receiver.size))
+            tabs.add(SearchScreenTabs.Receiver(count = item.receiver.size))
         }
         if (item.service.isNotEmpty()) {
-            tabs.add(SearchTabItem(title = R.string.service, count = item.service.size))
+            tabs.add(SearchScreenTabs.Service(count = item.service.size))
         }
         if (item.activity.isNotEmpty()) {
-            tabs.add(SearchTabItem(title = R.string.activity, count = item.activity.size))
+            tabs.add(SearchScreenTabs.Activity(count = item.activity.size))
         }
         if (item.provider.isNotEmpty()) {
-            tabs.add(SearchTabItem(title = R.string.content_provider, count = item.provider.size))
+            tabs.add(SearchScreenTabs.Provider(count = item.provider.size))
         }
         _bottomSheetTabState.update {
             it.copy(items = tabs)
