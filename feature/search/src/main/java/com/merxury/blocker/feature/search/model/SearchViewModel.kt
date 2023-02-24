@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.search.model
 
 import android.content.pm.PackageManager
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -96,6 +97,19 @@ class SearchViewModel @Inject constructor(
     )
     val tabState: StateFlow<TabState<SearchTabItem>> = _tabState.asStateFlow()
 
+    private val _bottomSheetTabState = MutableStateFlow(
+        TabState(
+            items = listOf(
+                SearchTabItem(R.string.receiver),
+                SearchTabItem(R.string.service),
+                SearchTabItem(R.string.activity),
+                SearchTabItem(R.string.content_provider),
+            ),
+            selectedItem = SearchTabItem(R.string.receiver),
+        ),
+    )
+    val bottomSheetTabState: StateFlow<TabState<SearchTabItem>> = _bottomSheetTabState.asStateFlow()
+
     init {
         load()
     }
@@ -113,6 +127,14 @@ class SearchViewModel @Inject constructor(
     fun switchTab(newTab: SearchTabItem) {
         if (newTab != tabState.value.selectedItem) {
             _tabState.update {
+                it.copy(selectedItem = newTab)
+            }
+        }
+    }
+
+    fun switchBottomSheetTab(newTab: SearchTabItem) {
+        if (newTab != bottomSheetTabState.value.selectedItem) {
+            _bottomSheetTabState.update {
                 it.copy(selectedItem = newTab)
             }
         }
@@ -191,7 +213,7 @@ class SearchViewModel @Inject constructor(
             Timber.v("Fild ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             LocalSearchUiState.Success(
                 apps = apps,
-                components = components,
+                components = Components(list = components),
                 rules = rules,
             )
         }
@@ -213,7 +235,7 @@ class SearchViewModel @Inject constructor(
                                 ),
                                 SearchTabItem(
                                     title = R.string.component,
-                                    count = searchResult.components.size,
+                                    count = searchResult.components.list.size,
                                 ),
                                 SearchTabItem(
                                     title = R.string.online_rule,
@@ -252,15 +274,42 @@ class SearchViewModel @Inject constructor(
     fun selectItem(select: Boolean) {
         // TODO
     }
+
+    fun clickItem(item: FilteredComponentItem) {
+        val tab = mutableStateListOf<SearchTabItem>()
+        if (item.receiver.isNotEmpty()) {
+            tab.add(SearchTabItem(title = R.string.receiver, count = item.receiver.size))
+        }
+        if (item.service.isNotEmpty()) {
+            tab.add(SearchTabItem(title = R.string.service, count = item.service.size))
+        }
+        if (item.activity.isNotEmpty()) {
+            tab.add(SearchTabItem(title = R.string.activity, count = item.activity.size))
+        }
+        if (item.provider.isEmpty()) {
+            tab.add(SearchTabItem(title = R.string.content_provider, count = item.provider.size))
+        }
+        _bottomSheetTabState.update {
+            it.copy(
+                items = tab,
+            )
+        }
+        if (localSearchUiState.value is LocalSearchUiState.Success) {
+            //update _localSearchUiState.components.bottomSheetItem = item
+            TODO()
+        } else {
+            TODO()
+        }
+    }
 }
 
 sealed interface LocalSearchUiState {
     class Initializing(val processingName: String) : LocalSearchUiState
     object Idle : LocalSearchUiState
     object Loading : LocalSearchUiState
-    class Success(
+    data class Success(
         val apps: List<AppItem> = listOf(),
-        val components: List<FilteredComponentItem> = listOf(),
+        val components: Components = Components(),
         val rules: List<GeneralRule> = listOf(),
         val isSelectedMode: Boolean = false,
         val selectedAppCount: Int = 0,
@@ -271,6 +320,13 @@ sealed interface LocalSearchUiState {
 
 data class SearchBoxUiState(
     val keyword: TextFieldValue = TextFieldValue(),
+)
+
+data class Components(
+    val list: List<FilteredComponentItem> = listOf(),
+    val isSelectedMode: Boolean = false,
+    val selectedAppList: List<FilteredComponentItem> = listOf(),
+    val bottomSheetItem: FilteredComponentItem? = null,
 )
 
 data class FilteredComponentItem(

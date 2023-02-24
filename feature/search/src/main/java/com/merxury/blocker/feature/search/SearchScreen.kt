@@ -53,10 +53,11 @@ import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
-import com.merxury.blocker.feature.search.component.BottomSheetRoute
+import com.merxury.blocker.feature.search.component.BottomSheet
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.component.SelectedAppTopBar
+import com.merxury.blocker.feature.search.model.Components
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
@@ -78,12 +79,15 @@ fun SearchRoute(
     val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
+    val bottomSheetTabState by viewModel.bottomSheetTabState.collectAsStateWithLifecycle()
 
     SearchScreen(
         searchBoxUiState = searchBoxUiState,
         tabState = tabState,
+        bottomSheetTabState = bottomSheetTabState,
         localSearchUiState = localSearchUiState,
         switchTab = viewModel::switchTab,
+        switchBottomSheetTab = viewModel::switchBottomSheetTab,
         onSearchTextChanged = viewModel::search,
         onClearClick = viewModel::resetSearchState,
         onNavigationClick = { viewModel.switchSelectedMode(false) },
@@ -95,6 +99,7 @@ fun SearchRoute(
         navigateToAppDetail = navigateToAppDetail,
         navigateToComponentsDetail = navigateToComponentsDetail,
         navigateToRuleDetail = navigateToRuleDetail,
+        onComponentClick = viewModel::clickItem,
     )
 }
 
@@ -106,9 +111,11 @@ fun SearchRoute(
 fun SearchScreen(
     modifier: Modifier = Modifier,
     tabState: TabState<SearchTabItem>,
+    bottomSheetTabState: TabState<SearchTabItem>,
     searchBoxUiState: SearchBoxUiState,
     localSearchUiState: LocalSearchUiState,
     switchTab: (SearchTabItem) -> Unit,
+    switchBottomSheetTab: (SearchTabItem) -> Unit,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
     onNavigationClick: () -> Unit,
@@ -120,6 +127,7 @@ fun SearchScreen(
     navigateToAppDetail: (String) -> Unit = {},
     navigateToComponentsDetail: () -> Unit = {},
     navigateToRuleDetail: (Int) -> Unit = {},
+    onComponentClick: (FilteredComponentItem) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
@@ -138,8 +146,12 @@ fun SearchScreen(
         sheetState = sheetState,
         sheetContent = {
             if (localSearchUiState is LocalSearchUiState.Success) {
-                if (localSearchUiState.apps.isNotEmpty()) {
-                    BottomSheetRoute(app = localSearchUiState.apps.first())
+                if (localSearchUiState.components.bottomSheetItem != null) {
+                    BottomSheet(
+                        filterApp = localSearchUiState.components.bottomSheetItem,
+                        tabState = bottomSheetTabState,
+                        switchTab = switchBottomSheetTab,
+                    )
                 }
             }
         },
@@ -187,6 +199,7 @@ fun SearchScreen(
                         sheetState = sheetState,
                         navigateToAppDetail = navigateToAppDetail,
                         navigateToRuleDetail = navigateToRuleDetail,
+                        onComponentClick = onComponentClick,
                     )
                 }
             }
@@ -229,13 +242,13 @@ fun TopBar(
 @Composable
 fun ComponentSearchResultContent(
     modifier: Modifier = Modifier,
-    componentList: List<FilteredComponentItem>,
-    isSelectedMode: Boolean,
+    components: Components,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
-    onClick: () -> Unit,
+    hideBottomSheet: () -> Unit,
+    onComponentClick: (FilteredComponentItem) -> Unit,
 ) {
-    if (componentList.isEmpty()) {
+    if (components.list.isEmpty()) {
         NoSearchResultScreen()
         return
     }
@@ -245,13 +258,14 @@ fun ComponentSearchResultContent(
             modifier = modifier,
             state = listState,
         ) {
-            items(componentList, key = { it.app.packageName }) {
+            items(components.list, key = { it.app.packageName }) {
                 FilteredComponentItem(
                     items = it,
-                    isSelectedMode = isSelectedMode,
+                    isSelectedMode = components.isSelectedMode,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
-                    onClick = onClick,
+                    hideBottomSheet = hideBottomSheet,
+                    onComponentClick = onComponentClick,
                 )
             }
         }
@@ -319,6 +333,12 @@ fun SearchScreenEmptyPreview() {
         ),
         selectedItem = SearchTabItem(R.string.application),
     )
+    val bottomSheetTabState = TabState(
+        items = listOf(
+            SearchTabItem(R.string.receiver),
+        ),
+        selectedItem = SearchTabItem(R.string.receiver),
+    )
     BlockerTheme {
         SearchScreen(
             searchBoxUiState = searchBoxUiState,
@@ -326,6 +346,8 @@ fun SearchScreenEmptyPreview() {
             onSearchTextChanged = {},
             onClearClick = {},
             tabState = tabState,
+            bottomSheetTabState = bottomSheetTabState,
+            switchBottomSheetTab = {},
             switchTab = {},
             onNavigationClick = {},
             onSelectAll = {},
@@ -334,6 +356,7 @@ fun SearchScreenEmptyPreview() {
             switchSelectedMode = {},
             onSelect = {},
             navigateToComponentsDetail = {},
+            onComponentClick = {},
         )
     }
 }
@@ -351,6 +374,12 @@ fun SearchScreenNoResultPreview() {
         ),
         selectedItem = SearchTabItem(R.string.application),
     )
+    val bottomSheetTabState = TabState(
+        items = listOf(
+            SearchTabItem(R.string.receiver),
+        ),
+        selectedItem = SearchTabItem(R.string.receiver),
+    )
     BlockerTheme {
         SearchScreen(
             searchBoxUiState = searchBoxUiState,
@@ -365,6 +394,9 @@ fun SearchScreenNoResultPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
+            bottomSheetTabState = bottomSheetTabState,
+            switchBottomSheetTab = {},
+            onComponentClick = {},
         )
     }
 }
@@ -381,7 +413,7 @@ fun SearchScreenPreview() {
     )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Success(
-        components = listOf(filterAppItem),
+        components = Components(list = listOf(filterAppItem)),
         isSelectedMode = false,
         selectedAppCount = 0,
     )
@@ -392,6 +424,12 @@ fun SearchScreenPreview() {
             SearchTabItem(R.string.online_rule),
         ),
         selectedItem = SearchTabItem(R.string.application),
+    )
+    val bottomSheetTabState = TabState(
+        items = listOf(
+            SearchTabItem(R.string.receiver),
+        ),
+        selectedItem = SearchTabItem(R.string.receiver),
     )
     BlockerTheme {
         SearchScreen(
@@ -407,6 +445,9 @@ fun SearchScreenPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
+            bottomSheetTabState = bottomSheetTabState,
+            switchBottomSheetTab = {},
+            onComponentClick = {},
         )
     }
 }
@@ -424,7 +465,7 @@ fun SearchScreenSelectedPreview() {
     )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Success(
-        components = listOf(filterAppItem),
+        components = Components(list = listOf(filterAppItem)),
         isSelectedMode = true,
         selectedAppCount = 1,
     )
@@ -435,6 +476,12 @@ fun SearchScreenSelectedPreview() {
             SearchTabItem(R.string.online_rule),
         ),
         selectedItem = SearchTabItem(R.string.application),
+    )
+    val bottomSheetTabState = TabState(
+        items = listOf(
+            SearchTabItem(R.string.receiver),
+        ),
+        selectedItem = SearchTabItem(R.string.receiver),
     )
     BlockerTheme {
         SearchScreen(
@@ -450,6 +497,9 @@ fun SearchScreenSelectedPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
+            bottomSheetTabState = bottomSheetTabState,
+            switchBottomSheetTab = {},
+            onComponentClick = {},
         )
     }
 }
