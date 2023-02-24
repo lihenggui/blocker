@@ -176,6 +176,7 @@ private fun AppContent(
                         }
                         .padding(horizontal = 2.dp, vertical = 1.dp),
                     text = stringResource(id = string.running),
+                    color = MaterialTheme.colorScheme.onTertiary,
                 )
             }
             if (!isAppEnabled) {
