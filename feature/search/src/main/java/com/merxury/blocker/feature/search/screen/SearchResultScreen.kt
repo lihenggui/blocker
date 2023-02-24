@@ -35,9 +35,9 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.RuleSearchResultContent
+import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
-import com.merxury.blocker.feature.search.model.SearchTabItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -45,8 +45,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 fun SearchResultScreen(
     modifier: Modifier,
-    tabState: TabState<SearchTabItem>,
-    switchTab: (SearchTabItem) -> Unit,
+    tabState: TabState<SearchScreenTabs>,
+    switchTab: (SearchScreenTabs) -> Unit,
     localSearchUiState: Success,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
@@ -106,8 +106,8 @@ fun SearchResultScreen(
 
 @Composable
 fun SearchResultTabRow(
-    tabState: TabState<SearchTabItem>,
-    switchTab: (SearchTabItem) -> Unit,
+    tabState: TabState<SearchScreenTabs>,
+    switchTab: (SearchScreenTabs) -> Unit,
 ) {
     BlockerScrollableTabRow(
         selectedTabIndex = tabState.currentIndex,
@@ -120,7 +120,7 @@ fun SearchResultTabRow(
                     Text(
                         text = stringResource(
                             id = tabItem.title,
-                            tabItem.count,
+                            tabItem.itemCount,
                         ),
                     )
                 },

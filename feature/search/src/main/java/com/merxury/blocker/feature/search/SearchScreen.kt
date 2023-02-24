@@ -60,7 +60,6 @@ import com.merxury.blocker.feature.search.model.ComponentTabUiState
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
-import com.merxury.blocker.feature.search.model.SearchTabItem
 import com.merxury.blocker.feature.search.model.SearchViewModel
 import com.merxury.blocker.feature.search.screen.InitializingScreen
 import com.merxury.blocker.feature.search.screen.NoSearchResultScreen
@@ -109,12 +108,12 @@ fun SearchRoute(
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
-    tabState: TabState<SearchTabItem>,
-    bottomSheetTabState: TabState<SearchTabItem>,
+    tabState: TabState<SearchScreenTabs>,
+    bottomSheetTabState: TabState<SearchScreenTabs>,
     searchBoxUiState: SearchBoxUiState,
     localSearchUiState: LocalSearchUiState,
-    switchTab: (SearchTabItem) -> Unit,
-    switchBottomSheetTab: (SearchTabItem) -> Unit,
+    switchTab: (SearchScreenTabs) -> Unit,
+    switchBottomSheetTab: (SearchScreenTabs) -> Unit,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
     onNavigationClick: () -> Unit,
@@ -325,17 +324,18 @@ fun SearchScreenEmptyPreview() {
     val localSearchUiState = LocalSearchUiState.Loading
     val tabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.application),
-            SearchTabItem(R.string.component),
-            SearchTabItem(R.string.online_rule),
+            SearchScreenTabs.App(),
+            SearchScreenTabs.Component(),
+            SearchScreenTabs.Rule(),
         ),
-        selectedItem = SearchTabItem(R.string.application),
+        selectedItem = SearchScreenTabs.App(),
     )
     val bottomSheetTabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.receiver),
+            SearchScreenTabs.Receiver(1),
+            SearchScreenTabs.Service(),
         ),
-        selectedItem = SearchTabItem(R.string.receiver),
+        selectedItem = SearchScreenTabs.Service(),
     )
     BlockerTheme {
         SearchScreen(
@@ -366,17 +366,18 @@ fun SearchScreenNoResultPreview() {
     val localSearchUiState = LocalSearchUiState.Idle
     val tabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.application),
-            SearchTabItem(R.string.component),
-            SearchTabItem(R.string.online_rule),
+            SearchScreenTabs.App(),
+            SearchScreenTabs.Component(),
+            SearchScreenTabs.Rule(),
         ),
-        selectedItem = SearchTabItem(R.string.application),
+        selectedItem = SearchScreenTabs.App(),
     )
     val bottomSheetTabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.receiver),
+            SearchScreenTabs.Receiver(1),
+            SearchScreenTabs.Service(),
         ),
-        selectedItem = SearchTabItem(R.string.receiver),
+        selectedItem = SearchScreenTabs.Service(),
     )
     BlockerTheme {
         SearchScreen(
@@ -415,17 +416,18 @@ fun SearchScreenPreview() {
     )
     val tabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.application),
-            SearchTabItem(R.string.component),
-            SearchTabItem(R.string.online_rule),
+            SearchScreenTabs.App(),
+            SearchScreenTabs.Component(),
+            SearchScreenTabs.Rule(),
         ),
-        selectedItem = SearchTabItem(R.string.application),
+        selectedItem = SearchScreenTabs.App(),
     )
     val bottomSheetTabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.receiver),
+            SearchScreenTabs.Receiver(1),
+            SearchScreenTabs.Service(),
         ),
-        selectedItem = SearchTabItem(R.string.receiver),
+        selectedItem = SearchScreenTabs.Service(),
     )
     BlockerTheme {
         SearchScreen(
@@ -465,17 +467,18 @@ fun SearchScreenSelectedPreview() {
     )
     val tabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.application),
-            SearchTabItem(R.string.component),
-            SearchTabItem(R.string.online_rule),
+            SearchScreenTabs.App(),
+            SearchScreenTabs.Component(),
+            SearchScreenTabs.Rule(),
         ),
-        selectedItem = SearchTabItem(R.string.application),
+        selectedItem = SearchScreenTabs.App(),
     )
     val bottomSheetTabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.receiver),
+            SearchScreenTabs.Receiver(1),
+            SearchScreenTabs.Service(),
         ),
-        selectedItem = SearchTabItem(R.string.receiver),
+        selectedItem = SearchScreenTabs.Service(),
     )
     BlockerTheme {
         SearchScreen(
