@@ -56,8 +56,7 @@ import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.feature.search.component.BottomSheet
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
-import com.merxury.blocker.feature.search.component.SelectedAppTopBar
-import com.merxury.blocker.feature.search.model.Components
+import com.merxury.blocker.feature.search.model.ComponentTabUiState
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
@@ -146,9 +145,9 @@ fun SearchScreen(
         sheetState = sheetState,
         sheetContent = {
             if (localSearchUiState is LocalSearchUiState.Success) {
-                if (localSearchUiState.components.bottomSheetItem != null) {
+                if (localSearchUiState.componentTabUiState.currentOpeningItem != null) {
                     BottomSheet(
-                        filterApp = localSearchUiState.components.bottomSheetItem,
+                        filterApp = localSearchUiState.componentTabUiState.currentOpeningItem,
                         tabState = bottomSheetTabState,
                         switchTab = switchBottomSheetTab,
                     )
@@ -219,16 +218,15 @@ fun TopBar(
     onBlockAll: () -> Unit,
     onCheckAll: () -> Unit,
 ) {
-    if (localSearchUiState is LocalSearchUiState.Success &&
-        localSearchUiState.isSelectedMode
-    ) {
-        SelectedAppTopBar(
-            localSearchUiState.selectedAppCount,
-            onNavigationClick = onNavigationClick,
-            onSelectAll = onSelectAll,
-            onBlockAll = onBlockAll,
-            onCheckAll = onCheckAll,
-        )
+    if (false) {
+        // TODO Implement multi-select feature
+//        SelectedAppTopBar(
+//            localSearchUiState.selectedAppCount,
+//            onNavigationClick = onNavigationClick,
+//            onSelectAll = onSelectAll,
+//            onBlockAll = onBlockAll,
+//            onCheckAll = onCheckAll,
+//        )
     } else {
         SearchBar(
             modifier = modifier,
@@ -242,13 +240,13 @@ fun TopBar(
 @Composable
 fun ComponentSearchResultContent(
     modifier: Modifier = Modifier,
-    components: Components,
+    componentTabUiState: ComponentTabUiState,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
     hideBottomSheet: () -> Unit,
     onComponentClick: (FilteredComponentItem) -> Unit,
 ) {
-    if (components.list.isEmpty()) {
+    if (componentTabUiState.list.isEmpty()) {
         NoSearchResultScreen()
         return
     }
@@ -258,10 +256,10 @@ fun ComponentSearchResultContent(
             modifier = modifier,
             state = listState,
         ) {
-            items(components.list, key = { it.app.packageName }) {
+            items(componentTabUiState.list, key = { it.app.packageName }) {
                 FilteredComponentItem(
                     items = it,
-                    isSelectedMode = components.isSelectedMode,
+                    isSelectedMode = componentTabUiState.isSelectedMode,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
                     hideBottomSheet = hideBottomSheet,
@@ -413,9 +411,7 @@ fun SearchScreenPreview() {
     )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Success(
-        components = Components(list = listOf(filterAppItem)),
-        isSelectedMode = false,
-        selectedAppCount = 0,
+        componentTabUiState = ComponentTabUiState(list = listOf(filterAppItem)),
     )
     val tabState = TabState(
         items = listOf(
@@ -465,9 +461,7 @@ fun SearchScreenSelectedPreview() {
     )
     val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Success(
-        components = Components(list = listOf(filterAppItem)),
-        isSelectedMode = true,
-        selectedAppCount = 1,
+        componentTabUiState = ComponentTabUiState(list = listOf(filterAppItem)),
     )
     val tabState = TabState(
         items = listOf(

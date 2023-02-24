@@ -212,9 +212,9 @@ class SearchViewModel @Inject constructor(
         ) { apps, components, rules ->
             Timber.v("Fild ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             LocalSearchUiState.Success(
-                apps = apps,
-                components = Components(list = components),
-                rules = rules,
+                appTabUiState = AppTabUiState(list = apps),
+                componentTabUiState = ComponentTabUiState(list = components),
+                ruleTabUiState = RuleTabUiState(list = rules),
             )
         }
         searchJob?.cancel()
@@ -231,15 +231,15 @@ class SearchViewModel @Inject constructor(
                             items = listOf(
                                 SearchTabItem(
                                     title = R.string.application,
-                                    count = searchResult.apps.size,
+                                    count = searchResult.appTabUiState.list.size,
                                 ),
                                 SearchTabItem(
                                     title = R.string.component,
-                                    count = searchResult.components.list.size,
+                                    count = searchResult.componentTabUiState.list.size,
                                 ),
                                 SearchTabItem(
                                     title = R.string.online_rule,
-                                    count = searchResult.rules.size,
+                                    count = searchResult.ruleTabUiState.list.size,
                                 ),
                             ),
                         )
@@ -276,29 +276,21 @@ class SearchViewModel @Inject constructor(
     }
 
     fun clickItem(item: FilteredComponentItem) {
-        val tab = mutableStateListOf<SearchTabItem>()
+        val tabs = mutableStateListOf<SearchTabItem>()
         if (item.receiver.isNotEmpty()) {
-            tab.add(SearchTabItem(title = R.string.receiver, count = item.receiver.size))
+            tabs.add(SearchTabItem(title = R.string.receiver, count = item.receiver.size))
         }
         if (item.service.isNotEmpty()) {
-            tab.add(SearchTabItem(title = R.string.service, count = item.service.size))
+            tabs.add(SearchTabItem(title = R.string.service, count = item.service.size))
         }
         if (item.activity.isNotEmpty()) {
-            tab.add(SearchTabItem(title = R.string.activity, count = item.activity.size))
+            tabs.add(SearchTabItem(title = R.string.activity, count = item.activity.size))
         }
-        if (item.provider.isEmpty()) {
-            tab.add(SearchTabItem(title = R.string.content_provider, count = item.provider.size))
+        if (item.provider.isNotEmpty()) {
+            tabs.add(SearchTabItem(title = R.string.content_provider, count = item.provider.size))
         }
         _bottomSheetTabState.update {
-            it.copy(
-                items = tab,
-            )
-        }
-        if (localSearchUiState.value is LocalSearchUiState.Success) {
-            //update _localSearchUiState.components.bottomSheetItem = item
-            TODO()
-        } else {
-            TODO()
+            it.copy(items = tabs)
         }
     }
 }
@@ -308,11 +300,9 @@ sealed interface LocalSearchUiState {
     object Idle : LocalSearchUiState
     object Loading : LocalSearchUiState
     data class Success(
-        val apps: List<AppItem> = listOf(),
-        val components: Components = Components(),
-        val rules: List<GeneralRule> = listOf(),
-        val isSelectedMode: Boolean = false,
-        val selectedAppCount: Int = 0,
+        val appTabUiState: AppTabUiState = AppTabUiState(),
+        val componentTabUiState: ComponentTabUiState = ComponentTabUiState(),
+        val ruleTabUiState: RuleTabUiState = RuleTabUiState(),
     ) : LocalSearchUiState
 
     class Error(val message: ErrorMessage) : LocalSearchUiState
@@ -322,11 +312,23 @@ data class SearchBoxUiState(
     val keyword: TextFieldValue = TextFieldValue(),
 )
 
-data class Components(
+data class AppTabUiState(
+    val list: List<AppItem> = listOf(),
+    val isSelectedMode: Boolean = false,
+    val selectedAppList: List<AppItem> = listOf(),
+)
+
+data class ComponentTabUiState(
     val list: List<FilteredComponentItem> = listOf(),
     val isSelectedMode: Boolean = false,
     val selectedAppList: List<FilteredComponentItem> = listOf(),
-    val bottomSheetItem: FilteredComponentItem? = null,
+    val currentOpeningItem: FilteredComponentItem? = null,
+)
+
+data class RuleTabUiState(
+    val list: List<GeneralRule> = listOf(),
+    val isSelectedMode: Boolean = false,
+    val selectedAppList: List<GeneralRule> = listOf(),
 )
 
 data class FilteredComponentItem(
