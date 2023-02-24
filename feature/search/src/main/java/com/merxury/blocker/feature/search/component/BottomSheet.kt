@@ -68,7 +68,7 @@ fun BottomSheetPreview() {
     )
     val bottomSheetTabState = TabState(
         items = listOf(
-            SearchTabItem(R.string.receiver),
+            SearchTabItem(R.string.receiver, 1),
         ),
         selectedItem = SearchTabItem(R.string.receiver),
     )
