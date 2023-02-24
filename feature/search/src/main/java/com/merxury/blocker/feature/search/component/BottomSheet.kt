@@ -18,71 +18,35 @@ package com.merxury.blocker.feature.search.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
-import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.AppDetailTabs.Activity
-import com.merxury.blocker.core.ui.AppDetailTabs.Provider
-import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomSheet.BottomSheetTopBar
-import com.merxury.blocker.feature.search.model.BottomSheetViewModel
-
-@Composable
-fun BottomSheetRoute(
-    modifier: Modifier = Modifier,
-    app: AppItem,
-    viewModel: BottomSheetViewModel = hiltViewModel(),
-) {
-    val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    BottomSheet(
-        modifier = modifier,
-        filterApp = app,
-        tabState = tabState,
-        switchTab = viewModel::switchTab,
-    )
-}
+import com.merxury.blocker.feature.search.R
+import com.merxury.blocker.feature.search.model.FilteredComponentItem
+import com.merxury.blocker.feature.search.model.SearchTabItem
+import com.merxury.blocker.feature.search.screen.SearchResultTabRow
 
 @Composable
 fun BottomSheet(
     modifier: Modifier = Modifier,
-    filterApp: AppItem,
-    tabState: TabState<AppDetailTabs>,
-    switchTab: (AppDetailTabs) -> Unit,
+    filterApp: FilteredComponentItem,
+    tabState: TabState<SearchTabItem>,
+    switchTab: (SearchTabItem) -> Unit,
 ) {
     Column(modifier = modifier.defaultMinSize(1.dp)) {
         BottomSheetTopBar(
-            title = filterApp.label,
-            subTitle = filterApp.packageName,
-            summary = filterApp.versionName,
-            iconSource = filterApp.packageInfo,
+            title = filterApp.app.label,
+            subTitle = filterApp.app.packageName,
+            summary = filterApp.app.versionName,
+            iconSource = filterApp.app.packageInfo,
         )
-        BlockerScrollableTabRow(
-            selectedTabIndex = tabState.currentIndex,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-            tabs = {
-                tabState.items.forEachIndexed { index, item ->
-                    BlockerTab(
-                        selected = item == tabState.selectedItem,
-                        onClick = { switchTab(item) },
-                        text = { Text(text = stringResource(id = item.title)) },
-                    )
-                }
-            },
-        )
+        SearchResultTabRow(tabState = tabState, switchTab = switchTab)
         when (tabState.currentIndex) {
             0 -> {}
             1 -> {}
@@ -99,17 +63,18 @@ fun BottomSheetPreview() {
         versionName = "23.12.20",
         isSystem = false,
     )
-    val tabState = TabState(
+    val filterAppItem = FilteredComponentItem(
+        app = app,
+    )
+    val bottomSheetTabState = TabState(
         items = listOf(
-            Service,
-            Activity,
-            Provider,
+            SearchTabItem(R.string.receiver, 1),
         ),
-        selectedItem = Service,
+        selectedItem = SearchTabItem(R.string.receiver),
     )
     BlockerTheme {
         Surface {
-            BottomSheet(filterApp = app, tabState = tabState, switchTab = {})
+            BottomSheet(filterApp = filterAppItem, tabState = bottomSheetTabState, switchTab = {})
         }
     }
 }
