@@ -35,6 +35,7 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.RuleSearchResultContent
+import com.merxury.blocker.feature.search.model.FilteredComponentItem
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
 import com.merxury.blocker.feature.search.model.SearchTabItem
 import kotlinx.coroutines.CoroutineScope
@@ -53,6 +54,7 @@ fun SearchResultScreen(
     sheetState: ModalBottomSheetState,
     navigateToAppDetail: (String) -> Unit = {},
     navigateToRuleDetail: (Int) -> Unit = {},
+    onComponentClick: (FilteredComponentItem) -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
@@ -78,11 +80,10 @@ fun SearchResultScreen(
             )
 
             1 -> ComponentSearchResultContent(
-                componentList = localSearchUiState.components,
-                isSelectedMode = localSearchUiState.isSelectedMode,
+                components = localSearchUiState.components,
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
-                onClick = {
+                hideBottomSheet = {
                     coroutineScope.launch {
                         if (sheetState.isVisible) {
                             sheetState.hide()
@@ -92,6 +93,7 @@ fun SearchResultScreen(
                     }
                     keyboardController?.hide()
                 },
+                onComponentClick = onComponentClick,
             )
 
             2 -> RuleSearchResultContent(
