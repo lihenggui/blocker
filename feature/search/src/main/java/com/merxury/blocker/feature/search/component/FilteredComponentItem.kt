@@ -64,7 +64,8 @@ fun FilteredComponentItem(
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
-    onClick: () -> Unit,
+    hideBottomSheet: () -> Unit,
+    onComponentClick: (FilteredComponentItem) -> Unit,
 ) {
     val color = if (isSelectedMode) {
         MaterialTheme.colorScheme.tertiaryContainer
@@ -86,7 +87,8 @@ fun FilteredComponentItem(
                 .combinedClickable(
                     onClick = {
                         if (!isSelectedMode) {
-                            onClick()
+                            hideBottomSheet()
+                            onComponentClick(items)
                         } else {
                             onSelect(!items.isSelected)
                         }
@@ -238,7 +240,8 @@ fun AppListItemPreview() {
                 isSelectedMode = true,
                 switchSelectedMode = {},
                 onSelect = {},
-                onClick = {},
+                hideBottomSheet = {},
+                onComponentClick = {},
             )
         }
     }
@@ -273,7 +276,8 @@ fun AppListItemWithoutServicePreview() {
                 isSelectedMode = false,
                 switchSelectedMode = {},
                 onSelect = {},
-                onClick = {},
+                hideBottomSheet = {},
+                onComponentClick = {},
             )
         }
     }
