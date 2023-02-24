@@ -42,8 +42,8 @@
     <string name="search_hint">Apps, components and rules</string>
     <string name="no_search_result">No search result yet</string>
     <string name="initializing_database">Initializing database</string>
-    <string name="service">Service</string>
-    <string name="receiver">Receiver</string>
-    <string name="activity">Activity</string>
-    <string name="content_provider">Content Provider</string>
+    <string name="service">Service (%1$d)</string>
+    <string name="receiver">Receiver (%1$d)</string>
+    <string name="activity">Activity (%1$d)</string>
+    <string name="content_provider">Content Provider (%1$d)</string>
 </resources>
