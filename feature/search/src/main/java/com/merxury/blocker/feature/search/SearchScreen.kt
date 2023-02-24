@@ -97,7 +97,7 @@ fun SearchRoute(
         navigateToAppDetail = navigateToAppDetail,
         navigateToComponentsDetail = navigateToComponentsDetail,
         navigateToRuleDetail = navigateToRuleDetail,
-        onComponentClick = viewModel::clickItem,
+        onComponentClick = viewModel::openComponentFilterResult,
     )
 }
 
