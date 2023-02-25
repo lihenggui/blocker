@@ -28,34 +28,41 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomSheet.BottomSheetTopBar
 import com.merxury.blocker.feature.search.SearchScreenTabs
+import com.merxury.blocker.feature.search.SearchScreenTabs.Activity
+import com.merxury.blocker.feature.search.SearchScreenTabs.Provider
+import com.merxury.blocker.feature.search.SearchScreenTabs.Receiver
+import com.merxury.blocker.feature.search.SearchScreenTabs.Service
 import com.merxury.blocker.feature.search.model.FilteredComponentItem
 import com.merxury.blocker.feature.search.screen.SearchResultTabRow
 
 @Composable
-fun BottomSheet(
+fun ComponentSearchResultContent(
     modifier: Modifier = Modifier,
-    filterApp: FilteredComponentItem,
+    result: FilteredComponentItem,
     tabState: TabState<SearchScreenTabs>,
     switchTab: (SearchScreenTabs) -> Unit,
 ) {
     Column(modifier = modifier.defaultMinSize(1.dp)) {
         BottomSheetTopBar(
-            title = filterApp.app.label,
-            subTitle = filterApp.app.packageName,
-            summary = filterApp.app.versionName,
-            iconSource = filterApp.app.packageInfo,
+            title = result.app.label,
+            subTitle = result.app.packageName,
+            summary = result.app.versionName,
+            iconSource = result.app.packageInfo,
         )
         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
-        when (tabState.currentIndex) {
-            0 -> {}
-            1 -> {}
+        when (tabState.selectedItem) {
+            is Receiver -> {}
+            is Service -> {}
+            is Activity -> {}
+            is Provider -> {}
+            else -> {}
         }
     }
 }
 
 @Composable
 @Preview
-fun BottomSheetPreview() {
+fun ComponentSearchResultContentPreview() {
     val app = AppItem(
         packageName = "com.merxury.blocker",
         label = "Blocker test long name",
@@ -67,14 +74,18 @@ fun BottomSheetPreview() {
     )
     val bottomSheetTabState = TabState(
         items = listOf(
-            SearchScreenTabs.Receiver(1),
-            SearchScreenTabs.Service(1),
+            Receiver(1),
+            Service(1),
         ),
-        selectedItem = SearchScreenTabs.Receiver(1),
+        selectedItem = Receiver(1),
     )
     BlockerTheme {
         Surface {
-            BottomSheet(filterApp = filterAppItem, tabState = bottomSheetTabState, switchTab = {})
+            ComponentSearchResultContent(
+                result = filterAppItem,
+                tabState = bottomSheetTabState,
+                switchTab = {},
+            )
         }
     }
 }
