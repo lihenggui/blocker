@@ -37,6 +37,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -98,6 +100,9 @@ fun SearchRoute(
         navigateToComponentsDetail = navigateToComponentsDetail,
         navigateToRuleDetail = navigateToRuleDetail,
         onComponentClick = viewModel::openComponentFilterResult,
+        onStopServiceClick = viewModel::stopService,
+        onLaunchActivityClick = viewModel::launchActivity,
+        onSwitchClick = viewModel::controlComponent,
     )
 }
 
@@ -126,6 +131,11 @@ fun SearchScreen(
     navigateToComponentsDetail: () -> Unit = {},
     navigateToRuleDetail: (Int) -> Unit = {},
     onComponentClick: (FilteredComponent) -> Unit,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
@@ -140,6 +150,7 @@ fun SearchScreen(
         navigateToComponentsDetail()
         // TODO
     }
+    val clipboardManager = LocalClipboardManager.current
     BlockerModalBottomSheetLayout(
         sheetState = sheetState,
         sheetContent = {
@@ -149,6 +160,15 @@ fun SearchScreen(
                         result = localSearchUiState.componentTabUiState.currentOpeningItem,
                         tabState = bottomSheetTabState,
                         switchTab = switchBottomSheetTab,
+                        onStopServiceClick = onStopServiceClick,
+                        onLaunchActivityClick = onLaunchActivityClick,
+                        onCopyNameClick = { name ->
+                            clipboardManager.setText(AnnotatedString(name))
+                        },
+                        onCopyFullNameClick = { name ->
+                            clipboardManager.setText(AnnotatedString(name))
+                        },
+                        onSwitchClick = onSwitchClick,
                     )
                 }
             }
