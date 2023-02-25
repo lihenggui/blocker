@@ -57,7 +57,7 @@ import com.merxury.blocker.feature.search.component.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
-import com.merxury.blocker.feature.search.model.FilteredComponentItem
+import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
 import com.merxury.blocker.feature.search.model.SearchViewModel
@@ -125,7 +125,7 @@ fun SearchScreen(
     navigateToAppDetail: (String) -> Unit = {},
     navigateToComponentsDetail: () -> Unit = {},
     navigateToRuleDetail: (Int) -> Unit = {},
-    onComponentClick: (FilteredComponentItem) -> Unit,
+    onComponentClick: (FilteredComponent) -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState(
         initialValue = ModalBottomSheetValue.Hidden,
@@ -243,7 +243,7 @@ fun ComponentSearchResultContent(
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
     hideBottomSheet: () -> Unit,
-    onComponentClick: (FilteredComponentItem) -> Unit,
+    onComponentClick: (FilteredComponent) -> Unit,
 ) {
     if (componentTabUiState.list.isEmpty()) {
         NoSearchResultScreen()
@@ -403,7 +403,7 @@ fun SearchScreenNoResultPreview() {
 @Composable
 @Preview
 fun SearchScreenPreview() {
-    val filterAppItem = FilteredComponentItem(
+    val filterAppItem = FilteredComponent(
         app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
@@ -453,7 +453,7 @@ fun SearchScreenPreview() {
 @Composable
 @Preview
 fun SearchScreenSelectedPreview() {
-    val filterAppItem = FilteredComponentItem(
+    val filterAppItem = FilteredComponent(
         app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
