@@ -29,6 +29,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
+import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
@@ -47,17 +48,21 @@ import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
@@ -85,6 +90,12 @@ class SearchViewModel @Inject constructor(
     private val _localSearchUiState =
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
+    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    val errorState = _errorState.asStateFlow()
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Timber.e(throwable)
+        _errorState.tryEmit(throwable.toErrorMessage())
+    }
     private var searchJob: Job? = null
 
     private val _tabState = MutableStateFlow(
@@ -286,6 +297,38 @@ class SearchViewModel @Inject constructor(
         // TODO
     }
 
+    fun launchActivity(packageName: String, componentName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            "am start -n $packageName/$componentName".exec(ioDispatcher)
+        }
+    }
+
+    fun stopService(packageName: String, componentName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            "am stopservice $packageName/$componentName".exec(ioDispatcher)
+        }
+    }
+
+    fun controlComponent(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) = viewModelScope.launch {
+        controlComponentInternal(packageName, componentName, enabled)
+    }
+
+    private suspend fun controlComponentInternal(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) {
+        componentRepository.controlComponent(packageName, componentName, enabled)
+            .catch { exception ->
+                _errorState.emit(exception.toErrorMessage())
+            }
+            .collect()
+    }
+
     fun openComponentFilterResult(item: FilteredComponent) {
         val tabs = mutableStateListOf<SearchScreenTabs>()
         if (item.receiver.isNotEmpty()) {
@@ -300,8 +343,15 @@ class SearchViewModel @Inject constructor(
         if (item.provider.isNotEmpty()) {
             tabs.add(SearchScreenTabs.Provider(count = item.provider.size))
         }
+        if (tabs.isEmpty()) {
+            Timber.w("No component found for ${item.app.packageName}, don't show result.")
+            return
+        }
         _bottomSheetTabState.update {
-            it.copy(items = tabs)
+            it.copy(
+                items = tabs,
+                selectedItem = tabs.first(),
+            )
         }
         _localSearchUiState.update {
             // Ignore event if not in success state
@@ -358,9 +408,4 @@ data class FilteredComponent(
     val receiver: List<ComponentItem> = listOf(),
     val provider: List<ComponentItem> = listOf(),
     val isSelected: Boolean = false,
-)
-
-data class SearchTabItem(
-    val title: Int,
-    val count: Int = 0,
 )

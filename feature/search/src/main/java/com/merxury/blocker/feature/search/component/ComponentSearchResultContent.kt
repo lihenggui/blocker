@@ -27,6 +27,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomSheet.BottomSheetTopBar
+import com.merxury.blocker.core.ui.component.ComponentList
 import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.SearchScreenTabs.Activity
 import com.merxury.blocker.feature.search.SearchScreenTabs.Provider
@@ -41,6 +42,11 @@ fun ComponentSearchResultContent(
     result: FilteredComponent,
     tabState: TabState<SearchScreenTabs>,
     switchTab: (SearchScreenTabs) -> Unit,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     Column(modifier = modifier.defaultMinSize(1.dp)) {
         BottomSheetTopBar(
@@ -50,13 +56,21 @@ fun ComponentSearchResultContent(
             iconSource = result.app.packageInfo,
         )
         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
-        when (tabState.selectedItem) {
-            is Receiver -> {}
-            is Service -> {}
-            is Activity -> {}
-            is Provider -> {}
-            else -> {}
+        val list = when (tabState.selectedItem) {
+            is Receiver -> result.receiver
+            is Service -> result.service
+            is Activity -> result.activity
+            is Provider -> result.provider
+            else -> listOf()
         }
+        ComponentList(
+            components = list,
+            onStopServiceClick = onStopServiceClick,
+            onLaunchActivityClick = onLaunchActivityClick,
+            onCopyNameClick = onCopyNameClick,
+            onCopyFullNameClick = onCopyFullNameClick,
+            onSwitchClick = onSwitchClick,
+        )
     }
 }
 
