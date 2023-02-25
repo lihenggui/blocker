@@ -34,7 +34,6 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_DESCENDING
@@ -45,7 +44,10 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppItem
+import com.merxury.blocker.core.ui.component.ComponentItem
+import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -108,7 +110,8 @@ class SearchViewModel @Inject constructor(
             selectedItem = SearchScreenTabs.Receiver(),
         ),
     )
-    val bottomSheetTabState: StateFlow<TabState<SearchScreenTabs>> = _bottomSheetTabState.asStateFlow()
+    val bottomSheetTabState: StateFlow<TabState<SearchScreenTabs>> =
+        _bottomSheetTabState.asStateFlow()
 
     init {
         load()
@@ -169,7 +172,7 @@ class SearchViewModel @Inject constructor(
                 emit(filteredList)
             }
 
-        val searchComponentFlow: Flow<List<FilteredComponentItem>> =
+        val searchComponentFlow: Flow<List<FilteredComponent>> =
             componentRepository.searchComponent(keyword)
                 .map { list ->
                     list.groupBy { it.packageName }
@@ -179,14 +182,28 @@ class SearchViewModel @Inject constructor(
                             val app = appRepository.getApplication(packageName).first()
                                 ?: return@MapToUiModel null
                             Timber.v("Found ${componentList.size} components for $packageName")
-                            FilteredComponentItem(
+                            val serviceHelper = ServiceHelper(app.packageName)
+                            serviceHelper.refresh()
+                            FilteredComponent(
                                 app = app.toAppItem(
                                     packageInfo = pm.getPackageInfoCompat(packageName, 0),
                                 ),
-                                activity = componentList.filter { it.type == ACTIVITY },
-                                service = componentList.filter { it.type == SERVICE },
-                                receiver = componentList.filter { it.type == RECEIVER },
-                                provider = componentList.filter { it.type == PROVIDER },
+                                activity = componentList
+                                    .filter { it.type == ACTIVITY }
+                                    .map { it.toComponentItem() },
+                                service = componentList
+                                    .filter { it.type == SERVICE }
+                                    .map {
+                                        it.toComponentItem(
+                                            isRunning = serviceHelper.isServiceRunning(it.name),
+                                        )
+                                    },
+                                receiver = componentList
+                                    .filter { it.type == RECEIVER }
+                                    .map { it.toComponentItem() },
+                                provider = componentList
+                                    .filter { it.type == PROVIDER }
+                                    .map { it.toComponentItem() },
                             )
                         }
                         .filterNotNull()
@@ -269,7 +286,7 @@ class SearchViewModel @Inject constructor(
         // TODO
     }
 
-    fun openComponentFilterResult(item: FilteredComponentItem) {
+    fun openComponentFilterResult(item: FilteredComponent) {
         val tabs = mutableStateListOf<SearchScreenTabs>()
         if (item.receiver.isNotEmpty()) {
             tabs.add(SearchScreenTabs.Receiver(count = item.receiver.size))
@@ -322,10 +339,10 @@ data class AppTabUiState(
 )
 
 data class ComponentTabUiState(
-    val list: List<FilteredComponentItem> = listOf(),
+    val list: List<FilteredComponent> = listOf(),
     val isSelectedMode: Boolean = false,
-    val selectedAppList: List<FilteredComponentItem> = listOf(),
-    val currentOpeningItem: FilteredComponentItem? = null,
+    val selectedAppList: List<FilteredComponent> = listOf(),
+    val currentOpeningItem: FilteredComponent? = null,
 )
 
 data class RuleTabUiState(
@@ -334,12 +351,12 @@ data class RuleTabUiState(
     val selectedAppList: List<GeneralRule> = listOf(),
 )
 
-data class FilteredComponentItem(
+data class FilteredComponent(
     val app: AppItem,
-    val activity: List<ComponentInfo> = listOf(),
-    val service: List<ComponentInfo> = listOf(),
-    val receiver: List<ComponentInfo> = listOf(),
-    val provider: List<ComponentInfo> = listOf(),
+    val activity: List<ComponentItem> = listOf(),
+    val service: List<ComponentItem> = listOf(),
+    val receiver: List<ComponentItem> = listOf(),
+    val provider: List<ComponentItem> = listOf(),
     val isSelected: Boolean = false,
 )
 

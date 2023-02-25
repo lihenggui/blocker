@@ -50,22 +50,22 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.feature.search.R
 import com.merxury.blocker.feature.search.R.string
-import com.merxury.blocker.feature.search.model.FilteredComponentItem
+import com.merxury.blocker.feature.search.model.FilteredComponent
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FilteredComponentItem(
-    items: FilteredComponentItem,
+    items: FilteredComponent,
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
     hideBottomSheet: () -> Unit,
-    onComponentClick: (FilteredComponentItem) -> Unit,
+    onComponentClick: (FilteredComponent) -> Unit,
 ) {
     val color = if (isSelectedMode) {
         MaterialTheme.colorScheme.tertiaryContainer
@@ -153,7 +153,7 @@ private fun SelectableAppIcon(
 
 @Composable
 private fun AppContent(
-    appItem: FilteredComponentItem,
+    appItem: FilteredComponent,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier) {
@@ -167,7 +167,7 @@ private fun AppContent(
 }
 
 @Composable
-private fun getComponentCountDescription(appItem: FilteredComponentItem): String {
+private fun getComponentCountDescription(appItem: FilteredComponent): String {
     val countDescriptions = mutableListOf<String>()
     if (appItem.receiver.isNotEmpty()) {
         countDescriptions.add(
@@ -213,15 +213,14 @@ private fun getComponentCountDescription(appItem: FilteredComponentItem): String
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppListItemPreview() {
-    val componentInfo = ComponentInfo(
+    val componentInfo = ComponentItem(
         name = "component",
         simpleName = "com",
         packageName = "blocker",
         type = ACTIVITY,
-        exported = false,
         pmBlocked = false,
     )
-    val filterAppItem = FilteredComponentItem(
+    val filterAppItem = FilteredComponent(
         app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
@@ -250,35 +249,32 @@ fun AppListItemPreview() {
 @Composable
 @Preview
 fun AppListItemWithoutServicePreview() {
-    val componentInfo = ComponentInfo(
+    val componentItem = ComponentItem(
         name = "component",
         simpleName = "com",
         packageName = "blocker",
         type = ACTIVITY,
-        exported = false,
         pmBlocked = false,
     )
-    val filterAppItem = FilteredComponentItem(
+    val filterAppItem = FilteredComponent(
         app = AppItem(
             packageName = "com.merxury.blocker",
             label = "Blocker",
             isSystem = false,
         ),
-        activity = listOf(componentInfo),
-        service = listOf(componentInfo),
-        receiver = listOf(componentInfo),
-        provider = listOf(componentInfo),
+        activity = listOf(componentItem),
+        service = listOf(componentItem),
+        receiver = listOf(componentItem),
+        provider = listOf(componentItem),
     )
     BlockerTheme {
-        Surface {
-            FilteredComponentItem(
-                items = filterAppItem,
-                isSelectedMode = false,
-                switchSelectedMode = {},
-                onSelect = {},
-                hideBottomSheet = {},
-                onComponentClick = {},
-            )
-        }
+        FilteredComponentItem(
+            items = filterAppItem,
+            isSelectedMode = false,
+            switchSelectedMode = {},
+            onSelect = {},
+            hideBottomSheet = {},
+            onComponentClick = {},
+        )
     }
 }
