@@ -32,13 +32,13 @@ import com.merxury.blocker.feature.search.SearchScreenTabs.Activity
 import com.merxury.blocker.feature.search.SearchScreenTabs.Provider
 import com.merxury.blocker.feature.search.SearchScreenTabs.Receiver
 import com.merxury.blocker.feature.search.SearchScreenTabs.Service
-import com.merxury.blocker.feature.search.model.FilteredComponentItem
+import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.screen.SearchResultTabRow
 
 @Composable
 fun ComponentSearchResultContent(
     modifier: Modifier = Modifier,
-    result: FilteredComponentItem,
+    result: FilteredComponent,
     tabState: TabState<SearchScreenTabs>,
     switchTab: (SearchScreenTabs) -> Unit,
 ) {
@@ -69,7 +69,7 @@ fun ComponentSearchResultContentPreview() {
         versionName = "23.12.20",
         isSystem = false,
     )
-    val filterAppItem = FilteredComponentItem(
+    val filterAppItem = FilteredComponent(
         app = app,
     )
     val bottomSheetTabState = TabState(
