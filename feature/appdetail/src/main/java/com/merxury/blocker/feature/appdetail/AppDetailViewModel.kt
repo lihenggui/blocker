@@ -71,8 +71,19 @@ class AppDetailViewModel @Inject constructor(
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
 
     init {
+        updateSearchKeyword()
         loadTabInfo()
-        load()
+        loadAppInfo()
+    }
+
+    private fun updateSearchKeyword() {
+        val keyword = appPackageNameArgs.searchKeyword
+        if (keyword.isEmpty()) return
+        val keywordString = appPackageNameArgs.searchKeyword.joinToString(",")
+        Timber.v("Search keyword: $keyword")
+        _appBarUiState.update {
+            it.copy(keyword = TextFieldValue(keywordString), isSearchMode = true)
+        }
     }
 
     private fun loadTabInfo() {
@@ -115,7 +126,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun load() = viewModelScope.launch {
+    private fun loadAppInfo() = viewModelScope.launch {
         val packageName = appPackageNameArgs.packageName
         val app = ApplicationUtil.getApplicationInfo(getApplication(), packageName)
         if (app == null) {
