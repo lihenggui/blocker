@@ -49,7 +49,6 @@ import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -193,8 +192,6 @@ class SearchViewModel @Inject constructor(
                             val app = appRepository.getApplication(packageName).first()
                                 ?: return@MapToUiModel null
                             Timber.v("Found ${componentList.size} components for $packageName")
-                            val serviceHelper = ServiceHelper(app.packageName)
-                            serviceHelper.refresh()
                             FilteredComponent(
                                 app = app.toAppItem(
                                     packageInfo = pm.getPackageInfoCompat(packageName, 0),
@@ -204,11 +201,7 @@ class SearchViewModel @Inject constructor(
                                     .map { it.toComponentItem() },
                                 service = componentList
                                     .filter { it.type == SERVICE }
-                                    .map {
-                                        it.toComponentItem(
-                                            isRunning = serviceHelper.isServiceRunning(it.name),
-                                        )
-                                    },
+                                    .map { it.toComponentItem() },
                                 receiver = componentList
                                     .filter { it.type == RECEIVER }
                                     .map { it.toComponentItem() },
@@ -240,6 +233,7 @@ class SearchViewModel @Inject constructor(
         ) { apps, components, rules ->
             Timber.v("Fild ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             LocalSearchUiState.Success(
+                searchKeyword = keyword.split(","),
                 appTabUiState = AppTabUiState(list = apps),
                 componentTabUiState = ComponentTabUiState(list = components),
                 ruleTabUiState = RuleTabUiState(list = rules),
@@ -370,6 +364,7 @@ sealed interface LocalSearchUiState {
     object Idle : LocalSearchUiState
     object Loading : LocalSearchUiState
     data class Success(
+        val searchKeyword: List<String> = listOf(),
         val appTabUiState: AppTabUiState = AppTabUiState(),
         val componentTabUiState: ComponentTabUiState = ComponentTabUiState(),
         val ruleTabUiState: RuleTabUiState = RuleTabUiState(),
