@@ -35,17 +35,30 @@ internal const val packageNameArg = "packageName"
 @VisibleForTesting
 internal const val tabArg = "tab"
 
-internal class AppDetailArgs(val packageName: String, val tabs: AppDetailTabs = AppDetailTabs.Info) {
+@VisibleForTesting
+internal const val searchKeywordArg = "searchKeyword"
+
+internal class AppDetailArgs(
+    val packageName: String,
+    val tabs: AppDetailTabs = AppDetailTabs.Info,
+    val searchKeyword: List<String> = listOf(),
+) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
         this(
             stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])),
             AppDetailTabs.fromName(savedStateHandle[tabArg]),
+            stringDecoder.decodeString(checkNotNull(savedStateHandle[searchKeywordArg])).split(","),
         )
 }
 
-fun NavController.navigateToAppDetail(packageName: String, tab: AppDetailTabs = AppDetailTabs.Info) {
+fun NavController.navigateToAppDetail(
+    packageName: String,
+    tab: AppDetailTabs = AppDetailTabs.Info,
+    searchKeyword: List<String> = listOf(),
+) {
     val encodedId = Uri.encode(packageName)
-    this.navigate("app_detail_route/$encodedId?screen=${tab.name}") {
+    val keywords = searchKeyword.joinToString(",")
+    this.navigate("app_detail_route/$encodedId?screen=${tab.name}?searchKeyword=$keywords") {
         // Pop up to the start destination of the graph to
         // avoid building up a large stack of destinations
         // on the back stack as users select items
@@ -60,10 +73,11 @@ fun NavController.navigateToAppDetail(packageName: String, tab: AppDetailTabs = 
 
 fun NavGraphBuilder.detailScreen(onBackClick: () -> Unit) {
     composable(
-        route = "app_detail_route/{$packageNameArg}?screen={$tabArg}",
+        route = "app_detail_route/{$packageNameArg}?screen={$tabArg}?searchKeyword={$searchKeywordArg}",
         arguments = listOf(
             navArgument(packageNameArg) { type = NavType.StringType },
             navArgument(tabArg) { type = NavType.StringType },
+            navArgument(searchKeywordArg) { type = NavType.StringType },
         ),
     ) {
         AppDetailRoute(onBackClick = onBackClick)
