@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.search
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -35,19 +34,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue
-import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.Expanded
-import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.HalfExpanded
-import com.merxury.blocker.core.designsystem.bottomsheet.rememberModalBottomSheetState
-import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.AppDetailTabs
@@ -56,7 +47,6 @@ import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
-import com.merxury.blocker.feature.search.component.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
@@ -68,7 +58,6 @@ import com.merxury.blocker.feature.search.screen.InitializingScreen
 import com.merxury.blocker.feature.search.screen.NoSearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen
-import kotlinx.coroutines.launch
 
 @Composable
 fun SearchRoute(
@@ -80,15 +69,12 @@ fun SearchRoute(
     val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val bottomSheetTabState by viewModel.bottomSheetTabState.collectAsStateWithLifecycle()
 
     SearchScreen(
         searchBoxUiState = searchBoxUiState,
         tabState = tabState,
-        bottomSheetTabState = bottomSheetTabState,
         localSearchUiState = localSearchUiState,
         switchTab = viewModel::switchTab,
-        switchBottomSheetTab = viewModel::switchBottomSheetTab,
         onSearchTextChanged = viewModel::search,
         onClearClick = viewModel::resetSearchState,
         onNavigationClick = { viewModel.switchSelectedMode(false) },
@@ -98,11 +84,7 @@ fun SearchRoute(
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         navigateToAppDetail = navigateToAppDetail,
-        navigateToComponentsDetail = navigateToComponentsDetail,
         navigateToRuleDetail = navigateToRuleDetail,
-        onStopServiceClick = viewModel::stopService,
-        onLaunchActivityClick = viewModel::launchActivity,
-        onSwitchClick = viewModel::controlComponent,
     )
 }
 
@@ -114,11 +96,9 @@ fun SearchRoute(
 fun SearchScreen(
     modifier: Modifier = Modifier,
     tabState: TabState<SearchScreenTabs>,
-    bottomSheetTabState: TabState<SearchScreenTabs>,
     searchBoxUiState: SearchBoxUiState,
     localSearchUiState: LocalSearchUiState,
     switchTab: (SearchScreenTabs) -> Unit,
-    switchBottomSheetTab: (SearchScreenTabs) -> Unit,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
     onNavigationClick: () -> Unit,
@@ -128,94 +108,50 @@ fun SearchScreen(
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
-    navigateToComponentsDetail: () -> Unit = {},
     navigateToRuleDetail: (Int) -> Unit = {},
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
-    val sheetState = rememberModalBottomSheetState(
-        initialValue = ModalBottomSheetValue.Hidden,
-        confirmStateChange = { it != HalfExpanded },
-    )
-    val coroutineScope = rememberCoroutineScope()
-
-    BackHandler(sheetState.isVisible) {
-        coroutineScope.launch { sheetState.hide() }
-    }
-    if (sheetState.targetValue == Expanded) {
-        navigateToComponentsDetail()
-        // TODO
-    }
-    val clipboardManager = LocalClipboardManager.current
-    BlockerModalBottomSheetLayout(
-        sheetState = sheetState,
-        sheetContent = {
-            if (localSearchUiState is LocalSearchUiState.Success) {
-                if (localSearchUiState.componentTabUiState.currentOpeningItem != null) {
-                    ComponentSearchResultContent(
-                        result = localSearchUiState.componentTabUiState.currentOpeningItem,
-                        tabState = bottomSheetTabState,
-                        switchTab = switchBottomSheetTab,
-                        onStopServiceClick = onStopServiceClick,
-                        onLaunchActivityClick = onLaunchActivityClick,
-                        onCopyNameClick = { name ->
-                            clipboardManager.setText(AnnotatedString(name))
-                        },
-                        onCopyFullNameClick = { name ->
-                            clipboardManager.setText(AnnotatedString(name))
-                        },
-                        onSwitchClick = onSwitchClick,
-                    )
-                }
-            }
+    Scaffold(
+        topBar = {
+            TopBar(
+                localSearchUiState = localSearchUiState,
+                searchBoxUiState = searchBoxUiState,
+                onSearchTextChanged = onSearchTextChanged,
+                onClearClick = onClearClick,
+                onNavigationClick = onNavigationClick,
+                onSelectAll = onSelectAll,
+                onBlockAll = onBlockAll,
+                onCheckAll = onCheckAll,
+            )
         },
-    ) {
-        Scaffold(
-            topBar = {
-                TopBar(
-                    localSearchUiState = localSearchUiState,
-                    searchBoxUiState = searchBoxUiState,
-                    onSearchTextChanged = onSearchTextChanged,
-                    onClearClick = onClearClick,
-                    onNavigationClick = onNavigationClick,
-                    onSelectAll = onSelectAll,
-                    onBlockAll = onBlockAll,
-                    onCheckAll = onCheckAll,
-                )
-            },
-        ) { padding ->
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(top = padding.calculateTopPadding())
-                    .consumeWindowInsets(padding)
-                    .windowInsetsPadding(
-                        WindowInsets.safeDrawing.only(
-                            WindowInsetsSides.Horizontal,
-                        ),
+    ) { padding ->
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(top = padding.calculateTopPadding())
+                .consumeWindowInsets(padding)
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Horizontal,
                     ),
-            ) {
-                when (localSearchUiState) {
-                    LocalSearchUiState.Idle -> NoSearchResultScreen()
-                    LocalSearchUiState.Loading -> SearchingScreen()
-                    is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.message)
-                    is LocalSearchUiState.Initializing ->
-                        InitializingScreen(localSearchUiState.processingName)
+                ),
+        ) {
+            when (localSearchUiState) {
+                LocalSearchUiState.Idle -> NoSearchResultScreen()
+                LocalSearchUiState.Loading -> SearchingScreen()
+                is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.message)
+                is LocalSearchUiState.Initializing ->
+                    InitializingScreen(localSearchUiState.processingName)
 
-                    is LocalSearchUiState.Success -> SearchResultScreen(
-                        modifier = modifier,
-                        tabState = tabState,
-                        switchTab = switchTab,
-                        localSearchUiState = localSearchUiState,
-                        switchSelectedMode = switchSelectedMode,
-                        onSelect = onSelect,
-                        coroutineScope = coroutineScope,
-                        sheetState = sheetState,
-                        navigateToAppDetail = navigateToAppDetail,
-                        navigateToRuleDetail = navigateToRuleDetail,
-                    )
-                }
+                is LocalSearchUiState.Success -> SearchResultScreen(
+                    modifier = modifier,
+                    tabState = tabState,
+                    switchTab = switchTab,
+                    localSearchUiState = localSearchUiState,
+                    switchSelectedMode = switchSelectedMode,
+                    onSelect = onSelect,
+                    navigateToAppDetail = navigateToAppDetail,
+                    navigateToRuleDetail = navigateToRuleDetail,
+                )
             }
         }
     }
@@ -258,7 +194,6 @@ fun ComponentSearchResultContent(
     componentTabUiState: ComponentTabUiState,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
-    hideBottomSheet: () -> Unit,
     onComponentClick: (FilteredComponent) -> Unit,
 ) {
     if (componentTabUiState.list.isEmpty()) {
@@ -277,7 +212,6 @@ fun ComponentSearchResultContent(
                     isSelectedMode = componentTabUiState.isSelectedMode,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
-                    hideBottomSheet = hideBottomSheet,
                     onComponentClick = onComponentClick,
                 )
             }
@@ -360,8 +294,6 @@ fun SearchScreenEmptyPreview() {
             onSearchTextChanged = {},
             onClearClick = {},
             tabState = tabState,
-            bottomSheetTabState = bottomSheetTabState,
-            switchBottomSheetTab = {},
             switchTab = {},
             onNavigationClick = {},
             onSelectAll = {},
@@ -369,7 +301,6 @@ fun SearchScreenEmptyPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            navigateToComponentsDetail = {},
         )
     }
 }
@@ -387,13 +318,6 @@ fun SearchScreenNoResultPreview() {
         ),
         selectedItem = SearchScreenTabs.App(),
     )
-    val bottomSheetTabState = TabState(
-        items = listOf(
-            SearchScreenTabs.Receiver(1),
-            SearchScreenTabs.Service(),
-        ),
-        selectedItem = SearchScreenTabs.Service(),
-    )
     BlockerTheme {
         SearchScreen(
             searchBoxUiState = searchBoxUiState,
@@ -408,8 +332,6 @@ fun SearchScreenNoResultPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            bottomSheetTabState = bottomSheetTabState,
-            switchBottomSheetTab = {},
         )
     }
 }
@@ -436,13 +358,6 @@ fun SearchScreenPreview() {
         ),
         selectedItem = SearchScreenTabs.App(),
     )
-    val bottomSheetTabState = TabState(
-        items = listOf(
-            SearchScreenTabs.Receiver(1),
-            SearchScreenTabs.Service(),
-        ),
-        selectedItem = SearchScreenTabs.Service(),
-    )
     BlockerTheme {
         SearchScreen(
             searchBoxUiState = searchBoxUiState,
@@ -457,8 +372,6 @@ fun SearchScreenPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            bottomSheetTabState = bottomSheetTabState,
-            switchBottomSheetTab = {},
         )
     }
 }
@@ -486,13 +399,6 @@ fun SearchScreenSelectedPreview() {
         ),
         selectedItem = SearchScreenTabs.App(),
     )
-    val bottomSheetTabState = TabState(
-        items = listOf(
-            SearchScreenTabs.Receiver(1),
-            SearchScreenTabs.Service(),
-        ),
-        selectedItem = SearchScreenTabs.Service(),
-    )
     BlockerTheme {
         SearchScreen(
             searchBoxUiState = searchBoxUiState,
@@ -507,8 +413,6 @@ fun SearchScreenSelectedPreview() {
             onCheckAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            bottomSheetTabState = bottomSheetTabState,
-            switchBottomSheetTab = {},
         )
     }
 }

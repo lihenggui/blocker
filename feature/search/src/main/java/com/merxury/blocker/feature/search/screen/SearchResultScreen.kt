@@ -27,8 +27,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetState
-import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.HalfExpanded
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.ui.AppDetailTabs
@@ -38,8 +36,6 @@ import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.RuleSearchResultContent
 import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -50,8 +46,6 @@ fun SearchResultScreen(
     localSearchUiState: Success,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
-    coroutineScope: CoroutineScope,
-    sheetState: ModalBottomSheetState,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit = {},
 ) {
@@ -82,16 +76,6 @@ fun SearchResultScreen(
                 componentTabUiState = localSearchUiState.componentTabUiState,
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
-                hideBottomSheet = {
-                    coroutineScope.launch {
-                        if (sheetState.isVisible) {
-                            sheetState.hide()
-                        } else {
-                            sheetState.animateTo(HalfExpanded)
-                        }
-                    }
-                    keyboardController?.hide()
-                },
                 onComponentClick = { filterResult ->
                     val searchKeyword = localSearchUiState.searchKeyword
                     val firstTab = if (filterResult.receiver.isNotEmpty()) {
