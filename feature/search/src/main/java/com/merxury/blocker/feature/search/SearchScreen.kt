@@ -53,7 +53,7 @@ import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
-import com.merxury.blocker.feature.search.component.BottomSheet
+import com.merxury.blocker.feature.search.component.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
@@ -145,8 +145,8 @@ fun SearchScreen(
         sheetContent = {
             if (localSearchUiState is LocalSearchUiState.Success) {
                 if (localSearchUiState.componentTabUiState.currentOpeningItem != null) {
-                    BottomSheet(
-                        filterApp = localSearchUiState.componentTabUiState.currentOpeningItem,
+                    ComponentSearchResultContent(
+                        result = localSearchUiState.componentTabUiState.currentOpeningItem,
                         tabState = bottomSheetTabState,
                         switchTab = switchBottomSheetTab,
                     )
