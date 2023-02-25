@@ -50,6 +50,7 @@ import com.merxury.blocker.core.designsystem.bottomsheet.rememberModalBottomShee
 import com.merxury.blocker.core.designsystem.component.BlockerModalBottomSheetLayout
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
@@ -71,7 +72,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun SearchRoute(
-    navigateToAppDetail: (String) -> Unit,
+    navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToComponentsDetail: () -> Unit,
     navigateToRuleDetail: (Int) -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
@@ -99,7 +100,6 @@ fun SearchRoute(
         navigateToAppDetail = navigateToAppDetail,
         navigateToComponentsDetail = navigateToComponentsDetail,
         navigateToRuleDetail = navigateToRuleDetail,
-        onComponentClick = viewModel::openComponentFilterResult,
         onStopServiceClick = viewModel::stopService,
         onLaunchActivityClick = viewModel::launchActivity,
         onSwitchClick = viewModel::controlComponent,
@@ -127,14 +127,11 @@ fun SearchScreen(
     onCheckAll: () -> Unit,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
-    navigateToAppDetail: (String) -> Unit = {},
+    navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToComponentsDetail: () -> Unit = {},
     navigateToRuleDetail: (Int) -> Unit = {},
-    onComponentClick: (FilteredComponent) -> Unit,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val sheetState = rememberModalBottomSheetState(
@@ -217,7 +214,6 @@ fun SearchScreen(
                         sheetState = sheetState,
                         navigateToAppDetail = navigateToAppDetail,
                         navigateToRuleDetail = navigateToRuleDetail,
-                        onComponentClick = onComponentClick,
                     )
                 }
             }
@@ -374,7 +370,6 @@ fun SearchScreenEmptyPreview() {
             switchSelectedMode = {},
             onSelect = {},
             navigateToComponentsDetail = {},
-            onComponentClick = {},
         )
     }
 }
@@ -415,7 +410,6 @@ fun SearchScreenNoResultPreview() {
             onSelect = {},
             bottomSheetTabState = bottomSheetTabState,
             switchBottomSheetTab = {},
-            onComponentClick = {},
         )
     }
 }
@@ -465,7 +459,6 @@ fun SearchScreenPreview() {
             onSelect = {},
             bottomSheetTabState = bottomSheetTabState,
             switchBottomSheetTab = {},
-            onComponentClick = {},
         )
     }
 }
@@ -516,7 +509,6 @@ fun SearchScreenSelectedPreview() {
             onSelect = {},
             bottomSheetTabState = bottomSheetTabState,
             switchBottomSheetTab = {},
-            onComponentClick = {},
         )
     }
 }

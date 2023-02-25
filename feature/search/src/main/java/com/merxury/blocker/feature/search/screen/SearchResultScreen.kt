@@ -31,12 +31,12 @@ import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetState
 import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.HalfExpanded
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
+import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.RuleSearchResultContent
 import com.merxury.blocker.feature.search.SearchScreenTabs
-import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -52,9 +52,8 @@ fun SearchResultScreen(
     onSelect: (Boolean) -> Unit,
     coroutineScope: CoroutineScope,
     sheetState: ModalBottomSheetState,
-    navigateToAppDetail: (String) -> Unit = {},
+    navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit = {},
-    onComponentClick: (FilteredComponent) -> Unit,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
@@ -67,7 +66,7 @@ fun SearchResultScreen(
             0 -> AppSearchResultContent(
                 appList = localSearchUiState.appTabUiState.list,
                 onClick = { packageName ->
-                    navigateToAppDetail(packageName)
+                    navigateToAppDetail(packageName, AppDetailTabs.Info, listOf())
                     keyboardController?.hide()
                 },
                 onClearCacheClick = {},
@@ -93,7 +92,21 @@ fun SearchResultScreen(
                     }
                     keyboardController?.hide()
                 },
-                onComponentClick = onComponentClick,
+                onComponentClick = { filterResult ->
+                    val searchKeyword = localSearchUiState.searchKeyword
+                    val firstTab = if (filterResult.receiver.isNotEmpty()) {
+                        AppDetailTabs.Receiver
+                    } else if (filterResult.service.isNotEmpty()) {
+                        AppDetailTabs.Service
+                    } else if (filterResult.activity.isNotEmpty()) {
+                        AppDetailTabs.Activity
+                    } else if (filterResult.provider.isNotEmpty()) {
+                        AppDetailTabs.Provider
+                    } else {
+                        AppDetailTabs.Info
+                    }
+                    navigateToAppDetail(filterResult.app.packageName, firstTab, searchKeyword)
+                },
             )
 
             2 -> RuleSearchResultContent(
