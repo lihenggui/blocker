@@ -25,16 +25,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
-import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.utils.AndroidCodeName
 import com.merxury.blocker.feature.appdetail.R.string
 import kotlinx.datetime.Clock
@@ -48,10 +45,13 @@ import java.util.Locale
 fun SummaryContent(
     app: Application,
     modifier: Modifier = Modifier,
-    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
-    listState: LazyListState = rememberLazyListState(),
-    viewModel: SummaryViewModel = hiltViewModel(),
+    onExportRules: (String) -> Unit = {},
+    onImportRules: (String) -> Unit = {},
+    onExportIfw: (String) -> Unit = {},
+    onImportIfw: (String) -> Unit = {},
+    onResetIfw: (String) -> Unit = {},
 ) {
+    val listState: LazyListState = rememberLazyListState()
     Box(modifier) {
         LazyColumn(
             modifier = Modifier
@@ -64,22 +64,14 @@ fun SummaryContent(
                     minSdkVersion = app.minSdkVersion,
                     lastUpdateTime = app.lastUpdateTime,
                     dataDir = app.packageInfo?.applicationInfo?.dataDir,
-                    onExportRules = { viewModel.exportRule(app.packageName) },
-                    onImportRules = { viewModel.importRule(app.packageName) },
-                    onExportIfw = { viewModel.exportIfwRule(app.packageName) },
-                    onImportIfw = { viewModel.importIfwRule(app.packageName) },
-                    onResetIfw = { viewModel.resetIfw(app.packageName) },
+                    onExportRules = { onExportRules(app.packageName) },
+                    onImportRules = { onImportRules(app.packageName) },
+                    onExportIfw = { onExportIfw(app.packageName) },
+                    onImportIfw = { onImportIfw(app.packageName) },
+                    onResetIfw = { onResetIfw(app.packageName) },
                 )
             }
         }
-    }
-    LaunchedEffect(true) {
-        onToolbarActionUpdated(
-            AppBarActionState(
-                // No actions for summary page
-                actions = {},
-            ),
-        )
     }
 }
 
