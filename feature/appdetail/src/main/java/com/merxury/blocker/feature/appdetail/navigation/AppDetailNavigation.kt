@@ -36,7 +36,7 @@ internal const val packageNameArg = "packageName"
 internal const val tabArg = "tab"
 
 @VisibleForTesting
-internal const val searchKeywordArg = "searchKeyword"
+internal const val keywordArg = "keyword"
 
 internal class AppDetailArgs(
     val packageName: String,
@@ -47,7 +47,7 @@ internal class AppDetailArgs(
         this(
             stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])),
             AppDetailTabs.fromName(savedStateHandle[tabArg]),
-            stringDecoder.decodeString(checkNotNull(savedStateHandle[searchKeywordArg])).split(","),
+            stringDecoder.decodeString(checkNotNull(savedStateHandle[keywordArg])).split(","),
         )
 }
 
@@ -58,7 +58,7 @@ fun NavController.navigateToAppDetail(
 ) {
     val encodedId = Uri.encode(packageName)
     val keywords = searchKeyword.joinToString(",")
-    this.navigate("app_detail_route/$encodedId?screen=${tab.name}?searchKeyword=$keywords") {
+    this.navigate("app_detail_route/$encodedId?screen=${tab.name}?keyword=$keywords") {
         // Pop up to the start destination of the graph to
         // avoid building up a large stack of destinations
         // on the back stack as users select items
@@ -73,11 +73,11 @@ fun NavController.navigateToAppDetail(
 
 fun NavGraphBuilder.detailScreen(onBackClick: () -> Unit) {
     composable(
-        route = "app_detail_route/{$packageNameArg}?screen={$tabArg}?searchKeyword={$searchKeywordArg}",
+        route = "app_detail_route/{$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}",
         arguments = listOf(
             navArgument(packageNameArg) { type = NavType.StringType },
             navArgument(tabArg) { type = NavType.StringType },
-            navArgument(searchKeywordArg) { type = NavType.StringType },
+            navArgument(keywordArg) { type = NavType.StringType },
         ),
     ) {
         AppDetailRoute(onBackClick = onBackClick)
