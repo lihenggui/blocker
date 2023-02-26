@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +53,9 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
+import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
+import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.applist.model.AppServiceStatus
@@ -157,15 +159,14 @@ private fun AppContent(
 ) {
     Column(modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
+            BlockerBodyLargeText(
                 modifier = Modifier.weight(1F),
                 text = label,
-                style = MaterialTheme.typography.bodyLarge,
             )
             if (isAppRunning) {
                 Spacer(modifier = Modifier.width(8.dp))
                 val indicatorColor = MaterialTheme.colorScheme.tertiary
-                Text(
+                BlockerLabelSmallText(
                     modifier = Modifier
                         .drawBehind {
                             drawRoundRect(
@@ -176,13 +177,12 @@ private fun AppContent(
                         .padding(horizontal = 2.dp, vertical = 1.dp),
                     text = stringResource(id = string.running),
                     color = MaterialTheme.colorScheme.onTertiary,
-                    style = MaterialTheme.typography.labelSmall,
                 )
             }
             if (!isAppEnabled) {
                 Spacer(modifier = Modifier.width(8.dp))
                 val indicatorColor = MaterialTheme.colorScheme.surfaceVariant
-                Text(
+                BlockerLabelSmallText(
                     modifier = Modifier
                         .drawBehind {
                             drawRoundRect(
@@ -192,26 +192,20 @@ private fun AppContent(
                         }
                         .padding(horizontal = 2.dp, vertical = 1.dp),
                     text = stringResource(id = string.disabled),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.labelSmall,
                 )
             }
         }
-        Text(
+        BlockerBodyMediumText(
             text = stringResource(id = string.version_code_template, versionName, versionCode),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         if (serviceStatus != null) {
-            Text(
+            BlockerBodyMediumText(
                 text = stringResource(
                     id = string.service_status_template,
                     serviceStatus.running,
                     serviceStatus.blocked,
                     serviceStatus.total,
                 ),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

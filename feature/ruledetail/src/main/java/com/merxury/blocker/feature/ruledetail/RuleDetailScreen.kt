@@ -261,7 +261,7 @@ fun RuleDetailTabContent(
             }
         }
         when (tabState.selectedItem) {
-            Description -> RuleDescription(ruleInfoUiState = ruleInfoUiState)
+            Description -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
 
             Applicable -> RuleMatchedAppList(
                 ruleMatchedAppListUiState = ruleMatchedAppListUiState,

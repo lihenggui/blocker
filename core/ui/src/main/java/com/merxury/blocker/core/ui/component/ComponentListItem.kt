@@ -27,16 +27,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,11 +53,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
+import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
+import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
+import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.ui.R
+import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.TrackScrollJank
 
 @Composable
@@ -144,15 +145,14 @@ fun ComponentListItem(
     ) {
         Column(modifier = Modifier.fillMaxWidth(0.8f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
+                BlockerBodyLargeText(
                     modifier = Modifier.weight(1F),
                     text = simpleName,
-                    style = MaterialTheme.typography.bodyLarge,
                 )
                 if (isServiceRunning) {
                     Spacer(modifier = Modifier.width(8.dp))
                     val indicatorColor = MaterialTheme.colorScheme.tertiary
-                    Text(
+                    BlockerLabelSmallText(
                         modifier = Modifier
                             .drawBehind {
                                 drawRoundRect(
@@ -161,17 +161,12 @@ fun ComponentListItem(
                                 )
                             }
                             .padding(horizontal = 2.dp, vertical = 1.dp),
-                        text = stringResource(id = R.string.running),
+                        text = stringResource(id = string.running),
                         color = MaterialTheme.colorScheme.onTertiary,
-                        style = MaterialTheme.typography.labelSmall,
                     )
                 }
             }
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            BlockerBodyMediumText(text = name)
         }
         Spacer(modifier = Modifier.weight(1f))
         Switch(
@@ -204,18 +199,13 @@ fun NoComponentScreen() {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(
+        BlockerDisplayIcon(
             imageVector = BlockerIcons.Deselect,
             contentDescription = null,
-            modifier = Modifier
-                .size(96.dp)
-                .padding(8.dp),
-            tint = MaterialTheme.colorScheme.outline,
         )
-        Text(
-            text = stringResource(id = R.string.no_components),
+        BlockerBodyLargeText(
+            text = stringResource(id = string.no_components),
             color = MaterialTheme.colorScheme.outline,
-            style = MaterialTheme.typography.bodyLarge,
         )
     }
 }
