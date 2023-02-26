@@ -90,7 +90,7 @@ fun AppDetailRoute(
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
 
     AppDetailScreen(
