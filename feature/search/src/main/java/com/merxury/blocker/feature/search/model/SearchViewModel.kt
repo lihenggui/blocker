@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.search.model
 
 import android.content.pm.PackageManager
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,12 +29,12 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
+import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_DESCENDING
@@ -44,17 +45,23 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppItem
+import com.merxury.blocker.core.ui.component.ComponentItem
+import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
-import com.merxury.blocker.feature.search.R
+import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
@@ -82,19 +89,39 @@ class SearchViewModel @Inject constructor(
     private val _localSearchUiState =
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
+    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    val errorState = _errorState.asStateFlow()
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Timber.e(throwable)
+        _errorState.tryEmit(throwable.toErrorMessage())
+    }
     private var searchJob: Job? = null
 
     private val _tabState = MutableStateFlow(
         TabState(
             items = listOf(
-                SearchTabItem(R.string.application),
-                SearchTabItem(R.string.component),
-                SearchTabItem(R.string.online_rule),
+                SearchScreenTabs.App(),
+                SearchScreenTabs.Component(),
+                SearchScreenTabs.Rule(),
             ),
-            selectedItem = SearchTabItem(R.string.application),
+            selectedItem = SearchScreenTabs.App(),
         ),
     )
-    val tabState: StateFlow<TabState<SearchTabItem>> = _tabState.asStateFlow()
+    val tabState: StateFlow<TabState<SearchScreenTabs>> = _tabState.asStateFlow()
+
+    private val _bottomSheetTabState = MutableStateFlow(
+        TabState(
+            items = listOf(
+                SearchScreenTabs.Receiver(),
+                SearchScreenTabs.Service(),
+                SearchScreenTabs.Activity(),
+                SearchScreenTabs.Provider(),
+            ),
+            selectedItem = SearchScreenTabs.Receiver(),
+        ),
+    )
+    val bottomSheetTabState: StateFlow<TabState<SearchScreenTabs>> =
+        _bottomSheetTabState.asStateFlow()
 
     init {
         load()
@@ -110,7 +137,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun switchTab(newTab: SearchTabItem) {
+    fun switchTab(newTab: SearchScreenTabs) {
         if (newTab != tabState.value.selectedItem) {
             _tabState.update {
                 it.copy(selectedItem = newTab)
@@ -118,7 +145,16 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    fun switchBottomSheetTab(newTab: SearchScreenTabs) {
+        if (newTab != bottomSheetTabState.value.selectedItem) {
+            _bottomSheetTabState.update {
+                it.copy(selectedItem = newTab)
+            }
+        }
+    }
+
     fun search(changedSearchText: TextFieldValue) {
+        Timber.d("Search components: $changedSearchText")
         _searchBoxUiState.update { it.copy(keyword = changedSearchText) }
         val keyword = changedSearchText.text
         val searchAppFlow = appRepository.searchInstalledApplications(keyword)
@@ -147,7 +183,7 @@ class SearchViewModel @Inject constructor(
                 emit(filteredList)
             }
 
-        val searchComponentFlow: Flow<List<FilteredComponentItem>> =
+        val searchComponentFlow: Flow<List<FilteredComponent>> =
             componentRepository.searchComponent(keyword)
                 .map { list ->
                     list.groupBy { it.packageName }
@@ -157,14 +193,22 @@ class SearchViewModel @Inject constructor(
                             val app = appRepository.getApplication(packageName).first()
                                 ?: return@MapToUiModel null
                             Timber.v("Found ${componentList.size} components for $packageName")
-                            FilteredComponentItem(
+                            FilteredComponent(
                                 app = app.toAppItem(
                                     packageInfo = pm.getPackageInfoCompat(packageName, 0),
                                 ),
-                                activity = componentList.filter { it.type == ACTIVITY },
-                                service = componentList.filter { it.type == SERVICE },
-                                receiver = componentList.filter { it.type == RECEIVER },
-                                provider = componentList.filter { it.type == PROVIDER },
+                                activity = componentList
+                                    .filter { it.type == ACTIVITY }
+                                    .map { it.toComponentItem() },
+                                service = componentList
+                                    .filter { it.type == SERVICE }
+                                    .map { it.toComponentItem() },
+                                receiver = componentList
+                                    .filter { it.type == RECEIVER }
+                                    .map { it.toComponentItem() },
+                                provider = componentList
+                                    .filter { it.type == PROVIDER }
+                                    .map { it.toComponentItem() },
                             )
                         }
                         .filterNotNull()
@@ -190,9 +234,10 @@ class SearchViewModel @Inject constructor(
         ) { apps, components, rules ->
             Timber.v("Fild ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             LocalSearchUiState.Success(
-                apps = apps,
-                components = components,
-                rules = rules,
+                searchKeyword = keyword.split(","),
+                appTabUiState = AppTabUiState(list = apps),
+                componentTabUiState = ComponentTabUiState(list = components),
+                ruleTabUiState = RuleTabUiState(list = rules),
             )
         }
         searchJob?.cancel()
@@ -207,26 +252,20 @@ class SearchViewModel @Inject constructor(
                     _tabState.update {
                         it.copy(
                             items = listOf(
-                                SearchTabItem(
-                                    title = R.string.application,
-                                    count = searchResult.apps.size,
+                                SearchScreenTabs.App(
+                                    count = searchResult.appTabUiState.list.size,
                                 ),
-                                SearchTabItem(
-                                    title = R.string.component,
-                                    count = searchResult.components.size,
+                                SearchScreenTabs.Component(
+                                    count = searchResult.componentTabUiState.list.size,
                                 ),
-                                SearchTabItem(
-                                    title = R.string.online_rule,
-                                    count = searchResult.rules.size,
+                                SearchScreenTabs.Rule(
+                                    count = searchResult.ruleTabUiState.list.size,
                                 ),
                             ),
                         )
                     }
                 }
         }
-    }
-
-    fun search(keywords: List<String>) {
     }
 
     fun resetSearchState() {
@@ -252,18 +291,84 @@ class SearchViewModel @Inject constructor(
     fun selectItem(select: Boolean) {
         // TODO
     }
+
+    fun launchActivity(packageName: String, componentName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            "am start -n $packageName/$componentName".exec(ioDispatcher)
+        }
+    }
+
+    fun stopService(packageName: String, componentName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            "am stopservice $packageName/$componentName".exec(ioDispatcher)
+        }
+    }
+
+    fun controlComponent(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) = viewModelScope.launch {
+        controlComponentInternal(packageName, componentName, enabled)
+    }
+
+    private suspend fun controlComponentInternal(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) {
+        componentRepository.controlComponent(packageName, componentName, enabled)
+            .catch { exception ->
+                _errorState.emit(exception.toErrorMessage())
+            }
+            .collect()
+    }
+
+    fun openComponentFilterResult(item: FilteredComponent) {
+        val tabs = mutableStateListOf<SearchScreenTabs>()
+        if (item.receiver.isNotEmpty()) {
+            tabs.add(SearchScreenTabs.Receiver(count = item.receiver.size))
+        }
+        if (item.service.isNotEmpty()) {
+            tabs.add(SearchScreenTabs.Service(count = item.service.size))
+        }
+        if (item.activity.isNotEmpty()) {
+            tabs.add(SearchScreenTabs.Activity(count = item.activity.size))
+        }
+        if (item.provider.isNotEmpty()) {
+            tabs.add(SearchScreenTabs.Provider(count = item.provider.size))
+        }
+        if (tabs.isEmpty()) {
+            Timber.w("No component found for ${item.app.packageName}, don't show result.")
+            return
+        }
+        _bottomSheetTabState.update {
+            it.copy(
+                items = tabs,
+                selectedItem = tabs.first(),
+            )
+        }
+        _localSearchUiState.update {
+            // Ignore event if not in success state
+            if (it !is LocalSearchUiState.Success) return@update it
+            it.copy(
+                componentTabUiState = it.componentTabUiState.copy(
+                    currentOpeningItem = item,
+                ),
+            )
+        }
+    }
 }
 
 sealed interface LocalSearchUiState {
     class Initializing(val processingName: String) : LocalSearchUiState
     object Idle : LocalSearchUiState
     object Loading : LocalSearchUiState
-    class Success(
-        val apps: List<AppItem> = listOf(),
-        val components: List<FilteredComponentItem> = listOf(),
-        val rules: List<GeneralRule> = listOf(),
-        val isSelectedMode: Boolean = false,
-        val selectedAppCount: Int = 0,
+    data class Success(
+        val searchKeyword: List<String> = listOf(),
+        val appTabUiState: AppTabUiState = AppTabUiState(),
+        val componentTabUiState: ComponentTabUiState = ComponentTabUiState(),
+        val ruleTabUiState: RuleTabUiState = RuleTabUiState(),
     ) : LocalSearchUiState
 
     class Error(val message: ErrorMessage) : LocalSearchUiState
@@ -273,16 +378,30 @@ data class SearchBoxUiState(
     val keyword: TextFieldValue = TextFieldValue(),
 )
 
-data class FilteredComponentItem(
-    val app: AppItem,
-    val activity: List<ComponentInfo> = listOf(),
-    val service: List<ComponentInfo> = listOf(),
-    val receiver: List<ComponentInfo> = listOf(),
-    val provider: List<ComponentInfo> = listOf(),
-    val isSelected: Boolean = false,
+data class AppTabUiState(
+    val list: List<AppItem> = listOf(),
+    val isSelectedMode: Boolean = false,
+    val selectedAppList: List<AppItem> = listOf(),
 )
 
-data class SearchTabItem(
-    val title: Int,
-    val count: Int = 0,
+data class ComponentTabUiState(
+    val list: List<FilteredComponent> = listOf(),
+    val isSelectedMode: Boolean = false,
+    val selectedAppList: List<FilteredComponent> = listOf(),
+    val currentOpeningItem: FilteredComponent? = null,
+)
+
+data class RuleTabUiState(
+    val list: List<GeneralRule> = listOf(),
+    val isSelectedMode: Boolean = false,
+    val selectedAppList: List<GeneralRule> = listOf(),
+)
+
+data class FilteredComponent(
+    val app: AppItem,
+    val activity: List<ComponentItem> = listOf(),
+    val service: List<ComponentItem> = listOf(),
+    val receiver: List<ComponentItem> = listOf(),
+    val provider: List<ComponentItem> = listOf(),
+    val isSelected: Boolean = false,
 )
