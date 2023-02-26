@@ -17,12 +17,30 @@
 package com.merxury.blocker.feature.appdetail
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.decoder.StringDecoder
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
+import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
@@ -30,15 +48,24 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.component.ComponentItem
+import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -49,11 +76,14 @@ class AppDetailViewModel @Inject constructor(
     app: android.app.Application,
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
+    private val userDataRepository: UserDataRepository,
+    private val componentRepository: LocalComponentRepository,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(app) {
-    private val appPackageNameArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
-    private val _uiState: MutableStateFlow<AppInfoUiState> =
-        MutableStateFlow(Loading)
-    val uiState: StateFlow<AppInfoUiState> = _uiState
+    private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
+    private val _appInfoUiState: MutableStateFlow<AppInfoUiState> = MutableStateFlow(Loading)
+    val appInfoUiState = _appInfoUiState.asStateFlow()
     private val _appBarUiState = MutableStateFlow(AppBarUiState())
     val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
     private val _tabState = MutableStateFlow(
@@ -69,17 +99,140 @@ class AppDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
+    private var currentFilterKeyword = appDetailArgs.searchKeyword
+    private var _unfilteredList = ComponentListUiState()
+    private val _componentListUiState = MutableStateFlow(ComponentListUiState())
+    val componentListUiState = _componentListUiState.asStateFlow()
+    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    val errorState = _errorState.asStateFlow()
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Timber.e(throwable)
+        _errorState.tryEmit(throwable.toErrorMessage())
+    }
 
     init {
         updateSearchKeyword()
         loadTabInfo()
         loadAppInfo()
+        loadComponentList()
+    }
+
+    fun filter(keyword: String) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+        Timber.i("Filtering component list with keyword: $keyword")
+        currentFilterKeyword = keyword.split(",")
+            .map { it.trim() }
+        val receiver = mutableStateListOf<ComponentItem>()
+        val service = mutableStateListOf<ComponentItem>()
+        val activity = mutableStateListOf<ComponentItem>()
+        val provider = mutableStateListOf<ComponentItem>()
+        currentFilterKeyword.forEach { subKeyword ->
+            val filteredReceiver = _unfilteredList.receiver
+                .filter { it.name.contains(subKeyword, ignoreCase = true) }
+            val filteredService = _unfilteredList.service
+                .filter { it.name.contains(subKeyword, ignoreCase = true) }
+            val filteredActivity = _unfilteredList.activity
+                .filter { it.name.contains(subKeyword, ignoreCase = true) }
+            val filteredProvider = _unfilteredList.provider
+                .filter { it.name.contains(subKeyword, ignoreCase = true) }
+            receiver.addAll(filteredReceiver)
+            service.addAll(filteredService)
+            activity.addAll(filteredActivity)
+            provider.addAll(filteredProvider)
+        }
+        _componentListUiState.emit(
+            ComponentListUiState(
+                receiver = receiver,
+                service = service,
+                activity = activity,
+                provider = provider,
+            ),
+        )
+    }
+
+    private fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        val packageName = appDetailArgs.packageName
+        componentRepository.getComponentList(packageName)
+            .collect { list ->
+                // Store the unfiltered list
+                val receiver = list.filter { it.type == RECEIVER }
+                val service = list.filter { it.type == SERVICE }
+                val activity = list.filter { it.type == ACTIVITY }
+                val provider = list.filter { it.type == PROVIDER }
+                _unfilteredList =
+                    getComponentListUiState(packageName, receiver, service, activity, provider)
+                _componentListUiState.emit(
+                    getComponentListUiState(packageName, receiver, service, activity, provider),
+                )
+            }
+    }
+
+    private suspend fun getComponentListUiState(
+        packageName: String,
+        receiver: List<ComponentInfo>,
+        service: List<ComponentInfo>,
+        activity: List<ComponentInfo>,
+        provider: List<ComponentInfo>,
+    ) = ComponentListUiState(
+        receiver = sortAndConvertToComponentItem(
+            list = receiver,
+            packageName = packageName,
+            type = RECEIVER,
+        ),
+        service = sortAndConvertToComponentItem(
+            list = service,
+            packageName = packageName,
+            type = SERVICE,
+        ),
+        activity = sortAndConvertToComponentItem(
+            list = activity,
+            packageName = packageName,
+            type = ACTIVITY,
+        ),
+        provider = sortAndConvertToComponentItem(
+            list = provider,
+            packageName = packageName,
+            type = PROVIDER,
+        ),
+    )
+
+    private suspend fun sortAndConvertToComponentItem(
+        list: List<ComponentInfo>,
+        packageName: String,
+        type: ComponentType,
+        filterKeyword: String = "",
+    ): SnapshotStateList<ComponentItem> {
+        val userData = userDataRepository.userData.first()
+        val sorting = userData.componentSorting
+        val serviceHelper = ServiceHelper(packageName)
+        if (type == SERVICE) {
+            serviceHelper.refresh()
+        }
+        return list.filter { it.name.contains(filterKeyword, ignoreCase = true) }
+            .map {
+                it.toComponentItem(
+                    if (type == SERVICE) {
+                        serviceHelper.isServiceRunning(it.name)
+                    } else {
+                        false
+                    },
+                )
+            }
+            .sortedWith(componentComparator(sorting))
+            .sortedByDescending { it.isRunning }
+            .toMutableStateList()
+    }
+
+    private fun componentComparator(sort: ComponentSorting): Comparator<ComponentItem> {
+        return when (sort) {
+            NAME_ASCENDING -> compareBy { it.simpleName }
+            NAME_DESCENDING -> compareByDescending { it.simpleName }
+        }
     }
 
     private fun updateSearchKeyword() {
-        val keyword = appPackageNameArgs.searchKeyword
+        val keyword = appDetailArgs.searchKeyword
         if (keyword.isEmpty()) return
-        val keywordString = appPackageNameArgs.searchKeyword.joinToString(",")
+        val keywordString = appDetailArgs.searchKeyword.joinToString(",")
         Timber.v("Search keyword: $keyword")
         _appBarUiState.update {
             it.copy(keyword = TextFieldValue(keywordString), isSearchMode = true)
@@ -87,7 +240,7 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private fun loadTabInfo() {
-        val screen = appPackageNameArgs.tabs
+        val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
     }
@@ -128,6 +281,55 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
+    fun controlAllComponents(type: ComponentType, enable: Boolean) =
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val list = when (type) {
+                RECEIVER -> _componentListUiState.value.receiver
+                SERVICE -> _componentListUiState.value.service
+                ACTIVITY -> _componentListUiState.value.activity
+                PROVIDER -> _componentListUiState.value.provider
+            }
+            list.forEach {
+                controlComponentInternal(it.packageName, it.name, enable)
+            }
+        }
+
+    fun dismissAlert() = viewModelScope.launch {
+        _errorState.emit(null)
+    }
+
+    fun launchActivity(packageName: String, componentName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            "am start -n $packageName/$componentName".exec(ioDispatcher)
+        }
+    }
+
+    fun stopService(packageName: String, componentName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            "am stopservice $packageName/$componentName".exec(ioDispatcher)
+        }
+    }
+
+    fun controlComponent(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) = viewModelScope.launch {
+        controlComponentInternal(packageName, componentName, enabled)
+    }
+
+    private suspend fun controlComponentInternal(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) {
+        componentRepository.controlComponent(packageName, componentName, enabled)
+            .catch { exception ->
+                _errorState.emit(exception.toErrorMessage())
+            }
+            .collect()
+    }
+
     fun exportRule(packageName: String) {
         Timber.d("Export Blocker rule for $packageName")
     }
@@ -149,14 +351,14 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private fun loadAppInfo() = viewModelScope.launch {
-        val packageName = appPackageNameArgs.packageName
+        val packageName = appDetailArgs.packageName
         val app = ApplicationUtil.getApplicationInfo(getApplication(), packageName)
         if (app == null) {
             val error = ErrorMessage("Can't find $packageName in this device.")
             Timber.e(error.message)
-            _uiState.emit(AppInfoUiState.Error(error))
+            _appInfoUiState.emit(AppInfoUiState.Error(error))
         } else {
-            _uiState.emit(AppInfoUiState.Success(app))
+            _appInfoUiState.emit(AppInfoUiState.Success(app))
         }
     }
 }
@@ -173,4 +375,11 @@ data class AppBarUiState(
     val keyword: TextFieldValue = TextFieldValue(),
     val isSearchMode: Boolean = false,
     val actions: AppBarActionState = AppBarActionState(),
+)
+
+data class ComponentListUiState(
+    val receiver: SnapshotStateList<ComponentItem> = mutableStateListOf(),
+    val service: SnapshotStateList<ComponentItem> = mutableStateListOf(),
+    val activity: SnapshotStateList<ComponentItem> = mutableStateListOf(),
+    val provider: SnapshotStateList<ComponentItem> = mutableStateListOf(),
 )
