@@ -62,7 +62,6 @@ import com.merxury.blocker.feature.search.screen.SearchingScreen
 @Composable
 fun SearchRoute(
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
-    navigateToComponentsDetail: () -> Unit,
     navigateToRuleDetail: (Int) -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
 ) {

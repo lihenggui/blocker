@@ -109,10 +109,12 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun search(changedSearchText: TextFieldValue) {
+        Timber.v("Update search text: $changedSearchText")
         _appBarUiState.update { it.copy(keyword = changedSearchText) }
     }
 
     fun changeSearchMode(isSearchMode: Boolean) {
+        Timber.v("Change search mode: $isSearchMode")
         _appBarUiState.update {
             it.copy(
                 isSearchMode = isSearchMode,
