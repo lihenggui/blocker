@@ -128,6 +128,26 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
+    fun exportRule(packageName: String) {
+        Timber.d("Export Blocker rule for $packageName")
+    }
+
+    fun importRule(packageName: String) {
+        Timber.d("Import Blocker rule for $packageName")
+    }
+
+    fun exportIfw(packageName: String) {
+        Timber.d("Export IFW rule for $packageName")
+    }
+
+    fun importIfw(packageName: String) {
+        Timber.d("Import IFW rule for $packageName")
+    }
+
+    fun resetIfw(packageName: String) {
+        Timber.d("Reset IFW rule for $packageName")
+    }
+
     private fun loadAppInfo() = viewModelScope.launch {
         val packageName = appPackageNameArgs.packageName
         val app = ApplicationUtil.getApplicationInfo(getApplication(), packageName)
