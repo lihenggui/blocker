@@ -71,8 +71,19 @@ class AppDetailViewModel @Inject constructor(
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
 
     init {
+        updateSearchKeyword()
         loadTabInfo()
-        load()
+        loadAppInfo()
+    }
+
+    private fun updateSearchKeyword() {
+        val keyword = appPackageNameArgs.searchKeyword
+        if (keyword.isEmpty()) return
+        val keywordString = appPackageNameArgs.searchKeyword.joinToString(",")
+        Timber.v("Search keyword: $keyword")
+        _appBarUiState.update {
+            it.copy(keyword = TextFieldValue(keywordString), isSearchMode = true)
+        }
     }
 
     private fun loadTabInfo() {
@@ -98,10 +109,12 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun search(changedSearchText: TextFieldValue) {
+        Timber.v("Update search text: $changedSearchText")
         _appBarUiState.update { it.copy(keyword = changedSearchText) }
     }
 
     fun changeSearchMode(isSearchMode: Boolean) {
+        Timber.v("Change search mode: $isSearchMode")
         _appBarUiState.update {
             it.copy(
                 isSearchMode = isSearchMode,
@@ -115,7 +128,27 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun load() = viewModelScope.launch {
+    fun exportRule(packageName: String) {
+        Timber.d("Export Blocker rule for $packageName")
+    }
+
+    fun importRule(packageName: String) {
+        Timber.d("Import Blocker rule for $packageName")
+    }
+
+    fun exportIfw(packageName: String) {
+        Timber.d("Export IFW rule for $packageName")
+    }
+
+    fun importIfw(packageName: String) {
+        Timber.d("Import IFW rule for $packageName")
+    }
+
+    fun resetIfw(packageName: String) {
+        Timber.d("Reset IFW rule for $packageName")
+    }
+
+    private fun loadAppInfo() = viewModelScope.launch {
         val packageName = appPackageNameArgs.packageName
         val app = ApplicationUtil.getApplicationInfo(getApplication(), packageName)
         if (app == null) {

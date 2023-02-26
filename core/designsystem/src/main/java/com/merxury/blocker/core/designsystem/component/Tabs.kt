@@ -101,18 +101,19 @@ fun BlockerTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
     containerColor: Color = TabRowDefaults.containerColor,
+    contentColor: Color = TabRowDefaults.contentColor,
     tabs: @Composable () -> Unit,
 ) {
     TabRow(
         selectedTabIndex = selectedTabIndex,
         modifier = modifier,
         containerColor = containerColor,
-        contentColor = MaterialTheme.colorScheme.onSurface,
+        contentColor = contentColor,
         indicator = { tabPositions ->
             TabRowDefaults.Indicator(
                 modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
                 height = 2.dp,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = contentColor,
             )
         },
         tabs = tabs,

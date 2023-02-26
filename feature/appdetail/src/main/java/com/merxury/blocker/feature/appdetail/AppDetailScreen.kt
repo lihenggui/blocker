@@ -104,6 +104,11 @@ fun AppDetailRoute(
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
         onToolbarActionUpdated = viewModel::updateAppBarAction,
+        onExportRules = viewModel::exportRule,
+        onImportRules = viewModel::importRule,
+        onExportIfw = viewModel::exportIfw,
+        onImportIfw = viewModel::importIfw,
+        onResetIfw = viewModel::resetIfw,
     )
 }
 
@@ -119,6 +124,11 @@ fun AppDetailScreen(
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
     onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
+    onExportRules: (String) -> Unit = {},
+    onImportRules: (String) -> Unit = {},
+    onExportIfw: (String) -> Unit = {},
+    onImportIfw: (String) -> Unit = {},
+    onResetIfw: (String) -> Unit = {},
 ) {
     when (uiState) {
         is AppInfoUiState.Loading -> {
@@ -137,6 +147,11 @@ fun AppDetailScreen(
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
                 onToolbarActionUpdated = onToolbarActionUpdated,
+                onExportRules = onExportRules,
+                onImportRules = onImportRules,
+                onExportIfw = onExportIfw,
+                onImportIfw = onImportIfw,
+                onResetIfw = onResetIfw,
             )
         }
 
@@ -157,6 +172,11 @@ fun AppDetailContent(
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
     onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
+    onExportRules: (String) -> Unit = {},
+    onImportRules: (String) -> Unit = {},
+    onExportIfw: (String) -> Unit = {},
+    onImportIfw: (String) -> Unit = {},
+    onResetIfw: (String) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -232,6 +252,11 @@ fun AppDetailContent(
             onSearchTextChanged = onSearchTextChanged,
             onSearchModeChanged = onSearchModeChanged,
             onToolbarActionUpdated = onToolbarActionUpdated,
+            onExportRules = onExportRules,
+            onImportRules = onImportRules,
+            onExportIfw = onExportIfw,
+            onImportIfw = onImportIfw,
+            onResetIfw = onResetIfw,
         )
     }
 }
@@ -253,6 +278,11 @@ fun AppDetailTabContent(
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit,
     onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
+    onExportRules: (String) -> Unit = {},
+    onImportRules: (String) -> Unit = {},
+    onExportIfw: (String) -> Unit = {},
+    onImportIfw: (String) -> Unit = {},
+    onResetIfw: (String) -> Unit = {},
 ) {
     Column(
         modifier = modifier,
@@ -270,11 +300,14 @@ fun AppDetailTabContent(
             }
         }
         when (tabState.selectedItem) {
-            Info ->
-                SummaryContent(
-                    app = app,
-                    onToolbarActionUpdated = onToolbarActionUpdated,
-                )
+            Info -> SummaryContent(
+                app = app,
+                onExportRules = onExportRules,
+                onImportRules = onImportRules,
+                onExportIfw = onExportIfw,
+                onImportIfw = onImportIfw,
+                onResetIfw = onResetIfw,
+            )
 
             Receiver -> ComponentListContentRoute(
                 packageName = app.packageName,

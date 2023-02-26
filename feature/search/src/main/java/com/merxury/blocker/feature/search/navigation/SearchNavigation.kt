@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.search.SearchRoute
 
 const val searchRoute = "search_route"
@@ -29,14 +30,12 @@ fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.searchScreen(
-    navigateToAppDetail: (String) -> Unit = {},
-    navigateToComponentsDetail: () -> Unit = {},
+    navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit = {},
 ) {
     composable(route = searchRoute) {
         SearchRoute(
             navigateToAppDetail = navigateToAppDetail,
-            navigateToComponentsDetail = navigateToComponentsDetail,
             navigateToRuleDetail = navigateToRuleDetail,
         )
     }

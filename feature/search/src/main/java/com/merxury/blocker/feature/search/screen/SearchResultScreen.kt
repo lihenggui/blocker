@@ -27,31 +27,26 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetState
-import com.merxury.blocker.core.designsystem.bottomsheet.ModalBottomSheetValue.HalfExpanded
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
+import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.RuleSearchResultContent
+import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
-import com.merxury.blocker.feature.search.model.SearchTabItem
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 fun SearchResultScreen(
     modifier: Modifier,
-    tabState: TabState<SearchTabItem>,
-    switchTab: (SearchTabItem) -> Unit,
+    tabState: TabState<SearchScreenTabs>,
+    switchTab: (SearchScreenTabs) -> Unit,
     localSearchUiState: Success,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
-    coroutineScope: CoroutineScope,
-    sheetState: ModalBottomSheetState,
-    navigateToAppDetail: (String) -> Unit = {},
+    navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit = {},
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -63,9 +58,9 @@ fun SearchResultScreen(
         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
         when (tabState.currentIndex) {
             0 -> AppSearchResultContent(
-                appList = localSearchUiState.apps,
+                appList = localSearchUiState.appTabUiState.list,
                 onClick = { packageName ->
-                    navigateToAppDetail(packageName)
+                    navigateToAppDetail(packageName, AppDetailTabs.Info, listOf())
                     keyboardController?.hide()
                 },
                 onClearCacheClick = {},
@@ -78,24 +73,28 @@ fun SearchResultScreen(
             )
 
             1 -> ComponentSearchResultContent(
-                componentList = localSearchUiState.components,
-                isSelectedMode = localSearchUiState.isSelectedMode,
+                componentTabUiState = localSearchUiState.componentTabUiState,
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
-                onClick = {
-                    coroutineScope.launch {
-                        if (sheetState.isVisible) {
-                            sheetState.hide()
-                        } else {
-                            sheetState.animateTo(HalfExpanded)
-                        }
+                onComponentClick = { filterResult ->
+                    val searchKeyword = localSearchUiState.searchKeyword
+                    val firstTab = if (filterResult.receiver.isNotEmpty()) {
+                        AppDetailTabs.Receiver
+                    } else if (filterResult.service.isNotEmpty()) {
+                        AppDetailTabs.Service
+                    } else if (filterResult.activity.isNotEmpty()) {
+                        AppDetailTabs.Activity
+                    } else if (filterResult.provider.isNotEmpty()) {
+                        AppDetailTabs.Provider
+                    } else {
+                        AppDetailTabs.Info
                     }
-                    keyboardController?.hide()
+                    navigateToAppDetail(filterResult.app.packageName, firstTab, searchKeyword)
                 },
             )
 
             2 -> RuleSearchResultContent(
-                list = localSearchUiState.rules,
+                list = localSearchUiState.ruleTabUiState.list,
                 onClick = navigateToRuleDetail,
             )
         }
@@ -104,8 +103,8 @@ fun SearchResultScreen(
 
 @Composable
 fun SearchResultTabRow(
-    tabState: TabState<SearchTabItem>,
-    switchTab: (SearchTabItem) -> Unit,
+    tabState: TabState<SearchScreenTabs>,
+    switchTab: (SearchScreenTabs) -> Unit,
 ) {
     BlockerScrollableTabRow(
         selectedTabIndex = tabState.currentIndex,
@@ -118,7 +117,7 @@ fun SearchResultTabRow(
                     Text(
                         text = stringResource(
                             id = tabItem.title,
-                            tabItem.count,
+                            tabItem.itemCount,
                         ),
                     )
                 },
