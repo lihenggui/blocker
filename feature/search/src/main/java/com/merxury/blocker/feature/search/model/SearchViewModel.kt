@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.search.model
 
 import android.content.pm.PackageManager
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,7 +28,6 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
-import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
@@ -60,8 +58,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
@@ -109,20 +105,6 @@ class SearchViewModel @Inject constructor(
     )
     val tabState: StateFlow<TabState<SearchScreenTabs>> = _tabState.asStateFlow()
 
-    private val _bottomSheetTabState = MutableStateFlow(
-        TabState(
-            items = listOf(
-                SearchScreenTabs.Receiver(),
-                SearchScreenTabs.Service(),
-                SearchScreenTabs.Activity(),
-                SearchScreenTabs.Provider(),
-            ),
-            selectedItem = SearchScreenTabs.Receiver(),
-        ),
-    )
-    val bottomSheetTabState: StateFlow<TabState<SearchScreenTabs>> =
-        _bottomSheetTabState.asStateFlow()
-
     init {
         load()
     }
@@ -140,14 +122,6 @@ class SearchViewModel @Inject constructor(
     fun switchTab(newTab: SearchScreenTabs) {
         if (newTab != tabState.value.selectedItem) {
             _tabState.update {
-                it.copy(selectedItem = newTab)
-            }
-        }
-    }
-
-    fun switchBottomSheetTab(newTab: SearchScreenTabs) {
-        if (newTab != bottomSheetTabState.value.selectedItem) {
-            _bottomSheetTabState.update {
                 it.copy(selectedItem = newTab)
             }
         }
@@ -290,73 +264,6 @@ class SearchViewModel @Inject constructor(
 
     fun selectItem(select: Boolean) {
         // TODO
-    }
-
-    fun launchActivity(packageName: String, componentName: String) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am start -n $packageName/$componentName".exec(ioDispatcher)
-        }
-    }
-
-    fun stopService(packageName: String, componentName: String) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am stopservice $packageName/$componentName".exec(ioDispatcher)
-        }
-    }
-
-    fun controlComponent(
-        packageName: String,
-        componentName: String,
-        enabled: Boolean,
-    ) = viewModelScope.launch {
-        controlComponentInternal(packageName, componentName, enabled)
-    }
-
-    private suspend fun controlComponentInternal(
-        packageName: String,
-        componentName: String,
-        enabled: Boolean,
-    ) {
-        componentRepository.controlComponent(packageName, componentName, enabled)
-            .catch { exception ->
-                _errorState.emit(exception.toErrorMessage())
-            }
-            .collect()
-    }
-
-    fun openComponentFilterResult(item: FilteredComponent) {
-        val tabs = mutableStateListOf<SearchScreenTabs>()
-        if (item.receiver.isNotEmpty()) {
-            tabs.add(SearchScreenTabs.Receiver(count = item.receiver.size))
-        }
-        if (item.service.isNotEmpty()) {
-            tabs.add(SearchScreenTabs.Service(count = item.service.size))
-        }
-        if (item.activity.isNotEmpty()) {
-            tabs.add(SearchScreenTabs.Activity(count = item.activity.size))
-        }
-        if (item.provider.isNotEmpty()) {
-            tabs.add(SearchScreenTabs.Provider(count = item.provider.size))
-        }
-        if (tabs.isEmpty()) {
-            Timber.w("No component found for ${item.app.packageName}, don't show result.")
-            return
-        }
-        _bottomSheetTabState.update {
-            it.copy(
-                items = tabs,
-                selectedItem = tabs.first(),
-            )
-        }
-        _localSearchUiState.update {
-            // Ignore event if not in success state
-            if (it !is LocalSearchUiState.Success) return@update it
-            it.copy(
-                componentTabUiState = it.componentTabUiState.copy(
-                    currentOpeningItem = item,
-                ),
-            )
-        }
     }
 }
 
