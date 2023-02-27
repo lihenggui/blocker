@@ -32,7 +32,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
-import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
@@ -62,7 +61,6 @@ fun ComponentListContentRoute(
     onAppBarActionUpdated: (AppBarActionState) -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val componentList = viewModel.componentListFlow.collectAsState()
     val clipboardManager = LocalClipboardManager.current
     ComponentListContent(
@@ -79,13 +77,6 @@ fun ComponentListContentRoute(
             clipboardManager.setText(AnnotatedString(fullName))
         },
     )
-    if (errorState != null) {
-        BlockerErrorAlertDialog(
-            title = errorState?.message.orEmpty(),
-            text = errorState?.stackTrace.orEmpty(),
-            onDismissRequest = viewModel::dismissAlert,
-        )
-    }
     LaunchedEffect(topAppBarUiState.keyword, topAppBarUiState.isSearchMode) {
         updateAppBarActions(
             topAppBarUiState = topAppBarUiState,

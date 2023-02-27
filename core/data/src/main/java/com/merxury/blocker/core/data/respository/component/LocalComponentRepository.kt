@@ -45,6 +45,12 @@ class LocalComponentRepository @Inject constructor(
     private val shizukuController: ShizukuController,
 ) : ComponentRepository {
 
+    override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> =
+        appComponentDao.getByPackageName(packageName)
+            .map { list ->
+                list.map { it.toComponentInfo() }
+            }
+
     override fun getComponentList(packageName: String, type: ComponentType) =
         appComponentDao.getByPackageNameAndType(packageName, type)
             .map { list ->
