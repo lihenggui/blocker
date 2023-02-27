@@ -123,6 +123,39 @@ class AppDetailViewModel @Inject constructor(
         // Update search bar text first
         _appBarUiState.update { it.copy(keyword = newText) }
         filterAndUpdateComponentList(keyword)
+        updateTabState(_componentListUiState.value)
+    }
+
+    private fun updateTabState(listUiState: ComponentListUiState) {
+        val items = mutableListOf(
+            Info,
+            Receiver,
+            Service,
+            Activity,
+            Provider,
+        )
+        if (listUiState.receiver.isEmpty()) {
+            items.remove(Receiver)
+        }
+        if (listUiState.service.isEmpty()) {
+            items.remove(Service)
+        }
+        if (listUiState.activity.isEmpty()) {
+            items.remove(Activity)
+        }
+        if (listUiState.provider.isEmpty()) {
+            items.remove(Provider)
+        }
+        if (_tabState.value.selectedItem !in items) {
+            _tabState.update {
+                TabState(
+                    items = items,
+                    selectedItem = items.first(),
+                )
+            }
+        } else {
+            _tabState.update { it.copy(items = items) }
+        }
     }
 
     private suspend fun filterAndUpdateComponentList(keyword: String) {
@@ -173,6 +206,7 @@ class AppDetailViewModel @Inject constructor(
                 _unfilteredList =
                     getComponentListUiState(packageName, receiver, service, activity, provider)
                 filterAndUpdateComponentList(appDetailArgs.searchKeyword.joinToString(","))
+                updateTabState(_componentListUiState.value)
             }
     }
 
