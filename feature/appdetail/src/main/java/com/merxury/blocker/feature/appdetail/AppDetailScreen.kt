@@ -345,7 +345,6 @@ fun AppDetailTabContent(
 
             Receiver -> ComponentList(
                 components = componentListUiState.receiver,
-                modifier = modifier,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
@@ -355,7 +354,6 @@ fun AppDetailTabContent(
 
             Service -> ComponentList(
                 components = componentListUiState.service,
-                modifier = modifier,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
@@ -365,7 +363,6 @@ fun AppDetailTabContent(
 
             Activity -> ComponentList(
                 components = componentListUiState.activity,
-                modifier = modifier,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
@@ -375,7 +372,6 @@ fun AppDetailTabContent(
 
             Provider -> ComponentList(
                 components = componentListUiState.provider,
-                modifier = modifier,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
