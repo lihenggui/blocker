@@ -120,13 +120,18 @@ class AppDetailViewModel @Inject constructor(
     fun search(newText: TextFieldValue) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
         val keyword = newText.text
         Timber.i("Filtering component list with keyword: $keyword")
+        // Update search bar text first
         _appBarUiState.update { it.copy(keyword = newText) }
+        filterAndUpdateComponentList(keyword)
+    }
+
+    private suspend fun filterAndUpdateComponentList(keyword: String) {
         // Start filtering in the component list
         currentFilterKeyword = keyword.split(",")
             .map { it.trim() }
         if (currentFilterKeyword.isEmpty()) {
             _componentListUiState.emit(_unfilteredList)
-            return@launch
+            return
         }
         val receiver = mutableStateListOf<ComponentItem>()
         val service = mutableStateListOf<ComponentItem>()
@@ -167,7 +172,7 @@ class AppDetailViewModel @Inject constructor(
                 val provider = list.filter { it.type == PROVIDER }
                 _unfilteredList =
                     getComponentListUiState(packageName, receiver, service, activity, provider)
-                _componentListUiState.emit(_unfilteredList)
+                filterAndUpdateComponentList(appDetailArgs.searchKeyword.joinToString(","))
             }
     }
 
