@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -45,8 +44,10 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
@@ -60,10 +61,6 @@ import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.Application
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
@@ -71,6 +68,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.component.ComponentList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
@@ -78,7 +76,6 @@ import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.cmplist.ComponentListContentRoute
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
@@ -94,9 +91,11 @@ fun AppDetailRoute(
     val uiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
-
+    val componentListUiState by viewModel.componentListUiState.collectAsStateWithLifecycle()
+    val clipboardManager = LocalClipboardManager.current
     AppDetailScreen(
         uiState = uiState,
+        componentListUiState = componentListUiState,
         tabState = tabState,
         modifier = modifier.fillMaxSize(),
         onLaunchAppClick = viewModel::launchApp,
@@ -111,6 +110,11 @@ fun AppDetailRoute(
         onExportIfw = viewModel::exportIfw,
         onImportIfw = viewModel::importIfw,
         onResetIfw = viewModel::resetIfw,
+        onSwitchClick = viewModel::controlComponent,
+        onStopServiceClick = viewModel::stopService,
+        onLaunchActivityClick = viewModel::launchActivity,
+        onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -124,6 +128,7 @@ fun AppDetailRoute(
 @Composable
 fun AppDetailScreen(
     uiState: AppInfoUiState,
+    componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
@@ -138,6 +143,11 @@ fun AppDetailScreen(
     onExportIfw: (String) -> Unit = {},
     onImportIfw: (String) -> Unit = {},
     onResetIfw: (String) -> Unit = {},
+    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
 ) {
     when (uiState) {
         is AppInfoUiState.Loading -> {
@@ -147,6 +157,7 @@ fun AppDetailScreen(
         is Success -> {
             AppDetailContent(
                 app = uiState.appInfo,
+                componentListUiState = componentListUiState,
                 tabState = tabState,
                 onBackClick = onBackClick,
                 onLaunchAppClick = onLaunchAppClick,
@@ -161,6 +172,11 @@ fun AppDetailScreen(
                 onExportIfw = onExportIfw,
                 onImportIfw = onImportIfw,
                 onResetIfw = onResetIfw,
+                onSwitchClick = onSwitchClick,
+                onStopServiceClick = onStopServiceClick,
+                onLaunchActivityClick = onLaunchActivityClick,
+                onCopyNameClick = onCopyNameClick,
+                onCopyFullNameClick = onCopyFullNameClick,
             )
         }
 
@@ -168,11 +184,11 @@ fun AppDetailScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailContent(
     app: Application,
     tabState: TabState<AppDetailTabs>,
+    componentListUiState: ComponentListUiState,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
@@ -186,6 +202,11 @@ fun AppDetailContent(
     onExportIfw: (String) -> Unit = {},
     onImportIfw: (String) -> Unit = {},
     onResetIfw: (String) -> Unit = {},
+    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -247,6 +268,7 @@ fun AppDetailContent(
     ) { innerPadding ->
         AppDetailTabContent(
             app = app,
+            componentListUiState = componentListUiState,
             tabState = tabState,
             switchTab = switchTab,
             modifier = Modifier
@@ -257,15 +279,16 @@ fun AppDetailContent(
                         onPress = { scope.coroutineContext.cancelChildren() },
                     )
                 },
-            topAppBarUiState = topAppBarUiState,
-            onSearchTextChanged = onSearchTextChanged,
-            onSearchModeChanged = onSearchModeChanged,
-            onToolbarActionUpdated = onToolbarActionUpdated,
             onExportRules = onExportRules,
             onImportRules = onImportRules,
             onExportIfw = onExportIfw,
             onImportIfw = onImportIfw,
             onResetIfw = onResetIfw,
+            onSwitchClick = onSwitchClick,
+            onStopServiceClick = onStopServiceClick,
+            onLaunchActivityClick = onLaunchActivityClick,
+            onCopyNameClick = onCopyNameClick,
+            onCopyFullNameClick = onCopyFullNameClick,
         )
     }
 }
@@ -281,17 +304,19 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
 fun AppDetailTabContent(
     modifier: Modifier = Modifier,
     app: Application,
+    componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
     switchTab: (AppDetailTabs) -> Unit,
-    topAppBarUiState: AppBarUiState,
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
-    onSearchModeChanged: (Boolean) -> Unit,
-    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
     onImportIfw: (String) -> Unit = {},
     onResetIfw: (String) -> Unit = {},
+    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
 ) {
     Column(
         modifier = modifier,
@@ -318,40 +343,44 @@ fun AppDetailTabContent(
                 onResetIfw = onResetIfw,
             )
 
-            Receiver -> ComponentListContentRoute(
-                packageName = app.packageName,
-                type = RECEIVER,
-                topAppBarUiState = topAppBarUiState,
-                onSearchTextChanged = onSearchTextChanged,
-                onSearchModeChanged = onSearchModeChanged,
-                onAppBarActionUpdated = onToolbarActionUpdated,
+            Receiver -> ComponentList(
+                components = componentListUiState.receiver,
+                modifier = modifier,
+                onSwitchClick = onSwitchClick,
+                onStopServiceClick = onStopServiceClick,
+                onLaunchActivityClick = onLaunchActivityClick,
+                onCopyNameClick = onCopyNameClick,
+                onCopyFullNameClick = onCopyFullNameClick,
             )
 
-            Service -> ComponentListContentRoute(
-                packageName = app.packageName,
-                type = SERVICE,
-                topAppBarUiState = topAppBarUiState,
-                onSearchTextChanged = onSearchTextChanged,
-                onSearchModeChanged = onSearchModeChanged,
-                onAppBarActionUpdated = onToolbarActionUpdated,
+            Service -> ComponentList(
+                components = componentListUiState.service,
+                modifier = modifier,
+                onSwitchClick = onSwitchClick,
+                onStopServiceClick = onStopServiceClick,
+                onLaunchActivityClick = onLaunchActivityClick,
+                onCopyNameClick = onCopyNameClick,
+                onCopyFullNameClick = onCopyFullNameClick,
             )
 
-            Activity -> ComponentListContentRoute(
-                packageName = app.packageName,
-                type = ACTIVITY,
-                topAppBarUiState = topAppBarUiState,
-                onSearchTextChanged = onSearchTextChanged,
-                onSearchModeChanged = onSearchModeChanged,
-                onAppBarActionUpdated = onToolbarActionUpdated,
+            Activity -> ComponentList(
+                components = componentListUiState.activity,
+                modifier = modifier,
+                onSwitchClick = onSwitchClick,
+                onStopServiceClick = onStopServiceClick,
+                onLaunchActivityClick = onLaunchActivityClick,
+                onCopyNameClick = onCopyNameClick,
+                onCopyFullNameClick = onCopyFullNameClick,
             )
 
-            Provider -> ComponentListContentRoute(
-                packageName = app.packageName,
-                type = PROVIDER,
-                topAppBarUiState = topAppBarUiState,
-                onSearchTextChanged = onSearchTextChanged,
-                onSearchModeChanged = onSearchModeChanged,
-                onAppBarActionUpdated = onToolbarActionUpdated,
+            Provider -> ComponentList(
+                components = componentListUiState.provider,
+                modifier = modifier,
+                onSwitchClick = onSwitchClick,
+                onStopServiceClick = onStopServiceClick,
+                onLaunchActivityClick = onLaunchActivityClick,
+                onCopyNameClick = onCopyNameClick,
+                onCopyFullNameClick = onCopyFullNameClick,
             )
         }
     }
@@ -383,6 +412,7 @@ fun AppDetailScreenPreview() {
         Surface {
             AppDetailScreen(
                 uiState = Success(appInfo = app),
+                componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 onLaunchAppClick = {},
                 onBackClick = {},
@@ -422,6 +452,7 @@ fun AppDetailScreenCollapsedPreview() {
         Surface {
             AppDetailScreen(
                 uiState = Success(appInfo = app),
+                componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 onLaunchAppClick = {},
                 onBackClick = {},
