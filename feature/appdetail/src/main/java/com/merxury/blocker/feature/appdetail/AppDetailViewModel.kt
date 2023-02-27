@@ -90,10 +90,10 @@ class AppDetailViewModel @Inject constructor(
         TabState(
             items = listOf(
                 Info,
-                Receiver,
-                Service,
-                Activity,
-                Provider,
+                Receiver(),
+                Service(),
+                Activity(),
+                Provider(),
             ),
             selectedItem = Info,
         ),
@@ -126,35 +126,36 @@ class AppDetailViewModel @Inject constructor(
         updateTabState(_componentListUiState.value)
     }
 
-    private fun updateTabState(listUiState: ComponentListUiState) {
-        val items = mutableListOf(
-            Info,
-            Receiver,
-            Service,
-            Activity,
-            Provider,
+    private suspend fun updateTabState(listUiState: ComponentListUiState) {
+        val info = Info
+        val receiver = Receiver(listUiState.receiver.count())
+        val service = Service(listUiState.service.count())
+        val activity = Activity(listUiState.activity.count())
+        val provider = Provider(listUiState.provider.count())
+        val items = listOf(
+            info,
+            receiver,
+            service,
+            activity,
+            provider,
         )
-        if (listUiState.receiver.isEmpty()) {
-            items.remove(Receiver)
-        }
-        if (listUiState.service.isEmpty()) {
-            items.remove(Service)
-        }
-        if (listUiState.activity.isEmpty()) {
-            items.remove(Activity)
-        }
-        if (listUiState.provider.isEmpty()) {
-            items.remove(Provider)
-        }
-        if (_tabState.value.selectedItem !in items) {
-            _tabState.update {
+        val nonEmptyItems = items.filterNot { it.count == 0 }
+        if (_tabState.replayCache.first().selectedItem !in nonEmptyItems) {
+            Timber.d(
+                "Selected tab ${_tabState.replayCache.first().selectedItem} " +
+                    "is not in non-empty items, return to first item",
+            )
+            _tabState.emit(
                 TabState(
-                    items = items,
-                    selectedItem = items.first(),
-                )
-            }
+                    items = nonEmptyItems,
+                    selectedItem = nonEmptyItems.first(),
+                ),
+            )
         } else {
-            _tabState.update { it.copy(items = items) }
+            TabState(
+                items = nonEmptyItems,
+                selectedItem = _tabState.replayCache.first().selectedItem,
+            )
         }
     }
 

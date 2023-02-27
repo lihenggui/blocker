@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="clear_cache">Очистить кэш</string>
     <string name="clear_data">Очистить данные</string>
     <string name="force_stop">Принудительная остановка</string>
@@ -24,7 +24,6 @@
     <string name="service_status_template">Службы: %1$d запущено, %2$d заблокировано, всего %3$d.</string>
     <string name="running">Бег</string>
     <string name="disabled">Неполноценный</string>
-    <string name="app_info">Информация о приложении</string>
     <string name="service">Службы</string>
     <string name="receiver">Приемники</string>
     <string name="activity">Активити</string>
@@ -40,4 +39,34 @@
     <string name="applicable_application">Применимое приложение</string>
     <string name="loading">Загрузка</string>
     <string name="no_applicable_app">Нет применимого приложения</string>
+    <plurals name="app_info">
+        <item quantity="one" tools:ignore="ImpliedQuantity">приложение</item>
+        <item quantity="few">приложение</item>
+        <item quantity="many">приложение</item>
+        <item quantity="other">приложение</item>
+    </plurals>
+    <plurals name="activity_with_count">
+        <item quantity="one">Действие(%1$d)</item>
+        <item quantity="few">Действие(%1$d)</item>
+        <item quantity="many">Действие(%1$d)</item>
+        <item quantity="other">Действие(%1$d)</item>
+    </plurals>
+    <plurals name="service_with_count">
+        <item quantity="one">Служба(%1$d)</item>
+        <item quantity="few">Служба(%1$d)</item>
+        <item quantity="many">Служба(%1$d)</item>
+        <item quantity="other">Служба(%1$d)</item>
+    </plurals>
+    <plurals name="receiver_with_count">
+        <item quantity="one">Приемник(%1$d)</item>
+        <item quantity="few">Приемник(%1$d)</item>
+        <item quantity="many">Приемник(%1$d)</item>
+        <item quantity="other">Приемник(%1$d)</item>
+    </plurals>
+    <plurals name="provider_with_count">
+        <item quantity="one">Поставщик(%1$d)</item>
+        <item quantity="few">Поставщик(%1$d)</item>
+        <item quantity="many">Поставщик(%1$d)</item>
+        <item quantity="other">Поставщик(%1$d)</item>
+    </plurals>
 </resources>

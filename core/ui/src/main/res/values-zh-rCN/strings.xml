@@ -24,7 +24,6 @@
     <string name="service_status_template">服务: 正在运行%1$d个, 已阻止%2$d个, 共计%3$d个.</string>
     <string name="running">运行中</string>
     <string name="disabled">已禁用</string>
-    <string name="app_info">应用信息</string>
     <string name="receiver">广播接收器</string>
     <string name="content_provider">内容提供者</string>
     <string name="activity">活动</string>
@@ -40,4 +39,19 @@
     <string name="applicable_application">适用应用程序</string>
     <string name="loading">正在加载</string>
     <string name="no_applicable_app">没有适用的应用</string>
+    <plurals name="app_info">
+        <item quantity="other">应用信息</item>
+    </plurals>
+    <plurals name="activity_with_count">
+        <item quantity="other">活动 (%1$d)</item>
+    </plurals>
+    <plurals name="service_with_count">
+        <item quantity="other">服务 (%1$d)</item>
+    </plurals>
+    <plurals name="receiver_with_count">
+        <item quantity="other">广播接收器 (%1$d)</item>
+    </plurals>
+    <plurals name="provider_with_count">
+        <item quantity="other">内容提供者 (%1$d)</item>
+    </plurals>
 </resources>

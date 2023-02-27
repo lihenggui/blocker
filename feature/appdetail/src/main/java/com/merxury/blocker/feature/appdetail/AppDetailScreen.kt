@@ -46,6 +46,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
@@ -329,7 +330,15 @@ fun AppDetailTabContent(
                 BlockerTab(
                     selected = index == tabState.currentIndex,
                     onClick = { switchTab(tabItem) },
-                    text = { Text(text = stringResource(id = tabItem.title)) },
+                    text = {
+                        Text(
+                            text = pluralStringResource(
+                                id = tabItem.title,
+                                count = tabItem.count,
+                                tabItem.count,
+                            ),
+                        )
+                    },
                 )
             }
         }
@@ -343,7 +352,7 @@ fun AppDetailTabContent(
                 onResetIfw = onResetIfw,
             )
 
-            Receiver -> ComponentList(
+            is Receiver -> ComponentList(
                 components = componentListUiState.receiver,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
@@ -352,7 +361,7 @@ fun AppDetailTabContent(
                 onCopyFullNameClick = onCopyFullNameClick,
             )
 
-            Service -> ComponentList(
+            is Service -> ComponentList(
                 components = componentListUiState.service,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
@@ -361,7 +370,7 @@ fun AppDetailTabContent(
                 onCopyFullNameClick = onCopyFullNameClick,
             )
 
-            Activity -> ComponentList(
+            is Activity -> ComponentList(
                 components = componentListUiState.activity,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
@@ -370,7 +379,7 @@ fun AppDetailTabContent(
                 onCopyFullNameClick = onCopyFullNameClick,
             )
 
-            Provider -> ComponentList(
+            is Provider -> ComponentList(
                 components = componentListUiState.provider,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
@@ -397,10 +406,10 @@ fun AppDetailScreenPreview() {
     val tabState = TabState(
         items = listOf(
             Info,
-            Receiver,
-            Service,
-            Activity,
-            Provider,
+            Receiver(0),
+            Service(1),
+            Activity(2),
+            Provider(3),
         ),
         selectedItem = Info,
     )
@@ -437,10 +446,10 @@ fun AppDetailScreenCollapsedPreview() {
     val tabState = TabState(
         items = listOf(
             Info,
-            Receiver,
-            Service,
-            Activity,
-            Provider,
+            Receiver(0),
+            Service(1),
+            Activity(2),
+            Provider(3),
         ),
         selectedItem = Info,
     )
