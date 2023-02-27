@@ -117,10 +117,17 @@ class AppDetailViewModel @Inject constructor(
         loadComponentList()
     }
 
-    fun filter(keyword: String) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+    fun search(newText: TextFieldValue) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+        val keyword = newText.text
         Timber.i("Filtering component list with keyword: $keyword")
+        _appBarUiState.update { it.copy(keyword = newText) }
+        // Start filtering in the component list
         currentFilterKeyword = keyword.split(",")
             .map { it.trim() }
+        if (currentFilterKeyword.isEmpty()) {
+            _componentListUiState.emit(_unfilteredList)
+            return@launch
+        }
         val receiver = mutableStateListOf<ComponentItem>()
         val service = mutableStateListOf<ComponentItem>()
         val activity = mutableStateListOf<ComponentItem>()
@@ -259,11 +266,6 @@ class AppDetailViewModel @Inject constructor(
         context.packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             context.startActivity(launchIntent)
         }
-    }
-
-    fun search(changedSearchText: TextFieldValue) {
-        Timber.v("Update search text: $changedSearchText")
-        _appBarUiState.update { it.copy(keyword = changedSearchText) }
     }
 
     fun changeSearchMode(isSearchMode: Boolean) {
