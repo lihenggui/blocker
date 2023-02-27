@@ -42,8 +42,4 @@
     <string name="search_hint">Apps, components and rules</string>
     <string name="no_search_result">No search result yet</string>
     <string name="initializing_database">Initializing database</string>
-    <string name="service_with_count">Service (%1$d)</string>
-    <string name="receiver_with_count">Receiver (%1$d)</string>
-    <string name="activity_with_count">Activity (%1$d)</string>
-    <string name="provider_with_count">Provider (%1$d)</string>
 </resources>
