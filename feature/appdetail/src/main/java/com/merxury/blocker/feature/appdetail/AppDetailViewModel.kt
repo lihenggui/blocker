@@ -167,9 +167,7 @@ class AppDetailViewModel @Inject constructor(
                 val provider = list.filter { it.type == PROVIDER }
                 _unfilteredList =
                     getComponentListUiState(packageName, receiver, service, activity, provider)
-                _componentListUiState.emit(
-                    getComponentListUiState(packageName, receiver, service, activity, provider),
-                )
+                _componentListUiState.emit(_unfilteredList)
             }
     }
 
