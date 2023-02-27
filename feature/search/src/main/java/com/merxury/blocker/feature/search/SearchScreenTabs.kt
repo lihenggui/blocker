@@ -26,18 +26,6 @@ sealed class SearchScreenTabs(val name: String, val title: Int = 0, val itemCoun
     data class Rule(val count: Int = 0) :
         SearchScreenTabs(RULE, title = R.string.online_rule_with_count, itemCount = count)
 
-    data class Receiver(val count: Int = 0) :
-        SearchScreenTabs(RECEIVER, title = R.string.receiver_with_count, itemCount = count)
-
-    data class Service(val count: Int = 0) :
-        SearchScreenTabs(SERVICE, title = R.string.service_with_count, itemCount = count)
-
-    data class Activity(val count: Int = 0) :
-        SearchScreenTabs(ACTIVITY, title = R.string.activity_with_count, itemCount = count)
-
-    data class Provider(val count: Int = 0) :
-        SearchScreenTabs(PROVIDER, title = R.string.provider_with_count, itemCount = count)
-
     override fun toString(): String {
         return "Screen name = $name"
     }
@@ -46,19 +34,11 @@ sealed class SearchScreenTabs(val name: String, val title: Int = 0, val itemCoun
         private const val APP = "app"
         private const val COMPONENT = "component"
         private const val RULE = "rule"
-        private const val RECEIVER = "receiver"
-        private const val SERVICE = "service"
-        private const val ACTIVITY = "activity"
-        private const val PROVIDER = "provider"
 
         fun fromName(name: String?): SearchScreenTabs = when (name) {
             APP -> App()
             COMPONENT -> Component()
             RULE -> Rule()
-            RECEIVER -> Receiver()
-            SERVICE -> Service()
-            ACTIVITY -> Activity()
-            PROVIDER -> Provider()
             else -> throw IllegalArgumentException("Invalid screen name in search page")
         }
     }
