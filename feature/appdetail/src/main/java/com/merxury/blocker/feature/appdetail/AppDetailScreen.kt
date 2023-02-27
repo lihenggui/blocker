@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
@@ -90,7 +91,8 @@ fun AppDetailRoute(
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
+    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
 
     AppDetailScreen(
@@ -110,6 +112,13 @@ fun AppDetailRoute(
         onImportIfw = viewModel::importIfw,
         onResetIfw = viewModel::resetIfw,
     )
+    if (errorState != null) {
+        BlockerErrorAlertDialog(
+            title = errorState?.message.orEmpty(),
+            text = errorState?.stackTrace.orEmpty(),
+            onDismissRequest = viewModel::dismissAlert,
+        )
+    }
 }
 
 @Composable

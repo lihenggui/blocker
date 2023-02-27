@@ -22,6 +22,8 @@ import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
 interface ComponentRepository {
+    fun getComponentList(packageName: String): Flow<List<ComponentInfo>>
+
     fun getComponentList(packageName: String, type: ComponentType): Flow<List<ComponentInfo>>
 
     fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>>
