@@ -21,6 +21,7 @@ import timber.log.Timber
 data class TabState<T>(
     val items: List<T>,
     val selectedItem: T,
+    val itemCount: Map<T, Int> = emptyMap(),
 ) {
     val currentIndex: Int
         get() {

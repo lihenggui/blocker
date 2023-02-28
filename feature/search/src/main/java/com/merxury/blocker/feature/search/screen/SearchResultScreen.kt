@@ -19,7 +19,6 @@ package com.merxury.blocker.feature.search.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,7 +37,7 @@ import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 fun SearchResultScreen(
     modifier: Modifier,
     tabState: TabState<SearchScreenTabs>,
@@ -79,13 +78,13 @@ fun SearchResultScreen(
                 onComponentClick = { filterResult ->
                     val searchKeyword = localSearchUiState.searchKeyword
                     val firstTab = if (filterResult.receiver.isNotEmpty()) {
-                        AppDetailTabs.Receiver()
+                        AppDetailTabs.Receiver
                     } else if (filterResult.service.isNotEmpty()) {
-                        AppDetailTabs.Service()
+                        AppDetailTabs.Service
                     } else if (filterResult.activity.isNotEmpty()) {
-                        AppDetailTabs.Activity()
+                        AppDetailTabs.Activity
                     } else if (filterResult.provider.isNotEmpty()) {
-                        AppDetailTabs.Provider()
+                        AppDetailTabs.Provider
                     } else {
                         AppDetailTabs.Info
                     }
