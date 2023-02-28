@@ -46,7 +46,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
@@ -332,9 +331,8 @@ fun AppDetailTabContent(
                     onClick = { switchTab(tabItem) },
                     text = {
                         Text(
-                            text = pluralStringResource(
+                            text = stringResource(
                                 id = tabItem.title,
-                                count = tabState.itemCount[tabItem] ?: 0,
                                 tabState.itemCount[tabItem] ?: 0,
                             ),
                         )
