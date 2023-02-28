@@ -90,10 +90,10 @@ class AppDetailViewModel @Inject constructor(
         TabState(
             items = listOf(
                 Info,
-                Receiver(),
-                Service(),
-                Activity(),
-                Provider(),
+                Receiver,
+                Service,
+                Activity,
+                Provider,
             ),
             selectedItem = Info,
         ),
@@ -127,20 +127,15 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private suspend fun updateTabState(listUiState: ComponentListUiState) {
-        val info = Info
-        val receiver = Receiver(listUiState.receiver.count())
-        val service = Service(listUiState.service.count())
-        val activity = Activity(listUiState.activity.count())
-        val provider = Provider(listUiState.provider.count())
-        val items = listOf(
-            info,
-            receiver,
-            service,
-            activity,
-            provider,
-        )
-        val nonEmptyItems = items.filterNot { it.count == 0 }
-        if (_tabState.value.selectedItem.name !in nonEmptyItems.map { it.name }) {
+        val itemCountMap = mapOf(
+            Info to 1,
+            Receiver to listUiState.receiver.size,
+            Service to listUiState.service.size,
+            Activity to listUiState.activity.size,
+            Provider to listUiState.provider.size,
+        ).filter { it.value > 0 }
+        val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
+        if (_tabState.value.selectedItem !in nonEmptyItems) {
             Timber.d(
                 "Selected tab ${_tabState.value.selectedItem}" +
                     "is not in non-empty items, return to first item",
@@ -149,6 +144,7 @@ class AppDetailViewModel @Inject constructor(
                 TabState(
                     items = nonEmptyItems,
                     selectedItem = nonEmptyItems.first(),
+                    itemCount = itemCountMap,
                 ),
             )
         } else {
@@ -156,6 +152,7 @@ class AppDetailViewModel @Inject constructor(
                 TabState(
                     items = nonEmptyItems,
                     selectedItem = _tabState.value.selectedItem,
+                    itemCount = itemCountMap,
                 ),
             )
         }

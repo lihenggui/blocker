@@ -334,8 +334,8 @@ fun AppDetailTabContent(
                         Text(
                             text = pluralStringResource(
                                 id = tabItem.title,
-                                count = tabItem.count,
-                                tabItem.count,
+                                count = tabState.itemCount[tabItem] ?: 0,
+                                tabState.itemCount[tabItem] ?: 0,
                             ),
                         )
                     },
@@ -406,12 +406,19 @@ fun AppDetailScreenPreview() {
     val tabState = TabState(
         items = listOf(
             Info,
-            Receiver(0),
-            Service(1),
-            Activity(2),
-            Provider(3),
+            Receiver,
+            Service,
+            Activity,
+            Provider,
         ),
         selectedItem = Info,
+        itemCount = mapOf(
+            Info to 1,
+            Receiver to 2,
+            Service to 3,
+            Activity to 4,
+            Provider to 5,
+        ),
     )
     BlockerTheme {
         Surface {
@@ -446,12 +453,19 @@ fun AppDetailScreenCollapsedPreview() {
     val tabState = TabState(
         items = listOf(
             Info,
-            Receiver(0),
-            Service(1),
-            Activity(2),
-            Provider(3),
+            Receiver,
+            Service,
+            Activity,
+            Provider,
         ),
         selectedItem = Info,
+        itemCount = mapOf(
+            Info to 1,
+            Receiver to 2,
+            Service to 3,
+            Activity to 4,
+            Provider to 5,
+        ),
     )
     BlockerTheme {
         Surface {
