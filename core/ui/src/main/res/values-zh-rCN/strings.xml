@@ -44,4 +44,5 @@
     <string name="service_with_count">服务 (%1$d)</string>
     <string name="receiver_with_count">广播接收器 (%1$d)</string>
     <string name="provider_with_count">内容提供者 (%1$d)</string>
+    <string name="initializing_database">初始化数据</string>
 </resources>
