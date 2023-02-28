@@ -26,7 +26,6 @@
     <string name="disabled">Disabled</string>
     <string name="version_code_template" translatable="false">%1$s (%2$s)</string>
     <string name="service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
-    <string name="app_info">App info</string>
     <string name="service">Service</string>
     <string name="receiver">Receiver</string>
     <string name="activity">Activity</string>
@@ -42,4 +41,27 @@
     <string name="applicable_application">Applicable app</string>
     <string name="loading">Loading</string>
     <string name="no_applicable_app">No applicable app</string>
+    <plurals name="app_info">
+        <item quantity="other">App info</item>
+    </plurals>
+    <plurals name="activity_with_count">
+        <item quantity="zero">Activity</item>
+        <item quantity="one">Activity (%1$d)</item>
+        <item quantity="other">Activities (%1$d)</item>
+    </plurals>
+    <plurals name="service_with_count">
+        <item quantity="zero">Service</item>
+        <item quantity="one">Service (%1$d)</item>
+        <item quantity="other">Services (%1$d)</item>
+    </plurals>
+    <plurals name="receiver_with_count">
+        <item quantity="zero">Receiver</item>
+        <item quantity="one">Receiver (%1$d)</item>
+        <item quantity="other">Receivers (%1$d)</item>
+    </plurals>
+    <plurals name="provider_with_count">
+        <item quantity="zero">Provider</item>
+        <item quantity="one">Provider (%1$d)</item>
+        <item quantity="other">Providers (%1$d)</item>
+    </plurals>
 </resources>

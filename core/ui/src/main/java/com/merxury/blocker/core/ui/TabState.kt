@@ -26,7 +26,10 @@ data class TabState<T>(
         get() {
             val currentIndex = items.indexOf(selectedItem)
             if (currentIndex == -1) {
-                Timber.w("Can't find index of $selectedItem, returning to default page.")
+                Timber.w(
+                    "Can't find index of $selectedItem, returning to default page.\n" +
+                        "Current items: $items",
+                )
                 return 0
             }
             return currentIndex

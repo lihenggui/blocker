@@ -170,7 +170,7 @@ private fun getComponentCountDescription(appItem: FilteredComponent): String {
     if (appItem.receiver.isNotEmpty()) {
         countDescriptions.add(
             pluralStringResource(
-                id = R.plurals.broadcast_count,
+                id = R.plurals.receiver_count,
                 count = appItem.receiver.size,
                 appItem.receiver.size,
             ),

@@ -67,12 +67,12 @@ import com.merxury.blocker.core.ui.TrackScrollJank
 @Composable
 fun ComponentList(
     components: List<ComponentItem>,
-    onStopServiceClick: (String, String) -> Unit,
-    onLaunchActivityClick: (String, String) -> Unit,
-    onCopyNameClick: (String) -> Unit,
-    onCopyFullNameClick: (String) -> Unit,
-    onSwitchClick: (String, String, Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     if (components.isEmpty()) {
         NoComponentScreen()
@@ -81,7 +81,7 @@ fun ComponentList(
     val listState = rememberLazyListState()
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
     LazyColumn(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         state = listState,
     ) {
         itemsIndexed(
