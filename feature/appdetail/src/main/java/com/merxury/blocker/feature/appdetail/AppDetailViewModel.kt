@@ -140,9 +140,9 @@ class AppDetailViewModel @Inject constructor(
             provider,
         )
         val nonEmptyItems = items.filterNot { it.count == 0 }
-        if (_tabState.replayCache.first().selectedItem !in nonEmptyItems) {
+        if (_tabState.value.selectedItem.name !in nonEmptyItems.map { it.name }) {
             Timber.d(
-                "Selected tab ${_tabState.replayCache.first().selectedItem} " +
+                "Selected tab ${_tabState.value.selectedItem}" +
                     "is not in non-empty items, return to first item",
             )
             _tabState.emit(
@@ -152,9 +152,11 @@ class AppDetailViewModel @Inject constructor(
                 ),
             )
         } else {
-            TabState(
-                items = nonEmptyItems,
-                selectedItem = _tabState.replayCache.first().selectedItem,
+            _tabState.emit(
+                TabState(
+                    items = nonEmptyItems,
+                    selectedItem = _tabState.value.selectedItem,
+                ),
             )
         }
     }
