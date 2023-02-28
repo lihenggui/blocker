@@ -44,4 +44,5 @@
     <string name="service_with_count">Службы(%1$d)</string>
     <string name="receiver_with_count">Приемники(%1$d)</string>
     <string name="provider_with_count">Поставщики(%1$d)</string>
+    <string name="initializing_database">Инициализация базы данных</string>
 </resources>
