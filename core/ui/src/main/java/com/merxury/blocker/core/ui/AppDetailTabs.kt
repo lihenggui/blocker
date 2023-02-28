@@ -18,22 +18,18 @@ package com.merxury.blocker.core.ui
 
 import com.merxury.blocker.core.ui.R.plurals
 
-sealed class AppDetailTabs(val name: String, val title: Int = 0, open val count: Int = -1) {
+sealed class AppDetailTabs(val name: String, val title: Int = 0) {
     object Info : AppDetailTabs(INFO, title = plurals.app_info)
-    data class Receiver(override val count: Int = 0) :
-        AppDetailTabs(RECEIVER, title = plurals.receiver_with_count)
+    object Receiver : AppDetailTabs(RECEIVER, title = plurals.receiver_with_count)
 
-    data class Service(override val count: Int = 0) :
-        AppDetailTabs(SERVICE, title = plurals.service_with_count)
+    object Service : AppDetailTabs(SERVICE, title = plurals.service_with_count)
 
-    data class Activity(override val count: Int = 0) :
-        AppDetailTabs(ACTIVITY, title = plurals.activity_with_count)
+    object Activity : AppDetailTabs(ACTIVITY, title = plurals.activity_with_count)
 
-    data class Provider(override val count: Int = 0) :
-        AppDetailTabs(PROVIDER, title = plurals.provider_with_count)
+    object Provider : AppDetailTabs(PROVIDER, title = plurals.provider_with_count)
 
     override fun toString(): String {
-        return "Screen name = $name, count = $count"
+        return "Screen name = $name"
     }
 
     companion object {
@@ -43,12 +39,12 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0, open val count:
         private const val ACTIVITY = "activity"
         private const val PROVIDER = "provider"
 
-        fun fromName(name: String?, count: Int = 0): AppDetailTabs = when (name) {
+        fun fromName(name: String?): AppDetailTabs = when (name) {
             INFO -> Info
-            RECEIVER -> Receiver(count)
-            SERVICE -> Service(count)
-            ACTIVITY -> Activity(count)
-            PROVIDER -> Provider(count)
+            RECEIVER -> Receiver
+            SERVICE -> Service
+            ACTIVITY -> Activity
+            PROVIDER -> Provider
             else -> throw IllegalArgumentException("Invalid screen name in detail page")
         }
     }
