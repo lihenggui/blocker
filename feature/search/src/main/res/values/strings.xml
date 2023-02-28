@@ -26,9 +26,9 @@
         <item quantity="one">%1$d Content provider</item>
         <item quantity="other">%1$d Content providers</item>
     </plurals>
-    <plurals name="broadcast_count">
-        <item quantity="one">%1$d Broadcast</item>
-        <item quantity="other">%1$d Broadcasts</item>
+    <plurals name="receiver_count">
+        <item quantity="one">%1$d Receiver</item>
+        <item quantity="other">%1$d Receivers</item>
     </plurals>
     <plurals name="service_count">
         <item quantity="one">%1$d Service</item>
@@ -42,8 +42,4 @@
     <string name="search_hint">Apps, components and rules</string>
     <string name="no_search_result">No search result yet</string>
     <string name="initializing_database">Initializing database</string>
-    <string name="service_with_count">Service (%1$d)</string>
-    <string name="receiver_with_count">Receiver (%1$d)</string>
-    <string name="activity_with_count">Activity (%1$d)</string>
-    <string name="provider_with_count">Provider (%1$d)</string>
 </resources>

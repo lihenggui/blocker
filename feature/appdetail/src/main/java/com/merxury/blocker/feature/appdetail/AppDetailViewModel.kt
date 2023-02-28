@@ -90,10 +90,10 @@ class AppDetailViewModel @Inject constructor(
         TabState(
             items = listOf(
                 Info,
-                Receiver,
-                Service,
-                Activity,
-                Provider,
+                Receiver(),
+                Service(),
+                Activity(),
+                Provider(),
             ),
             selectedItem = Info,
         ),
@@ -117,10 +117,56 @@ class AppDetailViewModel @Inject constructor(
         loadComponentList()
     }
 
-    fun filter(keyword: String) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+    fun search(newText: TextFieldValue) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+        val keyword = newText.text
         Timber.i("Filtering component list with keyword: $keyword")
+        // Update search bar text first
+        _appBarUiState.update { it.copy(keyword = newText) }
+        filterAndUpdateComponentList(keyword)
+        updateTabState(_componentListUiState.value)
+    }
+
+    private suspend fun updateTabState(listUiState: ComponentListUiState) {
+        val info = Info
+        val receiver = Receiver(listUiState.receiver.count())
+        val service = Service(listUiState.service.count())
+        val activity = Activity(listUiState.activity.count())
+        val provider = Provider(listUiState.provider.count())
+        val items = listOf(
+            info,
+            receiver,
+            service,
+            activity,
+            provider,
+        )
+        val nonEmptyItems = items.filterNot { it.count == 0 }
+        if (_tabState.replayCache.first().selectedItem !in nonEmptyItems) {
+            Timber.d(
+                "Selected tab ${_tabState.replayCache.first().selectedItem} " +
+                    "is not in non-empty items, return to first item",
+            )
+            _tabState.emit(
+                TabState(
+                    items = nonEmptyItems,
+                    selectedItem = nonEmptyItems.first(),
+                ),
+            )
+        } else {
+            TabState(
+                items = nonEmptyItems,
+                selectedItem = _tabState.replayCache.first().selectedItem,
+            )
+        }
+    }
+
+    private suspend fun filterAndUpdateComponentList(keyword: String) {
+        // Start filtering in the component list
         currentFilterKeyword = keyword.split(",")
             .map { it.trim() }
+        if (currentFilterKeyword.isEmpty()) {
+            _componentListUiState.emit(_unfilteredList)
+            return
+        }
         val receiver = mutableStateListOf<ComponentItem>()
         val service = mutableStateListOf<ComponentItem>()
         val activity = mutableStateListOf<ComponentItem>()
@@ -160,9 +206,8 @@ class AppDetailViewModel @Inject constructor(
                 val provider = list.filter { it.type == PROVIDER }
                 _unfilteredList =
                     getComponentListUiState(packageName, receiver, service, activity, provider)
-                _componentListUiState.emit(
-                    getComponentListUiState(packageName, receiver, service, activity, provider),
-                )
+                filterAndUpdateComponentList(appDetailArgs.searchKeyword.joinToString(","))
+                updateTabState(_componentListUiState.value)
             }
     }
 
@@ -259,11 +304,6 @@ class AppDetailViewModel @Inject constructor(
         context.packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             context.startActivity(launchIntent)
         }
-    }
-
-    fun search(changedSearchText: TextFieldValue) {
-        Timber.v("Update search text: $changedSearchText")
-        _appBarUiState.update { it.copy(keyword = changedSearchText) }
     }
 
     fun changeSearchMode(isSearchMode: Boolean) {
