@@ -20,33 +20,20 @@ import com.merxury.blocker.core.ui.R.plurals
 
 sealed class AppDetailTabs(val name: String, val title: Int = 0, open val count: Int = -1) {
     object Info : AppDetailTabs(INFO, title = plurals.app_info)
-    class Receiver(override val count: Int = 0) :
+    data class Receiver(override val count: Int = 0) :
         AppDetailTabs(RECEIVER, title = plurals.receiver_with_count)
 
-    class Service(override val count: Int = 0) :
+    data class Service(override val count: Int = 0) :
         AppDetailTabs(SERVICE, title = plurals.service_with_count)
 
-    class Activity(override val count: Int = 0) :
+    data class Activity(override val count: Int = 0) :
         AppDetailTabs(ACTIVITY, title = plurals.activity_with_count)
 
-    class Provider(override val count: Int = 0) :
+    data class Provider(override val count: Int = 0) :
         AppDetailTabs(PROVIDER, title = plurals.provider_with_count)
 
     override fun toString(): String {
-        return "Screen name = $name"
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is AppDetailTabs) return false
-
-        if (name != other.name) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        return name.hashCode()
+        return "Screen name = $name, count = $count"
     }
 
     companion object {
