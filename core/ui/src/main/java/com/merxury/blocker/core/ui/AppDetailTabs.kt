@@ -16,30 +16,52 @@
 
 package com.merxury.blocker.core.ui
 
-sealed class AppDetailTabs(val name: String, val title: Int = 0) {
-    object Info : AppDetailTabs(INFO, title = R.string.app_info)
-    object Receiver : AppDetailTabs(RECEIVER, title = R.string.receiver)
-    object Service : AppDetailTabs(SERVICE, title = R.string.service)
-    object Activity : AppDetailTabs(ACTIVITY, title = R.string.activity)
-    object Provider : AppDetailTabs(PROVIDER, title = R.string.content_provider)
+import com.merxury.blocker.core.ui.R.plurals
+
+sealed class AppDetailTabs(val name: String, val title: Int = 0, open val count: Int = -1) {
+    object Info : AppDetailTabs(INFO, title = plurals.app_info)
+    class Receiver(override val count: Int = 0) :
+        AppDetailTabs(RECEIVER, title = plurals.receiver_with_count)
+
+    class Service(override val count: Int = 0) :
+        AppDetailTabs(SERVICE, title = plurals.service_with_count)
+
+    class Activity(override val count: Int = 0) :
+        AppDetailTabs(ACTIVITY, title = plurals.activity_with_count)
+
+    class Provider(override val count: Int = 0) :
+        AppDetailTabs(PROVIDER, title = plurals.provider_with_count)
 
     override fun toString(): String {
         return "Screen name = $name"
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is AppDetailTabs) return false
+
+        if (name != other.name) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
+
     companion object {
-        private const val INFO = "detail"
+        private const val INFO = "info"
         private const val RECEIVER = "receiver"
         private const val SERVICE = "service"
         private const val ACTIVITY = "activity"
         private const val PROVIDER = "provider"
 
-        fun fromName(name: String?): AppDetailTabs = when (name) {
+        fun fromName(name: String?, count: Int = 0): AppDetailTabs = when (name) {
             INFO -> Info
-            RECEIVER -> Receiver
-            SERVICE -> Service
-            ACTIVITY -> Activity
-            PROVIDER -> Provider
+            RECEIVER -> Receiver(count)
+            SERVICE -> Service(count)
+            ACTIVITY -> Activity(count)
+            PROVIDER -> Provider(count)
             else -> throw IllegalArgumentException("Invalid screen name in detail page")
         }
     }

@@ -79,13 +79,13 @@ fun SearchResultScreen(
                 onComponentClick = { filterResult ->
                     val searchKeyword = localSearchUiState.searchKeyword
                     val firstTab = if (filterResult.receiver.isNotEmpty()) {
-                        AppDetailTabs.Receiver
+                        AppDetailTabs.Receiver()
                     } else if (filterResult.service.isNotEmpty()) {
-                        AppDetailTabs.Service
+                        AppDetailTabs.Service()
                     } else if (filterResult.activity.isNotEmpty()) {
-                        AppDetailTabs.Activity
+                        AppDetailTabs.Activity()
                     } else if (filterResult.provider.isNotEmpty()) {
-                        AppDetailTabs.Provider
+                        AppDetailTabs.Provider()
                     } else {
                         AppDetailTabs.Info
                     }

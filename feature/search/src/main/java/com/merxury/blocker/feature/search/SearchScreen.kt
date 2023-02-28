@@ -279,13 +279,6 @@ fun SearchScreenEmptyPreview() {
         ),
         selectedItem = SearchScreenTabs.App(),
     )
-    val bottomSheetTabState = TabState(
-        items = listOf(
-            SearchScreenTabs.Receiver(1),
-            SearchScreenTabs.Service(),
-        ),
-        selectedItem = SearchScreenTabs.Service(),
-    )
     BlockerTheme {
         SearchScreen(
             searchBoxUiState = searchBoxUiState,
