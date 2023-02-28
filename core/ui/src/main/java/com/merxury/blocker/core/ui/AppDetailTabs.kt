@@ -16,17 +16,17 @@
 
 package com.merxury.blocker.core.ui
 
-import com.merxury.blocker.core.ui.R.plurals
+import com.merxury.blocker.core.ui.R.string
 
 sealed class AppDetailTabs(val name: String, val title: Int = 0) {
-    object Info : AppDetailTabs(INFO, title = plurals.app_info)
-    object Receiver : AppDetailTabs(RECEIVER, title = plurals.receiver_with_count)
+    object Info : AppDetailTabs(INFO, title = string.app_info)
+    object Receiver : AppDetailTabs(RECEIVER, title = string.receiver_with_count)
 
-    object Service : AppDetailTabs(SERVICE, title = plurals.service_with_count)
+    object Service : AppDetailTabs(SERVICE, title = string.service_with_count)
 
-    object Activity : AppDetailTabs(ACTIVITY, title = plurals.activity_with_count)
+    object Activity : AppDetailTabs(ACTIVITY, title = string.activity_with_count)
 
-    object Provider : AppDetailTabs(PROVIDER, title = plurals.provider_with_count)
+    object Provider : AppDetailTabs(PROVIDER, title = string.provider_with_count)
 
     override fun toString(): String {
         return "Screen name = $name"
