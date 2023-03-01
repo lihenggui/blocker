@@ -45,6 +45,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -61,7 +62,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.Application
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
@@ -69,6 +69,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.component.ComponentList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -97,13 +98,16 @@ fun AppDetailRoute(
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
     val componentListUiState by viewModel.componentListUiState.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
     AppDetailScreen(
         appInfoUiState = appInfoUiState,
         topAppBarUiState = topAppBarUiState,
         componentListUiState = componentListUiState,
         tabState = tabState,
         modifier = modifier.fillMaxSize(),
-        onLaunchAppClick = viewModel::launchApp,
+        onLaunchAppClick = { packageName ->
+            viewModel.launchApp(context, packageName)
+        },
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
         onSearchTextChanged = viewModel::search,
@@ -193,7 +197,7 @@ fun AppDetailScreen(
 
 @Composable
 fun AppDetailContent(
-    app: Application,
+    app: AppItem,
     tabState: TabState<AppDetailTabs>,
     componentListUiState: ComponentListUiState,
     onBackClick: () -> Unit,
@@ -270,7 +274,7 @@ fun AppDetailContent(
                 subtitle = app.packageName,
                 summary = stringResource(
                     id = string.data_with_explanation,
-                    app.versionName.orEmpty(),
+                    app.versionName,
                     app.versionCode,
                 ),
                 iconSource = app.packageInfo,
@@ -356,7 +360,7 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
 @Composable
 fun AppDetailTabContent(
     modifier: Modifier = Modifier,
-    app: Application,
+    app: AppItem,
     componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
     switchTab: (AppDetailTabs) -> Unit,
@@ -445,7 +449,7 @@ fun AppDetailTabContent(
 @Composable
 @Preview
 fun AppDetailScreenPreview() {
-    val app = Application(
+    val app = AppItem(
         label = "Blocker",
         packageName = "com.mercury.blocker",
         versionName = "1.2.69-alpha",
@@ -491,7 +495,7 @@ fun AppDetailScreenPreview() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppDetailScreenCollapsedPreview() {
-    val app = Application(
+    val app = AppItem(
         label = "Blocker",
         packageName = "com.mercury.blocker",
         versionName = "1.2.69-alpha",
