@@ -31,7 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.utils.AndroidCodeName
 import com.merxury.blocker.feature.appdetail.R.string
 import kotlinx.datetime.Clock
@@ -43,7 +43,7 @@ import java.util.Locale
 
 @Composable
 fun SummaryContent(
-    app: Application,
+    app: AppItem,
     modifier: Modifier = Modifier,
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
@@ -178,7 +178,7 @@ fun IfwRuleSection(
 @Composable
 @Preview
 fun PreviewAppInfoTabContent() {
-    val app = Application(
+    val app = AppItem(
         label = "Blocker",
         packageName = "com.mercury.blocker",
         versionName = "1.2.69-alpha",

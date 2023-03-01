@@ -17,13 +17,15 @@
 package com.merxury.blocker.feature.appdetail
 
 import android.content.Context
+import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.decoder.StringDecoder
@@ -31,7 +33,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
-import com.merxury.blocker.core.model.Application
+import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
@@ -48,11 +50,12 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.model.AppBarAction
@@ -76,14 +79,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
-    app: android.app.Application,
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
+    private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
+    private val appRepository: AppRepository,
     private val componentRepository: LocalComponentRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
-) : AndroidViewModel(app) {
+) : ViewModel() {
     private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _appInfoUiState: MutableStateFlow<AppInfoUiState> = MutableStateFlow(Loading)
     val appInfoUiState = _appInfoUiState.asStateFlow()
@@ -317,10 +321,9 @@ class AppDetailViewModel @Inject constructor(
         else -> listOf(SEARCH, MORE)
     }
 
-    fun launchApp(packageName: String) {
+    fun launchApp(context: Context, packageName: String) {
         Timber.i("Launch app $packageName")
-        val context: Context = getApplication()
-        context.packageManager.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
+        pm.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             context.startActivity(launchIntent)
         }
     }
@@ -406,13 +409,16 @@ class AppDetailViewModel @Inject constructor(
 
     private fun loadAppInfo() = viewModelScope.launch {
         val packageName = appDetailArgs.packageName
-        val app = ApplicationUtil.getApplicationInfo(getApplication(), packageName)
+        val app = appRepository.getApplication(packageName).first()
         if (app == null) {
             val error = ErrorMessage("Can't find $packageName in this device.")
             Timber.e(error.message)
             _appInfoUiState.emit(AppInfoUiState.Error(error))
         } else {
-            _appInfoUiState.emit(AppInfoUiState.Success(app))
+            val packageInfo = pm.getPackageInfoCompat(packageName, 0)
+            _appInfoUiState.emit(
+                AppInfoUiState.Success(app.toAppItem(packageInfo = packageInfo)),
+            )
         }
     }
 }
@@ -420,9 +426,7 @@ class AppDetailViewModel @Inject constructor(
 sealed interface AppInfoUiState {
     object Loading : AppInfoUiState
     class Error(val error: ErrorMessage) : AppInfoUiState
-    data class Success(
-        val appInfo: Application,
-    ) : AppInfoUiState
+    data class Success(val appInfo: AppItem) : AppInfoUiState
 }
 
 data class AppBarUiState(
