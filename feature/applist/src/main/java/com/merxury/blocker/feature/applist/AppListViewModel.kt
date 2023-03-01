@@ -44,6 +44,7 @@ import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.AppStateCache
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -69,7 +70,7 @@ class AppListViewModel @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(app) {
-    private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
+    private val _uiState = MutableStateFlow<AppListUiState>(Initializing())
     val uiState = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<ErrorMessage?>(null)
     val errorState = _errorState.asStateFlow()
@@ -92,7 +93,7 @@ class AppListViewModel @Inject constructor(
     fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
         appRepository.getApplicationList()
             .onStart {
-                _uiState.emit(AppListUiState.Loading)
+                _uiState.emit(Initializing())
             }
             .distinctUntilChanged()
             .collect { list ->
@@ -241,7 +242,7 @@ class AppListViewModel @Inject constructor(
 }
 
 sealed interface AppListUiState {
-    object Loading : AppListUiState
+    class Initializing(val processingName: String = ""): AppListUiState
     class Error(val error: ErrorMessage) : AppListUiState
     object Success : AppListUiState
 }
