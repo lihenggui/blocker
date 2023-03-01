@@ -47,6 +47,7 @@ import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
+import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
@@ -54,7 +55,6 @@ import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
 import com.merxury.blocker.feature.search.model.SearchViewModel
-import com.merxury.blocker.feature.search.screen.InitializingScreen
 import com.merxury.blocker.feature.search.screen.NoSearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen

@@ -46,7 +46,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
@@ -57,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
+import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
@@ -72,12 +72,15 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.component.ComponentList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.MORE
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.SEARCH
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
+import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
+import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System
@@ -89,23 +92,24 @@ fun AppDetailRoute(
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val uiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
+    val appInfoUiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
     val componentListUiState by viewModel.componentListUiState.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboardManager.current
     AppDetailScreen(
-        uiState = uiState,
+        appInfoUiState = appInfoUiState,
+        topAppBarUiState = topAppBarUiState,
         componentListUiState = componentListUiState,
         tabState = tabState,
         modifier = modifier.fillMaxSize(),
         onLaunchAppClick = viewModel::launchApp,
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
-        topAppBarUiState = topAppBarUiState,
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
-        onToolbarActionUpdated = viewModel::updateAppBarAction,
+        blockAllComponents = { viewModel.controlAllComponents(false) },
+        enableAllComponents = { viewModel.controlAllComponents(true) },
         onExportRules = viewModel::exportRule,
         onImportRules = viewModel::importRule,
         onExportIfw = viewModel::exportIfw,
@@ -128,17 +132,18 @@ fun AppDetailRoute(
 
 @Composable
 fun AppDetailScreen(
-    uiState: AppInfoUiState,
+    appInfoUiState: AppInfoUiState,
+    topAppBarUiState: AppBarUiState,
     componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
-    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
-    onSearchModeChanged: (Boolean) -> Unit,
-    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
+    onSearchModeChanged: (Boolean) -> Unit = {},
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -150,24 +155,25 @@ fun AppDetailScreen(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
 ) {
-    when (uiState) {
+    when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
             LoadingScreen()
         }
 
         is Success -> {
             AppDetailContent(
-                app = uiState.appInfo,
+                app = appInfoUiState.appInfo,
+                topAppBarUiState = topAppBarUiState,
                 componentListUiState = componentListUiState,
                 tabState = tabState,
                 onBackClick = onBackClick,
                 onLaunchAppClick = onLaunchAppClick,
                 switchTab = switchTab,
                 modifier = modifier,
-                topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onToolbarActionUpdated = onToolbarActionUpdated,
+                enableAllComponents = enableAllComponents,
+                blockAllComponents = blockAllComponents,
                 onExportRules = onExportRules,
                 onImportRules = onImportRules,
                 onExportIfw = onExportIfw,
@@ -181,7 +187,7 @@ fun AppDetailScreen(
             )
         }
 
-        is AppInfoUiState.Error -> ErrorScreen(uiState.error)
+        is AppInfoUiState.Error -> ErrorScreen(appInfoUiState.error)
     }
 }
 
@@ -196,8 +202,9 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
-    onSearchModeChanged: (Boolean) -> Unit,
-    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
+    onSearchModeChanged: (Boolean) -> Unit = {},
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -251,7 +258,15 @@ fun AppDetailContent(
                 progress = toolbarState.progress,
                 onNavigationClick = onBackClick,
                 title = app.label,
-                actions = { topAppBarUiState.actions.actions?.invoke(this) },
+                actions = {
+                    AppDetailAppBarActions(
+                        appBarUiState = topAppBarUiState,
+                        onSearchTextChanged = onSearchTextChanged,
+                        onSearchModeChange = onSearchModeChanged,
+                        blockAllComponents = blockAllComponents,
+                        enableAllComponents = enableAllComponents,
+                    )
+                },
                 subtitle = app.packageName,
                 summary = stringResource(
                     id = string.data_with_explanation,
@@ -295,6 +310,43 @@ fun AppDetailContent(
 }
 
 @Composable
+fun AppDetailAppBarActions(
+    appBarUiState: AppBarUiState,
+    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchModeChange: (Boolean) -> Unit = {},
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
+) {
+    val actions = appBarUiState.actions
+    if (actions.contains(SEARCH)) {
+        if (appBarUiState.isSearchMode) {
+            BlockerSearchTextField(
+                keyword = appBarUiState.keyword,
+                onValueChange = onSearchTextChanged,
+                placeholder = {
+                    Text(text = stringResource(id = string.search_components))
+                },
+                onClearClick = {
+                    if (appBarUiState.keyword.text.isEmpty()) {
+                        onSearchModeChange(false)
+                        return@BlockerSearchTextField
+                    }
+                    onSearchTextChanged(TextFieldValue())
+                },
+            )
+        } else {
+            SearchActionMenu(onSearchModeChange = onSearchModeChange)
+        }
+    }
+    if (actions.contains(MORE)) {
+        MoreActionMenu(
+            blockAllComponents = blockAllComponents,
+            enableAllComponents = enableAllComponents,
+        )
+    }
+}
+
+@Composable
 private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
     return rememberSaveable(saver = ExitUntilCollapsedState.Saver) {
         ExitUntilCollapsedState(heightRange = toolbarHeightRange)
@@ -332,10 +384,9 @@ fun AppDetailTabContent(
                     onClick = { switchTab(tabItem) },
                     text = {
                         Text(
-                            text = pluralStringResource(
+                            text = stringResource(
                                 id = tabItem.title,
-                                count = tabItem.count,
-                                tabItem.count,
+                                tabState.itemCount[tabItem] ?: 0,
                             ),
                         )
                     },
@@ -406,17 +457,24 @@ fun AppDetailScreenPreview() {
     val tabState = TabState(
         items = listOf(
             Info,
-            Receiver(0),
-            Service(1),
-            Activity(2),
-            Provider(3),
+            Receiver,
+            Service,
+            Activity,
+            Provider,
         ),
         selectedItem = Info,
+        itemCount = mapOf(
+            Info to 1,
+            Receiver to 2,
+            Service to 3,
+            Activity to 4,
+            Provider to 5,
+        ),
     )
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                uiState = Success(appInfo = app),
+                appInfoUiState = Success(appInfo = app),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 onLaunchAppClick = {},
@@ -424,7 +482,6 @@ fun AppDetailScreenPreview() {
                 switchTab = {},
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
-                onToolbarActionUpdated = {},
                 onSearchModeChanged = {},
             )
         }
@@ -446,17 +503,24 @@ fun AppDetailScreenCollapsedPreview() {
     val tabState = TabState(
         items = listOf(
             Info,
-            Receiver(0),
-            Service(1),
-            Activity(2),
-            Provider(3),
+            Receiver,
+            Service,
+            Activity,
+            Provider,
         ),
         selectedItem = Info,
+        itemCount = mapOf(
+            Info to 1,
+            Receiver to 2,
+            Service to 3,
+            Activity to 4,
+            Provider to 5,
+        ),
     )
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                uiState = Success(appInfo = app),
+                appInfoUiState = Success(appInfo = app),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 onLaunchAppClick = {},
@@ -464,7 +528,6 @@ fun AppDetailScreenCollapsedPreview() {
                 switchTab = {},
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
-                onToolbarActionUpdated = {},
                 onSearchModeChanged = {},
             )
         }

@@ -70,7 +70,7 @@
     <string name="options_gitlab">GitLab</string>
     <string name="intent_firewall">Intent Firewall</string>
     <string name="package_manager">Package Manager</string>
-    <string name="shizuku" translatable="false">Shizuku</string>
+    <string name="shizuku" translatable="false">Shizuku/Sui</string>
     <string name="telegram_group">Telegram group</string>
     <string name="export_error_log">Export error log</string>
     <string name="dynamic_color">Dynamic Color</string>
