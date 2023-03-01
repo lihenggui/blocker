@@ -27,6 +27,8 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
+import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -57,6 +59,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -67,6 +70,7 @@ class AppListViewModel @Inject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
+    private val initializeDatabase: InitializeDatabaseUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(app) {
@@ -91,6 +95,14 @@ class AppListViewModel @Inject constructor(
     }
 
     fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+        // Init DB first to get correct data
+        initializeDatabase()
+            .takeWhile { it is InitializeState.Initializing }
+            .collect {
+                if (it is InitializeState.Initializing) {
+                    _uiState.emit(Initializing(it.processingName))
+                }
+            }
         appRepository.getApplicationList()
             .onStart {
                 _uiState.emit(Initializing())
@@ -242,7 +254,7 @@ class AppListViewModel @Inject constructor(
 }
 
 sealed interface AppListUiState {
-    class Initializing(val processingName: String = ""): AppListUiState
+    class Initializing(val processingName: String = "") : AppListUiState
     class Error(val error: ErrorMessage) : AppListUiState
     object Success : AppListUiState
 }
