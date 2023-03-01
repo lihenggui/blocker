@@ -166,6 +166,12 @@ class SearchViewModel @Inject constructor(
                             // Map to UI model
                             val app = appRepository.getApplication(packageName).first()
                                 ?: return@MapToUiModel null
+                            if (!userDataRepository.userData.first().showSystemApps) {
+                                if (app.isSystem) {
+                                    // If user doesn't want to show system apps, skip it
+                                    return@MapToUiModel null
+                                }
+                            }
                             Timber.v("Found ${componentList.size} components for $packageName")
                             FilteredComponent(
                                 app = app.toAppItem(
