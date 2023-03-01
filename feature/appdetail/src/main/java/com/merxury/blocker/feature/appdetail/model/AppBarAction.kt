@@ -14,25 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui
+package com.merxury.blocker.feature.appdetail.model
 
-import timber.log.Timber
-
-data class TabState<T>(
-    val items: List<T>,
-    val selectedItem: T,
-    val itemCount: Map<T, Int> = emptyMap(),
-) {
-    val currentIndex: Int
-        get() {
-            val currentIndex = items.indexOf(selectedItem)
-            if (currentIndex == -1) {
-                Timber.w(
-                    "Can't find index of $selectedItem, returning to default page.\n" +
-                        "Current items: $items",
-                )
-                return 0
-            }
-            return currentIndex
-        }
+enum class AppBarAction {
+    MORE,
+    SEARCH,
+    SHARE_RULE,
 }

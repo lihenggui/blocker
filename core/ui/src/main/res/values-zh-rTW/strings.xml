@@ -39,19 +39,10 @@
     <string name="applicable_application">適用應用程序</string>
     <string name="loading">正在加載</string>
     <string name="no_applicable_app">沒有適用的應用</string>
-    <plurals name="app_info">
-        <item quantity="other">應用信息</item>
-    </plurals>
-    <plurals name="activity_with_count">
-        <item quantity="other">活動 (%1$d)</item>
-    </plurals>
-    <plurals name="service_with_count">
-        <item quantity="other">服務 (%1$d)</item>
-    </plurals>
-    <plurals name="receiver_with_count">
-        <item quantity="other">廣播接收器 (%1$d)</item>
-    </plurals>
-    <plurals name="provider_with_count">
-        <item quantity="other">內容提供者 (%1$d)</item>
-    </plurals>
+    <string name="app_info">應用信息</string>
+    <string name="activity_with_count">活動 (%1$d)</string>
+    <string name="service_with_count">服務 (%1$d)</string>
+    <string name="receiver_with_count">廣播接收器 (%1$d)</string>
+    <string name="provider_with_count">內容提供者 (%1$d)</string>
+    <string name="initializing_database">初始化數據</string>
 </resources>

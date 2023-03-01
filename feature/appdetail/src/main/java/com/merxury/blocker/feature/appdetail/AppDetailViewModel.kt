@@ -52,10 +52,13 @@ import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.model.AppBarAction
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.MORE
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.SEARCH
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.SHARE_RULE
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -90,16 +93,18 @@ class AppDetailViewModel @Inject constructor(
         TabState(
             items = listOf(
                 Info,
-                Receiver(),
-                Service(),
-                Activity(),
-                Provider(),
+                Receiver,
+                Service,
+                Activity,
+                Provider,
             ),
             selectedItem = Info,
         ),
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
     private var currentFilterKeyword = appDetailArgs.searchKeyword
+        .map { it.trim() }
+        .filterNot { it.isEmpty() }
     private var _unfilteredList = ComponentListUiState()
     private val _componentListUiState = MutableStateFlow(ComponentListUiState())
     val componentListUiState = _componentListUiState.asStateFlow()
@@ -111,8 +116,8 @@ class AppDetailViewModel @Inject constructor(
     }
 
     init {
-        updateSearchKeyword()
         loadTabInfo()
+        updateSearchKeyword()
         loadAppInfo()
         loadComponentList()
     }
@@ -127,34 +132,33 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private suspend fun updateTabState(listUiState: ComponentListUiState) {
-        val info = Info
-        val receiver = Receiver(listUiState.receiver.count())
-        val service = Service(listUiState.service.count())
-        val activity = Activity(listUiState.activity.count())
-        val provider = Provider(listUiState.provider.count())
-        val items = listOf(
-            info,
-            receiver,
-            service,
-            activity,
-            provider,
-        )
-        val nonEmptyItems = items.filterNot { it.count == 0 }
-        if (_tabState.replayCache.first().selectedItem !in nonEmptyItems) {
+        val itemCountMap = mapOf(
+            Info to 1,
+            Receiver to listUiState.receiver.size,
+            Service to listUiState.service.size,
+            Activity to listUiState.activity.size,
+            Provider to listUiState.provider.size,
+        ).filter { it.value > 0 }
+        val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
+        if (_tabState.value.selectedItem !in nonEmptyItems) {
             Timber.d(
-                "Selected tab ${_tabState.replayCache.first().selectedItem} " +
+                "Selected tab ${_tabState.value.selectedItem}" +
                     "is not in non-empty items, return to first item",
             )
             _tabState.emit(
                 TabState(
                     items = nonEmptyItems,
                     selectedItem = nonEmptyItems.first(),
+                    itemCount = itemCountMap,
                 ),
             )
         } else {
-            TabState(
-                items = nonEmptyItems,
-                selectedItem = _tabState.replayCache.first().selectedItem,
+            _tabState.emit(
+                TabState(
+                    items = nonEmptyItems,
+                    selectedItem = _tabState.value.selectedItem,
+                    itemCount = itemCountMap,
+                ),
             )
         }
     }
@@ -163,6 +167,7 @@ class AppDetailViewModel @Inject constructor(
         // Start filtering in the component list
         currentFilterKeyword = keyword.split(",")
             .map { it.trim() }
+            .filterNot { it.isEmpty() }
         if (currentFilterKeyword.isEmpty()) {
             _componentListUiState.emit(_unfilteredList)
             return
@@ -206,7 +211,7 @@ class AppDetailViewModel @Inject constructor(
                 val provider = list.filter { it.type == PROVIDER }
                 _unfilteredList =
                     getComponentListUiState(packageName, receiver, service, activity, provider)
-                filterAndUpdateComponentList(appDetailArgs.searchKeyword.joinToString(","))
+                filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
                 updateTabState(_componentListUiState.value)
             }
     }
@@ -276,11 +281,17 @@ class AppDetailViewModel @Inject constructor(
 
     private fun updateSearchKeyword() {
         val keyword = appDetailArgs.searchKeyword
+            .map { it.trim() }
+            .filterNot { it.isEmpty() }
         if (keyword.isEmpty()) return
-        val keywordString = appDetailArgs.searchKeyword.joinToString(",")
+        val keywordString = keyword.joinToString(",")
         Timber.v("Search keyword: $keyword")
         _appBarUiState.update {
-            it.copy(keyword = TextFieldValue(keywordString), isSearchMode = true)
+            it.copy(
+                keyword = TextFieldValue(keywordString),
+                isSearchMode = true,
+                actions = getAppBarAction(),
+            )
         }
     }
 
@@ -295,7 +306,15 @@ class AppDetailViewModel @Inject constructor(
             _tabState.update {
                 it.copy(selectedItem = newTab)
             }
+            _appBarUiState.update {
+                it.copy(actions = getAppBarAction())
+            }
         }
+    }
+
+    private fun getAppBarAction(): List<AppBarAction> = when (tabState.value.selectedItem) {
+        Info -> listOf(SHARE_RULE)
+        else -> listOf(SEARCH, MORE)
     }
 
     fun launchApp(packageName: String) {
@@ -315,19 +334,14 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun updateAppBarAction(actions: AppBarActionState) {
-        _appBarUiState.update {
-            it.copy(actions = actions)
-        }
-    }
-
-    fun controlAllComponents(type: ComponentType, enable: Boolean) =
+    fun controlAllComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val list = when (type) {
-                RECEIVER -> _componentListUiState.value.receiver
-                SERVICE -> _componentListUiState.value.service
-                ACTIVITY -> _componentListUiState.value.activity
-                PROVIDER -> _componentListUiState.value.provider
+            val list = when (tabState.value.selectedItem) {
+                Receiver -> _componentListUiState.value.receiver
+                Service -> _componentListUiState.value.service
+                Activity -> _componentListUiState.value.activity
+                Provider -> _componentListUiState.value.provider
+                else -> return@launch
             }
             list.forEach {
                 controlComponentInternal(it.packageName, it.name, enable)
@@ -414,7 +428,7 @@ sealed interface AppInfoUiState {
 data class AppBarUiState(
     val keyword: TextFieldValue = TextFieldValue(),
     val isSearchMode: Boolean = false,
-    val actions: AppBarActionState = AppBarActionState(),
+    val actions: List<AppBarAction> = listOf(),
 )
 
 data class ComponentListUiState(
