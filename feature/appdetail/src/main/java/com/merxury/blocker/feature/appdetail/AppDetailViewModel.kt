@@ -103,6 +103,8 @@ class AppDetailViewModel @Inject constructor(
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
     private var currentFilterKeyword = appDetailArgs.searchKeyword
+        .map { it.trim() }
+        .filterNot { it.isEmpty() }
     private var _unfilteredList = ComponentListUiState()
     private val _componentListUiState = MutableStateFlow(ComponentListUiState())
     val componentListUiState = _componentListUiState.asStateFlow()
@@ -114,8 +116,8 @@ class AppDetailViewModel @Inject constructor(
     }
 
     init {
-        updateSearchKeyword()
         loadTabInfo()
+        updateSearchKeyword()
         loadAppInfo()
         loadComponentList()
     }
@@ -165,6 +167,7 @@ class AppDetailViewModel @Inject constructor(
         // Start filtering in the component list
         currentFilterKeyword = keyword.split(",")
             .map { it.trim() }
+            .filterNot { it.isEmpty() }
         if (currentFilterKeyword.isEmpty()) {
             _componentListUiState.emit(_unfilteredList)
             return
@@ -208,7 +211,7 @@ class AppDetailViewModel @Inject constructor(
                 val provider = list.filter { it.type == PROVIDER }
                 _unfilteredList =
                     getComponentListUiState(packageName, receiver, service, activity, provider)
-                filterAndUpdateComponentList(appDetailArgs.searchKeyword.joinToString(","))
+                filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
                 updateTabState(_componentListUiState.value)
             }
     }
@@ -278,11 +281,17 @@ class AppDetailViewModel @Inject constructor(
 
     private fun updateSearchKeyword() {
         val keyword = appDetailArgs.searchKeyword
+            .map { it.trim() }
+            .filterNot { it.isEmpty() }
         if (keyword.isEmpty()) return
-        val keywordString = appDetailArgs.searchKeyword.joinToString(",")
+        val keywordString = keyword.joinToString(",")
         Timber.v("Search keyword: $keyword")
         _appBarUiState.update {
-            it.copy(keyword = TextFieldValue(keywordString), isSearchMode = true)
+            it.copy(
+                keyword = TextFieldValue(keywordString),
+                isSearchMode = true,
+                actions = getAppBarAction(),
+            )
         }
     }
 
