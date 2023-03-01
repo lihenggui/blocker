@@ -56,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
+import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
@@ -75,7 +76,6 @@ import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.model.AppBarAction
 import com.merxury.blocker.feature.appdetail.model.AppBarAction.MORE
 import com.merxury.blocker.feature.appdetail.model.AppBarAction.SEARCH
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
@@ -260,7 +260,8 @@ fun AppDetailContent(
                 title = app.label,
                 actions = {
                     AppDetailAppBarActions(
-                        actions = topAppBarUiState.actions,
+                        appBarUiState = topAppBarUiState,
+                        onSearchTextChanged = onSearchTextChanged,
                         onSearchModeChange = onSearchModeChanged,
                         blockAllComponents = blockAllComponents,
                         enableAllComponents = enableAllComponents,
@@ -310,13 +311,32 @@ fun AppDetailContent(
 
 @Composable
 fun AppDetailAppBarActions(
-    actions: List<AppBarAction>,
+    appBarUiState: AppBarUiState,
+    onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
 ) {
+    val actions = appBarUiState.actions
     if (actions.contains(SEARCH)) {
-        SearchActionMenu(onSearchModeChange = onSearchModeChange)
+        if (appBarUiState.isSearchMode) {
+            BlockerSearchTextField(
+                keyword = appBarUiState.keyword,
+                onValueChange = onSearchTextChanged,
+                placeholder = {
+                    Text(text = stringResource(id = string.search_components))
+                },
+                onClearClick = {
+                    if (appBarUiState.keyword.text.isEmpty()) {
+                        onSearchModeChange(false)
+                        return@BlockerSearchTextField
+                    }
+                    onSearchTextChanged(TextFieldValue())
+                },
+            )
+        } else {
+            SearchActionMenu(onSearchModeChange = onSearchModeChange)
+        }
     }
     if (actions.contains(MORE)) {
         MoreActionMenu(
