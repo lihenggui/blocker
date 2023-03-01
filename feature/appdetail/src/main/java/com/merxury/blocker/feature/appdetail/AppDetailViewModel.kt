@@ -52,10 +52,13 @@ import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.ErrorMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.model.AppBarAction
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.MORE
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.SEARCH
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.SHARE_RULE
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -294,7 +297,15 @@ class AppDetailViewModel @Inject constructor(
             _tabState.update {
                 it.copy(selectedItem = newTab)
             }
+            _appBarUiState.update {
+                it.copy(actions = getAppBarAction())
+            }
         }
+    }
+
+    private fun getAppBarAction(): List<AppBarAction> = when (tabState.value.selectedItem) {
+        Info -> listOf(SHARE_RULE)
+        else -> listOf(SEARCH, MORE)
     }
 
     fun launchApp(packageName: String) {
@@ -314,19 +325,14 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun updateAppBarAction(actions: AppBarActionState) {
-        _appBarUiState.update {
-            it.copy(actions = actions)
-        }
-    }
-
-    fun controlAllComponents(type: ComponentType, enable: Boolean) =
+    fun controlAllComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val list = when (type) {
-                RECEIVER -> _componentListUiState.value.receiver
-                SERVICE -> _componentListUiState.value.service
-                ACTIVITY -> _componentListUiState.value.activity
-                PROVIDER -> _componentListUiState.value.provider
+            val list = when (tabState.value.selectedItem) {
+                Receiver -> _componentListUiState.value.receiver
+                Service -> _componentListUiState.value.service
+                Activity -> _componentListUiState.value.activity
+                Provider -> _componentListUiState.value.provider
+                else -> return@launch
             }
             list.forEach {
                 controlComponentInternal(it.packageName, it.name, enable)
@@ -413,7 +419,7 @@ sealed interface AppInfoUiState {
 data class AppBarUiState(
     val keyword: TextFieldValue = TextFieldValue(),
     val isSearchMode: Boolean = false,
-    val actions: AppBarActionState = AppBarActionState(),
+    val actions: List<AppBarAction> = listOf(),
 )
 
 data class ComponentListUiState(
