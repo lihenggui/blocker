@@ -71,12 +71,16 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.component.ComponentList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.core.ui.state.toolbar.AppBarActionState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.model.AppBarAction
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.MORE
+import com.merxury.blocker.feature.appdetail.model.AppBarAction.SEARCH
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
+import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
+import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System
@@ -88,23 +92,24 @@ fun AppDetailRoute(
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val uiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
+    val appInfoUiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
     val componentListUiState by viewModel.componentListUiState.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboardManager.current
     AppDetailScreen(
-        uiState = uiState,
+        appInfoUiState = appInfoUiState,
+        topAppBarUiState = topAppBarUiState,
         componentListUiState = componentListUiState,
         tabState = tabState,
         modifier = modifier.fillMaxSize(),
         onLaunchAppClick = viewModel::launchApp,
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
-        topAppBarUiState = topAppBarUiState,
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
-        onToolbarActionUpdated = viewModel::updateAppBarAction,
+        blockAllComponents = { viewModel.controlAllComponents(false) },
+        enableAllComponents = { viewModel.controlAllComponents(true) },
         onExportRules = viewModel::exportRule,
         onImportRules = viewModel::importRule,
         onExportIfw = viewModel::exportIfw,
@@ -127,17 +132,18 @@ fun AppDetailRoute(
 
 @Composable
 fun AppDetailScreen(
-    uiState: AppInfoUiState,
+    appInfoUiState: AppInfoUiState,
+    topAppBarUiState: AppBarUiState,
     componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
-    topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
-    onSearchModeChanged: (Boolean) -> Unit,
-    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
+    onSearchModeChanged: (Boolean) -> Unit = {},
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -149,24 +155,25 @@ fun AppDetailScreen(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
 ) {
-    when (uiState) {
+    when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
             LoadingScreen()
         }
 
         is Success -> {
             AppDetailContent(
-                app = uiState.appInfo,
+                app = appInfoUiState.appInfo,
+                topAppBarUiState = topAppBarUiState,
                 componentListUiState = componentListUiState,
                 tabState = tabState,
                 onBackClick = onBackClick,
                 onLaunchAppClick = onLaunchAppClick,
                 switchTab = switchTab,
                 modifier = modifier,
-                topAppBarUiState = topAppBarUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                onToolbarActionUpdated = onToolbarActionUpdated,
+                enableAllComponents = enableAllComponents,
+                blockAllComponents = blockAllComponents,
                 onExportRules = onExportRules,
                 onImportRules = onImportRules,
                 onExportIfw = onExportIfw,
@@ -180,7 +187,7 @@ fun AppDetailScreen(
             )
         }
 
-        is AppInfoUiState.Error -> ErrorScreen(uiState.error)
+        is AppInfoUiState.Error -> ErrorScreen(appInfoUiState.error)
     }
 }
 
@@ -195,8 +202,9 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
-    onSearchModeChanged: (Boolean) -> Unit,
-    onToolbarActionUpdated: (AppBarActionState) -> Unit = {},
+    onSearchModeChanged: (Boolean) -> Unit = {},
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -250,7 +258,14 @@ fun AppDetailContent(
                 progress = toolbarState.progress,
                 onNavigationClick = onBackClick,
                 title = app.label,
-                actions = { topAppBarUiState.actions.actions?.invoke(this) },
+                actions = {
+                    AppDetailAppBarActions(
+                        actions = topAppBarUiState.actions,
+                        onSearchModeChange = onSearchModeChanged,
+                        blockAllComponents = blockAllComponents,
+                        enableAllComponents = enableAllComponents,
+                    )
+                },
                 subtitle = app.packageName,
                 summary = stringResource(
                     id = string.data_with_explanation,
@@ -289,6 +304,24 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
+        )
+    }
+}
+
+@Composable
+fun AppDetailAppBarActions(
+    actions: List<AppBarAction>,
+    onSearchModeChange: (Boolean) -> Unit = {},
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
+) {
+    if (actions.contains(SEARCH)) {
+        SearchActionMenu(onSearchModeChange = onSearchModeChange)
+    }
+    if (actions.contains(MORE)) {
+        MoreActionMenu(
+            blockAllComponents = blockAllComponents,
+            enableAllComponents = enableAllComponents,
         )
     }
 }
@@ -421,7 +454,7 @@ fun AppDetailScreenPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                uiState = Success(appInfo = app),
+                appInfoUiState = Success(appInfo = app),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 onLaunchAppClick = {},
@@ -429,7 +462,6 @@ fun AppDetailScreenPreview() {
                 switchTab = {},
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
-                onToolbarActionUpdated = {},
                 onSearchModeChanged = {},
             )
         }
@@ -468,7 +500,7 @@ fun AppDetailScreenCollapsedPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                uiState = Success(appInfo = app),
+                appInfoUiState = Success(appInfo = app),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 onLaunchAppClick = {},
@@ -476,7 +508,6 @@ fun AppDetailScreenCollapsedPreview() {
                 switchTab = {},
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
-                onToolbarActionUpdated = {},
                 onSearchModeChanged = {},
             )
         }
