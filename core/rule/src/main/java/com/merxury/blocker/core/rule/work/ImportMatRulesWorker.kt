@@ -18,15 +18,10 @@ package com.merxury.blocker.core.rule.work
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
-import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
-import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
@@ -39,7 +34,6 @@ import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
-import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -53,13 +47,11 @@ class ImportMatRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-) : CoroutineWorker(context, params) {
+) : RuleNotificationWorker(context, params) {
 
     private val uriString = params.inputData.getString(PARAM_FILE_URI)
 
-    override suspend fun getForegroundInfo(): ForegroundInfo {
-        return updateNotification("", 0, 0)
-    }
+    override fun getNotificationTitle(): Int = R.string.import_mat_rule_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         val uri = Uri.parse(uriString)
@@ -116,29 +108,6 @@ class ImportMatRulesWorker @AssistedInject constructor(
         return@withContext Result.success(
             workDataOf(PARAM_IMPORT_COUNT to current),
         )
-    }
-
-    private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
-        val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
-        val title = context.getString(R.string.import_mat_rule_please_wait)
-        val cancel = context.getString(R.string.cancel)
-        // This PendingIntent can be used to cancel the worker
-        val intent = WorkManager.getInstance(context)
-            .createCancelPendingIntent(getId())
-        // Create a Notification channel if necessary
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationUtil.createProgressingNotificationChannel(context)
-        }
-        val notification = NotificationCompat.Builder(context, id)
-            .setContentTitle(title)
-            .setTicker(title)
-            .setSubText(name)
-            .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
-            .setProgress(total, current, false)
-            .setOngoing(true)
-            .addAction(android.R.drawable.ic_delete, cancel, intent)
-            .build()
-        return ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
     }
 
     companion object {

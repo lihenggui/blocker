@@ -17,14 +17,9 @@
 package com.merxury.blocker.core.rule.work
 
 import android.content.Context
-import android.os.Build
-import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
-import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -32,7 +27,6 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
-import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.util.IfwStorageUtils
@@ -49,11 +43,8 @@ class ExportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-) : CoroutineWorker(context, params) {
-
-    override suspend fun getForegroundInfo(): ForegroundInfo {
-        return updateNotification("", 0, 0)
-    }
+) : RuleNotificationWorker(context, params) {
+    override fun getNotificationTitle(): Int = R.string.backing_up_ifw_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         val folderPath = inputData.getString(PARAM_FOLDER_PATH)
@@ -132,29 +123,6 @@ class ExportIfwRulesWorker @AssistedInject constructor(
                 0
             }
         }
-    }
-
-    private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
-        val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
-        val title = context.getString(R.string.backing_up_ifw_please_wait)
-        val cancel = context.getString(R.string.cancel)
-        // This PendingIntent can be used to cancel the worker
-        val intent = WorkManager.getInstance(context)
-            .createCancelPendingIntent(getId())
-        // Create a Notification channel if necessary
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationUtil.createProgressingNotificationChannel(context)
-        }
-        val notification = NotificationCompat.Builder(context, id)
-            .setContentTitle(title)
-            .setTicker(title)
-            .setSubText(name)
-            .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
-            .setProgress(total, current, false)
-            .setOngoing(true)
-            .addAction(android.R.drawable.ic_delete, cancel, intent)
-            .build()
-        return ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
     }
 
     companion object {
