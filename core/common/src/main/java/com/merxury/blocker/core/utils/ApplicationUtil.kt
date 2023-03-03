@@ -260,7 +260,8 @@ object ApplicationUtil {
      * @param flags       usable flags are below
      * GET_ACTIVITIES, GET_CONFIGURATIONS, GET_GIDS, GET_INSTRUMENTATION,
      * GET_INTENT_FILTERS, GET_PERMISSIONS, GET_PROVIDERS, GET_RECEIVERS,
-     * GET_SERVICES, GET_SIGNATURES, MATCH_DISABLED_COMPONENTS (API level 24), MATCH_DISABLED_UNTIL_USED_COMPONENTS(API level 24)
+     * GET_SERVICES, GET_SIGNATURES, MATCH_DISABLED_COMPONENTS (API level 24),
+     * MATCH_DISABLED_UNTIL_USED_COMPONENTS(API level 24)
      * @return a set of components
      */
     suspend fun getApplicationComponents(

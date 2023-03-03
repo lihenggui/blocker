@@ -42,4 +42,14 @@ class CacheComponentDataSource @Inject constructor(
             }
             .flowOn(ioDispatcher)
     }
+
+    override fun getComponentList(
+        packageName: String,
+    ): Flow<List<ComponentInfo>> {
+        return componentDao.getByPackageName(packageName)
+            .map { list ->
+                list.map { it.toComponentInfo() }
+            }
+            .flowOn(ioDispatcher)
+    }
 }
