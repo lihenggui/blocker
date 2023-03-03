@@ -25,6 +25,8 @@ android {
 }
 dependencies {
     implementation(project(":core:component-controller"))
+    implementation(project(":core:rule"))
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.constraintlayout.compose)
+    implementation(libs.androidx.work.ktx)
 }

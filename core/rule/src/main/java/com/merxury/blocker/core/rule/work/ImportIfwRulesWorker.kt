@@ -33,6 +33,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.R
+import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
@@ -87,6 +88,14 @@ class ImportIfwRulesWorker @AssistedInject constructor(
             total = files.count()
             // Start importing files
             files.forEach { documentFile ->
+                val restoredPackage = inputData.getString(PARAM_RESTORE_PACKAGE_NAME)
+                if (!restoredPackage.isNullOrEmpty()) {
+                    // Import 1 IFW file case
+                    // It will follow the 'Restore system app' setting
+                    if (documentFile.name != restoredPackage + Rule.IFW_EXTENSION) {
+                        return@forEach
+                    }
+                }
                 Timber.i("Importing ${documentFile.name}")
                 setForeground(updateNotification(documentFile.name ?: "", importedCount, total))
                 var packageName: String? = null
@@ -171,15 +180,18 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         const val PARAM_WORK_RESULT = "param_work_result"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"
+        private const val PARAM_RESTORE_PACKAGE_NAME = "param_restore_package_name"
 
         fun importIfwWork(
             backupPath: String?,
             restoreSystemApps: Boolean,
+            packageName: String? = null,
         ) = OneTimeWorkRequestBuilder<ImportIfwRulesWorker>()
             .setInputData(
                 workDataOf(
                     PARAM_FOLDER_PATH to backupPath,
                     PARAM_RESTORE_SYS_APPS to restoreSystemApps,
+                    PARAM_RESTORE_PACKAGE_NAME to packageName,
                 ),
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

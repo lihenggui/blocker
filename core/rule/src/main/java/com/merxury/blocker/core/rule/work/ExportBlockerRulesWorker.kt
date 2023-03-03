@@ -66,6 +66,19 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
         }
+        // Check backing up one application or all applications
+        val packageName = inputData.getString(PARAM_BACKUP_APP_PACKAGE_NAME)
+        if (!packageName.isNullOrEmpty()) {
+            try {
+                backupSingleApp(context, packageName, backupPath)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to export blocker rule for $packageName")
+                return Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
+                )
+            }
+            return Result.success(workDataOf(PARAM_BACKUP_COUNT to 1))
+        }
         // Notify users that work is being started
         Timber.i("Start to backup app rules")
         setForeground(updateNotification("", 0, 0))
@@ -99,6 +112,12 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         }
     }
 
+    private suspend fun backupSingleApp(context: Context, packageName: String, backupPath: String) {
+        Timber.d("Start to backup app rules for $packageName")
+        setForeground(updateNotification(packageName, 1, 1))
+        Rule.export(context, packageName, Uri.parse(backupPath))
+    }
+
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
         val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
         val title = context.getString(R.string.backing_up_apps_please_wait)
@@ -126,14 +145,20 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         const val PARAM_BACKUP_COUNT = "param_backup_count"
         const val PARAM_WORK_RESULT = "param_work_result"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
-        private const val PARAM_BACKUP_SYSTEM_APPS = "param_restore_system_apps"
+        private const val PARAM_BACKUP_SYSTEM_APPS = "param_backup_system_apps"
+        private const val PARAM_BACKUP_APP_PACKAGE_NAME = "param_backup_app_package_name"
 
-        fun exportWork(folderPath: String?, backupSystemApps: Boolean) =
+        fun exportWork(
+            folderPath: String?,
+            backupSystemApps: Boolean,
+            backupPackageName: String? = null,
+        ) =
             OneTimeWorkRequestBuilder<ExportBlockerRulesWorker>()
                 .setInputData(
                     workDataOf(
                         PARAM_FOLDER_PATH to folderPath,
                         PARAM_BACKUP_SYSTEM_APPS to backupSystemApps,
+                        PARAM_BACKUP_APP_PACKAGE_NAME to backupPackageName,
                     ),
                 )
                 .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
