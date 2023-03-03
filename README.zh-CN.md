@@ -14,7 +14,7 @@ https://t.me/blockerandroid
 ## 优点
 1. 轻量级程序，不会给系统增加负担。
 2. 易于使用，界面直观。
-3. 兼容多种方法禁用，无付费限制。
+3. 兼容多种方法禁用。
 
 ## 三种控制模式介绍
 ### PM模式
@@ -30,15 +30,14 @@ pm disable [PackageName/ComponmentName]
 restrictions.xml```文件下。
 
 ### IFW模式 （默认模式）
-Intent Firewall（IFW， 意图防火墙）自Android 4.4.2(API 19)版本后被引入，在目前的最新版本(Android Pie,  API28)中仍然有效。Intent Firewall被集成在Android Framework中，用于过滤应用程序的启动意图(Intent)。
-
+Intent Firewall（IFW， 意图防火墙）自Android 4.4.2(API 19)版本后被引入，在目前的最新版本中仍然有效。Intent Firewall被集成在Android Framework中，用于过滤应用程序的启动意图(Intent)。
 
 #### IFW能做的事
 Android下发起的每一个启动应用组件的意图(Intent)， 都需要经过此防火墙的过滤。它甚至有能力过滤系统程序发出的请求。防火墙的过滤列表定义在一个XML文件
 当中，当文件发生变化，防火墙会即时更新过滤规则。
 
 #### IFW的限制
-基于安全考虑，只有拥有System权限的系统应用才可以直接读取修改配置文件所在目录，第三方应用程序无法读取改写过滤规则。再者，防火墙过滤规则的时候不会考虑该意图的发送者身份，无法对意图发起方进行条件过滤。
+基于安全考虑，只有拥有System权限的系统应用才可以直接读取修改配置文件所在目录，第三方应用程序无法读取改写过滤规则。
 
 #### IFW相比于PM的优点
 IFW是防火墙，新增/删除防火墙规则对组件状态无影响。程序探测的组件状态是启用，但是就是无法启动该组件。
@@ -46,7 +45,7 @@ IFW是防火墙，新增/删除防火墙规则对组件状态无影响。程序�
 Package Manager是直接禁用了对应组件。若是试图启动被禁用的组件，程序会抛出异常退出。开发者可以根据抛出的异常或者根据探测到的组件状态，通
 过系统API重新启用相关组件。这就是为什么使用此模式，运行软件有的时候会崩溃，有些组件会自动启用的原因。使用IFW模式则无此问题，不会崩溃，也不会自动启用。
 #### 更多参考
-请参阅[Intent Firewall](www.cis.syr.edu/~wedu/android/IntentFirewall/)
+请参阅[Intent Firewall](https://carteryagemann.com/pages/android-intent-firewall.html)
 
 ### Shizuku模式 (无需Root权限)
 Shizuku是由Rikka开发的应用，具体请参见[RikkaApps/Shizuku](https://github.com/RikkaApps/Shizuku)
