@@ -124,6 +124,7 @@ class AppDetailViewModel @Inject constructor(
         updateSearchKeyword()
         loadAppInfo()
         loadComponentList()
+        updateComponentList(appDetailArgs.packageName)
     }
 
     fun search(newText: TextFieldValue) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
@@ -218,6 +219,12 @@ class AppDetailViewModel @Inject constructor(
                 filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
                 updateTabState(_componentListUiState.value)
             }
+    }
+
+    private fun updateComponentList(packageName: String) = viewModelScope.launch {
+        componentRepository.updateComponentList(packageName)
+            .catch { _errorState.emit(it.toErrorMessage()) }
+            .collect()
     }
 
     private suspend fun getComponentListUiState(

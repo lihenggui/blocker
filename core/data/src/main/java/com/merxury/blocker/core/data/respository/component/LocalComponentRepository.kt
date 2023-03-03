@@ -68,6 +68,17 @@ class LocalComponentRepository @Inject constructor(
             appComponentDao.upsertComponentList(latestComponents)
         }
 
+    override fun updateComponentList(packageName: String): Flow<Result<Unit>> =
+        flow {
+            emit(Result.Loading)
+            val latestComponents = localDataSource.getComponentList(packageName)
+                .map { list ->
+                    list.map { it.toAppComponentEntity() }
+                }
+                .first()
+            appComponentDao.upsertComponentList(latestComponents)
+        }
+
     override fun controlComponent(
         packageName: String,
         componentName: String,

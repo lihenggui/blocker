@@ -53,17 +53,40 @@ class LocalComponentDataSource @Inject constructor(
         }
         emit(
             list.map {
-                ComponentInfo(
-                    name = it.name,
-                    simpleName = it.getSimpleName(),
-                    packageName = it.packageName,
-                    type = type,
-                    exported = it.exported,
-                    pmBlocked = !pmController.checkComponentEnableState(packageName, it.name),
-                    ifwBlocked = !ifwController.checkComponentEnableState(packageName, it.name),
-                )
+                toComponentInfo(it, type, packageName)
             },
         )
     }
         .flowOn(ioDispatcher)
+
+    override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> = flow {
+        val packageInfo = ApplicationUtil.getApplicationComponents(pm, packageName, ioDispatcher)
+        val activity = packageInfo.activities
+            ?.mapNotNull { toComponentInfo(it, ACTIVITY, packageName) }
+            ?: emptyList()
+        val service = packageInfo.services
+            ?.mapNotNull { toComponentInfo(it, SERVICE, packageName) }
+            ?: emptyList()
+        val receiver = packageInfo.receivers
+            ?.mapNotNull { toComponentInfo(it, RECEIVER, packageName) }
+            ?: emptyList()
+        val provider = packageInfo.providers
+            ?.mapNotNull { toComponentInfo(it, PROVIDER, packageName) }
+            ?: emptyList()
+        emit(activity + service + receiver + provider)
+    }
+
+    private suspend fun toComponentInfo(
+        info: android.content.pm.ComponentInfo,
+        type: ComponentType,
+        packageName: String,
+    ) = ComponentInfo(
+        name = info.name,
+        simpleName = info.getSimpleName(),
+        packageName = info.packageName,
+        type = type,
+        exported = info.exported,
+        pmBlocked = !pmController.checkComponentEnableState(packageName, info.name),
+        ifwBlocked = !ifwController.checkComponentEnableState(packageName, info.name),
+    )
 }
