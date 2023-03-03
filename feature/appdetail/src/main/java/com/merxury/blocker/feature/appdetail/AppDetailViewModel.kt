@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
@@ -25,6 +26,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkManager
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -43,6 +46,11 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
+import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
+import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
+import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
+import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
+import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
@@ -79,6 +87,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
+    private val appContext: Application,
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
     private val pm: PackageManager,
@@ -394,24 +403,80 @@ class AppDetailViewModel @Inject constructor(
             .collect()
     }
 
-    fun exportRule(packageName: String) {
+    fun exportBlockerRule(packageName: String) = viewModelScope.launch {
         Timber.d("Export Blocker rule for $packageName")
+        val userData = userDataRepository.userData.first()
+        WorkManager.getInstance(appContext).apply {
+            enqueueUniqueWork(
+                "ExportBlockerRule",
+                ExistingWorkPolicy.REPLACE,
+                ExportBlockerRulesWorker.exportWork(
+                    folderPath = userData.ruleBackupFolder,
+                    backupSystemApps = userData.backupSystemApp,
+                    backupPackageName = packageName,
+                ),
+            )
+        }
     }
 
-    fun importRule(packageName: String) {
+    fun importBlockerRule(packageName: String) = viewModelScope.launch {
         Timber.d("Import Blocker rule for $packageName")
+        val userData = userDataRepository.userData.first()
+        WorkManager.getInstance(appContext).apply {
+            enqueueUniqueWork(
+                "ImportBlockerRule",
+                ExistingWorkPolicy.REPLACE,
+                ImportBlockerRuleWorker.importWork(
+                    backupPath = userData.ruleBackupFolder,
+                    restoreSystemApps = userData.restoreSystemApp,
+                    controllerType = userData.controllerType,
+                    backupPackageName = packageName,
+                ),
+            )
+        }
     }
 
-    fun exportIfw(packageName: String) {
+    fun exportIfwRule(packageName: String) = viewModelScope.launch {
         Timber.d("Export IFW rule for $packageName")
+        val userData = userDataRepository.userData.first()
+        WorkManager.getInstance(appContext).apply {
+            enqueueUniqueWork(
+                "ExportIfwRule",
+                ExistingWorkPolicy.KEEP,
+                ExportIfwRulesWorker.exportWork(
+                    folderPath = userData.ruleBackupFolder,
+                    backupPackageName = packageName,
+                ),
+            )
+        }
     }
 
-    fun importIfw(packageName: String) {
+    fun importIfwRule(packageName: String) = viewModelScope.launch {
         Timber.d("Import IFW rule for $packageName")
+        val userData = userDataRepository.userData.first()
+        WorkManager.getInstance(appContext).apply {
+            enqueueUniqueWork(
+                "ImportIfwRule",
+                ExistingWorkPolicy.KEEP,
+                ImportIfwRulesWorker.importIfwWork(
+                    backupPath = userData.ruleBackupFolder,
+                    restoreSystemApps = userData.restoreSystemApp,
+                    packageName = packageName,
+                ),
+            )
+        }
     }
 
     fun resetIfw(packageName: String) {
         Timber.d("Reset IFW rule for $packageName")
+        WorkManager.getInstance(appContext)
+            .enqueueUniqueWork(
+                "ResetIfw",
+                ExistingWorkPolicy.KEEP,
+                ResetIfwWorker.clearIfwWork(
+                    packageName = packageName,
+                ),
+            )
     }
 
     private fun loadAppInfo() = viewModelScope.launch {

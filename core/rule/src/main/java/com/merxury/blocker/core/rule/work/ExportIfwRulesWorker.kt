@@ -30,6 +30,7 @@ import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
+import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
@@ -66,6 +67,18 @@ class ExportIfwRulesWorker @AssistedInject constructor(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
         }
+        val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
+        if (!backupPackageName.isNullOrEmpty()) {
+            try {
+                val result = exportForSingleApplication(backupPackageName, folderPath)
+                return@withContext Result.success(workDataOf(PARAM_EXPORT_COUNT to result))
+            } catch (e: IOException) {
+                Timber.e(e, "Can't read IFW rules for $backupPackageName")
+                return@withContext Result.failure(
+                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
+                )
+            }
+        }
         Timber.i("Start to export IFW rules.")
         var current = 0
         try {
@@ -97,6 +110,30 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         )
     }
 
+    // Export IFW rules for a single application
+    // Return value is the number of exported rules
+    private suspend fun exportForSingleApplication(packageName: String, backupFolder: String): Int {
+        Timber.d("Export IFW rules for $packageName")
+        return withContext(ioDispatcher) {
+            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val files = FileUtils.listFiles(ifwFolder)
+            val targetFileName = packageName + Rule.IFW_EXTENSION
+            if (files.contains(targetFileName)) {
+                val content = FileUtils.read(ifwFolder + targetFileName)
+                StorageUtil.saveIfwToStorage(
+                    context = context,
+                    baseFolder = backupFolder,
+                    filename = targetFileName,
+                    content = content,
+                    dispatcher = ioDispatcher,
+                )
+                1
+            } else {
+                0
+            }
+        }
+    }
+
     private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
         val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
         val title = context.getString(R.string.backing_up_ifw_please_wait)
@@ -124,13 +161,17 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         const val PARAM_EXPORT_COUNT = "param_export_count"
         const val PARAM_WORK_RESULT = "param_work_result"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
-        fun exportWork(folderPath: String?) = OneTimeWorkRequestBuilder<ExportIfwRulesWorker>()
-            .setInputData(
-                workDataOf(
-                    PARAM_FOLDER_PATH to folderPath,
-                ),
-            )
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .build()
+        private const val PARAM_BACKUP_PACKAGE_NAME = "param_backup_package_name"
+
+        fun exportWork(folderPath: String?, backupPackageName: String? = null) =
+            OneTimeWorkRequestBuilder<ExportIfwRulesWorker>()
+                .setInputData(
+                    workDataOf(
+                        PARAM_FOLDER_PATH to folderPath,
+                        PARAM_BACKUP_PACKAGE_NAME to backupPackageName,
+                    ),
+                )
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+                .build()
     }
 }
