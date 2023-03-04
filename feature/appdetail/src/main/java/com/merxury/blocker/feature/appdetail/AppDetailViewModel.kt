@@ -408,7 +408,7 @@ class AppDetailViewModel @Inject constructor(
         val userData = userDataRepository.userData.first()
         WorkManager.getInstance(appContext).apply {
             enqueueUniqueWork(
-                "ExportBlockerRule",
+                "ExportBlockerRule:$packageName",
                 ExistingWorkPolicy.REPLACE,
                 ExportBlockerRulesWorker.exportWork(
                     folderPath = userData.ruleBackupFolder,
@@ -424,7 +424,7 @@ class AppDetailViewModel @Inject constructor(
         val userData = userDataRepository.userData.first()
         WorkManager.getInstance(appContext).apply {
             enqueueUniqueWork(
-                "ImportBlockerRule",
+                "ImportBlockerRule:$packageName",
                 ExistingWorkPolicy.REPLACE,
                 ImportBlockerRuleWorker.importWork(
                     backupPath = userData.ruleBackupFolder,
@@ -441,7 +441,7 @@ class AppDetailViewModel @Inject constructor(
         val userData = userDataRepository.userData.first()
         WorkManager.getInstance(appContext).apply {
             enqueueUniqueWork(
-                "ExportIfwRule",
+                "ExportIfwRule:$packageName",
                 ExistingWorkPolicy.KEEP,
                 ExportIfwRulesWorker.exportWork(
                     folderPath = userData.ruleBackupFolder,
@@ -456,7 +456,7 @@ class AppDetailViewModel @Inject constructor(
         val userData = userDataRepository.userData.first()
         WorkManager.getInstance(appContext).apply {
             enqueueUniqueWork(
-                "ImportIfwRule",
+                "ImportIfwRule:$packageName",
                 ExistingWorkPolicy.KEEP,
                 ImportIfwRulesWorker.importIfwWork(
                     backupPath = userData.ruleBackupFolder,
@@ -471,7 +471,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.d("Reset IFW rule for $packageName")
         WorkManager.getInstance(appContext)
             .enqueueUniqueWork(
-                "ResetIfw",
+                "ResetIfw:$packageName",
                 ExistingWorkPolicy.KEEP,
                 ResetIfwWorker.clearIfwWork(
                     packageName = packageName,
