@@ -61,6 +61,9 @@ class GeneralRulesViewModel @Inject constructor(
             .onStart { _uiState.emit(Loading) }
             .catch { _uiState.emit(Error(it.toErrorMessage())) }
             .collect { rules ->
+                if (rules.isEmpty()) {
+                    return@collect
+                }
                 val serverUrl = userDataRepository.userData
                     .first()
                     .ruleServerProvider
