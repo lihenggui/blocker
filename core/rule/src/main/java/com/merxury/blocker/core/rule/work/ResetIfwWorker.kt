@@ -90,11 +90,12 @@ class ResetIfwWorker @AssistedInject constructor(
             Timber.d("Start clearing IFW rules for package $packageName")
             val ifwFolder = IfwStorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
-            if (files.contains(packageName + Rule.IFW_EXTENSION)) {
+            val filename = packageName + Rule.IFW_EXTENSION
+            if (files.contains(filename)) {
                 updateNotification(packageName, 1, 1)
                 Timber.d("Delete IFW rules for $packageName")
                 FileUtils.delete(
-                    path = ifwFolder + packageName,
+                    path = ifwFolder + filename,
                     recursively = false,
                     dispatcher = ioDispatcher,
                 )
