@@ -17,16 +17,12 @@
 package com.merxury.blocker.core.rule.work
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
-import androidx.core.app.NotificationCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
-import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -36,7 +32,6 @@ import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
-import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.assisted.Assisted
@@ -53,39 +48,46 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-) : CoroutineWorker(context, params) {
+) : RuleNotificationWorker(context, params) {
 
-    override suspend fun getForegroundInfo(): ForegroundInfo {
-        return updateNotification("", 0, 0)
-    }
+    override fun getNotificationTitle(): Int = R.string.import_app_rules_please_wait
 
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
+        // Check storage permission first
+        val backupPath = inputData.getString(PARAM_FOLDER_PATH)
+        if (backupPath.isNullOrEmpty()) {
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
+            )
+        }
+        if (!StorageUtil.isFolderReadable(context, backupPath)) {
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
+            )
+        }
+        val controllerOrdinal =
+            inputData.getInt(PARAM_CONTROLLER_TYPE, ControllerType.IFW.ordinal)
+        val controllerType = ControllerType.values()[controllerOrdinal]
+        val packageManager = context.packageManager
+        val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
+        val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
+        val documentDir = DocumentFile.fromTreeUri(context, Uri.parse(backupPath))
+        if (documentDir == null) {
+            Timber.e("Cannot create DocumentFile")
+            return@withContext Result.failure()
+        }
+        if (!backupPackageName.isNullOrEmpty()) {
+            return@withContext importSingleRule(
+                packageManager,
+                documentDir,
+                backupPackageName,
+                controllerType,
+            )
+        }
         Timber.i("Start to import app rules")
         var successCount = 0
         try {
-            // Check storage permission first
-            val backupPath = inputData.getString(PARAM_FOLDER_PATH)
-            if (backupPath.isNullOrEmpty()) {
-                return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
-                )
-            }
-            if (!StorageUtil.isFolderReadable(context, backupPath)) {
-                return@withContext Result.failure(
-                    workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
-                )
-            }
-            val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
-            val controllerOrdinal =
-                inputData.getInt(PARAM_CONTROLLER_TYPE, ControllerType.IFW.ordinal)
-            val controllerType = ControllerType.values()[controllerOrdinal]
-            val packageManager = context.packageManager
-            val documentDir = DocumentFile.fromTreeUri(context, Uri.parse(backupPath))
-            if (documentDir == null) {
-                Timber.e("Cannot create DocumentFile")
-                return@withContext Result.failure()
-            }
             val files = documentDir.listFiles()
                 .filter { it.name?.endsWith(Rule.EXTENSION) == true }
             val total = files.count()
@@ -128,27 +130,41 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         )
     }
 
-    private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
-        val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
-        val title = context.getString(R.string.import_app_rules_please_wait)
-        val cancel = context.getString(R.string.cancel)
-        // This PendingIntent can be used to cancel the worker
-        val intent = WorkManager.getInstance(context)
-            .createCancelPendingIntent(getId())
-        // Create a Notification channel if necessary
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationUtil.createProgressingNotificationChannel(context)
+    @OptIn(ExperimentalSerializationApi::class)
+    private suspend fun importSingleRule(
+        pm: PackageManager,
+        documentDir: DocumentFile,
+        packageName: String,
+        controllerType: ControllerType,
+    ): Result {
+        val appInstalled = ApplicationUtil.isAppInstalled(pm, packageName)
+        if (!appInstalled) {
+            Timber.w("App $packageName is not installed, skipping")
+            return Result.failure()
         }
-        val notification = NotificationCompat.Builder(context, id)
-            .setContentTitle(title)
-            .setTicker(title)
-            .setSubText(name)
-            .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
-            .setProgress(total, current, false)
-            .setOngoing(true)
-            .addAction(android.R.drawable.ic_delete, cancel, intent)
-            .build()
-        return ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
+        try {
+            val files = documentDir.listFiles()
+                .filter { it.name?.endsWith(Rule.EXTENSION) == true }
+            files.forEach {
+                Timber.i("Import ${it.uri}")
+                context.contentResolver.openInputStream(it.uri)?.use { input ->
+                    val rule = Json.decodeFromStream<BlockerRule>(input)
+                    if (rule.packageName != packageName) {
+                        return@forEach
+                    }
+                    Rule.import(context, rule, controllerType)
+                    setForeground(updateNotification(rule.packageName ?: "", 1, 1))
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to import blocker rules for $packageName")
+            return Result.failure(
+                workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_ROOT_PERMISSION),
+            )
+        }
+        return Result.success(
+            workDataOf(PARAM_IMPORT_COUNT to 1),
+        )
     }
 
     companion object {
@@ -157,17 +173,20 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"
         private const val PARAM_CONTROLLER_TYPE = "param_controller_type"
+        private const val PARAM_BACKUP_PACKAGE_NAME = "param_backup_package_name"
 
         fun importWork(
             backupPath: String?,
             restoreSystemApps: Boolean,
             controllerType: ControllerType,
+            backupPackageName: String? = null,
         ) = OneTimeWorkRequestBuilder<ImportBlockerRuleWorker>()
             .setInputData(
                 workDataOf(
                     PARAM_FOLDER_PATH to backupPath,
                     PARAM_RESTORE_SYS_APPS to restoreSystemApps,
                     PARAM_CONTROLLER_TYPE to controllerType.ordinal,
+                    PARAM_BACKUP_PACKAGE_NAME to backupPackageName,
                 ),
             )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)

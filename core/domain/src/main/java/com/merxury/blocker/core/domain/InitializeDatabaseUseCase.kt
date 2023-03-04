@@ -40,11 +40,11 @@ class InitializeDatabaseUseCase @Inject constructor(
 ) {
     operator fun invoke(): Flow<InitializeState> = flow {
         val appProperties = appPropertiesRepository.appProperties.first()
-        if (appProperties.componentDatabaseInitialized
-        ) {
+        if (appProperties.componentDatabaseInitialized) {
+            Timber.v("Component database already initialized")
             emit(InitializeState.Done)
-            return@flow
         } else {
+            Timber.v("Start initializing component database")
             initComponentDatabaseTask()
                 .collect { emit(it) }
         }
@@ -52,6 +52,9 @@ class InitializeDatabaseUseCase @Inject constructor(
 
     private fun initComponentDatabaseTask() = appRepository.getApplicationList()
         .transform { installedAppList ->
+            if (installedAppList.isEmpty()) {
+                return@transform
+            }
             installedAppList.forEach {
                 val packageName = it.packageName
                 emit(InitializeState.Initializing(it.label))
