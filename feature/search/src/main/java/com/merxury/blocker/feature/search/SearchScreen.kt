@@ -135,7 +135,7 @@ fun SearchScreen(
             when (localSearchUiState) {
                 LocalSearchUiState.Idle -> NoSearchResultScreen()
                 LocalSearchUiState.Loading -> SearchingScreen()
-                is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.message)
+                is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.uiMessage)
                 is LocalSearchUiState.Initializing ->
                     InitializingScreen(localSearchUiState.processingName)
 

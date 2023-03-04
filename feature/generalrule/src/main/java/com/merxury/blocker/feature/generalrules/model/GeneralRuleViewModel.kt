@@ -22,7 +22,7 @@ import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleReposito
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
@@ -44,7 +44,7 @@ class GeneralRulesViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<GeneralRuleUiState>(Loading)
     val uiState: StateFlow<GeneralRuleUiState> = _uiState.asStateFlow()
-    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
 
     init {
@@ -87,5 +87,5 @@ sealed interface GeneralRuleUiState {
         val rules: List<GeneralRule>,
     ) : GeneralRuleUiState
 
-    class Error(val error: ErrorMessage) : GeneralRuleUiState
+    class Error(val error: UiMessage) : GeneralRuleUiState
 }

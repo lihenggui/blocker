@@ -62,7 +62,7 @@ import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
@@ -121,7 +121,7 @@ class AppDetailViewModel @Inject constructor(
     private var _unfilteredList = ComponentListUiState()
     private val _componentListUiState = MutableStateFlow(ComponentListUiState())
     val componentListUiState = _componentListUiState.asStateFlow()
-    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
@@ -483,8 +483,8 @@ class AppDetailViewModel @Inject constructor(
         val packageName = appDetailArgs.packageName
         val app = appRepository.getApplication(packageName).first()
         if (app == null) {
-            val error = ErrorMessage("Can't find $packageName in this device.")
-            Timber.e(error.message)
+            val error = UiMessage("Can't find $packageName in this device.")
+            Timber.e(error.title)
             _appInfoUiState.emit(AppInfoUiState.Error(error))
         } else {
             val packageInfo = pm.getPackageInfoCompat(packageName, 0)
@@ -497,7 +497,7 @@ class AppDetailViewModel @Inject constructor(
 
 sealed interface AppInfoUiState {
     object Loading : AppInfoUiState
-    class Error(val error: ErrorMessage) : AppInfoUiState
+    class Error(val error: UiMessage) : AppInfoUiState
     data class Success(val appInfo: AppItem) : AppInfoUiState
 }
 

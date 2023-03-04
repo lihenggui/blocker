@@ -32,7 +32,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.component.toComponentItem
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
@@ -157,7 +157,7 @@ class RuleDetailViewModel @Inject constructor(
 
 sealed interface RuleInfoUiState {
     object Loading : RuleInfoUiState
-    class Error(val error: ErrorMessage) : RuleInfoUiState
+    class Error(val error: UiMessage) : RuleInfoUiState
     data class Success(
         val ruleInfo: GeneralRule,
     ) : RuleInfoUiState
