@@ -127,8 +127,8 @@ fun AppDetailRoute(
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
-            title = errorState?.message.orEmpty(),
-            text = errorState?.stackTrace.orEmpty(),
+            title = errorState?.title.orEmpty(),
+            text = errorState?.content.orEmpty(),
             onDismissRequest = viewModel::dismissAlert,
         )
     }

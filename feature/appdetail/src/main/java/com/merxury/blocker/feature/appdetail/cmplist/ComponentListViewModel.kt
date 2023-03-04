@@ -35,7 +35,7 @@ import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.cmplist.ComponentListUiState.Error
@@ -66,7 +66,7 @@ class ComponentListViewModel @AssistedInject constructor(
 ) : ViewModel() {
     private val _uiState: MutableStateFlow<ComponentListUiState> = MutableStateFlow(Loading)
     val uiState: StateFlow<ComponentListUiState> = _uiState.asStateFlow()
-    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
@@ -209,6 +209,6 @@ class ComponentListViewModel @AssistedInject constructor(
 
 sealed interface ComponentListUiState {
     object Loading : ComponentListUiState
-    class Error(val error: ErrorMessage) : ComponentListUiState
+    class Error(val error: UiMessage) : ComponentListUiState
     object Success : ComponentListUiState
 }
