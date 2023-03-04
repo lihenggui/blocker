@@ -56,7 +56,6 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
-        Shell.enableVerboseLogging = true
         Shell.setDefaultBuilder(
             Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)
