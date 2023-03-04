@@ -387,7 +387,7 @@ class AppDetailViewModel @Inject constructor(
         packageName: String,
         componentName: String,
         enabled: Boolean,
-    ) = viewModelScope.launch {
+    ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         controlComponentInternal(packageName, componentName, enabled)
     }
 
