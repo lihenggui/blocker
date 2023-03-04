@@ -60,7 +60,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.component.ComponentItem
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
@@ -408,7 +408,7 @@ fun RuleDetailScreenErrorPreView() {
     val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
         list = listOf(ruleMatchedApp),
     )
-    val ruleInfoUiState = RuleInfoUiState.Error(ErrorMessage("Error"))
+    val ruleInfoUiState = RuleInfoUiState.Error(UiMessage("Error"))
     val tabState = TabState(
         items = listOf(
             Description,

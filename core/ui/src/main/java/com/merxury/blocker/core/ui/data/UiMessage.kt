@@ -16,13 +16,13 @@
 
 package com.merxury.blocker.core.ui.data
 
-data class ErrorMessage(
-    val message: String,
-    val stackTrace: String? = null,
+data class UiMessage(
+    val title: String,
+    val content: String? = null,
 )
 
-fun Throwable.toErrorMessage() = ErrorMessage(
-    message = localizedMessage ?: message
+fun Throwable.toErrorMessage() = UiMessage(
+    title = localizedMessage ?: message
         ?: stackTraceToString().split("\n").first(),
-    stackTrace = stackTraceToString(),
+    content = stackTraceToString(),
 )

@@ -45,7 +45,7 @@ import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
@@ -85,7 +85,7 @@ class SearchViewModel @Inject constructor(
     private val _localSearchUiState =
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
-    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
@@ -284,7 +284,7 @@ sealed interface LocalSearchUiState {
         val ruleTabUiState: RuleTabUiState = RuleTabUiState(),
     ) : LocalSearchUiState
 
-    class Error(val message: ErrorMessage) : LocalSearchUiState
+    class Error(val uiMessage: UiMessage) : LocalSearchUiState
 }
 
 data class SearchBoxUiState(
