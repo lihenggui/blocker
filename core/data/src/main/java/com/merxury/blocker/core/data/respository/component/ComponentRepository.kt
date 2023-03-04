@@ -28,6 +28,8 @@ interface ComponentRepository {
 
     fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>>
 
+    fun updateComponentList(packageName: String): Flow<Result<Unit>>
+
     fun controlComponent(
         packageName: String,
         componentName: String,

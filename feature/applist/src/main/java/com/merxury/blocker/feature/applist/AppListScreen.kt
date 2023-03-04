@@ -43,7 +43,7 @@ import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.screen.ErrorScreen
-import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
 import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
@@ -130,11 +130,10 @@ fun AppListScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             when (uiState) {
-                AppListUiState.Loading -> {
-                    LoadingScreen()
-                }
+                is AppListUiState.Initializing ->
+                    InitializingScreen(processingName = uiState.processingName)
 
-                is AppListUiState.Success -> {
+                is AppListUiState.Success ->
                     AppList(
                         appList = appList,
                         onAppItemClick = onAppItemClick,
@@ -147,7 +146,6 @@ fun AppListScreen(
                         onServiceStateUpdate = onServiceStateUpdate,
                         modifier = modifier,
                     )
-                }
 
                 is AppListUiState.Error -> ErrorScreen(uiState.error)
             }

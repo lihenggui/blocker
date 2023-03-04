@@ -17,22 +17,17 @@
 package com.merxury.blocker.core.rule.work
 
 import android.content.Context
-import android.os.Build
-import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
-import androidx.work.CoroutineWorker
-import androidx.work.ForegroundInfo
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
-import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
+import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
-import com.merxury.blocker.core.rule.util.NotificationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.util.IfwStorageUtils
 import dagger.assisted.Assisted
@@ -47,14 +42,16 @@ class ResetIfwWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-) : CoroutineWorker(context, params) {
+) : RuleNotificationWorker(context, params) {
 
-    override suspend fun getForegroundInfo(): ForegroundInfo {
-        return updateNotification("", 0, 0)
-    }
+    override fun getNotificationTitle(): Int = R.string.import_ifw_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         Timber.i("Clear IFW rules")
+        val packageName = inputData.getString(PARAM_RESET_PACKAGE_NAME)
+        if (!packageName.isNullOrEmpty()) {
+            return@withContext clearIfwRuleForPackage(packageName)
+        }
         var count = 0
         val total: Int
         try {
@@ -77,7 +74,7 @@ class ResetIfwWorker @AssistedInject constructor(
                 workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
             )
         } catch (e: IOException) {
-            Timber.e(e, "Failed to clear IFW rules, IO exception occured")
+            Timber.e(e, "Failed to clear IFW rules, IO exception occurred")
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
             )
@@ -88,34 +85,43 @@ class ResetIfwWorker @AssistedInject constructor(
         )
     }
 
-    private fun updateNotification(name: String, current: Int, total: Int): ForegroundInfo {
-        val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
-        val title = applicationContext.getString(R.string.import_ifw_please_wait)
-        val cancel = applicationContext.getString(R.string.cancel)
-        // This PendingIntent can be used to cancel the worker
-        val intent = WorkManager.getInstance(applicationContext)
-            .createCancelPendingIntent(getId())
-        // Create a Notification channel if necessary
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationUtil.createProgressingNotificationChannel(applicationContext)
+    private suspend fun clearIfwRuleForPackage(packageName: String): Result {
+        try {
+            Timber.d("Start clearing IFW rules for package $packageName")
+            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val files = FileUtils.listFiles(ifwFolder)
+            if (files.contains(packageName + Rule.IFW_EXTENSION)) {
+                updateNotification(packageName, 1, 1)
+                Timber.d("Delete IFW rules for $packageName")
+                FileUtils.delete(
+                    path = ifwFolder + packageName,
+                    recursively = false,
+                    dispatcher = ioDispatcher,
+                )
+            }
+        } catch (e: RuntimeException) {
+            Timber.e(e, "Failed to clear IFW rules")
+            return Result.failure(
+                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
+            )
+        } catch (e: IOException) {
+            Timber.e(e, "Failed to clear IFW rules, IO exception occurred")
+            return Result.failure(
+                workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
+            )
         }
-        val notification = NotificationCompat.Builder(applicationContext, id)
-            .setContentTitle(title)
-            .setTicker(title)
-            .setSubText(name)
-            .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
-            .setProgress(total, current, false)
-            .setOngoing(true)
-            .addAction(android.R.drawable.ic_delete, cancel, intent)
-            .build()
-        return ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
+        return Result.success(workDataOf(PARAM_CLEAR_COUNT to 1))
     }
 
     companion object {
         const val PARAM_CLEAR_COUNT = "param_clear_count"
         const val PARAM_WORK_RESULT = "param_work_result"
+        private const val PARAM_RESET_PACKAGE_NAME = "param_reset_package_name"
 
-        fun clearIfwWork() = OneTimeWorkRequestBuilder<ResetIfwWorker>()
+        fun clearIfwWork(packageName: String? = null) = OneTimeWorkRequestBuilder<ResetIfwWorker>()
+            .setInputData(
+                workDataOf(PARAM_RESET_PACKAGE_NAME to packageName),
+            )
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .build()
     }
