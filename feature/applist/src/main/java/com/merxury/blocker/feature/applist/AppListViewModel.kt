@@ -27,6 +27,8 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
+import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -44,6 +46,7 @@ import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.AppStateCache
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -56,6 +59,7 @@ import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -66,10 +70,11 @@ class AppListViewModel @Inject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
+    private val initializeDatabase: InitializeDatabaseUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(app) {
-    private val _uiState = MutableStateFlow<AppListUiState>(AppListUiState.Loading)
+    private val _uiState = MutableStateFlow<AppListUiState>(Initializing())
     val uiState = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<ErrorMessage?>(null)
     val errorState = _errorState.asStateFlow()
@@ -90,9 +95,17 @@ class AppListViewModel @Inject constructor(
     }
 
     fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+        // Init DB first to get correct data
+        initializeDatabase()
+            .takeWhile { it is InitializeState.Initializing }
+            .collect {
+                if (it is InitializeState.Initializing) {
+                    _uiState.emit(Initializing(it.processingName))
+                }
+            }
         appRepository.getApplicationList()
             .onStart {
-                _uiState.emit(AppListUiState.Loading)
+                _uiState.emit(Initializing())
             }
             .distinctUntilChanged()
             .collect { list ->
@@ -241,7 +254,7 @@ class AppListViewModel @Inject constructor(
 }
 
 sealed interface AppListUiState {
-    object Loading : AppListUiState
+    class Initializing(val processingName: String = "") : AppListUiState
     class Error(val error: ErrorMessage) : AppListUiState
     object Success : AppListUiState
 }
