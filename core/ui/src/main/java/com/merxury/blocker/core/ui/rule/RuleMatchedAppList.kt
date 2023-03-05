@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-@file:JvmName("RuleMatchedAppKt")
-
 package com.merxury.blocker.core.ui.rule
 
 import androidx.compose.foundation.layout.Arrangement
@@ -54,7 +52,7 @@ fun RuleMatchedAppList(
                 return
             }
             LazyColumn {
-                items(ruleMatchedAppListUiState.list, key = { it.app.label }) { ruleMatchedApp ->
+                items(ruleMatchedAppListUiState.list, key = { it.app.packageName }) { ruleMatchedApp ->
                     MatchedComponentItem(
                         ruleMatchedApp = ruleMatchedApp,
                         onStopServiceClick = onStopServiceClick,
