@@ -34,7 +34,10 @@
     <string name="launch_activity">Запуск активности</string>
     <string name="stop_service">Остановить службу</string>
     <string name="no_components">Нет компонентов</string>
-    <string name="matched_rules">соответствует %1$d правилам</string>
+    <plurals name="matched_rules" tools:ignore="MissingQuantity">
+        <item quantity="one">Соответствует %1$d правилу</item>
+        <item quantity="other">Соответствует %1$d правилам</item>
+    </plurals>
     <string name="description">Описание</string>
     <string name="applicable_application">Применимое приложение</string>
     <string name="loading">Загрузка</string>
