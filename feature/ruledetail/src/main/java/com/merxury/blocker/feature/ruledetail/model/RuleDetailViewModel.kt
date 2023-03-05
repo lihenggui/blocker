@@ -26,6 +26,7 @@ import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleReposito
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -33,6 +34,7 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
@@ -42,9 +44,12 @@ import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
 import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -70,6 +75,12 @@ class RuleDetailViewModel @Inject constructor(
     private val _ruleInfoUiState: MutableStateFlow<RuleInfoUiState> =
         MutableStateFlow(RuleInfoUiState.Loading)
     val ruleInfoUiState: StateFlow<RuleInfoUiState> = _ruleInfoUiState
+    private val _errorState = MutableStateFlow<UiMessage?>(null)
+    val errorState = _errorState.asStateFlow()
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+        Timber.e(throwable)
+        _errorState.tryEmit(throwable.toErrorMessage())
+    }
 
     private val _tabState = MutableStateFlow(
         TabState(
@@ -128,24 +139,40 @@ class RuleDetailViewModel @Inject constructor(
         }
     }
 
-    fun stopServiceClick(str1: String, str2: String) {
-        // TODO
+    fun dismissAlert() = viewModelScope.launch {
+        _errorState.emit(null)
     }
 
-    fun launchActivityClick(str1: String, str2: String) {
-        // TODO
+    fun launchActivity(packageName: String, componentName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            "am start -n $packageName/$componentName".exec(ioDispatcher)
+        }
     }
 
-    fun copyNameClick(str: String) {
-        // TODO
+    fun stopService(packageName: String, componentName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            "am stopservice $packageName/$componentName".exec(ioDispatcher)
+        }
     }
 
-    fun copyFullNameClick(str: String) {
-        // TODO
+    fun controlComponent(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        controlComponentInternal(packageName, componentName, enabled)
     }
 
-    fun switchComponent(str1: String, str2: String, bool: Boolean) {
-        // TODO
+    private suspend fun controlComponentInternal(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) {
+        componentRepository.controlComponent(packageName, componentName, enabled)
+            .catch { exception ->
+                _errorState.emit(exception.toErrorMessage())
+            }
+            .collect()
     }
 
     private fun loadTabInfo() {
