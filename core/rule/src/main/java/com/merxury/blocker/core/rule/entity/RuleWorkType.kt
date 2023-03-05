@@ -16,13 +16,10 @@
 
 package com.merxury.blocker.core.rule.entity
 
-object RuleWorkResult {
-    const val PARAM_WORK_RESULT = "param_work_result"
-    const val STARTED = 0
-    const val FINISHED = 1
-    const val FOLDER_NOT_DEFINED = 2
-    const val MISSING_ROOT_PERMISSION = 3
-    const val MISSING_STORAGE_PERMISSION = 4
-    const val UNEXPECTED_EXCEPTION = 5
-    const val CANCELLED = 6
+enum class RuleWorkType {
+    EXPORT_BLOCKER_RULES,
+    IMPORT_BLOCKER_RULES,
+    EXPORT_IFW_RULES,
+    IMPORT_IFW_RULES,
+    RESET_IFW,
 }
