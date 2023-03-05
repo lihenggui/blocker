@@ -22,7 +22,7 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
 
-const val generalRuleRoute = "general_rule_route"
+const val generalRuleRoute = "rule_list_route"
 
 fun NavController.navigateToGeneralRule(navOptions: NavOptions? = null) {
     this.navigate(generalRuleRoute, navOptions)

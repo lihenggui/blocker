@@ -97,8 +97,8 @@ class BlockerAppStateTest {
         }
 
         assertEquals(3, state.topLevelDestinations.size)
-        assertTrue(state.topLevelDestinations[0].name.contains("APP_LIST", true))
-        assertTrue(state.topLevelDestinations[1].name.contains("GENERAL_RULE", true))
+        assertTrue(state.topLevelDestinations[0].name.contains("APP", true))
+        assertTrue(state.topLevelDestinations[1].name.contains("RULE", true))
         assertTrue(state.topLevelDestinations[2].name.contains("SEARCH", true))
     }
 
