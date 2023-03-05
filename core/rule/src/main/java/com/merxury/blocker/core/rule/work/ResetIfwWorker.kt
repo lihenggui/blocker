@@ -27,6 +27,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.util.IfwStorageUtils
@@ -116,7 +117,6 @@ class ResetIfwWorker @AssistedInject constructor(
 
     companion object {
         const val PARAM_CLEAR_COUNT = "param_clear_count"
-        const val PARAM_WORK_RESULT = "param_work_result"
         private const val PARAM_RESET_PACKAGE_NAME = "param_reset_package_name"
 
         fun clearIfwWork(packageName: String? = null) = OneTimeWorkRequestBuilder<ResetIfwWorker>()

@@ -28,6 +28,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.assisted.Assisted
@@ -112,7 +113,6 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
 
     companion object {
         const val PARAM_BACKUP_COUNT = "param_backup_count"
-        const val PARAM_WORK_RESULT = "param_work_result"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_BACKUP_SYSTEM_APPS = "param_backup_system_apps"
         private const val PARAM_BACKUP_APP_PACKAGE_NAME = "param_backup_app_package_name"
