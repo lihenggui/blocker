@@ -35,7 +35,10 @@
     <string name="launch_activity">Launch activity</string>
     <string name="stop_service">Stop service</string>
     <string name="no_components">No components</string>
-    <string name="matched_rules">match %1$d rules</string>
+    <plurals name="matched_rules">
+        <item quantity="one">%1$d matched rule</item>
+        <item quantity="other">%1$d matched rules</item>
+    </plurals>
     <string name="description">Description</string>
     <string name="applicable_application">Applicable app</string>
     <string name="loading">Loading</string>
