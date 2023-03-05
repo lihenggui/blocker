@@ -27,6 +27,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.util.IfwStorageUtils
@@ -127,7 +128,6 @@ class ExportIfwRulesWorker @AssistedInject constructor(
 
     companion object {
         const val PARAM_EXPORT_COUNT = "param_export_count"
-        const val PARAM_WORK_RESULT = "param_work_result"
         private const val PARAM_FOLDER_PATH = "param_folder_path"
         private const val PARAM_BACKUP_PACKAGE_NAME = "param_backup_package_name"
 
