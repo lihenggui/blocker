@@ -37,6 +37,9 @@
     <plurals name="matched_rules">
         <item quantity="other">匹配%1$d条规则</item>
     </plurals>
+    <plurals name="matched_apps">
+        <item quantity="other">匹配%1$d个应用</item>
+    </plurals>
     <string name="description">描述</string>
     <string name="applicable_application">适用应用程序</string>
     <string name="loading">正在加载</string>
