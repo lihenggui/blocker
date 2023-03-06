@@ -35,9 +35,9 @@
     <string name="launch_activity">Launch activity</string>
     <string name="stop_service">Stop service</string>
     <string name="no_components">No components</string>
-    <plurals name="matched_rules">
-        <item quantity="one">%1$d matched rule</item>
-        <item quantity="other">%1$d matched rules</item>
+    <plurals name="matched_component">
+        <item quantity="one">%1$d matched component</item>
+        <item quantity="other">%1$d matched components</item>
     </plurals>
     <plurals name="matched_apps">
         <item quantity="one">%1$d matched app</item>
