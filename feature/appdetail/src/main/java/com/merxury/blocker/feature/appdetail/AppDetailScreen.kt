@@ -75,6 +75,7 @@ import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
+import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success

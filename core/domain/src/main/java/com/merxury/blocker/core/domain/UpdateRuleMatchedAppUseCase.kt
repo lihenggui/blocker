@@ -36,7 +36,6 @@ class UpdateRuleMatchedAppUseCase @Inject constructor(
 ) {
 
     operator fun invoke(rule: GeneralRule): Flow<Unit> = flow {
-        Timber.v("Update matched app info: ${rule.name}")
         val userData = userDataRepository.userData.first()
         val matchedComponents = mutableListOf<ComponentInfo>()
         rule.searchKeyword.forEach { keyword ->
@@ -57,6 +56,7 @@ class UpdateRuleMatchedAppUseCase @Inject constructor(
             }
         }
         val updatedRule = rule.copy(matchedAppCount = matchedGroup.keys.size)
+        Timber.v("Updated rule: ${updatedRule.name}, count = ${updatedRule.matchedAppCount}")
         generalRuleRepository.saveGeneralRule(updatedRule)
     }
 }
