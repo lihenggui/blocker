@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.toAppItem
+import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
@@ -113,6 +114,13 @@ class RuleDetailViewModel @Inject constructor(
         }
         currentSearchKeyword = rule.searchKeyword
         loadMatchedApps(rule.searchKeyword)
+    }
+
+    fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) = viewModelScope.launch {
+        list.forEach {
+            controlComponentInternal(it.packageName, it.name, enable)
+        }
+        loadMatchedApps(currentSearchKeyword)
     }
 
     private suspend fun loadMatchedApps(keywords: List<String>) {

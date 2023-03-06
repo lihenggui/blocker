@@ -40,11 +40,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
+import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.applist.AppIcon
 import com.merxury.blocker.core.ui.applist.model.AppItem
@@ -56,11 +59,13 @@ fun MatchedComponentItem(
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
     ruleMatchedApp: RuleMatchedApp,
-    onStopServiceClick: (String, String) -> Unit,
-    onLaunchActivityClick: (String, String) -> Unit,
-    onCopyNameClick: (String) -> Unit,
-    onCopyFullNameClick: (String) -> Unit,
-    onSwitch: (String, String, Boolean) -> Unit,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     var expanded by remember {
         mutableStateOf(false)
@@ -91,6 +96,23 @@ fun MatchedComponentItem(
                 label = ruleMatchedApp.app.label,
                 matchedComponentCount = ruleMatchedApp.componentList.size,
                 modifier = modifier.weight(1f),
+            )
+            val items = listOf(
+                DropDownMenuItem(
+                    R.string.block_all_components,
+                ) {
+                    onBlockAllClick(ruleMatchedApp.componentList)
+                },
+                DropDownMenuItem(
+                    R.string.enable_all_components,
+                ) {
+                    onEnableAllClick(ruleMatchedApp.componentList)
+                },
+            )
+            BlockerAppTopBarMenu(
+                menuIcon = BlockerIcons.MoreVert,
+                menuIconDesc = R.string.more_menu,
+                menuList = items,
             )
         }
         Divider()
@@ -198,11 +220,6 @@ fun MatchedComponentItemPreview() {
         Surface {
             MatchedComponentItem(
                 ruleMatchedApp = ruleMatchedApp,
-                onCopyFullNameClick = {},
-                onCopyNameClick = {},
-                onLaunchActivityClick = { _, _ -> },
-                onStopServiceClick = { _, _ -> },
-                onSwitch = { _, _, _ -> },
             )
         }
     }

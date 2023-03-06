@@ -53,4 +53,7 @@
     <string name="receiver_with_count">Receiver (%1$d)</string>
     <string name="provider_with_count">Provider (%1$d)</string>
     <string name="initializing_database">Initializing database</string>
+    <string name="more_menu">More menu</string>
+    <string name="block_all_components">Block all components</string>
+    <string name="enable_all_components">Enable all components</string>
 </resources>
