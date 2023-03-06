@@ -42,6 +42,9 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -93,6 +96,8 @@ class RuleDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<RuleDetailTabs>> = _tabState.asStateFlow()
+    private val _appBarUiState = MutableStateFlow(AppBarUiState())
+    val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
     private var currentSearchKeyword: List<String> = emptyList()
 
     init {
@@ -114,6 +119,14 @@ class RuleDetailViewModel @Inject constructor(
         }
         currentSearchKeyword = rule.searchKeyword
         loadMatchedApps(rule.searchKeyword)
+    }
+
+    fun controlAllComponentsInPage(enable: Boolean) = viewModelScope.launch {
+        val uiState = _ruleMatchedAppListUiState.value as? RuleMatchedAppListUiState.Success
+            ?: return@launch
+        val list = uiState.list
+            .flatMap { it.componentList }
+        controlAllComponents(list, enable)
     }
 
     fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) = viewModelScope.launch {
@@ -148,7 +161,14 @@ class RuleDetailViewModel @Inject constructor(
             _tabState.update {
                 it.copy(selectedItem = newTab)
             }
+            _appBarUiState.update {
+                it.copy(actions = getAppBarAction())
+            }
         }
+    }
+    private fun getAppBarAction(): List<AppBarAction> = when (tabState.value.selectedItem) {
+        Description -> listOf()
+        else -> listOf(MORE)
     }
 
     fun dismissAlert() = viewModelScope.launch {

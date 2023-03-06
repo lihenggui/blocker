@@ -50,12 +50,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
+import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -71,8 +74,11 @@ import com.merxury.blocker.core.ui.rule.RuleMatchedAppList
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
+import com.merxury.blocker.feature.ruledetail.R.string
 import com.merxury.blocker.feature.ruledetail.component.RuleDescription
 import com.merxury.blocker.feature.ruledetail.model.RuleDetailViewModel
 import com.merxury.blocker.feature.ruledetail.model.RuleInfoUiState
@@ -88,6 +94,7 @@ fun RuleDetailRoute(
     val ruleMatchedAppListUiState by viewModel.ruleMatchedAppListUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
+    val appBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboardManager.current
     RuleDetailScreen(
         ruleMatchedAppListUiState = ruleMatchedAppListUiState,
@@ -95,12 +102,15 @@ fun RuleDetailRoute(
         onBackClick = onBackClick,
         tabState = tabState,
         switchTab = viewModel::switchTab,
+        appBarUiState = appBarUiState,
         onStopServiceClick = viewModel::stopService,
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onBlockAllClick = { viewModel.controlAllComponents(it, false) },
         onEnableAllClick = { viewModel.controlAllComponents(it, true) },
+        onBlockAllInPageClick = { viewModel.controlAllComponentsInPage(false) },
+        onEnableAllInPageClick = { viewModel.controlAllComponentsInPage(true) },
         onSwitch = viewModel::controlComponent,
     )
     if (errorState != null) {
@@ -119,6 +129,7 @@ fun RuleDetailScreen(
     ruleInfoUiState: RuleInfoUiState,
     onBackClick: () -> Unit,
     tabState: TabState<RuleDetailTabs>,
+    appBarUiState: AppBarUiState = AppBarUiState(),
     switchTab: (RuleDetailTabs) -> Unit,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
@@ -126,6 +137,8 @@ fun RuleDetailScreen(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInPageClick: () -> Unit = { },
+    onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (ruleInfoUiState) {
@@ -139,6 +152,7 @@ fun RuleDetailScreen(
                 ruleMatchedAppListUiState = ruleMatchedAppListUiState,
                 ruleInfoUiState = ruleInfoUiState,
                 onBackClick = onBackClick,
+                appBarUiState = appBarUiState,
                 tabState = tabState,
                 switchTab = switchTab,
                 onStopServiceClick = onStopServiceClick,
@@ -147,6 +161,8 @@ fun RuleDetailScreen(
                 onCopyFullNameClick = onCopyFullNameClick,
                 onBlockAllClick = onBlockAllClick,
                 onEnableAllClick = onEnableAllClick,
+                onBlockAllInPageClick = onBlockAllInPageClick,
+                onEnableAllInPageClick = onEnableAllInPageClick,
                 onSwitch = onSwitch,
             )
         }
@@ -163,6 +179,7 @@ fun RuleDetailContent(
     ruleMatchedAppListUiState: RuleMatchedAppListUiState,
     ruleInfoUiState: RuleInfoUiState.Success,
     onBackClick: () -> Unit,
+    appBarUiState: AppBarUiState = AppBarUiState(),
     tabState: TabState<RuleDetailTabs>,
     switchTab: (RuleDetailTabs) -> Unit,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
@@ -171,6 +188,8 @@ fun RuleDetailContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockAllInPageClick: () -> Unit = { },
+    onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val listState = rememberLazyListState()
@@ -219,6 +238,13 @@ fun RuleDetailContent(
                 summary = "",
                 iconSource = ruleInfoUiState.ruleInfo.iconUrl,
                 onIconClick = { },
+                actions = {
+                    RuleDetailAppBarActions(
+                        appBarUiState = appBarUiState,
+                        blockAllComponents = onBlockAllInPageClick,
+                        enableAllComponents = onEnableAllInPageClick,
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
@@ -243,6 +269,44 @@ fun RuleDetailContent(
             onSwitch = onSwitch,
         )
     }
+}
+
+@Composable
+fun RuleDetailAppBarActions(
+    appBarUiState: AppBarUiState = AppBarUiState(),
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
+) {
+    val actions = appBarUiState.actions
+    if (actions.isEmpty()) return
+    if (actions.contains(MORE)) {
+        MoreActionMenu(
+            blockAllComponents = blockAllComponents,
+            enableAllComponents = enableAllComponents,
+        )
+    }
+}
+
+@Composable
+fun MoreActionMenu(
+    blockAllComponents: () -> Unit,
+    enableAllComponents: () -> Unit,
+) {
+    val items = listOf(
+        DropDownMenuItem(
+            string.block_all_of_this_page,
+            blockAllComponents,
+        ),
+        DropDownMenuItem(
+            string.enable_all_of_this_page,
+            enableAllComponents,
+        ),
+    )
+    BlockerAppTopBarMenu(
+        menuIcon = BlockerIcons.MoreVert,
+        menuIconDesc = com.merxury.blocker.core.ui.R.string.more_menu,
+        menuList = items,
+    )
 }
 
 @Composable
