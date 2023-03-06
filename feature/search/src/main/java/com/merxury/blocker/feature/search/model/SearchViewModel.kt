@@ -33,6 +33,7 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_DESCENDING
@@ -47,6 +48,8 @@ import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.ui.rule.GeneralRuleWithApp
+import com.merxury.blocker.core.ui.rule.toGeneralRuleWithApp
 import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -200,12 +203,27 @@ class SearchViewModel @Inject constructor(
                     .first()
                     .ruleServerProvider
                     .baseUrl
-                val listWithIconUrl = list.map { rule ->
+                val rules = list.map { rule ->
                     rule.copy(
                         iconUrl = "$serverUrl${rule.iconUrl}",
                     )
                 }
-                emit(listWithIconUrl)
+                    .map { it.toGeneralRuleWithApp() }
+                    .toMutableList()
+                // Update rules with matched app info
+                rules.forEachIndexed { index, rule ->
+                    val matchedComponent = mutableListOf<ComponentInfo>()
+                    rule.searchKeyword.forEach { keyword ->
+                        val matchComponents = componentRepository.searchComponent(keyword).first()
+                        matchedComponent.addAll(matchComponents)
+                    }
+                    val matchedAppCount = matchedComponent.groupBy { it.packageName }
+                        .size
+                    Timber.v("Matched rule: ${rule.name} count: $matchedAppCount")
+                    rules[index] = rules[index].copy(matchedAppCount = matchedAppCount)
+                }
+                rules.sortByDescending { it.matchedAppCount }
+                emit(rules)
             }
         val searchFlow = combine(
             searchAppFlow,
@@ -305,7 +323,7 @@ data class ComponentTabUiState(
 )
 
 data class RuleTabUiState(
-    val list: List<GeneralRule> = listOf(),
+    val list: List<GeneralRuleWithApp> = listOf(),
     val isSelectedMode: Boolean = false,
     val selectedAppList: List<GeneralRule> = listOf(),
 )

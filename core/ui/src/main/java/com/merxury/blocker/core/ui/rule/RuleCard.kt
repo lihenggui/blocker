@@ -41,15 +41,13 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.R.string
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RuleCard(
-    item: GeneralRule,
-    matchedAppCount: Int = 0,
+    item: GeneralRuleWithApp,
     onCardClick: (Int) -> Unit = { },
 ) {
     OutlinedCard(
@@ -115,8 +113,8 @@ fun RuleCard(
                     },
                 text = pluralStringResource(
                     id = plurals.matched_apps,
-                    matchedAppCount,
-                    matchedAppCount,
+                    item.matchedAppCount,
+                    item.matchedAppCount,
                 ),
                 color = MaterialTheme.colorScheme.onTertiary,
             )
@@ -171,7 +169,7 @@ fun RuleCard(
 @Composable
 @Preview
 fun RuleBasicInfoPreview() {
-    val item = GeneralRule(
+    val item = GeneralRuleWithApp(
         id = 2,
         name = "Android WorkerManager",
         iconUrl = null,
