@@ -27,4 +27,5 @@ data class GeneralRule(
     val safeToBlock: Boolean? = null,
     val sideEffect: String? = null,
     val contributors: List<String> = listOf(),
+    val matchedAppCount: Int = 0,
 )
