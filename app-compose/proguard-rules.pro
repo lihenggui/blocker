@@ -22,6 +22,10 @@
     kotlinx.serialization.KSerializer serializer(...);
 }
 
+# Don't obsufcate classes under com.merxury package
+# In order to make the error readable, we need to keep the class name
+-keep class com.merxury.** { *; }
+
 # @Serializable and @Polymorphic are used at runtime for polymorphic serialization.
 -keepattributes RuntimeVisibleAnnotations,AnnotationDefault
 

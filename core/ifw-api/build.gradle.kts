@@ -27,6 +27,9 @@ android {
             isIncludeAndroidResources = true
         }
     }
+    defaultConfig {
+        consumerProguardFiles("proguard-rules.pro")
+    }
 }
 
 dependencies {
