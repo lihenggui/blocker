@@ -99,6 +99,8 @@ fun RuleDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        onBlockAllClick = { viewModel.controlAllComponents(it, false) },
+        onEnableAllClick = { viewModel.controlAllComponents(it, true) },
         onSwitch = viewModel::controlComponent,
     )
     if (errorState != null) {
@@ -118,11 +120,13 @@ fun RuleDetailScreen(
     onBackClick: () -> Unit,
     tabState: TabState<RuleDetailTabs>,
     switchTab: (RuleDetailTabs) -> Unit,
-    onStopServiceClick: (String, String) -> Unit,
-    onLaunchActivityClick: (String, String) -> Unit,
-    onCopyNameClick: (String) -> Unit,
-    onCopyFullNameClick: (String) -> Unit,
-    onSwitch: (String, String, Boolean) -> Unit,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -141,6 +145,8 @@ fun RuleDetailScreen(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
+                onBlockAllClick = onBlockAllClick,
+                onEnableAllClick = onEnableAllClick,
                 onSwitch = onSwitch,
             )
         }
@@ -159,11 +165,13 @@ fun RuleDetailContent(
     onBackClick: () -> Unit,
     tabState: TabState<RuleDetailTabs>,
     switchTab: (RuleDetailTabs) -> Unit,
-    onStopServiceClick: (String, String) -> Unit,
-    onLaunchActivityClick: (String, String) -> Unit,
-    onCopyNameClick: (String) -> Unit,
-    onCopyFullNameClick: (String) -> Unit,
-    onSwitch: (String, String, Boolean) -> Unit,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -230,6 +238,8 @@ fun RuleDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
+            onBlockAllClick = onBlockAllClick,
+            onEnableAllClick = onEnableAllClick,
             onSwitch = onSwitch,
         )
     }
@@ -249,11 +259,13 @@ fun RuleDetailTabContent(
     ruleInfoUiState: RuleInfoUiState.Success,
     tabState: TabState<RuleDetailTabs>,
     switchTab: (RuleDetailTabs) -> Unit,
-    onStopServiceClick: (String, String) -> Unit,
-    onLaunchActivityClick: (String, String) -> Unit,
-    onCopyNameClick: (String) -> Unit,
-    onCopyFullNameClick: (String) -> Unit,
-    onSwitch: (String, String, Boolean) -> Unit,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     Column(
         modifier = modifier,
@@ -279,6 +291,8 @@ fun RuleDetailTabContent(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
+                onBlockAllClick = onBlockAllClick,
+                onEnableAllClick = onEnableAllClick,
                 onSwitch = onSwitch,
             )
         }
