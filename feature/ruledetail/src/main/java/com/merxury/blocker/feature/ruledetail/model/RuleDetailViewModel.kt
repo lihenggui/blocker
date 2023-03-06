@@ -92,6 +92,7 @@ class RuleDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<RuleDetailTabs>> = _tabState.asStateFlow()
+    private var currentSearchKeyword: List<String> = emptyList()
 
     init {
         loadTabInfo()
@@ -110,6 +111,7 @@ class RuleDetailViewModel @Inject constructor(
         _ruleInfoUiState.update {
             RuleInfoUiState.Success(ruleWithIcon)
         }
+        currentSearchKeyword = rule.searchKeyword
         loadMatchedApps(rule.searchKeyword)
     }
 
@@ -161,6 +163,7 @@ class RuleDetailViewModel @Inject constructor(
         enabled: Boolean,
     ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         controlComponentInternal(packageName, componentName, enabled)
+        loadMatchedApps(currentSearchKeyword)
     }
 
     private suspend fun controlComponentInternal(
