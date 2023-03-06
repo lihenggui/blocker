@@ -22,7 +22,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -75,7 +74,6 @@ class SearchViewModel @Inject constructor(
     private val pm: PackageManager,
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
-    private val generalRuleRepository: GeneralRuleRepository,
     private val initializeDatabase: InitializeDatabaseUseCase,
     private val searchRule: SearchGeneralRuleUseCase,
     private val userDataRepository: UserDataRepository,
