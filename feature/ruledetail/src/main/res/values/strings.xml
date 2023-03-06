@@ -20,6 +20,8 @@
     <string name="search_keyword">Search keyword</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="unknow">unknow</string>
+    <string name="unknown">Unknown</string>
     <string name="no_description">No description</string>
+    <string name="block_all_of_this_page">Block all of this page</string>
+    <string name="enable_all_of_this_page">Enable all of this page</string>
 </resources>
