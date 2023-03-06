@@ -41,7 +41,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppServiceStatus
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.AppStateCache
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -76,7 +76,7 @@ class AppListViewModel @Inject constructor(
 ) : AndroidViewModel(app) {
     private val _uiState = MutableStateFlow<AppListUiState>(Initializing())
     val uiState = _uiState.asStateFlow()
-    private val _errorState = MutableStateFlow<ErrorMessage?>(null)
+    private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private var _appList = mutableStateListOf<AppItem>()
     private val _appListFlow = MutableStateFlow(_appList)
@@ -255,6 +255,6 @@ class AppListViewModel @Inject constructor(
 
 sealed interface AppListUiState {
     class Initializing(val processingName: String = "") : AppListUiState
-    class Error(val error: ErrorMessage) : AppListUiState
+    class Error(val error: UiMessage) : AppListUiState
     object Success : AppListUiState
 }

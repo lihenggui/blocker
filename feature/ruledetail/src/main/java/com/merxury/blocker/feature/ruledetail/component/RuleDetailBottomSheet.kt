@@ -21,6 +21,8 @@ import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,16 +43,17 @@ fun BottomSheetRoute(
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
     val ruleMatchedAppListUiState by viewModel.ruleMatchedAppListUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
+    val clipboardManager = LocalClipboardManager.current
     RuleDetailBottomSheet(
         ruleMatchedAppListUiState = ruleMatchedAppListUiState,
         ruleInfoUiState = ruleInfoUiState,
         tabState = tabState,
         switchTab = viewModel::switchTab,
-        onStopServiceClick = viewModel::stopServiceClick,
-        onLaunchActivityClick = viewModel::launchActivityClick,
-        onCopyNameClick = viewModel::copyNameClick,
-        onCopyFullNameClick = viewModel::copyFullNameClick,
-        onSwitch = viewModel::switchComponent,
+        onStopServiceClick = viewModel::stopService,
+        onLaunchActivityClick = viewModel::launchActivity,
+        onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        onSwitch = viewModel::controlComponent,
     )
 }
 

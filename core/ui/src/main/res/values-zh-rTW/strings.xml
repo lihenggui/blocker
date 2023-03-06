@@ -34,7 +34,12 @@
     <string name="launch_activity">複製包名</string>
     <string name="stop_service">停止服務</string>
     <string name="no_components">無組件</string>
-    <string name="matched_rules">匹配 %1$d 條規則</string>
+    <plurals name="matched_rules">
+        <item quantity="other">匹配%1$d條規則</item>
+    </plurals>
+    <plurals name="matched_apps">
+        <item quantity="other">匹配%1$d個應用</item>
+    </plurals>
     <string name="description">描述</string>
     <string name="applicable_application">適用應用程序</string>
     <string name="loading">正在加載</string>
