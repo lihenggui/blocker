@@ -22,11 +22,10 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.rule.GeneralRuleWithApp
-import com.merxury.blocker.core.ui.rule.toGeneralRuleWithApp
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Success
@@ -76,7 +75,6 @@ class GeneralRulesViewModel @Inject constructor(
                 val updatedRules = rules.map { rule ->
                     rule.copy(iconUrl = serverUrl + rule.iconUrl)
                 }
-                    .map { it.toGeneralRuleWithApp() }
                     .toMutableList()
                 // Update rules with matched app info
                 rules.forEachIndexed { index, rule ->
@@ -108,7 +106,7 @@ class GeneralRulesViewModel @Inject constructor(
 sealed interface GeneralRuleUiState {
     object Loading : GeneralRuleUiState
     class Success(
-        val rules: List<GeneralRuleWithApp>,
+        val rules: List<GeneralRule>,
     ) : GeneralRuleUiState
 
     class Error(val error: UiMessage) : GeneralRuleUiState
