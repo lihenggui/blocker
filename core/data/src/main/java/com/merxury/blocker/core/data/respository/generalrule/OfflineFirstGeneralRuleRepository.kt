@@ -20,6 +20,7 @@ import com.merxury.blocker.core.data.model.asEntity
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
 import com.merxury.blocker.core.database.generalrule.asExternalModel
+import com.merxury.blocker.core.database.generalrule.fromExternalModel
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -70,6 +71,10 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
             emit(Result.Loading)
         }
         .flowOn(ioDispatcher)
+
+    override suspend fun saveGeneralRule(rule: GeneralRule) {
+        generalRuleDao.upsertGeneralRule(rule.fromExternalModel())
+    }
 
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> {
         return generalRuleDao.searchGeneralRule(keyword)
