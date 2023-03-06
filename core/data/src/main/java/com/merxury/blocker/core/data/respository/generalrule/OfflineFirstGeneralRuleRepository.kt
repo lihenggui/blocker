@@ -90,13 +90,17 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
             )
             // Insert or update rules from the network
             networkRules.forEach { networkEntity ->
-                val cachedEntity = currentCache.find { it == networkEntity }
-                if (cachedEntity != null) {
+                val cachedEntity = currentCache.find { it.id == networkEntity.id }
+                if (cachedEntity == networkEntity) {
                     Timber.v("Skip saving entity id: ${cachedEntity.id}")
                     return@forEach
                 }
                 Timber.v("Saving new rules $networkEntity to local db.")
-                generalRuleDao.upsertGeneralRule(networkEntity)
+                // Update the rule but keep the matched app count as a cache
+                val cachedMatchedAppCount = cachedEntity?.matchedAppCount ?: 0
+                generalRuleDao.upsertGeneralRule(
+                    networkEntity.copy(matchedAppCount = cachedMatchedAppCount),
+                )
             }
             // Delete outdated rules in the local cache
             // Find the rules that's not existed
