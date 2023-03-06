@@ -52,4 +52,7 @@
     <string name="receiver_with_count">Приемники(%1$d)</string>
     <string name="provider_with_count">Поставщики(%1$d)</string>
     <string name="initializing_database">Инициализация базы данных</string>
+    <string name="more_menu">Больше</string>
+    <string name="block_all_components">Блокировать все компоненты</string>
+    <string name="enable_all_components">Включить все компоненты</string>
 </resources>

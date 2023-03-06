@@ -50,4 +50,7 @@
     <string name="receiver_with_count">廣播接收器 (%1$d)</string>
     <string name="provider_with_count">內容提供者 (%1$d)</string>
     <string name="initializing_database">初始化數據</string>
+    <string name="more_menu">更多</string>
+    <string name="block_all_components">禁用所有組件</string>
+    <string name="enable_all_components">啟用所有組件</string>
 </resources>
