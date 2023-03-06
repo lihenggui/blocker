@@ -34,5 +34,7 @@ interface GeneralRuleRepository {
      */
     fun updateGeneralRule(): Flow<Result<Unit>>
 
+    suspend fun saveGeneralRule(rule: GeneralRule)
+
     fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>>
 }
