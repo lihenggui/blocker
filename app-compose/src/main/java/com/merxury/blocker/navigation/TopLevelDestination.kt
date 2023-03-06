@@ -33,13 +33,13 @@ enum class TopLevelDestination(
     val iconTextId: Int,
     val titleTextId: Int,
 ) {
-    APP_LIST(
+    APP(
         selectedIcon = ImageVectorIcon(BlockerIcons.Apps),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Apps),
         iconTextId = R.string.apps,
         titleTextId = R.string.app_name,
     ),
-    GENERAL_RULE(
+    RULE(
         selectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
         unselectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
         iconTextId = R.string.rules,

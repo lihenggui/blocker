@@ -19,7 +19,6 @@ package com.merxury.blocker.di
 import android.content.Context
 import coil.ImageLoader
 import coil.decode.SvgDecoder
-import coil.util.DebugLogger
 import com.merxury.blocker.R
 import dagger.Module
 import dagger.Provides
@@ -58,9 +57,6 @@ object CoilModule {
             // Assume most content images are versioned urls
             // but some problematic images are fetching each time
             .respectCacheHeaders(false)
-            .apply {
-                logger(DebugLogger())
-            }
             .build()
     }
 }

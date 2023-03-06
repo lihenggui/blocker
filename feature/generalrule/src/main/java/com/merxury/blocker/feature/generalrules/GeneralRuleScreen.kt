@@ -40,7 +40,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.rule.GeneralRuleWithApp
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -64,8 +64,8 @@ fun GeneralRulesRoute(
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
-            title = errorState?.message.orEmpty(),
-            text = errorState?.stackTrace.orEmpty(),
+            title = errorState?.title.orEmpty(),
+            text = errorState?.content.orEmpty(),
             onDismissRequest = viewModel::dismissAlert,
         )
     }
@@ -117,7 +117,7 @@ fun GeneralRulesScreen(
 fun GeneralRuleScreenPreview() {
     val uiState = Success(
         listOf(
-            GeneralRule(
+            GeneralRuleWithApp(
                 id = 1,
                 name = "AWS SDK for Kotlin (Developer Preview)",
                 iconUrl = null,
@@ -131,7 +131,7 @@ fun GeneralRuleScreenPreview() {
                 contributors = listOf("Online contributor"),
                 searchKeyword = listOf("androidx.google.example1"),
             ),
-            GeneralRule(
+            GeneralRuleWithApp(
                 id = 2,
                 name = "Android WorkerManager",
                 iconUrl = null,

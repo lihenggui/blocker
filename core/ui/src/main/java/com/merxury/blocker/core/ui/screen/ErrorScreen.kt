@@ -31,10 +31,10 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 
 @Composable
-fun ErrorScreen(error: ErrorMessage) {
+fun ErrorScreen(error: UiMessage) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -47,7 +47,7 @@ fun ErrorScreen(error: ErrorMessage) {
         )
         BlockerBodyLargeText(
             modifier = Modifier.padding(16.dp),
-            text = error.message,
+            text = error.title,
             color = MaterialTheme.colorScheme.outline,
         )
     }
@@ -58,7 +58,7 @@ fun ErrorScreen(error: ErrorMessage) {
 fun ErrorScreenPreview() {
     BlockerTheme {
         Surface {
-            ErrorScreen(ErrorMessage("RuntimeException"))
+            ErrorScreen(UiMessage("RuntimeException"))
         }
     }
 }

@@ -23,15 +23,19 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.toAppComponentEntity
 import com.merxury.blocker.core.database.app.toComponentInfo
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.result.Result
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import javax.inject.Inject
@@ -43,6 +47,7 @@ class LocalComponentRepository @Inject constructor(
     private val pmController: RootController,
     private val ifwController: IfwController,
     private val shizukuController: ShizukuController,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentRepository {
 
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> =
@@ -50,12 +55,14 @@ class LocalComponentRepository @Inject constructor(
             .map { list ->
                 list.map { it.toComponentInfo() }
             }
+            .flowOn(ioDispatcher)
 
     override fun getComponentList(packageName: String, type: ComponentType) =
         appComponentDao.getByPackageNameAndType(packageName, type)
             .map { list ->
                 list.map { it.toComponentInfo() }
             }
+            .flowOn(ioDispatcher)
 
     override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> =
         flow {
@@ -67,6 +74,7 @@ class LocalComponentRepository @Inject constructor(
                 .first()
             appComponentDao.upsertComponentList(latestComponents)
         }
+            .flowOn(ioDispatcher)
 
     override fun updateComponentList(packageName: String): Flow<Result<Unit>> =
         flow {
@@ -78,6 +86,7 @@ class LocalComponentRepository @Inject constructor(
                 .first()
             appComponentDao.upsertComponentList(latestComponents)
         }
+            .flowOn(ioDispatcher)
 
     override fun controlComponent(
         packageName: String,
@@ -98,6 +107,7 @@ class LocalComponentRepository @Inject constructor(
         .map { list ->
             list.map { it.toComponentInfo() }
         }
+        .flowOn(ioDispatcher)
 
     override suspend fun saveComponents(components: List<ComponentInfo>) {
         val entities = components.map { it.toAppComponentEntity() }

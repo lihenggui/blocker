@@ -33,6 +33,7 @@ import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.assisted.Assisted
@@ -112,7 +113,6 @@ class ImportMatRulesWorker @AssistedInject constructor(
 
     companion object {
         const val PARAM_IMPORT_COUNT = "param_import_count"
-        const val PARAM_WORK_RESULT = "param_work_result"
         private const val PARAM_RESTORE_SYS_APPS = "param_restore_sys_apps"
         private const val PARAM_CONTROLLER_TYPE = "param_controller_type"
         private const val PARAM_FILE_URI = "key_file_uri"

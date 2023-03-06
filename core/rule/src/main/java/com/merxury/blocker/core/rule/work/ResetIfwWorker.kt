@@ -27,6 +27,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
 import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.ifw.util.IfwStorageUtils
@@ -90,11 +91,12 @@ class ResetIfwWorker @AssistedInject constructor(
             Timber.d("Start clearing IFW rules for package $packageName")
             val ifwFolder = IfwStorageUtils.getIfwFolder()
             val files = FileUtils.listFiles(ifwFolder)
-            if (files.contains(packageName + Rule.IFW_EXTENSION)) {
+            val filename = packageName + Rule.IFW_EXTENSION
+            if (files.contains(filename)) {
                 updateNotification(packageName, 1, 1)
                 Timber.d("Delete IFW rules for $packageName")
                 FileUtils.delete(
-                    path = ifwFolder + packageName,
+                    path = ifwFolder + filename,
                     recursively = false,
                     dispatcher = ioDispatcher,
                 )
@@ -115,7 +117,6 @@ class ResetIfwWorker @AssistedInject constructor(
 
     companion object {
         const val PARAM_CLEAR_COUNT = "param_clear_count"
-        const val PARAM_WORK_RESULT = "param_work_result"
         private const val PARAM_RESET_PACKAGE_NAME = "param_reset_package_name"
 
         fun clearIfwWork(packageName: String? = null) = OneTimeWorkRequestBuilder<ResetIfwWorker>()
