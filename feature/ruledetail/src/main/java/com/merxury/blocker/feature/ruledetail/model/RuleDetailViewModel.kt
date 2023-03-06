@@ -122,9 +122,11 @@ class RuleDetailViewModel @Inject constructor(
             matchedComponents.addAll(components)
         }
         Timber.v("Find ${matchedComponents.size} matched components for rule: $keywords")
+        val showSystemApps = userDataRepository.userData.first().showSystemApps
         val searchResult = matchedComponents.groupBy { it.packageName }
             .mapNotNull { (packageName, components) ->
                 val app = appRepository.getApplication(packageName).first() ?: return@mapNotNull null
+                if (!showSystemApps && app.isSystem) return@mapNotNull null
                 val packageInfo = pm.getPackageInfoCompat(packageName, 0)
                 val appItem = app.toAppItem(packageInfo = packageInfo)
                 val searchedComponentItem = components.map { it.toComponentItem() }
