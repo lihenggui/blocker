@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.model
+package com.merxury.blocker.core.ui.state.toolbar
 
-enum class AppBarAction {
-    MORE,
-    SEARCH,
-    SHARE_RULE,
-}
+import androidx.compose.ui.text.input.TextFieldValue
+
+data class AppBarUiState(
+    val keyword: TextFieldValue = TextFieldValue(),
+    val isSearchMode: Boolean = false,
+    val actions: List<AppBarAction> = listOf(),
+)
