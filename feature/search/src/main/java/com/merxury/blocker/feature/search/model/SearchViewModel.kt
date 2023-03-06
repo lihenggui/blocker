@@ -230,7 +230,7 @@ class SearchViewModel @Inject constructor(
             searchComponentFlow,
             searchGeneralRuleFlow,
         ) { apps, components, rules ->
-            Timber.v("Fild ${apps.size} apps, ${components.size} components, ${rules.size} rules")
+            Timber.v("Find ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             LocalSearchUiState.Success(
                 searchKeyword = keyword.split(","),
                 appTabUiState = AppTabUiState(list = apps),
