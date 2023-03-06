@@ -128,7 +128,7 @@ private fun MatchedAppInfo(
         )
         BlockerBodyMediumText(
             text = pluralStringResource(
-                id = plurals.matched_rules,
+                id = plurals.matched_component,
                 matchedComponentCount,
                 matchedComponentCount,
             ),
