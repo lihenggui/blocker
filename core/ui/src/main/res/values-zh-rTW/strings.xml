@@ -34,8 +34,8 @@
     <string name="launch_activity">複製包名</string>
     <string name="stop_service">停止服務</string>
     <string name="no_components">無組件</string>
-    <plurals name="matched_rules">
-        <item quantity="other">匹配%1$d條規則</item>
+    <plurals name="matched_component">
+        <item quantity="other">%1$d個組件</item>
     </plurals>
     <plurals name="matched_apps">
         <item quantity="other">匹配%1$d個應用</item>
