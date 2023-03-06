@@ -48,8 +48,6 @@ import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.rule.GeneralRuleWithApp
-import com.merxury.blocker.core.ui.rule.toGeneralRuleWithApp
 import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -208,7 +206,6 @@ class SearchViewModel @Inject constructor(
                         iconUrl = "$serverUrl${rule.iconUrl}",
                     )
                 }
-                    .map { it.toGeneralRuleWithApp() }
                     .toMutableList()
                 // Update rules with matched app info
                 rules.forEachIndexed { index, rule ->
@@ -323,7 +320,7 @@ data class ComponentTabUiState(
 )
 
 data class RuleTabUiState(
-    val list: List<GeneralRuleWithApp> = listOf(),
+    val list: List<GeneralRule> = listOf(),
     val isSelectedMode: Boolean = false,
     val selectedAppList: List<GeneralRule> = listOf(),
 )
