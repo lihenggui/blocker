@@ -39,6 +39,10 @@
         <item quantity="one">%1$d matched rule</item>
         <item quantity="other">%1$d matched rules</item>
     </plurals>
+    <plurals name="matched_apps">
+        <item quantity="one">%1$d matched app</item>
+        <item quantity="other">%1$d matched apps</item>
+    </plurals>
     <string name="description">Description</string>
     <string name="applicable_application">Applicable app</string>
     <string name="loading">Loading</string>

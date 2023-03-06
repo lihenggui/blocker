@@ -25,7 +25,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,15 +38,18 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
+import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.R.string
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RuleCard(
     item: GeneralRule,
+    matchedAppCount: Int = 0,
     onCardClick: (Int) -> Unit = { },
 ) {
     OutlinedCard(
@@ -53,7 +59,7 @@ fun RuleCard(
         onClick = { onCardClick(item.id) },
     ) {
         ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
-            val (icon, name, company, ruleIcon, keywords) = createRefs()
+            val (icon, name, matchedCount, company, ruleIcon, keywords) = createRefs()
             val iconEndGuideline = createGuidelineFromStart(72.dp)
             AsyncImage(
                 modifier = Modifier
@@ -78,12 +84,41 @@ fun RuleCard(
                     .constrainAs(name) {
                         linkTo(
                             start = iconEndGuideline,
-                            end = parent.end,
+                            end = matchedCount.start,
                             bias = 0F,
                         )
                         top.linkTo(icon.top)
                         width = Dimension.fillToConstraints
                     },
+            )
+            val indicatorColor = MaterialTheme.colorScheme.tertiary
+            BlockerLabelSmallText(
+                modifier = Modifier
+                    .drawBehind {
+                        drawRoundRect(
+                            color = indicatorColor,
+                            cornerRadius = CornerRadius(x = 4.dp.toPx(), y = 4.dp.toPx()),
+                        )
+                    }
+                    .padding(horizontal = 2.dp, vertical = 1.dp)
+                    .constrainAs(matchedCount) {
+                        linkTo(
+                            top = name.top,
+                            bottom = name.bottom,
+                            topMargin = 16.dp,
+                        )
+                        linkTo(
+                            start = name.end,
+                            end = parent.end,
+                            endMargin = 16.dp,
+                        )
+                    },
+                text = pluralStringResource(
+                    id = plurals.matched_apps,
+                    matchedAppCount,
+                    matchedAppCount,
+                ),
+                color = MaterialTheme.colorScheme.onTertiary,
             )
             item.company?.let {
                 BlockerBodyMediumText(
