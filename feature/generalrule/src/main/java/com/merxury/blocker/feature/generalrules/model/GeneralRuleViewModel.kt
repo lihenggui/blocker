@@ -18,12 +18,15 @@ package com.merxury.blocker.feature.generalrules.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.ui.rule.GeneralRuleWithApp
+import com.merxury.blocker.core.ui.rule.toGeneralRuleWithApp
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Success
@@ -35,11 +38,13 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
     private val generalRuleRepository: GeneralRuleRepository,
+    private val componentRepository: ComponentRepository,
     private val userDataRepository: UserDataRepository,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<GeneralRuleUiState>(Loading)
@@ -71,6 +76,22 @@ class GeneralRulesViewModel @Inject constructor(
                 val updatedRules = rules.map { rule ->
                     rule.copy(iconUrl = serverUrl + rule.iconUrl)
                 }
+                    .map { it.toGeneralRuleWithApp() }
+                    .toMutableList()
+                // Update rules with matched app info
+                rules.forEachIndexed { index, rule ->
+                    val matchedComponent = mutableListOf<ComponentInfo>()
+                    rule.searchKeyword.forEach { keyword ->
+                        val matchComponents = componentRepository.searchComponent(keyword).first()
+                        matchedComponent.addAll(matchComponents)
+                    }
+                    val matchedAppCount = matchedComponent.groupBy { it.packageName }
+                        .size
+                    Timber.v("Matched rule: ${rule.name} count: $matchedAppCount")
+                    updatedRules[index] = updatedRules[index]
+                        .copy(matchedAppCount = matchedAppCount)
+                }
+                updatedRules.sortByDescending { it.matchedAppCount }
                 _uiState.emit(Success(updatedRules))
             }
     }
@@ -87,7 +108,7 @@ class GeneralRulesViewModel @Inject constructor(
 sealed interface GeneralRuleUiState {
     object Loading : GeneralRuleUiState
     class Success(
-        val rules: List<GeneralRule>,
+        val rules: List<GeneralRuleWithApp>,
     ) : GeneralRuleUiState
 
     class Error(val error: UiMessage) : GeneralRuleUiState
