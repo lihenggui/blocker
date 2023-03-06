@@ -76,8 +76,15 @@ fun MatchedComponentItem(
             modifier = modifier
                 .fillMaxWidth()
                 .clickable { expanded = !expanded }
-                .padding(horizontal = 16.dp, vertical = 8.dp),
+                .padding(end = 16.dp)
+                .padding(vertical = 8.dp),
         ) {
+            IconButton(onClick = { expanded = !expanded }) {
+                Icon(
+                    imageVector = expandIcon,
+                    contentDescription = null,
+                )
+            }
             AppIcon(ruleMatchedApp.app.packageInfo, iconModifier.size(48.dp))
             Spacer(modifier = Modifier.width(16.dp))
             MatchedAppInfo(
@@ -85,12 +92,6 @@ fun MatchedComponentItem(
                 matchedComponentCount = ruleMatchedApp.componentList.size,
                 modifier = modifier.weight(1f),
             )
-            IconButton(onClick = { expanded = !expanded }) {
-                Icon(
-                    imageVector = expandIcon,
-                    contentDescription = null,
-                )
-            }
         }
         Divider()
         if (expanded) {
