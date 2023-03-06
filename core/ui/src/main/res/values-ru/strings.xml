@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
     <string name="clear_cache">Очистить кэш</string>
     <string name="clear_data">Очистить данные</string>
     <string name="force_stop">Принудительная остановка</string>
@@ -34,7 +34,14 @@
     <string name="launch_activity">Запуск активности</string>
     <string name="stop_service">Остановить службу</string>
     <string name="no_components">Нет компонентов</string>
-    <string name="matched_rules">соответствует %1$d правилам</string>
+    <plurals name="matched_rules" tools:ignore="MissingQuantity">
+        <item quantity="one">Соответствует %1$d правилу</item>
+        <item quantity="other">Соответствует %1$d правилам</item>
+    </plurals>
+    <plurals name="matched_apps">
+        <item quantity="one">Соответствует %1$d приложению</item>
+        <item quantity="other">Соответствует %1$d приложениям</item>
+    </plurals>
     <string name="description">Описание</string>
     <string name="applicable_application">Применимое приложение</string>
     <string name="loading">Загрузка</string>

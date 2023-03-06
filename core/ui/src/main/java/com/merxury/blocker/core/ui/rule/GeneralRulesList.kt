@@ -23,11 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.GeneralRule
 
 @Composable
 fun GeneralRulesList(
-    rules: List<GeneralRule>,
+    rules: List<GeneralRuleWithApp>,
     modifier: Modifier = Modifier,
     onClick: (Int) -> Unit,
 ) {
@@ -49,7 +48,7 @@ fun GeneralRulesList(
 @Preview
 fun GeneralRuleScreenPreview() {
     val ruleList = listOf(
-        GeneralRule(
+        GeneralRuleWithApp(
             id = 1,
             name = "AWS SDK for Kotlin (Developer Preview)",
             iconUrl = null,
@@ -63,7 +62,7 @@ fun GeneralRuleScreenPreview() {
             contributors = listOf("Online contributor"),
             searchKeyword = listOf("androidx.google.example1"),
         ),
-        GeneralRule(
+        GeneralRuleWithApp(
             id = 2,
             name = "Android WorkerManager",
             iconUrl = null,

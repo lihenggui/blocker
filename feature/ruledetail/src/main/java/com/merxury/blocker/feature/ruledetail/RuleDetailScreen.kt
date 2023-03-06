@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -43,13 +42,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
@@ -60,7 +62,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.component.ComponentItem
-import com.merxury.blocker.core.ui.data.ErrorMessage
+import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
@@ -85,18 +87,27 @@ fun RuleDetailRoute(
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
     val ruleMatchedAppListUiState by viewModel.ruleMatchedAppListUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
+    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
+    val clipboardManager = LocalClipboardManager.current
     RuleDetailScreen(
         ruleMatchedAppListUiState = ruleMatchedAppListUiState,
         ruleInfoUiState = ruleInfoUiState,
         onBackClick = onBackClick,
         tabState = tabState,
         switchTab = viewModel::switchTab,
-        onStopServiceClick = viewModel::stopServiceClick,
-        onLaunchActivityClick = viewModel::launchActivityClick,
-        onCopyNameClick = viewModel::copyNameClick,
-        onCopyFullNameClick = viewModel::copyFullNameClick,
-        onSwitch = viewModel::switchComponent,
+        onStopServiceClick = viewModel::stopService,
+        onLaunchActivityClick = viewModel::launchActivity,
+        onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        onSwitch = viewModel::controlComponent,
     )
+    if (errorState != null) {
+        BlockerErrorAlertDialog(
+            title = errorState?.title.orEmpty(),
+            text = errorState?.content.orEmpty(),
+            onDismissRequest = viewModel::dismissAlert,
+        )
+    }
 }
 
 @Composable
@@ -140,7 +151,6 @@ fun RuleDetailScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RuleDetailContent(
     modifier: Modifier = Modifier,
@@ -408,7 +418,7 @@ fun RuleDetailScreenErrorPreView() {
     val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
         list = listOf(ruleMatchedApp),
     )
-    val ruleInfoUiState = RuleInfoUiState.Error(ErrorMessage("Error"))
+    val ruleInfoUiState = RuleInfoUiState.Error(UiMessage("Error"))
     val tabState = TabState(
         items = listOf(
             Description,

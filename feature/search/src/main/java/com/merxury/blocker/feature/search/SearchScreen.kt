@@ -39,11 +39,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.rule.GeneralRuleWithApp
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
@@ -135,7 +135,7 @@ fun SearchScreen(
             when (localSearchUiState) {
                 LocalSearchUiState.Idle -> NoSearchResultScreen()
                 LocalSearchUiState.Loading -> SearchingScreen()
-                is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.message)
+                is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.uiMessage)
                 is LocalSearchUiState.Initializing ->
                     InitializingScreen(localSearchUiState.processingName)
 
@@ -250,7 +250,7 @@ fun AppSearchResultContent(
 @Composable
 fun RuleSearchResultContent(
     modifier: Modifier = Modifier,
-    list: List<GeneralRule>,
+    list: List<GeneralRuleWithApp>,
     onClick: (Int) -> Unit,
 ) {
     if (list.isEmpty()) {

@@ -30,7 +30,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -65,7 +64,6 @@ import com.merxury.blocker.navigation.BlockerNavHost
 import com.merxury.blocker.navigation.TopLevelDestination
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
     ExperimentalLayoutApi::class,
     ExperimentalComposeUiApi::class,
 )
@@ -79,7 +77,7 @@ fun BlockerApp(
     ),
 ) {
     val shouldShowGradientBackground =
-        appState.currentTopLevelDestination == TopLevelDestination.APP_LIST
+        appState.currentTopLevelDestination == TopLevelDestination.APP
 
     BlockerBackground {
         BlockerGradientBackground(
@@ -228,5 +226,9 @@ private fun BlockerBottomBar(
 
 private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopLevelDestination) =
     this?.hierarchy?.any {
-        it.route?.contains(destination.name, true) ?: false
+        it.route
+            ?.split("/")
+            ?.firstOrNull()
+            ?.contains(destination.name, true)
+            ?: false
     } ?: false
