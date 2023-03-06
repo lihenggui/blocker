@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "211cbf4fe9b34cd9d726ddba2669da44",
+    "identityHash": "275e6d4f924d5d60922ad63d63f393bf",
     "entities": [
       {
         "tableName": "general_rules",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `iconUrl` TEXT, `company` TEXT, `searchKeyword` TEXT NOT NULL, `useRegexSearch` INTEGER, `description` TEXT, `safeToBlock` INTEGER, `sideEffect` TEXT, `contributors` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `name` TEXT NOT NULL, `iconUrl` TEXT, `company` TEXT, `searchKeyword` TEXT NOT NULL, `useRegexSearch` INTEGER, `description` TEXT, `safeToBlock` INTEGER, `sideEffect` TEXT, `contributors` TEXT NOT NULL, `matchedAppCount` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -67,6 +67,12 @@
             "columnName": "contributors",
             "affinity": "TEXT",
             "notNull": true
+          },
+          {
+            "fieldPath": "matchedAppCount",
+            "columnName": "matchedAppCount",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -82,7 +88,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '211cbf4fe9b34cd9d726ddba2669da44')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '275e6d4f924d5d60922ad63d63f393bf')"
     ]
   }
 }

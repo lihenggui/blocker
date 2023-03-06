@@ -21,9 +21,11 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.GeneralRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import timber.log.Timber
 import javax.inject.Inject
 
 class UpdateRuleMatchedAppUseCase @Inject constructor(
@@ -33,8 +35,8 @@ class UpdateRuleMatchedAppUseCase @Inject constructor(
     private val appRepository: AppRepository,
 ) {
 
-    operator fun invoke(id: Int): Flow<Unit> = flow {
-        val rule = generalRuleRepository.getGeneralRule(id).first()
+    operator fun invoke(rule: GeneralRule): Flow<Unit> = flow {
+        Timber.v("Update matched app info: ${rule.name}")
         val userData = userDataRepository.userData.first()
         val matchedComponents = mutableListOf<ComponentInfo>()
         rule.searchKeyword.forEach { keyword ->
@@ -43,7 +45,8 @@ class UpdateRuleMatchedAppUseCase @Inject constructor(
         }
         val matchedGroup = matchedComponents.groupBy { it.packageName }
             .toMutableMap()
-        val matchedPackages = matchedGroup.keys
+        // Copy one list to avoid concurrent modification
+        val matchedPackages = matchedGroup.keys.toMutableList()
         if (!userData.showSystemApps) {
             matchedPackages.forEach { packageName ->
                 val appInfo = appRepository.getApplication(packageName).first()

@@ -27,13 +27,13 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
+import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_DESCENDING
@@ -65,7 +65,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -78,6 +77,7 @@ class SearchViewModel @Inject constructor(
     private val componentRepository: ComponentRepository,
     private val generalRuleRepository: GeneralRuleRepository,
     private val initializeDatabase: InitializeDatabaseUseCase,
+    private val searchRule: SearchGeneralRuleUseCase,
     private val userDataRepository: UserDataRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -195,33 +195,7 @@ class SearchViewModel @Inject constructor(
                         .filterNotNull()
                 }
 
-        val searchGeneralRuleFlow = generalRuleRepository.searchGeneralRule(keyword)
-            .transform { list ->
-                val serverUrl = userDataRepository.userData
-                    .first()
-                    .ruleServerProvider
-                    .baseUrl
-                val rules = list.map { rule ->
-                    rule.copy(
-                        iconUrl = "$serverUrl${rule.iconUrl}",
-                    )
-                }
-                    .toMutableList()
-                // Update rules with matched app info
-                rules.forEachIndexed { index, rule ->
-                    val matchedComponent = mutableListOf<ComponentInfo>()
-                    rule.searchKeyword.forEach { keyword ->
-                        val matchComponents = componentRepository.searchComponent(keyword).first()
-                        matchedComponent.addAll(matchComponents)
-                    }
-                    val matchedAppCount = matchedComponent.groupBy { it.packageName }
-                        .size
-                    Timber.v("Matched rule: ${rule.name} count: $matchedAppCount")
-                    rules[index] = rules[index].copy(matchedAppCount = matchedAppCount)
-                }
-                rules.sortByDescending { it.matchedAppCount }
-                emit(rules)
-            }
+        val searchGeneralRuleFlow = searchRule(keyword)
         val searchFlow = combine(
             searchAppFlow,
             searchComponentFlow,

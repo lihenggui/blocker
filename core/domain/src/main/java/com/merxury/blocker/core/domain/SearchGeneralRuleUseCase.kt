@@ -27,7 +27,7 @@ class SearchGeneralRuleUseCase @Inject constructor(
     private val generalRuleRepository: GeneralRuleRepository,
     private val userDataRepository: UserDataRepository,
 ) {
-    operator fun invoke(keyword: String): Flow<List<GeneralRule>> {
+    operator fun invoke(keyword: String = ""): Flow<List<GeneralRule>> {
         val searchFlow = generalRuleRepository.searchGeneralRule(keyword)
         val userDataFlow = userDataRepository.userData
         return combine(searchFlow, userDataFlow) { list, userData ->
