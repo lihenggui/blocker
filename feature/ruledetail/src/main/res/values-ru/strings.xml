@@ -20,6 +20,8 @@
     <string name="search_keyword">Ключевое слово для поиска</string>
     <string name="yes">Да</string>
     <string name="no">Нет</string>
-    <string name="unknow">неизвестно</string>
+    <string name="unknown">неизвестно</string>
     <string name="no_description">Нет описания</string>
+    <string name="block_all_of_this_page">Блокировать всю эту страницу</string>
+    <string name="enable_all_of_this_page">Включить всю эту страницу</string>
 </resources>

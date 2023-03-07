@@ -34,9 +34,9 @@
     <string name="launch_activity">Запуск активности</string>
     <string name="stop_service">Остановить службу</string>
     <string name="no_components">Нет компонентов</string>
-    <plurals name="matched_rules" tools:ignore="MissingQuantity">
-        <item quantity="one">Соответствует %1$d правилу</item>
-        <item quantity="other">Соответствует %1$d правилам</item>
+    <plurals name="matched_component" tools:ignore="MissingQuantity">
+        <item quantity="one">Соответствует %1$d компоненту</item>
+        <item quantity="other">Соответствует %1$d компонентам</item>
     </plurals>
     <plurals name="matched_apps">
         <item quantity="one">Соответствует %1$d приложению</item>
@@ -52,4 +52,7 @@
     <string name="receiver_with_count">Приемники(%1$d)</string>
     <string name="provider_with_count">Поставщики(%1$d)</string>
     <string name="initializing_database">Инициализация базы данных</string>
+    <string name="more_menu">Больше</string>
+    <string name="block_all_components">Блокировать все компоненты</string>
+    <string name="enable_all_components">Включить все компоненты</string>
 </resources>

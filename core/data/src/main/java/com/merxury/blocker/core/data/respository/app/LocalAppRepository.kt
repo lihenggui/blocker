@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.respository.app
 
+import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.database.app.InstalledAppDao
 import com.merxury.blocker.core.database.app.asExternalModel
 import com.merxury.blocker.core.database.app.fromExternalModel
@@ -40,6 +41,7 @@ import javax.inject.Inject
 
 class LocalAppRepository @Inject constructor(
     private val localAppDataSource: LocalAppDataSource,
+    private val componentRepository: LocalComponentRepository,
     private val installedAppDao: InstalledAppDao,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AppRepository {
@@ -54,8 +56,12 @@ class LocalAppRepository @Inject constructor(
         if (app == null) {
             // If we can't find the application, the application might be uninstalled
             installedAppDao.deleteByPackageName(packageName)
+            componentRepository.deleteComponents(packageName)
         } else {
             installedAppDao.upsertInstalledApp(app.fromExternalModel())
+            componentRepository.updateComponentList(app.packageName)
+                .flowOn(ioDispatcher)
+                .first()
         }
         emit(Success(Unit))
     }
@@ -81,6 +87,10 @@ class LocalAppRepository @Inject constructor(
         if (uninstalledApp.isNotEmpty()) {
             Timber.d("Remove uninstalled in the cache. $uninstalledApp")
             installedAppDao.deleteApps(uninstalledApp)
+            uninstalledApp.forEach {
+                Timber.d("Remove components of ${it.packageName}")
+                componentRepository.deleteComponents(it.packageName)
+            }
         }
         // Update the latest app info from system
         val changedApps = localList.minus(cacheList.toSet())
@@ -88,6 +98,10 @@ class LocalAppRepository @Inject constructor(
         if (changedApps.isNotEmpty()) {
             Timber.d("${changedApps.size} apps changed")
             installedAppDao.upsertInstalledApps(changedApps)
+            changedApps.forEach {
+                componentRepository.updateComponentList(it.packageName)
+                    .first()
+            }
         }
         emit(Success(Unit))
     }
