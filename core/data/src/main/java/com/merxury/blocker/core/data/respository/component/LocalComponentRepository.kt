@@ -78,13 +78,14 @@ class LocalComponentRepository @Inject constructor(
 
     override fun updateComponentList(packageName: String): Flow<Result<Unit>> =
         flow {
-            emit(Result.Loading)
             val latestComponents = localDataSource.getComponentList(packageName)
                 .map { list ->
                     list.map { it.toAppComponentEntity() }
                 }
                 .first()
+            Timber.d("Update component list for $packageName, size: ${latestComponents.size}")
             appComponentDao.upsertComponentList(latestComponents)
+            emit(Result.Success(Unit))
         }
             .flowOn(ioDispatcher)
 
@@ -112,6 +113,10 @@ class LocalComponentRepository @Inject constructor(
     override suspend fun saveComponents(components: List<ComponentInfo>) {
         val entities = components.map { it.toAppComponentEntity() }
         appComponentDao.upsertComponentList(entities)
+    }
+
+    override suspend fun deleteComponents(packageName: String) {
+        appComponentDao.deleteByPackageName(packageName)
     }
 
     private suspend fun controlInIfwMode(
