@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.cmplist
+package com.merxury.blocker.core.ui.state.toolbar
 
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ActivityComponent
+import androidx.compose.ui.text.input.TextFieldValue
 
-@EntryPoint
-@InstallIn(ActivityComponent::class)
-interface ViewModelFactoryProvider {
-    fun componentLiveViewModelFactory(): ComponentListViewModel.Factory
-}
+data class AppBarUiState(
+    val keyword: TextFieldValue = TextFieldValue(),
+    val isSearchMode: Boolean = false,
+    val actions: List<AppBarAction> = listOf(),
+)

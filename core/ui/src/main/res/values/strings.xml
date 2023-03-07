@@ -35,9 +35,9 @@
     <string name="launch_activity">Launch activity</string>
     <string name="stop_service">Stop service</string>
     <string name="no_components">No components</string>
-    <plurals name="matched_rules">
-        <item quantity="one">%1$d matched rule</item>
-        <item quantity="other">%1$d matched rules</item>
+    <plurals name="matched_component">
+        <item quantity="one">%1$d matched component</item>
+        <item quantity="other">%1$d matched components</item>
     </plurals>
     <plurals name="matched_apps">
         <item quantity="one">%1$d matched app</item>
@@ -53,4 +53,7 @@
     <string name="receiver_with_count">Receiver (%1$d)</string>
     <string name="provider_with_count">Provider (%1$d)</string>
     <string name="initializing_database">Initializing database</string>
+    <string name="more_menu">More menu</string>
+    <string name="block_all_components">Block all components</string>
+    <string name="enable_all_components">Enable all components</string>
 </resources>

@@ -73,12 +73,13 @@ import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.component.ComponentList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
+import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.model.AppBarAction.MORE
-import com.merxury.blocker.feature.appdetail.model.AppBarAction.SEARCH
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu

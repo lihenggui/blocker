@@ -18,34 +18,37 @@ package com.merxury.blocker.feature.generalrules.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
+import com.merxury.blocker.core.domain.UpdateRuleMatchedAppUseCase
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.rule.GeneralRuleWithApp
-import com.merxury.blocker.core.ui.rule.toGeneralRuleWithApp
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
     private val generalRuleRepository: GeneralRuleRepository,
-    private val componentRepository: ComponentRepository,
-    private val userDataRepository: UserDataRepository,
+    private val searchRule: SearchGeneralRuleUseCase,
+    private val updateRule: UpdateRuleMatchedAppUseCase,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<GeneralRuleUiState>(Loading)
     val uiState: StateFlow<GeneralRuleUiState> = _uiState.asStateFlow()
@@ -55,6 +58,7 @@ class GeneralRulesViewModel @Inject constructor(
     init {
         loadData()
         updateGeneralRule()
+        updateMatchedAppInfo()
     }
 
     fun dismissAlert() = viewModelScope.launch {
@@ -62,53 +66,48 @@ class GeneralRulesViewModel @Inject constructor(
     }
 
     private fun loadData() = viewModelScope.launch {
-        generalRuleRepository.getGeneralRules()
+        searchRule()
             .onStart { _uiState.emit(Loading) }
             .catch { _uiState.emit(Error(it.toErrorMessage())) }
-            .collect { rules ->
-                if (rules.isEmpty()) {
+            .collect {
+                if (it.isEmpty()) {
                     return@collect
                 }
-                val serverUrl = userDataRepository.userData
-                    .first()
-                    .ruleServerProvider
-                    .baseUrl
-                val updatedRules = rules.map { rule ->
-                    rule.copy(iconUrl = serverUrl + rule.iconUrl)
-                }
-                    .map { it.toGeneralRuleWithApp() }
-                    .toMutableList()
-                // Update rules with matched app info
-                rules.forEachIndexed { index, rule ->
-                    val matchedComponent = mutableListOf<ComponentInfo>()
-                    rule.searchKeyword.forEach { keyword ->
-                        val matchComponents = componentRepository.searchComponent(keyword).first()
-                        matchedComponent.addAll(matchComponents)
-                    }
-                    val matchedAppCount = matchedComponent.groupBy { it.packageName }
-                        .size
-                    Timber.v("Matched rule: ${rule.name} count: $matchedAppCount")
-                    updatedRules[index] = updatedRules[index]
-                        .copy(matchedAppCount = matchedAppCount)
-                }
-                updatedRules.sortByDescending { it.matchedAppCount }
-                _uiState.emit(Success(updatedRules))
+                _uiState.emit(Success(it))
             }
     }
 
     private fun updateGeneralRule() = viewModelScope.launch {
-        generalRuleRepository.updateGeneralRule().collect { result ->
-            if (result is Result.Error) {
-                _errorState.emit(result.exception?.toErrorMessage())
+        // Get general from network first
+        generalRuleRepository.updateGeneralRule()
+            .flowOn(ioDispatcher)
+            .collect { result ->
+                when (result) {
+                    is Result.Success -> updateMatchedAppInfo()
+                    is Result.Error -> _errorState.emit(result.exception?.toErrorMessage())
+                    else -> {
+                        // Do nothing
+                    }
+                }
             }
-        }
+    }
+
+    private fun updateMatchedAppInfo() = viewModelScope.launch {
+        // Get matched app info from local
+        generalRuleRepository.getGeneralRules()
+            .flowOn(ioDispatcher)
+            .first()
+            .forEach { rule ->
+                // No need to handle result
+                updateRule(rule).firstOrNull()
+            }
     }
 }
 
 sealed interface GeneralRuleUiState {
     object Loading : GeneralRuleUiState
     class Success(
-        val rules: List<GeneralRuleWithApp>,
+        val rules: List<GeneralRule>,
     ) : GeneralRuleUiState
 
     class Error(val error: UiMessage) : GeneralRuleUiState

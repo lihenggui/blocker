@@ -39,4 +39,6 @@ interface ComponentRepository {
     fun searchComponent(keyword: String): Flow<List<ComponentInfo>>
 
     suspend fun saveComponents(components: List<ComponentInfo>)
+
+    suspend fun deleteComponents(packageName: String)
 }
