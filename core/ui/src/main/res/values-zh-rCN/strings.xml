@@ -34,8 +34,8 @@
     <string name="launch_activity">启动活动</string>
     <string name="stop_service">停止服务</string>
     <string name="no_components">无组件</string>
-    <plurals name="matched_rules">
-        <item quantity="other">匹配%1$d条规则</item>
+    <plurals name="matched_component">
+        <item quantity="other">%1$d个组件</item>
     </plurals>
     <plurals name="matched_apps">
         <item quantity="other">匹配%1$d个应用</item>
@@ -50,4 +50,7 @@
     <string name="receiver_with_count">广播接收器 (%1$d)</string>
     <string name="provider_with_count">内容提供者 (%1$d)</string>
     <string name="initializing_database">初始化数据</string>
+    <string name="more_menu">更多</string>
+    <string name="block_all_components">禁用所有组件</string>
+    <string name="enable_all_components">启用所有组件</string>
 </resources>

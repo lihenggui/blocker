@@ -59,7 +59,7 @@ fun RuleDescription(
         InfoItemHeading(
             heading = stringResource(id = R.string.side_effect),
             description = listOf(
-                rule.sideEffect ?: stringResource(id = R.string.unknow),
+                rule.sideEffect ?: stringResource(id = R.string.unknown),
             ),
         )
         InfoItemHeading(

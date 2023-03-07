@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.model
+package com.merxury.blocker.core.ui.state.toolbar
 
 enum class AppBarAction {
     MORE,

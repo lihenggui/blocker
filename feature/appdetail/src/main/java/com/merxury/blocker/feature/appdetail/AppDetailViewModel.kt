@@ -74,12 +74,13 @@ import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
-import com.merxury.blocker.feature.appdetail.model.AppBarAction
-import com.merxury.blocker.feature.appdetail.model.AppBarAction.MORE
-import com.merxury.blocker.feature.appdetail.model.AppBarAction.SEARCH
-import com.merxury.blocker.feature.appdetail.model.AppBarAction.SHARE_RULE
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -570,12 +571,6 @@ sealed interface AppInfoUiState {
     class Error(val error: UiMessage) : AppInfoUiState
     data class Success(val appInfo: AppItem) : AppInfoUiState
 }
-
-data class AppBarUiState(
-    val keyword: TextFieldValue = TextFieldValue(),
-    val isSearchMode: Boolean = false,
-    val actions: List<AppBarAction> = listOf(),
-)
 
 data class ComponentListUiState(
     val receiver: SnapshotStateList<ComponentItem> = mutableStateListOf(),

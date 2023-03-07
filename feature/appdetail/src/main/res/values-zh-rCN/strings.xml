@@ -32,8 +32,8 @@
     <string name="loading">加载中</string>
     <string name="enable_application">启用应用</string>
     <string name="refresh">刷新</string>
-    <string name="block_all_of_this_page">禁用该页全部</string>
-    <string name="enable_all_of_this_page">启用该页全部</string>
+    <string name="block_all_of_this_page">阻止本页所有组件</string>
+    <string name="enable_all_of_this_page">启用本页所有组件</string>
     <string name="disabling_hint">禁用组件中…</string>
     <string name="enabling_hint">启用组件中…</string>
     <string name="more_menu">更多菜单</string>

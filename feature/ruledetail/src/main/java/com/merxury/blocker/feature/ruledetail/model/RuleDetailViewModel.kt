@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.toAppItem
+import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
@@ -41,6 +42,9 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -92,6 +96,8 @@ class RuleDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<RuleDetailTabs>> = _tabState.asStateFlow()
+    private val _appBarUiState = MutableStateFlow(AppBarUiState())
+    val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
     private var currentSearchKeyword: List<String> = emptyList()
 
     init {
@@ -115,6 +121,21 @@ class RuleDetailViewModel @Inject constructor(
         loadMatchedApps(rule.searchKeyword)
     }
 
+    fun controlAllComponentsInPage(enable: Boolean) = viewModelScope.launch {
+        val uiState = _ruleMatchedAppListUiState.value as? RuleMatchedAppListUiState.Success
+            ?: return@launch
+        val list = uiState.list
+            .flatMap { it.componentList }
+        controlAllComponents(list, enable)
+    }
+
+    fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) = viewModelScope.launch {
+        list.forEach {
+            controlComponentInternal(it.packageName, it.name, enable)
+        }
+        loadMatchedApps(currentSearchKeyword)
+    }
+
     private suspend fun loadMatchedApps(keywords: List<String>) {
         val matchedComponents = mutableListOf<ComponentInfo>()
         for (keyword in keywords) {
@@ -122,9 +143,11 @@ class RuleDetailViewModel @Inject constructor(
             matchedComponents.addAll(components)
         }
         Timber.v("Find ${matchedComponents.size} matched components for rule: $keywords")
+        val showSystemApps = userDataRepository.userData.first().showSystemApps
         val searchResult = matchedComponents.groupBy { it.packageName }
             .mapNotNull { (packageName, components) ->
                 val app = appRepository.getApplication(packageName).first() ?: return@mapNotNull null
+                if (!showSystemApps && app.isSystem) return@mapNotNull null
                 val packageInfo = pm.getPackageInfoCompat(packageName, 0)
                 val appItem = app.toAppItem(packageInfo = packageInfo)
                 val searchedComponentItem = components.map { it.toComponentItem() }
@@ -138,7 +161,14 @@ class RuleDetailViewModel @Inject constructor(
             _tabState.update {
                 it.copy(selectedItem = newTab)
             }
+            _appBarUiState.update {
+                it.copy(actions = getAppBarAction())
+            }
         }
+    }
+    private fun getAppBarAction(): List<AppBarAction> = when (tabState.value.selectedItem) {
+        Description -> listOf()
+        else -> listOf(MORE)
     }
 
     fun dismissAlert() = viewModelScope.launch {

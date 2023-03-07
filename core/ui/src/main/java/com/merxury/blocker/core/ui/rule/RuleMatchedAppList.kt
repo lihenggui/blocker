@@ -42,6 +42,8 @@ fun RuleMatchedAppList(
     onLaunchActivityClick: (String, String) -> Unit,
     onCopyNameClick: (String) -> Unit,
     onCopyFullNameClick: (String) -> Unit,
+    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit,
 ) {
     when (ruleMatchedAppListUiState) {
@@ -59,6 +61,8 @@ fun RuleMatchedAppList(
                         onLaunchActivityClick = onLaunchActivityClick,
                         onCopyNameClick = onCopyNameClick,
                         onCopyFullNameClick = onCopyFullNameClick,
+                        onBlockAllClick = onBlockAllClick,
+                        onEnableAllClick = onEnableAllClick,
                         onSwitch = onSwitch,
                     )
                 }

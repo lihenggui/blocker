@@ -35,6 +35,7 @@ data class GeneralRuleEntity(
     val safeToBlock: Boolean? = null,
     val sideEffect: String? = null,
     val contributors: List<String> = listOf(),
+    val matchedAppCount: Int = 0,
 )
 
 fun GeneralRuleEntity.asExternalModel() = GeneralRule(
@@ -48,6 +49,7 @@ fun GeneralRuleEntity.asExternalModel() = GeneralRule(
     safeToBlock = safeToBlock,
     sideEffect = sideEffect,
     contributors = contributors,
+    matchedAppCount = matchedAppCount,
 )
 
 fun GeneralRule.fromExternalModel() = GeneralRuleEntity(
@@ -61,4 +63,5 @@ fun GeneralRule.fromExternalModel() = GeneralRuleEntity(
     safeToBlock = safeToBlock,
     sideEffect = sideEffect,
     contributors = contributors,
+    matchedAppCount = matchedAppCount,
 )
