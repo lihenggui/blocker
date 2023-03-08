@@ -110,11 +110,11 @@ fun SupportAndFeedbackScreen(
             title = stringResource(id = string.telegram_group),
             onItemClick = { onTelegramGroupLinkClick() },
         )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.Article),
-            title = stringResource(id = string.export_error_log),
-            onItemClick = { onExportLogClick() },
-        )
+//        BlockerSettingItem(
+//            icon = ImageVectorIcon(BlockerIcons.Article),
+//            title = stringResource(id = string.export_error_log),
+//            onItemClick = { onExportLogClick() },
+//        )
     }
 }
 
