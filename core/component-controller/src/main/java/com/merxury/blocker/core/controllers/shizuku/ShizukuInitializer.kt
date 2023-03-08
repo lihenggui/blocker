@@ -65,7 +65,7 @@ class ShizukuInitializer @Inject constructor(
         Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
     }
 
-    fun checkPermission(): Boolean {
+    private fun checkPermission(): Boolean {
         if (Shizuku.isPreV11()) {
             return false
         }
