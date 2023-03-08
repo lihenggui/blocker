@@ -20,6 +20,7 @@ import android.content.pm.PackageManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
@@ -29,6 +30,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.toAppItem
@@ -70,6 +72,7 @@ class RuleDetailViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    private val shizukuInitializer: ShizukuInitializer,
 ) : AndroidViewModel(app) {
     private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
     private val _ruleMatchedAppListUiState: MutableStateFlow<RuleMatchedAppListUiState> =
@@ -103,6 +106,25 @@ class RuleDetailViewModel @Inject constructor(
     init {
         loadTabInfo()
         loadData()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        deinitShizuku()
+    }
+
+    fun initShizuku() = viewModelScope.launch {
+        val controllerType = userDataRepository.userData.first().controllerType
+        if (controllerType == SHIZUKU) {
+            shizukuInitializer.registerShizuku()
+        }
+    }
+
+    private fun deinitShizuku() = viewModelScope.launch {
+        val controllerType = userDataRepository.userData.first().controllerType
+        if (controllerType == SHIZUKU) {
+            shizukuInitializer.unregisterShizuku()
+        }
     }
 
     private fun loadData() = viewModelScope.launch {
