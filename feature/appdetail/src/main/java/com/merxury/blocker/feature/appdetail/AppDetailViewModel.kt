@@ -31,6 +31,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
+import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -46,6 +47,7 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
@@ -107,6 +109,7 @@ class AppDetailViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
     private val componentRepository: LocalComponentRepository,
+    private val shizukuInitializer: ShizukuInitializer,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -151,6 +154,25 @@ class AppDetailViewModel @Inject constructor(
         loadAppInfo()
         loadComponentList()
         updateComponentList(appDetailArgs.packageName)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        deinitShizuku()
+    }
+
+    fun initShizuku() = viewModelScope.launch {
+        val controllerType = userDataRepository.userData.first().controllerType
+        if (controllerType == SHIZUKU) {
+            shizukuInitializer.registerShizuku()
+        }
+    }
+
+    private fun deinitShizuku() = viewModelScope.launch {
+        val controllerType = userDataRepository.userData.first().controllerType
+        if (controllerType == SHIZUKU) {
+            shizukuInitializer.unregisterShizuku()
+        }
     }
 
     fun search(newText: TextFieldValue) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
