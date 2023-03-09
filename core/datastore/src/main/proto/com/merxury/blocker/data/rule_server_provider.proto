@@ -20,6 +20,6 @@ option java_package = "com.merxury.blocker.core.datastore";
 option java_multiple_files = true;
 
 enum RuleServerProviderProto {
-  GITHUB = 0;
-  GITLAB = 1;
+  GITLAB = 0;
+  GITHUB = 1;
 }
