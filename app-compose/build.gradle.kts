@@ -94,6 +94,7 @@ dependencies {
     implementation(project(":feature:appdetail"))
     implementation(project(":feature:applist"))
     implementation(project(":feature:generalrule"))
+    implementation(project(":feature:provider"))
     implementation(project(":feature:search"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:ruledetail"))
