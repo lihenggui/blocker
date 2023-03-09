@@ -96,12 +96,13 @@ class LocalComponentRepository @Inject constructor(
     ): Flow<Boolean> = flow {
         Timber.d("Control $packageName/$componentName to state $newState")
         val userData = userDataRepository.userData.first()
-        when (userData.controllerType) {
+        val result = when (userData.controllerType) {
             IFW -> controlInIfwMode(packageName, componentName, newState)
             PM -> controlInPmMode(packageName, componentName, newState)
             SHIZUKU -> controlInShizukuMode(packageName, componentName, newState)
         }
         updateComponentStatus(packageName, componentName)
+        emit(result)
     }
 
     override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
