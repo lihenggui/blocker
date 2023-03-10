@@ -25,5 +25,6 @@ android {
 }
 dependencies {
     implementation(project(":core:database"))
+    implementation(project(":feature:applist"))
     implementation(libs.kotlinx.datetime)
 }
