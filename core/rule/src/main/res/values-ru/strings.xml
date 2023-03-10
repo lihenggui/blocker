@@ -32,4 +32,10 @@
     <string name="import_mat_failed_message">Сбой импортирта правил MAT. Вы предоставили Blocker-у разрешения?</string>
     <string name="import_app_rules_please_wait">Импорт правил приложения, подождите…</string>
     <string name="cancel">Отмена</string>
+    <string name="processing_please_wait">Обработка, подождите…</string>
+    <string name="done">Готово</string>
+    <string name="error_msg_folder_not_defined">Ошибка: папка не определена</string>
+    <string name="error_msg_missing_root_permission">Ошибка: отсутствуют root права</string>
+    <string name="error_msg_unexpected_exception">Ошибка: неожиданное исключение</string>
+    <string name="task_cancelled">Задача отменена</string>
 </resources>

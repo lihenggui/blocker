@@ -53,7 +53,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -209,7 +208,6 @@ class SearchViewModel @Inject constructor(
         }
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
-            delay(500)
             searchFlow.flowOn(ioDispatcher)
                 .onStart {
                     _localSearchUiState.emit(Loading)
@@ -288,7 +286,6 @@ data class ComponentTabUiState(
     val list: List<FilteredComponent> = listOf(),
     val isSelectedMode: Boolean = false,
     val selectedAppList: List<FilteredComponent> = listOf(),
-    val currentOpeningItem: FilteredComponent? = null,
 )
 
 data class RuleTabUiState(
