@@ -27,5 +27,6 @@ dependencies {
     implementation(project(":core:rule"))
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.browser)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
 }

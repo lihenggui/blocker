@@ -32,4 +32,10 @@
     <string name="import_mat_failed_message">Failed to import MAT rules, did you grant permissions to Blocker?</string>
     <string name="import_app_rules_please_wait">Importing app rules, please wait…</string>
     <string name="cancel">Cancel</string>
+    <string name="processing_please_wait">Processing, please wait…</string>
+    <string name="done">Done</string>
+    <string name="error_msg_folder_not_defined">Backup folder is not defined, please go to settings to assign one.</string>
+    <string name="error_msg_missing_root_permission">Missing root permission, please grant permission to Blocker.</string>
+    <string name="error_msg_unexpected_exception">Unexpected exception, please report to developer.</string>
+    <string name="task_cancelled">Task cancelled</string>
 </resources>

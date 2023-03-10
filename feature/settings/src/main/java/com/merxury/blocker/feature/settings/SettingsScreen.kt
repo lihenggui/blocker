@@ -38,9 +38,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -61,6 +65,12 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
+import com.merxury.blocker.core.rule.entity.RuleWorkResult
+import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
+import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_IFW_RULES
+import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
+import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
+import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
@@ -71,14 +81,19 @@ import com.merxury.blocker.feature.settings.item.BlockerRulesSettings
 import com.merxury.blocker.feature.settings.item.BlockerSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
 import com.merxury.blocker.feature.settings.item.ThemeSettings
+import kotlinx.coroutines.launch
+import com.merxury.blocker.core.rule.R.string as rulestring
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SettingsRoute(
     onNavigationClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
+    val event by viewModel.eventFlow.collectAsState(initial = null)
+    val coroutineScope = rememberCoroutineScope()
     SettingsScreen(
         onNavigationClick = onNavigationClick,
         uiState = settingsUiState,
@@ -106,6 +121,45 @@ fun SettingsRoute(
             }
         }
     }
+    event?.let {
+        val work = it.first
+        val result = it.second
+        val messageRes = when (result) {
+            RuleWorkResult.STARTED -> when (work) {
+                IMPORT_BLOCKER_RULES -> string.import_app_rules_please_wait
+                EXPORT_BLOCKER_RULES -> string.backing_up_apps_please_wait
+                EXPORT_IFW_RULES -> string.backing_up_ifw_please_wait
+                IMPORT_IFW_RULES -> string.import_ifw_please_wait
+                RESET_IFW -> string.reset_ifw_please_wait
+            }
+
+            RuleWorkResult.FINISHED -> rulestring.done
+            RuleWorkResult.FOLDER_NOT_DEFINED,
+            RuleWorkResult.MISSING_STORAGE_PERMISSION,
+            -> rulestring.error_msg_folder_not_defined
+
+            RuleWorkResult.MISSING_ROOT_PERMISSION -> rulestring.error_msg_missing_root_permission
+            RuleWorkResult.UNEXPECTED_EXCEPTION -> rulestring.error_msg_unexpected_exception
+            RuleWorkResult.CANCELLED -> rulestring.task_cancelled
+            else -> rulestring.error_msg_unexpected_exception
+        }
+        val message = stringResource(id = messageRes)
+        val duration = if (result == RuleWorkResult.STARTED) {
+            SnackbarDuration.Long
+        } else {
+            SnackbarDuration.Short
+        }
+        LaunchedEffect(message) {
+            coroutineScope.launch {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = duration,
+                    withDismissAction = true,
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -113,22 +167,22 @@ fun SettingsRoute(
 fun SettingsScreen(
     onNavigationClick: () -> Unit,
     uiState: SettingsUiState,
-    onChangeShowSystemApps: (Boolean) -> Unit,
-    onChangeShowServiceInfo: (Boolean) -> Unit,
-    onChangeBackupSystemApp: (Boolean) -> Unit,
-    onChangeRestoreSystemApp: (Boolean) -> Unit,
-    onChangeRuleBackupFolder: (Uri?) -> Unit,
-    onChangeControllerType: (ControllerType) -> Unit,
-    onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
-    onChangeDynamicColorPreference: (Boolean) -> Unit,
-    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
-    exportRules: () -> Unit,
-    importRules: () -> Unit,
-    exportIfwRules: () -> Unit,
-    importIfwRules: () -> Unit,
-    resetIfwRules: () -> Unit,
-    importMatRules: (Uri?) -> Unit,
     modifier: Modifier = Modifier,
+    onChangeShowSystemApps: (Boolean) -> Unit = { },
+    onChangeShowServiceInfo: (Boolean) -> Unit = { },
+    onChangeBackupSystemApp: (Boolean) -> Unit = { },
+    onChangeRestoreSystemApp: (Boolean) -> Unit = { },
+    onChangeRuleBackupFolder: (Uri?) -> Unit = { },
+    onChangeControllerType: (ControllerType) -> Unit = { },
+    onChangeRuleServerProvider: (RuleServerProvider) -> Unit = { },
+    onChangeDynamicColorPreference: (Boolean) -> Unit = { },
+    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit = { },
+    exportRules: () -> Unit = { },
+    importRules: () -> Unit = { },
+    exportIfwRules: () -> Unit = { },
+    importIfwRules: () -> Unit = { },
+    resetIfwRules: () -> Unit = { },
+    importMatRules: (Uri?) -> Unit = { },
 ) {
     Scaffold(
         topBar = {
@@ -282,21 +336,6 @@ fun SettingsScreenPreview() {
                     useDynamicColor = false,
                 ),
             ),
-            onChangeShowSystemApps = {},
-            onChangeShowServiceInfo = {},
-            onChangeBackupSystemApp = {},
-            onChangeRestoreSystemApp = {},
-            onChangeRuleBackupFolder = {},
-            importRules = {},
-            exportRules = {},
-            importIfwRules = {},
-            exportIfwRules = {},
-            resetIfwRules = {},
-            onChangeControllerType = {},
-            onChangeRuleServerProvider = {},
-            onChangeDynamicColorPreference = {},
-            onChangeDarkThemeConfig = {},
-            importMatRules = {},
         )
     }
 }

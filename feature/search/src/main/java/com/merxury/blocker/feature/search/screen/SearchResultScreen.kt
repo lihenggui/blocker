@@ -30,6 +30,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.RuleSearchResultContent
@@ -46,7 +47,15 @@ fun SearchResultScreen(
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
-    navigateToRuleDetail: (Int) -> Unit = {},
+    navigateToRuleDetail: (Int) -> Unit = { },
+    appList: List<AppItem> = emptyList(),
+    onClearCacheClick: (String) -> Unit = { },
+    onClearDataClick: (String) -> Unit = { },
+    onForceStopClick: (String) -> Unit = { },
+    onUninstallClick: (String) -> Unit = { },
+    onEnableClick: (String) -> Unit = { },
+    onDisableClick: (String) -> Unit = { },
+    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Column(
@@ -57,18 +66,18 @@ fun SearchResultScreen(
         SearchResultTabRow(tabState = tabState, switchTab = switchTab)
         when (tabState.currentIndex) {
             0 -> AppSearchResultContent(
-                appList = localSearchUiState.appTabUiState.list,
+                appList = appList,
                 onClick = { packageName ->
                     navigateToAppDetail(packageName, AppDetailTabs.Info, listOf())
                     keyboardController?.hide()
                 },
-                onClearCacheClick = {},
-                onClearDataClick = {},
-                onForceStopClick = {},
-                onUninstallClick = {},
-                onEnableClick = {},
-                onDisableClick = {},
-                onServiceStateUpdate = { _, _ -> },
+                onClearCacheClick = onClearCacheClick,
+                onClearDataClick = onClearDataClick,
+                onForceStopClick = onForceStopClick,
+                onUninstallClick = onUninstallClick,
+                onEnableClick = onEnableClick,
+                onDisableClick = onDisableClick,
+                onServiceStateUpdate = onServiceStateUpdate,
             )
 
             1 -> ComponentSearchResultContent(
