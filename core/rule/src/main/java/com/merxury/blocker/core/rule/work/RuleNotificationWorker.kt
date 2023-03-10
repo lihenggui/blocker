@@ -54,6 +54,7 @@ abstract class RuleNotificationWorker(private val context: Context, params: Work
             .setProgress(total, current, false)
             .setOngoing(true)
             .addAction(android.R.drawable.ic_delete, cancel, intent)
+            .setOnlyAlertOnce(true)
             .build()
         return ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
     }
