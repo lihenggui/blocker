@@ -23,13 +23,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.consumedWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -66,6 +67,7 @@ import com.merxury.blocker.navigation.TopLevelDestination
 @OptIn(
     ExperimentalLayoutApi::class,
     ExperimentalComposeUiApi::class,
+    ExperimentalMaterial3Api::class,
 )
 @Composable
 fun BlockerApp(
@@ -111,7 +113,7 @@ fun BlockerApp(
                     Modifier
                         .fillMaxSize()
                         .padding(padding)
-                        .consumeWindowInsets(padding)
+                        .consumedWindowInsets(padding)
                         .windowInsetsPadding(
                             WindowInsets.safeDrawing.only(
                                 WindowInsetsSides.Horizontal,
