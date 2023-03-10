@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright 2023 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
+    <string name="application_with_count">Приложение (%1$d)</string>
+    <string name="component_with_count">Компонент (%1$d)</string>
+    <string name="online_rule_with_count">Онлайн правило (%1$d)</string>
+    <string name="searching">Поиск</string>
+    <plurals name="activity_count">
+        <item quantity="one">%1$d Активность</item>
+        <item quantity="other">%1$d Деятельность</item>
+    </plurals>
+    <plurals name="content_provider_count">
+        <item quantity="one">%1$d Поставщик контента</item>
+        <item quantity="other">%1$d Поставщики контента</item>
+    </plurals>
+    <plurals name="receiver_count">
+        <item quantity="one">%1$d Приемник</item>
+        <item quantity="other">%1$d Приемники</item>
+    </plurals>
+    <plurals name="service_count">
+        <item quantity="one">%1$d Сервис</item>
+        <item quantity="other">%1$d Сервисы</item>
+    </plurals>
+    <plurals name="selected_app_count">
+        <item quantity="one">%1$d приложение выбрано</item>
+        <item quantity="other">%1$d приложений выбрано</item>
+    </plurals>
+    <string name="search_hint">Приложения, компоненты и правила</string>
+    <string name="no_search_result">Пока нет результатов поиска</string>
+</resources>
