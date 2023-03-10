@@ -32,4 +32,10 @@
     <string name="import_mat_failed_message">导入MAT规则失败，请检查超级用户权限是否被正确授予。</string>
     <string name="import_app_rules_please_wait">正在导入应用规则，请稍等…</string>
     <string name="cancel">取消</string>
+    <string name="processing_please_wait">正在处理，请稍等…</string>
+    <string name="done">完成</string>
+    <string name="error_msg_folder_not_defined">备份目录未指定，请前往设置修改。</string>
+    <string name="error_msg_missing_root_permission">操作失败，缺少超级用户权限。</string>
+    <string name="error_msg_unexpected_exception">未知错误，请向开发者反馈。</string>
+    <string name="task_cancelled">任务已取消</string>
 </resources>

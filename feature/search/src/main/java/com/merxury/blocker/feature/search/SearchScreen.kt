@@ -32,6 +32,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
@@ -47,6 +48,7 @@ import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
+import com.merxury.blocker.feature.applist.AppListViewModel
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
@@ -63,17 +65,22 @@ fun SearchRoute(
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
+    appListViewModel: AppListViewModel = hiltViewModel(),
 ) {
     val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
+    val appList = appListViewModel.appListFlow.collectAsState()
 
     SearchScreen(
         searchBoxUiState = searchBoxUiState,
         tabState = tabState,
         localSearchUiState = localSearchUiState,
         switchTab = viewModel::switchTab,
-        onSearchTextChanged = viewModel::search,
+        onSearchTextChanged = { keyword ->
+            viewModel.search(keyword)
+            appListViewModel.filter(keyword.text)
+        },
         onClearClick = viewModel::resetSearchState,
         onNavigationClick = { viewModel.switchSelectedMode(false) },
         onSelectAll = viewModel::selectAll,
@@ -83,12 +90,18 @@ fun SearchRoute(
         onSelect = viewModel::selectItem,
         navigateToAppDetail = navigateToAppDetail,
         navigateToRuleDetail = navigateToRuleDetail,
+        appList = appList.value,
+        onClearCacheClick = appListViewModel::clearCache,
+        onClearDataClick = appListViewModel::clearData,
+        onForceStopClick = appListViewModel::forceStop,
+        onUninstallClick = appListViewModel::uninstall,
+        onEnableClick = appListViewModel::enable,
+        onDisableClick = appListViewModel::disable,
+        onServiceStateUpdate = appListViewModel::updateServiceStatus,
     )
 }
 
-@OptIn(
-    ExperimentalLayoutApi::class,
-)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
@@ -105,7 +118,15 @@ fun SearchScreen(
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (Boolean) -> Unit,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
-    navigateToRuleDetail: (Int) -> Unit = {},
+    navigateToRuleDetail: (Int) -> Unit = { },
+    appList: List<AppItem> = emptyList(),
+    onClearCacheClick: (String) -> Unit = { },
+    onClearDataClick: (String) -> Unit = { },
+    onForceStopClick: (String) -> Unit = { },
+    onUninstallClick: (String) -> Unit = { },
+    onEnableClick: (String) -> Unit = { },
+    onDisableClick: (String) -> Unit = { },
+    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     Scaffold(
         topBar = {
@@ -148,6 +169,14 @@ fun SearchScreen(
                     onSelect = onSelect,
                     navigateToAppDetail = navigateToAppDetail,
                     navigateToRuleDetail = navigateToRuleDetail,
+                    appList = appList,
+                    onClearCacheClick = onClearCacheClick,
+                    onClearDataClick = onClearDataClick,
+                    onForceStopClick = onForceStopClick,
+                    onUninstallClick = onUninstallClick,
+                    onEnableClick = onEnableClick,
+                    onDisableClick = onDisableClick,
+                    onServiceStateUpdate = onServiceStateUpdate,
                 )
             }
         }
@@ -221,13 +250,13 @@ fun AppSearchResultContent(
     modifier: Modifier = Modifier,
     appList: List<AppItem>,
     onClick: (String) -> Unit,
-    onClearCacheClick: (String) -> Unit,
-    onClearDataClick: (String) -> Unit,
-    onForceStopClick: (String) -> Unit,
-    onUninstallClick: (String) -> Unit,
-    onEnableClick: (String) -> Unit,
-    onDisableClick: (String) -> Unit,
-    onServiceStateUpdate: (String, Int) -> Unit,
+    onClearCacheClick: (String) -> Unit = { },
+    onClearDataClick: (String) -> Unit = { },
+    onForceStopClick: (String) -> Unit = { },
+    onUninstallClick: (String) -> Unit = { },
+    onEnableClick: (String) -> Unit = { },
+    onDisableClick: (String) -> Unit = { },
+    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     if (appList.isEmpty()) {
         NoSearchResultScreen()
