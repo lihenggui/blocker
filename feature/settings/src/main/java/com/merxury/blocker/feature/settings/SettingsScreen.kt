@@ -38,6 +38,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -76,6 +77,7 @@ import com.merxury.blocker.feature.settings.item.ThemeSettings
 @Composable
 fun SettingsRoute(
     onNavigationClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()

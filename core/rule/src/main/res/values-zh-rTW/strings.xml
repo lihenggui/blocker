@@ -32,4 +32,10 @@
     <string name="import_mat_failed_message">導入MAT規則失敗，請檢查超級用戶權限是否授予</string>
     <string name="import_app_rules_please_wait">正在導入應用規則，請稍等…</string>
     <string name="cancel">取消</string>
+    <string name="processing_please_wait">正在處理，請稍等…</string>
+    <string name="done">完成</string>
+    <string name="error_msg_folder_not_defined">備份目錄未指定，請前往設置修改。</string>
+    <string name="error_msg_missing_root_permission">缺少超級用戶權限，請檢查是否授予。</string>
+    <string name="error_msg_unexpected_exception">發生了未知錯誤，請向開發者反饋。</string>
+    <string name="task_cancelled">任務已取消</string>
 </resources>
