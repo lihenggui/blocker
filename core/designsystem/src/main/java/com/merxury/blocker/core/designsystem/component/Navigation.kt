@@ -89,6 +89,7 @@ fun BlockerNavigationBar(
 ) {
     NavigationBar(
         modifier = modifier,
+        containerColor = Color.Transparent,
         contentColor = BlockerNavigationDefaults.navigationContentColor(),
         tonalElevation = 0.dp,
         content = content,
