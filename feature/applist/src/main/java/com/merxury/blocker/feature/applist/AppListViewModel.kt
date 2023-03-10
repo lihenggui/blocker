@@ -80,6 +80,7 @@ class AppListViewModel @Inject constructor(
     val errorState = _errorState.asStateFlow()
     private var _appList = mutableStateListOf<AppItem>()
     private val _appListFlow = MutableStateFlow(_appList)
+    private var currentSearchKeyword = ""
     val appListFlow: StateFlow<List<AppItem>>
         get() = _appListFlow
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -116,6 +117,9 @@ class AppListViewModel @Inject constructor(
                     list
                 } else {
                     list.filterNot { it.isSystem }
+                }.filter {
+                    it.label.contains(currentSearchKeyword, true) ||
+                        it.packageName.contains(currentSearchKeyword, true)
                 }.map { installedApp ->
                     AppItem(
                         label = installedApp.label,
@@ -138,6 +142,11 @@ class AppListViewModel @Inject constructor(
                 _appListFlow.value = _appList
                 _uiState.emit(Success)
             }
+    }
+
+    fun filter(keyword: String) {
+        currentSearchKeyword = keyword
+        loadData()
     }
 
     private fun appComparator(sortType: AppSorting): Comparator<AppItem> =
