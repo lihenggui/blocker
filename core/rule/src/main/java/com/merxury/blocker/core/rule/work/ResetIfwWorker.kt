@@ -30,6 +30,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSI
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.utils.FileUtils
+import com.merxury.blocker.core.utils.PermissionUtils
 import com.merxury.ifw.util.IfwStorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -49,6 +50,11 @@ class ResetIfwWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         Timber.i("Clear IFW rules")
+        if (!PermissionUtils.isRootAvailable()) {
+            return@withContext Result.failure(
+                workDataOf(PARAM_WORK_RESULT to MISSING_ROOT_PERMISSION),
+            )
+        }
         val packageName = inputData.getString(PARAM_RESET_PACKAGE_NAME)
         if (!packageName.isNullOrEmpty()) {
             return@withContext clearIfwRuleForPackage(packageName)
