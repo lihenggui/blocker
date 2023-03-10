@@ -1,11 +1,11 @@
 /*
- * Copyright (C) 2022 Blocker
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-syntax = "proto3";
-
-option java_package = "com.merxury.blocker.core.datastore";
-option java_multiple_files = true;
-
-enum RuleServerProviderProto {
-  GITLAB = 0;
-  GITHUB = 1;
+plugins {
+    id("blocker.android.feature")
+    id("blocker.android.library.jacoco")
+    id("kotlinx-serialization")
+}
+android {
+    namespace = "com.merxury.blocker.provider"
+}
+dependencies {
+    implementation(project(":core:database"))
+    implementation(project(":core:datastore"))
+    implementation(project(":core:component-controller"))
+    implementation(libs.kotlinx.serialization.json)
 }
