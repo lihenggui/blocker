@@ -135,6 +135,7 @@ fun BlockerApp(
                         BlockerNavHost(
                             navController = appState.navController,
                             onBackClick = appState::onBackClick,
+                            snackbarHostState = snackbarHostState,
                         )
                     }
 
