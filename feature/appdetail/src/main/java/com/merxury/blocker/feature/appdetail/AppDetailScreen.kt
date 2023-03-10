@@ -148,8 +148,8 @@ fun AppDetailRoute(
             onDismissRequest = viewModel::dismissAlert,
         )
     }
-    if (event != null) {
-        val messageId = when (event?.second) {
+    event?.let {
+        val messageRes = when (it.second) {
             STARTED -> rulestring.processing_please_wait
             FINISHED -> rulestring.done
             FOLDER_NOT_DEFINED,
@@ -160,7 +160,7 @@ fun AppDetailRoute(
             CANCELLED -> rulestring.task_cancelled
             else -> rulestring.error_msg_unexpected_exception
         }
-        val message = stringResource(id = messageId)
+        val message = stringResource(id = messageRes)
         LaunchedEffect(message) {
             scope.launch {
                 snackbarHostState.currentSnackbarData?.dismiss()
