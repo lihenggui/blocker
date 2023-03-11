@@ -20,20 +20,76 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-fun AnalyticsHelper.logAppDetailOpened(packageName: String) =
+internal fun AnalyticsHelper.logBatchOperationPerformed(newState: Boolean) =
     logEvent(
         AnalyticsEvent(
-            type = "app_detail_opened",
+            type = "app_detail_batch_operation_performed",
             extras = listOf(
-                Param(key = "package_name", value = packageName),
+                Param(key = "new_state", value = newState.toString()),
             ),
         ),
     )
 
-fun AnalyticsHelper.logBatchOperationPerformed(newState: Boolean) =
+internal fun AnalyticsHelper.logExportBlockerRuleClicked() =
     logEvent(
         AnalyticsEvent(
-            type = "app_detail_batch_operation_performed",
+            type = "app_detail_export_blocker_rule_clicked",
+        ),
+    )
+
+internal fun AnalyticsHelper.logImportBlockerRuleClicked() =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_import_blocker_rule_clicked",
+        ),
+    )
+
+internal fun AnalyticsHelper.logExportIfwRuleClicked() =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_export_ifw_rule_clicked",
+        ),
+    )
+
+internal fun AnalyticsHelper.logImportIfwRuleClicked() =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_import_ifw_rule_clicked",
+        ),
+    )
+
+internal fun AnalyticsHelper.logResetIfwRuleClicked() =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_reset_ifw_rule_clicked",
+        ),
+    )
+
+internal fun AnalyticsHelper.logSearchButtonClicked() =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_search_button_clicked",
+        ),
+    )
+
+internal fun AnalyticsHelper.logStartActivityClicked() =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_start_activity_clicked",
+        ),
+    )
+
+internal fun AnalyticsHelper.logStopServiceClicked() =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_stop_service_clicked",
+        ),
+    )
+
+internal fun AnalyticsHelper.logSwitchComponentClicked(newState: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_detail_switch_component_clicked",
             extras = listOf(
                 Param(key = "new_state", value = newState.toString()),
             ),
