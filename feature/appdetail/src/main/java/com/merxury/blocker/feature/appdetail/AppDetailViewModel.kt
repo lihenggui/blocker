@@ -31,6 +31,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
+import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
@@ -105,6 +106,7 @@ class AppDetailViewModel @Inject constructor(
     private val appContext: Application,
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
+    private val analyticsHelper: AnalyticsHelper,
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
@@ -154,6 +156,7 @@ class AppDetailViewModel @Inject constructor(
         loadAppInfo()
         loadComponentList()
         updateComponentList(appDetailArgs.packageName)
+        analyticsHelper.logAppDetailOpened(appDetailArgs.packageName)
     }
 
     override fun onCleared() {
@@ -404,6 +407,7 @@ class AppDetailViewModel @Inject constructor(
             list.forEach {
                 controlComponentInternal(it.packageName, it.name, enable)
             }
+            analyticsHelper.logBatchOperationPerformed(enable)
         }
 
     fun dismissAlert() = viewModelScope.launch {
