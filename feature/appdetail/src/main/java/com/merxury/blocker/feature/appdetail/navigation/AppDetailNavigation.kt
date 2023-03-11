@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.appdetail.navigation
 
 import android.net.Uri
 import androidx.annotation.VisibleForTesting
+import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -71,7 +72,10 @@ fun NavController.navigateToAppDetail(
     }
 }
 
-fun NavGraphBuilder.detailScreen(onBackClick: () -> Unit) {
+fun NavGraphBuilder.detailScreen(
+    onBackClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
+) {
     composable(
         route = "app_detail_route/{$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}",
         arguments = listOf(
@@ -80,6 +84,9 @@ fun NavGraphBuilder.detailScreen(onBackClick: () -> Unit) {
             navArgument(keywordArg) { type = NavType.StringType },
         ),
     ) {
-        AppDetailRoute(onBackClick = onBackClick)
+        AppDetailRoute(
+            onBackClick = onBackClick,
+            snackbarHostState = snackbarHostState,
+        )
     }
 }

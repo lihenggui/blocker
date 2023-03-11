@@ -32,10 +32,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -64,6 +67,13 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.FINISHED
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.STARTED
+import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
@@ -88,10 +98,12 @@ import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System
+import com.merxury.blocker.core.rule.R.string as rulestring
 
 @Composable
 fun AppDetailRoute(
     onBackClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
@@ -100,6 +112,8 @@ fun AppDetailRoute(
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
     val componentListUiState by viewModel.componentListUiState.collectAsStateWithLifecycle()
+    val event by viewModel.eventFlow.collectAsState(initial = null)
+    val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     AppDetailScreen(
@@ -134,6 +148,30 @@ fun AppDetailRoute(
             text = errorState?.content.orEmpty(),
             onDismissRequest = viewModel::dismissAlert,
         )
+    }
+    event?.let {
+        val messageRes = when (it.second) {
+            STARTED -> rulestring.processing_please_wait
+            FINISHED -> rulestring.done
+            FOLDER_NOT_DEFINED,
+            MISSING_STORAGE_PERMISSION,
+            -> rulestring.error_msg_folder_not_defined
+            MISSING_ROOT_PERMISSION -> rulestring.error_msg_missing_root_permission
+            UNEXPECTED_EXCEPTION -> rulestring.error_msg_unexpected_exception
+            CANCELLED -> rulestring.task_cancelled
+            else -> rulestring.error_msg_unexpected_exception
+        }
+        val message = stringResource(id = messageRes)
+        LaunchedEffect(message) {
+            scope.launch {
+                snackbarHostState.currentSnackbarData?.dismiss()
+                snackbarHostState.showSnackbar(
+                    message = message,
+                    duration = SnackbarDuration.Short,
+                    withDismissAction = true,
+                )
+            }
+        }
     }
     LaunchedEffect(Unit) {
         viewModel.initShizuku()

@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.settings.navigation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
@@ -28,10 +29,16 @@ fun NavController.navigateToSettings(navOptions: NavOptions? = null) {
     this.navigate(settingsRoute, navOptions)
 }
 
-fun NavGraphBuilder.settingsScreen(onBackClick: () -> Unit) {
+fun NavGraphBuilder.settingsScreen(
+    onBackClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
+) {
     composable(
         route = settingsRoute,
     ) {
-        SettingsRoute(onNavigationClick = onBackClick)
+        SettingsRoute(
+            onNavigationClick = onBackClick,
+            snackbarHostState = snackbarHostState,
+        )
     }
 }
