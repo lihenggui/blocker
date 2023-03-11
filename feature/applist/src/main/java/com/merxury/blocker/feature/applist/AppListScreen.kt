@@ -83,7 +83,6 @@ fun AppListRoute(
             onDismissRequest = viewModel::dismissDialog,
         )
     }
-    TrackScreenViewEvent(screenName = "AppListScreen")
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -153,4 +152,5 @@ fun AppListScreen(
             }
         }
     }
+    TrackScreenViewEvent(screenName = "AppListScreen")
 }
