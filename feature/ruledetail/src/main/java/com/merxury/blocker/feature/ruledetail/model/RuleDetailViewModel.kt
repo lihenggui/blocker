@@ -20,6 +20,7 @@ import android.content.pm.PackageManager
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -47,6 +48,11 @@ import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.feature.ruledetail.logControlAllComponentsClicked
+import com.merxury.blocker.feature.ruledetail.logControlAllInPageClicked
+import com.merxury.blocker.feature.ruledetail.logLaunchActivityClicked
+import com.merxury.blocker.feature.ruledetail.logStopServiceClicked
+import com.merxury.blocker.feature.ruledetail.logSwitchComponentStateClicked
 import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -73,6 +79,7 @@ class RuleDetailViewModel @Inject constructor(
     private val componentRepository: ComponentRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val shizukuInitializer: ShizukuInitializer,
+    private val analyticsHelper: AnalyticsHelper,
 ) : AndroidViewModel(app) {
     private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
     private val _ruleMatchedAppListUiState: MutableStateFlow<RuleMatchedAppListUiState> =
@@ -149,6 +156,7 @@ class RuleDetailViewModel @Inject constructor(
         val list = uiState.list
             .flatMap { it.componentList }
         controlAllComponents(list, enable)
+        analyticsHelper.logControlAllInPageClicked(newState = enable)
     }
 
     fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) = viewModelScope.launch {
@@ -156,6 +164,7 @@ class RuleDetailViewModel @Inject constructor(
             controlComponentInternal(it.packageName, it.name, enable)
         }
         loadMatchedApps(currentSearchKeyword)
+        analyticsHelper.logControlAllComponentsClicked(newState = enable)
     }
 
     private suspend fun loadMatchedApps(keywords: List<String>) {
@@ -168,7 +177,8 @@ class RuleDetailViewModel @Inject constructor(
         val showSystemApps = userDataRepository.userData.first().showSystemApps
         val searchResult = matchedComponents.groupBy { it.packageName }
             .mapNotNull { (packageName, components) ->
-                val app = appRepository.getApplication(packageName).first() ?: return@mapNotNull null
+                val app =
+                    appRepository.getApplication(packageName).first() ?: return@mapNotNull null
                 if (!showSystemApps && app.isSystem) return@mapNotNull null
                 val packageInfo = pm.getPackageInfoCompat(packageName, 0)
                 val appItem = app.toAppItem(packageInfo = packageInfo)
@@ -188,6 +198,7 @@ class RuleDetailViewModel @Inject constructor(
             }
         }
     }
+
     private fun getAppBarAction(): List<AppBarAction> = when (tabState.value.selectedItem) {
         Description -> listOf()
         else -> listOf(MORE)
@@ -200,12 +211,14 @@ class RuleDetailViewModel @Inject constructor(
     fun launchActivity(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             "am start -n $packageName/$componentName".exec(ioDispatcher)
+            analyticsHelper.logLaunchActivityClicked()
         }
     }
 
     fun stopService(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             "am stopservice $packageName/$componentName".exec(ioDispatcher)
+            analyticsHelper.logStopServiceClicked()
         }
     }
 
@@ -216,6 +229,7 @@ class RuleDetailViewModel @Inject constructor(
     ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         controlComponentInternal(packageName, componentName, enabled)
         loadMatchedApps(currentSearchKeyword)
+        analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
     }
 
     private suspend fun controlComponentInternal(
