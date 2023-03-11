@@ -156,7 +156,6 @@ class AppDetailViewModel @Inject constructor(
         loadAppInfo()
         loadComponentList()
         updateComponentList(appDetailArgs.packageName)
-        analyticsHelper.logAppDetailOpened(appDetailArgs.packageName)
     }
 
     override fun onCleared() {
@@ -389,6 +388,10 @@ class AppDetailViewModel @Inject constructor(
     fun changeSearchMode(isSearchMode: Boolean) {
         Timber.v("Change search mode: $isSearchMode")
         _appBarUiState.update {
+            val originalSearchState = it.isSearchMode
+            if (!originalSearchState && isSearchMode) {
+                analyticsHelper.logSearchButtonClicked()
+            }
             it.copy(
                 isSearchMode = isSearchMode,
             )
@@ -417,12 +420,14 @@ class AppDetailViewModel @Inject constructor(
     fun launchActivity(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             "am start -n $packageName/$componentName".exec(ioDispatcher)
+            analyticsHelper.logStartActivityClicked()
         }
     }
 
     fun stopService(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             "am stopservice $packageName/$componentName".exec(ioDispatcher)
+            analyticsHelper.logStopServiceClicked()
         }
     }
 
@@ -432,6 +437,7 @@ class AppDetailViewModel @Inject constructor(
         enabled: Boolean,
     ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         controlComponentInternal(packageName, componentName, enabled)
+        analyticsHelper.logSwitchComponentClicked(newState = enabled)
     }
 
     private suspend fun controlComponentInternal(
@@ -468,6 +474,7 @@ class AppDetailViewModel @Inject constructor(
                     listenWorkInfo(EXPORT_BLOCKER_RULES, workInfo)
                 }
         }
+        analyticsHelper.logExportBlockerRuleClicked()
     }
 
     fun importBlockerRule(packageName: String) = viewModelScope.launch {
@@ -493,6 +500,7 @@ class AppDetailViewModel @Inject constructor(
                     listenWorkInfo(IMPORT_BLOCKER_RULES, workInfo)
                 }
         }
+        analyticsHelper.logImportBlockerRuleClicked()
     }
 
     fun exportIfwRule(packageName: String) = viewModelScope.launch {
@@ -516,6 +524,7 @@ class AppDetailViewModel @Inject constructor(
                     listenWorkInfo(EXPORT_IFW_RULES, workInfo)
                 }
         }
+        analyticsHelper.logExportIfwRuleClicked()
     }
 
     fun importIfwRule(packageName: String) = viewModelScope.launch {
@@ -540,6 +549,7 @@ class AppDetailViewModel @Inject constructor(
                     listenWorkInfo(IMPORT_IFW_RULES, workInfo)
                 }
         }
+        analyticsHelper.logImportIfwRuleClicked()
     }
 
     fun resetIfw(packageName: String) = viewModelScope.launch {
@@ -561,6 +571,7 @@ class AppDetailViewModel @Inject constructor(
                     listenWorkInfo(RESET_IFW, workInfo)
                 }
         }
+        analyticsHelper.logResetIfwRuleClicked()
     }
 
     private suspend fun listenWorkInfo(ruleWorkType: RuleWorkType, workInfo: WorkInfo) {
