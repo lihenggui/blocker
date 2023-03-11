@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -95,6 +96,7 @@ fun GeneralRulesScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            val analyticsHelper = LocalAnalyticsHelper.current
             when (uiState) {
                 Loading -> {
                     LoadingScreen()
@@ -102,7 +104,10 @@ fun GeneralRulesScreen(
 
                 is Success -> GeneralRulesList(
                     rules = uiState.rules,
-                    onClick = navigateToRuleDetail,
+                    onClick = { id ->
+                        navigateToRuleDetail(id)
+                        analyticsHelper.logGeneralRuleClicked(id)
+                    },
                 )
 
                 is Error -> ErrorScreen(error = uiState.error)
