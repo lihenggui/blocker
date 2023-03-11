@@ -176,7 +176,6 @@ fun AppDetailRoute(
     LaunchedEffect(Unit) {
         viewModel.initShizuku()
     }
-    TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
 
 @Composable
@@ -238,6 +237,7 @@ fun AppDetailScreen(
 
         is AppInfoUiState.Error -> ErrorScreen(appInfoUiState.error)
     }
+    TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
 
 @Composable
