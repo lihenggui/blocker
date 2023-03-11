@@ -176,7 +176,7 @@ fun RuleDetailScreen(
             ErrorScreen(error = ruleInfoUiState.error)
         }
     }
-    TrackScreenViewEvent(screenName ="RuleDetailScreen")
+    TrackScreenViewEvent(screenName = "RuleDetailScreen")
 }
 
 @Composable

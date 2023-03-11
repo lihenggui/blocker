@@ -94,7 +94,6 @@ dependencies {
     implementation(project(":feature:appdetail"))
     implementation(project(":feature:applist"))
     implementation(project(":feature:generalrule"))
-    implementation(project(":feature:provider"))
     implementation(project(":feature:search"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:ruledetail"))
@@ -105,6 +104,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:network"))
     implementation(project(":core:model"))
+    implementation(project(":core:provider"))
 
     androidTestImplementation(project(":core:testing"))
     androidTestImplementation(project(":core:datastore-test"))
