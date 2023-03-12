@@ -18,10 +18,8 @@ package com.merxury.blocker.feature.applist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -85,7 +83,7 @@ fun AppListRoute(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
@@ -121,7 +119,6 @@ fun AppListScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
-                .consumeWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
                         WindowInsetsSides.Horizontal,
