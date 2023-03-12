@@ -39,6 +39,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.AppDetailTabs
@@ -229,6 +230,7 @@ fun ComponentSearchResultContent(
         return
     }
     val listState = rememberLazyListState()
+    val analyticsHelper = LocalAnalyticsHelper.current
     Box(modifier) {
         LazyColumn(
             modifier = modifier,
@@ -240,7 +242,10 @@ fun ComponentSearchResultContent(
                     isSelectedMode = componentTabUiState.isSelectedMode,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
-                    onComponentClick = onComponentClick,
+                    onComponentClick = { component ->
+                        onComponentClick(component)
+                        analyticsHelper.logComponentSearchResultClicked()
+                    },
                 )
             }
         }
@@ -264,9 +269,13 @@ fun AppSearchResultContent(
         NoSearchResultScreen()
         return
     }
+    val analyticsHelper = LocalAnalyticsHelper.current
     AppList(
         appList = appList,
-        onAppItemClick = onClick,
+        onAppItemClick = { packageName ->
+            onClick(packageName)
+            analyticsHelper.logAppSearchResultClicked()
+        },
         onClearCacheClick = onClearCacheClick,
         onClearDataClick = onClearDataClick,
         onForceStopClick = onForceStopClick,
@@ -288,10 +297,14 @@ fun RuleSearchResultContent(
         NoSearchResultScreen()
         return
     }
+    val analyticsHelper = LocalAnalyticsHelper.current
     GeneralRulesList(
         modifier = modifier,
         rules = list,
-        onClick = onClick,
+        onClick = { id ->
+            onClick(id)
+            analyticsHelper.logRuleSearchResultClicked(id)
+        },
     )
 }
 
