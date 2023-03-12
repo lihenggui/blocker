@@ -17,6 +17,10 @@
 package com.merxury.blocker.core.ui.applist
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -65,6 +69,9 @@ fun AppList(
                 LaunchedEffect(true) {
                     onServiceStateUpdate(item.packageName, index)
                 }
+            }
+            item {
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
     }
