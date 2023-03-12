@@ -22,6 +22,7 @@ import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
 import androidx.core.os.bundleOf
+import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.component.LocalComponentDataSource
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import dagger.hilt.EntryPoint
@@ -43,6 +44,8 @@ class ComponentProvider : ContentProvider() {
         fun componentDataSource(): LocalComponentDataSource
 
         fun componentRepository(): LocalComponentRepository
+
+        fun analyticsHelper(): AnalyticsHelper
     }
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
@@ -84,6 +87,7 @@ class ComponentProvider : ContentProvider() {
             ComponentRepositoryEntryPoint::class.java,
         )
         val componentRepository = hintEntryPoint.componentRepository()
+        val analyticsHelper = hintEntryPoint.analyticsHelper()
         try {
             val shareCmpInfo = Json.decodeFromString<ShareCmpInfo>(rawString)
             Timber.d("controlComponent: $shareCmpInfo")
@@ -93,6 +97,7 @@ class ComponentProvider : ContentProvider() {
                     componentName = component.name,
                     newState = !component.block,
                 ).first()
+                analyticsHelper.logControlComponentViaProvider(newState = !component.block)
             }
             // Returned, but seems that it's not used.
             return@runBlocking data

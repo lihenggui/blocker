@@ -22,6 +22,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -73,6 +74,7 @@ class AppListViewModel @Inject constructor(
     private val initializeDatabase: InitializeDatabaseUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
+    private val analyticsHelper: AnalyticsHelper,
 ) : AndroidViewModel(app) {
     private val _uiState = MutableStateFlow<AppListUiState>(Initializing())
     val uiState = _uiState.asStateFlow()
@@ -216,6 +218,7 @@ class AppListViewModel @Inject constructor(
 
     fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm clear $packageName".exec(ioDispatcher)
+        analyticsHelper.logClearDataClicked()
     }
 
     fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
@@ -231,26 +234,31 @@ class AppListViewModel @Inject constructor(
             }
         Timber.d("Delete cache folder: $cacheFolder")
         FileUtils.delete(cacheFolder.absolutePath, recursively = true, ioDispatcher)
+        analyticsHelper.logClearCacheClicked()
     }
 
     fun uninstall(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm uninstall $packageName".exec(ioDispatcher)
         notifyAppUpdated(packageName)
+        analyticsHelper.logUninstallAppClicked()
     }
 
     fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "am force-stop $packageName".exec(ioDispatcher)
         notifyAppUpdated(packageName)
+        analyticsHelper.logForceStopClicked()
     }
 
     fun enable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm enable $packageName".exec(ioDispatcher)
         notifyAppUpdated(packageName)
+        analyticsHelper.logEnableAppClicked()
     }
 
     fun disable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "pm disable $packageName".exec(ioDispatcher)
         notifyAppUpdated(packageName)
+        analyticsHelper.logDisableAppClicked()
     }
 
     private suspend fun notifyAppUpdated(packageName: String) {

@@ -14,17 +14,18 @@
  * limitations under the License.
  */
 
-plugins {
-    id("blocker.android.feature")
-    id("blocker.android.library.jacoco")
-    id("kotlinx-serialization")
-}
-android {
-    namespace = "com.merxury.blocker.provider"
-}
-dependencies {
-    implementation(project(":core:database"))
-    implementation(project(":core:datastore"))
-    implementation(project(":core:component-controller"))
-    implementation(libs.kotlinx.serialization.json)
-}
+package com.merxury.blocker.provider
+
+import com.merxury.blocker.core.analytics.AnalyticsEvent
+import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
+import com.merxury.blocker.core.analytics.AnalyticsHelper
+
+internal fun AnalyticsHelper.logControlComponentViaProvider(newState: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "control_component_via_provider_activated",
+            extras = listOf(
+                Param(key = "new_state", value = newState.toString()),
+            ),
+        ),
+    )
