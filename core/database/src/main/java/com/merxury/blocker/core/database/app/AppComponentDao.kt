@@ -38,6 +38,9 @@ interface AppComponentDao {
     @Delete
     suspend fun delete(appComponentEntity: AppComponentEntity): Int
 
+    @Delete
+    suspend fun delete(entities: List<AppComponentEntity>): Int
+
     @Query("DELETE FROM app_component WHERE package_name LIKE :packageName")
     suspend fun deleteByPackageName(packageName: String): Int
 
