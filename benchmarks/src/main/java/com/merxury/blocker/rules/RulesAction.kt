@@ -26,9 +26,9 @@ fun MacrobenchmarkScope.goToRulesScreen() {
     device.findObject(By.text("Rules")).click()
     device.waitForIdle()
     // Wait until saved title are shown on screen
-    device.wait(Until.hasObject(By.res("blockerTopAppBar")), 2_000)
-    val topAppBar = device.findObject(By.res("blockerTopAppBar"))
-    topAppBar.wait(Until.hasObject(By.text("Rules")), 2_000)
+    // Timeout here is quite big, because sometimes data loading takes a long time
+    device.wait(Until.hasObject(By.res("blockerTopAppBar")), 60_000)
+    device.wait(Until.hasObject(By.res("rule:list")), 60_000)
 }
 
 fun MacrobenchmarkScope.rulesScrollListDownUp() {
