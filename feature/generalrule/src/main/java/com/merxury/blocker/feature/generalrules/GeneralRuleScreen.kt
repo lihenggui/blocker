@@ -81,7 +81,10 @@ fun GeneralRulesScreen(
 ) {
     Scaffold(
         topBar = {
-            BlockerTopAppBar(title = stringResource(id = R.string.rules))
+            BlockerTopAppBar(
+                title = stringResource(id = R.string.rules),
+                modifier = Modifier.testTag("blockerTopAppBar"),
+            )
         },
     ) { padding ->
         Column(
