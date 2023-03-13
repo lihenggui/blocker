@@ -31,12 +31,14 @@ import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.Result.Success
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.zip
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -66,28 +68,40 @@ class LocalComponentRepository @Inject constructor(
 
     override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> =
         flow {
-            emit(Result.Loading)
+            val cachedComponents = appComponentDao.getByPackageNameAndType(packageName, type)
+                .first()
             val latestComponents = localDataSource.getComponentList(packageName, type)
                 .map { list ->
                     list.map { it.toAppComponentEntity() }
                 }
                 .first()
+            val diff = (latestComponents + cachedComponents).groupBy { it.componentName }
+                .filter { it.value.size == 1 }
+                .flatMap { it.value }
+            Timber.d("Found ${diff.size} components to delete for $packageName in type $type")
+            appComponentDao.delete(diff)
             appComponentDao.upsertComponentList(latestComponents)
+            emit(Success(Unit))
         }
             .flowOn(ioDispatcher)
 
-    override fun updateComponentList(packageName: String): Flow<Result<Unit>> =
-        flow {
-            val latestComponents = localDataSource.getComponentList(packageName)
-                .map { list ->
-                    list.map { it.toAppComponentEntity() }
-                }
-                .first()
-            Timber.d("Update component list for $packageName, size: ${latestComponents.size}")
-            appComponentDao.upsertComponentList(latestComponents)
-            emit(Result.Success(Unit))
-        }
+    override fun updateComponentList(packageName: String): Flow<Result<Unit>> {
+        return localDataSource.getComponentList(packageName)
+            .map { list ->
+                list.map { it.toAppComponentEntity() }
+            }
+            .zip(appComponentDao.getByPackageName(packageName)) { latest, cached ->
+                val diff = (latest + cached).groupBy { it.componentName }
+                    .filter { it.value.size == 1 }
+                    .flatMap { it.value }
+                Timber.d("Found ${diff.size} components to delete for $packageName")
+                appComponentDao.delete(diff)
+                Timber.d("Update component list for $packageName, size: ${latest.size}")
+                appComponentDao.upsertComponentList(latest)
+                Success(Unit)
+            }
             .flowOn(ioDispatcher)
+    }
 
     override fun controlComponent(
         packageName: String,
