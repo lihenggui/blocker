@@ -18,7 +18,7 @@
 val ktlintVersion = "0.48.2"
 
 initscript {
-    val spotlessVersion = "6.16.0"
+    val spotlessVersion = "6.17.0"
 
     repositories {
         mavenCentral()
