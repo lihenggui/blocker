@@ -19,6 +19,11 @@ package com.merxury.blocker.baselineprofile
 import androidx.benchmark.macro.ExperimentalBaselineProfilesApi
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import com.merxury.blocker.PACKAGE_NAME
+import com.merxury.blocker.applist.appListScrollDownUp
+import com.merxury.blocker.applist.appListWaitForContent
+import com.merxury.blocker.rules.goToRulesScreen
+import com.merxury.blocker.rules.rulesScrollListDownUp
+import com.merxury.blocker.search.goToSearchScreen
 import org.junit.Rule
 import org.junit.Test
 
@@ -38,5 +43,13 @@ class BaselineProfileGenerator {
 
             pressHome()
             startActivityAndWait()
+
+            appListWaitForContent()
+            appListScrollDownUp()
+
+            goToRulesScreen()
+            rulesScrollListDownUp()
+
+            goToSearchScreen()
         }
 }
