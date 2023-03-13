@@ -34,6 +34,6 @@ fun MacrobenchmarkScope.appListWaitForContent() {
 }
 
 fun MacrobenchmarkScope.appListScrollDownUp() {
-    val feedList = device.findObject(By.res("appList:applicationList"))
-    device.flingElementDownUp(feedList)
+    val list = device.findObject(By.res("appList:applicationList"))
+    device.flingElementDownUp(list)
 }
