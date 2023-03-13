@@ -66,23 +66,38 @@ class LocalComponentRepository @Inject constructor(
 
     override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> =
         flow {
-            emit(Result.Loading)
+            val cachedComponents = appComponentDao.getByPackageNameAndType(packageName, type)
+                .first()
             val latestComponents = localDataSource.getComponentList(packageName, type)
                 .map { list ->
                     list.map { it.toAppComponentEntity() }
                 }
                 .first()
+            val diff = (latestComponents + cachedComponents).groupBy { it.componentName }
+                .filter { it.value.size == 1 }
+                .flatMap { it.value }
+            Timber.d("Found ${diff.size} components to delete for $packageName in type $type")
+            appComponentDao.delete(diff)
             appComponentDao.upsertComponentList(latestComponents)
+            emit(Result.Success(Unit))
         }
             .flowOn(ioDispatcher)
 
     override fun updateComponentList(packageName: String): Flow<Result<Unit>> =
         flow {
+            val cachedComponents = appComponentDao.getByPackageName(packageName)
+                .first()
             val latestComponents = localDataSource.getComponentList(packageName)
                 .map { list ->
                     list.map { it.toAppComponentEntity() }
                 }
                 .first()
+            // Find difference between cached and latest component list
+            val diff = (latestComponents + cachedComponents).groupBy { it.componentName }
+                .filter { it.value.size == 1 }
+                .flatMap { it.value }
+            Timber.d("Found ${diff.size} components to delete for $packageName")
+            appComponentDao.delete(diff)
             Timber.d("Update component list for $packageName, size: ${latestComponents.size}")
             appComponentDao.upsertComponentList(latestComponents)
             emit(Result.Success(Unit))
