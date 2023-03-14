@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.generalrules
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,14 +31,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -70,7 +72,7 @@ fun GeneralRulesRoute(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneralRulesScreen(
     modifier: Modifier = Modifier,
@@ -79,7 +81,10 @@ fun GeneralRulesScreen(
 ) {
     Scaffold(
         topBar = {
-            BlockerTopAppBar(title = stringResource(id = R.string.rules))
+            BlockerTopAppBar(
+                title = stringResource(id = R.string.rules),
+                modifier = Modifier.testTag("blockerTopAppBar"),
+            )
         },
     ) { padding ->
         Column(
@@ -94,6 +99,7 @@ fun GeneralRulesScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            val analyticsHelper = LocalAnalyticsHelper.current
             when (uiState) {
                 Loading -> {
                     LoadingScreen()
@@ -101,13 +107,18 @@ fun GeneralRulesScreen(
 
                 is Success -> GeneralRulesList(
                     rules = uiState.rules,
-                    onClick = navigateToRuleDetail,
+                    onClick = { id ->
+                        navigateToRuleDetail(id)
+                        analyticsHelper.logGeneralRuleClicked(id)
+                    },
+                    modifier = Modifier.testTag("rule:list"),
                 )
 
                 is Error -> ErrorScreen(error = uiState.error)
             }
         }
     }
+    TrackScreenViewEvent(screenName = "GeneralRulesScreen")
 }
 
 @Composable

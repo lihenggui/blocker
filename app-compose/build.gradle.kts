@@ -34,8 +34,9 @@ android {
     namespace = "com.merxury.blocker"
     defaultConfig {
         applicationId = "com.merxury.blocker"
-        versionCode = 1270
-        versionName = "1.2.70" // X.Y.Z; X = Major, Y = minor, Z = Patch level
+        val gitCommitCount = "git rev-list HEAD --count".runCommand()?.trim()
+        versionCode = gitCommitCount?.toIntOrNull() ?: 1
+        versionName = "2.0.$gitCommitCount" // X.Y.Z; X = Major, Y = minor, Z = version code
 
         // Custom test runner to set up Hilt dependency graph
         testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
@@ -52,7 +53,7 @@ android {
             applicationIdSuffix = BlockerBuildType.RELEASE.applicationIdSuffix
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
 
             // To publish on the Play store a private signing key is required, but to allow anyone
@@ -94,7 +95,6 @@ dependencies {
     implementation(project(":feature:appdetail"))
     implementation(project(":feature:applist"))
     implementation(project(":feature:generalrule"))
-    implementation(project(":feature:provider"))
     implementation(project(":feature:search"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:ruledetail"))
@@ -105,6 +105,7 @@ dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:network"))
     implementation(project(":core:model"))
+    implementation(project(":core:provider"))
 
     androidTestImplementation(project(":core:testing"))
     androidTestImplementation(project(":core:datastore-test"))
@@ -146,3 +147,20 @@ configurations.configureEach {
         force("org.objenesis:objenesis:2.6")
     }
 }
+
+fun String.runCommand(
+    workingDir: File = File("."),
+    timeoutAmount: Long = 60,
+    timeoutUnit: TimeUnit = TimeUnit.SECONDS,
+): String? = runCatching {
+    ProcessBuilder("\\s".toRegex().split(this))
+        .directory(workingDir)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
+        .start().also { it.waitFor(timeoutAmount, timeoutUnit) }
+        .inputStream
+        .bufferedReader()
+        .readText()
+}
+    .onFailure { it.printStackTrace() }
+    .getOrNull()

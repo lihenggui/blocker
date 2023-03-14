@@ -18,14 +18,14 @@ package com.merxury.blocker.feature.search
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumedWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -36,14 +36,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
@@ -102,10 +105,6 @@ fun SearchRoute(
     )
 }
 
-@OptIn(
-    ExperimentalLayoutApi::class,
-    ExperimentalMaterial3Api::class,
-)
 @Composable
 fun SearchScreen(
     modifier: Modifier = Modifier,
@@ -143,6 +142,7 @@ fun SearchScreen(
                 onSelectAll = onSelectAll,
                 onBlockAll = onBlockAll,
                 onCheckAll = onCheckAll,
+                modifier = Modifier.testTag("blockerTopAppBar"),
             )
         },
     ) { padding ->
@@ -150,7 +150,6 @@ fun SearchScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
-                .consumedWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
                         WindowInsetsSides.Horizontal,
@@ -185,6 +184,7 @@ fun SearchScreen(
             }
         }
     }
+    TrackScreenViewEvent(screenName = "SearchScreen")
 }
 
 @Composable
@@ -231,6 +231,7 @@ fun ComponentSearchResultContent(
         return
     }
     val listState = rememberLazyListState()
+    val analyticsHelper = LocalAnalyticsHelper.current
     Box(modifier) {
         LazyColumn(
             modifier = modifier,
@@ -242,8 +243,14 @@ fun ComponentSearchResultContent(
                     isSelectedMode = componentTabUiState.isSelectedMode,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
-                    onComponentClick = onComponentClick,
+                    onComponentClick = { component ->
+                        onComponentClick(component)
+                        analyticsHelper.logComponentSearchResultClicked()
+                    },
                 )
+            }
+            item {
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
     }
@@ -266,9 +273,13 @@ fun AppSearchResultContent(
         NoSearchResultScreen()
         return
     }
+    val analyticsHelper = LocalAnalyticsHelper.current
     AppList(
         appList = appList,
-        onAppItemClick = onClick,
+        onAppItemClick = { packageName ->
+            onClick(packageName)
+            analyticsHelper.logAppSearchResultClicked()
+        },
         onClearCacheClick = onClearCacheClick,
         onClearDataClick = onClearDataClick,
         onForceStopClick = onForceStopClick,
@@ -290,10 +301,14 @@ fun RuleSearchResultContent(
         NoSearchResultScreen()
         return
     }
+    val analyticsHelper = LocalAnalyticsHelper.current
     GeneralRulesList(
         modifier = modifier,
         rules = list,
-        onClick = onClick,
+        onClick = { id ->
+            onClick(id)
+            analyticsHelper.logRuleSearchResultClicked(id)
+        },
     )
 }
 

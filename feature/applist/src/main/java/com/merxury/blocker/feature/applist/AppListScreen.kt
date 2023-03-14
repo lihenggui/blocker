@@ -18,10 +18,8 @@ package com.merxury.blocker.feature.applist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumedWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -34,12 +32,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.screen.ErrorScreen
@@ -84,7 +84,7 @@ fun AppListRoute(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
@@ -120,7 +120,6 @@ fun AppListScreen(
             modifier = modifier
                 .fillMaxSize()
                 .padding(top = padding.calculateTopPadding())
-                .consumedWindowInsets(padding)
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(
                         WindowInsetsSides.Horizontal,
@@ -129,6 +128,7 @@ fun AppListScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            val appListTestTag = "appList:applicationList"
             when (uiState) {
                 is AppListUiState.Initializing ->
                     InitializingScreen(processingName = uiState.processingName)
@@ -144,11 +144,12 @@ fun AppListScreen(
                         onEnableClick = onEnableClick,
                         onDisableClick = onDisableClick,
                         onServiceStateUpdate = onServiceStateUpdate,
-                        modifier = modifier,
+                        modifier = modifier.testTag(appListTestTag),
                     )
 
                 is AppListUiState.Error -> ErrorScreen(uiState.error)
             }
         }
     }
+    TrackScreenViewEvent(screenName = "AppListScreen")
 }
