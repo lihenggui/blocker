@@ -32,6 +32,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -127,6 +128,7 @@ fun AppListScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            val appListTestTag = "appList:applicationList"
             when (uiState) {
                 is AppListUiState.Initializing ->
                     InitializingScreen(processingName = uiState.processingName)
@@ -142,7 +144,7 @@ fun AppListScreen(
                         onEnableClick = onEnableClick,
                         onDisableClick = onDisableClick,
                         onServiceStateUpdate = onServiceStateUpdate,
-                        modifier = modifier,
+                        modifier = modifier.testTag(appListTestTag),
                     )
 
                 is AppListUiState.Error -> ErrorScreen(uiState.error)

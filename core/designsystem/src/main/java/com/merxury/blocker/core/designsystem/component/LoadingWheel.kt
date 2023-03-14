@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -108,7 +109,8 @@ fun BlockerLoadingWheel(
             .size(48.dp)
             .padding(8.dp)
             .graphicsLayer { rotationZ = rotationAnim }
-            .semantics { contentDescription = contentDesc },
+            .semantics { contentDescription = contentDesc }
+            .testTag("loadingWheel"),
     ) {
         repeat(NUM_OF_LINES) { index ->
             rotate(degrees = index * 30f) {
