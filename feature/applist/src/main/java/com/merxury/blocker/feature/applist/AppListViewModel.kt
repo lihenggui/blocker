@@ -140,7 +140,9 @@ class AppListViewModel @Inject constructor(
                     )
                 }.sortedWith(
                     appComparator(sortType),
-                ).toMutableStateList()
+                ).sortedByDescending {
+                    it.isRunning
+                }.toMutableStateList()
                 _appListFlow.value = _appList
                 _uiState.emit(Success)
             }
