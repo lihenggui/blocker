@@ -123,20 +123,20 @@ class AppListViewModel @Inject constructor(
                     it.label.contains(currentSearchKeyword, true) ||
                         it.packageName.contains(currentSearchKeyword, true)
                 }.map { installedApp ->
+                    val packageName = installedApp.packageName
                     AppItem(
                         label = installedApp.label,
-                        packageName = installedApp.packageName,
+                        packageName = packageName,
                         versionName = installedApp.versionName,
                         versionCode = installedApp.versionCode,
-                        isSystem = ApplicationUtil.isSystemApp(pm, installedApp.packageName),
-                        // TODO detect if an app is running or not
-                        isRunning = false,
+                        isSystem = ApplicationUtil.isSystemApp(pm, packageName),
+                        isRunning = ApplicationUtil.isRunning(packageName, ioDispatcher),
                         isEnabled = installedApp.isEnabled,
                         firstInstallTime = installedApp.firstInstallTime,
                         lastUpdateTime = installedApp.lastUpdateTime,
-                        appServiceStatus = AppStateCache.getOrNull(installedApp.packageName)
+                        appServiceStatus = AppStateCache.getOrNull(packageName)
                             ?.toAppServiceStatus(),
-                        packageInfo = pm.getPackageInfoCompat(installedApp.packageName, 0),
+                        packageInfo = pm.getPackageInfoCompat(packageName, 0),
                     )
                 }.sortedWith(
                     appComparator(sortType),
