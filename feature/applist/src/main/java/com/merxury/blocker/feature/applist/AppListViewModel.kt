@@ -45,6 +45,7 @@ import com.merxury.blocker.core.ui.applist.model.toAppServiceStatus
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.AppStateCache
+import com.merxury.blocker.core.ui.state.RunningAppCache
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
@@ -115,6 +116,7 @@ class AppListViewModel @Inject constructor(
                 Timber.v("App list changed, size ${list.size}")
                 val preference = userDataRepository.userData.first()
                 val sortType = preference.appSorting
+                RunningAppCache.refresh(ioDispatcher)
                 _appList = if (preference.showSystemApps) {
                     list
                 } else {
@@ -130,7 +132,7 @@ class AppListViewModel @Inject constructor(
                         versionName = installedApp.versionName,
                         versionCode = installedApp.versionCode,
                         isSystem = ApplicationUtil.isSystemApp(pm, packageName),
-                        isRunning = ApplicationUtil.isRunning(packageName, ioDispatcher),
+                        isRunning = RunningAppCache.isRunning(packageName),
                         isEnabled = installedApp.isEnabled,
                         firstInstallTime = installedApp.firstInstallTime,
                         lastUpdateTime = installedApp.lastUpdateTime,
