@@ -41,24 +41,6 @@ fun AppListItemMenuList(
     onDismissRequest: () -> Unit,
 ) {
     val items = buildList {
-        add(
-            DropDownMenuItem(
-                textRes = R.string.clear_cache,
-                onClick = onClearCacheClick,
-            ),
-        )
-        add(
-            DropDownMenuItem(
-                textRes = R.string.clear_data,
-                onClick = onClearDataClick,
-            ),
-        )
-        add(
-            DropDownMenuItem(
-                textRes = R.string.uninstall,
-                onClick = onUninstallClick,
-            ),
-        )
         if (isAppRunning) {
             add(
                 DropDownMenuItem(
@@ -82,6 +64,24 @@ fun AppListItemMenuList(
                 ),
             )
         }
+        add(
+            DropDownMenuItem(
+                textRes = R.string.clear_cache,
+                onClick = onClearCacheClick,
+            ),
+        )
+        add(
+            DropDownMenuItem(
+                textRes = R.string.clear_data,
+                onClick = onClearDataClick,
+            ),
+        )
+        add(
+            DropDownMenuItem(
+                textRes = R.string.uninstall,
+                onClick = onUninstallClick,
+            ),
+        )
     }
     BlockerDropdownMenu(
         offset = offset,

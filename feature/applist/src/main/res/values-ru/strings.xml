@@ -28,4 +28,6 @@
     <string name="settings">Настройки</string>
     <string name="support_and_feedback">поддержка и обратная связь</string>
     <string name="app_name">Blocker</string>
+    <string name="do_you_want_to_clear_data_of_this_app">Вы хотите очистить данные этого приложения?</string>
+    <string name="do_you_want_to_uninstall_this_app">Вы хотите удалить это приложение?</string>
 </resources>
