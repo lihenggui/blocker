@@ -428,6 +428,31 @@ class AppDetailViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             "am stopservice $packageName/$componentName".exec(ioDispatcher)
             analyticsHelper.logStopServiceClicked()
+            updateServiceStatus(packageName, componentName)
+        }
+    }
+
+    private suspend fun updateServiceStatus(packageName: String, componentName: String) {
+        val helper = ServiceHelper(packageName)
+        helper.refresh()
+        val isRunning = helper.isServiceRunning(componentName)
+        val item = _componentListUiState.value.service.find { it.name == componentName }
+        if (item == null) {
+            Timber.w("Cannot find service $componentName to update")
+            return
+        }
+        val newStatus = item.copy(isRunning = isRunning)
+        Timber.d("Update service $componentName running status to $newStatus")
+        _componentListUiState.update {
+            it.copy(
+                service = it.service.map { item ->
+                    if (item.name == componentName) {
+                        newStatus
+                    } else {
+                        item
+                    }
+                }.toMutableStateList(),
+            )
         }
     }
 
