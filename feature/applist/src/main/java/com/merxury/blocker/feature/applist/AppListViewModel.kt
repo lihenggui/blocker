@@ -226,6 +226,7 @@ class AppListViewModel @Inject constructor(
     fun clearData(packageName: String) = viewModelScope.launch {
         val action: () -> Unit = {
             viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                Timber.d("Clear data for $packageName")
                 "pm clear $packageName".exec(ioDispatcher)
                 analyticsHelper.logClearDataClicked()
             }
@@ -262,6 +263,7 @@ class AppListViewModel @Inject constructor(
     fun uninstall(packageName: String) = viewModelScope.launch {
         val action: () -> Unit = {
             viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                Timber.d("Uninstall $packageName")
                 "pm uninstall $packageName".exec(ioDispatcher)
                 notifyAppUpdated(packageName)
                 analyticsHelper.logUninstallAppClicked()
