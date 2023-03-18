@@ -34,11 +34,28 @@ object RunningAppCache {
             runningAppList.clear()
             runningAppList.addAll(commandResult.out)
         } catch (e: Exception) {
-            Timber.w( "Failed to refresh running app list")
+            Timber.w("Failed to refresh running app list")
         }
     }
 
     fun isRunning(packageName: String): Boolean {
         return runningAppList.contains(packageName)
+    }
+
+    suspend fun update(packageName: String, dispatcher: CoroutineDispatcher = Dispatchers.IO) {
+        try {
+            val result = "pidof $packageName".exec(dispatcher)
+            if (result.isSuccess && result.out.isNotEmpty()) {
+                runningAppList.add(packageName)
+            } else {
+                runningAppList.remove(packageName)
+            }
+            Timber.d(
+                "Updated running status: $packageName" +
+                    "result is ${result.out.isNotEmpty()}",
+            )
+        } catch (e: Exception) {
+            Timber.w("Failed to update running app: $packageName")
+        }
     }
 }
