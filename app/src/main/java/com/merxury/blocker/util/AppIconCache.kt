@@ -24,7 +24,7 @@ import android.graphics.drawable.AdaptiveIconDrawable
 import android.os.Build
 import android.widget.ImageView
 import androidx.collection.LruCache
-import com.merxury.blocker.core.common.R
+import com.merxury.blocker.R
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
