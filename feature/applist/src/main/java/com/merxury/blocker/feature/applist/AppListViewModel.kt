@@ -45,6 +45,7 @@ import com.merxury.blocker.core.ui.applist.model.toAppServiceStatus
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.AppStateCache
+import com.merxury.blocker.core.ui.state.RunningAppCache
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
@@ -58,6 +59,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.takeWhile
@@ -80,6 +82,8 @@ class AppListViewModel @Inject constructor(
     val uiState = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
+    private val _warningState = MutableStateFlow<WarningDialogData?>(null)
+    val warningState = _warningState.asStateFlow()
     private var _appList = mutableStateListOf<AppItem>()
     private val _appListFlow = MutableStateFlow(_appList)
     private var currentSearchKeyword = ""
@@ -115,6 +119,7 @@ class AppListViewModel @Inject constructor(
                 Timber.v("App list changed, size ${list.size}")
                 val preference = userDataRepository.userData.first()
                 val sortType = preference.appSorting
+                RunningAppCache.refresh(ioDispatcher)
                 _appList = if (preference.showSystemApps) {
                     list
                 } else {
@@ -123,24 +128,26 @@ class AppListViewModel @Inject constructor(
                     it.label.contains(currentSearchKeyword, true) ||
                         it.packageName.contains(currentSearchKeyword, true)
                 }.map { installedApp ->
+                    val packageName = installedApp.packageName
                     AppItem(
                         label = installedApp.label,
-                        packageName = installedApp.packageName,
+                        packageName = packageName,
                         versionName = installedApp.versionName,
                         versionCode = installedApp.versionCode,
-                        isSystem = ApplicationUtil.isSystemApp(pm, installedApp.packageName),
-                        // TODO detect if an app is running or not
-                        isRunning = false,
+                        isSystem = ApplicationUtil.isSystemApp(pm, packageName),
+                        isRunning = RunningAppCache.isRunning(packageName),
                         isEnabled = installedApp.isEnabled,
                         firstInstallTime = installedApp.firstInstallTime,
                         lastUpdateTime = installedApp.lastUpdateTime,
-                        appServiceStatus = AppStateCache.getOrNull(installedApp.packageName)
+                        appServiceStatus = AppStateCache.getOrNull(packageName)
                             ?.toAppServiceStatus(),
-                        packageInfo = pm.getPackageInfoCompat(installedApp.packageName, 0),
+                        packageInfo = pm.getPackageInfoCompat(packageName, 0),
                     )
                 }.sortedWith(
                     appComparator(sortType),
-                ).toMutableStateList()
+                ).sortedByDescending {
+                    it.isRunning
+                }.toMutableStateList()
                 _appListFlow.value = _appList
                 _uiState.emit(Success)
             }
@@ -212,13 +219,29 @@ class AppListViewModel @Inject constructor(
         _appList[index] = newItem
     }
 
-    fun dismissDialog() = viewModelScope.launch {
+    fun dismissErrorDialog() = viewModelScope.launch {
         _errorState.emit(null)
     }
 
-    fun clearData(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        "pm clear $packageName".exec(ioDispatcher)
-        analyticsHelper.logClearDataClicked()
+    fun clearData(packageName: String) = viewModelScope.launch {
+        val action: () -> Unit = {
+            viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                Timber.d("Clear data for $packageName")
+                "pm clear $packageName".exec(ioDispatcher)
+                analyticsHelper.logClearDataClicked()
+            }
+        }
+        val label = appRepository.getApplication(packageName)
+            .flowOn(ioDispatcher)
+            .first()
+            ?.label
+            ?: packageName
+        val data = WarningDialogData(
+            title = label,
+            message = R.string.do_you_want_to_clear_data_of_this_app,
+            onPositiveButtonClicked = action,
+        )
+        _warningState.emit(data)
     }
 
     fun clearCache(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
@@ -237,16 +260,42 @@ class AppListViewModel @Inject constructor(
         analyticsHelper.logClearCacheClicked()
     }
 
-    fun uninstall(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        "pm uninstall $packageName".exec(ioDispatcher)
-        notifyAppUpdated(packageName)
-        analyticsHelper.logUninstallAppClicked()
+    fun uninstall(packageName: String) = viewModelScope.launch {
+        val action: () -> Unit = {
+            viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                Timber.d("Uninstall $packageName")
+                "pm uninstall $packageName".exec(ioDispatcher)
+                notifyAppUpdated(packageName)
+                analyticsHelper.logUninstallAppClicked()
+            }
+        }
+        val label = appRepository.getApplication(packageName)
+            .flowOn(ioDispatcher)
+            .first()
+            ?.label
+            ?: packageName
+        val data = WarningDialogData(
+            title = label,
+            message = R.string.do_you_want_to_uninstall_this_app,
+            onPositiveButtonClicked = action,
+        )
+        _warningState.emit(data)
     }
 
     fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "am force-stop $packageName".exec(ioDispatcher)
-        notifyAppUpdated(packageName)
+        RunningAppCache.update(packageName, ioDispatcher)
+        val item = _appList.find { it.packageName == packageName }
+        if (item != null) {
+            val index = _appList.indexOf(item)
+            val newItem = item.copy(isRunning = RunningAppCache.isRunning(packageName))
+            _appList[index] = newItem
+        }
         analyticsHelper.logForceStopClicked()
+    }
+
+    fun dismissWarningDialog() = viewModelScope.launch {
+        _warningState.emit(null)
     }
 
     fun enable(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
@@ -275,3 +324,9 @@ sealed interface AppListUiState {
     class Error(val error: UiMessage) : AppListUiState
     object Success : AppListUiState
 }
+
+data class WarningDialogData(
+    val title: String,
+    val message: Int,
+    val onPositiveButtonClicked: () -> Unit,
+)
