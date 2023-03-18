@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -24,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun BlockerErrorAlertDialog(
@@ -45,8 +47,56 @@ fun BlockerErrorAlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = {
             Text(
-                modifier = Modifier.clickable { onDismissRequest() },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .clickable { onDismissRequest() },
                 text = stringResource(id = android.R.string.ok),
+            )
+        },
+    )
+}
+
+@Composable
+fun BlockerWarningAlertDialog(
+    title: String,
+    text: String,
+    onDismissRequest: () -> Unit,
+    onConfirmRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val scrollState = rememberScrollState(0)
+    AlertDialog(
+        modifier = modifier,
+        title = {
+            Text(
+                modifier = Modifier.padding(vertical = 16.dp),
+                text = title,
+            )
+        },
+        text = {
+            Text(
+                modifier = Modifier.verticalScroll(scrollState),
+                text = text,
+            )
+        },
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            Text(
+                modifier = Modifier
+                    .clickable {
+                        onConfirmRequest()
+                        onDismissRequest()
+                    }
+                    .padding(16.dp),
+                text = stringResource(id = android.R.string.ok),
+            )
+        },
+        dismissButton = {
+            Text(
+                modifier = Modifier
+                    .clickable { onDismissRequest() }
+                    .padding(16.dp),
+                text = stringResource(id = android.R.string.cancel),
             )
         },
     )

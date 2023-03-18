@@ -38,6 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
@@ -58,6 +59,7 @@ fun AppListRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
+    val warningState by viewModel.warningState.collectAsStateWithLifecycle()
     val appList = viewModel.appListFlow.collectAsState()
     AppListScreen(
         uiState = uiState,
@@ -79,7 +81,15 @@ fun AppListRoute(
         BlockerErrorAlertDialog(
             title = errorState?.title.orEmpty(),
             text = errorState?.content.orEmpty(),
-            onDismissRequest = viewModel::dismissDialog,
+            onDismissRequest = viewModel::dismissErrorDialog,
+        )
+    }
+    warningState?.let {
+        BlockerWarningAlertDialog(
+            title = it.title,
+            text = stringResource(id = it.message),
+            onDismissRequest = viewModel::dismissWarningDialog,
+            onConfirmRequest = it.onPositiveButtonClicked,
         )
     }
 }
