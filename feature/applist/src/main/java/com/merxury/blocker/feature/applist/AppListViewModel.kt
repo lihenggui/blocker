@@ -249,7 +249,13 @@ class AppListViewModel @Inject constructor(
 
     fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "am force-stop $packageName".exec(ioDispatcher)
-        notifyAppUpdated(packageName)
+        RunningAppCache.update(packageName, ioDispatcher)
+        val item = _appList.find { it.packageName == packageName }
+        if (item != null) {
+            val index = _appList.indexOf(item)
+            val newItem = item.copy(isRunning = RunningAppCache.isRunning(packageName))
+            _appList[index] = newItem
+        }
         analyticsHelper.logForceStopClicked()
     }
 
