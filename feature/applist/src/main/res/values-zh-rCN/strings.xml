@@ -28,5 +28,6 @@
     <string name="settings">设置</string>
     <string name="support_and_feedback">帮助与反馈</string>
     <string name="app_name">Blocker</string>
-
+    <string name="do_you_want_to_clear_data_of_this_app">您想要清除此应用的数据吗？</string>
+    <string name="do_you_want_to_uninstall_this_app">您想要卸载此应用吗？</string>
 </resources>
