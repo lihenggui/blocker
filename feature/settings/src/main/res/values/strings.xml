@@ -16,7 +16,6 @@
   -->
 <resources>
     <string name="settings">Settings</string>
-    <string name="controller_chooser_title">Choose Controller</string>
     <string name="controller_type">Controller Type</string>
     <string name="online_rule_source">Online rule source</string>
     <string name="import_mat_rules">Import MyAndroidTools Rules</string>
@@ -27,17 +26,8 @@
     <string name="import_ifw_rules">Import IFW Rules</string>
     <string name="export_rules">Export Rules</string>
     <string name="import_rules">Import Rules</string>
-    <string name="pref_ifw_settings">IFW Settings</string>
-    <string name="about">About</string>
     <string name="reset_ifw">Reset IFW</string>
-    <string name="others">Others</string>
-    <string name="processing_progress_indicator">Processing Progress Indicator</string>
-    <string name="last_update_date">Last Update Time</string>
     <string name="file_manager_required">You need to install a file manager from store first.</string>
-    <string name="starting_application">Starting application, please wait</string>
-    <string name="report_subject_template">Blocker Report: (Write down your subject here)</string>
-    <string name="report_content_template">(Write down your problems below:)</string>
-    <string name="send_email">Send Email…</string>
     <string name="backup">Backup</string>
     <string name="folder_to_save">Folder to save</string>
     <string name="directory_invalid_or_not_set">Directory is invalid or not set</string>
@@ -47,15 +37,9 @@
     <string name="backing_up_ifw_please_wait">Backing up IFW rules, please wait…</string>
     <string name="import_ifw_please_wait">Importing IFW rules, please wait…</string>
     <string name="reset_ifw_please_wait">Resetting IFW, please wait…</string>
-    <string name="import_mat_rule_please_wait">Importing MAT rules, please wait…</string>
     <string name="import_app_rules_please_wait">Importing app rules, please wait…</string>
-    <string name="failed_to_back_up">Failed to back up app rules, please check your permission or create feedback.</string>
-    <string name="backup_finished">Backup app rules finished.</string>
-    <string name="dir_is_invalid">Directory is invalid, please check if you have set the backup directory or not.</string>
-    <string name="dir_not_set">Directory not set or unreadable</string>
     <string name="blocker_rules">Blocker rules</string>
     <string name="ifw_rules">IFW rules</string>
-    <string name="loading">Loading</string>
     <string name="theme">Theme</string>
     <string name="theme_default">Default</string>
     <string name="android">Android</string>

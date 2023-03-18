@@ -175,7 +175,7 @@ class AppListAdapter(val lifecycleScope: LifecycleCoroutineScope) :
             }
             // Load icon
             binding.appIcon.setTag(
-                com.merxury.blocker.core.common.R.id.app_item_icon_id,
+                R.id.app_item_icon_id,
                 app.packageName,
             )
             lifecycleScope.launch(Dispatchers.IO) {
