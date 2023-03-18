@@ -16,7 +16,6 @@
   -->
 <resources>
     <string name="settings">Настройки</string>
-    <string name="controller_chooser_title">Выбор контроллера</string>
     <string name="controller_type">Тип контроллера</string>
     <string name="online_rule_source">Источник онлайн-правил</string>
     <string name="import_mat_rules">Импорт правил MyAndroidTools</string>
@@ -27,17 +26,8 @@
     <string name="import_ifw_rules">Импорт правил IFW</string>
     <string name="export_rules">Экспорт правил</string>
     <string name="import_rules">Импорт правил</string>
-    <string name="pref_ifw_settings">Настройки IFW</string>
-    <string name="about">О приложении Blocker</string>
     <string name="reset_ifw">Сброс IFW</string>
-    <string name="others">Другое</string>
-    <string name="processing_progress_indicator">Индикатор прогресса обработки</string>
-    <string name="last_update_date">Время последнего обновления</string>
     <string name="file_manager_required">You need to install a file manager from store first.</string>
-    <string name="starting_application">Запускаем приложение, подождите</string>
-    <string name="report_subject_template">Отчет о работе Blocker: (укажите здесь свою тему)</string>
-    <string name="report_content_template">(Опишите возникшие проблемы ниже :)</string>
-    <string name="send_email">Отправка Email…</string>
     <string name="backup">резервного</string>
     <string name="folder_to_save">папка для сохранения</string>
     <string name="directory_invalid_or_not_set">Папка недействительна или не задана</string>
@@ -47,11 +37,7 @@
     <string name="backing_up_ifw_please_wait">Резервное копирование правил IFW, подождите…</string>
     <string name="import_ifw_please_wait">Импорт правил IFW, пожалуйста, подождите…</string>
     <string name="reset_ifw_please_wait">Сброс IFW, подождите…</string>
-    <string name="import_mat_rule_please_wait">Импорт правил MAT, подождите…</string>
     <string name="import_app_rules_please_wait">Импорт правил приложения, подождите…</string>
-    <string name="failed_to_back_up">Сбой создания резервной копии правил для приложений. Проверьте разрешения или создайте отчет..</string>
-    <string name="backup_finished">Резервное копирование правил завершено</string>
-    <string name="dir_is_invalid">Папка недействительна, проверьте, установили ли вы папку для резервного копирования или нет.</string>
     <string name="blocker_rules">правилBlocker</string>
     <string name="ifw_rules">правилIFW</string>
     <string name="support_and_feedback">Поддержка и отзывы</string>
@@ -59,8 +45,6 @@
     <string name="rule_repository">Репозиторий правил</string>
     <string name="telegram_group">группа Telegram</string>
     <string name="export_error_log">Экспорт журнала ошибок</string>
-    <string name="dir_not_set">Каталог не установлен или не читается</string>
-    <string name="loading">Загрузка</string>
     <string name="theme">Тема</string>
     <string name="theme_default">По умолчанию</string>
     <string name="android">Android</string>
