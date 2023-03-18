@@ -97,8 +97,8 @@ class ExpandableSearchAdapter(private val lifecycleScope: LifecycleCoroutineScop
             .inflate(R.layout.search_app_header, parent, false)
         view.findViewById<TextView>(R.id.app_name).text = app?.label
         view.findViewById<ImageView>(R.id.icon).apply {
-            if (getTag(com.merxury.blocker.core.common.R.id.app_item_icon_id) != app?.packageName) {
-                setTag(com.merxury.blocker.core.common.R.id.app_item_icon_id, app?.packageName)
+            if (getTag(R.id.app_item_icon_id) != app?.packageName) {
+                setTag(R.id.app_item_icon_id, app?.packageName)
                 loadIcon(context, app, this)
             }
         }

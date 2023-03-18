@@ -258,7 +258,7 @@ class AppInfoFragment : Fragment() {
         binding.versionName.text = app.versionName
         val appInfo = app.packageInfo?.applicationInfo!!
         binding.appIcon.setTag(
-            com.merxury.blocker.core.common.R.id.app_item_icon_id,
+            R.id.app_item_icon_id,
             app.packageName,
         )
         loadIconJob = AppIconCache.loadIconBitmapAsync(
