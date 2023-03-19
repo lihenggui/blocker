@@ -19,7 +19,7 @@ package com.merxury.blocker.core.database.cmpdetail
 import androidx.room.Database
 import androidx.room.RoomDatabase
 
-@Database(entities = [ComponentDetailEntity::class], version = 1)
+@Database(entities = [ComponentDetailEntity::class], version = 2)
 abstract class ComponentDetailDatabase : RoomDatabase() {
     abstract fun componentDetailDao(): ComponentDetailDao
 }
