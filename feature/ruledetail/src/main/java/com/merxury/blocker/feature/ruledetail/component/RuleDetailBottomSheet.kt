@@ -69,6 +69,7 @@ fun RuleDetailBottomSheet(
     onCopyNameClick: (String) -> Unit,
     onCopyFullNameClick: (String) -> Unit,
     onSwitch: (String, String, Boolean) -> Unit,
+    navigateToAppDetail: (String) -> Unit = { },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -92,6 +93,7 @@ fun RuleDetailBottomSheet(
                     onCopyNameClick = onCopyNameClick,
                     onCopyFullNameClick = onCopyFullNameClick,
                     onSwitch = onSwitch,
+                    navigateToAppDetail = navigateToAppDetail,
                 )
             }
         }
