@@ -63,6 +63,7 @@ fun MatchedComponentItem(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    navigateToAppDetail: (String) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
@@ -81,7 +82,6 @@ fun MatchedComponentItem(
             modifier = modifier
                 .fillMaxWidth()
                 .clickable { expanded = !expanded }
-                .padding(end = 16.dp)
                 .padding(vertical = 8.dp),
         ) {
             IconButton(onClick = { expanded = !expanded }) {
@@ -90,7 +90,11 @@ fun MatchedComponentItem(
                     contentDescription = null,
                 )
             }
-            AppIcon(ruleMatchedApp.app.packageInfo, iconModifier.size(48.dp))
+            AppIcon(
+                ruleMatchedApp.app.packageInfo,
+                iconModifier
+                    .size(48.dp),
+            )
             Spacer(modifier = Modifier.width(16.dp))
             MatchedAppInfo(
                 label = ruleMatchedApp.app.label,
@@ -98,6 +102,11 @@ fun MatchedComponentItem(
                 modifier = modifier.weight(1f),
             )
             val items = listOf(
+                DropDownMenuItem(
+                    R.string.open_app_detail,
+                ) {
+                    navigateToAppDetail(ruleMatchedApp.app.packageName)
+                },
                 DropDownMenuItem(
                     R.string.block_all_components,
                 ) {

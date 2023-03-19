@@ -55,4 +55,5 @@
     <string name="more_menu">Больше</string>
     <string name="block_all_components">Блокировать все компоненты</string>
     <string name="enable_all_components">Включить все компоненты</string>
+    <string name="open_app_detail">Открыть детали приложения</string>
 </resources>

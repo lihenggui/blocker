@@ -49,7 +49,10 @@ fun NavController.navigateToRuleDetail(ruleId: Int, tab: RuleDetailTabs = Descri
     }
 }
 
-fun NavGraphBuilder.ruleDetailScreen(onBackClick: () -> Unit) {
+fun NavGraphBuilder.ruleDetailScreen(
+    onBackClick: () -> Unit,
+    navigateToAppDetail: (String) -> Unit,
+) {
     composable(
         route = "rule_detail_route/{$ruleIdArg}?screen={$tabArg}",
         arguments = listOf(
@@ -57,6 +60,6 @@ fun NavGraphBuilder.ruleDetailScreen(onBackClick: () -> Unit) {
             navArgument(tabArg) { type = NavType.StringType },
         ),
     ) {
-        RuleDetailRoute(onBackClick)
+        RuleDetailRoute(onBackClick, navigateToAppDetail)
     }
 }
