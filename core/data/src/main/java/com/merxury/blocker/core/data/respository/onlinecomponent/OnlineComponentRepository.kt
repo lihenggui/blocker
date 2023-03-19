@@ -30,6 +30,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
@@ -53,9 +54,9 @@ class OnlineComponentRepository @Inject constructor(
     }
 
     override suspend fun getNetworkComponentData(
-        fullName: String,
+        name: String,
     ): Flow<Result<NetworkComponentDetail>> {
-        val relativePath = fullName.replace(".", "/")
+        val relativePath = name.replace(".", "/")
             .plus(FILE_EXTENSION)
         return flow {
             emit(network.getComponentData(relativePath))
@@ -64,18 +65,19 @@ class OnlineComponentRepository @Inject constructor(
     }
 
     override suspend fun getLocalComponentData(
-        fullName: String,
+        name: String,
     ): ComponentDetailEntity? {
-        return componentDetailDao.getComponentDetail(fullName)
+        return componentDetailDao.getComponentDetail(name)
             .firstOrNull()
+            ?.firstOrNull()
     }
 
     override suspend fun getUserGeneratedComponentDetail(
-        fullName: String,
+        name: String,
     ): NetworkComponentDetail? {
         return withContext(ioDispatcher + exceptionHandler) {
             val folder = context.filesDir.resolve(USER_GENERATED_FOLDER)
-            val relativePath = fullName.replace(".", "/")
+            val relativePath = name.replace(".", "/")
                 .plus(FILE_EXTENSION)
             val destination = folder.resolve(relativePath)
             if (destination.exists()) {
@@ -90,7 +92,7 @@ class OnlineComponentRepository @Inject constructor(
     override suspend fun saveComponentAsCache(
         component: NetworkComponentDetail,
     ) {
-        Timber.d("Save network component info to db: ${component.fullName}")
+        Timber.d("Save network component info to db: ${component.name}")
         componentDetailDao.insertComponentDetail(component.asEntity())
     }
 
@@ -98,21 +100,21 @@ class OnlineComponentRepository @Inject constructor(
         componentDetail: NetworkComponentDetail,
     ): Boolean {
         return withContext(ioDispatcher + exceptionHandler) {
+            val simpleName = componentDetail.name.split(".").last()
             // Make root folder first
             val rootFolder = context.filesDir.resolve(USER_GENERATED_FOLDER)
             if (!rootFolder.exists()) {
                 rootFolder.mkdirs()
             }
             // Make new directory according to package name
-            val packageNamePath = componentDetail.packageName
+            val packageNamePath = componentDetail.name
                 .replace(".", "/")
             val packageFolder = rootFolder.resolve(packageNamePath)
             if (!packageFolder.exists()) {
                 packageFolder.mkdirs()
             }
             // Decide file name
-            val fileName = componentDetail.simpleName
-                .plus(FILE_EXTENSION)
+            val fileName = simpleName.plus(FILE_EXTENSION)
             val destination = packageFolder.resolve(fileName)
             val content = Json.encodeToString(componentDetail)
             try {
