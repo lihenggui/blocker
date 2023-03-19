@@ -90,6 +90,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun RuleDetailRoute(
     onBackClick: () -> Unit,
+    navigateToAppDetail: (String) -> Unit,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
@@ -114,6 +115,7 @@ fun RuleDetailRoute(
         onBlockAllInPageClick = { viewModel.controlAllComponentsInPage(false) },
         onEnableAllInPageClick = { viewModel.controlAllComponentsInPage(true) },
         onSwitch = viewModel::controlComponent,
+        navigateToAppDetail = navigateToAppDetail,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -145,6 +147,7 @@ fun RuleDetailScreen(
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    navigateToAppDetail: (String) -> Unit = { _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -169,6 +172,7 @@ fun RuleDetailScreen(
                 onBlockAllInPageClick = onBlockAllInPageClick,
                 onEnableAllInPageClick = onEnableAllInPageClick,
                 onSwitch = onSwitch,
+                navigateToAppDetail = navigateToAppDetail,
             )
         }
 
@@ -197,6 +201,7 @@ fun RuleDetailContent(
     onBlockAllInPageClick: () -> Unit = { },
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    navigateToAppDetail: (String) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -273,6 +278,7 @@ fun RuleDetailContent(
             onBlockAllClick = onBlockAllClick,
             onEnableAllClick = onEnableAllClick,
             onSwitch = onSwitch,
+            navigateToAppDetail = navigateToAppDetail,
         )
     }
 }
@@ -333,6 +339,7 @@ fun RuleDetailTabContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    navigateToAppDetail: (String) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
@@ -361,6 +368,7 @@ fun RuleDetailTabContent(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
+                navigateToAppDetail = navigateToAppDetail,
                 onBlockAllClick = onBlockAllClick,
                 onEnableAllClick = onEnableAllClick,
                 onSwitch = onSwitch,
