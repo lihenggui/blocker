@@ -68,7 +68,10 @@ fun BlockerNavHost(
         generalRuleScreen(
             navigateToRuleDetail = navController::navigateToRuleDetail,
         )
-        ruleDetailScreen(onBackClick = onBackClick)
+        ruleDetailScreen(
+            onBackClick = onBackClick,
+            navigateToAppDetail = navController::navigateToAppDetail,
+        )
         searchScreen(
             navigateToAppDetail = navController::navigateToAppDetail,
             navigateToRuleDetail = navController::navigateToRuleDetail,

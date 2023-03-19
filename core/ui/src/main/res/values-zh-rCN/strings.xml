@@ -53,4 +53,5 @@
     <string name="more_menu">更多</string>
     <string name="block_all_components">禁用所有组件</string>
     <string name="enable_all_components">启用所有组件</string>
+    <string name="open_app_detail">打开应用详情</string>
 </resources>
