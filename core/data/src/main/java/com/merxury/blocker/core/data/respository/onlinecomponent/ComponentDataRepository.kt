@@ -22,11 +22,11 @@ import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 
 interface ComponentDataRepository {
-    suspend fun getNetworkComponentData(fullName: String): Flow<Result<NetworkComponentDetail>>
+    suspend fun getNetworkComponentData(name: String): Flow<Result<NetworkComponentDetail>>
 
-    suspend fun getLocalComponentData(fullName: String): ComponentDetailEntity?
+    suspend fun getLocalComponentData(name: String): ComponentDetailEntity?
 
-    suspend fun getUserGeneratedComponentDetail(fullName: String): NetworkComponentDetail?
+    suspend fun getUserGeneratedComponentDetail(name: String): NetworkComponentDetail?
 
     suspend fun saveComponentAsCache(component: NetworkComponentDetail)
 
