@@ -97,7 +97,7 @@ class ComponentAdapter constructor(val lifecycleScope: LifecycleCoroutineScope) 
     }
 
     fun updateItemDetail(componentDetail: ComponentDetail) {
-        val name = componentDetail.fullName
+        val name = componentDetail.name
         val index = currentList.indexOfFirst { it.name == name }
         if (index == -1) {
             logger.e("Can't find updated item in the list, name: $name")
