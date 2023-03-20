@@ -116,9 +116,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
             ""
         }
         val userComponent = NetworkComponentDetail(
-            fullName = binding.name.editText?.text?.toString().orEmpty(),
-            simpleName = binding.name.editText?.text?.toString().orEmpty(),
-            packageName = binding.name.editText?.text.toString(),
+            name = binding.name.editText?.text?.toString().orEmpty(),
             sdkName = sdkName,
             description = binding.description.editText?.text?.toString().orEmpty(),
             disableEffect = binding.disabledEffect.editText?.text?.toString().orEmpty(),
@@ -138,7 +136,7 @@ class ComponentDetailBottomSheetFragment : BottomSheetDialogFragment() {
                         binding.sdkName.editText?.setText(it.sdkName.orEmpty())
                         binding.belongsToSdkCheckbox.isChecked = true
                     }
-                    binding.name.editText?.setText(it.simpleName)
+                    binding.name.editText?.setText(it.name)
                     binding.description.editText?.setText(it.description.orEmpty())
                     binding.disabledEffect.editText?.setText(it.disableEffect.orEmpty())
                     binding.recommendCheckbox.isChecked = it.recommendToBlock
