@@ -20,8 +20,8 @@ import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.app.LocalAppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDataRepository
-import com.merxury.blocker.core.data.respository.componentdetail.OnlineComponentRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.OfflineFirstComponentDetailRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
@@ -54,9 +54,9 @@ interface DataModule {
     ): GeneralRuleRepository
 
     @Binds
-    fun bindsComponentDataRepository(
-        componentDataRepository: OnlineComponentRepository,
-    ): ComponentDataRepository
+    fun bindsComponentDetailRepository(
+        componentDetailRepository: OfflineFirstComponentDetailRepository,
+    ): ComponentDetailRepository
 
     @Binds
     fun bindsNetworkMonitor(

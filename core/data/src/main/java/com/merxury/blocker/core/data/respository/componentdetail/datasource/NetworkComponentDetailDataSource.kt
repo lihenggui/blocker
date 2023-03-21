@@ -31,7 +31,7 @@ class NetworkComponentDetailDataSource @Inject constructor(
     private val blockerNetworkDataSource: BlockerNetworkDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
-    override fun getComponentData(name: String): Flow<ComponentDetail?> = flow {
+    override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         val componentDetail = blockerNetworkDataSource
             .getComponentData(name)
             .asExternalModel()

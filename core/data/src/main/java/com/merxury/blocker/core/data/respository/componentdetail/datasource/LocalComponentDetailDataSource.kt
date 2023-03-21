@@ -19,9 +19,6 @@ package com.merxury.blocker.core.data.respository.componentdetail.datasource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -34,20 +31,20 @@ import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import javax.inject.Inject
 
 private const val EXTENSION = "json"
 private const val BASE_FOLDER = "componentdetail"
 
-class LocalComponentDetailDataSource @AssistedInject constructor(
-    @Assisted workingFolder: String,
+class LocalComponentDetailDataSource @Inject constructor(
     filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
 
     private val workingDir = filesDir.resolve(BASE_FOLDER)
-        .resolve(workingFolder)
+        .resolve("user_generated")
 
-    override fun getComponentData(name: String): Flow<ComponentDetail?> = flow {
+    override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         val path = name.replace(".", "/")
             .plus(".$EXTENSION")
         if (!workingDir.exists()) {
@@ -70,6 +67,8 @@ class LocalComponentDetailDataSource @AssistedInject constructor(
         }
     }.flowOn(ioDispatcher)
 
+    // It actually uses Dispatcher.IO
+    @Suppress("BlockingMethodInNonBlockingContext")
     override suspend fun saveComponentData(component: ComponentDetail): Boolean =
         withContext(ioDispatcher) {
             val name = component.name
@@ -92,9 +91,4 @@ class LocalComponentDetailDataSource @AssistedInject constructor(
                 false
             }
         }
-
-    @AssistedFactory
-    interface Factory {
-        fun create(workingFolder: String): LocalComponentDetailDataSource
-    }
 }
