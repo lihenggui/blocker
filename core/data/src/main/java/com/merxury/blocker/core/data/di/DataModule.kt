@@ -20,10 +20,10 @@ import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.app.LocalAppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDataRepository
+import com.merxury.blocker.core.data.respository.componentdetail.OnlineComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
-import com.merxury.blocker.core.data.respository.onlinecomponent.ComponentDataRepository
-import com.merxury.blocker.core.data.respository.onlinecomponent.OnlineComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalAppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalUserDataRepository
