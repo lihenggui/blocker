@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ComponentDetailDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertComponentDetail(entity: ComponentDetailEntity): Int
+    suspend fun insertComponentDetail(entity: ComponentDetailEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertComponentDetails(entities: List<ComponentDetailEntity>)

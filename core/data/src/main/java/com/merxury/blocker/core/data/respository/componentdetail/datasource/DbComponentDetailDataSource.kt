@@ -33,6 +33,7 @@ class DbComponentDetailDataSource @Inject constructor(
     }
 
     override suspend fun saveComponentData(component: ComponentDetail): Boolean {
-        return componentDetailDao.insertComponentDetail(component.toEntity()) > 0
+        componentDetailDao.insertComponentDetail(component.toEntity())
+        return true
     }
 }
