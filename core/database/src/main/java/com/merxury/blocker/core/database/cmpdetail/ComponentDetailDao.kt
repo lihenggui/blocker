@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ComponentDetailDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertComponentDetail(entity: ComponentDetailEntity)
+    suspend fun insertComponentDetail(entity: ComponentDetailEntity): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertComponentDetails(entities: List<ComponentDetailEntity>)
@@ -39,5 +39,5 @@ interface ComponentDetailDao {
     suspend fun update(entity: ComponentDetailEntity)
 
     @Query("SELECT * FROM component_detail WHERE name = :name")
-    fun getComponentDetail(name: String): Flow<List<ComponentDetailEntity>>
+    fun getComponentDetail(name: String): Flow<ComponentDetailEntity>
 }
