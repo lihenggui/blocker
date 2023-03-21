@@ -48,3 +48,13 @@ fun ComponentDetailEntity.asExternalModel() = ComponentDetail(
     addedVersion = addedVersion,
     recommendToBlock = recommendToBlock,
 )
+
+fun ComponentDetail.toEntity() = ComponentDetailEntity(
+    name = name,
+    sdkName = sdkName,
+    description = description,
+    disableEffect = disableEffect,
+    contributor = contributor,
+    addedVersion = addedVersion,
+    recommendToBlock = recommendToBlock,
+)
