@@ -27,7 +27,7 @@ import javax.inject.Inject
 class DbComponentDetailDataSource @Inject constructor(
     private val componentDetailDao: ComponentDetailDao,
 ) : ComponentDetailDataSource {
-    override fun getComponentData(name: String): Flow<ComponentDetail?> {
+    override fun getComponentDetail(name: String): Flow<ComponentDetail?> {
         return componentDetailDao.getComponentDetail(name)
             .map { it.asExternalModel() }
     }
