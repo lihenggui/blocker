@@ -22,6 +22,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import java.io.File
 import javax.inject.Singleton
 
 @Module
@@ -41,5 +42,12 @@ object SysModule {
         app: Application,
     ): String {
         return app.packageName
+    }
+
+    @Provides
+    fun provideFilesDir(
+        app: Application,
+    ): File {
+        return app.filesDir
     }
 }
