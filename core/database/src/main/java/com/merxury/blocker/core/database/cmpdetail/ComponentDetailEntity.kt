@@ -26,21 +26,13 @@ import javax.annotation.Nonnull
 data class ComponentDetailEntity(
     @Nonnull
     @PrimaryKey
-    @ColumnInfo(name = "full_name")
-    val fullName: String,
-    @Nonnull
-    @ColumnInfo(name = "simple_name")
-    val simpleName: String,
-    @Nonnull
-    @ColumnInfo(name = "package_name")
-    val packageName: String,
-    val icon: String? = null,
+    val name: String,
     @ColumnInfo(name = "sdk_name")
     val sdkName: String? = null,
     val description: String? = null,
     @ColumnInfo(name = "disable_effect")
     val disableEffect: String? = null,
-    val author: String? = null,
+    val contributor: String? = null,
     @ColumnInfo(name = "added_version")
     val addedVersion: String? = null,
     @ColumnInfo(name = "recommend_to_block")
@@ -48,14 +40,21 @@ data class ComponentDetailEntity(
 )
 
 fun ComponentDetailEntity.asExternalModel() = ComponentDetail(
-    fullName = fullName,
-    simpleName = simpleName,
-    packageName = packageName,
-    icon = icon,
+    name = name,
     sdkName = sdkName,
     description = description,
     disableEffect = disableEffect,
-    author = author,
+    contributor = contributor,
+    addedVersion = addedVersion,
+    recommendToBlock = recommendToBlock,
+)
+
+fun ComponentDetail.toEntity() = ComponentDetailEntity(
+    name = name,
+    sdkName = sdkName,
+    description = description,
+    disableEffect = disableEffect,
+    contributor = contributor,
     addedVersion = addedVersion,
     recommendToBlock = recommendToBlock,
 )

@@ -23,8 +23,6 @@ import com.merxury.blocker.core.database.cmpdetail.ComponentDetailDao
 import com.merxury.blocker.core.database.cmpdetail.ComponentDetailDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
-import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDao
-import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,13 +40,6 @@ object DaosModule {
     @Provides
     fun provideAppComponentDao(database: InstalledAppDatabase): AppComponentDao {
         return database.appComponentDao()
-    }
-
-    @Provides
-    fun provideInstantComponentInfoDao(
-        database: InstantComponentInfoDatabase,
-    ): InstantComponentInfoDao {
-        return database.instantComponentInfoDao()
     }
 
     @Provides

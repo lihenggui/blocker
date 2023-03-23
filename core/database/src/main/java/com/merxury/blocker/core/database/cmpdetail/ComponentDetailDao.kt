@@ -22,6 +22,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ComponentDetailDao {
@@ -37,6 +38,6 @@ interface ComponentDetailDao {
     @Update
     suspend fun update(entity: ComponentDetailEntity)
 
-    @Query("SELECT * FROM component_detail WHERE full_name = :fullName")
-    suspend fun getComponentDetail(fullName: String): List<ComponentDetailEntity>
+    @Query("SELECT * FROM component_detail WHERE name = :name")
+    fun getComponentDetail(name: String): Flow<ComponentDetailEntity>
 }

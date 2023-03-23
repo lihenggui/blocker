@@ -21,7 +21,6 @@ import androidx.room.Room
 import com.merxury.blocker.core.database.app.InstalledAppDatabase
 import com.merxury.blocker.core.database.cmpdetail.ComponentDetailDatabase
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDatabase
-import com.merxury.blocker.core.database.instantinfo.InstantComponentInfoDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -41,20 +40,6 @@ object DatabaseModule {
             context,
             InstalledAppDatabase::class.java,
             "installed_app",
-        )
-            .fallbackToDestructiveMigration()
-            .build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideInstantComponentInfoDatabase(
-        @ApplicationContext context: Context,
-    ): InstantComponentInfoDatabase {
-        return Room.databaseBuilder(
-            context,
-            InstantComponentInfoDatabase::class.java,
-            "instant_component_info",
         )
             .fallbackToDestructiveMigration()
             .build()
