@@ -34,7 +34,7 @@ android {
     namespace = "com.merxury.blocker"
     defaultConfig {
         applicationId = "com.merxury.blocker"
-        val gitCommitCount = "git rev-list HEAD --count".runCommand()?.trim()
+        val gitCommitCount = "git rev-list --all --count".runCommand()?.trim()
         versionCode = gitCommitCount?.toIntOrNull() ?: 1
         versionName = "2.0.$gitCommitCount" // X.Y.Z; X = Major, Y = minor, Z = version code
 
@@ -85,9 +85,6 @@ android {
     }
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
-    }
-    buildFeatures {
-        viewBinding = true
     }
 }
 

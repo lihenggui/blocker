@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
-data class ComponentDetail(
-    val name: String,
-    val sdkName: String? = null,
-    val description: String? = null,
-    val disableEffect: String? = null,
-    val contributor: String? = null,
-    val addedVersion: String? = null,
-    val recommendToBlock: Boolean = false,
-)
+import com.merxury.blocker.core.model.data.ComponentDetail
+import kotlinx.coroutines.flow.Flow
+
+interface ComponentDetailDataSource {
+    fun getComponentDetail(name: String): Flow<ComponentDetail?>
+
+    suspend fun saveComponentData(component: ComponentDetail): Boolean
+}
