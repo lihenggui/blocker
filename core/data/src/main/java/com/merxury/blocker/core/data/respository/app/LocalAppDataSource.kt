@@ -44,6 +44,7 @@ class LocalAppDataSource @Inject constructor(
     override fun getApplicationList(): Flow<List<InstalledApp>> = flow {
         val list = pm.getInstalledPackagesCompat(0)
             .filterNot { it.packageName == appPackageName }
+            .distinctBy { it.packageName }
             .map { it.toInstalledApp() }
         emit(list)
     }
