@@ -68,6 +68,7 @@ fun NavController.navigateToAppDetail(
 fun NavGraphBuilder.detailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
+    navigateToComponentDetail: (String) -> Unit,
 ) {
     composable(
         route = "app_detail_route/{$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}",
@@ -80,6 +81,7 @@ fun NavGraphBuilder.detailScreen(
         AppDetailRoute(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
+            navigateToComponentDetail = navigateToComponentDetail,
         )
     }
 }

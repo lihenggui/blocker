@@ -22,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
+import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
@@ -64,6 +66,7 @@ fun BlockerNavHost(
         detailScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
+            navigateToComponentDetail = navController::navigateToComponentDetail,
         )
         generalRuleScreen(
             navigateToRuleDetail = navController::navigateToRuleDetail,
@@ -81,5 +84,6 @@ fun BlockerNavHost(
             snackbarHostState = snackbarHostState,
         )
         supportAndFeedbackScreen(onBackClick)
+        componentDetailScreen(snackbarHostState = snackbarHostState)
     }
 }
