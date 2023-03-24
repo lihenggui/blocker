@@ -77,6 +77,7 @@ class SettingsViewModel @Inject constructor(
                         restoreSystemApp = userData.restoreSystemApp,
                         showSystemApps = userData.showSystemApps,
                         showServiceInfo = userData.showServiceInfo,
+                        showRunningAppsOnTop = userData.showRunningAppsOnTop,
                         darkThemeConfig = userData.darkThemeConfig,
                         useDynamicColor = userData.useDynamicColor,
                     ),
@@ -107,6 +108,12 @@ class SettingsViewModel @Inject constructor(
     fun updateShowServiceInfo(shouldShow: Boolean) {
         viewModelScope.launch {
             userDataRepository.setShowServiceInfo(shouldShow)
+        }
+    }
+
+    fun updateShowRunningAppsOnTop(shouldShow: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setShowRunningAppsOnTop(shouldShow)
         }
     }
 
@@ -299,6 +306,7 @@ data class UserEditableSettings(
     val restoreSystemApp: Boolean = false,
     val showSystemApps: Boolean = false,
     val showServiceInfo: Boolean = false,
+    val showRunningAppsOnTop: Boolean = false,
     val darkThemeConfig: DarkThemeConfig,
     val useDynamicColor: Boolean,
 )
