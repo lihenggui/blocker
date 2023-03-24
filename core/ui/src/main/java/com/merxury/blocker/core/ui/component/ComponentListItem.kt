@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -111,6 +112,7 @@ fun ComponentListItem(
     simpleName: String,
     name: String,
     packageName: String,
+    description: String? = null,
     enabled: Boolean,
     type: ComponentType,
     isServiceRunning: Boolean,
@@ -167,6 +169,10 @@ fun ComponentListItem(
                 }
             }
             BlockerBodyMediumText(text = name)
+            description?.let {
+                Spacer(modifier = Modifier.height(8.dp))
+                BlockerBodyMediumText(text = it)
+            }
         }
         Spacer(modifier = Modifier.weight(1f))
         Switch(
@@ -217,10 +223,11 @@ fun ComponentItemPreview() {
     BlockerTheme {
         Surface {
             ComponentListItem(
-                simpleName = "AccountAuthActivity",
-                name = "com.merxury.blocker.feature.appdetail.component.AccountAuthActivity",
+                simpleName = "ExampleActivity",
+                name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
                 packageName = "com.merxury.blocker",
                 enabled = false,
+                description = "An example activity",
                 type = SERVICE,
                 isServiceRunning = true,
                 onStopServiceClick = { },
