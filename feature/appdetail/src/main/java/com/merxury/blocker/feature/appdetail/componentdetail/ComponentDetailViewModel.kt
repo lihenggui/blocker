@@ -16,19 +16,54 @@
 
 package com.merxury.blocker.feature.appdetail.componentdetail
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.decoder.StringDecoder
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
+import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.feature.appdetail.navigation.ComponentDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ComponentDetailViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    stringDecoder: StringDecoder,
     private val componentDetailRepository: ComponentDetailRepository,
-) : ViewModel()
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+) : ViewModel() {
+    private val componentDetailArg = ComponentDetailArgs(savedStateHandle, stringDecoder)
+
+    private val _uiState = MutableStateFlow<ComponentDetailUiState>(ComponentDetailUiState.Loading)
+    val uiState = _uiState.asStateFlow()
+
+    init {
+        load()
+    }
+    private fun load() = viewModelScope.launch(ioDispatcher) {
+        componentDetailRepository.getComponentDetail(componentDetailArg.name)
+            .collect { detail ->
+                if (detail != null) {
+                    _uiState.value = ComponentDetailUiState.Success(detail)
+                }
+            }
+    }
+
+    fun save(componentDetail: ComponentDetail) = viewModelScope.launch(ioDispatcher) {
+        componentDetailRepository.saveComponentDetail(componentDetail, userGenerated = true)
+    }
+}
 
 sealed class ComponentDetailUiState {
     object Loading : ComponentDetailUiState()
     data class Success(val componentDetail: ComponentDetail) : ComponentDetailUiState()
-    data class Error(val message: String) : ComponentDetailUiState()
+    data class Error(val message: UiMessage) : ComponentDetailUiState()
 }
