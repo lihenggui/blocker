@@ -119,3 +119,16 @@ fun AnalyticsHelper.logComponentShowPriorityPreferenceChanged(componentShowPrior
             ),
         ),
     )
+
+fun AnalyticsHelper.logShowRunningAppsOnTopPreferenceChanged(showRunningAppsOnTop: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "show_running_apps_on_top_preference_changed",
+            extras = listOf(
+                Param(
+                    key = "show_running_apps_on_top_preference",
+                    value = showRunningAppsOnTop.toString(),
+                ),
+            ),
+        ),
+    )
