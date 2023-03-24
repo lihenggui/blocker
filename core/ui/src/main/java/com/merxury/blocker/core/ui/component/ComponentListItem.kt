@@ -69,6 +69,7 @@ import com.merxury.blocker.core.ui.TrackScrollJank
 fun ComponentList(
     components: List<ComponentItem>,
     modifier: Modifier = Modifier,
+    navigateToComponentDetail: (String) -> Unit = { _ -> },
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -96,6 +97,7 @@ fun ComponentList(
                 enabled = item.enabled(),
                 type = item.type,
                 isServiceRunning = item.isRunning,
+                navigateToComponentDetail = navigateToComponentDetail,
                 onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
                 onLaunchActivityClick = { onLaunchActivityClick(item.packageName, item.name) },
                 onCopyNameClick = { onCopyNameClick(item.simpleName) },
@@ -116,11 +118,12 @@ fun ComponentListItem(
     enabled: Boolean,
     type: ComponentType,
     isServiceRunning: Boolean,
-    onStopServiceClick: () -> Unit,
-    onLaunchActivityClick: () -> Unit,
-    onCopyNameClick: () -> Unit,
-    onCopyFullNameClick: () -> Unit,
-    onSwitchClick: (String, String, Boolean) -> Unit,
+    navigateToComponentDetail: (String) -> Unit = { },
+    onStopServiceClick: () -> Unit = { },
+    onLaunchActivityClick: () -> Unit = { },
+    onCopyNameClick: () -> Unit = { },
+    onCopyFullNameClick: () -> Unit = { },
+    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
@@ -130,7 +133,9 @@ fun ComponentListItem(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(
-                onClick = { },
+                onClick = {
+                    navigateToComponentDetail(name)
+                },
                 onLongClick = {
                     expanded = true
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -230,11 +235,6 @@ fun ComponentItemPreview() {
                 description = "An example activity",
                 type = SERVICE,
                 isServiceRunning = true,
-                onStopServiceClick = { },
-                onCopyFullNameClick = { },
-                onCopyNameClick = { },
-                onLaunchActivityClick = { },
-                onSwitchClick = { _, _, _ -> },
             )
         }
     }

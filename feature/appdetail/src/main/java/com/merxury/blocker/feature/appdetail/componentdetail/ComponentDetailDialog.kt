@@ -41,14 +41,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
-import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentDetail
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.feature.appdetail.R
 
 @Composable
 fun ComponentDetailDialog(
-    component: ComponentInfo,
+    name: String,
     modifier: Modifier = Modifier,
     detail: ComponentDetail? = null,
     onSaveDetailClick: (ComponentDetail?) -> Boolean = { false },
@@ -69,11 +67,10 @@ fun ComponentDetailDialog(
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
-                    text = component.simpleName,
+                    text = name,
                     style = MaterialTheme.typography.headlineSmall,
                 )
                 OutlinedTextField(
-                    modifier = modifier.height(56.dp),
                     value = detail?.description ?: "",
                     label = {
                         Text(text = stringResource(id = R.string.description))
@@ -85,7 +82,6 @@ fun ComponentDetailDialog(
                 )
                 Spacer(modifier = modifier.height(8.dp))
                 OutlinedTextField(
-                    modifier = modifier.height(56.dp),
                     value = detail?.disableEffect ?: "",
                     label = {
                         Text(text = stringResource(id = R.string.blocking_effect))
@@ -133,7 +129,7 @@ fun ComponentDetailDialog(
                                 sdkName = if (belongToSdk) detail.sdkName else null,
                             ) ?: if (valueChanged) {
                                 ComponentDetail(
-                                    name = component.name,
+                                    name = name,
                                     description = description,
                                     recommendToBlock = recommendToBlock ?: false,
                                     sdkName = if (belongToSdk) detail?.sdkName else null,
@@ -159,15 +155,7 @@ fun ComponentDetailDialog(
 @Composable
 fun EditComponentDetailDialogPreview() {
     ComponentDetailDialog(
-        component = ComponentInfo(
-            name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
-            simpleName = "EditComponentDetailDialog",
-            packageName = "com.merxury.blocker.feature.appdetail.componentdetail",
-            type = ComponentType.ACTIVITY,
-            exported = false,
-            pmBlocked = true,
-            ifwBlocked = true,
-        ),
+        name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
         detail = ComponentDetail(
             name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
             description = "This is a test description",

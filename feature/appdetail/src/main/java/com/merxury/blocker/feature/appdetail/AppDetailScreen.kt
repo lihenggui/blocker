@@ -103,6 +103,7 @@ import com.merxury.blocker.core.rule.R.string as rulestring
 @Composable
 fun AppDetailRoute(
     onBackClick: () -> Unit,
+    navigateToComponentDetail: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     viewModel: AppDetailViewModel = hiltViewModel(),
@@ -121,6 +122,7 @@ fun AppDetailRoute(
         topAppBarUiState = topAppBarUiState,
         componentListUiState = componentListUiState,
         tabState = tabState,
+        navigateToComponentDetail = navigateToComponentDetail,
         modifier = modifier.fillMaxSize(),
         onLaunchAppClick = { packageName ->
             viewModel.launchApp(context, packageName)
@@ -188,6 +190,7 @@ fun AppDetailScreen(
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
+    navigateToComponentDetail: (String) -> Unit = {},
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
@@ -215,6 +218,7 @@ fun AppDetailScreen(
                 componentListUiState = componentListUiState,
                 tabState = tabState,
                 onBackClick = onBackClick,
+                navigateToComponentDetail = navigateToComponentDetail,
                 onLaunchAppClick = onLaunchAppClick,
                 switchTab = switchTab,
                 modifier = modifier,
@@ -250,6 +254,7 @@ fun AppDetailContent(
     switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
+    navigateToComponentDetail: (String) -> Unit = {},
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
@@ -344,6 +349,7 @@ fun AppDetailContent(
                         onPress = { scope.coroutineContext.cancelChildren() },
                     )
                 },
+            navigateToComponentDetail = navigateToComponentDetail,
             onExportRules = onExportRules,
             onImportRules = onImportRules,
             onExportIfw = onExportIfw,
@@ -409,6 +415,7 @@ fun AppDetailTabContent(
     componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
     switchTab: (AppDetailTabs) -> Unit,
+    navigateToComponentDetail: (String) -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -454,6 +461,7 @@ fun AppDetailTabContent(
 
             is Receiver -> ComponentList(
                 components = componentListUiState.receiver,
+                navigateToComponentDetail = navigateToComponentDetail,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
@@ -463,6 +471,7 @@ fun AppDetailTabContent(
 
             is Service -> ComponentList(
                 components = componentListUiState.service,
+                navigateToComponentDetail = navigateToComponentDetail,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
@@ -472,6 +481,7 @@ fun AppDetailTabContent(
 
             is Activity -> ComponentList(
                 components = componentListUiState.activity,
+                navigateToComponentDetail = navigateToComponentDetail,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
@@ -481,6 +491,7 @@ fun AppDetailTabContent(
 
             is Provider -> ComponentList(
                 components = componentListUiState.provider,
+                navigateToComponentDetail = navigateToComponentDetail,
                 onSwitchClick = onSwitchClick,
                 onStopServiceClick = onStopServiceClick,
                 onLaunchActivityClick = onLaunchActivityClick,
