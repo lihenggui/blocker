@@ -110,6 +110,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST
             },
             useDynamicColor = it.useDynamicColor,
+            showRunningAppsOnTop = it.showRunningAppsOnTop,
         )
     }
 
@@ -221,6 +222,12 @@ class BlockerPreferencesDataSource @Inject constructor(
                         ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST
                 }
             }
+        }
+    }
+
+    suspend fun setShowRunningAppsOnTop(showRunningAppsOnTop: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.showRunningAppsOnTop = showRunningAppsOnTop }
         }
     }
 }

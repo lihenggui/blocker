@@ -98,6 +98,7 @@ class AppListViewModel @Inject constructor(
         loadData()
         updateInstalledAppList()
         listenSortingChanges()
+        listenShowRunningAppsOnTopChanges()
         listenShowSystemAppsChanges()
     }
 
@@ -146,7 +147,11 @@ class AppListViewModel @Inject constructor(
                 }.sortedWith(
                     appComparator(sortType),
                 ).sortedByDescending {
-                    it.isRunning
+                    if (preference.showRunningAppsOnTop) {
+                        it.isRunning
+                    } else {
+                        true
+                    }
                 }.toMutableStateList()
                 _appListFlow.value = _appList
                 _uiState.emit(Success)
@@ -187,6 +192,14 @@ class AppListViewModel @Inject constructor(
                 _appList = newList.toMutableStateList()
                 _appListFlow.value = _appList
             }
+    }
+
+    private fun listenShowRunningAppsOnTopChanges() = viewModelScope.launch {
+        userDataRepository.userData
+            .map { it.showRunningAppsOnTop }
+            .distinctUntilChanged()
+            .drop(1)
+            .collect { loadData() }
     }
 
     private fun listenShowSystemAppsChanges() = viewModelScope.launch {

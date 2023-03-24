@@ -39,4 +39,5 @@ message UserPreferences {
     ComponentSortingProto component_sorting = 10;
     ComponentShowPriorityProto component_show_priority = 11;
     bool use_dynamic_color = 12;
+    bool show_running_apps_on_top = 13;
 }
