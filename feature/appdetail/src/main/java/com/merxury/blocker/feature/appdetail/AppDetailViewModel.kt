@@ -260,8 +260,11 @@ class AppDetailViewModel @Inject constructor(
     private fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         val packageName = appDetailArgs.packageName
         componentRepository.getComponentList(packageName)
-            .collect { listWithoutDetail ->
-                val list = listWithoutDetail.map { component ->
+            .collect { origList ->
+                // Show the cache data first
+                updateTabContent(origList, packageName)
+                // Load the data with description and update again
+                val list = origList.map { component ->
                     val detail = componentDetailRepository.getComponentDetailCache(component.name)
                         .first()
                     if (detail != null) {
@@ -270,16 +273,23 @@ class AppDetailViewModel @Inject constructor(
                         component
                     }
                 }
-                // Store the unfiltered list
-                val receiver = list.filter { it.type == RECEIVER }
-                val service = list.filter { it.type == SERVICE }
-                val activity = list.filter { it.type == ACTIVITY }
-                val provider = list.filter { it.type == PROVIDER }
-                _unfilteredList =
-                    getComponentListUiState(packageName, receiver, service, activity, provider)
-                filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
-                updateTabState(_componentListUiState.value)
+                updateTabContent(list, packageName)
             }
+    }
+
+    private suspend fun updateTabContent(
+        list: List<ComponentInfo>,
+        packageName: String,
+    ) {
+        // Store the unfiltered list
+        val receiver = list.filter { it.type == RECEIVER }
+        val service = list.filter { it.type == SERVICE }
+        val activity = list.filter { it.type == ACTIVITY }
+        val provider = list.filter { it.type == PROVIDER }
+        _unfilteredList =
+            getComponentListUiState(packageName, receiver, service, activity, provider)
+        filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
+        updateTabState(_componentListUiState.value)
     }
 
     private fun updateComponentList(packageName: String) = viewModelScope.launch {
