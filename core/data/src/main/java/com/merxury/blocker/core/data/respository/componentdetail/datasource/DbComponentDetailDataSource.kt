@@ -29,7 +29,7 @@ class DbComponentDetailDataSource @Inject constructor(
 ) : ComponentDetailDataSource {
     override fun getComponentDetail(name: String): Flow<ComponentDetail?> {
         return componentDetailDao.getComponentDetail(name)
-            .map { it.asExternalModel() }
+            .map { it?.asExternalModel() }
     }
 
     override suspend fun saveComponentData(component: ComponentDetail): Boolean {

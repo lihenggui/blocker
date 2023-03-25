@@ -19,19 +19,25 @@ package com.merxury.blocker.core.data.respository.componentdetail
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.NetworkComponentDetailDataSource
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 class OfflineFirstComponentDetailRepository @Inject constructor(
     private val dbDataSource: DbComponentDetailDataSource,
     private val networkDataSource: NetworkComponentDetailDataSource,
     private val userGeneratedDataSource: LocalComponentDetailDataSource,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailRepository {
-    override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        // Priority: user generated > db > network
+
+    override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> = flow {
+        // Priority: user generated > db
         val userGeneratedData = userGeneratedDataSource.getComponentDetail(name)
             .first()
         if (userGeneratedData != null) {
@@ -43,6 +49,11 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
             emit(dbData)
             return@flow
         }
+        emit(null)
+    }
+        .flowOn(ioDispatcher)
+
+    override fun getLatestComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         val networkData = networkDataSource.getComponentDetail(name).first()
         if (networkData != null) {
             emit(networkData)
@@ -51,6 +62,23 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
         }
         emit(null)
     }
+
+    override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
+        val cachedData = getComponentDetailCache(name).first()
+        // If cache is not null, return it directly
+        // Otherwise, fetch from network
+        if (cachedData != null) {
+            emit(cachedData)
+            return@flow
+        }
+        val latestData = getLatestComponentDetail(name).first()
+        if (latestData != null) {
+            emit(latestData)
+            return@flow
+        }
+        emit(null)
+    }
+        .flowOn(ioDispatcher)
 
     override suspend fun saveComponentDetail(
         componentDetail: ComponentDetail,

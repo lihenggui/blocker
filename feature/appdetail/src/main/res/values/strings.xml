@@ -37,7 +37,6 @@
     <string name="disabling_hint">Disabling hint…</string>
     <string name="enabling_hint">Enabling hint…</string>
     <string name="more_menu">more menu</string>
-    <string name="analyze_service">Analyze service</string>
     <string name="description">Description</string>
     <string name="blocking_effect">Blocking effect</string>
     <string name="recommended_blocking">Recommended blocking</string>
@@ -52,4 +51,6 @@
     <string name="stop_service">Stop service</string>
     <string name="running">Running</string>
     <string name="search_components">Search components</string>
+    <string name="add_description_hint">At present, there is no information available for this component. Be the first to contribute!</string>
+    <string name="how_to_contribute">How to contribute?</string>
 </resources>

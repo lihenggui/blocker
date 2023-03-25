@@ -51,4 +51,6 @@ interface UserDataRepository {
     suspend fun setAppSorting(sorting: AppSorting)
 
     suspend fun setComponentShowPriority(priority: ComponentShowPriority)
+
+    suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean)
 }
