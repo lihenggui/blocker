@@ -39,5 +39,5 @@ interface ComponentDetailDao {
     suspend fun update(entity: ComponentDetailEntity)
 
     @Query("SELECT * FROM component_detail WHERE name = :name")
-    fun getComponentDetail(name: String): Flow<ComponentDetailEntity>
+    fun getComponentDetail(name: String): Flow<ComponentDetailEntity?>
 }

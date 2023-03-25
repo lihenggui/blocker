@@ -37,7 +37,6 @@
     <string name="disabling_hint">Отключение подсказки…</string>
     <string name="enabling_hint">Включение подсказки…</string>
     <string name="more_menu">больше меню</string>
-    <string name="analyze_service">Анализ сервиса</string>
     <string name="description">Описание</string>
     <string name="blocking_effect">Эффект блокировки</string>
     <string name="recommended_blocking">Рекомендуемая блокировка</string>
@@ -51,4 +50,6 @@
     <string name="stop_service">Остановить службу</string>
     <string name="running">Запущен</string>
     <string name="search_components">Поиск компонентов</string>
+    <string name="add_description_hint">В настоящее время для этого компонента нет доступной информации. Будьте первым, кто внесет свой вклад!</string>
+    <string name="how_to_contribute">Как внести свой вклад?</string>
 </resources>

@@ -22,6 +22,11 @@ import kotlinx.coroutines.flow.Flow
 interface ComponentDetailRepository {
 
     fun getComponentDetail(name: String): Flow<ComponentDetail?>
+
+    fun getComponentDetailCache(name: String): Flow<ComponentDetail?>
+
+    fun getLatestComponentDetail(name: String): Flow<ComponentDetail?>
+
     suspend fun saveComponentDetail(
         componentDetail: ComponentDetail,
         userGenerated: Boolean,
