@@ -22,7 +22,7 @@ import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
 
 interface BlockerNetworkDataSource {
-    suspend fun getComponentData(path: String): NetworkComponentDetail
+    suspend fun getComponentData(path: String): NetworkComponentDetail?
 
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
 
