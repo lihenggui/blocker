@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.appdetail.componentdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -37,6 +38,7 @@ import javax.inject.Inject
 class ComponentDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     stringDecoder: StringDecoder,
+    private val componentRepository: LocalComponentRepository,
     private val componentDetailRepository: ComponentDetailRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
