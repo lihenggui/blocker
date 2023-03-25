@@ -19,11 +19,12 @@ package com.merxury.blocker.core.designsystem.component
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.window.DialogProperties
 
 @Composable
 fun BlockerErrorAlertDialog(
@@ -46,7 +47,7 @@ fun BlockerErrorAlertDialog(
         },
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            TextButton(
+            BlockerTextButton(
                 onClick = onDismissRequest,
             ) {
                 Text(
@@ -82,7 +83,7 @@ fun BlockerWarningAlertDialog(
         },
         onDismissRequest = onDismissRequest,
         confirmButton = {
-            TextButton(
+            BlockerTextButton(
                 onClick = {
                     onConfirmRequest()
                     onDismissRequest()
@@ -94,11 +95,27 @@ fun BlockerWarningAlertDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismissRequest) {
+            BlockerTextButton(onClick = onDismissRequest) {
                 Text(
                     text = stringResource(id = android.R.string.cancel),
                 )
             }
         },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BlockerAlertDialog(
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    properties: DialogProperties = DialogProperties(),
+    content: @Composable () -> Unit,
+) {
+    AlertDialog(
+        modifier = modifier,
+        onDismissRequest = onDismissRequest,
+        properties = properties,
+        content = content,
     )
 }

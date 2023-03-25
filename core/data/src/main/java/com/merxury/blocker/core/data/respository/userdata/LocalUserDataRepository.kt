@@ -25,6 +25,7 @@ import com.merxury.blocker.core.data.respository.logDarkThemeConfigChanged
 import com.merxury.blocker.core.data.respository.logDynamicColorPreferenceChanged
 import com.merxury.blocker.core.data.respository.logRestoreSystemAppPreferenceChanged
 import com.merxury.blocker.core.data.respository.logRuleServerProviderChanged
+import com.merxury.blocker.core.data.respository.logShowRunningAppsOnTopPreferenceChanged
 import com.merxury.blocker.core.data.respository.logShowServiceInfoPreferenceChanged
 import com.merxury.blocker.core.data.respository.logShowSystemAppPreferenceChanged
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
@@ -95,5 +96,10 @@ class LocalUserDataRepository @Inject constructor(
     override suspend fun setComponentShowPriority(priority: ComponentShowPriority) {
         blockerPreferenceDataSource.setComponentShowPriority(priority)
         analyticsHelper.logComponentShowPriorityPreferenceChanged(priority.name)
+    }
+
+    override suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean) {
+        blockerPreferenceDataSource.setShowRunningAppsOnTop(shouldShowRunningAppsOnTop)
+        analyticsHelper.logShowRunningAppsOnTopPreferenceChanged(shouldShowRunningAppsOnTop)
     }
 }

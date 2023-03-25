@@ -60,4 +60,5 @@
     <string name="options_on">На</string>
     <string name="options_off">Выключенный</string>
     <string name="report_bugs_or_submit_ideas">Сообщайте об ошибках или предлагайте идеи</string>
+    <string name="show_running_apps_on_top">Показывать запущенные приложения сверху</string>
 </resources>

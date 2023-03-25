@@ -37,7 +37,7 @@ import javax.inject.Singleton
  */
 interface BlockerNetworkApi {
     @GET("components/zh-cn/{path}")
-    suspend fun getOnlineComponentData(@Path("path") relativePath: String): NetworkComponentDetail
+    suspend fun getOnlineComponentData(@Path("path") relativePath: String): NetworkComponentDetail?
 
     @GET("zh-cn/general.json")
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
@@ -57,7 +57,7 @@ class RetrofitBlockerNetwork @Inject constructor(
 
     private var networkApi: BlockerNetworkApi = gitHubNetworkApi
 
-    override suspend fun getComponentData(path: String): NetworkComponentDetail =
+    override suspend fun getComponentData(path: String): NetworkComponentDetail? =
         networkApi.getOnlineComponentData(path)
 
     override suspend fun getGeneralRules(): List<NetworkGeneralRule> =

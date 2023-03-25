@@ -35,6 +35,7 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -111,6 +112,7 @@ class AppDetailViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
     private val componentRepository: LocalComponentRepository,
+    private val componentDetailRepository: ComponentDetailRepository,
     private val shizukuInitializer: ShizukuInitializer,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
@@ -258,17 +260,36 @@ class AppDetailViewModel @Inject constructor(
     private fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         val packageName = appDetailArgs.packageName
         componentRepository.getComponentList(packageName)
-            .collect { list ->
-                // Store the unfiltered list
-                val receiver = list.filter { it.type == RECEIVER }
-                val service = list.filter { it.type == SERVICE }
-                val activity = list.filter { it.type == ACTIVITY }
-                val provider = list.filter { it.type == PROVIDER }
-                _unfilteredList =
-                    getComponentListUiState(packageName, receiver, service, activity, provider)
-                filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
-                updateTabState(_componentListUiState.value)
+            .collect { origList ->
+                // Show the cache data first
+                updateTabContent(origList, packageName)
+                // Load the data with description and update again
+                val list = origList.map { component ->
+                    val detail = componentDetailRepository.getComponentDetailCache(component.name)
+                        .first()
+                    if (detail != null) {
+                        component.copy(description = detail.description)
+                    } else {
+                        component
+                    }
+                }
+                updateTabContent(list, packageName)
             }
+    }
+
+    private suspend fun updateTabContent(
+        list: List<ComponentInfo>,
+        packageName: String,
+    ) {
+        // Store the unfiltered list
+        val receiver = list.filter { it.type == RECEIVER }
+        val service = list.filter { it.type == SERVICE }
+        val activity = list.filter { it.type == ACTIVITY }
+        val provider = list.filter { it.type == PROVIDER }
+        _unfilteredList =
+            getComponentListUiState(packageName, receiver, service, activity, provider)
+        filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
+        updateTabState(_componentListUiState.value)
     }
 
     private fun updateComponentList(packageName: String) = viewModelScope.launch {

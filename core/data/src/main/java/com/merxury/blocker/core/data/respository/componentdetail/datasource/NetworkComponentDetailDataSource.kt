@@ -25,6 +25,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 import javax.inject.Inject
 
 class NetworkComponentDetailDataSource @Inject constructor(
@@ -32,10 +33,17 @@ class NetworkComponentDetailDataSource @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
     override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        val componentDetail = blockerNetworkDataSource
-            .getComponentData(name)
-            .asExternalModel()
-        emit(componentDetail)
+        try {
+            val path = name.replace(".", "/")
+                .plus(".json")
+            val componentDetail = blockerNetworkDataSource
+                .getComponentData(path)
+                ?.asExternalModel()
+            emit(componentDetail)
+        } catch (e: Exception) {
+            Timber.d("Can't find detail for $name in the remote source.")
+            emit(null)
+        }
     }
         .flowOn(ioDispatcher)
 
