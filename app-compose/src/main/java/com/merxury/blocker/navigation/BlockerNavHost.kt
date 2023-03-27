@@ -84,6 +84,8 @@ fun BlockerNavHost(
             snackbarHostState = snackbarHostState,
         )
         supportAndFeedbackScreen(onBackClick)
-        componentDetailScreen(snackbarHostState = snackbarHostState)
+        componentDetailScreen(
+            dismissHandler = onBackClick,
+        )
     }
 }
