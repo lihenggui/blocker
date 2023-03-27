@@ -26,8 +26,8 @@ class AppComponentRepository @Inject constructor(private val appComponentDao: Ap
         return appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
     }
 
-    suspend fun getAppComponentByName(keyword: String): List<AppComponentEntity> {
-        return appComponentDao.getByName(keyword)
+    fun getAppComponentByName(name: String): Flow<AppComponentEntity?> {
+        return appComponentDao.getByName(name)
     }
 
     suspend fun addAppComponents(vararg appComponentEntities: AppComponentEntity) {

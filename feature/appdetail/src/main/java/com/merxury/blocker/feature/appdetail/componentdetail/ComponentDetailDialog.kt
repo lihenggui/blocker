@@ -41,21 +41,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
-import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.feature.appdetail.R
 
 @Composable
 fun ComponentDetailDialog(
     name: String,
+    detail: UserEditableComponentDetail,
     modifier: Modifier = Modifier,
-    detail: ComponentDetail? = null,
-    onSaveDetailClick: (ComponentDetail?) -> Boolean = { false },
+    onSaveDetailClick: (UserEditableComponentDetail) -> Boolean = { false },
     onDismissRequest: () -> Unit = {},
 ) {
     var valueChanged by rememberSaveable { mutableStateOf(false) }
-    var description by rememberSaveable { mutableStateOf(detail?.description) }
-    var recommendToBlock by rememberSaveable { mutableStateOf(detail?.recommendToBlock) }
-    var belongToSdk by rememberSaveable { mutableStateOf(!detail?.sdkName.isNullOrBlank()) }
+    var editableDetail by rememberSaveable { mutableStateOf(detail) }
     BlockerAlertDialog(
         onDismissRequest = onDismissRequest,
     ) {
@@ -71,29 +68,32 @@ fun ComponentDetailDialog(
                     style = MaterialTheme.typography.headlineSmall,
                 )
                 OutlinedTextField(
-                    value = detail?.description ?: "",
+                    value = editableDetail.description ?: "",
                     label = {
                         Text(text = stringResource(id = R.string.description))
                     },
                     onValueChange = { newValue ->
-                        description = newValue
+                        editableDetail = editableDetail.copy(description = newValue)
                         valueChanged = true
                     },
                 )
                 Spacer(modifier = modifier.height(8.dp))
                 OutlinedTextField(
-                    value = detail?.disableEffect ?: "",
+                    value = editableDetail.disableEffect ?: "",
                     label = {
                         Text(text = stringResource(id = R.string.blocking_effect))
                     },
-                    onValueChange = {},
+                    onValueChange = {
+                        editableDetail = editableDetail.copy(disableEffect = it)
+                        valueChanged = true
+                    },
                 )
                 Spacer(modifier = modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
-                        checked = recommendToBlock ?: false,
+                        checked = editableDetail.recommendToBlock,
                         onCheckedChange = { checked ->
-                            recommendToBlock = checked
+                            editableDetail = editableDetail.copy(recommendToBlock = checked)
                             valueChanged = true
                         },
                     )
@@ -102,9 +102,9 @@ fun ComponentDetailDialog(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
-                        checked = belongToSdk,
+                        checked = editableDetail.belongToSdk,
                         onCheckedChange = { checked ->
-                            belongToSdk = checked
+                            editableDetail = editableDetail.copy(belongToSdk = checked)
                             valueChanged = true
                         },
                     )
@@ -123,22 +123,8 @@ fun ComponentDetailDialog(
                     }
                     BlockerTextButton(
                         onClick = {
-                            val newEntity = detail?.copy(
-                                description = description,
-                                recommendToBlock = recommendToBlock ?: false,
-                                sdkName = if (belongToSdk) detail.sdkName else null,
-                            ) ?: if (valueChanged) {
-                                ComponentDetail(
-                                    name = name,
-                                    description = description,
-                                    recommendToBlock = recommendToBlock ?: false,
-                                    sdkName = if (belongToSdk) detail?.sdkName else null,
-                                )
-                            } else {
-                                null
-                            }
                             if (valueChanged) {
-                                onSaveDetailClick(newEntity)
+                                onSaveDetailClick(editableDetail)
                             }
                             onDismissRequest()
                         },
@@ -156,7 +142,7 @@ fun ComponentDetailDialog(
 fun EditComponentDetailDialogPreview() {
     ComponentDetailDialog(
         name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
-        detail = ComponentDetail(
+        detail = UserEditableComponentDetail(
             name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
             description = "This is a test description",
             recommendToBlock = true,

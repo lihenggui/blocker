@@ -50,7 +50,8 @@ fun ComponentDetailScreen(
         is ComponentDetailUiState.Loading -> LoadingScreen()
         is ComponentDetailUiState.Error -> ErrorScreen(error = uiState.message)
         is Success -> ComponentDetailContent(
-            name = uiState.componentDetail.name,
+            name = uiState.detail.name,
+            detail = uiState.detail,
             modifier = modifier,
         )
     }
@@ -59,7 +60,8 @@ fun ComponentDetailScreen(
 @Composable
 fun ComponentDetailContent(
     name: String,
+    detail: UserEditableComponentDetail,
     modifier: Modifier = Modifier,
 ) {
-    ComponentDetailDialog(name = name, modifier = modifier)
+    ComponentDetailDialog(name = name, detail = detail, modifier = modifier)
 }
