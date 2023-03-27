@@ -36,6 +36,7 @@ fun ComponentDetailRoute(
         uiState = uiState,
         modifier = modifier,
         dismissHandler = dismissHandler,
+        onSaveDetailClick = viewModel::save,
     )
 }
 
@@ -44,6 +45,7 @@ fun ComponentDetailScreen(
     uiState: ComponentDetailUiState,
     modifier: Modifier = Modifier,
     dismissHandler: () -> Unit = {},
+    onSaveDetailClick: (UserEditableComponentDetail) -> Unit = {},
 ) {
     when (uiState) {
         is ComponentDetailUiState.Loading -> LoadingScreen()
@@ -53,6 +55,7 @@ fun ComponentDetailScreen(
             detail = uiState.detail,
             modifier = modifier,
             dismissHandler = dismissHandler,
+            onSaveDetailClick = onSaveDetailClick,
         )
     }
 }
@@ -63,11 +66,13 @@ fun ComponentDetailContent(
     detail: UserEditableComponentDetail,
     modifier: Modifier = Modifier,
     dismissHandler: () -> Unit = {},
+    onSaveDetailClick: (UserEditableComponentDetail) -> Unit = {},
 ) {
     ComponentDetailDialog(
         name = name,
         detail = detail,
         modifier = modifier,
-        onDismissRequest = dismissHandler,
+        onDismiss = dismissHandler,
+        onSaveDetailClick = onSaveDetailClick,
     )
 }

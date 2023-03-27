@@ -20,14 +20,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,41 +34,49 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.BlockerAlertDialog
+import androidx.compose.ui.window.DialogProperties
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
-import com.merxury.blocker.feature.appdetail.R
+import com.merxury.blocker.core.ui.TrackScreenViewEvent
+import com.merxury.blocker.feature.appdetail.R.string
 
 @Composable
 fun ComponentDetailDialog(
     name: String,
     detail: UserEditableComponentDetail,
     modifier: Modifier = Modifier,
-    onSaveDetailClick: (UserEditableComponentDetail) -> Boolean = { false },
-    onDismissRequest: () -> Unit = {},
+    onDismiss: () -> Unit = {},
+    onSaveDetailClick: (UserEditableComponentDetail) -> Unit = {},
 ) {
+    val configuration = LocalConfiguration.current
     var valueChanged by rememberSaveable { mutableStateOf(false) }
     var editableDetail by rememberSaveable { mutableStateOf(detail) }
-    BlockerAlertDialog(
-        onDismissRequest = onDismissRequest,
-    ) {
-        Surface(
-            modifier = Modifier
-                .wrapContentWidth()
-                .wrapContentHeight(),
-            shape = MaterialTheme.shapes.large,
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.headlineSmall,
-                )
+    /**
+     * usePlatformDefaultWidth = false is use as a temporary fix to allow
+     * height recalculation during recomposition. This, however, causes
+     * Dialog's to occupy full width in Compact mode. Therefore max width
+     * is configured below. This should be removed when there's fix to
+     * https://issuetracker.google.com/issues/221643630
+     */
+    AlertDialog(
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.widthIn(max = configuration.screenWidthDp.dp - 80.dp),
+        onDismissRequest = { onDismiss() },
+        title = {
+            Text(
+                text = name.split(".").last(),
+                style = MaterialTheme.typography.headlineSmall,
+            )
+        },
+        text = {
+            Column {
                 OutlinedTextField(
                     value = editableDetail.description ?: "",
                     label = {
-                        Text(text = stringResource(id = R.string.description))
+                        Text(text = stringResource(id = string.description))
                     },
                     onValueChange = { newValue ->
                         editableDetail = editableDetail.copy(description = newValue)
@@ -81,7 +87,7 @@ fun ComponentDetailDialog(
                 OutlinedTextField(
                     value = editableDetail.disableEffect ?: "",
                     label = {
-                        Text(text = stringResource(id = R.string.blocking_effect))
+                        Text(text = stringResource(id = string.blocking_effect))
                     },
                     onValueChange = {
                         editableDetail = editableDetail.copy(disableEffect = it)
@@ -98,7 +104,7 @@ fun ComponentDetailDialog(
                         },
                     )
                     Spacer(modifier = modifier.width(8.dp))
-                    Text(text = stringResource(id = R.string.recommended_blocking))
+                    Text(text = stringResource(id = string.recommended_blocking))
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
@@ -109,32 +115,33 @@ fun ComponentDetailDialog(
                         },
                     )
                     Spacer(modifier = modifier.width(8.dp))
-                    Text(text = stringResource(id = R.string.belonging_sdk))
-                }
-                Spacer(modifier = Modifier.height(24.dp))
-                Row {
-                    Spacer(modifier = Modifier.weight(1f))
-                    BlockerTextButton(
-                        onClick = {
-                            onDismissRequest()
-                        },
-                    ) {
-                        Text(text = stringResource(android.R.string.cancel))
-                    }
-                    BlockerTextButton(
-                        onClick = {
-                            if (valueChanged) {
-                                onSaveDetailClick(editableDetail)
-                            }
-                            onDismissRequest()
-                        },
-                    ) {
-                        Text(text = stringResource(R.string.save))
-                    }
+                    Text(text = stringResource(id = string.belonging_sdk))
                 }
             }
-        }
-    }
+            TrackScreenViewEvent(screenName = "ComponentDetail")
+        },
+        confirmButton = {
+            BlockerTextButton(
+                onClick = {
+                    if (valueChanged) {
+                        onSaveDetailClick(editableDetail)
+                    }
+                    onDismiss()
+                },
+            ) {
+                Text(text = stringResource(string.save))
+            }
+        },
+        dismissButton = {
+            BlockerTextButton(
+                onClick = {
+                    onDismiss()
+                },
+            ) {
+                Text(text = stringResource(android.R.string.cancel))
+            }
+        },
+    )
 }
 
 @Preview
