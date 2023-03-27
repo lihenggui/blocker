@@ -60,8 +60,8 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
     override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         val networkData = networkDataSource.getComponentDetail(name).first()
         if (networkData != null) {
-            emit(networkData)
             saveComponentDetail(networkData, userGenerated = false)
+            emit(networkData)
             return@flow
         }
         emit(null)
