@@ -52,6 +52,11 @@ class LocalComponentRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentRepository {
 
+    override fun getComponent(name: String): Flow<ComponentInfo?> {
+        return appComponentDao.getByName(name)
+            .map { it?.toComponentInfo() }
+            .flowOn(ioDispatcher)
+    }
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> =
         appComponentDao.getByPackageName(packageName)
             .map { list ->

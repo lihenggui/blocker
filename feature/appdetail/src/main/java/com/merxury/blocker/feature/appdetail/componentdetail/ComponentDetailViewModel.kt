@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail.componentdetail
 
+import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -26,12 +27,17 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Error
+import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.ComponentDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -50,13 +56,60 @@ class ComponentDetailViewModel @Inject constructor(
     init {
         load()
     }
+
     private fun load() = viewModelScope.launch(ioDispatcher) {
-        componentDetailRepository.getComponentDetail(componentDetailArg.name)
-            .collect { detail ->
-                if (detail != null) {
-                    _uiState.value = ComponentDetailUiState.Success(detail)
-                }
-            }
+        val userGeneratedDetail = componentDetailRepository
+            .getUserGeneratedDetail(componentDetailArg.name)
+            .first()
+        if (userGeneratedDetail != null) {
+            _uiState.value = Success(
+                isFetchingData = true,
+                detail = userGeneratedDetail.toUserEditableComponentDetail(),
+            )
+            return@launch
+        }
+        val dbDetail = componentDetailRepository
+            .getDbComponentDetail(componentDetailArg.name)
+            .first()
+        if (dbDetail != null) {
+            _uiState.value = Success(
+                isFetchingData = true,
+                detail = dbDetail.toUserEditableComponentDetail(),
+            )
+            return@launch
+        }
+        // No match found in the cache, emit the default value
+        val component = componentRepository.getComponent(componentDetailArg.name).first()
+        if (component == null) {
+            Timber.e("Component ${componentDetailArg.name} not found")
+            _uiState.value = Error(UiMessage("Component not found"))
+            return@launch
+        }
+        _uiState.value = Success(
+            isFetchingData = true,
+            detail = UserEditableComponentDetail(
+                name = component.name,
+            ),
+        )
+        // Fetch the data from network
+        val networkDetail = componentDetailRepository
+            .getNetworkComponentDetail(componentDetailArg.name)
+            .first()
+        if (networkDetail != null) {
+            _uiState.value = Success(
+                isFetchingData = false,
+                detail = networkDetail.toUserEditableComponentDetail(),
+            )
+            return@launch
+        }
+        // No matching found in the network, emit the default value
+        // Dismiss the loading progress bar
+        _uiState.value = Success(
+            isFetchingData = false,
+            detail = UserEditableComponentDetail(
+                name = component.name,
+            ),
+        )
     }
 
     fun save(componentDetail: ComponentDetail) = viewModelScope.launch(ioDispatcher) {
@@ -64,8 +117,35 @@ class ComponentDetailViewModel @Inject constructor(
     }
 }
 
+@Parcelize
+data class UserEditableComponentDetail(
+    val name: String,
+    val belongToSdk: Boolean = false,
+    val sdkName: String? = null,
+    val description: String? = null,
+    val disableEffect: String? = null,
+    val contributor: String? = null,
+    val addedVersion: String? = null,
+    val recommendToBlock: Boolean = false,
+) : Parcelable
+
+private fun ComponentDetail.toUserEditableComponentDetail() = UserEditableComponentDetail(
+    name = name,
+    belongToSdk = sdkName != null,
+    sdkName = sdkName,
+    description = description,
+    disableEffect = disableEffect,
+    contributor = contributor,
+    addedVersion = addedVersion,
+    recommendToBlock = recommendToBlock,
+)
+
 sealed class ComponentDetailUiState {
     object Loading : ComponentDetailUiState()
-    data class Success(val componentDetail: ComponentDetail) : ComponentDetailUiState()
+    data class Success(
+        val isFetchingData: Boolean,
+        val detail: UserEditableComponentDetail,
+    ) : ComponentDetailUiState()
+
     data class Error(val message: UiMessage) : ComponentDetailUiState()
 }

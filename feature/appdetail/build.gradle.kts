@@ -19,6 +19,7 @@ plugins {
     id("blocker.android.feature")
     id("blocker.android.library.compose")
     id("blocker.android.library.jacoco")
+    id("kotlin-parcelize")
 }
 android {
     namespace = "com.merxury.blocker.feature.appdetail"
