@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail.componentdetail
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -28,23 +27,23 @@ import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiSt
 
 @Composable
 fun ComponentDetailRoute(
-    snackbarHostState: SnackbarHostState,
+    dismissHandler: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ComponentDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ComponentDetailScreen(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
         modifier = modifier,
+        dismissHandler = dismissHandler,
     )
 }
 
 @Composable
 fun ComponentDetailScreen(
     uiState: ComponentDetailUiState,
-    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
+    dismissHandler: () -> Unit = {},
 ) {
     when (uiState) {
         is ComponentDetailUiState.Loading -> LoadingScreen()
@@ -53,6 +52,7 @@ fun ComponentDetailScreen(
             name = uiState.detail.name,
             detail = uiState.detail,
             modifier = modifier,
+            dismissHandler = dismissHandler,
         )
     }
 }
@@ -62,6 +62,12 @@ fun ComponentDetailContent(
     name: String,
     detail: UserEditableComponentDetail,
     modifier: Modifier = Modifier,
+    dismissHandler: () -> Unit = {},
 ) {
-    ComponentDetailDialog(name = name, detail = detail, modifier = modifier)
+    ComponentDetailDialog(
+        name = name,
+        detail = detail,
+        modifier = modifier,
+        onDismissRequest = dismissHandler,
+    )
 }
