@@ -66,17 +66,18 @@ class ComponentDetailViewModel @Inject constructor(
                 isFetchingData = true,
                 detail = userGeneratedDetail.toUserEditableComponentDetail(),
             )
+            // Do NOT update the dialog if user saved the data previously
             return@launch
-        }
-        val dbDetail = componentDetailRepository
-            .getDbComponentDetail(componentDetailArg.name)
-            .first()
-        if (dbDetail != null) {
-            _uiState.value = Success(
-                isFetchingData = true,
-                detail = dbDetail.toUserEditableComponentDetail(),
-            )
-            return@launch
+        } else {
+            val dbDetail = componentDetailRepository
+                .getDbComponentDetail(componentDetailArg.name)
+                .first()
+            if (dbDetail != null) {
+                _uiState.value = Success(
+                    isFetchingData = true,
+                    detail = dbDetail.toUserEditableComponentDetail(),
+                )
+            }
         }
         // No match found in the cache, emit the default value
         val component = componentRepository.getComponent(componentDetailArg.name).first()
