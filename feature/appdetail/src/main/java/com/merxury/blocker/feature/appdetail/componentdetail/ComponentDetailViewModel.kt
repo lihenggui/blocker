@@ -112,8 +112,17 @@ class ComponentDetailViewModel @Inject constructor(
         )
     }
 
-    fun save(componentDetail: ComponentDetail) = viewModelScope.launch(ioDispatcher) {
-        componentDetailRepository.saveComponentDetail(componentDetail, userGenerated = true)
+    fun save(editableDetail: UserEditableComponentDetail) = viewModelScope.launch(ioDispatcher) {
+        val detail = ComponentDetail(
+            name = editableDetail.name,
+            sdkName = if (editableDetail.belongToSdk) editableDetail.sdkName else null,
+            description = editableDetail.description,
+            disableEffect = editableDetail.disableEffect,
+            contributor = editableDetail.contributor,
+            addedVersion = editableDetail.addedVersion,
+            recommendToBlock = editableDetail.recommendToBlock,
+        )
+        componentDetailRepository.saveComponentDetail(detail, userGenerated = true)
     }
 }
 
