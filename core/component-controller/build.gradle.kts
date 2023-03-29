@@ -34,11 +34,11 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
-    implementation(project(":core:model"))
-    implementation(project(":core:ifw-api"))
+    implementation(projects.core.common)
+    implementation(projects.core.model)
+    implementation(projects.core.ifwApi)
 
-    testImplementation(project(":core:testing"))
+    testImplementation(projects.core.testing)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)

@@ -24,9 +24,9 @@ android {
     namespace = "com.merxury.blocker.provider"
 }
 dependencies {
-    implementation(project(":core:analytics"))
-    implementation(project(":core:data"))
-    implementation(project(":core:model"))
+    implementation(projects.core.analytics)
+    implementation(projects.core.data)
+    implementation(projects.core.model)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.timber)
 }

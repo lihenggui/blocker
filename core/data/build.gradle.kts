@@ -30,19 +30,18 @@ android {
     }
 }
 dependencies {
-    implementation(project(":core:analytics"))
-    implementation(project(":core:common"))
-    implementation(project(":core:component-controller"))
-    implementation(project(":core:model"))
-    implementation(project(":core:database"))
-    implementation(project(":core:datastore"))
-    implementation(project(":core:network"))
+    implementation(projects.core.analytics)
+    implementation(projects.core.common)
+    implementation(projects.core.componentController)
+    implementation(projects.core.model)
+    implementation(projects.core.database)
+    implementation(projects.core.datastore)
+    implementation(projects.core.network)
 
-    testImplementation(project(":core:testing"))
-    testImplementation(project(":core:datastore-test"))
+    testImplementation(projects.core.testing)
+    testImplementation(projects.core.datastoreTest)
 
     implementation(libs.androidx.core.ktx)
-
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)

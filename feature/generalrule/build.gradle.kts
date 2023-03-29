@@ -24,5 +24,5 @@ android {
     namespace = "com.merxury.blocker.feature.generalrule"
 }
 dependencies {
-    implementation(project(":core:database"))
+    implementation(projects.core.database)
 }
