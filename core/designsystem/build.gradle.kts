@@ -40,6 +40,6 @@ dependencies {
     api(libs.androidx.compose.ui.tooling.preview)
     api(libs.androidx.compose.ui.util)
     api(libs.androidx.compose.runtime)
-    lintPublish(project(":lint"))
-    androidTestImplementation(project(":core:testing"))
+    lintPublish(projects.lint)
+    androidTestImplementation(projects.core.testing)
 }

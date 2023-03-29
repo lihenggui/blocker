@@ -33,8 +33,8 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
-    testImplementation(project(":core:testing"))
+    implementation(projects.core.common)
+    testImplementation(projects.core.testing)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)

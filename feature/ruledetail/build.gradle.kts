@@ -24,7 +24,7 @@ android {
     namespace = "com.merxury.blocker.feature.ruledetail"
 }
 dependencies {
-    implementation(project(":core:component-controller"))
+    implementation(projects.core.componentController)
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.constraintlayout.compose)
 }

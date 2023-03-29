@@ -27,10 +27,10 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
-    implementation(project(":core:component-controller"))
-    implementation(project(":core:datastore"))
-    implementation(project(":core:ifw-api"))
+    implementation(projects.core.common)
+    implementation(projects.core.componentController)
+    implementation(projects.core.datastore)
+    implementation(projects.core.ifwApi)
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.android)
