@@ -24,9 +24,9 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:common"))
-    implementation(project(":core:data"))
-    implementation(project(":core:model"))
+    implementation(projects.core.common)
+    implementation(projects.core.data)
+    implementation(projects.core.model)
 
     api(libs.junit4)
     api(libs.androidx.test.core)
