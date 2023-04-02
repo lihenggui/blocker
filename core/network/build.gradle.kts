@@ -39,9 +39,9 @@ secrets {
 }
 
 dependencies {
-    implementation(project(":core:common"))
-    implementation(project(":core:model"))
-    testImplementation(project(":core:testing"))
+    implementation(projects.core.common)
+    implementation(projects.core.model)
+    testImplementation(projects.core.testing)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)

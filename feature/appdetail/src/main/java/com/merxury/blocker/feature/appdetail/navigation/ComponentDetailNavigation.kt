@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.appdetail.navigation
 
 import android.net.Uri
 import androidx.annotation.VisibleForTesting
-import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -48,7 +47,7 @@ fun NavController.navigateToComponentDetail(
 }
 
 fun NavGraphBuilder.componentDetailScreen(
-    snackbarHostState: SnackbarHostState,
+    dismissHandler: () -> Unit,
 ) {
     dialog(
         route = "app_component_detail_route/{$componentNameArg}",
@@ -57,7 +56,7 @@ fun NavGraphBuilder.componentDetailScreen(
         ),
     ) {
         ComponentDetailRoute(
-            snackbarHostState = snackbarHostState,
+            dismissHandler = dismissHandler,
         )
     }
 }

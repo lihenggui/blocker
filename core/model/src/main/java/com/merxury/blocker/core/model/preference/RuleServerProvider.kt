@@ -20,6 +20,6 @@ package com.merxury.blocker.core.model.preference
  * Model representation for the online data provider
  */
 enum class RuleServerProvider(val baseUrl: String) {
-    GITHUB("https://raw.githubusercontent.com/lihenggui/blocker-general-rules/online/"),
-    GITLAB("https://jihulab.com/mercuryli/blocker-general-rules/-/raw/online/"),
+    GITHUB("https://raw.githubusercontent.com/lihenggui/blocker-general-rules/main/"),
+    GITLAB("https://jihulab.com/mercuryli/blocker-general-rules/-/raw/main/"),
 }
