@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail.componentdetail
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -28,30 +27,35 @@ import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiSt
 
 @Composable
 fun ComponentDetailRoute(
-    snackbarHostState: SnackbarHostState,
+    dismissHandler: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: ComponentDetailViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ComponentDetailScreen(
         uiState = uiState,
-        snackbarHostState = snackbarHostState,
         modifier = modifier,
+        dismissHandler = dismissHandler,
+        onSaveDetailClick = viewModel::save,
     )
 }
 
 @Composable
 fun ComponentDetailScreen(
     uiState: ComponentDetailUiState,
-    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
+    dismissHandler: () -> Unit = {},
+    onSaveDetailClick: (UserEditableComponentDetail) -> Unit = {},
 ) {
     when (uiState) {
         is ComponentDetailUiState.Loading -> LoadingScreen()
         is ComponentDetailUiState.Error -> ErrorScreen(error = uiState.message)
         is Success -> ComponentDetailContent(
-            name = uiState.componentDetail.name,
+            name = uiState.detail.name,
+            detail = uiState.detail,
             modifier = modifier,
+            dismissHandler = dismissHandler,
+            onSaveDetailClick = onSaveDetailClick,
         )
     }
 }
@@ -59,7 +63,16 @@ fun ComponentDetailScreen(
 @Composable
 fun ComponentDetailContent(
     name: String,
+    detail: UserEditableComponentDetail,
     modifier: Modifier = Modifier,
+    dismissHandler: () -> Unit = {},
+    onSaveDetailClick: (UserEditableComponentDetail) -> Unit = {},
 ) {
-    ComponentDetailDialog(name = name, modifier = modifier)
+    ComponentDetailDialog(
+        name = name,
+        detail = detail,
+        modifier = modifier,
+        onDismiss = dismissHandler,
+        onSaveDetailClick = onSaveDetailClick,
+    )
 }

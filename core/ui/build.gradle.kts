@@ -25,12 +25,12 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:analytics"))
-    implementation(project(":core:designsystem"))
-    implementation(project(":core:model"))
-    implementation(project(":core:domain"))
-    implementation(project(":core:common"))
-    implementation(project(":core:ifw-api"))
+    implementation(projects.core.analytics)
+    implementation(projects.core.designsystem)
+    implementation(projects.core.model)
+    implementation(projects.core.domain)
+    implementation(projects.core.common)
+    implementation(projects.core.ifwApi)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.constraintlayout.compose)

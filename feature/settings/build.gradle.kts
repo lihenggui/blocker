@@ -23,8 +23,8 @@ android {
     namespace = "com.merxury.blocker.feature.settings"
 }
 dependencies {
-    implementation(project(":core:datastore"))
-    implementation(project(":core:rule"))
+    implementation(projects.core.datastore)
+    implementation(projects.core.rule)
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.lifecycle.livedata.ktx)

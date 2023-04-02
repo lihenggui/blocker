@@ -25,10 +25,10 @@ android {
 
 dependencies {
 
-    implementation(project(":core:data"))
-    implementation(project(":core:model"))
+    implementation(projects.core.data)
+    implementation(projects.core.model)
 
-    testImplementation(project(":core:testing"))
+    testImplementation(projects.core.testing)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)
     implementation(libs.hilt.android)

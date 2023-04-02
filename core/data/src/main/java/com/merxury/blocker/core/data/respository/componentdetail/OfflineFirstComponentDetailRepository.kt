@@ -36,6 +36,37 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailRepository {
 
+    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = flow<ComponentDetail?> {
+        val userGeneratedData = userGeneratedDataSource.getComponentDetail(name)
+            .first()
+        if (userGeneratedData != null) {
+            emit(userGeneratedData)
+            return@flow
+        }
+        emit(null)
+    }
+        .flowOn(ioDispatcher)
+
+    override fun getDbComponentDetail(name: String): Flow<ComponentDetail?> = flow {
+        val dbData = dbDataSource.getComponentDetail(name).first()
+        if (dbData != null) {
+            emit(dbData)
+            return@flow
+        }
+        emit(null)
+    }
+        .flowOn(ioDispatcher)
+
+    override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> = flow {
+        val networkData = networkDataSource.getComponentDetail(name).first()
+        if (networkData != null) {
+            saveComponentDetail(networkData, userGenerated = false)
+            emit(networkData)
+            return@flow
+        }
+        emit(null)
+    }
+
     override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> = flow {
         // Priority: user generated > db
         val userGeneratedData = userGeneratedDataSource.getComponentDetail(name)
@@ -47,33 +78,6 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
         val dbData = dbDataSource.getComponentDetail(name).first()
         if (dbData != null) {
             emit(dbData)
-            return@flow
-        }
-        emit(null)
-    }
-        .flowOn(ioDispatcher)
-
-    override fun getLatestComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        val networkData = networkDataSource.getComponentDetail(name).first()
-        if (networkData != null) {
-            emit(networkData)
-            saveComponentDetail(networkData, userGenerated = false)
-            return@flow
-        }
-        emit(null)
-    }
-
-    override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        val cachedData = getComponentDetailCache(name).first()
-        // If cache is not null, return it directly
-        // Otherwise, fetch from network
-        if (cachedData != null) {
-            emit(cachedData)
-            return@flow
-        }
-        val latestData = getLatestComponentDetail(name).first()
-        if (latestData != null) {
-            emit(latestData)
             return@flow
         }
         emit(null)
