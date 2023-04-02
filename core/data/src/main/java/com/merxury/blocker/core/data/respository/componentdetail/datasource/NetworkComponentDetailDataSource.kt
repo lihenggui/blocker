@@ -23,8 +23,10 @@ import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.model.asExternalModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.serialization.SerializationException
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -33,18 +35,21 @@ class NetworkComponentDetailDataSource @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
     override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        try {
-            val path = name.replace(".", "/")
-                .plus(".json")
-            val componentDetail = blockerNetworkDataSource
-                .getComponentData(path)
-                ?.asExternalModel()
-            emit(componentDetail)
-        } catch (e: Exception) {
-            Timber.d("Can't find detail for $name in the remote source.")
+        val path = name.replace(".", "/")
+            .plus(".json")
+        val componentDetail = blockerNetworkDataSource
+            .getComponentData(path)
+            ?.asExternalModel()
+        emit(componentDetail)
+    }
+        .catch { exception ->
+            if (exception is SerializationException) {
+                Timber.e(exception, "Illegal json format for $name in the remote source.")
+            } else {
+                Timber.e(exception, "Can't get detail json for $name in the remote source.")
+            }
             emit(null)
         }
-    }
         .flowOn(ioDispatcher)
 
     override suspend fun saveComponentData(component: ComponentDetail): Boolean {

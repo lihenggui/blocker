@@ -24,7 +24,7 @@ android {
     namespace = "com.merxury.blocker.feature.search"
 }
 dependencies {
-    implementation(project(":core:database"))
-    implementation(project(":feature:applist"))
+    implementation(projects.core.database)
+    implementation(projects.feature.applist)
     implementation(libs.kotlinx.datetime)
 }
