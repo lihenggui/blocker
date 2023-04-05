@@ -37,14 +37,14 @@ Intent Firewall was introduced in Android 4.4.2 (API 19) and is still effective 
 Each intent sent by an application is filtered by the Intent Firewall, with rules stored in XML files. The Intent Firewall updates rules immediately if changes occur in the configuration file.
 
 #### Limitations of Intent Firewall
-Only system applications can read and write the directory where the configuration file is stored, and third-party applications do not have permissions to access it. Additionally, the firewall filters rules based on the type of intent and does not consider the sender identity, so intents cannot be filtered by sender identity.
+Only system applications can read and write the directory where the configuration file is stored, and third-party applications do not have permissions to access it.
 
 #### Differences between Intent Firewall and Package Manager
 Intent Firewall, indeed it is a firewall, it has no impact on component status. The application detects the component is on, but it just cannot start the component.
 
 For the components disabled by PackageManager, if an application starts it, an exception will be thrown. Developers can catch this exception to know whether the component is disabled or not, so they could re-enable this component. That's the reason why the components will be enabled unexpectedly. If you are using an Intent Firewall controller, there will be no problems.
 #### References
-[Intent Firewall](www.cis.syr.edu/~wedu/android/IntentFirewall/)
+[Intent Firewall](https://carteryagemann.com/pages/android-intent-firewall.html)
 
 ### Shizuku Mode (No Root Permission Required)
 Shizuku is an application developed by Rikka, [RikkaApps/Shizuku](https://github.com/RikkaApps/Shizuku)
