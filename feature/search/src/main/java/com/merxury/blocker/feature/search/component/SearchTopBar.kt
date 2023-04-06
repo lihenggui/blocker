@@ -89,7 +89,7 @@ fun SearchBar(
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
 ) {
-    val colors = TextFieldDefaults.textFieldColors(
+    val colors = TextFieldDefaults.colors(
         focusedIndicatorColor = Color.Transparent,
         unfocusedIndicatorColor = Color.Transparent,
     )
