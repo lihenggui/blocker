@@ -33,6 +33,7 @@ private const val PROJECT_HOME_URL = "https://github.com/lihenggui/blocker"
 private const val REPORT_BUG_URL = "https://github.com/lihenggui/blocker/issues/new/choose"
 private const val GROUP_URL = "https://t.me/blockerandroid"
 private const val RULE_REPO_URL = "https://github.com/lihenggui/blocker-general-rules"
+private const val DESIGN_LINK_URL = "https://github.com/COPtimer"
 
 @HiltViewModel
 class SupportFeedbackViewModel @Inject constructor() : ViewModel() {
@@ -44,6 +45,8 @@ class SupportFeedbackViewModel @Inject constructor() : ViewModel() {
     fun openRulesRepository(context: Context) = openUrl(context, RULE_REPO_URL)
 
     fun openReportBugPage(context: Context) = openUrl(context, REPORT_BUG_URL)
+
+    fun openDesignLink(context: Context) = openUrl(context, DESIGN_LINK_URL)
 
     fun exportErrorLog() {
         // TODO
