@@ -18,6 +18,7 @@
 plugins {
     id("blocker.android.library")
     id("kotlin-parcelize")
+    id("kotlinx-serialization")
 }
 
 android {
@@ -27,5 +28,6 @@ android {
 dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.timber)
 }
