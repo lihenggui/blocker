@@ -16,6 +16,9 @@
 
 package com.merxury.blocker.core.model.data
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class ComponentDetail(
     val name: String,
     val sdkName: String? = null,
