@@ -93,6 +93,7 @@ fun ComponentList(
             ComponentListItem(
                 simpleName = item.simpleName,
                 name = item.name,
+                description = item.description,
                 packageName = item.packageName,
                 enabled = item.enabled(),
                 type = item.type,
@@ -175,7 +176,7 @@ fun ComponentListItem(
             }
             BlockerBodyMediumText(text = name)
             description?.let {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 BlockerBodyMediumText(text = it)
             }
         }

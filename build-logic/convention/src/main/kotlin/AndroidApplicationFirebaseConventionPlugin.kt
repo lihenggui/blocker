@@ -35,17 +35,23 @@ class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
                 "marketImplementation"(libs.findLibrary("firebase.crashlytics").get())
             }
             extensions.configure<ApplicationAndroidComponentsExtension> {
-                beforeVariants {
-                    if (it.flavorName?.contains(BlockerFlavor.market.name) == true) {
-                        pluginManager.apply("com.google.gms.google-services")
-                        pluginManager.apply("com.google.firebase.crashlytics")
-                        finalizeDsl { extension ->
-                            extension.buildTypes.forEach { buildType ->
-                                buildType.configure<CrashlyticsExtension> {
-                                    mappingFileUploadEnabled = !buildType.isDebuggable
-                                }
-                            }
+                pluginManager.apply("com.google.gms.google-services")
+                pluginManager.apply("com.google.firebase.crashlytics")
+                finalizeDsl { extension ->
+                    extension.buildTypes.forEach { buildType ->
+                        buildType.configure<CrashlyticsExtension> {
+                            mappingFileUploadEnabled = !buildType.isDebuggable
                         }
+                    }
+                }
+            }
+            tasks.configureEach {
+                val isFossTask = name.contains(BlockerFlavor.foss.name, ignoreCase = true)
+                if (isFossTask) {
+                    val disableKeywords = listOf("google", "crashlytics", "upload", "gms")
+                    if (disableKeywords.any { name.contains(it, ignoreCase = true) }) {
+                        println("Disabling task: $name")
+                        enabled = false
                     }
                 }
             }

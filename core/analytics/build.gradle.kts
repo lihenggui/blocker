@@ -29,6 +29,6 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.core.ktx)
 
-    implementation(platform(libs.firebase.bom))
-    implementation(libs.firebase.analytics)
+    marketImplementation(platform(libs.firebase.bom))
+    marketImplementation(libs.firebase.analytics)
 }
