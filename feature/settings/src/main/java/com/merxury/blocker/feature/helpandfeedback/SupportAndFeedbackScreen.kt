@@ -75,6 +75,7 @@ fun SupportAndFeedbackRoute(
                 onRulesRepositoryClick = { viewModel.openRulesRepository(context) },
                 onReportBugClick = { viewModel.openReportBugPage(context) },
                 onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
+                onDesignLinkClick = { viewModel.openDesignLink(context) },
                 onExportLogClick = { viewModel.exportErrorLog() },
             )
         }
@@ -83,11 +84,12 @@ fun SupportAndFeedbackRoute(
 
 @Composable
 fun SupportAndFeedbackScreen(
-    onProjectHomeClick: () -> Unit,
-    onRulesRepositoryClick: () -> Unit,
-    onReportBugClick: () -> Unit,
-    onTelegramGroupLinkClick: () -> Unit,
-    onExportLogClick: () -> Unit,
+    onProjectHomeClick: () -> Unit = {},
+    onRulesRepositoryClick: () -> Unit = {},
+    onReportBugClick: () -> Unit = {},
+    onTelegramGroupLinkClick: () -> Unit = {},
+    onDesignLinkClick: () -> Unit = {},
+    onExportLogClick: () -> Unit = {},
 ) {
     Column {
         BlockerSettingItem(
@@ -110,6 +112,11 @@ fun SupportAndFeedbackScreen(
             title = stringResource(id = string.telegram_group),
             onItemClick = { onTelegramGroupLinkClick() },
         )
+        BlockerSettingItem(
+            icon = ImageVectorIcon(BlockerIcons.DesignService),
+            title = stringResource(id = string.designers_homepage),
+            onItemClick = { onDesignLinkClick() },
+        )
 //        BlockerSettingItem(
 //            icon = ImageVectorIcon(BlockerIcons.Article),
 //            title = stringResource(id = string.export_error_log),
@@ -123,13 +130,7 @@ fun SupportAndFeedbackScreen(
 fun SupportAndFeedbackScreenPreview() {
     BlockerTheme {
         Surface {
-            SupportAndFeedbackScreen(
-                onProjectHomeClick = {},
-                onRulesRepositoryClick = {},
-                onReportBugClick = {},
-                onTelegramGroupLinkClick = {},
-                onExportLogClick = {},
-            )
+            SupportAndFeedbackScreen()
         }
     }
 }
