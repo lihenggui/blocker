@@ -33,3 +33,9 @@ dependencies {
 
     testImplementation(projects.core.testing)
 }
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
