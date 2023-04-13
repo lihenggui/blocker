@@ -37,7 +37,7 @@ android {
         val gitCommitCount = providers.exec {
             commandLine("git", "rev-list", "--all", "--count")
         }.standardOutput.asText.get().trim()
-        versionCode = gitCommitCount?.toIntOrNull() ?: 1
+        versionCode = gitCommitCount.toIntOrNull() ?: 1
         versionName = "2.0.$gitCommitCount" // X.Y.Z; X = Major, Y = minor, Z = version code
 
         // Custom test runner to set up Hilt dependency graph
@@ -75,7 +75,7 @@ android {
             applicationIdSuffix = BlockerBuildType.BENCHMARK.applicationIdSuffix
         }
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
