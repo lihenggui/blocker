@@ -36,26 +36,11 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailRepository {
 
-    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> = flow<ComponentDetail?> {
-        val userGeneratedData = userGeneratedDataSource.getComponentDetail(name)
-            .first()
-        if (userGeneratedData != null) {
-            emit(userGeneratedData)
-            return@flow
-        }
-        emit(null)
-    }
-        .flowOn(ioDispatcher)
+    override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
+        userGeneratedDataSource.getComponentDetail(name)
 
-    override fun getDbComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        val dbData = dbDataSource.getComponentDetail(name).first()
-        if (dbData != null) {
-            emit(dbData)
-            return@flow
-        }
-        emit(null)
-    }
-        .flowOn(ioDispatcher)
+    override fun getDbComponentDetail(name: String): Flow<ComponentDetail?> =
+        dbDataSource.getComponentDetail(name)
 
     override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         val networkData = networkDataSource.getComponentDetail(name).first()
