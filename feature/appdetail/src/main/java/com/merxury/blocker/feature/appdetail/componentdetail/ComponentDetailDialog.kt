@@ -30,7 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,20 +40,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
+import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.feature.appdetail.R.string
 
 @Composable
 fun ComponentDetailDialog(
     name: String,
-    detail: UserEditableComponentDetail,
     modifier: Modifier = Modifier,
+    belongToSdk: Boolean = false,
+    sdkName: String? = null,
+    description: String? = null,
+    disableEffect: String? = null,
+    contributor: String? = null,
+    addedVersion: String? = null,
+    recommendToBlock: Boolean = false,
     onDismiss: () -> Unit = {},
-    onSaveDetailClick: (UserEditableComponentDetail) -> Unit = {},
+    onSaveDetailClick: (ComponentDetail) -> Unit = {},
 ) {
     val configuration = LocalConfiguration.current
-    var valueChanged by rememberSaveable { mutableStateOf(false) }
-    var editableDetail by rememberSaveable { mutableStateOf(detail) }
+    var valueChanged by remember { mutableStateOf(false) }
+    var _belongToSdk by remember { mutableStateOf(belongToSdk) }
+    var _sdkName by remember { mutableStateOf(sdkName ?: "") }
+    var _description by remember { mutableStateOf(description ?: "") }
+    var _disableEffect by remember { mutableStateOf(disableEffect ?: "") }
+    var _contributor by remember { mutableStateOf(contributor ?: "") }
+    var _addedVersion by remember { mutableStateOf(addedVersion ?: "") }
+    var _recommendToBlock by remember { mutableStateOf(recommendToBlock) }
     /**
      * usePlatformDefaultWidth = false is use as a temporary fix to allow
      * height recalculation during recomposition. This, however, causes
@@ -74,32 +87,32 @@ fun ComponentDetailDialog(
         text = {
             Column {
                 OutlinedTextField(
-                    value = editableDetail.description ?: "",
+                    value = _description,
                     label = {
                         Text(text = stringResource(id = string.description))
                     },
                     onValueChange = { newValue ->
-                        editableDetail = editableDetail.copy(description = newValue)
+                        _description = newValue
                         valueChanged = true
                     },
                 )
                 Spacer(modifier = modifier.height(8.dp))
                 OutlinedTextField(
-                    value = editableDetail.disableEffect ?: "",
+                    value = _disableEffect,
                     label = {
                         Text(text = stringResource(id = string.blocking_effect))
                     },
                     onValueChange = {
-                        editableDetail = editableDetail.copy(disableEffect = it)
+                        _disableEffect = it
                         valueChanged = true
                     },
                 )
                 Spacer(modifier = modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
-                        checked = editableDetail.recommendToBlock,
+                        checked = _recommendToBlock,
                         onCheckedChange = { checked ->
-                            editableDetail = editableDetail.copy(recommendToBlock = checked)
+                            _recommendToBlock = checked
                             valueChanged = true
                         },
                     )
@@ -108,9 +121,9 @@ fun ComponentDetailDialog(
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Checkbox(
-                        checked = editableDetail.belongToSdk,
+                        checked = _belongToSdk,
                         onCheckedChange = { checked ->
-                            editableDetail = editableDetail.copy(belongToSdk = checked)
+                            _belongToSdk = checked
                             valueChanged = true
                         },
                     )
@@ -124,7 +137,17 @@ fun ComponentDetailDialog(
             BlockerTextButton(
                 onClick = {
                     if (valueChanged) {
-                        onSaveDetailClick(editableDetail)
+                        onSaveDetailClick(
+                            ComponentDetail(
+                                name = name,
+                                sdkName = _sdkName,
+                                description = _description,
+                                disableEffect = _disableEffect,
+                                contributor = _contributor,
+                                addedVersion = _addedVersion,
+                                recommendToBlock = _recommendToBlock,
+                            ),
+                        )
                     }
                     onDismiss()
                 },
@@ -149,11 +172,8 @@ fun ComponentDetailDialog(
 fun EditComponentDetailDialogPreview() {
     ComponentDetailDialog(
         name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
-        detail = UserEditableComponentDetail(
-            name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
-            description = "This is a test description",
-            recommendToBlock = true,
-            sdkName = "com.merxury.blocker.feature.appdetail.componentdetail",
-        ),
+        description = "This is a test description",
+        recommendToBlock = true,
+        sdkName = "com.merxury.blocker.feature.appdetail.componentdetail",
     )
 }
