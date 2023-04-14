@@ -34,8 +34,10 @@ android {
     namespace = "com.merxury.blocker"
     defaultConfig {
         applicationId = "com.merxury.blocker"
-        val gitCommitCount = "git rev-list --all --count".runCommand()?.trim()
-        versionCode = gitCommitCount?.toIntOrNull() ?: 1
+        val gitCommitCount = providers.exec {
+            commandLine("git", "rev-list", "--all", "--count")
+        }.standardOutput.asText.get().trim()
+        versionCode = gitCommitCount.toIntOrNull() ?: 1
         versionName = "2.0.$gitCommitCount" // X.Y.Z; X = Major, Y = minor, Z = version code
 
         // Custom test runner to set up Hilt dependency graph
@@ -73,7 +75,7 @@ android {
             applicationIdSuffix = BlockerBuildType.BENCHMARK.applicationIdSuffix
         }
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes.add("/META-INF/{AL2.0,LGPL2.1}")
         }
@@ -144,20 +146,3 @@ configurations.configureEach {
         force("org.objenesis:objenesis:2.6")
     }
 }
-
-fun String.runCommand(
-    workingDir: File = File("."),
-    timeoutAmount: Long = 60,
-    timeoutUnit: TimeUnit = TimeUnit.SECONDS,
-): String? = runCatching {
-    ProcessBuilder("\\s".toRegex().split(this))
-        .directory(workingDir)
-        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
-        .start().also { it.waitFor(timeoutAmount, timeoutUnit) }
-        .inputStream
-        .bufferedReader()
-        .readText()
-}
-    .onFailure { it.printStackTrace() }
-    .getOrNull()
