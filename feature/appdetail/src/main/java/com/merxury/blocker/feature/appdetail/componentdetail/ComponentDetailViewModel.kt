@@ -27,6 +27,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Error
+import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Loading
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.ComponentDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -34,6 +35,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -48,7 +50,7 @@ class ComponentDetailViewModel @Inject constructor(
 ) : ViewModel() {
     private val componentDetailArg = ComponentDetailArgs(savedStateHandle, stringDecoder)
 
-    private val _uiState = MutableStateFlow<ComponentDetailUiState>(ComponentDetailUiState.Loading)
+    private val _uiState = MutableStateFlow<ComponentDetailUiState>(Loading)
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -107,17 +109,27 @@ class ComponentDetailViewModel @Inject constructor(
         )
     }
 
+    fun onInfoChanged(detail: ComponentDetail) {
+        _uiState.update {
+            when (it) {
+                is Loading -> Success(isFetchingData = false, detail = detail)
+                is Success -> it.copy(isFetchingData = false, detail = detail)
+                else -> Success(isFetchingData = false, detail = detail)
+            }
+        }
+    }
+
     fun save(detail: ComponentDetail) = viewModelScope.launch(ioDispatcher) {
         componentDetailRepository.saveComponentDetail(detail, userGenerated = true)
     }
 }
 
-sealed class ComponentDetailUiState {
-    object Loading : ComponentDetailUiState()
+sealed interface ComponentDetailUiState {
+    object Loading : ComponentDetailUiState
     data class Success(
         val isFetchingData: Boolean,
         val detail: ComponentDetail,
-    ) : ComponentDetailUiState()
+    ) : ComponentDetailUiState
 
-    data class Error(val message: UiMessage) : ComponentDetailUiState()
+    data class Error(val message: UiMessage) : ComponentDetailUiState
 }
