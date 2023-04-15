@@ -25,7 +25,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
-import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailRoute
+import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailDialogRoute
 
 @VisibleForTesting
 internal const val componentNameArg = "componentName"
@@ -55,7 +55,7 @@ fun NavGraphBuilder.componentDetailScreen(
             navArgument(componentNameArg) { type = NavType.StringType },
         ),
     ) {
-        ComponentDetailRoute(
+        ComponentDetailDialogRoute(
             dismissHandler = dismissHandler,
         )
     }
