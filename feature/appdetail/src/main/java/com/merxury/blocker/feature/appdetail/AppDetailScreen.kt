@@ -82,6 +82,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.bottomSheet.BottomSheetTopBar
 import com.merxury.blocker.core.ui.component.ComponentList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -106,6 +107,7 @@ fun AppDetailRoute(
     navigateToComponentDetail: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
+    isFullScreen: Boolean = true,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -143,6 +145,7 @@ fun AppDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        isFullScreen = isFullScreen,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -205,6 +208,7 @@ fun AppDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    isFullScreen: Boolean = false,
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -236,6 +240,7 @@ fun AppDetailScreen(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
+                isFullScreen = isFullScreen,
             )
         }
 
@@ -269,6 +274,7 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    isFullScreen: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -308,31 +314,44 @@ fun AppDetailContent(
     }
     Scaffold(
         topBar = {
-            BlockerCollapsingTopAppBar(
-                progress = toolbarState.progress,
-                onNavigationClick = onBackClick,
-                title = app.label,
-                actions = {
-                    AppDetailAppBarActions(
-                        appBarUiState = topAppBarUiState,
-                        onSearchTextChanged = onSearchTextChanged,
-                        onSearchModeChange = onSearchModeChanged,
-                        blockAllComponents = blockAllComponents,
-                        enableAllComponents = enableAllComponents,
-                    )
-                },
-                subtitle = app.packageName,
-                summary = stringResource(
-                    id = string.data_with_explanation,
-                    app.versionName,
-                    app.versionCode,
-                ),
-                iconSource = app.packageInfo,
-                onIconClick = { onLaunchAppClick(app.packageName) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
-            )
+            if (isFullScreen) {
+                BlockerCollapsingTopAppBar(
+                    progress = toolbarState.progress,
+                    onNavigationClick = onBackClick,
+                    title = app.label,
+                    actions = {
+                        AppDetailAppBarActions(
+                            appBarUiState = topAppBarUiState,
+                            onSearchTextChanged = onSearchTextChanged,
+                            onSearchModeChange = onSearchModeChanged,
+                            blockAllComponents = blockAllComponents,
+                            enableAllComponents = enableAllComponents,
+                        )
+                    },
+                    subtitle = app.packageName,
+                    summary = stringResource(
+                        id = string.data_with_explanation,
+                        app.versionName,
+                        app.versionCode,
+                    ),
+                    iconSource = app.packageInfo,
+                    onIconClick = { onLaunchAppClick(app.packageName) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
+                )
+            } else {
+                BottomSheetTopBar(
+                    title = app.label,
+                    subtitle = app.packageName,
+                    summary = stringResource(
+                        id = string.data_with_explanation,
+                        app.versionName,
+                        app.versionCode,
+                    ),
+                    iconSource = app.packageInfo,
+                )
+            }
         },
         modifier = modifier.nestedScroll(nestedScrollConnection),
     ) { innerPadding ->

@@ -80,7 +80,8 @@ fun RuleDetailBottomSheet(
             Column(modifier = modifier.defaultMinSize(1.dp)) {
                 BottomSheetTopBar(
                     title = ruleInfoUiState.ruleInfo.name,
-                    subTitle = ruleInfoUiState.ruleInfo.company.toString(),
+                    subtitle = ruleInfoUiState.ruleInfo.company.toString(),
+                    summary = "",
                     iconSource = ruleInfoUiState.ruleInfo.iconUrl,
                 )
                 RuleDetailTabContent(
