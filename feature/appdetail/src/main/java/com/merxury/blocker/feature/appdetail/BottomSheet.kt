@@ -11,7 +11,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.feature.appdetail.model.BottomSheetViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,7 +24,9 @@ fun BottomSheetRoute(
     navigateToComponentDetail: (String) -> Unit,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     snackbarHostState: SnackbarHostState,
+    viewModel: BottomSheetViewModel = hiltViewModel(),
 ) {
+    val appDetailNavInfo by viewModel.appDetailNavInfo.collectAsStateWithLifecycle()
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded,
@@ -41,7 +46,10 @@ fun BottomSheetRoute(
     }
     if (bottomSheetState.currentValue == Expanded) {
         dismissHandler()
-//        TODO()
-//        navigateToAppDetail()
+        navigateToAppDetail(
+            appDetailNavInfo.packageName,
+            appDetailNavInfo.tab,
+            appDetailNavInfo.keywords,
+        )
     }
 }
