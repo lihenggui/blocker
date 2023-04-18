@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail.componentdetail
 
-import android.os.Parcelable
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,6 +27,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Error
+import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Loading
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.ComponentDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,8 +35,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.parcelize.Parcelize
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -50,7 +50,7 @@ class ComponentDetailViewModel @Inject constructor(
 ) : ViewModel() {
     private val componentDetailArg = ComponentDetailArgs(savedStateHandle, stringDecoder)
 
-    private val _uiState = MutableStateFlow<ComponentDetailUiState>(ComponentDetailUiState.Loading)
+    private val _uiState = MutableStateFlow<ComponentDetailUiState>(Loading)
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -64,7 +64,7 @@ class ComponentDetailViewModel @Inject constructor(
         if (userGeneratedDetail != null) {
             _uiState.value = Success(
                 isFetchingData = true,
-                detail = userGeneratedDetail.toUserEditableComponentDetail(),
+                detail = userGeneratedDetail,
             )
             // Do NOT update the dialog if user saved the data previously
             return@launch
@@ -75,7 +75,7 @@ class ComponentDetailViewModel @Inject constructor(
             if (dbDetail != null) {
                 _uiState.value = Success(
                     isFetchingData = true,
-                    detail = dbDetail.toUserEditableComponentDetail(),
+                    detail = dbDetail,
                 )
             }
         }
@@ -88,9 +88,7 @@ class ComponentDetailViewModel @Inject constructor(
         }
         _uiState.value = Success(
             isFetchingData = true,
-            detail = UserEditableComponentDetail(
-                name = component.name,
-            ),
+            detail = ComponentDetail(name = component.name),
         )
         // Fetch the data from network
         val networkDetail = componentDetailRepository
@@ -99,7 +97,7 @@ class ComponentDetailViewModel @Inject constructor(
         if (networkDetail != null) {
             _uiState.value = Success(
                 isFetchingData = false,
-                detail = networkDetail.toUserEditableComponentDetail(),
+                detail = networkDetail,
             )
             return@launch
         }
@@ -107,55 +105,31 @@ class ComponentDetailViewModel @Inject constructor(
         // Dismiss the loading progress bar
         _uiState.value = Success(
             isFetchingData = false,
-            detail = UserEditableComponentDetail(
-                name = component.name,
-            ),
+            detail = ComponentDetail(name = component.name),
         )
     }
 
-    fun save(editableDetail: UserEditableComponentDetail) = viewModelScope.launch(ioDispatcher) {
-        val detail = ComponentDetail(
-            name = editableDetail.name,
-            sdkName = if (editableDetail.belongToSdk) editableDetail.sdkName else null,
-            description = editableDetail.description,
-            disableEffect = editableDetail.disableEffect,
-            contributor = editableDetail.contributor,
-            addedVersion = editableDetail.addedVersion,
-            recommendToBlock = editableDetail.recommendToBlock,
-        )
+    fun onInfoChanged(detail: ComponentDetail) {
+        _uiState.update {
+            when (it) {
+                is Loading -> Success(isFetchingData = false, detail = detail)
+                is Success -> it.copy(isFetchingData = false, detail = detail)
+                else -> Success(isFetchingData = false, detail = detail)
+            }
+        }
+    }
+
+    fun save(detail: ComponentDetail) = viewModelScope.launch(ioDispatcher) {
         componentDetailRepository.saveComponentDetail(detail, userGenerated = true)
     }
 }
 
-@Parcelize
-data class UserEditableComponentDetail(
-    val name: String,
-    val belongToSdk: Boolean = false,
-    val sdkName: String? = null,
-    val description: String? = null,
-    val disableEffect: String? = null,
-    val contributor: String? = null,
-    val addedVersion: String? = null,
-    val recommendToBlock: Boolean = false,
-) : Parcelable
-
-private fun ComponentDetail.toUserEditableComponentDetail() = UserEditableComponentDetail(
-    name = name,
-    belongToSdk = sdkName != null,
-    sdkName = sdkName,
-    description = description,
-    disableEffect = disableEffect,
-    contributor = contributor,
-    addedVersion = addedVersion,
-    recommendToBlock = recommendToBlock,
-)
-
-sealed class ComponentDetailUiState {
-    object Loading : ComponentDetailUiState()
+sealed interface ComponentDetailUiState {
+    object Loading : ComponentDetailUiState
     data class Success(
         val isFetchingData: Boolean,
-        val detail: UserEditableComponentDetail,
-    ) : ComponentDetailUiState()
+        val detail: ComponentDetail,
+    ) : ComponentDetailUiState
 
-    data class Error(val message: UiMessage) : ComponentDetailUiState()
+    data class Error(val message: UiMessage) : ComponentDetailUiState
 }

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.AlertDialog
@@ -29,9 +30,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -39,83 +37,77 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
+import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Error
+import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Loading
+import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Success
+
+@Composable
+fun ComponentDetailDialogRoute(
+    dismissHandler: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: ComponentDetailViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    ComponentDetailDialog(
+        modifier = modifier,
+        uiState = uiState,
+        onDismiss = dismissHandler,
+        onInfoChange = viewModel::onInfoChanged,
+        onSaveDetailClick = viewModel::save,
+    )
+}
 
 @Composable
 fun ComponentDetailDialog(
-    name: String,
-    detail: UserEditableComponentDetail,
     modifier: Modifier = Modifier,
+    uiState: ComponentDetailUiState,
     onDismiss: () -> Unit = {},
-    onSaveDetailClick: (UserEditableComponentDetail) -> Unit = {},
+    onInfoChange: (ComponentDetail) -> Unit = {},
+    onSaveDetailClick: (ComponentDetail) -> Unit = {},
 ) {
     val configuration = LocalConfiguration.current
-    var valueChanged by rememberSaveable { mutableStateOf(false) }
-    var editableDetail by rememberSaveable { mutableStateOf(detail) }
-    /**
-     * usePlatformDefaultWidth = false is use as a temporary fix to allow
-     * height recalculation during recomposition. This, however, causes
-     * Dialog's to occupy full width in Compact mode. Therefore max width
-     * is configured below. This should be removed when there's fix to
-     * https://issuetracker.google.com/issues/221643630
-     */
     AlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
         modifier = Modifier.widthIn(max = configuration.screenWidthDp.dp - 80.dp),
         onDismissRequest = { onDismiss() },
         title = {
             Text(
-                text = name.split(".").last(),
+                text = if (uiState is Success) {
+                    uiState.detail.name.split(".").last()
+                } else {
+                    stringResource(id = string.unknown)
+                },
                 style = MaterialTheme.typography.headlineSmall,
             )
         },
         text = {
-            Column {
-                OutlinedTextField(
-                    value = editableDetail.description ?: "",
-                    label = {
-                        Text(text = stringResource(id = string.description))
-                    },
-                    onValueChange = { newValue ->
-                        editableDetail = editableDetail.copy(description = newValue)
-                        valueChanged = true
-                    },
-                )
-                Spacer(modifier = modifier.height(8.dp))
-                OutlinedTextField(
-                    value = editableDetail.disableEffect ?: "",
-                    label = {
-                        Text(text = stringResource(id = string.blocking_effect))
-                    },
-                    onValueChange = {
-                        editableDetail = editableDetail.copy(disableEffect = it)
-                        valueChanged = true
-                    },
-                )
-                Spacer(modifier = modifier.height(8.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = editableDetail.recommendToBlock,
-                        onCheckedChange = { checked ->
-                            editableDetail = editableDetail.copy(recommendToBlock = checked)
-                            valueChanged = true
-                        },
+            when (uiState) {
+                Loading -> {
+                    Text(
+                        text = stringResource(string.loading),
+                        modifier = Modifier.padding(vertical = 16.dp),
                     )
-                    Spacer(modifier = modifier.width(8.dp))
-                    Text(text = stringResource(id = string.recommended_blocking))
                 }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = editableDetail.belongToSdk,
-                        onCheckedChange = { checked ->
-                            editableDetail = editableDetail.copy(belongToSdk = checked)
-                            valueChanged = true
-                        },
+
+                is Success -> {
+                    ComponentDetailPanel(
+                        modifier = modifier,
+                        componentDetailInfo = uiState.detail,
+                        onInfoChange = onInfoChange,
                     )
-                    Spacer(modifier = modifier.width(8.dp))
-                    Text(text = stringResource(id = string.belonging_sdk))
+                }
+
+                is Error -> {
+                    Text(
+                        text = uiState.message.toString(),
+                        modifier = Modifier.padding(vertical = 16.dp),
+                    )
                 }
             }
             TrackScreenViewEvent(screenName = "ComponentDetail")
@@ -123,8 +115,8 @@ fun ComponentDetailDialog(
         confirmButton = {
             BlockerTextButton(
                 onClick = {
-                    if (valueChanged) {
-                        onSaveDetailClick(editableDetail)
+                    if (uiState is Success) {
+                        onSaveDetailClick(uiState.detail)
                     }
                     onDismiss()
                 },
@@ -144,16 +136,83 @@ fun ComponentDetailDialog(
     )
 }
 
+@Composable
+fun ComponentDetailPanel(
+    modifier: Modifier = Modifier,
+    componentDetailInfo: ComponentDetail,
+    onInfoChange: (ComponentDetail) -> Unit,
+) {
+    Column {
+        OutlinedTextField(
+            value = componentDetailInfo.description ?: "",
+            label = {
+                Text(text = stringResource(id = string.description))
+            },
+            onValueChange = {
+                onInfoChange.invoke(componentDetailInfo.copy(description = it))
+            },
+        )
+        Spacer(modifier = modifier.height(8.dp))
+        OutlinedTextField(
+            value = componentDetailInfo.disableEffect ?: "",
+            label = {
+                Text(text = stringResource(id = string.blocking_effect))
+            },
+            onValueChange = {
+                onInfoChange.invoke(componentDetailInfo.copy(disableEffect = it))
+            },
+        )
+        Spacer(modifier = modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = componentDetailInfo.recommendToBlock,
+                onCheckedChange = {
+                    onInfoChange.invoke(componentDetailInfo.copy(recommendToBlock = it))
+                },
+            )
+            Spacer(modifier = modifier.width(8.dp))
+            Text(text = stringResource(id = string.recommended_blocking))
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = componentDetailInfo.sdkName.isNullOrEmpty().not(),
+                onCheckedChange = {
+                    onInfoChange.invoke(
+                        componentDetailInfo.copy(
+                            sdkName = if (it) {
+                                string.unknown.toString()
+                            } else {
+                                null
+                            },
+                        ),
+                    )
+                },
+            )
+            Spacer(modifier = modifier.width(8.dp))
+            Text(text = stringResource(id = string.belonging_sdk))
+        }
+    }
+}
+
 @Preview
 @Composable
 fun EditComponentDetailDialogPreview() {
-    ComponentDetailDialog(
+    val detail = ComponentDetail(
         name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
-        detail = UserEditableComponentDetail(
-            name = "com.merxury.blocker.feature.appdetail.componentdetail.EditComponentDetailDialog",
-            description = "This is a test description",
-            recommendToBlock = true,
-            sdkName = "com.merxury.blocker.feature.appdetail.componentdetail",
-        ),
+        description = "This is a test description",
+        recommendToBlock = true,
+        sdkName = "com.merxury.blocker.feature.appdetail.componentdetail",
     )
+    val uiState = Success(
+        isFetchingData = false,
+        detail = detail,
+    )
+    ComponentDetailDialog(uiState = uiState)
+}
+
+@Preview
+@Composable
+fun LoadingComponentDetailDialogPreview() {
+    val uiState = Loading
+    ComponentDetailDialog(uiState = uiState)
 }
