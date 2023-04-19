@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.merxury.blocker.core.designsystem.bottomsheet.Strings.Companion
 
 @Immutable
-@kotlin.jvm.JvmInline
+@JvmInline
 value class Strings private constructor(@Suppress("unused") private val value: Int) {
     companion object {
         val NavigationMenu = Strings(0)
