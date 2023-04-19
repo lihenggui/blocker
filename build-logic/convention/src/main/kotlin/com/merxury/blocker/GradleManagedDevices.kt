@@ -19,7 +19,6 @@ package com.merxury.blocker
 
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.ManagedVirtualDevice
-import java.util.Locale
 import org.gradle.kotlin.dsl.invoke
 
 /**
@@ -55,7 +54,7 @@ private data class DeviceConfig(
     val systemImageSource: String,
 ) {
     val taskName = buildString {
-        append(device.toLowerCase(Locale.ROOT).replace(" ", ""))
+        append(device.lowercase().replace(" ", ""))
         append("api")
         append(apiLevel.toString())
         append(systemImageSource.replace("-", ""))
