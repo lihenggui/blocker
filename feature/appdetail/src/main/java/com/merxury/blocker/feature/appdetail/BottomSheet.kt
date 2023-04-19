@@ -25,6 +25,16 @@ fun BottomSheetRoute(
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded,
     )
+//    val systemUiController = rememberSystemUiController()
+//    if(darkTheme){
+//        systemUiController.setSystemBarsColor(
+//            color = Color.Transparent
+//        )
+//    }else{
+//        systemUiController.setSystemBarsColor(
+//            color = Color.White
+//        )
+//    }
     ModalBottomSheet(
         onDismissRequest = { dismissHandler() },
         sheetState = bottomSheetState,

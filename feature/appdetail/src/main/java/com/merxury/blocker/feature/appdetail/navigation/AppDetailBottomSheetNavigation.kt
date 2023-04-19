@@ -44,7 +44,6 @@ fun NavGraphBuilder.bottomSheetScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToComponentDetail: (String) -> Unit,
-    navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
 ) {
     dialog(
         route = "app_detail_bottom_sheet_route/{$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}",
@@ -58,7 +57,6 @@ fun NavGraphBuilder.bottomSheetScreen(
             dismissHandler = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,
-            navigateToAppDetail = navigateToAppDetail,
         )
     }
 }

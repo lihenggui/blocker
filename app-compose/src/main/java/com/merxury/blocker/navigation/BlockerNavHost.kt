@@ -74,7 +74,6 @@ fun BlockerNavHost(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navController::navigateToComponentDetail,
-            navigateToAppDetail = navController::navigateToAppDetail,
         )
         generalRuleScreen(
             navigateToRuleDetail = navController::navigateToRuleDetail,
