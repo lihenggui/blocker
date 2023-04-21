@@ -15,15 +15,22 @@
  * limitations under the License.
  */
 
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     `kotlin-dsl`
 }
 
 group = "com.merxury.blocker.buildlogic"
 
-extensions.configure<JavaPluginExtension> {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_17.toString()
     }
 }
 dependencies {
