@@ -53,4 +53,6 @@ interface UserDataRepository {
     suspend fun setComponentShowPriority(priority: ComponentShowPriority)
 
     suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean)
+
+    suspend fun setUseBottomSheetStyleInDetailPreference(useBottomSheetStyleInDetail: Boolean)
 }

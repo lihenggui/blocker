@@ -40,4 +40,5 @@ message UserPreferences {
     ComponentShowPriorityProto component_show_priority = 11;
     bool use_dynamic_color = 12;
     bool show_running_apps_on_top = 13;
+    bool use_bottom_sheet_style_in_detail = 14;
 }

@@ -28,6 +28,7 @@ import com.merxury.blocker.core.data.respository.logRuleServerProviderChanged
 import com.merxury.blocker.core.data.respository.logShowRunningAppsOnTopPreferenceChanged
 import com.merxury.blocker.core.data.respository.logShowServiceInfoPreferenceChanged
 import com.merxury.blocker.core.data.respository.logShowSystemAppPreferenceChanged
+import com.merxury.blocker.core.data.respository.logUseBottomSheetStyleInDetailPreferenceChanged
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -101,5 +102,12 @@ class LocalUserDataRepository @Inject constructor(
     override suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean) {
         blockerPreferenceDataSource.setShowRunningAppsOnTop(shouldShowRunningAppsOnTop)
         analyticsHelper.logShowRunningAppsOnTopPreferenceChanged(shouldShowRunningAppsOnTop)
+    }
+
+    override suspend fun setUseBottomSheetStyleInDetailPreference(useBottomSheetStyleInDetail: Boolean) {
+        blockerPreferenceDataSource.setUseBottomSheetStyleInDetailPreference(
+            useBottomSheetStyleInDetail,
+        )
+        analyticsHelper.logUseBottomSheetStyleInDetailPreferenceChanged(useBottomSheetStyleInDetail)
     }
 }

@@ -42,4 +42,5 @@ dependencies {
     api(libs.androidx.compose.runtime)
     lintPublish(projects.lint)
     androidTestImplementation(projects.core.testing)
+    api(libs.accompanist.systemuicontroller)
 }

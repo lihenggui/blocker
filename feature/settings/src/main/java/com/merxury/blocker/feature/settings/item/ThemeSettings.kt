@@ -41,6 +41,7 @@ fun ThemeSettings(
     supportDynamicColor: Boolean,
     onChangeDynamicColorPreference: (useDynamicColor: Boolean) -> Unit,
     onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
+    onChangeUseBottomSheetStyleInDetailPreference: (useBottomSheetStyleInDetail: Boolean) -> Unit,
 ) {
     Column(
         modifier = modifier
@@ -71,6 +72,15 @@ fun ThemeSettings(
             ),
             onValueChange = onChangeDarkThemeConfig,
         )
+        DialogSettingsItems(
+            titleRes = string.use_bottom_sheet_style_in_detail,
+            selectedItem = settings.useBottomSheetStyleInDetail,
+            itemList = listOf(
+                true to string.options_on,
+                false to string.options_off,
+            ),
+            onValueChange = onChangeUseBottomSheetStyleInDetailPreference,
+        )
     }
 }
 
@@ -88,6 +98,7 @@ fun ThemeSettingsSettingsPreview() {
                 supportDynamicColor = true,
                 onChangeDynamicColorPreference = {},
                 onChangeDarkThemeConfig = {},
+                onChangeUseBottomSheetStyleInDetailPreference = {},
             )
         }
     }

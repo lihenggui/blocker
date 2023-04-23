@@ -62,4 +62,5 @@
     <string name="report_bugs_or_submit_ideas">Сообщайте об ошибках или предлагайте идеи</string>
     <string name="show_running_apps_on_top">Показывать запущенные приложения сверху</string>
     <string name="designers_homepage">Домашняя страница дизайнеров</string>
+    <string name="use_bottom_sheet_style_in_detail">Использовать стиль нижнего листа в сведениях о приложении</string>
 </resources>

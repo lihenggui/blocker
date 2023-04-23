@@ -40,6 +40,19 @@ fun AnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor: Boolean) =
         ),
     )
 
+fun AnalyticsHelper.logUseBottomSheetStyleInDetailPreferenceChanged(useBottomSheetStyleInDetail: Boolean) =
+    logEvent(
+        AnalyticsEvent(
+            type = "use_bottom_sheet_style_in_detail_preference_changed",
+            extras = listOf(
+                Param(
+                    key = "use_bottom_sheet_style_in_detail_preference",
+                    value = useBottomSheetStyleInDetail.toString(),
+                ),
+            ),
+        ),
+    )
+
 fun AnalyticsHelper.logControllerTypeChanged(controllerName: String) =
     logEvent(
         AnalyticsEvent(

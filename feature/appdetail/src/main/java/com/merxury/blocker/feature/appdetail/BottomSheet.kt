@@ -1,6 +1,5 @@
 package com.merxury.blocker.feature.appdetail
 
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -25,32 +24,10 @@ fun BottomSheetRoute(
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded,
     )
-//    val systemUiController = rememberSystemUiController()
-//    if(darkTheme){
-//        systemUiController.setSystemBarsColor(
-//            color = Color.Transparent
-//        )
-//    }else{
-//        systemUiController.setSystemBarsColor(
-//            color = Color.White
-//        )
-//    }
     ModalBottomSheet(
         onDismissRequest = { dismissHandler() },
         sheetState = bottomSheetState,
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        dragHandle = {
-            if (bottomSheetState.currentValue == Expanded) {
-                null
-            } else {
-                BottomSheetDefaults.DragHandle()
-            }
-        },
-        shape = if (bottomSheetState.currentValue == Expanded) {
-            BottomSheetDefaults.HiddenShape
-        } else {
-            BottomSheetDefaults.ExpandedShape
-        },
     ) {
         AppDetailRoute(
             modifier = modifier,

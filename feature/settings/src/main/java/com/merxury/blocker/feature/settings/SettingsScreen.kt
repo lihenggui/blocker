@@ -103,6 +103,7 @@ fun SettingsRoute(
         onChangeBackupSystemApp = viewModel::updateBackupSystemApp,
         onChangeRestoreSystemApp = viewModel::updateRestoreSystemApp,
         onChangeRuleBackupFolder = viewModel::updateRuleBackupFolder,
+        onChangeUseBottomSheetStyleInDetailPreference = viewModel::updateUseBottomSheetStyleInDetailPreference,
         importRules = viewModel::importBlockerRules,
         exportRules = viewModel::exportBlockerRules,
         importIfwRules = viewModel::importIfwRules,
@@ -179,6 +180,7 @@ fun SettingsScreen(
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit = { },
     onChangeDynamicColorPreference: (Boolean) -> Unit = { },
     onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit = { },
+    onChangeUseBottomSheetStyleInDetailPreference: (useBottomSheetStyleInDetail: Boolean) -> Unit = { },
     exportRules: () -> Unit = { },
     importRules: () -> Unit = { },
     exportIfwRules: () -> Unit = { },
@@ -227,6 +229,7 @@ fun SettingsScreen(
                         onChangeRuleServerProvider = onChangeRuleServerProvider,
                         onChangeDynamicColorPreference = onChangeDynamicColorPreference,
                         onChangeDarkThemeConfig = onChangeDarkThemeConfig,
+                        onChangeUseBottomSheetStyleInDetailPreference = onChangeUseBottomSheetStyleInDetailPreference,
                         exportRules = exportRules,
                         importRules = importRules,
                         exportIfwRules = exportIfwRules,
@@ -254,6 +257,7 @@ fun SettingsContent(
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
     onChangeDynamicColorPreference: (Boolean) -> Unit,
     onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
+    onChangeUseBottomSheetStyleInDetailPreference: (useBottomSheetStyleInDetail: Boolean) -> Unit,
     exportRules: () -> Unit,
     importRules: () -> Unit,
     exportIfwRules: () -> Unit,
@@ -280,6 +284,7 @@ fun SettingsContent(
             supportDynamicColor = supportDynamicColor,
             onChangeDynamicColorPreference = onChangeDynamicColorPreference,
             onChangeDarkThemeConfig = onChangeDarkThemeConfig,
+            onChangeUseBottomSheetStyleInDetailPreference = onChangeUseBottomSheetStyleInDetailPreference,
         )
         Divider()
         AppListSettings(

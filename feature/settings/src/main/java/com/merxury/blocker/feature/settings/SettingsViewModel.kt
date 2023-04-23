@@ -80,6 +80,7 @@ class SettingsViewModel @Inject constructor(
                         showRunningAppsOnTop = userData.showRunningAppsOnTop,
                         darkThemeConfig = userData.darkThemeConfig,
                         useDynamicColor = userData.useDynamicColor,
+                        useBottomSheetStyleInDetail = userData.useBottomSheetStyleInDetail,
                     ),
                 )
             }
@@ -296,6 +297,12 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setDynamicColorPreference(useDynamicColor)
         }
     }
+
+    fun updateUseBottomSheetStyleInDetailPreference(useBottomSheetStyleInDetail: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setUseBottomSheetStyleInDetailPreference(useBottomSheetStyleInDetail)
+        }
+    }
 }
 
 data class UserEditableSettings(
@@ -309,6 +316,7 @@ data class UserEditableSettings(
     val showRunningAppsOnTop: Boolean = false,
     val darkThemeConfig: DarkThemeConfig,
     val useDynamicColor: Boolean,
+    val useBottomSheetStyleInDetail: Boolean = false,
 )
 
 sealed interface SettingsUiState {

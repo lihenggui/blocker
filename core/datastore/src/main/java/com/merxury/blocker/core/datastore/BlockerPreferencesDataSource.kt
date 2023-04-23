@@ -111,6 +111,7 @@ class BlockerPreferencesDataSource @Inject constructor(
             },
             useDynamicColor = it.useDynamicColor,
             showRunningAppsOnTop = it.showRunningAppsOnTop,
+            useBottomSheetStyleInDetail = it.useBottomSheetStyleInDetail,
         )
     }
 
@@ -132,6 +133,14 @@ class BlockerPreferencesDataSource @Inject constructor(
         userPreferences.updateData {
             it.copy {
                 this.useDynamicColor = useDynamicColor
+            }
+        }
+    }
+
+    suspend fun setUseBottomSheetStyleInDetailPreference(useBottomSheetStyleInDetail: Boolean) {
+        userPreferences.updateData {
+            it.copy {
+                this.useBottomSheetStyleInDetail = useBottomSheetStyleInDetail
             }
         }
     }

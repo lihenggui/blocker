@@ -32,4 +32,5 @@ data class UserPreferenceData(
     val componentSorting: ComponentSorting,
     val componentShowPriority: ComponentShowPriority,
     val showRunningAppsOnTop: Boolean,
+    val useBottomSheetStyleInDetail: Boolean,
 )
