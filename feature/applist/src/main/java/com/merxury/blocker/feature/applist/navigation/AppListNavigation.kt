@@ -30,6 +30,7 @@ fun NavController.navigateToAppList(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.appListScreen(
     navigateToAppDetail: (String) -> Unit,
+    navigateToAppDetailBottomSheet: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
 ) {
@@ -38,6 +39,7 @@ fun NavGraphBuilder.appListScreen(
     ) {
         AppListRoute(
             navigateToAppDetail = navigateToAppDetail,
+            navigateToAppDetailBottomSheet = navigateToAppDetailBottomSheet,
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         )

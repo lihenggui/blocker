@@ -24,7 +24,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.feature.appdetail.BottomSheetRoute
+import com.merxury.blocker.feature.appdetail.AppDetailBottomSheetRoute
 
 fun NavController.navigateToAppDetailBottomSheet(
     packageName: String,
@@ -40,7 +40,7 @@ fun NavController.navigateToAppDetailBottomSheet(
     }
 }
 
-fun NavGraphBuilder.bottomSheetScreen(
+fun NavGraphBuilder.appDetailBottomSheetScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToComponentDetail: (String) -> Unit,
@@ -53,7 +53,7 @@ fun NavGraphBuilder.bottomSheetScreen(
             navArgument(keywordArg) { type = NavType.StringType },
         ),
     ) {
-        BottomSheetRoute(
+        AppDetailBottomSheetRoute(
             dismissHandler = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,

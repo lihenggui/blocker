@@ -22,7 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.merxury.blocker.feature.appdetail.navigation.bottomSheetScreen
+import com.merxury.blocker.feature.appdetail.navigation.appDetailBottomSheetScreen
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
@@ -61,7 +61,8 @@ fun BlockerNavHost(
         modifier = modifier,
     ) {
         appListScreen(
-            navigateToAppDetail = navController::navigateToAppDetailBottomSheet,
+            navigateToAppDetail = navController::navigateToAppDetail,
+            navigateToAppDetailBottomSheet = navController::navigateToAppDetailBottomSheet,
             navigateToSettings = navController::navigateToSettings,
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
         )
@@ -70,7 +71,7 @@ fun BlockerNavHost(
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navController::navigateToComponentDetail,
         )
-        bottomSheetScreen(
+        appDetailBottomSheetScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navController::navigateToComponentDetail,

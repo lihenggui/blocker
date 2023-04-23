@@ -52,19 +52,25 @@ import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
 @Composable
 fun AppListRoute(
     navigateToAppDetail: (String) -> Unit,
+    navigateToAppDetailBottomSheet: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val useBottomSheetStyleUiState by viewModel.useBottomSheetStyleInDetailUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val warningState by viewModel.warningState.collectAsStateWithLifecycle()
     val appList = viewModel.appListFlow.collectAsState()
     AppListScreen(
         uiState = uiState,
         appList = appList.value,
-        onAppItemClick = navigateToAppDetail,
+        onAppItemClick = if (useBottomSheetStyleUiState.useBottomSheetStyleInDetail) {
+            navigateToAppDetailBottomSheet
+        } else {
+            navigateToAppDetail
+        },
         onClearCacheClick = viewModel::clearCache,
         onClearDataClick = viewModel::clearData,
         onForceStopClick = viewModel::forceStop,

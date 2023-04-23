@@ -3,7 +3,6 @@ package com.merxury.blocker.feature.appdetail
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SheetValue.Expanded
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -14,7 +13,7 @@ import androidx.compose.ui.Modifier
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BottomSheetRoute(
+fun AppDetailBottomSheetRoute(
     dismissHandler: () -> Unit,
     modifier: Modifier = Modifier,
     navigateToComponentDetail: (String) -> Unit,
@@ -34,7 +33,6 @@ fun BottomSheetRoute(
             onBackClick = { dismissHandler() },
             navigateToComponentDetail = navigateToComponentDetail,
             snackbarHostState = snackbarHostState,
-            isFullScreen = bottomSheetState.currentValue == Expanded,
         )
     }
 }
