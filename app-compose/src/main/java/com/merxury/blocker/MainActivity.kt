@@ -118,6 +118,7 @@ class MainActivity : ComponentActivity() {
                     BlockerApp(
                         networkMonitor = networkMonitor,
                         windowSizeClass = calculateWindowSizeClass(this),
+                        useBottomSheetStyleInDetail = shouldUseBottomSheetToOpenDetail(uiState),
                     )
                 }
             }
@@ -144,6 +145,14 @@ private fun shouldDisableDynamicTheming(
 ): Boolean = when (uiState) {
     Loading -> false
     is Success -> !uiState.userData.useDynamicColor
+}
+
+@Composable
+private fun shouldUseBottomSheetToOpenDetail(
+    uiState: MainActivityUiState,
+): Boolean = when (uiState) {
+    Loading -> false
+    is Success -> uiState.userData.useBottomSheetStyleInDetail
 }
 
 /**

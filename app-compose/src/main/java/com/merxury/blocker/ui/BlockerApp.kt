@@ -38,7 +38,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -48,11 +47,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import com.merxury.blocker.BlockerAppViewModel
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerGradientBackground
@@ -79,11 +75,10 @@ fun BlockerApp(
         networkMonitor = networkMonitor,
         windowSizeClass = windowSizeClass,
     ),
-    viewModel: BlockerAppViewModel = hiltViewModel(),
+    useBottomSheetStyleInDetail: Boolean,
 ) {
     val shouldShowGradientBackground =
         appState.currentTopLevelDestination == TopLevelDestination.APP
-    val useBottomSheetStyleInDetail by viewModel.useBottomSheetStyleInDetailUiState.collectAsStateWithLifecycle()
 
     BlockerBackground {
         BlockerGradientBackground(
@@ -142,7 +137,7 @@ fun BlockerApp(
                             navController = appState.navController,
                             onBackClick = appState::onBackClick,
                             snackbarHostState = snackbarHostState,
-                            useBottomSheetStyleInDetail = useBottomSheetStyleInDetail.useBottomSheetStyleInDetail,
+                            useBottomSheetStyleInDetail = useBottomSheetStyleInDetail,
                         )
                     }
 
