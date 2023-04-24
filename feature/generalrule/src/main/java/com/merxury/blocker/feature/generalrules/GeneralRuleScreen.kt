@@ -55,13 +55,19 @@ import com.merxury.blocker.feature.generalrules.model.GeneralRulesViewModel
 @Composable
 fun GeneralRulesRoute(
     navigateToRuleDetail: (Int) -> Unit,
+    navigateToRuleDetailBottomSheet: (Int) -> Unit,
+    useBottomSheetStyleInDetail: Boolean,
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     GeneralRulesScreen(
         uiState = uiState,
-        navigateToRuleDetail = navigateToRuleDetail,
+        navigateToRuleDetail = if (useBottomSheetStyleInDetail) {
+            navigateToRuleDetailBottomSheet
+        } else {
+            navigateToRuleDetail
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(

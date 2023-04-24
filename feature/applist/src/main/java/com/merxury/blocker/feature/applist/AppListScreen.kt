@@ -56,17 +56,17 @@ fun AppListRoute(
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     modifier: Modifier = Modifier,
+    useBottomSheetStyleInDetail: Boolean,
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val useBottomSheetStyleUiState by viewModel.useBottomSheetStyleInDetailUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val warningState by viewModel.warningState.collectAsStateWithLifecycle()
     val appList = viewModel.appListFlow.collectAsState()
     AppListScreen(
         uiState = uiState,
         appList = appList.value,
-        onAppItemClick = if (useBottomSheetStyleUiState.useBottomSheetStyleInDetail) {
+        onAppItemClick = if (useBottomSheetStyleInDetail) {
             navigateToAppDetailBottomSheet
         } else {
             navigateToAppDetail

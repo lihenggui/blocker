@@ -67,6 +67,9 @@ import com.merxury.blocker.feature.search.screen.SearchingScreen
 fun SearchRoute(
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit,
+    navigateToAppDetailBottomSheet: (String, AppDetailTabs, List<String>) -> Unit,
+    navigateToRuleDetailBottomSheet: (Int) -> Unit = {},
+    useBottomSheetStyleInDetail: Boolean,
     viewModel: SearchViewModel = hiltViewModel(),
     appListViewModel: AppListViewModel = hiltViewModel(),
 ) {
@@ -91,8 +94,16 @@ fun SearchRoute(
         onCheckAll = viewModel::checkAll,
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
-        navigateToAppDetail = navigateToAppDetail,
-        navigateToRuleDetail = navigateToRuleDetail,
+        navigateToAppDetail = if (useBottomSheetStyleInDetail) {
+            navigateToAppDetailBottomSheet
+        } else {
+            navigateToAppDetail
+        },
+        navigateToRuleDetail = if (useBottomSheetStyleInDetail) {
+            navigateToRuleDetailBottomSheet
+        } else {
+            navigateToRuleDetail
+        },
         appList = appList.value,
         onClearCacheClick = appListViewModel::clearCache,
         onClearDataClick = appListViewModel::clearData,

@@ -22,7 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.merxury.blocker.feature.appdetail.navigation.appDetailBottomSheetScreen
+import com.merxury.blocker.feature.appdetail.navigation.appDetailBottomSheet
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
@@ -34,6 +34,8 @@ import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
 import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetail
+import com.merxury.blocker.feature.ruledetail.navigation.navigateToRuleDetailBottomSheet
+import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailBottomSheet
 import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
@@ -54,6 +56,7 @@ fun BlockerNavHost(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = appListRoute,
+    useBottomSheetStyleInDetail: Boolean,
 ) {
     NavHost(
         navController = navController,
@@ -65,27 +68,41 @@ fun BlockerNavHost(
             navigateToAppDetailBottomSheet = navController::navigateToAppDetailBottomSheet,
             navigateToSettings = navController::navigateToSettings,
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
+            useBottomSheetStyleInDetail = useBottomSheetStyleInDetail,
         )
         detailScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navController::navigateToComponentDetail,
         )
-        appDetailBottomSheetScreen(
+        appDetailBottomSheet(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navController::navigateToComponentDetail,
         )
         generalRuleScreen(
             navigateToRuleDetail = navController::navigateToRuleDetail,
+            navigateToRuleDetailBottomSheet = navController::navigateToRuleDetailBottomSheet,
+            useBottomSheetStyleInDetail = useBottomSheetStyleInDetail,
         )
         ruleDetailScreen(
             onBackClick = onBackClick,
             navigateToAppDetail = navController::navigateToAppDetail,
+            navigateToAppDetailBottomSheet = navController::navigateToAppDetailBottomSheet,
+            useBottomSheetStyleInDetail = useBottomSheetStyleInDetail,
+        )
+        ruleDetailBottomSheet(
+            onBackClick = onBackClick,
+            navigateToAppDetail = navController::navigateToAppDetail,
+            navigateToAppDetailBottomSheet = navController::navigateToAppDetailBottomSheet,
+            useBottomSheetStyleInDetail = useBottomSheetStyleInDetail,
         )
         searchScreen(
             navigateToAppDetail = navController::navigateToAppDetail,
             navigateToRuleDetail = navController::navigateToRuleDetail,
+            navigateToAppDetailBottomSheet = navController::navigateToAppDetailBottomSheet,
+            navigateToRuleDetailBottomSheet = navController::navigateToRuleDetailBottomSheet,
+            useBottomSheetStyleInDetail = useBottomSheetStyleInDetail,
         )
         settingsScreen(
             onBackClick,

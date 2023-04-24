@@ -33,6 +33,7 @@ fun NavGraphBuilder.appListScreen(
     navigateToAppDetailBottomSheet: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
+    useBottomSheetStyleInDetail: Boolean,
 ) {
     composable(
         route = appListRoute,
@@ -42,6 +43,7 @@ fun NavGraphBuilder.appListScreen(
             navigateToAppDetailBottomSheet = navigateToAppDetailBottomSheet,
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
+            useBottomSheetStyleInDetail = useBottomSheetStyleInDetail,
         )
     }
 }

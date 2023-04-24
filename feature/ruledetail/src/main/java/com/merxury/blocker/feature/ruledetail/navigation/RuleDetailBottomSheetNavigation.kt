@@ -14,49 +14,43 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.navigation
+package com.merxury.blocker.feature.ruledetail.navigation
 
-import android.net.Uri
-import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
-import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.feature.appdetail.AppDetailBottomSheetRoute
+import com.merxury.blocker.core.ui.rule.RuleDetailTabs
+import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
+import com.merxury.blocker.feature.ruledetail.AppDetailBottomSheetRoute
 
-fun NavController.navigateToAppDetailBottomSheet(
-    packageName: String,
-    tab: AppDetailTabs = AppDetailTabs.Info,
-    searchKeyword: List<String> = listOf(),
-) {
-    val encodedId = Uri.encode(packageName)
-    val keywords = searchKeyword.joinToString(",")
-    this.navigate("app_detail_bottom_sheet_route/$encodedId?screen=${tab.name}?keyword=$keywords") {
+fun NavController.navigateToRuleDetailBottomSheet(ruleId: Int, tab: RuleDetailTabs = Description) {
+    this.navigate("rule_detail_bottom_sheet_route/$ruleId?screen=${tab.name}") {
         // Avoid multiple copies of the same destination when
         // reselecting the same item
         launchSingleTop = true
     }
 }
 
-fun NavGraphBuilder.appDetailBottomSheet(
+fun NavGraphBuilder.ruleDetailBottomSheet(
     onBackClick: () -> Unit,
-    snackbarHostState: SnackbarHostState,
-    navigateToComponentDetail: (String) -> Unit,
+    navigateToAppDetail: (String) -> Unit,
+    navigateToAppDetailBottomSheet: (String) -> Unit,
+    useBottomSheetStyleInDetail: Boolean,
 ) {
     dialog(
-        route = "app_detail_bottom_sheet_route/{$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}",
+        route = "rule_detail_bottom_sheet_route/{$ruleIdArg}?screen={$tabArg}",
         arguments = listOf(
-            navArgument(packageNameArg) { type = NavType.StringType },
+            navArgument(ruleIdArg) { type = NavType.IntType },
             navArgument(tabArg) { type = NavType.StringType },
-            navArgument(keywordArg) { type = NavType.StringType },
         ),
     ) {
         AppDetailBottomSheetRoute(
             dismissHandler = onBackClick,
-            snackbarHostState = snackbarHostState,
-            navigateToComponentDetail = navigateToComponentDetail,
+            navigateToAppDetail = navigateToAppDetail,
+            navigateToAppDetailBottomSheet = navigateToAppDetailBottomSheet,
+            useBottomSheetStyleInDetail = useBottomSheetStyleInDetail,
         )
     }
 }

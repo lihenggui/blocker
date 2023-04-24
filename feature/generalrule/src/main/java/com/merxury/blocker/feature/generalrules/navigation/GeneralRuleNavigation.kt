@@ -30,10 +30,14 @@ fun NavController.navigateToGeneralRule(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.generalRuleScreen(
     navigateToRuleDetail: (Int) -> Unit,
+    navigateToRuleDetailBottomSheet: (Int) -> Unit,
+    useBottomSheetStyleInDetail: Boolean,
 ) {
     composable(route = generalRuleRoute) {
         GeneralRulesRoute(
             navigateToRuleDetail,
+            navigateToRuleDetailBottomSheet,
+            useBottomSheetStyleInDetail,
         )
     }
 }

@@ -86,9 +86,6 @@ class AppListViewModel @Inject constructor(
     val warningState = _warningState.asStateFlow()
     private var _appList = mutableStateListOf<AppItem>()
     private val _appListFlow = MutableStateFlow(_appList)
-    private val _useBottomSheetStyleInDetailUiState = MutableStateFlow(UseBottomSheetStyleUiState())
-    val useBottomSheetStyleInDetailUiState: StateFlow<UseBottomSheetStyleUiState> =
-        _useBottomSheetStyleInDetailUiState.asStateFlow()
     private var currentSearchKeyword = ""
     val appListFlow: StateFlow<List<AppItem>>
         get() = _appListFlow
@@ -103,7 +100,6 @@ class AppListViewModel @Inject constructor(
         listenSortingChanges()
         listenShowRunningAppsOnTopChanges()
         listenShowSystemAppsChanges()
-        listenUseBottomSheetStyleInDeatilChanges()
     }
 
     fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
@@ -343,17 +339,6 @@ class AppListViewModel @Inject constructor(
             }
         }
     }
-
-    private fun listenUseBottomSheetStyleInDeatilChanges() = viewModelScope.launch {
-        userDataRepository.userData
-            .collect { useBottomSheetStyleInDetail ->
-                if (useBottomSheetStyleInDetail.useBottomSheetStyleInDetail) {
-                    _useBottomSheetStyleInDetailUiState.emit(UseBottomSheetStyleUiState(true))
-                } else {
-                    _useBottomSheetStyleInDetailUiState.emit(UseBottomSheetStyleUiState(false))
-                }
-            }
-    }
 }
 
 sealed interface AppListUiState {
@@ -366,8 +351,4 @@ data class WarningDialogData(
     val title: String,
     val message: Int,
     val onPositiveButtonClicked: () -> Unit,
-)
-
-data class UseBottomSheetStyleUiState(
-    val useBottomSheetStyleInDetail: Boolean = false,
 )

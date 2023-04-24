@@ -91,6 +91,8 @@ import kotlinx.coroutines.launch
 fun RuleDetailRoute(
     onBackClick: () -> Unit,
     navigateToAppDetail: (String) -> Unit,
+    navigateToAppDetailBottomSheet: (String) -> Unit,
+    useBottomSheetStyleInDetail: Boolean,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
@@ -115,7 +117,11 @@ fun RuleDetailRoute(
         onBlockAllInPageClick = { viewModel.controlAllComponentsInPage(false) },
         onEnableAllInPageClick = { viewModel.controlAllComponentsInPage(true) },
         onSwitch = viewModel::controlComponent,
-        navigateToAppDetail = navigateToAppDetail,
+        navigateToAppDetail = if (useBottomSheetStyleInDetail) {
+            navigateToAppDetailBottomSheet
+        } else {
+            navigateToAppDetail
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
