@@ -75,7 +75,7 @@ fun BlockerApp(
         networkMonitor = networkMonitor,
         windowSizeClass = windowSizeClass,
     ),
-    useBottomSheetStyleInDetail: Boolean,
+    useBottomSheetStyleInDetail: Boolean = false,
 ) {
     val shouldShowGradientBackground =
         appState.currentTopLevelDestination == TopLevelDestination.APP
