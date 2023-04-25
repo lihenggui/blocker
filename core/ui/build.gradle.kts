@@ -33,7 +33,6 @@ dependencies {
     implementation(projects.core.ifwApi)
 
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.constraintlayout.compose)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)
     implementation(libs.kotlinx.datetime)
