@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,8 +34,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.Dimension
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
@@ -57,113 +57,81 @@ fun RuleCard(
             .padding(8.dp),
         onClick = { onCardClick(item.id) },
     ) {
-        ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
-            val (icon, name, matchedCount, company, ruleIcon, keywords) = createRefs()
-            val iconEndGuideline = createGuidelineFromStart(72.dp)
-            AsyncImage(
-                modifier = Modifier
-                    .constrainAs(icon) {
-                        top.linkTo(parent.top)
-                        start.linkTo(parent.start)
-                    }
-                    .padding(16.dp)
-                    .size(40.dp),
-                model = Builder(LocalContext.current)
-                    .data(item.iconUrl)
-                    .error(BlockerIcons.Android)
-                    .placeholder(BlockerIcons.Android)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = stringResource(id = string.rule_icon_description),
-            )
+        CardHeader(
+            iconUrl = item.iconUrl,
+            name = item.name,
+            matchedAppCount = item.matchedAppCount,
+            company = item.company,
+        )
+        CardContent(searchKeyword = item.searchKeyword)
+    }
+}
+
+@Composable
+private fun CardHeader(iconUrl: String?, name: String, matchedAppCount: Int, company: String?) {
+    Row {
+        AsyncImage(
+            modifier = Modifier
+                .padding(16.dp)
+                .size(40.dp),
+            model = Builder(LocalContext.current)
+                .data(iconUrl)
+                .error(BlockerIcons.Android)
+                .placeholder(BlockerIcons.Android)
+                .crossfade(true)
+                .build(),
+            contentDescription = stringResource(id = string.rule_icon_description),
+        )
+        Column(modifier = Modifier.weight(1f)) {
             BlockerBodyLargeText(
-                text = item.name,
+                text = name,
                 modifier = Modifier
-                    .padding(top = 16.dp, end = 16.dp)
-                    .constrainAs(name) {
-                        linkTo(
-                            start = iconEndGuideline,
-                            end = matchedCount.start,
-                            bias = 0F,
-                        )
-                        top.linkTo(icon.top)
-                        width = Dimension.fillToConstraints
-                    },
+                    .padding(top = 16.dp, end = 16.dp),
             )
-            val indicatorColor = MaterialTheme.colorScheme.tertiary
-            BlockerLabelSmallText(
-                modifier = Modifier
-                    .drawBehind {
-                        drawRoundRect(
-                            color = indicatorColor,
-                            cornerRadius = CornerRadius(x = 4.dp.toPx(), y = 4.dp.toPx()),
-                        )
-                    }
-                    .padding(horizontal = 2.dp, vertical = 1.dp)
-                    .constrainAs(matchedCount) {
-                        linkTo(
-                            top = name.top,
-                            bottom = name.bottom,
-                            topMargin = 16.dp,
-                        )
-                        linkTo(
-                            start = name.end,
-                            end = parent.end,
-                            endMargin = 16.dp,
-                        )
-                    },
-                text = pluralStringResource(
-                    id = plurals.matched_apps,
-                    item.matchedAppCount,
-                    item.matchedAppCount,
-                ),
-                color = MaterialTheme.colorScheme.onTertiary,
-            )
-            item.company?.let {
+            company?.let {
                 BlockerBodyMediumText(
                     text = it,
                     modifier = Modifier
-                        .constrainAs(company) {
-                            linkTo(
-                                start = iconEndGuideline,
-                                end = parent.end,
-                                bias = 0F,
-                            )
-                            top.linkTo(name.bottom)
-                            width = Dimension.fillToConstraints
-                        }
                         .padding(top = 4.dp, end = 16.dp),
                 )
             }
-            val titleBarrier = createBottomBarrier(icon, name, company)
-            Icon(
-                modifier = Modifier
-                    .padding(bottom = 16.dp)
-                    .size(16.dp)
-                    .constrainAs(ruleIcon) {
-                        top.linkTo(titleBarrier)
-                        start.linkTo(parent.start)
-                        end.linkTo(iconEndGuideline)
-                    },
-                imageVector = BlockerIcons.SubdirectoryArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline,
-            )
-            BlockerBodyMediumText(
-                text = item.searchKeyword.joinToString("\n"),
-                modifier = Modifier
-                    .padding(end = 16.dp, bottom = 16.dp)
-                    .constrainAs(keywords) {
-                        linkTo(
-                            start = iconEndGuideline,
-                            end = parent.end,
-                            bias = 0F,
-                        )
-                        top.linkTo(titleBarrier)
-                        width = Dimension.fillToConstraints
-                    },
-            )
         }
+        val indicatorColor = MaterialTheme.colorScheme.tertiary
+        BlockerLabelSmallText(
+            modifier = Modifier
+                .padding(top = 16.dp, end = 16.dp)
+                .drawBehind {
+                    drawRoundRect(
+                        color = indicatorColor,
+                        cornerRadius = CornerRadius(x = 4.dp.toPx(), y = 4.dp.toPx()),
+                    )
+                }
+                .padding(horizontal = 2.dp, vertical = 1.dp),
+            text = pluralStringResource(
+                id = plurals.matched_apps,
+                matchedAppCount,
+                matchedAppCount,
+            ),
+            color = MaterialTheme.colorScheme.onTertiary,
+        )
+    }
+}
+
+@Composable
+private fun CardContent(searchKeyword: List<String>) {
+    Row {
+        Icon(
+            modifier = Modifier
+                .padding(top = 9.dp, bottom = 8.dp, start = 16.dp, end = 40.dp)
+                .size(16.dp),
+            imageVector = BlockerIcons.SubdirectoryArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.outline,
+        )
+        BlockerBodyMediumText(
+            text = searchKeyword.joinToString("\n"),
+            modifier = Modifier.padding(end = 16.dp, bottom = 16.dp, top = 8.dp),
+        )
     }
 }
 

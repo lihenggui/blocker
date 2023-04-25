@@ -26,5 +26,4 @@ android {
 dependencies {
     implementation(projects.core.componentController)
     implementation(libs.kotlinx.datetime)
-    implementation(libs.androidx.constraintlayout.compose)
 }
