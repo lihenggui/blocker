@@ -23,6 +23,9 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
 
+      - name: Build AndroidTest apps
+        run: ./gradlew packageFossDebug packageFossDebugAndroidTest
+
       - name: Run instrumented tests with GMD
         run: ./gradlew cleanManagedDevices --unused-only &&
           ./gradlew ${{ matrix.device-config }}fossDebugAndroidTest -Dorg.gradle.workers.max=1
