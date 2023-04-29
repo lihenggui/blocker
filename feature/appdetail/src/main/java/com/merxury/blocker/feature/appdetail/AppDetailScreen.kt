@@ -39,9 +39,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -92,6 +94,7 @@ import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.componentdetail.AdvanceSortBottomSheetRoute
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
@@ -366,12 +369,16 @@ fun AppDetailContent(
 
 @Composable
 fun AppDetailAppBarActions(
+    modifier: Modifier = Modifier,
     appBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
+    onSortModeClick: () -> Unit = {},
+    onSortByRuleClick: () -> Unit = {},
 ) {
+    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     val actions = appBarUiState.actions
     if (actions.contains(SEARCH)) {
         if (appBarUiState.isSearchMode) {
@@ -397,6 +404,15 @@ fun AppDetailAppBarActions(
         MoreActionMenu(
             blockAllComponents = blockAllComponents,
             enableAllComponents = enableAllComponents,
+            onAdvanceSortClick = { openBottomSheet = !openBottomSheet },
+        )
+    }
+    if (openBottomSheet) {
+        AdvanceSortBottomSheetRoute(
+            dismissHandler = { openBottomSheet = false },
+            modifier = modifier,
+            onSortModeClick = onSortModeClick,
+            onSortByRuleClick = onSortByRuleClick,
         )
     }
 }
