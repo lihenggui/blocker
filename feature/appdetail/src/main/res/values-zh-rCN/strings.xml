@@ -60,4 +60,7 @@
     <string name="order">顺序</string>
     <string name="ascending">升序</string>
     <string name="descending">降序</string>
+    <string name="priority">优先级</string>
+    <string name="disabled_first">禁用优先</string>
+    <string name="enabled_first">启用优先</string>
 </resources>

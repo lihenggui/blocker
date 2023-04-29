@@ -61,4 +61,7 @@
     <string name="order">Order</string>
     <string name="ascending">Ascending</string>
     <string name="descending">Descending</string>
+    <string name="priority">Priority</string>
+    <string name="disabled_first">Disabled first</string>
+    <string name="enabled_first">Enabled first</string>
 </resources>
