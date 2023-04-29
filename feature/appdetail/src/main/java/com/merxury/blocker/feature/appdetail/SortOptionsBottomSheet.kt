@@ -39,14 +39,17 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.preference.ComponentShowPriority
+import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SortOptionsBottomSheetRoute(
     dismissHandler: () -> Unit,
     modifier: Modifier = Modifier,
-    onSortModeClick: () -> Unit,
-    onSortByRuleClick: () -> Unit,
+    onSortByClick: (ComponentSorting) -> Unit = {},
+    onSortOrderClick: (ComponentSortingOrder) -> Unit = {},
 ) {
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(
@@ -60,8 +63,8 @@ fun SortOptionsBottomSheetRoute(
     ) {
         SortOptionsContent(
             modifier = modifier,
-            onSortModeClick = onSortModeClick,
-            onSortByRuleClick = onSortByRuleClick,
+            onSortByClick = onSortByClick,
+            onSortOrderClick = onSortOrderClick,
         )
     }
 }
@@ -69,8 +72,9 @@ fun SortOptionsBottomSheetRoute(
 @Composable
 fun SortOptionsContent(
     modifier: Modifier = Modifier,
-    onSortModeClick: () -> Unit = {},
-    onSortByRuleClick: () -> Unit = {},
+    onSortByClick: (ComponentSorting) -> Unit = {},
+    onSortOrderClick: (ComponentSortingOrder) -> Unit = {},
+    onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
     val sortModeList = listOf(
         stringResource(id = R.string.component_name),
@@ -79,6 +83,10 @@ fun SortOptionsContent(
     val sortByRuleList = listOf(
         stringResource(id = R.string.ascending),
         stringResource(id = R.string.descending),
+    )
+    val priorityList = listOf(
+        stringResource(id = R.string.disabled_first),
+        stringResource(id = R.string.enabled_first),
     )
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -100,7 +108,14 @@ fun SortOptionsContent(
             cornerRadius = 50,
             onItemSelection = { },
         )
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+        ItemHeader(title = stringResource(id = R.string.priority))
+        SegmentedButtons(
+            items = priorityList,
+            cornerRadius = 50,
+            onItemSelection = { },
+        )
+        Spacer(modifier = Modifier.height(48.dp))
     }
 }
 
