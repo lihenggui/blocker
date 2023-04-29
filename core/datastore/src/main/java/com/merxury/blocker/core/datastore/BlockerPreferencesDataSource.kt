@@ -22,6 +22,7 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.UserPreferenceData
@@ -92,12 +93,11 @@ class BlockerPreferencesDataSource @Inject constructor(
             componentSorting = when (it.componentSorting) {
                 null,
                 ComponentSortingProto.UNRECOGNIZED,
-                ComponentSortingProto.COMPONENT_NAME_ASCENDING,
-                ->
-                    ComponentSorting.NAME_ASCENDING
+                ComponentSortingProto.COMPONENT_NAME,
+                -> ComponentSorting.COMPONENT_NAME
 
-                ComponentSortingProto.COMPONENT_NAME_DESCENDING ->
-                    ComponentSorting.NAME_DESCENDING
+                ComponentSortingProto.PACKAGE_NAME ->
+                    ComponentSorting.PACKAGE_NAME
             },
             componentShowPriority = when (it.componentShowPriority) {
                 null,
@@ -108,6 +108,15 @@ class BlockerPreferencesDataSource @Inject constructor(
 
                 ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST ->
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST
+            },
+            componentSortingOrder = when (it.componentSortingOrder) {
+                null,
+                ComponentSortingOrderProto.UNRECOGNIZED,
+                ComponentSortingOrderProto.ASCENDING,
+                -> ComponentSortingOrder.ASCENDING
+
+                ComponentSortingOrderProto.DESCENDING ->
+                    ComponentSortingOrder.DESCENDING
             },
             useDynamicColor = it.useDynamicColor,
             showRunningAppsOnTop = it.showRunningAppsOnTop,
