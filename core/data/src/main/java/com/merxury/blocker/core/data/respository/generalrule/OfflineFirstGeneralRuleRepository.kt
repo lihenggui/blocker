@@ -60,6 +60,10 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
                 .map { it.asEntity() }
             compareAndUpdateCache(networkRule)
             emit(Result.Success(Unit))
+        } catch (e: ClassCastException) {
+            // Catch the error when the server returns a wrong format
+            Timber.e(e, "Can't cast the response to GeneralRuleEntity.")
+            emit(Result.Error(e))
         } catch (e: Exception) {
             // Catch general errors here
             Timber.w(e, "Failed to get the general rules from server.")
