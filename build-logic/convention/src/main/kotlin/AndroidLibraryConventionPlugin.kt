@@ -21,6 +21,7 @@ import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configureKotlinAndroidToolchain
 import com.merxury.blocker.configurePrintApksTask
+import com.merxury.blocker.disableUnnecessaryAndroidTests
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -47,6 +48,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             }
             extensions.configure<LibraryAndroidComponentsExtension> {
                 configurePrintApksTask(this)
+                disableUnnecessaryAndroidTests(target)
             }
             extensions.configure<JavaPluginExtension> {
                 toolchain {
