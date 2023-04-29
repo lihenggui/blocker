@@ -66,15 +66,17 @@ fun SegmentedButtons(
                     }
 
                     else -> {
-                        if (useFixedWidth)
+                        if (useFixedWidth) {
                             Modifier
                                 .width(itemWidth)
                                 .offset((-1 * index).dp, 0.dp)
                                 .zIndex(if (selectedIndex.value == index) 1f else 0f)
-                        else Modifier
-                            .wrapContentSize()
-                            .offset((-1 * index).dp, 0.dp)
-                            .zIndex(if (selectedIndex.value == index) 1f else 0f)
+                        } else {
+                            Modifier
+                                .wrapContentSize()
+                                .offset((-1 * index).dp, 0.dp)
+                                .zIndex(if (selectedIndex.value == index) 1f else 0f)
+                        }
                     }
                 },
                 onClick = {
