@@ -67,7 +67,7 @@ fun AdvanceSortContent(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = stringResource(id = R.string.advance_sort),
-            style = MaterialTheme.typography.headlineLarge,
+            style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             modifier = modifier.fillMaxWidth(),
         )
