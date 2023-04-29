@@ -53,11 +53,11 @@
     <string name="add_description_hint">目前没有可用的组件信息。成为第一个贡献者吧！</string>
     <string name="how_to_contribute">如何贡献？</string>
     <string name="unknown">未知</string>
-    <string name="advance_sort">高级排序</string>
-    <string name="sort_mode">排序模式</string>
-    <string name="sort_by_rule">按规则(启用/禁用)排序</string>
-    <string name="name">姓名</string>
-    <string name="updated_time">更新时间</string>
-    <string name="enable_first">启用在前</string>
-    <string name="disable_first">禁用在前</string>
+    <string name="sort_options">排序选项</string>
+    <string name="sort_by">排序依据</string>
+    <string name="package_name">包名</string>
+    <string name="component_name">组件名</string>
+    <string name="order">顺序</string>
+    <string name="ascending">升序</string>
+    <string name="descending">降序</string>
 </resources>
