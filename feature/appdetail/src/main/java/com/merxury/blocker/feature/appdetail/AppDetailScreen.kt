@@ -68,6 +68,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
@@ -378,6 +379,7 @@ fun AppDetailAppBarActions(
     enableAllComponents: () -> Unit = {},
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (ComponentSortingOrder) -> Unit = {},
+    onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
     var openSortOption by rememberSaveable { mutableStateOf(false) }
     val actions = appBarUiState.actions
@@ -414,6 +416,7 @@ fun AppDetailAppBarActions(
             modifier = modifier,
             onSortByClick = onSortByClick,
             onSortOrderClick = onSortOrderClick,
+            onShowPriorityClick = onShowPriorityClick,
         )
     }
 }
