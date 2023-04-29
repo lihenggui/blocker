@@ -51,8 +51,11 @@ import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
-import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
+import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
+import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -335,6 +338,7 @@ class AppDetailViewModel @Inject constructor(
     ): SnapshotStateList<ComponentItem> {
         val userData = userDataRepository.userData.first()
         val sorting = userData.componentSorting
+        val order = userData.componentSortingOrder
         val serviceHelper = ServiceHelper(packageName)
         if (type == SERVICE) {
             serviceHelper.refresh()
@@ -349,15 +353,19 @@ class AppDetailViewModel @Inject constructor(
                     },
                 )
             }
-            .sortedWith(componentComparator(sorting))
+            .sortedWith(componentComparator(sorting, order))
             .sortedByDescending { it.isRunning }
             .toMutableStateList()
     }
 
-    private fun componentComparator(sort: ComponentSorting): Comparator<ComponentItem> {
-        return when (sort) {
-            NAME_ASCENDING -> compareBy { it.simpleName }
-            NAME_DESCENDING -> compareByDescending { it.simpleName }
+    private fun componentComparator(sorting: ComponentSorting, order: ComponentSortingOrder): Comparator<ComponentItem> {
+        val nameComparator = when (sorting) {
+            COMPONENT_NAME -> compareBy<ComponentItem> { it.simpleName }
+            PACKAGE_NAME -> compareBy<ComponentItem> { it.packageName }
+        }
+        return when (order) {
+            ASCENDING -> nameComparator
+            DESCENDING -> nameComparator.reversed()
         }
     }
 
