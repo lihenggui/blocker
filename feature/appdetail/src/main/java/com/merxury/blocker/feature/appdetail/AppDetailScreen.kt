@@ -68,6 +68,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FINISHED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
@@ -374,8 +376,8 @@ fun AppDetailAppBarActions(
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
-    onSortModeClick: () -> Unit = {},
-    onSortByRuleClick: () -> Unit = {},
+    onSortByClick: (ComponentSorting) -> Unit = {},
+    onSortOrderClick: (ComponentSortingOrder) -> Unit = {},
 ) {
     var openSortOption by rememberSaveable { mutableStateOf(false) }
     val actions = appBarUiState.actions
@@ -410,8 +412,8 @@ fun AppDetailAppBarActions(
         SortOptionsBottomSheetRoute(
             dismissHandler = { openSortOption = false },
             modifier = modifier,
-            onSortModeClick = onSortModeClick,
-            onSortByRuleClick = onSortByRuleClick,
+            onSortByClick = onSortByClick,
+            onSortOrderClick = onSortOrderClick,
         )
     }
 }

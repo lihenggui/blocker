@@ -60,4 +60,7 @@
     <string name="order">порядок</string>
     <string name="ascending">Восходящий</string>
     <string name="descending">Нисходящий</string>
+    <string name="priority">Приоритет</string>
+    <string name="disabled_first">Отключенный первый</string>
+    <string name="enabled_first">Включенный первый</string>
 </resources>
