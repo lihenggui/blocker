@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import com.merxury.blocker.BlockerFlavor
@@ -37,21 +38,24 @@ class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
             extensions.configure<ApplicationAndroidComponentsExtension> {
                 pluginManager.apply("com.google.gms.google-services")
                 pluginManager.apply("com.google.firebase.crashlytics")
-                finalizeDsl { extension ->
-                    extension.buildTypes.forEach { buildType ->
-                        buildType.configure<CrashlyticsExtension> {
-                            mappingFileUploadEnabled = !buildType.isDebuggable
-                        }
+            }
+            extensions.configure<ApplicationExtension> {
+                buildTypes.configureEach {
+                    // Disable the Crashlytics mapping file upload. This feature should only be
+                    // enabled if a Firebase backend is available and configured in
+                    // google-services.json.
+                    configure<CrashlyticsExtension> {
+                        mappingFileUploadEnabled = false
                     }
                 }
-            }
-            tasks.configureEach {
-                val isFossTask = name.contains(BlockerFlavor.foss.name, ignoreCase = true)
-                if (isFossTask) {
-                    val disableKeywords = listOf("google", "crashlytics", "upload", "gms")
-                    if (disableKeywords.any { name.contains(it, ignoreCase = true) }) {
-                        println("Disabling task: $name")
-                        enabled = false
+                tasks.configureEach {
+                    val isFossTask = name.contains(BlockerFlavor.foss.name, ignoreCase = true)
+                    if (isFossTask) {
+                        val disableKeywords = listOf("google", "crashlytics", "upload", "gms")
+                        if (disableKeywords.any { name.contains(it, ignoreCase = true) }) {
+                            println("Disabling task: $name")
+                            enabled = false
+                        }
                     }
                 }
             }
