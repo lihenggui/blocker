@@ -52,4 +52,11 @@
     <string name="add_description_hint">目前沒有可用的組件信息。成為第一個貢獻者吧！</string>
     <string name="how_to_contribute">如何貢獻？</string>
     <string name="unknown">未知</string>
+    <string name="advance_sort">高級排序</string>
+    <string name="sort_mode">排序模式</string>
+    <string name="sort_by_rule">按規則(啟用/禁用)排序</string>
+    <string name="name">姓名</string>
+    <string name="updated_time">更新時間</string>
+    <string name="enable_first">啟用在前</string>
+    <string name="disable_first">禁用在前</string>
 </resources>
