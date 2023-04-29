@@ -50,6 +50,7 @@ fun SortOptionsBottomSheetRoute(
     modifier: Modifier = Modifier,
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (ComponentSortingOrder) -> Unit = {},
+    onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(
@@ -65,6 +66,7 @@ fun SortOptionsBottomSheetRoute(
             modifier = modifier,
             onSortByClick = onSortByClick,
             onSortOrderClick = onSortOrderClick,
+            onShowPriorityClick = onShowPriorityClick,
         )
     }
 }
