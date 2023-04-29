@@ -54,11 +54,11 @@
     <string name="add_description_hint">At present, there is no information available for this component. Be the first to contribute!</string>
     <string name="how_to_contribute">How to contribute?</string>
     <string name="unknown">Unknown</string>
-    <string name="advance_sort">Advance sort</string>
-    <string name="sort_mode">Sort mode</string>
-    <string name="sort_by_rule">Sort by rule</string>
-    <string name="name">Name</string>
-    <string name="updated_time">Updated time</string>
-    <string name="enable_first">Enable first</string>
-    <string name="disable_first">Disable first</string>
+    <string name="sort_options">Sort options</string>
+    <string name="sort_by">Sort by</string>
+    <string name="package_name">Package name</string>
+    <string name="component_name">Component name</string>
+    <string name="order">Order</string>
+    <string name="ascending">Ascending</string>
+    <string name="descending">Descending</string>
 </resources>

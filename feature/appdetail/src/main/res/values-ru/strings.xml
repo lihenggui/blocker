@@ -53,11 +53,11 @@
     <string name="add_description_hint">В настоящее время для этого компонента нет доступной информации. Будьте первым, кто внесет свой вклад!</string>
     <string name="how_to_contribute">Как внести свой вклад?</string>
     <string name="unknown">Неизвестно</string>
-    <string name="advance_sort">расширенная сортировка</string>
-    <string name="sort_mode">режим сортировки</string>
-    <string name="sort_by_rule">Сортировка по правилу (включить/отключить)</string>
-    <string name="name">Имя</string>
-    <string name="updated_time">время обновления</string>
-    <string name="enable_first">Включить сначала</string>
-    <string name="disable_first">Сначала отключить</string>
+    <string name="sort_options">Параметры сортировки</string>
+    <string name="sort_by">Сортировать по</string>
+    <string name="package_name">Имя пакета</string>
+    <string name="component_name">Имя компонента</string>
+    <string name="order">порядок</string>
+    <string name="ascending">Восходящий</string>
+    <string name="descending">Нисходящий</string>
 </resources>

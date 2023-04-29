@@ -73,28 +73,28 @@ fun SortOptionsContent(
     onSortByRuleClick: () -> Unit = {},
 ) {
     val sortModeList = listOf(
-        stringResource(id = R.string.name),
-        stringResource(id = R.string.updated_time),
+        stringResource(id = R.string.component_name),
+        stringResource(id = R.string.package_name),
     )
     val sortByRuleList = listOf(
-        stringResource(id = R.string.enable_first),
-        stringResource(id = R.string.disable_first),
+        stringResource(id = R.string.ascending),
+        stringResource(id = R.string.descending),
     )
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(id = R.string.advance_sort),
+            text = stringResource(id = R.string.sort_options),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             modifier = modifier.fillMaxWidth(),
         )
-        ItemHeader(title = stringResource(id = R.string.sort_mode))
+        ItemHeader(title = stringResource(id = R.string.sort_by))
         SegmentedButtons(
             items = sortModeList,
             cornerRadius = 50,
             onItemSelection = { },
         )
         Spacer(modifier = Modifier.height(16.dp))
-        ItemHeader(title = stringResource(id = R.string.sort_by_rule))
+        ItemHeader(title = stringResource(id = R.string.order))
         SegmentedButtons(
             items = sortByRuleList,
             cornerRadius = 50,

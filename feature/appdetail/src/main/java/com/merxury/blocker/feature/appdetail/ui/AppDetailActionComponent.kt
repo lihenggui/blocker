@@ -52,7 +52,7 @@ fun MoreActionMenu(
             enableAllComponents,
         ),
         DropDownMenuItem(
-            string.advance_sort,
+            string.sort_options,
             onAdvanceSortClick,
         ),
     )
