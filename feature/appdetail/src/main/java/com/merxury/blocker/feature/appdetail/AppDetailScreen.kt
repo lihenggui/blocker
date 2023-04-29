@@ -94,7 +94,6 @@ import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.componentdetail.AdvanceSortBottomSheetRoute
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
@@ -378,7 +377,7 @@ fun AppDetailAppBarActions(
     onSortModeClick: () -> Unit = {},
     onSortByRuleClick: () -> Unit = {},
 ) {
-    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var openSortOption by rememberSaveable { mutableStateOf(false) }
     val actions = appBarUiState.actions
     if (actions.contains(SEARCH)) {
         if (appBarUiState.isSearchMode) {
@@ -404,12 +403,12 @@ fun AppDetailAppBarActions(
         MoreActionMenu(
             blockAllComponents = blockAllComponents,
             enableAllComponents = enableAllComponents,
-            onAdvanceSortClick = { openBottomSheet = !openBottomSheet },
+            onAdvanceSortClick = { openSortOption = !openSortOption },
         )
     }
-    if (openBottomSheet) {
-        AdvanceSortBottomSheetRoute(
-            dismissHandler = { openBottomSheet = false },
+    if (openSortOption) {
+        SortOptionsBottomSheetRoute(
+            dismissHandler = { openSortOption = false },
             modifier = modifier,
             onSortModeClick = onSortModeClick,
             onSortByRuleClick = onSortByRuleClick,
