@@ -40,6 +40,7 @@ fun SearchActionMenu(onSearchModeChange: (Boolean) -> Unit) {
 fun MoreActionMenu(
     blockAllComponents: () -> Unit,
     enableAllComponents: () -> Unit,
+    onAdvanceSortClick: () -> Unit = {},
 ) {
     val items = listOf(
         DropDownMenuItem(
@@ -49,6 +50,10 @@ fun MoreActionMenu(
         DropDownMenuItem(
             string.enable_all_of_this_page,
             enableAllComponents,
+        ),
+        DropDownMenuItem(
+            string.advance_sort,
+            onAdvanceSortClick,
         ),
     )
     BlockerAppTopBarMenu(
