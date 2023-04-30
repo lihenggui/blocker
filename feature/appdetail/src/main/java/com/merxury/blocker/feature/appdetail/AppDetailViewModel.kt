@@ -50,9 +50,15 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
 import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_ASCENDING
-import com.merxury.blocker.core.model.preference.ComponentSorting.NAME_DESCENDING
+import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
+import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -96,6 +102,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -158,6 +165,7 @@ class AppDetailViewModel @Inject constructor(
         loadAppInfo()
         loadComponentList()
         updateComponentList(appDetailArgs.packageName)
+        listenSortStateChange()
     }
 
     override fun onCleared() {
@@ -292,6 +300,14 @@ class AppDetailViewModel @Inject constructor(
         updateTabState(_componentListUiState.value)
     }
 
+    private fun listenSortStateChange() = viewModelScope.launch {
+        userDataRepository.userData
+            .distinctUntilChanged()
+            .collect {
+                loadComponentList()
+            }
+    }
+
     private fun updateComponentList(packageName: String) = viewModelScope.launch {
         componentRepository.updateComponentList(packageName)
             .catch { _errorState.emit(it.toErrorMessage()) }
@@ -335,6 +351,7 @@ class AppDetailViewModel @Inject constructor(
     ): SnapshotStateList<ComponentItem> {
         val userData = userDataRepository.userData.first()
         val sorting = userData.componentSorting
+        val order = userData.componentSortingOrder
         val serviceHelper = ServiceHelper(packageName)
         if (type == SERVICE) {
             serviceHelper.refresh()
@@ -349,15 +366,29 @@ class AppDetailViewModel @Inject constructor(
                     },
                 )
             }
-            .sortedWith(componentComparator(sorting))
+            .sortedWith(componentComparator(sorting, order))
+            .apply {
+                when (userData.componentShowPriority) {
+                    NONE -> return@apply
+                    DISABLED_COMPONENTS_FIRST -> sortedBy { it.enabled() }
+                    ENABLED_COMPONENTS_FIRST -> sortedByDescending { it.enabled() }
+                }
+            }
             .sortedByDescending { it.isRunning }
             .toMutableStateList()
     }
 
-    private fun componentComparator(sort: ComponentSorting): Comparator<ComponentItem> {
-        return when (sort) {
-            NAME_ASCENDING -> compareBy { it.simpleName }
-            NAME_DESCENDING -> compareByDescending { it.simpleName }
+    private fun componentComparator(
+        sorting: ComponentSorting,
+        order: ComponentSortingOrder,
+    ): Comparator<ComponentItem> {
+        val nameComparator: Comparator<ComponentItem> = when (sorting) {
+            COMPONENT_NAME -> compareBy { it.simpleName }
+            PACKAGE_NAME -> compareBy { it.packageName }
+        }
+        return when (order) {
+            ASCENDING -> nameComparator
+            DESCENDING -> nameComparator.reversed()
         }
     }
 

@@ -19,6 +19,8 @@ package com.merxury.blocker.core.data.respository.userdata
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
+import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.UserPreferenceData
@@ -51,6 +53,10 @@ interface UserDataRepository {
     suspend fun setAppSorting(sorting: AppSorting)
 
     suspend fun setComponentShowPriority(priority: ComponentShowPriority)
+
+    suspend fun setComponentSortingOrder(order: ComponentSortingOrder)
+
+    suspend fun setComponentSorting(sorting: ComponentSorting)
 
     suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean)
 }

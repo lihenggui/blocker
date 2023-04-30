@@ -16,8 +16,7 @@
 
 package com.merxury.blocker.core.model.preference
 
-enum class ComponentShowPriority {
-    NONE,
-    ENABLED_COMPONENTS_FIRST,
-    DISABLED_COMPONENTS_FIRST,
+enum class ComponentSortingOrder {
+    ASCENDING,
+    DESCENDING,
 }
