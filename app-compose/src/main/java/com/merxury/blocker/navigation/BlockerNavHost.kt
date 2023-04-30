@@ -28,8 +28,8 @@ import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
-import com.merxury.blocker.feature.componentsort.navigation.componentSortScreen
-import com.merxury.blocker.feature.componentsort.navigation.navigateToComponentSortScreen
+import com.merxury.blocker.feature.sort.navigation.componentSortScreen
+import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
