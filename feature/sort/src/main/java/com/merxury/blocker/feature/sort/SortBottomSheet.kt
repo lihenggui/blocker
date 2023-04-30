@@ -44,6 +44,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
@@ -127,6 +128,7 @@ fun SortOptionsContent(
         DESCENDING to R.string.descending,
     )
     val priorityList = listOf(
+        NONE to R.string.none,
         DISABLED_COMPONENTS_FIRST to R.string.disabled_first,
         ENABLED_COMPONENTS_FIRST to R.string.enabled_first,
     )

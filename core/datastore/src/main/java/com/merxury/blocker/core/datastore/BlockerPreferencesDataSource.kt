@@ -106,8 +106,10 @@ class BlockerPreferencesDataSource @Inject constructor(
             componentShowPriority = when (it.componentShowPriority) {
                 null,
                 ComponentShowPriorityProto.UNRECOGNIZED,
-                ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST,
-                ->
+                ComponentShowPriorityProto.NONE,
+                -> ComponentShowPriority.NONE
+
+                ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST ->
                     ComponentShowPriority.ENABLED_COMPONENTS_FIRST
 
                 ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST ->
@@ -228,6 +230,8 @@ class BlockerPreferencesDataSource @Inject constructor(
         userPreferences.updateData {
             it.copy {
                 this.componentShowPriority = when (priority) {
+                    ComponentShowPriority.NONE ->
+                        ComponentShowPriorityProto.NONE
                     ComponentShowPriority.ENABLED_COMPONENTS_FIRST ->
                         ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST
 
