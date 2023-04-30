@@ -51,8 +51,8 @@ import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
+import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
@@ -358,7 +358,10 @@ class AppDetailViewModel @Inject constructor(
             .toMutableStateList()
     }
 
-    private fun componentComparator(sorting: ComponentSorting, order: ComponentSortingOrder): Comparator<ComponentItem> {
+    private fun componentComparator(
+        sorting: ComponentSorting,
+        order: ComponentSortingOrder,
+    ): Comparator<ComponentItem> {
         val nameComparator = when (sorting) {
             COMPONENT_NAME -> compareBy<ComponentItem> { it.simpleName }
             PACKAGE_NAME -> compareBy<ComponentItem> { it.packageName }

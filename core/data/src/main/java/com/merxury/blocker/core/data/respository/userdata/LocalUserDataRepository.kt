@@ -20,6 +20,8 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.logAppSortingChanged
 import com.merxury.blocker.core.data.respository.logBackupSystemAppPreferenceChanged
 import com.merxury.blocker.core.data.respository.logComponentShowPriorityPreferenceChanged
+import com.merxury.blocker.core.data.respository.logComponentSortingOrderPreferenceChanged
+import com.merxury.blocker.core.data.respository.logComponentSortingPreferenceChanged
 import com.merxury.blocker.core.data.respository.logControllerTypeChanged
 import com.merxury.blocker.core.data.respository.logDarkThemeConfigChanged
 import com.merxury.blocker.core.data.respository.logDynamicColorPreferenceChanged
@@ -32,6 +34,8 @@ import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
+import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.UserPreferenceData
@@ -96,6 +100,16 @@ class LocalUserDataRepository @Inject constructor(
     override suspend fun setComponentShowPriority(priority: ComponentShowPriority) {
         blockerPreferenceDataSource.setComponentShowPriority(priority)
         analyticsHelper.logComponentShowPriorityPreferenceChanged(priority.name)
+    }
+
+    override suspend fun setComponentSorting(sorting: ComponentSorting) {
+        blockerPreferenceDataSource.setComponentSorting(sorting)
+        analyticsHelper.logComponentSortingPreferenceChanged(sorting.name)
+    }
+
+    override suspend fun setComponentSortingOrder(order: ComponentSortingOrder) {
+        blockerPreferenceDataSource.setComponentSortingOrder(order)
+        analyticsHelper.logComponentSortingOrderPreferenceChanged(order.name)
     }
 
     override suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean) {

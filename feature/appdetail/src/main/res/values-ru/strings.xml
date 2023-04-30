@@ -54,13 +54,4 @@
     <string name="how_to_contribute">Как внести свой вклад?</string>
     <string name="unknown">Неизвестно</string>
     <string name="sort_options">Параметры сортировки</string>
-    <string name="sort_by">Сортировать по</string>
-    <string name="package_name">Имя пакета</string>
-    <string name="component_name">Имя компонента</string>
-    <string name="order">порядок</string>
-    <string name="ascending">Восходящий</string>
-    <string name="descending">Нисходящий</string>
-    <string name="priority">Приоритет</string>
-    <string name="disabled_first">Отключенный первый</string>
-    <string name="enabled_first">Включенный первый</string>
 </resources>

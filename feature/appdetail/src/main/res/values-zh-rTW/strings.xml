@@ -53,13 +53,4 @@
     <string name="how_to_contribute">如何貢獻？</string>
     <string name="unknown">未知</string>
     <string name="sort_options">排序選項</string>
-    <string name="sort_by">排序方式</string>
-    <string name="package_name">包名</string>
-    <string name="component_name">組件名</string>
-    <string name="order">順序</string>
-    <string name="ascending">升序</string>
-    <string name="descending">降序</string>
-    <string name="priority">優先級</string>
-    <string name="disabled_first">禁用組件優先</string>
-    <string name="enabled_first">啟用組件優先</string>
 </resources>

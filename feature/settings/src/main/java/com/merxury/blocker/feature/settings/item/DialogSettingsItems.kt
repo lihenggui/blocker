@@ -166,8 +166,7 @@ fun DialogSettingsItemPreview() {
                 ),
                 selectedValue = "Default" to R.string.theme_default,
                 onValueChange = {},
-                onDismiss = {},
-            )
+            ) {}
         }
     }
 }
