@@ -50,6 +50,7 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
@@ -99,6 +100,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -161,6 +163,7 @@ class AppDetailViewModel @Inject constructor(
         loadAppInfo()
         loadComponentList()
         updateComponentList(appDetailArgs.packageName)
+        listenSortStateChange()
     }
 
     override fun onCleared() {
@@ -295,6 +298,14 @@ class AppDetailViewModel @Inject constructor(
         updateTabState(_componentListUiState.value)
     }
 
+    private fun listenSortStateChange() = viewModelScope.launch {
+        userDataRepository.userData
+            .distinctUntilChanged()
+            .collect {
+                loadComponentList()
+            }
+    }
+
     private fun updateComponentList(packageName: String) = viewModelScope.launch {
         componentRepository.updateComponentList(packageName)
             .catch { _errorState.emit(it.toErrorMessage()) }
@@ -354,6 +365,13 @@ class AppDetailViewModel @Inject constructor(
                 )
             }
             .sortedWith(componentComparator(sorting, order))
+            .sortedByDescending {
+                if (userData.componentShowPriority == DISABLED_COMPONENTS_FIRST) {
+                    !it.enabled()
+                } else {
+                    it.enabled()
+                }
+            }
             .sortedByDescending { it.isRunning }
             .toMutableStateList()
     }
