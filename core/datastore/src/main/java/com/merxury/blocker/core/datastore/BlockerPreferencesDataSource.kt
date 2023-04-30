@@ -22,6 +22,11 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
+import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.UserPreferenceData
@@ -92,22 +97,32 @@ class BlockerPreferencesDataSource @Inject constructor(
             componentSorting = when (it.componentSorting) {
                 null,
                 ComponentSortingProto.UNRECOGNIZED,
-                ComponentSortingProto.COMPONENT_NAME_ASCENDING,
-                ->
-                    ComponentSorting.NAME_ASCENDING
+                ComponentSortingProto.COMPONENT_NAME,
+                -> COMPONENT_NAME
 
-                ComponentSortingProto.COMPONENT_NAME_DESCENDING ->
-                    ComponentSorting.NAME_DESCENDING
+                ComponentSortingProto.PACKAGE_NAME ->
+                    PACKAGE_NAME
             },
             componentShowPriority = when (it.componentShowPriority) {
                 null,
                 ComponentShowPriorityProto.UNRECOGNIZED,
-                ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST,
-                ->
+                ComponentShowPriorityProto.NONE,
+                -> ComponentShowPriority.NONE
+
+                ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST ->
                     ComponentShowPriority.ENABLED_COMPONENTS_FIRST
 
                 ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST ->
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST
+            },
+            componentSortingOrder = when (it.componentSortingOrder) {
+                null,
+                ComponentSortingOrderProto.UNRECOGNIZED,
+                ComponentSortingOrderProto.ASCENDING,
+                -> ASCENDING
+
+                ComponentSortingOrderProto.DESCENDING ->
+                    DESCENDING
             },
             useDynamicColor = it.useDynamicColor,
             showRunningAppsOnTop = it.showRunningAppsOnTop,
@@ -215,11 +230,35 @@ class BlockerPreferencesDataSource @Inject constructor(
         userPreferences.updateData {
             it.copy {
                 this.componentShowPriority = when (priority) {
+                    ComponentShowPriority.NONE ->
+                        ComponentShowPriorityProto.NONE
                     ComponentShowPriority.ENABLED_COMPONENTS_FIRST ->
                         ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST
 
                     ComponentShowPriority.DISABLED_COMPONENTS_FIRST ->
                         ComponentShowPriorityProto.DISABLED_COMPONENTS_FIRST
+                }
+            }
+        }
+    }
+
+    suspend fun setComponentSorting(sorting: ComponentSorting) {
+        userPreferences.updateData {
+            it.copy {
+                this.componentSorting = when (sorting) {
+                    COMPONENT_NAME -> ComponentSortingProto.COMPONENT_NAME
+                    PACKAGE_NAME -> ComponentSortingProto.PACKAGE_NAME
+                }
+            }
+        }
+    }
+
+    suspend fun setComponentSortingOrder(order: ComponentSortingOrder) {
+        userPreferences.updateData {
+            it.copy {
+                this.componentSortingOrder = when (order) {
+                    ASCENDING -> ComponentSortingOrderProto.ASCENDING
+                    DESCENDING -> ComponentSortingOrderProto.DESCENDING
                 }
             }
         }

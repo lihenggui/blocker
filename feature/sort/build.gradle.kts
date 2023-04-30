@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Blocker
+ * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +15,19 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.preference
-
-enum class ComponentShowPriority {
-    NONE,
-    ENABLED_COMPONENTS_FIRST,
-    DISABLED_COMPONENTS_FIRST,
+plugins {
+    id("blocker.android.feature")
+    id("blocker.android.library.compose")
+    id("blocker.android.library.jacoco")
+    id("kotlin-parcelize")
+}
+android {
+    namespace = "com.merxury.blocker.feature.sort"
+}
+dependencies {
+    implementation(projects.core.componentController)
+    implementation(projects.core.rule)
+    implementation(libs.kotlinx.datetime)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.work.ktx)
 }

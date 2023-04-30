@@ -53,4 +53,5 @@
     <string name="add_description_hint">В настоящее время для этого компонента нет доступной информации. Будьте первым, кто внесет свой вклад!</string>
     <string name="how_to_contribute">Как внести свой вклад?</string>
     <string name="unknown">Неизвестно</string>
+    <string name="sort_options">Параметры сортировки</string>
 </resources>
