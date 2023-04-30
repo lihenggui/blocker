@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.componentsort.navigation
+package com.merxury.blocker.feature.sort.navigation
 
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.dialog
-import com.merxury.blocker.feature.componentsort.ComponentSortBottomSheetRoute
+import com.merxury.blocker.feature.sort.ComponentSortBottomSheetRoute
 
 const val componentSortRoute = "component_sort_route"
 fun NavController.navigateToComponentSortScreen(navOptions: NavOptions? = null) {
