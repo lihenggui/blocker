@@ -17,6 +17,6 @@
 package com.merxury.blocker.core.model.preference
 
 enum class ComponentSorting {
-    NAME_ASCENDING,
-    NAME_DESCENDING,
+    COMPONENT_NAME,
+    PACKAGE_NAME,
 }

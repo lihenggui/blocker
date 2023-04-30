@@ -54,4 +54,5 @@
     <string name="add_description_hint">At present, there is no information available for this component. Be the first to contribute!</string>
     <string name="how_to_contribute">How to contribute?</string>
     <string name="unknown">Unknown</string>
+    <string name="sort_options">Sort options</string>
 </resources>

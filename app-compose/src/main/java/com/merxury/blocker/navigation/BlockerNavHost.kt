@@ -36,6 +36,8 @@ import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
+import com.merxury.blocker.feature.sort.navigation.componentSortScreen
+import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
@@ -67,6 +69,7 @@ fun BlockerNavHost(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navController::navigateToComponentDetail,
+            navigatedToComponentSortScreen = navController::navigateToComponentSortScreen,
         )
         generalRuleScreen(
             navigateToRuleDetail = navController::navigateToRuleDetail,
@@ -85,6 +88,9 @@ fun BlockerNavHost(
         )
         supportAndFeedbackScreen(onBackClick)
         componentDetailScreen(
+            dismissHandler = onBackClick,
+        )
+        componentSortScreen(
             dismissHandler = onBackClick,
         )
     }

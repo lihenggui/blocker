@@ -69,6 +69,7 @@ fun NavGraphBuilder.detailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     navigateToComponentDetail: (String) -> Unit,
+    navigatedToComponentSortScreen: () -> Unit,
 ) {
     composable(
         route = "app_detail_route/{$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}",
@@ -82,6 +83,7 @@ fun NavGraphBuilder.detailScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,
+            navigatedToComponentSortScreen = navigatedToComponentSortScreen,
         )
     }
 }

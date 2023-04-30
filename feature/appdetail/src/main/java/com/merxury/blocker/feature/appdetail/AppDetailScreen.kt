@@ -104,6 +104,7 @@ import com.merxury.blocker.core.rule.R.string as rulestring
 fun AppDetailRoute(
     onBackClick: () -> Unit,
     navigateToComponentDetail: (String) -> Unit,
+    navigatedToComponentSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     viewModel: AppDetailViewModel = hiltViewModel(),
@@ -143,6 +144,7 @@ fun AppDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        navigatedToComponentSortScreen = navigatedToComponentSortScreen,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -205,6 +207,7 @@ fun AppDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    navigatedToComponentSortScreen: () -> Unit,
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -236,6 +239,7 @@ fun AppDetailScreen(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
+                navigatedToComponentSortScreen = navigatedToComponentSortScreen,
             )
         }
 
@@ -269,6 +273,7 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    navigatedToComponentSortScreen: () -> Unit,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -319,6 +324,7 @@ fun AppDetailContent(
                         onSearchModeChange = onSearchModeChanged,
                         blockAllComponents = blockAllComponents,
                         enableAllComponents = enableAllComponents,
+                        navigatedToComponentSortScreen = navigatedToComponentSortScreen,
                     )
                 },
                 subtitle = app.packageName,
@@ -371,6 +377,7 @@ fun AppDetailAppBarActions(
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
+    navigatedToComponentSortScreen: () -> Unit,
 ) {
     val actions = appBarUiState.actions
     if (actions.contains(SEARCH)) {
@@ -397,6 +404,7 @@ fun AppDetailAppBarActions(
         MoreActionMenu(
             blockAllComponents = blockAllComponents,
             enableAllComponents = enableAllComponents,
+            onAdvanceSortClick = navigatedToComponentSortScreen,
         )
     }
 }
@@ -543,6 +551,7 @@ fun AppDetailScreenPreview() {
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
+                navigatedToComponentSortScreen = {},
             )
         }
     }
@@ -589,6 +598,7 @@ fun AppDetailScreenCollapsedPreview() {
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
+                navigatedToComponentSortScreen = {},
             )
         }
     }

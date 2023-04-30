@@ -52,4 +52,5 @@
     <string name="add_description_hint">目前沒有可用的組件信息。成為第一個貢獻者吧！</string>
     <string name="how_to_contribute">如何貢獻？</string>
     <string name="unknown">未知</string>
+    <string name="sort_options">排序選項</string>
 </resources>
