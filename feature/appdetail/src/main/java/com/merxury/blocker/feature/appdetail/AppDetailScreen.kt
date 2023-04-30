@@ -39,11 +39,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -68,9 +66,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.preference.ComponentShowPriority
-import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FINISHED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
@@ -109,6 +104,7 @@ import com.merxury.blocker.core.rule.R.string as rulestring
 fun AppDetailRoute(
     onBackClick: () -> Unit,
     navigateToComponentDetail: (String) -> Unit,
+    navigatedToComponentSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     viewModel: AppDetailViewModel = hiltViewModel(),
@@ -148,6 +144,7 @@ fun AppDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        navigatedToComponentSortScreen = navigatedToComponentSortScreen,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -210,6 +207,7 @@ fun AppDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    navigatedToComponentSortScreen: () -> Unit,
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -241,6 +239,7 @@ fun AppDetailScreen(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
+                navigatedToComponentSortScreen = navigatedToComponentSortScreen,
             )
         }
 
@@ -274,6 +273,7 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    navigatedToComponentSortScreen: () -> Unit,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -324,6 +324,7 @@ fun AppDetailContent(
                         onSearchModeChange = onSearchModeChanged,
                         blockAllComponents = blockAllComponents,
                         enableAllComponents = enableAllComponents,
+                        navigatedToComponentSortScreen = navigatedToComponentSortScreen,
                     )
                 },
                 subtitle = app.packageName,
@@ -371,17 +372,13 @@ fun AppDetailContent(
 
 @Composable
 fun AppDetailAppBarActions(
-    modifier: Modifier = Modifier,
     appBarUiState: AppBarUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
-    onSortByClick: (ComponentSorting) -> Unit = {},
-    onSortOrderClick: (ComponentSortingOrder) -> Unit = {},
-    onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
+    navigatedToComponentSortScreen: () -> Unit,
 ) {
-    var openSortOption by rememberSaveable { mutableStateOf(false) }
     val actions = appBarUiState.actions
     if (actions.contains(SEARCH)) {
         if (appBarUiState.isSearchMode) {
@@ -407,16 +404,7 @@ fun AppDetailAppBarActions(
         MoreActionMenu(
             blockAllComponents = blockAllComponents,
             enableAllComponents = enableAllComponents,
-            onAdvanceSortClick = { openSortOption = !openSortOption },
-        )
-    }
-    if (openSortOption) {
-        SortOptionsBottomSheetRoute(
-            dismissHandler = { openSortOption = false },
-            modifier = modifier,
-            onSortByClick = onSortByClick,
-            onSortOrderClick = onSortOrderClick,
-            onShowPriorityClick = onShowPriorityClick,
+            onAdvanceSortClick = navigatedToComponentSortScreen,
         )
     }
 }
@@ -563,6 +551,7 @@ fun AppDetailScreenPreview() {
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
+                navigatedToComponentSortScreen = {},
             )
         }
     }
@@ -609,6 +598,7 @@ fun AppDetailScreenCollapsedPreview() {
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
+                navigatedToComponentSortScreen = {},
             )
         }
     }

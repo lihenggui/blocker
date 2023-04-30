@@ -55,13 +55,4 @@
     <string name="how_to_contribute">How to contribute?</string>
     <string name="unknown">Unknown</string>
     <string name="sort_options">Sort options</string>
-    <string name="sort_by">Sort by</string>
-    <string name="package_name">Package name</string>
-    <string name="component_name">Component name</string>
-    <string name="order">Order</string>
-    <string name="ascending">Ascending</string>
-    <string name="descending">Descending</string>
-    <string name="priority">Priority</string>
-    <string name="disabled_first">Disabled first</string>
-    <string name="enabled_first">Enabled first</string>
 </resources>

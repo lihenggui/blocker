@@ -36,37 +36,35 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 @Composable
 fun <T> SegmentedButtons(
     items: List<Pair<T, Int>>,
-    defaultSelectedItemIndex: Int = 0,
+    selectedValue: T,
     cornerRadius: Int = 50,
     @ColorRes color: Color = MaterialTheme.colorScheme.primary,
     onItemSelection: (item: T) -> Unit,
 ) {
-    val selectedIndex = remember { mutableStateOf(defaultSelectedItemIndex) }
-
+    val selectedItem = remember { mutableStateOf(selectedValue) }
     Row(
         modifier = Modifier.padding(horizontal = 16.dp),
     ) {
         items.forEachIndexed { index, item ->
-            val value = item.first
             OutlinedButton(
                 modifier = when (index) {
                     0 -> {
                         Modifier
                             .wrapContentSize()
                             .offset(0.dp, 0.dp)
-                            .zIndex(if (selectedIndex.value == index) 1f else 0f)
+                            .zIndex(if (selectedItem.value == item.first) 1f else 0f)
                     }
 
                     else -> {
                         Modifier
                             .wrapContentSize()
                             .offset((-1 * index).dp, 0.dp)
-                            .zIndex(if (selectedIndex.value == index) 1f else 0f)
+                            .zIndex(if (selectedItem.value == item.first) 1f else 0f)
                     }
                 },
                 onClick = {
-                    selectedIndex.value = index
-                    onItemSelection(value)
+                    selectedItem.value = item.first
+                    onItemSelection(item.first)
                 },
                 shape = when (index) {
                     0 -> RoundedCornerShape(
@@ -92,13 +90,13 @@ fun <T> SegmentedButtons(
                 },
                 border = BorderStroke(
                     1.dp,
-                    if (selectedIndex.value == index) {
+                    if (selectedItem.value == item.first) {
                         color
                     } else {
                         color.copy(alpha = 0.75f)
                     },
                 ),
-                colors = if (selectedIndex.value == index) {
+                colors = if (selectedItem.value == item.first) {
                     ButtonDefaults.outlinedButtonColors(
                         containerColor = color,
                     )
@@ -108,7 +106,7 @@ fun <T> SegmentedButtons(
             ) {
                 Text(
                     text = stringResource(id = item.second),
-                    color = if (selectedIndex.value == index) {
+                    color = if (selectedItem.value == item.first) {
                         Color.White
                     } else {
                         color.copy(alpha = 0.9f)
@@ -125,6 +123,10 @@ fun <T> SegmentedButtons(
 fun SegmentedButtonsPreview() {
     val list = listOf(0 to R.string.back, 1 to R.string.back)
     BlockerTheme {
-        SegmentedButtons(items = list, onItemSelection = { })
+        SegmentedButtons(
+            items = list,
+            selectedValue = 1,
+            onItemSelection = { },
+        )
     }
 }

@@ -95,6 +95,7 @@ dependencies {
     implementation(projects.feature.search)
     implementation(projects.feature.settings)
     implementation(projects.feature.ruledetail)
+    implementation(projects.feature.componentsort)
 
     implementation(projects.core.analytics)
     implementation(projects.core.ui)

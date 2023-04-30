@@ -120,6 +120,26 @@ fun AnalyticsHelper.logComponentShowPriorityPreferenceChanged(componentShowPrior
         ),
     )
 
+fun AnalyticsHelper.logComponentSortingPreferenceChanged(componentSorting: String) =
+    logEvent(
+        AnalyticsEvent(
+            type = "component_sorting_preference_changed",
+            extras = listOf(
+                Param(key = "component_sorting_preference", value = componentSorting),
+            ),
+        ),
+    )
+
+fun AnalyticsHelper.logComponentSortingOrderPreferenceChanged(componentSortingOrder: String) =
+    logEvent(
+        AnalyticsEvent(
+            type = "component_sorting_order_preference_changed",
+            extras = listOf(
+                Param(key = "component_sorting_order_preference", value = componentSortingOrder),
+            ),
+        ),
+    )
+
 fun AnalyticsHelper.logShowRunningAppsOnTopPreferenceChanged(showRunningAppsOnTop: Boolean) =
     logEvent(
         AnalyticsEvent(
