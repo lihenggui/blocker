@@ -40,8 +40,14 @@ import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
+import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -79,16 +85,16 @@ fun SortOptionsContent(
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
     val sortModeList = listOf(
-        stringResource(id = R.string.component_name),
-        stringResource(id = R.string.package_name),
+        COMPONENT_NAME to R.string.component_name,
+        PACKAGE_NAME to R.string.package_name,
     )
     val sortByRuleList = listOf(
-        stringResource(id = R.string.ascending),
-        stringResource(id = R.string.descending),
+        ASCENDING to R.string.ascending,
+        DESCENDING to R.string.descending,
     )
     val priorityList = listOf(
-        stringResource(id = R.string.disabled_first),
-        stringResource(id = R.string.enabled_first),
+        DISABLED_COMPONENTS_FIRST to R.string.disabled_first,
+        ENABLED_COMPONENTS_FIRST to R.string.enabled_first,
     )
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -100,24 +106,19 @@ fun SortOptionsContent(
         ItemHeader(title = stringResource(id = R.string.sort_by))
         SegmentedButtons(
             items = sortModeList,
-            cornerRadius = 50,
-            onItemSelection = { },
+            onItemSelection = onSortByClick,
         )
-        Spacer(modifier = Modifier.height(16.dp))
         ItemHeader(title = stringResource(id = R.string.order))
         SegmentedButtons(
             items = sortByRuleList,
-            cornerRadius = 50,
-            onItemSelection = { },
+            onItemSelection = onSortOrderClick,
         )
-        Spacer(modifier = Modifier.height(16.dp))
         ItemHeader(title = stringResource(id = R.string.priority))
         SegmentedButtons(
             items = priorityList,
-            cornerRadius = 50,
-            onItemSelection = { },
+            onItemSelection = onShowPriorityClick,
         )
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
