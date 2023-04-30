@@ -24,4 +24,5 @@
     <string name="priority">Приоритет</string>
     <string name="disabled_first">Отключенный первый</string>
     <string name="enabled_first">Включенный первый</string>
+    <string name="none">Нет</string>
 </resources>

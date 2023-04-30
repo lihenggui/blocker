@@ -24,4 +24,5 @@
     <string name="priority">优先级</string>
     <string name="disabled_first">禁用优先</string>
     <string name="enabled_first">启用优先</string>
+    <string name="none">无</string>
 </resources>
