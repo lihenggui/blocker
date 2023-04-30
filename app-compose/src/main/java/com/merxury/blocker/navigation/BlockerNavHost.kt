@@ -28,8 +28,6 @@ import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
-import com.merxury.blocker.feature.sort.navigation.componentSortScreen
-import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
@@ -38,6 +36,8 @@ import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
+import com.merxury.blocker.feature.sort.navigation.componentSortScreen
+import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
