@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.componentsort
+package com.merxury.blocker.feature.sort
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -51,18 +51,18 @@ import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.feature.componentsort.viewmodel.ComponentSortInfo
-import com.merxury.blocker.feature.componentsort.viewmodel.ComponentSortInfoUiState
-import com.merxury.blocker.feature.componentsort.viewmodel.ComponentSortInfoUiState.Loading
-import com.merxury.blocker.feature.componentsort.viewmodel.ComponentSortInfoUiState.Success
-import com.merxury.blocker.feature.componentsort.viewmodel.ComponentSortViewModel
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfo
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Loading
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Success
+import com.merxury.blocker.feature.sort.viewmodel.SortViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ComponentSortBottomSheetRoute(
     dismissHandler: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ComponentSortViewModel = hiltViewModel(),
+    viewModel: SortViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.componentSortInfoUiState.collectAsStateWithLifecycle()
     val skipPartiallyExpanded by remember { mutableStateOf(false) }

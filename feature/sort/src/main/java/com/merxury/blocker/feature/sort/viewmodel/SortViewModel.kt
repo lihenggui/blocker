@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.componentsort.viewmodel
+package com.merxury.blocker.feature.sort.viewmodel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
@@ -26,8 +27,8 @@ import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
-import com.merxury.blocker.feature.componentsort.viewmodel.ComponentSortInfoUiState.Loading
-import com.merxury.blocker.feature.componentsort.viewmodel.ComponentSortInfoUiState.Success
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Loading
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,10 +37,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class ComponentSortViewModel @Inject constructor(
-    appContext: Application,
+class SortViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
-) : AndroidViewModel(appContext) {
+) : ViewModel() {
 
     private val _componentSortInfoUiState: MutableStateFlow<ComponentSortInfoUiState> =
         MutableStateFlow(Loading)

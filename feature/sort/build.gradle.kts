@@ -22,7 +22,7 @@ plugins {
     id("kotlin-parcelize")
 }
 android {
-    namespace = "com.merxury.blocker.feature.componentsort"
+    namespace = "com.merxury.blocker.feature.sort"
 }
 dependencies {
     implementation(projects.core.componentController)
