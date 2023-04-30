@@ -24,4 +24,5 @@
     <string name="priority">Priority</string>
     <string name="disabled_first">Disabled first</string>
     <string name="enabled_first">Enabled first</string>
+    <string name="none">None</string>
 </resources>

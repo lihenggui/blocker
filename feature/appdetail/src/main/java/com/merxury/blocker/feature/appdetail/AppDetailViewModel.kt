@@ -51,6 +51,8 @@ import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
@@ -365,11 +367,11 @@ class AppDetailViewModel @Inject constructor(
                 )
             }
             .sortedWith(componentComparator(sorting, order))
-            .sortedByDescending {
-                if (userData.componentShowPriority == DISABLED_COMPONENTS_FIRST) {
-                    !it.enabled()
-                } else {
-                    it.enabled()
+            .apply {
+                when (userData.componentShowPriority) {
+                    NONE -> return@apply
+                    DISABLED_COMPONENTS_FIRST -> sortedBy { it.enabled() }
+                    ENABLED_COMPONENTS_FIRST -> sortedByDescending { it.enabled() }
                 }
             }
             .sortedByDescending { it.isRunning }
@@ -380,9 +382,9 @@ class AppDetailViewModel @Inject constructor(
         sorting: ComponentSorting,
         order: ComponentSortingOrder,
     ): Comparator<ComponentItem> {
-        val nameComparator = when (sorting) {
-            COMPONENT_NAME -> compareBy<ComponentItem> { it.simpleName }
-            PACKAGE_NAME -> compareBy<ComponentItem> { it.packageName }
+        val nameComparator: Comparator<ComponentItem> = when (sorting) {
+            COMPONENT_NAME -> compareBy { it.simpleName }
+            PACKAGE_NAME -> compareBy { it.packageName }
         }
         return when (order) {
             ASCENDING -> nameComparator
