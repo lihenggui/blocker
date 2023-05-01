@@ -146,9 +146,11 @@ class AppListViewModel @Inject constructor(
                     )
                 }.sortedWith(
                     appComparator(sortType),
-                ).apply {
+                ).let { sortedList ->
                     if (preference.showRunningAppsOnTop) {
-                        sortedByDescending { it.isRunning }
+                        sortedList.sortedByDescending { it.isRunning }
+                    } else {
+                        sortedList
                     }
                 }.toMutableStateList()
                 _appListFlow.value = _appList
@@ -187,6 +189,9 @@ class AppListViewModel @Inject constructor(
             .collect { sorting ->
                 val newList = _appList.toMutableList()
                 newList.sortWith(appComparator(sorting))
+                if (userDataRepository.userData.first().showRunningAppsOnTop) {
+                    newList.sortByDescending { it.isRunning }
+                }
                 _appList = newList.toMutableStateList()
                 _appListFlow.value = _appList
             }
