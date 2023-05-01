@@ -25,7 +25,7 @@ jobs:
 
       - name: Run instrumented tests with GMD
         run: ./gradlew cleanManagedDevices --unused-only &&
-          ./gradlew ciDemoDebugAndroidTest -Dorg.gradle.workers.max=1
+          ./gradlew ciFossDebugAndroidTest -Dorg.gradle.workers.max=1
           -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect" -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
 
       - name: Upload test reports
