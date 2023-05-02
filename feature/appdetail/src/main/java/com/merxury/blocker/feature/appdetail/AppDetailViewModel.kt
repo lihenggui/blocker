@@ -53,10 +53,8 @@ import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
-import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
@@ -366,30 +364,27 @@ class AppDetailViewModel @Inject constructor(
                     },
                 )
             }
-            .sortedWith(componentComparator(sorting, order))
-            .apply {
-                when (userData.componentShowPriority) {
-                    NONE -> return@apply
-                    DISABLED_COMPONENTS_FIRST -> sortedBy { it.enabled() }
-                    ENABLED_COMPONENTS_FIRST -> sortedByDescending { it.enabled() }
+            .let { origList ->
+                when (sorting) {
+                    COMPONENT_NAME -> when (order) {
+                        ASCENDING -> origList.sortedBy { it.simpleName.lowercase() }
+                        DESCENDING -> origList.sortedByDescending { it.simpleName.lowercase() }
+                    }
+
+                    PACKAGE_NAME -> when (order) {
+                        ASCENDING -> origList.sortedBy { it.name.lowercase() }
+                        DESCENDING -> origList.sortedByDescending { it.name.lowercase() }
+                    }
                 }
             }
-            .sortedByDescending { it.isRunning }
+            .let { sortedList ->
+                when (userData.componentShowPriority) {
+                    NONE -> sortedList
+                    DISABLED_COMPONENTS_FIRST -> sortedList.sortedBy { it.enabled() }
+                    ENABLED_COMPONENTS_FIRST -> sortedList.sortedByDescending { it.enabled() }
+                }
+            }
             .toMutableStateList()
-    }
-
-    private fun componentComparator(
-        sorting: ComponentSorting,
-        order: ComponentSortingOrder,
-    ): Comparator<ComponentItem> {
-        val nameComparator: Comparator<ComponentItem> = when (sorting) {
-            COMPONENT_NAME -> compareBy { it.simpleName }
-            PACKAGE_NAME -> compareBy { it.packageName }
-        }
-        return when (order) {
-            ASCENDING -> nameComparator
-            DESCENDING -> nameComparator.reversed()
-        }
     }
 
     private fun updateSearchKeyword() {
