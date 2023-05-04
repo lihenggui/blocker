@@ -26,6 +26,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,7 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
-import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
@@ -47,13 +50,13 @@ import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
-import com.merxury.blocker.feature.applist.component.TopAppBarSortMenu
 
 @Composable
 fun AppListRoute(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
+    navigateTooAppSortScreen: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
@@ -71,10 +74,10 @@ fun AppListRoute(
         onUninstallClick = viewModel::uninstall,
         onEnableClick = viewModel::enable,
         onDisableClick = viewModel::disable,
-        onSortingUpdate = viewModel::updateSorting,
         onServiceStateUpdate = viewModel::updateServiceStatus,
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
+        navigateTooAppSortScreen = navigateTooAppSortScreen,
         modifier = modifier,
     )
     if (errorState != null) {
@@ -107,7 +110,7 @@ fun AppListScreen(
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
     onServiceStateUpdate: (String, Int) -> Unit,
-    onSortingUpdate: (AppSorting) -> Unit,
+    navigateTooAppSortScreen: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     modifier: Modifier = Modifier,
@@ -117,7 +120,13 @@ fun AppListScreen(
             BlockerTopAppBar(
                 title = stringResource(id = string.app_name),
                 actions = {
-                    TopAppBarSortMenu(onSortingUpdate)
+                    IconButton(onClick = navigateTooAppSortScreen) {
+                        Icon(
+                            imageVector = BlockerIcons.Sort,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                     TopAppBarMoreMenu(
                         navigateToSettings = navigateToSettings,
                         navigateToFeedback = navigateToSupportAndFeedback,
@@ -140,22 +149,20 @@ fun AppListScreen(
         ) {
             val appListTestTag = "appList:applicationList"
             when (uiState) {
-                is AppListUiState.Initializing ->
-                    InitializingScreen(processingName = uiState.processingName)
+                is AppListUiState.Initializing -> InitializingScreen(processingName = uiState.processingName)
 
-                is AppListUiState.Success ->
-                    AppList(
-                        appList = appList,
-                        onAppItemClick = onAppItemClick,
-                        onClearCacheClick = onClearCacheClick,
-                        onClearDataClick = onClearDataClick,
-                        onForceStopClick = onForceStopClick,
-                        onUninstallClick = onUninstallClick,
-                        onEnableClick = onEnableClick,
-                        onDisableClick = onDisableClick,
-                        onServiceStateUpdate = onServiceStateUpdate,
-                        modifier = modifier.testTag(appListTestTag),
-                    )
+                is AppListUiState.Success -> AppList(
+                    appList = appList,
+                    onAppItemClick = onAppItemClick,
+                    onClearCacheClick = onClearCacheClick,
+                    onClearDataClick = onClearDataClick,
+                    onForceStopClick = onForceStopClick,
+                    onUninstallClick = onUninstallClick,
+                    onEnableClick = onEnableClick,
+                    onDisableClick = onDisableClick,
+                    onServiceStateUpdate = onServiceStateUpdate,
+                    modifier = modifier.testTag(appListTestTag),
+                )
 
                 is AppListUiState.Error -> ErrorScreen(uiState.error)
             }

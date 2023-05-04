@@ -32,6 +32,7 @@ fun NavGraphBuilder.appListScreen(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
+    navigateTooAppSortScreen: () -> Unit,
 ) {
     composable(
         route = appListRoute,
@@ -40,6 +41,7 @@ fun NavGraphBuilder.appListScreen(
             navigateToAppDetail = navigateToAppDetail,
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
+            navigateTooAppSortScreen = navigateTooAppSortScreen,
         )
     }
 }

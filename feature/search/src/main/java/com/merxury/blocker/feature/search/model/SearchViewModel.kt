@@ -34,12 +34,12 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_DESCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
+import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
+import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
+import com.merxury.blocker.core.model.preference.AppSorting.NAME
+import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppItem
@@ -133,6 +133,7 @@ class SearchViewModel @Inject constructor(
             .combineTransform(userDataRepository.userData) { list, userSetting ->
                 val showSystemApps = userSetting.showSystemApps
                 val sorting = userSetting.appSorting
+                val order = userSetting.appSortingOrder
                 val filteredList = list.filter { app ->
                     if (showSystemApps) {
                         true
@@ -140,14 +141,7 @@ class SearchViewModel @Inject constructor(
                         !app.isSystem
                     }
                 }.sortedWith(
-                    when (sorting) {
-                        NAME_ASCENDING -> compareBy { it.label }
-                        NAME_DESCENDING -> compareByDescending { it.label }
-                        FIRST_INSTALL_TIME_ASCENDING -> compareBy { it.firstInstallTime }
-                        FIRST_INSTALL_TIME_DESCENDING -> compareByDescending { it.firstInstallTime }
-                        LAST_UPDATE_TIME_ASCENDING -> compareBy { it.lastUpdateTime }
-                        LAST_UPDATE_TIME_DESCENDING -> compareByDescending { it.lastUpdateTime }
-                    },
+                    appComparator(sorting, order),
                 ).map { app ->
                     val packageInfo = pm.getPackageInfoCompat(app.packageName, 0)
                     app.toAppItem(packageInfo)
@@ -232,6 +226,24 @@ class SearchViewModel @Inject constructor(
                 }
         }
     }
+
+    private fun appComparator(
+        sortType: AppSorting,
+        sortOrder: SortingOrder,
+    ): Comparator<InstalledApp> =
+        if (sortOrder == SortingOrder.ASCENDING) {
+            when (sortType) {
+                NAME -> compareBy { it.label.lowercase() }
+                FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
+                LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
+            }
+        } else {
+            when (sortType) {
+                NAME -> compareByDescending { it.label.lowercase() }
+                FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
+                LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
+            }
+        }
 
     fun resetSearchState() {
         _searchBoxUiState.update { SearchBoxUiState() }

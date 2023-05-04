@@ -23,6 +23,7 @@ import "com/merxury/blocker/data/app_sorting.proto";
 import "com/merxury/blocker/data/component_sorting.proto";
 import "com/merxury/blocker/data/component_sorting_order.proto";
 import "com/merxury/blocker/data/component_show_priority.proto";
+import "com/merxury/blocker/data/app_sorting_order.proto";
 
 option java_package = "com.merxury.blocker.core.datastore";
 option java_multiple_files = true;
@@ -37,9 +38,10 @@ message UserPreferences {
     bool show_system_apps = 7;
     bool show_service_info = 8;
     AppSortingProto app_sorting = 9;
-    ComponentSortingProto component_sorting = 10;
-    ComponentShowPriorityProto component_show_priority = 11;
-    bool use_dynamic_color = 12;
-    bool show_running_apps_on_top = 13;
-    ComponentSortingOrderProto component_sorting_order = 14;
+    AppSortingOrderProto app_sorting_order = 10;
+    ComponentSortingProto component_sorting = 11;
+    ComponentShowPriorityProto component_show_priority = 12;
+    bool use_dynamic_color = 13;
+    bool show_running_apps_on_top = 14;
+    ComponentSortingOrderProto component_sorting_order = 15;
 }
