@@ -110,8 +110,8 @@ fun AppSortOptionsContent(
 ) {
     val sortModeList = listOf(
         NAME to R.string.name,
-        AppSorting.FIRST_INSTALL_TIME to R.string.installation_date,
-        AppSorting.LAST_UPDATE_TIME to R.string.last_update_time,
+        AppSorting.FIRST_INSTALL_TIME to R.string.install_date,
+        AppSorting.LAST_UPDATE_TIME to R.string.last_updated,
     )
     val sortByRuleList = listOf(
         ASCENDING to R.string.ascending,

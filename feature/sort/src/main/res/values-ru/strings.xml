@@ -26,6 +26,6 @@
     <string name="enabled_first">Включенный первый</string>
     <string name="none">Нет</string>
     <string name="name">Имя</string>
-    <string name="installation_date">Дата первой установки</string>
-    <string name="last_update_time">Время последнего обновления</string>
+    <string name="install_date">Дата установки</string>
+    <string name="last_updated">Последнее обновление</string>
 </resources>
