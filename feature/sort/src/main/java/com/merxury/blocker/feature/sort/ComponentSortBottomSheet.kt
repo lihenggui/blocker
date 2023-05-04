@@ -48,9 +48,9 @@ import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
+import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfo
 import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState
@@ -91,7 +91,7 @@ fun ComponentSortBottomSheet(
     uiState: ComponentSortInfoUiState,
     modifier: Modifier = Modifier,
     onSortByClick: (ComponentSorting) -> Unit,
-    onSortOrderClick: (ComponentSortingOrder) -> Unit,
+    onSortOrderClick: (SortingOrder) -> Unit,
     onShowPriorityClick: (ComponentShowPriority) -> Unit,
 ) {
     when (uiState) {
@@ -116,7 +116,7 @@ fun SortOptionsContent(
     uiState: Success,
     modifier: Modifier = Modifier,
     onSortByClick: (ComponentSorting) -> Unit,
-    onSortOrderClick: (ComponentSortingOrder) -> Unit,
+    onSortOrderClick: (SortingOrder) -> Unit,
     onShowPriorityClick: (ComponentShowPriority) -> Unit,
 ) {
     val sortModeList = listOf(

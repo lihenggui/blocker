@@ -55,8 +55,8 @@ import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_C
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
+import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES

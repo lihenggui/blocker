@@ -23,8 +23,8 @@ import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Loading
 import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -61,7 +61,7 @@ class SortViewModel @Inject constructor(
         userDataRepository.setComponentSorting(sorting)
     }
 
-    fun updateComponentSortingOrder(order: ComponentSortingOrder) = viewModelScope.launch {
+    fun updateComponentSortingOrder(order: SortingOrder) = viewModelScope.launch {
         userDataRepository.setComponentSortingOrder(order)
     }
 
@@ -77,6 +77,6 @@ sealed interface ComponentSortInfoUiState {
 
 data class ComponentSortInfo(
     val sorting: ComponentSorting = COMPONENT_NAME,
-    val order: ComponentSortingOrder = ASCENDING,
+    val order: SortingOrder = ASCENDING,
     val priority: ComponentShowPriority = DISABLED_COMPONENTS_FIRST,
 )
