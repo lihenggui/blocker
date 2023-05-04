@@ -130,3 +130,16 @@ fun SegmentedButtonsPreview() {
         )
     }
 }
+
+@Composable
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, name = "Light theme")
+fun SegmentedButtonsThreePreview() {
+    val list = listOf(0 to R.string.back, 1 to R.string.back, 2 to R.string.back)
+    BlockerTheme {
+        SegmentedButtons(
+            items = list,
+            selectedValue = 1,
+            onItemSelection = { },
+        )
+    }
+}
