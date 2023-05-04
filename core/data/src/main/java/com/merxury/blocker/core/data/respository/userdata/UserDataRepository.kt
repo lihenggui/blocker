@@ -20,9 +20,9 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.Flow
 
@@ -52,9 +52,11 @@ interface UserDataRepository {
 
     suspend fun setAppSorting(sorting: AppSorting)
 
+    suspend fun setAppSortingOrder(order: SortingOrder)
+
     suspend fun setComponentShowPriority(priority: ComponentShowPriority)
 
-    suspend fun setComponentSortingOrder(order: ComponentSortingOrder)
+    suspend fun setComponentSortingOrder(order: SortingOrder)
 
     suspend fun setComponentSorting(sorting: ComponentSorting)
 

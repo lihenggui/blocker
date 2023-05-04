@@ -16,8 +16,7 @@
 
 package com.merxury.blocker.core.model.preference
 
-enum class AppSorting {
-    NAME,
-    FIRST_INSTALL_TIME,
-    LAST_UPDATE_TIME,
+enum class SortingOrder {
+    ASCENDING,
+    DESCENDING,
 }
