@@ -187,12 +187,11 @@ class AppListViewModel @Inject constructor(
 
     private fun listenSortingChanges() = viewModelScope.launch(cpuDispatcher) {
         userDataRepository.userData
-            .map { it.appSorting }
             .distinctUntilChanged()
             .drop(1)
-            .collect { sorting ->
+            .collect {
                 val newList = _appList.toMutableList()
-                newList.sortWith(appComparator(sorting))
+                newList.sortWith(appComparator(it.appSorting, it.appSortingOrder))
                 if (userDataRepository.userData.first().showRunningAppsOnTop) {
                     newList.sortByDescending { it.isRunning }
                 }
@@ -213,7 +212,9 @@ class AppListViewModel @Inject constructor(
                 } else {
                     val sorting = userDataRepository.userData.first()
                         .appSorting
-                    newList.sortWith(appComparator(sorting))
+                    val order = userDataRepository.userData.first()
+                        .appSortingOrder
+                    newList.sortWith(appComparator(sorting, order))
                 }
                 _appList = newList.toMutableStateList()
                 _appListFlow.value = _appList
