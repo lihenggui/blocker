@@ -25,4 +25,7 @@
     <string name="disabled_first">禁用优先</string>
     <string name="enabled_first">启用优先</string>
     <string name="none">无</string>
+    <string name="name">姓名</string>
+    <string name="install_date">安装日期</string>
+    <string name="last_updated">最后更新</string>
 </resources>
