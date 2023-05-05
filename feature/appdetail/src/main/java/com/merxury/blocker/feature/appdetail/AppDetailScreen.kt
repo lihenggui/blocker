@@ -440,7 +440,7 @@ fun AppDetailTabContent(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
 ) {
-    val pagerState = rememberPagerState(tabState.currentIndex)
+    val pagerState = rememberPagerState(initialPage = tabState.currentIndex)
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = modifier,
@@ -470,7 +470,7 @@ fun AppDetailTabContent(
             }
         }
         HorizontalPager(
-            pageCount = tabState.itemCount.size,
+            pageCount = tabState.items.size,
             state = pagerState,
         ) {
             when (pagerState.currentPage) {
@@ -524,6 +524,9 @@ fun AppDetailTabContent(
                 )
             }
         }
+    }
+    LaunchedEffect(pagerState.currentPage) {
+        switchTab(tabState.items[pagerState.currentPage])
     }
 }
 

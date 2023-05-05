@@ -377,7 +377,7 @@ fun RuleDetailTabContent(
             }
         }
         HorizontalPager(
-            pageCount = tabState.itemCount.size,
+            pageCount = tabState.items.size,
             state = pagerState,
         ) {
             when (pagerState.currentPage) {
