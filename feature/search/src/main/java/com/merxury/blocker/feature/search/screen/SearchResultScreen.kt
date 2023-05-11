@@ -68,7 +68,7 @@ fun SearchResultScreen(
     onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
-    val pagerState = rememberPagerState(initialPage = tabState.currentIndex)
+    val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = modifier.fillMaxSize(),
@@ -98,10 +98,7 @@ fun SearchResultScreen(
                 )
             }
         }
-        HorizontalPager(
-            pageCount = tabState.items.size,
-            state = pagerState,
-        ) {
+        HorizontalPager(state = pagerState) {
             when (it) {
                 0 -> AppSearchResultContent(
                     appList = appList,

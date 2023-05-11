@@ -19,8 +19,6 @@ package com.merxury.blocker.feature.appdetail
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
@@ -142,14 +140,6 @@ class AppDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
-    @OptIn(ExperimentalFoundationApi::class) private val _pagerState: MutableStateFlow<PagerState> =
-        MutableStateFlow(
-            PagerState(
-                initialPage = _tabState.value.currentIndex,
-            ),
-        )
-    @OptIn(ExperimentalFoundationApi::class) val pagerState: StateFlow<PagerState> =
-        _pagerState.asStateFlow()
     private var currentFilterKeyword = appDetailArgs.searchKeyword
         .map { it.trim() }
         .filterNot { it.isEmpty() }
@@ -179,13 +169,6 @@ class AppDetailViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         deinitShizuku()
-    }
-
-    @OptIn(ExperimentalFoundationApi::class)
-    private fun updatePagerState() {
-        _pagerState.value = PagerState(
-            initialPage = _tabState.value.currentIndex,
-        )
     }
 
     fun initShizuku() = viewModelScope.launch {
@@ -241,7 +224,6 @@ class AppDetailViewModel @Inject constructor(
                 ),
             )
         }
-        updatePagerState()
     }
 
     private suspend fun filterAndUpdateComponentList(keyword: String) {
@@ -432,7 +414,6 @@ class AppDetailViewModel @Inject constructor(
             _tabState.update {
                 it.copy(selectedItem = newTab)
             }
-            updatePagerState()
             _appBarUiState.update {
                 it.copy(actions = getAppBarAction())
             }
