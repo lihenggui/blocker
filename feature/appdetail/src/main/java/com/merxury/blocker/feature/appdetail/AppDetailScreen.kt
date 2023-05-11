@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -104,7 +103,6 @@ import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System
 import com.merxury.blocker.core.rule.R.string as rulestring
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppDetailRoute(
     onBackClick: () -> Unit,
@@ -115,7 +113,6 @@ fun AppDetailRoute(
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val pagerState by viewModel.pagerState.collectAsStateWithLifecycle()
     val appInfoUiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
@@ -151,7 +148,6 @@ fun AppDetailRoute(
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         navigatedToComponentSortScreen = navigatedToComponentSortScreen,
-        pagerState = pagerState,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -190,14 +186,12 @@ fun AppDetailRoute(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppDetailScreen(
     appInfoUiState: AppInfoUiState,
     topAppBarUiState: AppBarUiState,
     componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
-    pagerState: PagerState,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
@@ -250,7 +244,6 @@ fun AppDetailScreen(
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
                 navigatedToComponentSortScreen = navigatedToComponentSortScreen,
-                pagerState = pagerState,
             )
         }
 
@@ -259,7 +252,6 @@ fun AppDetailScreen(
     TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppDetailContent(
     app: AppItem,
@@ -286,7 +278,6 @@ fun AppDetailContent(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigatedToComponentSortScreen: () -> Unit,
-    pagerState: PagerState,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -379,7 +370,6 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
-            pagerState = pagerState,
         )
     }
 }
@@ -437,7 +427,6 @@ fun AppDetailTabContent(
     app: AppItem,
     componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
-    pagerState: PagerState,
     switchTab: (AppDetailTabs) -> Unit,
     navigateToComponentDetail: (String) -> Unit = {},
     onExportRules: (String) -> Unit = {},
@@ -451,6 +440,8 @@ fun AppDetailTabContent(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
     Column(
         modifier = modifier,
     ) {
@@ -463,6 +454,9 @@ fun AppDetailTabContent(
                     selected = index == pagerState.currentPage,
                     onClick = {
                         switchTab(tabItem)
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
                     },
                     text = {
                         Text(
@@ -475,10 +469,7 @@ fun AppDetailTabContent(
                 )
             }
         }
-        HorizontalPager(
-            pageCount = tabState.items.size,
-            state = pagerState,
-        ) {
+        HorizontalPager(state = pagerState) {
             when (it) {
                 0 -> SummaryContent(
                     app = app,
@@ -531,12 +522,14 @@ fun AppDetailTabContent(
             }
         }
     }
+    LaunchedEffect(tabState) {
+        pagerState.animateScrollToPage(tabState.currentIndex)
+    }
     LaunchedEffect(pagerState.currentPage) {
         switchTab(tabState.items[pagerState.currentPage])
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Preview
 fun AppDetailScreenPreview() {
@@ -579,13 +572,11 @@ fun AppDetailScreenPreview() {
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
                 navigatedToComponentSortScreen = {},
-                pagerState = rememberPagerState(),
             )
         }
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 fun AppDetailScreenCollapsedPreview() {
@@ -628,7 +619,6 @@ fun AppDetailScreenCollapsedPreview() {
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
                 navigatedToComponentSortScreen = {},
-                pagerState = rememberPagerState(),
             )
         }
     }

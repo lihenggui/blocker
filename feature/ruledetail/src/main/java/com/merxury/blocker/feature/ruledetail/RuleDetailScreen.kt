@@ -348,7 +348,7 @@ fun RuleDetailTabContent(
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
-    val pagerState = rememberPagerState(initialPage = tabState.currentIndex)
+    val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
     val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = modifier,
@@ -377,7 +377,6 @@ fun RuleDetailTabContent(
             }
         }
         HorizontalPager(
-            pageCount = tabState.items.size,
             state = pagerState,
         ) {
             when (it) {
