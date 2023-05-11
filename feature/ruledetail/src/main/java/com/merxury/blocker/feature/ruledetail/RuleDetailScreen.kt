@@ -380,7 +380,7 @@ fun RuleDetailTabContent(
             pageCount = tabState.items.size,
             state = pagerState,
         ) {
-            when (pagerState.currentPage) {
+            when (it) {
                 0 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
 
                 1 -> RuleMatchedAppList(
