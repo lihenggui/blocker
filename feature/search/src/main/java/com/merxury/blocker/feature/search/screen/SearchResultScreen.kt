@@ -102,7 +102,7 @@ fun SearchResultScreen(
             pageCount = tabState.items.size,
             state = pagerState,
         ) {
-            when (pagerState.currentPage) {
+            when (it) {
                 0 -> AppSearchResultContent(
                     appList = appList,
                     onClick = { packageName ->

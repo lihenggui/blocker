@@ -479,7 +479,7 @@ fun AppDetailTabContent(
             pageCount = tabState.items.size,
             state = pagerState,
         ) {
-            when (pagerState.currentPage) {
+            when (it) {
                 0 -> SummaryContent(
                     app = app,
                     onExportRules = onExportRules,
