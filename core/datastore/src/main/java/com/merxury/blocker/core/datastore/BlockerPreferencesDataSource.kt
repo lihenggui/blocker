@@ -20,15 +20,18 @@ package com.merxury.blocker.core.datastore
 import androidx.datastore.core.DataStore
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
+import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
+import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -75,24 +78,19 @@ class BlockerPreferencesDataSource @Inject constructor(
             appSorting = when (it.appSorting) {
                 null,
                 AppSortingProto.UNRECOGNIZED,
-                AppSortingProto.APP_NAME_ASCENDING,
-                ->
-                    AppSorting.NAME_ASCENDING
+                AppSortingProto.APP_NAME,
+                -> NAME
 
-                AppSortingProto.APP_NAME_DESCENDING ->
-                    AppSorting.NAME_DESCENDING
+                AppSortingProto.FIRST_INSTALL_TIME -> FIRST_INSTALL_TIME
+                AppSortingProto.LAST_UPDATE_TIME -> LAST_UPDATE_TIME
+            },
+            appSortingOrder = when (it.appSortingOrder) {
+                null,
+                AppSortingOrderProto.UNRECOGNIZED,
+                AppSortingOrderProto.APP_ASCENDING,
+                -> ASCENDING
 
-                AppSortingProto.FIRST_INSTALL_TIME_ASCENDING ->
-                    AppSorting.FIRST_INSTALL_TIME_ASCENDING
-
-                AppSortingProto.FIRST_INSTALL_TIME_DESCENDING ->
-                    AppSorting.FIRST_INSTALL_TIME_DESCENDING
-
-                AppSortingProto.LAST_UPDATE_TIME_ASCENDING ->
-                    AppSorting.LAST_UPDATE_TIME_ASCENDING
-
-                AppSortingProto.LAST_UPDATE_TIME_DESCENDING ->
-                    AppSorting.LAST_UPDATE_TIME_DESCENDING
+                AppSortingOrderProto.APP_DESCENDING -> DESCENDING
             },
             componentSorting = when (it.componentSorting) {
                 null,
@@ -208,19 +206,23 @@ class BlockerPreferencesDataSource @Inject constructor(
         userPreferences.updateData {
             it.copy {
                 this.appSorting = when (sorting) {
-                    AppSorting.NAME_ASCENDING -> AppSortingProto.APP_NAME_ASCENDING
-                    AppSorting.NAME_DESCENDING -> AppSortingProto.APP_NAME_DESCENDING
-                    AppSorting.FIRST_INSTALL_TIME_ASCENDING ->
-                        AppSortingProto.FIRST_INSTALL_TIME_ASCENDING
+                    NAME -> AppSortingProto.APP_NAME
+                    FIRST_INSTALL_TIME ->
+                        AppSortingProto.FIRST_INSTALL_TIME
 
-                    AppSorting.FIRST_INSTALL_TIME_DESCENDING ->
-                        AppSortingProto.FIRST_INSTALL_TIME_DESCENDING
+                    LAST_UPDATE_TIME ->
+                        AppSortingProto.LAST_UPDATE_TIME
+                }
+            }
+        }
+    }
 
-                    AppSorting.LAST_UPDATE_TIME_ASCENDING ->
-                        AppSortingProto.LAST_UPDATE_TIME_ASCENDING
-
-                    AppSorting.LAST_UPDATE_TIME_DESCENDING ->
-                        AppSortingProto.LAST_UPDATE_TIME_DESCENDING
+    suspend fun setAppSortingOrder(order: SortingOrder) {
+        userPreferences.updateData {
+            it.copy {
+                this.appSortingOrder = when (order) {
+                    ASCENDING -> AppSortingOrderProto.APP_ASCENDING
+                    DESCENDING -> AppSortingOrderProto.APP_DESCENDING
                 }
             }
         }
@@ -232,6 +234,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 this.componentShowPriority = when (priority) {
                     ComponentShowPriority.NONE ->
                         ComponentShowPriorityProto.NONE
+
                     ComponentShowPriority.ENABLED_COMPONENTS_FIRST ->
                         ComponentShowPriorityProto.ENABLED_COMPONENTS_FIRST
 
@@ -253,7 +256,7 @@ class BlockerPreferencesDataSource @Inject constructor(
         }
     }
 
-    suspend fun setComponentSortingOrder(order: ComponentSortingOrder) {
+    suspend fun setComponentSortingOrder(order: SortingOrder) {
         userPreferences.updateData {
             it.copy {
                 this.componentSortingOrder = when (order) {

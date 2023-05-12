@@ -54,8 +54,11 @@ fun RuleMatchedAppList(
                 NoApplicableAppScreen()
                 return
             }
-            LazyColumn {
-                items(ruleMatchedAppListUiState.list, key = { it.app.packageName }) { ruleMatchedApp ->
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
+                items(
+                    ruleMatchedAppListUiState.list,
+                    key = { it.app.packageName },
+                ) { ruleMatchedApp ->
                     MatchedComponentItem(
                         ruleMatchedApp = ruleMatchedApp,
                         onStopServiceClick = onStopServiceClick,
@@ -70,6 +73,7 @@ fun RuleMatchedAppList(
                 }
             }
         }
+
     }
 }
 

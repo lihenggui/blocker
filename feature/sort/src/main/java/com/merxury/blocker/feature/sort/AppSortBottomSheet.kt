@@ -1,4 +1,4 @@
-/*
+package com.merxury.blocker.feature.sort/*
  * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.merxury.blocker.feature.sort
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -41,31 +39,28 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.preference.ComponentShowPriority
-import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
-import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
-import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
-import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
-import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder.ASCENDING
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder.DESCENDING
+import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.model.preference.AppSorting.NAME
+import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfo
-import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState
-import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Loading
-import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Success
-import com.merxury.blocker.feature.sort.viewmodel.SortViewModel
+import com.merxury.blocker.feature.sort.viewmodel.AppSortInfo
+import com.merxury.blocker.feature.sort.viewmodel.AppSortInfoUiState
+import com.merxury.blocker.feature.sort.viewmodel.AppSortInfoUiState.Loading
+import com.merxury.blocker.feature.sort.viewmodel.AppSortInfoUiState.Success
+import com.merxury.blocker.feature.sort.viewmodel.AppSortViewModel
+import java.lang.Boolean.FALSE
+import java.lang.Boolean.TRUE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ComponentSortBottomSheetRoute(
+fun AppSortBottomSheetRoute(
     dismissHandler: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: SortViewModel = hiltViewModel(),
+    viewModel: AppSortViewModel = hiltViewModel(),
 ) {
-    val uiState by viewModel.componentSortInfoUiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.appSortInfoUiState.collectAsStateWithLifecycle()
     val skipPartiallyExpanded by remember { mutableStateOf(false) }
     val bottomSheetState = rememberModalBottomSheetState(
         skipPartiallyExpanded = skipPartiallyExpanded,
@@ -76,23 +71,23 @@ fun ComponentSortBottomSheetRoute(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         scrimColor = Color.Transparent,
     ) {
-        ComponentSortBottomSheet(
+        AppSortBottomSheet(
             uiState = uiState,
             modifier = modifier,
-            onSortByClick = viewModel::updateComponentSorting,
-            onSortOrderClick = viewModel::updateComponentSortingOrder,
-            onShowPriorityClick = viewModel::updateComponentShowPriority,
+            onSortByClick = viewModel::updateAppSorting,
+            onSortOrderClick = viewModel::updateAppSortingOrder,
+            onChangeShowRunningAppsOnTop = viewModel::updateShowRunningAppsOnTop,
         )
     }
 }
 
 @Composable
-fun ComponentSortBottomSheet(
-    uiState: ComponentSortInfoUiState,
+fun AppSortBottomSheet(
+    uiState: AppSortInfoUiState,
     modifier: Modifier = Modifier,
-    onSortByClick: (ComponentSorting) -> Unit,
-    onSortOrderClick: (ComponentSortingOrder) -> Unit,
-    onShowPriorityClick: (ComponentShowPriority) -> Unit,
+    onSortByClick: (AppSorting) -> Unit,
+    onSortOrderClick: (SortingOrder) -> Unit,
+    onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
 ) {
     when (uiState) {
         Loading -> {
@@ -100,38 +95,39 @@ fun ComponentSortBottomSheet(
         }
 
         is Success -> {
-            SortOptionsContent(
+            AppSortOptionsContent(
                 uiState = uiState,
                 modifier = modifier,
                 onSortByClick = onSortByClick,
                 onSortOrderClick = onSortOrderClick,
-                onShowPriorityClick = onShowPriorityClick,
+                onChangeShowRunningAppsOnTop = onChangeShowRunningAppsOnTop,
             )
         }
     }
 }
 
 @Composable
-fun SortOptionsContent(
+fun AppSortOptionsContent(
     uiState: Success,
     modifier: Modifier = Modifier,
-    onSortByClick: (ComponentSorting) -> Unit,
-    onSortOrderClick: (ComponentSortingOrder) -> Unit,
-    onShowPriorityClick: (ComponentShowPriority) -> Unit,
+    onSortByClick: (AppSorting) -> Unit,
+    onSortOrderClick: (SortingOrder) -> Unit,
+    onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
 ) {
     val sortModeList = listOf(
-        COMPONENT_NAME to R.string.component_name,
-        PACKAGE_NAME to R.string.package_name,
+        NAME to R.string.name,
+        AppSorting.FIRST_INSTALL_TIME to R.string.install_date,
+        AppSorting.LAST_UPDATE_TIME to R.string.last_updated,
     )
     val sortByRuleList = listOf(
         ASCENDING to R.string.ascending,
         DESCENDING to R.string.descending,
     )
-    val priorityList = listOf(
-        NONE to R.string.none,
-        DISABLED_COMPONENTS_FIRST to R.string.disabled_first,
-        ENABLED_COMPONENTS_FIRST to R.string.enabled_first,
+    val showRunningAppsOnTopList = listOf(
+        TRUE to R.string.on,
+        FALSE to R.string.off,
     )
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = stringResource(id = R.string.sort_options),
@@ -142,20 +138,20 @@ fun SortOptionsContent(
         ItemHeader(title = stringResource(id = R.string.sort_by))
         SegmentedButtons(
             items = sortModeList,
-            selectedValue = uiState.componentSortInfo.sorting,
+            selectedValue = uiState.appSortInfo.sorting,
             onItemSelection = onSortByClick,
         )
         ItemHeader(title = stringResource(id = R.string.order))
         SegmentedButtons(
             items = sortByRuleList,
-            selectedValue = uiState.componentSortInfo.order,
+            selectedValue = uiState.appSortInfo.order,
             onItemSelection = onSortOrderClick,
         )
-        ItemHeader(title = stringResource(id = R.string.priority))
+        ItemHeader(title = stringResource(id = R.string.show_running_apps_on_top))
         SegmentedButtons(
-            items = priorityList,
-            selectedValue = uiState.componentSortInfo.priority,
-            onItemSelection = onShowPriorityClick,
+            items = showRunningAppsOnTopList,
+            selectedValue = uiState.appSortInfo.showRunningAppsOnTop,
+            onItemSelection = onChangeShowRunningAppsOnTop,
         )
         Spacer(modifier = Modifier.height(16.dp))
     }
@@ -163,15 +159,15 @@ fun SortOptionsContent(
 
 @Composable
 @Preview
-fun SortOptionsBottomSheetPreview() {
-    val uiState = Success(ComponentSortInfo())
+fun AppSortOptionsBottomSheetPreview() {
+    val uiState = Success(AppSortInfo())
     BlockerTheme {
         Surface {
-            SortOptionsContent(
+            AppSortOptionsContent(
                 uiState = uiState,
                 onSortByClick = {},
                 onSortOrderClick = {},
-                onShowPriorityClick = {},
+                onChangeShowRunningAppsOnTop = {},
             )
         }
     }

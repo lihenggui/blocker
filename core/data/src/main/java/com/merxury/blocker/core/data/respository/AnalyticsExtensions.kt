@@ -90,6 +90,16 @@ fun AnalyticsHelper.logAppSortingChanged(appSortingName: String) =
         ),
     )
 
+fun AnalyticsHelper.logAppSortingOrderChanged(appSortingOrder: String) =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_sorting_order_changed",
+            extras = listOf(
+                Param(key = "app_sorting_order", value = appSortingOrder),
+            ),
+        ),
+    )
+
 fun AnalyticsHelper.logShowServiceInfoPreferenceChanged(showServiceInfo: Boolean) =
     logEvent(
         AnalyticsEvent(
