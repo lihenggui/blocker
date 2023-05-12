@@ -28,4 +28,7 @@
     <string name="name">Имя</string>
     <string name="install_date">Дата установки</string>
     <string name="last_updated">Последнее обновление</string>
+    <string name="show_running_apps_on_top">Показывать запущенные приложения сверху</string>
+    <string name="on">включать</string>
+    <string name="off">закрытие</string>
 </resources>
