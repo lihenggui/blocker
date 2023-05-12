@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.appdetail.summary
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -52,7 +53,7 @@ fun SummaryContent(
     onResetIfw: (String) -> Unit = {},
 ) {
     val listState: LazyListState = rememberLazyListState()
-    Box(modifier) {
+    Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth(),
