@@ -20,10 +20,7 @@ option java_package = "com.merxury.blocker.core.datastore";
 option java_multiple_files = true;
 
 enum AppSortingProto {
-    APP_NAME_ASCENDING = 0;
-    APP_NAME_DESCENDING = 1;
-    FIRST_INSTALL_TIME_ASCENDING = 2;
-    FIRST_INSTALL_TIME_DESCENDING = 3;
-    LAST_UPDATE_TIME_ASCENDING = 4;
-    LAST_UPDATE_TIME_DESCENDING = 5;
+  APP_NAME = 0;
+  FIRST_INSTALL_TIME = 1;
+  LAST_UPDATE_TIME = 2;
 }

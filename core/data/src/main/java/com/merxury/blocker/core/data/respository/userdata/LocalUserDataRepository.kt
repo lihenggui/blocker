@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.respository.userdata
 
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.logAppSortingChanged
+import com.merxury.blocker.core.data.respository.logAppSortingOrderChanged
 import com.merxury.blocker.core.data.respository.logBackupSystemAppPreferenceChanged
 import com.merxury.blocker.core.data.respository.logComponentShowPriorityPreferenceChanged
 import com.merxury.blocker.core.data.respository.logComponentSortingOrderPreferenceChanged
@@ -35,9 +36,9 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
-import com.merxury.blocker.core.model.preference.ComponentSortingOrder
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -97,6 +98,11 @@ class LocalUserDataRepository @Inject constructor(
         analyticsHelper.logAppSortingChanged(sorting.name)
     }
 
+    override suspend fun setAppSortingOrder(order: SortingOrder) {
+        blockerPreferenceDataSource.setAppSortingOrder(order)
+        analyticsHelper.logAppSortingOrderChanged(order.name)
+    }
+
     override suspend fun setComponentShowPriority(priority: ComponentShowPriority) {
         blockerPreferenceDataSource.setComponentShowPriority(priority)
         analyticsHelper.logComponentShowPriorityPreferenceChanged(priority.name)
@@ -107,7 +113,7 @@ class LocalUserDataRepository @Inject constructor(
         analyticsHelper.logComponentSortingPreferenceChanged(sorting.name)
     }
 
-    override suspend fun setComponentSortingOrder(order: ComponentSortingOrder) {
+    override suspend fun setComponentSortingOrder(order: SortingOrder) {
         blockerPreferenceDataSource.setComponentSortingOrder(order)
         analyticsHelper.logComponentSortingOrderPreferenceChanged(order.name)
     }
