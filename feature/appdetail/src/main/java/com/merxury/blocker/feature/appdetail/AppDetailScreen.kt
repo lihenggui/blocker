@@ -470,8 +470,8 @@ fun AppDetailTabContent(
             }
         }
         HorizontalPager(state = pagerState) {
-            when (it) {
-                0 -> SummaryContent(
+            when (tabState.items[it]) {
+                Info -> SummaryContent(
                     app = app,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
@@ -480,17 +480,19 @@ fun AppDetailTabContent(
                     onResetIfw = onResetIfw,
                 )
 
-                1 -> ComponentList(
-                    components = componentListUiState.receiver,
-                    navigateToComponentDetail = navigateToComponentDetail,
-                    onSwitchClick = onSwitchClick,
-                    onStopServiceClick = onStopServiceClick,
-                    onLaunchActivityClick = onLaunchActivityClick,
-                    onCopyNameClick = onCopyNameClick,
-                    onCopyFullNameClick = onCopyFullNameClick,
-                )
+                Receiver -> {
+                    ComponentList(
+                        components = componentListUiState.receiver,
+                        navigateToComponentDetail = navigateToComponentDetail,
+                        onSwitchClick = onSwitchClick,
+                        onStopServiceClick = onStopServiceClick,
+                        onLaunchActivityClick = onLaunchActivityClick,
+                        onCopyNameClick = onCopyNameClick,
+                        onCopyFullNameClick = onCopyFullNameClick,
+                    )
+                }
 
-                2 -> ComponentList(
+                Service -> ComponentList(
                     components = componentListUiState.service,
                     navigateToComponentDetail = navigateToComponentDetail,
                     onSwitchClick = onSwitchClick,
@@ -500,7 +502,7 @@ fun AppDetailTabContent(
                     onCopyFullNameClick = onCopyFullNameClick,
                 )
 
-                3 -> ComponentList(
+                Activity -> ComponentList(
                     components = componentListUiState.activity,
                     navigateToComponentDetail = navigateToComponentDetail,
                     onSwitchClick = onSwitchClick,
@@ -510,7 +512,7 @@ fun AppDetailTabContent(
                     onCopyFullNameClick = onCopyFullNameClick,
                 )
 
-                4 -> ComponentList(
+                Provider -> ComponentList(
                     components = componentListUiState.provider,
                     navigateToComponentDetail = navigateToComponentDetail,
                     onSwitchClick = onSwitchClick,
@@ -522,7 +524,7 @@ fun AppDetailTabContent(
             }
         }
     }
-    LaunchedEffect(tabState) {
+    LaunchedEffect(tabState.items) {
         pagerState.animateScrollToPage(tabState.currentIndex)
     }
     LaunchedEffect(pagerState.currentPage) {
