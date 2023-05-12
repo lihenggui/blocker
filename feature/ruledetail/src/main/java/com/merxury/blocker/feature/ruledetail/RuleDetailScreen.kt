@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.ruledetail
 import android.content.res.Configuration
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -28,6 +29,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -328,6 +331,7 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RuleDetailTabContent(
     modifier: Modifier = Modifier,
@@ -344,35 +348,52 @@ fun RuleDetailTabContent(
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
+    val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = modifier,
     ) {
         BlockerTabRow(
-            selectedTabIndex = tabState.currentIndex,
+            selectedTabIndex = pagerState.currentPage,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ) {
             tabState.items.forEachIndexed { index, tabItem ->
                 BlockerTab(
-                    selected = index == tabState.currentIndex,
-                    onClick = { switchTab(tabItem) },
-                    text = { Text(text = stringResource(id = tabItem.title)) },
+                    selected = index == pagerState.currentPage,
+                    onClick = {
+                        switchTab(tabItem)
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                    },
+                    text = {
+                        Text(
+                            text = stringResource(
+                                id = tabItem.title,
+                            ),
+                        )
+                    },
                 )
             }
         }
-        when (tabState.selectedItem) {
-            Description -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
+        HorizontalPager(
+            state = pagerState,
+        ) {
+            when (it) {
+                0 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
 
-            Applicable -> RuleMatchedAppList(
-                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-                navigateToAppDetail = navigateToAppDetail,
-                onBlockAllClick = onBlockAllClick,
-                onEnableAllClick = onEnableAllClick,
-                onSwitch = onSwitch,
-            )
+                1 -> RuleMatchedAppList(
+                    ruleMatchedAppListUiState = ruleMatchedAppListUiState,
+                    onStopServiceClick = onStopServiceClick,
+                    onLaunchActivityClick = onLaunchActivityClick,
+                    onCopyNameClick = onCopyNameClick,
+                    onCopyFullNameClick = onCopyFullNameClick,
+                    navigateToAppDetail = navigateToAppDetail,
+                    onBlockAllClick = onBlockAllClick,
+                    onEnableAllClick = onEnableAllClick,
+                    onSwitch = onSwitch,
+                )
+            }
         }
     }
 }
