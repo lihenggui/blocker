@@ -25,4 +25,7 @@
     <string name="disabled_first">Disabled first</string>
     <string name="enabled_first">Enabled first</string>
     <string name="none">None</string>
+    <string name="name">Name</string>
+    <string name="install_date">Install Date</string>
+    <string name="last_updated">Last Updated</string>
 </resources>
