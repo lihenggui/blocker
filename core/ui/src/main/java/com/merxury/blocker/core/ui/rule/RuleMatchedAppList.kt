@@ -50,23 +50,28 @@ fun RuleMatchedAppList(
     when (ruleMatchedAppListUiState) {
         RuleMatchedAppListUiState.Loading -> {}
         is RuleMatchedAppListUiState.Success -> {
-            if (ruleMatchedAppListUiState.list.isEmpty()) {
-                NoApplicableAppScreen()
-                return
-            }
-            LazyColumn {
-                items(ruleMatchedAppListUiState.list, key = { it.app.packageName }) { ruleMatchedApp ->
-                    MatchedComponentItem(
-                        ruleMatchedApp = ruleMatchedApp,
-                        onStopServiceClick = onStopServiceClick,
-                        onLaunchActivityClick = onLaunchActivityClick,
-                        onCopyNameClick = onCopyNameClick,
-                        onCopyFullNameClick = onCopyFullNameClick,
-                        navigateToAppDetail = navigateToAppDetail,
-                        onBlockAllClick = onBlockAllClick,
-                        onEnableAllClick = onEnableAllClick,
-                        onSwitch = onSwitch,
-                    )
+            Column(modifier = Modifier.fillMaxSize()) {
+                if (ruleMatchedAppListUiState.list.isEmpty()) {
+                    NoApplicableAppScreen()
+                    return
+                }
+                LazyColumn {
+                    items(
+                        ruleMatchedAppListUiState.list,
+                        key = { it.app.packageName },
+                    ) { ruleMatchedApp ->
+                        MatchedComponentItem(
+                            ruleMatchedApp = ruleMatchedApp,
+                            onStopServiceClick = onStopServiceClick,
+                            onLaunchActivityClick = onLaunchActivityClick,
+                            onCopyNameClick = onCopyNameClick,
+                            onCopyFullNameClick = onCopyFullNameClick,
+                            navigateToAppDetail = navigateToAppDetail,
+                            onBlockAllClick = onBlockAllClick,
+                            onEnableAllClick = onEnableAllClick,
+                            onSwitch = onSwitch,
+                        )
+                    }
                 }
             }
         }
