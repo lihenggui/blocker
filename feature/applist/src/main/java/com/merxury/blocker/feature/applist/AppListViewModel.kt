@@ -33,12 +33,10 @@ import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.preference.AppSorting
-import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_ASCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME_DESCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_ASCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME_DESCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.NAME_ASCENDING
-import com.merxury.blocker.core.model.preference.AppSorting.NAME_DESCENDING
+import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
+import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
+import com.merxury.blocker.core.model.preference.AppSorting.NAME
+import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppServiceStatus
@@ -120,6 +118,7 @@ class AppListViewModel @Inject constructor(
                 Timber.v("App list changed, size ${list.size}")
                 val preference = userDataRepository.userData.first()
                 val sortType = preference.appSorting
+                val sortOrder = preference.appSortingOrder
                 RunningAppCache.refresh(ioDispatcher)
                 _appList = if (preference.showSystemApps) {
                     list
@@ -145,7 +144,7 @@ class AppListViewModel @Inject constructor(
                         packageInfo = pm.getPackageInfoCompat(packageName, 0),
                     )
                 }.sortedWith(
-                    appComparator(sortType),
+                    appComparator(sortType, sortOrder),
                 ).let { sortedList ->
                     if (preference.showRunningAppsOnTop) {
                         sortedList.sortedByDescending { it.isRunning }
@@ -163,14 +162,19 @@ class AppListViewModel @Inject constructor(
         loadData()
     }
 
-    private fun appComparator(sortType: AppSorting): Comparator<AppItem> =
-        when (sortType) {
-            NAME_ASCENDING -> compareBy { it.label.lowercase() }
-            NAME_DESCENDING -> compareByDescending { it.label.lowercase() }
-            FIRST_INSTALL_TIME_ASCENDING -> compareBy { it.firstInstallTime }
-            FIRST_INSTALL_TIME_DESCENDING -> compareByDescending { it.firstInstallTime }
-            LAST_UPDATE_TIME_ASCENDING -> compareBy { it.lastUpdateTime }
-            LAST_UPDATE_TIME_DESCENDING -> compareByDescending { it.lastUpdateTime }
+    private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> =
+        if (sortOrder == SortingOrder.ASCENDING) {
+            when (sortType) {
+                NAME -> compareBy { it.label.lowercase() }
+                FIRST_INSTALL_TIME -> compareBy { it.firstInstallTime }
+                LAST_UPDATE_TIME -> compareBy { it.lastUpdateTime }
+            }
+        } else {
+            when (sortType) {
+                NAME -> compareByDescending { it.label.lowercase() }
+                FIRST_INSTALL_TIME -> compareByDescending { it.firstInstallTime }
+                LAST_UPDATE_TIME -> compareByDescending { it.lastUpdateTime }
+            }
         }
 
     private fun updateInstalledAppList() = viewModelScope.launch {
@@ -183,12 +187,11 @@ class AppListViewModel @Inject constructor(
 
     private fun listenSortingChanges() = viewModelScope.launch(cpuDispatcher) {
         userDataRepository.userData
-            .map { it.appSorting }
             .distinctUntilChanged()
             .drop(1)
-            .collect { sorting ->
+            .collect {
                 val newList = _appList.toMutableList()
-                newList.sortWith(appComparator(sorting))
+                newList.sortWith(appComparator(it.appSorting, it.appSortingOrder))
                 if (userDataRepository.userData.first().showRunningAppsOnTop) {
                     newList.sortByDescending { it.isRunning }
                 }
@@ -209,7 +212,9 @@ class AppListViewModel @Inject constructor(
                 } else {
                     val sorting = userDataRepository.userData.first()
                         .appSorting
-                    newList.sortWith(appComparator(sorting))
+                    val order = userDataRepository.userData.first()
+                        .appSortingOrder
+                    newList.sortWith(appComparator(sorting, order))
                 }
                 _appList = newList.toMutableStateList()
                 _appListFlow.value = _appList
@@ -222,10 +227,6 @@ class AppListViewModel @Inject constructor(
             .distinctUntilChanged()
             .drop(1)
             .collect { loadData() }
-    }
-
-    fun updateSorting(sorting: AppSorting) = viewModelScope.launch {
-        userDataRepository.setAppSorting(sorting)
     }
 
     fun updateServiceStatus(packageName: String, index: Int) = viewModelScope.launch(
