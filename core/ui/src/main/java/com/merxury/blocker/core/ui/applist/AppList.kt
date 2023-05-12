@@ -19,6 +19,7 @@ package com.merxury.blocker.core.ui.applist
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,7 +44,7 @@ fun AppList(
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
-    Box(modifier) {
+    Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = modifier,
             state = listState,
