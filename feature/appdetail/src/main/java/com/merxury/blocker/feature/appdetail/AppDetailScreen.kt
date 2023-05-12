@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.appdetail
 import android.content.res.Configuration
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -29,6 +30,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -160,6 +163,7 @@ fun AppDetailRoute(
             FOLDER_NOT_DEFINED,
             MISSING_STORAGE_PERMISSION,
             -> rulestring.error_msg_folder_not_defined
+
             MISSING_ROOT_PERMISSION -> rulestring.error_msg_missing_root_permission
             UNEXPECTED_EXCEPTION -> rulestring.error_msg_unexpected_exception
             CANCELLED -> rulestring.task_cancelled
@@ -416,6 +420,7 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppDetailTabContent(
     modifier: Modifier = Modifier,
@@ -435,17 +440,24 @@ fun AppDetailTabContent(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
 ) {
+    val coroutineScope = rememberCoroutineScope()
+    val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
     Column(
         modifier = modifier,
     ) {
         BlockerScrollableTabRow(
-            selectedTabIndex = tabState.currentIndex,
+            selectedTabIndex = pagerState.currentPage,
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ) {
             tabState.items.forEachIndexed { index, tabItem ->
                 BlockerTab(
-                    selected = index == tabState.currentIndex,
-                    onClick = { switchTab(tabItem) },
+                    selected = index == pagerState.currentPage,
+                    onClick = {
+                        switchTab(tabItem)
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(index)
+                        }
+                    },
                     text = {
                         Text(
                             text = stringResource(
@@ -457,56 +469,64 @@ fun AppDetailTabContent(
                 )
             }
         }
-        when (tabState.selectedItem) {
-            Info -> SummaryContent(
-                app = app,
-                onExportRules = onExportRules,
-                onImportRules = onImportRules,
-                onExportIfw = onExportIfw,
-                onImportIfw = onImportIfw,
-                onResetIfw = onResetIfw,
-            )
+        HorizontalPager(state = pagerState) {
+            when (it) {
+                0 -> SummaryContent(
+                    app = app,
+                    onExportRules = onExportRules,
+                    onImportRules = onImportRules,
+                    onExportIfw = onExportIfw,
+                    onImportIfw = onImportIfw,
+                    onResetIfw = onResetIfw,
+                )
 
-            is Receiver -> ComponentList(
-                components = componentListUiState.receiver,
-                navigateToComponentDetail = navigateToComponentDetail,
-                onSwitchClick = onSwitchClick,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-            )
+                1 -> ComponentList(
+                    components = componentListUiState.receiver,
+                    navigateToComponentDetail = navigateToComponentDetail,
+                    onSwitchClick = onSwitchClick,
+                    onStopServiceClick = onStopServiceClick,
+                    onLaunchActivityClick = onLaunchActivityClick,
+                    onCopyNameClick = onCopyNameClick,
+                    onCopyFullNameClick = onCopyFullNameClick,
+                )
 
-            is Service -> ComponentList(
-                components = componentListUiState.service,
-                navigateToComponentDetail = navigateToComponentDetail,
-                onSwitchClick = onSwitchClick,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-            )
+                2 -> ComponentList(
+                    components = componentListUiState.service,
+                    navigateToComponentDetail = navigateToComponentDetail,
+                    onSwitchClick = onSwitchClick,
+                    onStopServiceClick = onStopServiceClick,
+                    onLaunchActivityClick = onLaunchActivityClick,
+                    onCopyNameClick = onCopyNameClick,
+                    onCopyFullNameClick = onCopyFullNameClick,
+                )
 
-            is Activity -> ComponentList(
-                components = componentListUiState.activity,
-                navigateToComponentDetail = navigateToComponentDetail,
-                onSwitchClick = onSwitchClick,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-            )
+                3 -> ComponentList(
+                    components = componentListUiState.activity,
+                    navigateToComponentDetail = navigateToComponentDetail,
+                    onSwitchClick = onSwitchClick,
+                    onStopServiceClick = onStopServiceClick,
+                    onLaunchActivityClick = onLaunchActivityClick,
+                    onCopyNameClick = onCopyNameClick,
+                    onCopyFullNameClick = onCopyFullNameClick,
+                )
 
-            is Provider -> ComponentList(
-                components = componentListUiState.provider,
-                navigateToComponentDetail = navigateToComponentDetail,
-                onSwitchClick = onSwitchClick,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-            )
+                4 -> ComponentList(
+                    components = componentListUiState.provider,
+                    navigateToComponentDetail = navigateToComponentDetail,
+                    onSwitchClick = onSwitchClick,
+                    onStopServiceClick = onStopServiceClick,
+                    onLaunchActivityClick = onLaunchActivityClick,
+                    onCopyNameClick = onCopyNameClick,
+                    onCopyFullNameClick = onCopyFullNameClick,
+                )
+            }
         }
+    }
+    LaunchedEffect(tabState) {
+        pagerState.animateScrollToPage(tabState.currentIndex)
+    }
+    LaunchedEffect(pagerState.currentPage) {
+        switchTab(tabState.items[pagerState.currentPage])
     }
 }
 

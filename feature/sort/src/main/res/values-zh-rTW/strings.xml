@@ -25,4 +25,10 @@
     <string name="disabled_first">禁用組件優先</string>
     <string name="enabled_first">啟用組件優先</string>
     <string name="none">無</string>
+    <string name="name">姓名</string>
+    <string name="install_date">安裝日期</string>
+    <string name="last_updated">最後更新</string>
+    <string name="show_running_apps_on_top">置頂運行中應用</string>
+    <string name="on">開啟</string>
+    <string name="off">關閉</string>
 </resources>
