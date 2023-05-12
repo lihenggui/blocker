@@ -231,7 +231,7 @@ fun ComponentSearchResultContent(
     }
     val listState = rememberLazyListState()
     val analyticsHelper = LocalAnalyticsHelper.current
-    Box(modifier) {
+    Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = modifier,
             state = listState,
@@ -302,7 +302,7 @@ fun RuleSearchResultContent(
     }
     val analyticsHelper = LocalAnalyticsHelper.current
     GeneralRulesList(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         rules = list,
         onClick = { id ->
             onClick(id)
