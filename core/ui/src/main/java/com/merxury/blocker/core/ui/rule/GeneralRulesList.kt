@@ -16,16 +16,26 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.compose.foundation.gestures.Orientation.Vertical
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 
@@ -36,19 +46,36 @@ fun GeneralRulesList(
     onClick: (Int) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    LazyColumn(
-        modifier = modifier,
-        state = listState,
-    ) {
-        items(rules, key = { it.id }) {
-            RuleCard(
-                item = it,
-                onCardClick = onClick,
-            )
+    val scrollbarState = listState.scrollbarState(
+        itemsAvailable = rules.size,
+    )
+    Box(modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = modifier,
+            state = listState,
+        ) {
+            items(rules, key = { it.id }) {
+                RuleCard(
+                    item = it,
+                    onCardClick = onClick,
+                )
+            }
+            item {
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+            }
         }
-        item {
-            Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-        }
+        FastScrollbar(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 2.dp)
+                .align(Alignment.CenterEnd),
+            state = scrollbarState,
+            orientation = Vertical,
+            scrollInProgress = listState.isScrollInProgress,
+            onThumbDisplaced = listState.rememberFastScroller(
+                itemsAvailable = rules.size,
+            ),
+        )
     }
 }
 
