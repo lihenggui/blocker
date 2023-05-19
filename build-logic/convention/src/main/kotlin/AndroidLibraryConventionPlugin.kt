@@ -19,7 +19,6 @@ import com.android.build.gradle.LibraryExtension
 import com.merxury.blocker.configureFlavors
 import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
-import com.merxury.blocker.configureKotlinAndroidToolchain
 import com.merxury.blocker.configurePrintApksTask
 import com.merxury.blocker.disableUnnecessaryAndroidTests
 import org.gradle.api.Plugin
@@ -39,7 +38,6 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
                 apply("com.android.library")
                 apply("org.jetbrains.kotlin.android")
             }
-            configureKotlinAndroidToolchain()
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)
                 defaultConfig.targetSdk = 33
