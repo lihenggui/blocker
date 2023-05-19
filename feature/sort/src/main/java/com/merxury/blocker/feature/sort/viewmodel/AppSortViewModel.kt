@@ -49,8 +49,9 @@ class AppSortViewModel @Inject constructor(
         val userData = userDataRepository.userData.first()
         val sorting = userData.appSorting
         val order = userData.appSortingOrder
+        val showRunningAppsOnTop = userData.showRunningAppsOnTop
         _appSortInfoUiState.emit(
-            Success(AppSortInfo(sorting, order)),
+            Success(AppSortInfo(sorting, order, showRunningAppsOnTop)),
         )
     }
 
@@ -60,6 +61,12 @@ class AppSortViewModel @Inject constructor(
 
     fun updateAppSortingOrder(order: SortingOrder) = viewModelScope.launch {
         userDataRepository.setAppSortingOrder(order)
+    }
+
+    fun updateShowRunningAppsOnTop(shouldShow: Boolean) {
+        viewModelScope.launch {
+            userDataRepository.setShowRunningAppsOnTop(shouldShow)
+        }
     }
 }
 
@@ -71,4 +78,5 @@ sealed interface AppSortInfoUiState {
 data class AppSortInfo(
     val sorting: AppSorting = NAME,
     val order: SortingOrder = ASCENDING,
+    val showRunningAppsOnTop: Boolean = false,
 )
