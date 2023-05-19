@@ -91,5 +91,9 @@ gradlePlugin {
             id = "blocker.android.application.flavors"
             implementationClass = "AndroidApplicationFlavorsConventionPlugin"
         }
+        register("jvmLibrary") {
+            id = "nowinandroid.jvm.library"
+            implementationClass = "JvmLibraryConventionPlugin"
+        }
     }
 }
