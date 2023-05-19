@@ -51,14 +51,10 @@ fun ThemeSettings(
             extraIconPadding = true,
         )
         if (supportDynamicColor) {
-            DialogSettingsItems(
-                titleRes = string.dynamic_color,
-                selectedItem = settings.useDynamicColor,
-                itemList = listOf(
-                    true to string.options_on,
-                    false to string.options_off,
-                ),
-                onValueChange = onChangeDynamicColorPreference,
+            SwitchSettingItem(
+                itemRes = string.dynamic_color,
+                checked = settings.useDynamicColor,
+                onCheckedChange = onChangeDynamicColorPreference,
             )
         }
         DialogSettingsItems(

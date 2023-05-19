@@ -99,7 +99,6 @@ fun SettingsRoute(
         uiState = settingsUiState,
         onChangeShowSystemApps = viewModel::updateShowSystemApp,
         onChangeShowServiceInfo = viewModel::updateShowServiceInfo,
-        onChangeShowRunningAppsOnTop = viewModel::updateShowRunningAppsOnTop,
         onChangeBackupSystemApp = viewModel::updateBackupSystemApp,
         onChangeRestoreSystemApp = viewModel::updateRestoreSystemApp,
         onChangeRuleBackupFolder = viewModel::updateRuleBackupFolder,
@@ -171,7 +170,6 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     onChangeShowSystemApps: (Boolean) -> Unit = { },
     onChangeShowServiceInfo: (Boolean) -> Unit = { },
-    onChangeShowRunningAppsOnTop: (Boolean) -> Unit = { },
     onChangeBackupSystemApp: (Boolean) -> Unit = { },
     onChangeRestoreSystemApp: (Boolean) -> Unit = { },
     onChangeRuleBackupFolder: (Uri?) -> Unit = { },
@@ -219,7 +217,6 @@ fun SettingsScreen(
                         supportDynamicColor = supportsDynamicTheming(),
                         onChangeShowSystemApps = onChangeShowSystemApps,
                         onChangeShowServiceInfo = onChangeShowServiceInfo,
-                        onChangeShowRunningAppsOnTop = onChangeShowRunningAppsOnTop,
                         onChangeBackupSystemApp = onChangeBackupSystemApp,
                         onChangeRestoreSystemApp = onChangeRestoreSystemApp,
                         onChangeRuleBackupFolder = onChangeRuleBackupFolder,
@@ -246,7 +243,6 @@ fun SettingsContent(
     supportDynamicColor: Boolean,
     onChangeShowSystemApps: (Boolean) -> Unit,
     onChangeShowServiceInfo: (Boolean) -> Unit,
-    onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
     onChangeBackupSystemApp: (Boolean) -> Unit,
     onChangeRestoreSystemApp: (Boolean) -> Unit,
     onChangeRuleBackupFolder: (Uri?) -> Unit,
@@ -285,10 +281,8 @@ fun SettingsContent(
         AppListSettings(
             showSystemApps = settings.showSystemApps,
             showServiceInfo = settings.showServiceInfo,
-            showRunningAppsOnTop = settings.showRunningAppsOnTop,
             onChangeShowSystemApps = onChangeShowSystemApps,
             onChangeShowServiceInfo = onChangeShowServiceInfo,
-            onChangeShowRunningAppsOnTop = onChangeShowRunningAppsOnTop,
         )
         Divider()
         BackupSettings(
