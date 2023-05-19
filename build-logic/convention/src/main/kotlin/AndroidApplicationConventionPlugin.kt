@@ -18,7 +18,6 @@ import com.android.build.api.dsl.ApplicationExtension
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
-import com.merxury.blocker.configureKotlinAndroidToolchain
 import com.merxury.blocker.configurePrintApksTask
 import com.merxury.blocker.configureRenameBuildOutputTask
 import org.gradle.api.Plugin
@@ -34,7 +33,6 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
                 apply("com.android.application")
                 apply("org.jetbrains.kotlin.android")
             }
-            configureKotlinAndroidToolchain()
             extensions.configure<ApplicationExtension> {
                 configureKotlinAndroid(this)
                 defaultConfig.targetSdk = 33
