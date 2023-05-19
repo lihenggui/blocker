@@ -142,9 +142,13 @@ class AppDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
-    @OptIn(ExperimentalFoundationApi::class) var _pagerState: MutableStateFlow<PagerState?> =
+
+    @OptIn(ExperimentalFoundationApi::class)
+    var _pagerState: MutableStateFlow<PagerState?> =
         MutableStateFlow(null)
-    @OptIn(ExperimentalFoundationApi::class) val pagerState = _pagerState.asStateFlow()
+
+    @OptIn(ExperimentalFoundationApi::class)
+    val pagerState = _pagerState.asStateFlow()
     private var currentFilterKeyword = appDetailArgs.searchKeyword
         .map { it.trim() }
         .filterNot { it.isEmpty() }
