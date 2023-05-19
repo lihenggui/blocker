@@ -31,11 +31,9 @@ import com.merxury.blocker.feature.settings.R.string
 fun AppListSettings(
     showSystemApps: Boolean,
     showServiceInfo: Boolean,
-    showRunningAppsOnTop: Boolean,
     modifier: Modifier = Modifier,
     onChangeShowSystemApps: (Boolean) -> Unit = { },
     onChangeShowServiceInfo: (Boolean) -> Unit = { },
-    onChangeShowRunningAppsOnTop: (Boolean) -> Unit = { },
 ) {
     Column(
         modifier = modifier
@@ -55,11 +53,6 @@ fun AppListSettings(
             checked = showServiceInfo,
             onCheckedChange = onChangeShowServiceInfo,
         )
-        SwitchSettingItem(
-            itemRes = string.show_running_apps_on_top,
-            checked = showRunningAppsOnTop,
-            onCheckedChange = onChangeShowRunningAppsOnTop,
-        )
     }
 }
 
@@ -70,7 +63,6 @@ fun AppListSettingsSectionPreview() {
         AppListSettings(
             showSystemApps = false,
             showServiceInfo = true,
-            showRunningAppsOnTop = true,
         )
     }
 }

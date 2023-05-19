@@ -73,7 +73,6 @@ fun RuleMatchedAppList(
                 }
             }
         }
-
     }
 }
 

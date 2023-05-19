@@ -28,4 +28,7 @@
     <string name="name">Name</string>
     <string name="install_date">Install Date</string>
     <string name="last_updated">Last Updated</string>
+    <string name="show_running_apps_on_top">Show running apps on top</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
 </resources>

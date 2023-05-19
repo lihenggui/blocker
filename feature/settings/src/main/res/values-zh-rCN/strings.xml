@@ -60,6 +60,5 @@
     <string name="options_on">启用</string>
     <string name="options_off">关闭</string>
     <string name="report_bugs_or_submit_ideas">问题反馈 &amp; 我有新点子</string>
-    <string name="show_running_apps_on_top">置顶运行中应用</string>
     <string name="designers_homepage">设计师主页</string>
 </resources>
