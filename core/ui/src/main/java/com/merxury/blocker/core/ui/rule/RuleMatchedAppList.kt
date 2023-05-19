@@ -16,11 +16,16 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -28,7 +33,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
+import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.ui.R.string
@@ -37,6 +46,7 @@ import com.merxury.blocker.core.ui.component.ComponentItem
 
 @Composable
 fun RuleMatchedAppList(
+    modifier: Modifier = Modifier,
     ruleMatchedAppListUiState: RuleMatchedAppListUiState,
     onStopServiceClick: (String, String) -> Unit,
     onLaunchActivityClick: (String, String) -> Unit,
@@ -54,23 +64,44 @@ fun RuleMatchedAppList(
                 NoApplicableAppScreen()
                 return
             }
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(
-                    ruleMatchedAppListUiState.list,
-                    key = { it.app.packageName },
-                ) { ruleMatchedApp ->
-                    MatchedComponentItem(
-                        ruleMatchedApp = ruleMatchedApp,
-                        onStopServiceClick = onStopServiceClick,
-                        onLaunchActivityClick = onLaunchActivityClick,
-                        onCopyNameClick = onCopyNameClick,
-                        onCopyFullNameClick = onCopyFullNameClick,
-                        navigateToAppDetail = navigateToAppDetail,
-                        onBlockAllClick = onBlockAllClick,
-                        onEnableAllClick = onEnableAllClick,
-                        onSwitch = onSwitch,
-                    )
+            val listState = rememberLazyListState()
+            val scrollbarState = listState.scrollbarState(
+                itemsAvailable = ruleMatchedAppListUiState.list.size,
+            )
+            Box(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = modifier,
+                    state = listState,
+                ) {
+                    items(
+                        ruleMatchedAppListUiState.list,
+                        key = { it.app.packageName },
+                    ) { ruleMatchedApp ->
+                        MatchedComponentItem(
+                            ruleMatchedApp = ruleMatchedApp,
+                            onStopServiceClick = onStopServiceClick,
+                            onLaunchActivityClick = onLaunchActivityClick,
+                            onCopyNameClick = onCopyNameClick,
+                            onCopyFullNameClick = onCopyFullNameClick,
+                            navigateToAppDetail = navigateToAppDetail,
+                            onBlockAllClick = onBlockAllClick,
+                            onEnableAllClick = onEnableAllClick,
+                            onSwitch = onSwitch,
+                        )
+                    }
                 }
+                FastScrollbar(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .padding(horizontal = 2.dp)
+                        .align(Alignment.CenterEnd),
+                    state = scrollbarState,
+                    orientation = Vertical,
+                    scrollInProgress = listState.isScrollInProgress,
+                    onThumbDisplaced = listState.rememberFastScroller(
+                        itemsAvailable = ruleMatchedAppListUiState.list.size,
+                    ),
+                )
             }
         }
     }
