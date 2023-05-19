@@ -16,10 +16,13 @@
 
 package com.merxury.blocker.core.ui.applist
 
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,7 +30,12 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 
 @Composable
@@ -44,6 +52,9 @@ fun AppList(
     modifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
+    val scrollbarState = listState.scrollbarState(
+        itemsAvailable = appList.size,
+    )
     Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = modifier,
@@ -75,5 +86,17 @@ fun AppList(
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
+        FastScrollbar(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 2.dp)
+                .align(Alignment.CenterEnd),
+            state = scrollbarState,
+            orientation = Orientation.Vertical,
+            scrollInProgress = listState.isScrollInProgress,
+            onThumbDisplaced = listState.rememberFastScroller(
+                itemsAvailable = appList.size,
+            ),
+        )
     }
 }

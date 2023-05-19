@@ -20,10 +20,13 @@ import android.content.res.Configuration
 import android.view.MotionEvent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -57,6 +60,9 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
+import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -81,31 +87,48 @@ fun ComponentList(
         return
     }
     val listState = rememberLazyListState()
+    val scrollbarState = listState.scrollbarState(
+        itemsAvailable = components.size,
+    )
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        state = listState,
-    ) {
-        itemsIndexed(
-            items = components,
-            key = { _, item -> item.name },
-        ) { _, item ->
-            ComponentListItem(
-                simpleName = item.simpleName,
-                name = item.name,
-                description = item.description,
-                packageName = item.packageName,
-                enabled = item.enabled(),
-                type = item.type,
-                isServiceRunning = item.isRunning,
-                navigateToComponentDetail = navigateToComponentDetail,
-                onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
-                onLaunchActivityClick = { onLaunchActivityClick(item.packageName, item.name) },
-                onCopyNameClick = { onCopyNameClick(item.simpleName) },
-                onCopyFullNameClick = { onCopyFullNameClick(item.name) },
-                onSwitchClick = onSwitchClick,
-            )
+    Box(modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = modifier,
+            state = listState,
+        ) {
+            itemsIndexed(
+                items = components,
+                key = { _, item -> item.name },
+            ) { _, item ->
+                ComponentListItem(
+                    simpleName = item.simpleName,
+                    name = item.name,
+                    description = item.description,
+                    packageName = item.packageName,
+                    enabled = item.enabled(),
+                    type = item.type,
+                    isServiceRunning = item.isRunning,
+                    navigateToComponentDetail = navigateToComponentDetail,
+                    onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
+                    onLaunchActivityClick = { onLaunchActivityClick(item.packageName, item.name) },
+                    onCopyNameClick = { onCopyNameClick(item.simpleName) },
+                    onCopyFullNameClick = { onCopyFullNameClick(item.name) },
+                    onSwitchClick = onSwitchClick,
+                )
+            }
         }
+        FastScrollbar(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 2.dp)
+                .align(Alignment.CenterEnd),
+            state = scrollbarState,
+            orientation = Vertical,
+            scrollInProgress = listState.isScrollInProgress,
+            onThumbDisplaced = listState.rememberFastScroller(
+                itemsAvailable = components.size,
+            ),
+        )
     }
 }
 
