@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.ruledetail.component
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -33,39 +34,41 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.feature.ruledetail.R
+import com.merxury.blocker.feature.ruledetail.R.string
 
 @Composable
 fun RuleDescription(
     modifier: Modifier = Modifier,
     rule: GeneralRule,
 ) {
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize()
-            .padding(16.dp),
-    ) {
-        InfoItemHeading(description = listOf(rule.description))
-        InfoItemHeading(
-            heading = stringResource(id = R.string.safe_to_block),
-            description = listOf(
-                if (rule.safeToBlock == true) {
-                    stringResource(id = R.string.yes)
-                } else {
-                    stringResource(id = R.string.no)
-                },
-            ),
-        )
-        InfoItemHeading(
-            heading = stringResource(id = R.string.side_effect),
-            description = listOf(
-                rule.sideEffect ?: stringResource(id = R.string.unknown),
-            ),
-        )
-        InfoItemHeading(
-            heading = stringResource(id = R.string.contributors),
-            description = rule.contributors,
-        )
+    Box(modifier = modifier.fillMaxSize()) {
+        Column(
+            modifier = modifier
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+        ) {
+            InfoItemHeading(description = listOf(rule.description))
+            InfoItemHeading(
+                heading = stringResource(id = string.safe_to_block),
+                description = listOf(
+                    if (rule.safeToBlock == true) {
+                        stringResource(id = string.yes)
+                    } else {
+                        stringResource(id = string.no)
+                    },
+                ),
+            )
+            InfoItemHeading(
+                heading = stringResource(id = string.side_effect),
+                description = listOf(
+                    rule.sideEffect ?: stringResource(id = string.unknown),
+                ),
+            )
+            InfoItemHeading(
+                heading = stringResource(id = string.contributors),
+                description = rule.contributors,
+            )
+        }
     }
 }
 

@@ -16,11 +16,13 @@
 
 package com.merxury.blocker.feature.search
 
+import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -34,13 +36,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
+import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.AppDetailTabs
@@ -230,6 +237,9 @@ fun ComponentSearchResultContent(
         return
     }
     val listState = rememberLazyListState()
+    val scrollbarState = listState.scrollbarState(
+        itemsAvailable = componentTabUiState.list.size,
+    )
     val analyticsHelper = LocalAnalyticsHelper.current
     Box(modifier.fillMaxSize()) {
         LazyColumn(
@@ -252,6 +262,18 @@ fun ComponentSearchResultContent(
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
+        FastScrollbar(
+            modifier = Modifier
+                .fillMaxHeight()
+                .padding(horizontal = 2.dp)
+                .align(Alignment.CenterEnd),
+            state = scrollbarState,
+            orientation = Vertical,
+            scrollInProgress = listState.isScrollInProgress,
+            onThumbDisplaced = listState.rememberFastScroller(
+                itemsAvailable = componentTabUiState.list.size,
+            ),
+        )
     }
 }
 

@@ -36,8 +36,8 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
-    compileOnly(libs.firebase.performance.gradle)
-    compileOnly(libs.firebase.crashlytics.gradle)
+    compileOnly(libs.firebase.performance.gradlePlugin)
+    compileOnly(libs.firebase.crashlytics.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
 }
 
@@ -90,6 +90,10 @@ gradlePlugin {
         register("androidFlavors") {
             id = "blocker.android.application.flavors"
             implementationClass = "AndroidApplicationFlavorsConventionPlugin"
+        }
+        register("jvmLibrary") {
+            id = "nowinandroid.jvm.library"
+            implementationClass = "JvmLibraryConventionPlugin"
         }
     }
 }
