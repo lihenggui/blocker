@@ -1,4 +1,4 @@
-/*
+/* Copyright 2023 Blocker
  * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,6 +49,8 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.ThumbState.Dorm
 import com.merxury.blocker.core.designsystem.component.scrollbar.ThumbState.Inactive
 import kotlinx.coroutines.delay
 
+private const val INACTIVE_TO_DORMANT_COOL_DOWN = 2_000L
+
 /**
  * A [Scrollbar] that allows for fast scrolling of content.
  * Its thumb disappears when the scrolling container is dormant.
@@ -57,7 +59,7 @@ import kotlinx.coroutines.delay
  * @param scrollInProgress a flag indicating if the scrolling container for the scrollbar is
  * currently scrolling
  * @param orientation the orientation of the scrollbar
- * @param onThumbMoved the fast scroll implementation
+ * @param onThumbDisplaced the fast scroll implementation
  */
 @Composable
 fun FastScrollbar(
@@ -65,7 +67,7 @@ fun FastScrollbar(
     state: ScrollbarState,
     scrollInProgress: Boolean,
     orientation: Orientation,
-    onThumbMoved: (Float) -> Unit,
+    onThumbDisplaced: (Float) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     Scrollbar(
@@ -80,7 +82,7 @@ fun FastScrollbar(
                 orientation = orientation,
             )
         },
-        onThumbMoved = onThumbMoved,
+        onThumbDisplaced = onThumbDisplaced,
     )
 }
 
@@ -202,7 +204,7 @@ private fun scrollbarThumbColor(
             true -> state = Active
             false -> {
                 state = Inactive
-                delay(2_000)
+                delay(INACTIVE_TO_DORMANT_COOL_DOWN)
                 state = Dormant
             }
         }
