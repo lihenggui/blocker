@@ -26,7 +26,7 @@ android {
     namespace = "com.merxury.blocker.benchmarks"
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 28
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "APP_BUILD_TYPE_SUFFIX", "\"\"")
