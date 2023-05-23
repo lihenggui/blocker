@@ -131,8 +131,8 @@ private fun FastScrollbarThumb(
         modifier = Modifier
             .run {
                 when (orientation) {
-                    Vertical -> width(12.dp).fillMaxHeight()
-                    Horizontal -> height(12.dp).fillMaxWidth()
+                    Vertical -> width(4.dp).fillMaxHeight()
+                    Horizontal -> height(4.dp).fillMaxWidth()
                 }
             }
             .background(
