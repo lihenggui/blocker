@@ -19,8 +19,6 @@ package com.merxury.blocker.feature.appdetail
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.pager.PagerState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
@@ -142,13 +140,6 @@ class AppDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
-
-    @OptIn(ExperimentalFoundationApi::class)
-    var _pagerState: MutableStateFlow<PagerState?> =
-        MutableStateFlow(null)
-
-    @OptIn(ExperimentalFoundationApi::class)
-    val pagerState = _pagerState.asStateFlow()
     private var currentFilterKeyword = appDetailArgs.searchKeyword
         .map { it.trim() }
         .filterNot { it.isEmpty() }
@@ -187,16 +178,6 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    @OptIn(ExperimentalFoundationApi::class)
-    fun setPagerState(pagerState: PagerState) {
-        this._pagerState.value = pagerState
-    }
-
-    @OptIn(ExperimentalFoundationApi::class)
-    suspend fun scrollPage(pageIndex: Int) {
-        _pagerState.value?.animateScrollToPage(pageIndex)
-    }
-
     private fun deinitShizuku() = viewModelScope.launch {
         val controllerType = userDataRepository.userData.first().controllerType
         if (controllerType == SHIZUKU) {
@@ -213,7 +194,6 @@ class AppDetailViewModel @Inject constructor(
         updateTabState(_componentListUiState.value)
     }
 
-    @OptIn(ExperimentalFoundationApi::class)
     private suspend fun updateTabState(listUiState: ComponentListUiState) {
         val itemCountMap = mapOf(
             Info to 1,
@@ -244,7 +224,6 @@ class AppDetailViewModel @Inject constructor(
                 ),
             )
         }
-        scrollPage(_tabState.value.currentIndex)
     }
 
     private suspend fun filterAndUpdateComponentList(keyword: String) {
