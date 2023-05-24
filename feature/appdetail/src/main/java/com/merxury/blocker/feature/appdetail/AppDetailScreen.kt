@@ -442,7 +442,7 @@ fun AppDetailTabContent(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
-    LaunchedEffect(tabState.selectedItem) {
+    LaunchedEffect(tabState) {
         pagerState.animateScrollToPage(tabState.currentIndex)
     }
     LaunchedEffect(pagerState.settledPage) {
