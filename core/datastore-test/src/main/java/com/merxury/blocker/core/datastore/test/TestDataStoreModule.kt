@@ -24,10 +24,13 @@ import com.merxury.blocker.core.datastore.AppPropertiesSerializer
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
 import com.merxury.blocker.core.datastore.di.DataStoreModule
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.components.SingletonComponent
 import dagger.hilt.testing.TestInstallIn
+import kotlinx.coroutines.CoroutineScope
 import org.junit.rules.TemporaryFolder
 import javax.inject.Singleton
 
@@ -41,32 +44,44 @@ object TestDataStoreModule {
     @Provides
     @Singleton
     fun providesUserPreferencesDataStore(
+        @Dispatcher(IO) ioScope: CoroutineScope,
         userPreferencesSerializer: UserPreferencesSerializer,
         tmpFolder: TemporaryFolder,
     ): DataStore<UserPreferences> =
-        tmpFolder.testUserPreferencesDataStore(userPreferencesSerializer)
+        tmpFolder.testUserPreferencesDataStore(
+            coroutineScope = ioScope,
+            userPreferencesSerializer = userPreferencesSerializer,
+        )
 
     @Provides
     @Singleton
     fun providesAppPropertiesDataStore(
+        @Dispatcher(IO) ioScope: CoroutineScope,
         appPropertiesSerializer: AppPropertiesSerializer,
         tmpFolder: TemporaryFolder,
     ): DataStore<AppProperties> =
-        tmpFolder.testAppPropertiesDataStore(appPropertiesSerializer)
+        tmpFolder.testAppPropertiesDataStore(
+            coroutineScope = ioScope,
+            appPropertiesSerializer = appPropertiesSerializer,
+        )
 }
 
 fun TemporaryFolder.testUserPreferencesDataStore(
+    coroutineScope: CoroutineScope,
     userPreferencesSerializer: UserPreferencesSerializer = UserPreferencesSerializer(),
 ) = DataStoreFactory.create(
     serializer = userPreferencesSerializer,
+    scope = coroutineScope,
 ) {
     newFile("user_preferences_test.pb")
 }
 
 fun TemporaryFolder.testAppPropertiesDataStore(
+    coroutineScope: CoroutineScope,
     appPropertiesSerializer: AppPropertiesSerializer = AppPropertiesSerializer(),
 ) = DataStoreFactory.create(
     serializer = appPropertiesSerializer,
+    scope = coroutineScope,
 ) {
     newFile("app_properties_test.pb")
 }

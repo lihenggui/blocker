@@ -26,7 +26,11 @@ dependencies {
     implementation(projects.core.datastore)
     implementation(projects.core.rule)
     implementation(libs.accompanist.permissions)
+    implementation(libs.androidx.appcompat)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
+    implementation(libs.google.oss.licenses) {
+        exclude(group = "androidx.appcompat")
+    }
 }
