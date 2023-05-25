@@ -76,6 +76,7 @@ fun SupportAndFeedbackRoute(
                 onReportBugClick = { viewModel.openReportBugPage(context) },
                 onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
                 onDesignLinkClick = { viewModel.openDesignLink(context) },
+                onOpenSourceLicenseClick = { viewModel.openOpenSourceLicence(context) },
                 onExportLogClick = { viewModel.exportErrorLog() },
             )
         }
@@ -89,6 +90,7 @@ fun SupportAndFeedbackScreen(
     onReportBugClick: () -> Unit = {},
     onTelegramGroupLinkClick: () -> Unit = {},
     onDesignLinkClick: () -> Unit = {},
+    onOpenSourceLicenseClick: () -> Unit = {},
     onExportLogClick: () -> Unit = {},
 ) {
     Column {
@@ -116,6 +118,11 @@ fun SupportAndFeedbackScreen(
             icon = ImageVectorIcon(BlockerIcons.DesignService),
             title = stringResource(id = string.designers_homepage),
             onItemClick = { onDesignLinkClick() },
+        )
+        BlockerSettingItem(
+            icon = ImageVectorIcon(BlockerIcons.DocumentScanner),
+            title = stringResource(id = string.open_source_licenses),
+            onItemClick = { onOpenSourceLicenseClick() },
         )
 //        BlockerSettingItem(
 //            icon = ImageVectorIcon(BlockerIcons.Article),

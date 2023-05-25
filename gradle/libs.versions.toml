@@ -35,6 +35,8 @@ firebaseBom = "32.0.0"
 firebaseCrashlyticsPlugin = "2.9.5"
 firebasePerfPlugin = "1.4.2"
 gmsPlugin = "4.3.15"
+googleOss = "17.0.1"
+googleOssPlugin = "0.10.6"
 hilt = "2.46.1"
 hiltExt = "1.0.0"
 jacoco = "0.8.7"
@@ -117,6 +119,8 @@ firebase-crashlytics-gradlePlugin = { group = "com.google.firebase", name="fireb
 firebase-performance = { group = "com.google.firebase", name = "firebase-perf-ktx"}
 firebase-performance-gradlePlugin = { group = "com.google.firebase", name = "perf-plugin", version.ref = "firebasePerfPlugin"}
 google-services = { module = "com.google.gms:google-services", version.ref = "gmsPlugin" }
+google-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "googleOss" }
+google-oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "googleOssPlugin" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
