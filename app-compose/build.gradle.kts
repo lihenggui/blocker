@@ -25,6 +25,7 @@ plugins {
     id("blocker.android.application.firebase")
     id("jacoco")
     id("kotlin-parcelize")
+    id("com.google.android.gms.oss-licenses-plugin")
     alias(libs.plugins.ksp)
 }
 
