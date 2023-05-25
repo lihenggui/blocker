@@ -25,6 +25,7 @@ import android.os.Build
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
 import androidx.lifecycle.ViewModel
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
 import javax.inject.Inject
@@ -47,6 +48,9 @@ class SupportFeedbackViewModel @Inject constructor() : ViewModel() {
     fun openReportBugPage(context: Context) = openUrl(context, REPORT_BUG_URL)
 
     fun openDesignLink(context: Context) = openUrl(context, DESIGN_LINK_URL)
+
+    fun openOpenSourceLicence(context: Context) =
+        context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
 
     fun exportErrorLog() {
         // TODO

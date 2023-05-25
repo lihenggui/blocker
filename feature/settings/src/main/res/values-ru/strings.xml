@@ -61,4 +61,5 @@
     <string name="options_off">Выключенный</string>
     <string name="report_bugs_or_submit_ideas">Сообщайте об ошибках или предлагайте идеи</string>
     <string name="designers_homepage">Домашняя страница дизайнеров</string>
+    <string name="open_source_licenses">Лицензии с открытым исходным кодом</string>
 </resources>

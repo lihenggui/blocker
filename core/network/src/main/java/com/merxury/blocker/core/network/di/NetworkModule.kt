@@ -29,7 +29,6 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
@@ -49,7 +48,7 @@ object NetworkModule {
             HttpLoggingInterceptor()
                 .apply {
                     if (BuildConfig.DEBUG) {
-                        setLevel(HttpLoggingInterceptor.Level.BODY)
+                        setLevel(HttpLoggingInterceptor.Level.HEADERS)
                     }
                 },
         )
@@ -97,7 +96,6 @@ object NetworkModule {
             .baseUrl(url)
             .callFactory(okHttpCallFactory)
             .addConverterFactory(
-                @OptIn(ExperimentalSerializationApi::class)
                 networkJson.asConverterFactory("application/json".toMediaType()),
             )
             .build()
