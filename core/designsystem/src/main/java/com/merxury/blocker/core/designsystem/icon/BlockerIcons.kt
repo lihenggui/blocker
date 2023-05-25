@@ -39,6 +39,7 @@ import androidx.compose.material.icons.outlined.CollectionsBookmark
 import androidx.compose.material.icons.outlined.CreateNewFolder
 import androidx.compose.material.icons.outlined.Deselect
 import androidx.compose.material.icons.outlined.DesignServices
+import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.EventBusy
@@ -124,6 +125,7 @@ object BlockerIcons {
     val SubdirectoryArrowRight = Icons.Outlined.SubdirectoryArrowRight
     val Error = Icons.Outlined.Error
     val DesignService = Icons.Outlined.DesignServices
+    val DocumentScanner = Icons.Outlined.DocumentScanner
 
     val Rectangle = R.drawable.ic_rectangle
     val Android = R.drawable.ic_android
