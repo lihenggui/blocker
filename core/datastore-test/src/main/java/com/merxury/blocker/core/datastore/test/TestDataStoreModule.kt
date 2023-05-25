@@ -50,7 +50,7 @@ object TestDataStoreModule {
     ): DataStore<UserPreferences> =
         tmpFolder.testUserPreferencesDataStore(
             coroutineScope = ioScope,
-            userPreferencesSerializer = userPreferencesSerializer
+            userPreferencesSerializer = userPreferencesSerializer,
         )
 
     @Provides
@@ -62,7 +62,7 @@ object TestDataStoreModule {
     ): DataStore<AppProperties> =
         tmpFolder.testAppPropertiesDataStore(
             coroutineScope = ioScope,
-            appPropertiesSerializer = appPropertiesSerializer
+            appPropertiesSerializer = appPropertiesSerializer,
         )
 }
 
