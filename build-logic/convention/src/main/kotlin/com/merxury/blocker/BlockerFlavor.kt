@@ -34,7 +34,7 @@ enum class BlockerFlavor(val dimension: FlavorDimension, val applicationIdSuffix
 }
 
 fun configureFlavors(
-    commonExtension: CommonExtension<*, *, *, *>,
+    commonExtension: CommonExtension<*, *, *, *, *>,
     flavorConfigurationBlock: ProductFlavor.(flavor: BlockerFlavor) -> Unit = {}
 ) {
     commonExtension.apply {
