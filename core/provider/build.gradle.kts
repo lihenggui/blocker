@@ -17,14 +17,15 @@
 plugins {
     id("blocker.android.library")
     id("blocker.android.library.jacoco")
-    id("blocker.android.hilt")
     id("kotlinx-serialization")
+    id("blocker.android.hilt")
 }
 android {
     namespace = "com.merxury.blocker.provider"
 }
 dependencies {
     implementation(projects.core.analytics)
+    implementation(projects.core.common)
     implementation(projects.core.data)
     implementation(projects.core.model)
     implementation(libs.kotlinx.serialization.json)
