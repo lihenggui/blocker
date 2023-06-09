@@ -88,10 +88,10 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.utils.ServiceHelper
-import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Loading
-import com.merxury.blocker.feature.applist.appdetail.navigation.AppDetailArgs
 import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Error
+import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Success
+import com.merxury.blocker.feature.applist.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -125,7 +125,7 @@ class AppDetailViewModel @Inject constructor(
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
-    private val _appInfoUiState: MutableStateFlow<AppInfoUiState> = MutableStateFlow(Loading)
+    private val _appInfoUiState: MutableStateFlow<AppInfoUiState?> = MutableStateFlow(null)
     val appInfoUiState = _appInfoUiState.asStateFlow()
     private val _appBarUiState = MutableStateFlow(AppBarUiState())
     val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
@@ -662,6 +662,7 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private fun loadAppInfo() = viewModelScope.launch {
+        _appInfoUiState.emit(Loading)
         val packageName = appDetailArgs.packageName
         val app = appRepository.getApplication(packageName).first()
         if (app == null) {

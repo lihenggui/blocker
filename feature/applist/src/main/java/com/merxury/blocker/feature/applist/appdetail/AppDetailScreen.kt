@@ -112,50 +112,52 @@ fun AppDetailRoute(
     navigatedToComponentSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    viewModel: AppDetailViewModel = hiltViewModel(),
+    appDetailViewModel: AppDetailViewModel = hiltViewModel(),
 ) {
-    val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val appInfoUiState by viewModel.appInfoUiState.collectAsStateWithLifecycle()
-    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-    val topAppBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
-    val componentListUiState by viewModel.componentListUiState.collectAsStateWithLifecycle()
-    val event by viewModel.eventFlow.collectAsState(initial = null)
+    val tabState by appDetailViewModel.tabState.collectAsStateWithLifecycle()
+    val appInfoUiState by appDetailViewModel.appInfoUiState.collectAsStateWithLifecycle()
+    val appDetailErrorState by appDetailViewModel.errorState.collectAsStateWithLifecycle()
+    val topAppBarUiState by appDetailViewModel.appBarUiState.collectAsStateWithLifecycle()
+    val componentListUiState by appDetailViewModel.componentListUiState.collectAsStateWithLifecycle()
+    val event by appDetailViewModel.eventFlow.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
-    AppDetailScreen(
-        appInfoUiState = appInfoUiState,
-        topAppBarUiState = topAppBarUiState,
-        componentListUiState = componentListUiState,
-        tabState = tabState,
-        navigateToComponentDetail = navigateToComponentDetail,
-        modifier = modifier.fillMaxSize(),
-        onLaunchAppClick = { packageName ->
-            viewModel.launchApp(context, packageName)
-        },
-        switchTab = viewModel::switchTab,
-        onBackClick = onBackClick,
-        onSearchTextChanged = viewModel::search,
-        onSearchModeChanged = viewModel::changeSearchMode,
-        blockAllComponents = { viewModel.controlAllComponents(false) },
-        enableAllComponents = { viewModel.controlAllComponents(true) },
-        onExportRules = viewModel::exportBlockerRule,
-        onImportRules = viewModel::importBlockerRule,
-        onExportIfw = viewModel::exportIfwRule,
-        onImportIfw = viewModel::importIfwRule,
-        onResetIfw = viewModel::resetIfw,
-        onSwitchClick = viewModel::controlComponent,
-        onStopServiceClick = viewModel::stopService,
-        onLaunchActivityClick = viewModel::launchActivity,
-        onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-        onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-        navigatedToComponentSortScreen = navigatedToComponentSortScreen,
-    )
-    if (errorState != null) {
+    appInfoUiState?.let {
+        AppDetailScreen(
+            appInfoUiState = it,
+            topAppBarUiState = topAppBarUiState,
+            componentListUiState = componentListUiState,
+            tabState = tabState,
+            navigateToComponentDetail = navigateToComponentDetail,
+            modifier = modifier.fillMaxSize(),
+            onLaunchAppClick = { packageName ->
+                appDetailViewModel.launchApp(context, packageName)
+            },
+            switchTab = appDetailViewModel::switchTab,
+            onBackClick = onBackClick,
+            onSearchTextChanged = appDetailViewModel::search,
+            onSearchModeChanged = appDetailViewModel::changeSearchMode,
+            blockAllComponents = { appDetailViewModel.controlAllComponents(false) },
+            enableAllComponents = { appDetailViewModel.controlAllComponents(true) },
+            onExportRules = appDetailViewModel::exportBlockerRule,
+            onImportRules = appDetailViewModel::importBlockerRule,
+            onExportIfw = appDetailViewModel::exportIfwRule,
+            onImportIfw = appDetailViewModel::importIfwRule,
+            onResetIfw = appDetailViewModel::resetIfw,
+            onSwitchClick = appDetailViewModel::controlComponent,
+            onStopServiceClick = appDetailViewModel::stopService,
+            onLaunchActivityClick = appDetailViewModel::launchActivity,
+            onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+            onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+            navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+        )
+    }
+    if (appDetailErrorState != null) {
         BlockerErrorAlertDialog(
-            title = errorState?.title.orEmpty(),
-            text = errorState?.content.orEmpty(),
-            onDismissRequest = viewModel::dismissAlert,
+            title = appDetailErrorState?.title.orEmpty(),
+            text = appDetailErrorState?.content.orEmpty(),
+            onDismissRequest = appDetailViewModel::dismissAlert,
         )
     }
     event?.let {
@@ -184,7 +186,7 @@ fun AppDetailRoute(
         }
     }
     LaunchedEffect(Unit) {
-        viewModel.initShizuku()
+        appDetailViewModel.initShizuku()
     }
 }
 

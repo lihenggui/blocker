@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.applist.navigation
 
 import android.net.Uri
 import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -27,7 +28,7 @@ import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.data.SelectedApp
-import com.merxury.blocker.feature.applist.applist.AppListRoute
+import com.merxury.blocker.feature.applist.AppListRoute
 
 const val packageNameArg = "packageName"
 const val tabArg = "tab"
@@ -65,12 +66,16 @@ fun NavController.navigateToAppList(
 }
 
 fun NavGraphBuilder.appListScreen(
+    onBackClick: () -> Unit,
     listState: LazyGridState,
     shouldShowTwoPane: Boolean,
+    snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
     navigateTooAppSortScreen: () -> Unit,
+    navigateToComponentDetail: (String) -> Unit,
+    navigatedToComponentSortScreen: () -> Unit,
 ) {
     composable(
         route = appListRoute,
@@ -81,12 +86,16 @@ fun NavGraphBuilder.appListScreen(
         ),
     ) {
         AppListRoute(
+            onBackClick = onBackClick,
             listState = listState,
             shouldShowTwoPane = shouldShowTwoPane,
             navigateToAppDetail = navigateToAppDetail,
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
             navigateTooAppSortScreen = navigateTooAppSortScreen,
+            navigateToComponentDetail = navigateToComponentDetail,
+            navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+            snackbarHostState = snackbarHostState,
         )
     }
 }

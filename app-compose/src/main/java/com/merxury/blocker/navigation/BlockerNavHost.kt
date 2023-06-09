@@ -66,12 +66,16 @@ fun BlockerNavHost(
         modifier = modifier,
     ) {
         appListScreen(
+            onBackClick = onBackClick,
             listState = appListScrollState,
             shouldShowTwoPane = appState.shouldShowTwoPane,
+            snackbarHostState = snackbarHostState,
             navigateToAppDetail = navController::navigateToAppDetail,
             navigateToSettings = navController::navigateToSettings,
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
             navigateTooAppSortScreen = navController::navigateToAppSortScreen,
+            navigateToComponentDetail = navController::navigateToComponentDetail,
+            navigatedToComponentSortScreen = navController::navigateToAppSortScreen,
         )
         detailScreen(
             onBackClick = onBackClick,
