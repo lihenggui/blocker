@@ -133,7 +133,7 @@ fun BlockerApp(
                         // TODO Show the top app bar on top level destinations.
 
                         BlockerNavHost(
-                            navController = appState.navController,
+                            appState = appState,
                             onBackClick = appState::onBackClick,
                             snackbarHostState = snackbarHostState,
                         )

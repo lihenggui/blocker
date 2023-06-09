@@ -86,6 +86,9 @@ class BlockerAppState(
     val shouldShowNavRail: Boolean
         get() = !shouldShowBottomBar
 
+    val shouldShowTwoPane: Boolean
+        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded
+
     val isOffline = networkMonitor.isOnline
         .map(Boolean::not)
         .stateIn(
@@ -124,7 +127,7 @@ class BlockerAppState(
             }
 
             when (topLevelDestination) {
-                APP -> navController.navigateToAppList(topLevelNavOptions)
+                APP -> navController.navigateToAppList(navOptions = topLevelNavOptions)
                 RULE -> navController.navigateToGeneralRule(topLevelNavOptions)
                 SEARCH -> navController.navigateToSearch(topLevelNavOptions)
             }

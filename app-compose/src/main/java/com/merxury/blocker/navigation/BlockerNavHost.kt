@@ -17,10 +17,10 @@
 
 package com.merxury.blocker.navigation
 
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
@@ -40,6 +40,7 @@ import com.merxury.blocker.feature.sort.navigation.appSortScreen
 import com.merxury.blocker.feature.sort.navigation.componentSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
+import com.merxury.blocker.ui.BlockerAppState
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
@@ -51,18 +52,22 @@ import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 
 @Composable
 fun BlockerNavHost(
-    navController: NavHostController,
+    appState: BlockerAppState,
     snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = appListRoute,
 ) {
+    val navController = appState.navController
+    val appListScrollState = rememberLazyGridState()
     NavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier,
     ) {
         appListScreen(
+            listState = appListScrollState,
+            shouldShowTwoPane = appState.shouldShowTwoPane,
             navigateToAppDetail = navController::navigateToAppDetail,
             navigateToSettings = navController::navigateToSettings,
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
