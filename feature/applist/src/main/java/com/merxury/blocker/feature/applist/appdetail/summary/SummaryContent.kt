@@ -34,7 +34,7 @@ import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.utils.AndroidCodeName
-import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.applist.R.string
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant

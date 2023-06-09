@@ -93,13 +93,13 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
+import com.merxury.blocker.feature.applist.R.string
+import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Error
+import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Success
-import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.applist.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.applist.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.applist.appdetail.ui.SearchActionMenu
-import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Error
-import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Loading
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System

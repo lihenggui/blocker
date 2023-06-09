@@ -28,5 +28,9 @@ android {
 dependencies {
     implementation(projects.core.ifwApi)
     implementation(libs.kotlinx.datetime)
+    implementation(projects.core.componentController)
+    implementation(projects.core.rule)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.work.ktx)
 }
 

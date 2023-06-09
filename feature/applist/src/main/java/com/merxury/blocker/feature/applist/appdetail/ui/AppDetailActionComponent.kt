@@ -22,7 +22,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
-import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.applist.R.string
 
 @Composable
 fun SearchActionMenu(onSearchModeChange: (Boolean) -> Unit) {

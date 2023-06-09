@@ -25,24 +25,17 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
@@ -54,54 +47,6 @@ import com.merxury.blocker.feature.applist.applist.AppListUiState.Error
 import com.merxury.blocker.feature.applist.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.applist.AppListUiState.Success
 import com.merxury.blocker.feature.applist.applist.component.TopAppBarMoreMenu
-
-@Composable
-fun AppListRoute(
-    listState: LazyGridState,
-    shouldShowTwoPane: Boolean,
-    navigateToAppDetail: (String) -> Unit,
-    navigateToSettings: () -> Unit,
-    navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: AppListViewModel = hiltViewModel(),
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-    val warningState by viewModel.warningState.collectAsStateWithLifecycle()
-    val appList = viewModel.appListFlow.collectAsState()
-    AppListScreen(
-        uiState = uiState,
-        appList = appList.value,
-        onAppItemClick = navigateToAppDetail,
-        onClearCacheClick = viewModel::clearCache,
-        onClearDataClick = viewModel::clearData,
-        onForceStopClick = viewModel::forceStop,
-        onUninstallClick = viewModel::uninstall,
-        onEnableClick = viewModel::enable,
-        onDisableClick = viewModel::disable,
-        onServiceStateUpdate = viewModel::updateServiceStatus,
-        navigateToSettings = navigateToSettings,
-        navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-        navigateTooAppSortScreen = navigateTooAppSortScreen,
-        modifier = modifier,
-    )
-    if (errorState != null) {
-        BlockerErrorAlertDialog(
-            title = errorState?.title.orEmpty(),
-            text = errorState?.content.orEmpty(),
-            onDismissRequest = viewModel::dismissErrorDialog,
-        )
-    }
-    warningState?.let {
-        BlockerWarningAlertDialog(
-            title = it.title,
-            text = stringResource(id = it.message),
-            onDismissRequest = viewModel::dismissWarningDialog,
-            onConfirmRequest = it.onPositiveButtonClicked,
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

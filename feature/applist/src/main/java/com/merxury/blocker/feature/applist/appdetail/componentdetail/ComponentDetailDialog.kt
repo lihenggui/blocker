@@ -42,7 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
-import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.appdetail.componentdetail.ComponentDetailUiState.Error
 import com.merxury.blocker.feature.applist.appdetail.componentdetail.ComponentDetailUiState.Loading
 import com.merxury.blocker.feature.applist.appdetail.componentdetail.ComponentDetailUiState.Success
