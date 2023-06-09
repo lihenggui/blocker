@@ -14,51 +14,47 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.ui
+package com.merxury.blocker.feature.applist.applist.component
 
-import androidx.compose.material3.IconButton
+import android.content.res.Configuration
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
-import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
-import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.feature.applist.R
 
 @Composable
-fun SearchActionMenu(onSearchModeChange: (Boolean) -> Unit) {
-    IconButton(
-        onClick = { onSearchModeChange(true) },
-    ) {
-        BlockerActionIcon(
-            imageVector = BlockerIcons.Search,
-            contentDescription = null,
-        )
-    }
-}
-
-@Composable
-fun MoreActionMenu(
-    blockAllComponents: () -> Unit,
-    enableAllComponents: () -> Unit,
-    onAdvanceSortClick: () -> Unit = {},
+fun TopAppBarMoreMenu(
+    navigateToSettings: () -> Unit,
+    navigateToFeedback: () -> Unit,
 ) {
     val items = listOf(
         DropDownMenuItem(
-            string.block_all_of_this_page,
-            blockAllComponents,
+            R.string.settings,
+            navigateToSettings,
         ),
         DropDownMenuItem(
-            string.enable_all_of_this_page,
-            enableAllComponents,
-        ),
-        DropDownMenuItem(
-            string.sort_options,
-            onAdvanceSortClick,
+            R.string.support_and_feedback,
+            navigateToFeedback,
         ),
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
-        menuIconDesc = string.more_menu,
+        menuIconDesc = R.string.more_menu,
         menuList = items,
     )
+}
+
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun MoreMenuPreview() {
+    BlockerTheme {
+        Surface {
+            TopAppBarMoreMenu(navigateToSettings = {}, navigateToFeedback = {})
+        }
+    }
 }

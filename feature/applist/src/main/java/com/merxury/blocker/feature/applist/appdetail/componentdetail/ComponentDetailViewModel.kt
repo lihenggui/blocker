@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.componentdetail
+package com.merxury.blocker.feature.applist.appdetail.componentdetail
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -26,10 +26,10 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Error
-import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Loading
-import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Success
-import com.merxury.blocker.feature.appdetail.navigation.ComponentDetailArgs
+import com.merxury.blocker.feature.applist.appdetail.componentdetail.ComponentDetailUiState.Error
+import com.merxury.blocker.feature.applist.appdetail.componentdetail.ComponentDetailUiState.Loading
+import com.merxury.blocker.feature.applist.appdetail.componentdetail.ComponentDetailUiState.Success
+import com.merxury.blocker.feature.applist.appdetail.navigation.ComponentDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow

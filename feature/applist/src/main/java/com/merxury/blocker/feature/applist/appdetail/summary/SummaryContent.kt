@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.summary
+package com.merxury.blocker.feature.applist.appdetail.summary
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

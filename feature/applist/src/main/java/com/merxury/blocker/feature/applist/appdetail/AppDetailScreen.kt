@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail
+package com.merxury.blocker.feature.applist.appdetail
 
 import android.content.res.Configuration
 import androidx.compose.animation.core.FloatExponentialDecaySpec
@@ -93,11 +93,13 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
-import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
+import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.summary.SummaryContent
-import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
-import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
+import com.merxury.blocker.feature.applist.appdetail.summary.SummaryContent
+import com.merxury.blocker.feature.applist.appdetail.ui.MoreActionMenu
+import com.merxury.blocker.feature.applist.appdetail.ui.SearchActionMenu
+import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Error
+import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Loading
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System
@@ -214,7 +216,7 @@ fun AppDetailScreen(
     navigatedToComponentSortScreen: () -> Unit,
 ) {
     when (appInfoUiState) {
-        is AppInfoUiState.Loading -> {
+        is Loading -> {
             LoadingScreen()
         }
 
@@ -247,7 +249,7 @@ fun AppDetailScreen(
             )
         }
 
-        is AppInfoUiState.Error -> ErrorScreen(appInfoUiState.error)
+        is Error -> ErrorScreen(appInfoUiState.error)
     }
     TrackScreenViewEvent(screenName = "AppDetailScreen")
 }

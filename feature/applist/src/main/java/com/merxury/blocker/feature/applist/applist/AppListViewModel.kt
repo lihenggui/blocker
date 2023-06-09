@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.applist
+package com.merxury.blocker.feature.applist.applist
 
 import android.content.Context
 import android.content.pm.PackageManager
@@ -46,8 +46,9 @@ import com.merxury.blocker.core.ui.state.AppStateCache
 import com.merxury.blocker.core.ui.state.RunningAppCache
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.blocker.feature.applist.AppListUiState.Initializing
-import com.merxury.blocker.feature.applist.AppListUiState.Success
+import com.merxury.blocker.feature.applist.R.string
+import com.merxury.blocker.feature.applist.applist.AppListUiState.Initializing
+import com.merxury.blocker.feature.applist.applist.AppListUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -266,7 +267,7 @@ class AppListViewModel @Inject constructor(
             ?: packageName
         val data = WarningDialogData(
             title = label,
-            message = R.string.do_you_want_to_clear_data_of_this_app,
+            message = string.do_you_want_to_clear_data_of_this_app,
             onPositiveButtonClicked = action,
         )
         _warningState.emit(data)
@@ -304,7 +305,7 @@ class AppListViewModel @Inject constructor(
             ?: packageName
         val data = WarningDialogData(
             title = label,
-            message = R.string.do_you_want_to_uninstall_this_app,
+            message = string.do_you_want_to_uninstall_this_app,
             onPositiveButtonClicked = action,
         )
         _warningState.emit(data)

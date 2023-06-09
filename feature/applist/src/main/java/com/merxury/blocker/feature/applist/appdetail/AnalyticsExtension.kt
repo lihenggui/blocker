@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail
+package com.merxury.blocker.feature.applist.appdetail
 
 import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param

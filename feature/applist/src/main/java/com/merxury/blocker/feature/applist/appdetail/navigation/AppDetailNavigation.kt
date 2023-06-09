@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.navigation
+package com.merxury.blocker.feature.applist.appdetail.navigation
 
 import android.net.Uri
 import androidx.annotation.VisibleForTesting
@@ -27,7 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.feature.appdetail.AppDetailRoute
+import com.merxury.blocker.feature.applist.appdetail.AppDetailRoute
 
 @VisibleForTesting
 internal const val packageNameArg = "packageName"

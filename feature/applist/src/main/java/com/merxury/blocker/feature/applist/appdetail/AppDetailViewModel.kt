@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail
+package com.merxury.blocker.feature.applist.appdetail
 
 import android.app.Application
 import android.content.Context
@@ -88,8 +88,10 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.utils.ServiceHelper
-import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
-import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
+import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Loading
+import com.merxury.blocker.feature.applist.appdetail.navigation.AppDetailArgs
+import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Error
+import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -665,11 +667,11 @@ class AppDetailViewModel @Inject constructor(
         if (app == null) {
             val error = UiMessage("Can't find $packageName in this device.")
             Timber.e(error.title)
-            _appInfoUiState.emit(AppInfoUiState.Error(error))
+            _appInfoUiState.emit(Error(error))
         } else {
             val packageInfo = pm.getPackageInfoCompat(packageName, 0)
             _appInfoUiState.emit(
-                AppInfoUiState.Success(app.toAppItem(packageInfo = packageInfo)),
+                Success(app.toAppItem(packageInfo = packageInfo)),
             )
         }
     }

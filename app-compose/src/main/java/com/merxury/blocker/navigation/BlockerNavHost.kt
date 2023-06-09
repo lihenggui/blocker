@@ -22,10 +22,10 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
-import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
-import com.merxury.blocker.feature.appdetail.navigation.detailScreen
-import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
-import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
+import com.merxury.blocker.feature.applist.appdetail.navigation.componentDetailScreen
+import com.merxury.blocker.feature.applist.appdetail.navigation.detailScreen
+import com.merxury.blocker.feature.applist.appdetail.navigation.navigateToAppDetail
+import com.merxury.blocker.feature.applist.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen

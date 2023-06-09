@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.applist
+package com.merxury.blocker.feature.applist.applist
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,7 +50,10 @@ import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.feature.applist.R.string
-import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
+import com.merxury.blocker.feature.applist.applist.AppListUiState.Error
+import com.merxury.blocker.feature.applist.applist.AppListUiState.Initializing
+import com.merxury.blocker.feature.applist.applist.AppListUiState.Success
+import com.merxury.blocker.feature.applist.applist.component.TopAppBarMoreMenu
 
 @Composable
 fun AppListRoute(
@@ -152,9 +155,9 @@ fun AppListScreen(
         ) {
             val appListTestTag = "appList:applicationList"
             when (uiState) {
-                is AppListUiState.Initializing -> InitializingScreen(processingName = uiState.processingName)
+                is Initializing -> InitializingScreen(processingName = uiState.processingName)
 
-                is AppListUiState.Success -> AppList(
+                is Success -> AppList(
                     appList = appList,
                     onAppItemClick = onAppItemClick,
                     onClearCacheClick = onClearCacheClick,
@@ -167,7 +170,7 @@ fun AppListScreen(
                     modifier = modifier.testTag(appListTestTag),
                 )
 
-                is AppListUiState.Error -> ErrorScreen(uiState.error)
+                is Error -> ErrorScreen(uiState.error)
             }
         }
     }

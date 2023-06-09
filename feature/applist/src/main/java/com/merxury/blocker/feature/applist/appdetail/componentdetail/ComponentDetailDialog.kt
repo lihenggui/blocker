@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.appdetail.componentdetail
+package com.merxury.blocker.feature.applist.appdetail.componentdetail
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,9 +43,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerTextButton
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.feature.appdetail.R.string
-import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Error
-import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Loading
-import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Success
+import com.merxury.blocker.feature.applist.appdetail.componentdetail.ComponentDetailUiState.Error
+import com.merxury.blocker.feature.applist.appdetail.componentdetail.ComponentDetailUiState.Loading
+import com.merxury.blocker.feature.applist.appdetail.componentdetail.ComponentDetailUiState.Success
 
 @Composable
 fun ComponentDetailDialogRoute(

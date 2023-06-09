@@ -27,7 +27,7 @@ import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.data.SelectedApp
-import com.merxury.blocker.feature.applist.AppListRoute
+import com.merxury.blocker.feature.applist.applist.AppListRoute
 
 const val packageNameArg = "packageName"
 const val tabArg = "tab"
