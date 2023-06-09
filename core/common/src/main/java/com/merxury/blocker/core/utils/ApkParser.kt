@@ -46,7 +46,7 @@ object ApkParser {
             try {
                 assetManagerClass = Class
                     .forName("android.content.res.AssetManager")
-                return assetManagerClass.newInstance()
+                return assetManagerClass.getDeclaredConstructor().newInstance()
             } catch (e: ClassNotFoundException) {
                 Timber.e(e, "Cannot create AssetManager")
             } catch (e: InstantiationException) {
