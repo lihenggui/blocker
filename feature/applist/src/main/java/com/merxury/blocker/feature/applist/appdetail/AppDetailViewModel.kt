@@ -142,8 +142,8 @@ class AppDetailViewModel @Inject constructor(
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
     private var currentFilterKeyword = appDetailArgs.searchKeyword
-        .map { it.trim() }
-        .filterNot { it.isEmpty() }
+        ?.map { it.trim() }
+        ?.filterNot { it.isEmpty() }
     private var _unfilteredList = ComponentListUiState()
     private val _componentListUiState = MutableStateFlow(ComponentListUiState())
     val componentListUiState = _componentListUiState.asStateFlow()
@@ -163,7 +163,7 @@ class AppDetailViewModel @Inject constructor(
         updateSearchKeyword()
         loadAppInfo()
         loadComponentList()
-        updateComponentList(appDetailArgs.packageName)
+        appDetailArgs.packageName?.let { updateComponentList(it) }
         listenSortStateChange()
     }
 
@@ -232,7 +232,7 @@ class AppDetailViewModel @Inject constructor(
         currentFilterKeyword = keyword.split(",")
             .map { it.trim() }
             .filterNot { it.isEmpty() }
-        if (currentFilterKeyword.isEmpty()) {
+        if (currentFilterKeyword?.isEmpty() == true) {
             _componentListUiState.emit(_unfilteredList)
             return
         }
@@ -240,7 +240,7 @@ class AppDetailViewModel @Inject constructor(
         val service = mutableStateListOf<ComponentItem>()
         val activity = mutableStateListOf<ComponentItem>()
         val provider = mutableStateListOf<ComponentItem>()
-        currentFilterKeyword.forEach { subKeyword ->
+        currentFilterKeyword?.forEach { subKeyword ->
             val filteredReceiver = _unfilteredList.receiver
                 .filter { it.name.contains(subKeyword, ignoreCase = true) }
             val filteredService = _unfilteredList.service
@@ -262,26 +262,30 @@ class AppDetailViewModel @Inject constructor(
                 provider = provider,
             ),
         )
+
     }
 
     private fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         val packageName = appDetailArgs.packageName
-        componentRepository.getComponentList(packageName)
-            .collect { origList ->
-                // Show the cache data first
-                updateTabContent(origList, packageName)
-                // Load the data with description and update again
-                val list = origList.map { component ->
-                    val detail = componentDetailRepository.getComponentDetailCache(component.name)
-                        .first()
-                    if (detail != null) {
-                        component.copy(description = detail.description)
-                    } else {
-                        component
+        if (packageName != null) {
+            componentRepository.getComponentList(packageName)
+                .collect { origList ->
+                    // Show the cache data first
+                    updateTabContent(origList, packageName)
+                    // Load the data with description and update again
+                    val list = origList.map { component ->
+                        val detail =
+                            componentDetailRepository.getComponentDetailCache(component.name)
+                                .first()
+                        if (detail != null) {
+                            component.copy(description = detail.description)
+                        } else {
+                            component
+                        }
                     }
+                    updateTabContent(list, packageName)
                 }
-                updateTabContent(list, packageName)
-            }
+        }
     }
 
     private suspend fun updateTabContent(
@@ -295,7 +299,7 @@ class AppDetailViewModel @Inject constructor(
         val provider = list.filter { it.type == PROVIDER }
         _unfilteredList =
             getComponentListUiState(packageName, receiver, service, activity, provider)
-        filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
+        currentFilterKeyword?.let { filterAndUpdateComponentList(it.joinToString(",")) }
         updateTabState(_componentListUiState.value)
     }
 
@@ -390,9 +394,8 @@ class AppDetailViewModel @Inject constructor(
 
     private fun updateSearchKeyword() {
         val keyword = appDetailArgs.searchKeyword
-            .map { it.trim() }
-            .filterNot { it.isEmpty() }
-        if (keyword.isEmpty()) return
+            ?.map { it.trim() }
+            ?.filterNot { it.isEmpty() } ?: return
         val keywordString = keyword.joinToString(",")
         Timber.v("Search keyword: $keyword")
         _appBarUiState.update {
