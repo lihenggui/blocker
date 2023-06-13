@@ -27,25 +27,24 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.feature.applist.AppListRoute
 
 const val packageNameArg = "packageName"
 const val tabArg = "tab"
 const val keywordArg = "keyword"
 const val appListRoute =
-    "app_list_route/screen={$tabArg}keyword={$keywordArg}?packageName={$packageNameArg}"
+    "app_list_route?packageName={$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}"
 
 internal class AppDetailArgs(
     val packageName: String? = null,
-    val tabs: AppDetailTabs = Info,
-    val searchKeyword: List<String>? = listOf(),
+    val tabs: AppDetailTabs = AppDetailTabs.Info,
+    val searchKeyword: List<String> = listOf(),
 ) {
     constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
         this(
-            savedStateHandle[packageNameArg],
+            stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])),
             AppDetailTabs.fromName(savedStateHandle[tabArg]),
-            savedStateHandle[keywordArg],
+            stringDecoder.decodeString(checkNotNull(savedStateHandle[keywordArg])).split(","),
         )
 }
 
@@ -55,10 +54,11 @@ fun NavController.navigateToAppList(
     searchKeyword: List<String> = listOf(),
     navOptions: NavOptions? = null,
 ) {
+//    val encodedId = Uri.encode(packageName)
     val keywords = searchKeyword.joinToString(",")
     if (packageName != null) {
         navigate(
-            "app_list_route/screen=${tab.name}keyword=${keywords}?packageName=${packageName}",
+            "app_list_route?packageName=$packageName?screen=${tab.name}?keyword=${keywords}",
             navOptions,
         )
     } else {

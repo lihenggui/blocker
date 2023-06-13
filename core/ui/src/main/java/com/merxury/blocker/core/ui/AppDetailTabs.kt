@@ -45,7 +45,7 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
             SERVICE -> Service
             ACTIVITY -> Activity
             PROVIDER -> Provider
-            else -> Info
+            else -> throw IllegalArgumentException("Invalid screen name in detail page")
         }
     }
 }
