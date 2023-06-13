@@ -89,9 +89,8 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Error
-import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.applist.appdetail.AppInfoUiState.Success
-import com.merxury.blocker.feature.applist.appdetail.navigation.AppDetailArgs
+import com.merxury.blocker.feature.applist.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -662,18 +661,19 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private fun loadAppInfo() = viewModelScope.launch {
-        _appInfoUiState.emit(Loading)
         val packageName = appDetailArgs.packageName
-        val app = appRepository.getApplication(packageName).first()
-        if (app == null) {
-            val error = UiMessage("Can't find $packageName in this device.")
-            Timber.e(error.title)
-            _appInfoUiState.emit(Error(error))
-        } else {
-            val packageInfo = pm.getPackageInfoCompat(packageName, 0)
-            _appInfoUiState.emit(
-                Success(app.toAppItem(packageInfo = packageInfo)),
-            )
+        if (packageName != null) {
+            val app = appRepository.getApplication(packageName).first()
+            if (app == null) {
+                val error = UiMessage("Can't find $packageName in this device.")
+                Timber.e(error.title)
+                _appInfoUiState.emit(Error(error))
+            } else {
+                val packageInfo = pm.getPackageInfoCompat(packageName, 0)
+                _appInfoUiState.emit(
+                    Success(app.toAppItem(packageInfo = packageInfo)),
+                )
+            }
         }
     }
 }

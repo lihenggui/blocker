@@ -50,6 +50,7 @@ import com.merxury.blocker.feature.applist.appdetail.AppDetailViewModel
 import com.merxury.blocker.feature.applist.applist.AppListScreen
 import com.merxury.blocker.feature.applist.applist.AppListViewModel
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @Composable
 fun AppListRoute(
@@ -127,6 +128,7 @@ fun AppListRoute(
                 }
             }
         }
+        Timber.tag("AppListRoute").d("appInfoUiState = $appInfoUiState")
         AnimatedVisibility(
             visible = appInfoUiState != null,
             enter = slideInHorizontally(initialOffsetX = { it / 2 }),

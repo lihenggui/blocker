@@ -16,28 +16,27 @@
 
 package com.merxury.blocker.feature.applist.navigation
 
-import android.net.Uri
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
+import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.data.SelectedApp
 import com.merxury.blocker.feature.applist.AppListRoute
 
 const val packageNameArg = "packageName"
 const val tabArg = "tab"
 const val keywordArg = "keyword"
 const val appListRoute =
-    "app_list_route?$packageNameArg={$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}"
+    "app_list_route?packageName={$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}"
 
 internal class AppDetailArgs(
-    val packageName: String,
+    val packageName: String? = null,
     val tabs: AppDetailTabs = AppDetailTabs.Info,
     val searchKeyword: List<String> = listOf(),
 ) {
@@ -50,14 +49,16 @@ internal class AppDetailArgs(
 }
 
 fun NavController.navigateToAppList(
-    selectedApp: SelectedApp? = null,
+    packageName: String? = null,
+    tab: AppDetailTabs = AppDetailTabs.Info,
+    searchKeyword: List<String> = listOf(),
     navOptions: NavOptions? = null,
 ) {
-    val encodedId = Uri.encode(selectedApp?.packageName)
-    val keywords = selectedApp?.searchKeyword?.joinToString(",")
-    if (selectedApp != null) {
+//    val encodedId = Uri.encode(packageName)
+    val keywords = searchKeyword.joinToString(",")
+    if (packageName != null) {
         navigate(
-            "app_list_route?$packageNameArg = $encodedId?screen=${selectedApp.tab.name}?keyword=$keywords",
+            "app_list_route?packageName=$packageName?screen=${tab.name}?keyword=${keywords}",
             navOptions,
         )
     } else {
@@ -80,9 +81,9 @@ fun NavGraphBuilder.appListScreen(
     composable(
         route = appListRoute,
         arguments = listOf(
-            navArgument(packageNameArg) { nullable = true },
-            navArgument(tabArg) { nullable = true },
-            navArgument(keywordArg) { nullable = true },
+            navArgument(packageNameArg) { type = NavType.StringType },
+            navArgument(tabArg) { type = NavType.StringType },
+            navArgument(keywordArg) { type = NavType.StringType },
         ),
     ) {
         AppListRoute(

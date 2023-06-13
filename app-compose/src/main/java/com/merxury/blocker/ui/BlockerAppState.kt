@@ -17,12 +17,14 @@
 
 package com.merxury.blocker.ui
 
+import android.os.Bundle
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -35,6 +37,7 @@ import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
+import com.merxury.blocker.feature.applist.navigation.packageNameArg
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleRoute
 import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
 import com.merxury.blocker.feature.search.navigation.navigateToSearch
@@ -72,12 +75,23 @@ class BlockerAppState(
         @Composable get() = navController
             .currentBackStackEntryAsState().value?.destination
 
+    val currentBackStackEntry: NavBackStackEntry?
+        @Composable get() = navController
+            .currentBackStackEntryAsState().value
+
     val currentTopLevelDestination: TopLevelDestination?
-        @Composable get() = when (currentDestination?.route) {
-            appListRoute -> APP
-            generalRuleRoute -> RULE
-            searchRoute -> SEARCH
-            else -> null
+        @Composable get() {
+            val route: String? = currentBackStackEntry?.destination?.route
+            val arguments: Bundle? = currentBackStackEntry?.arguments
+            return when {
+                route == appListRoute &&
+                    (arguments?.getString(packageNameArg) == null || shouldShowTwoPane)
+                -> APP
+
+                route == generalRuleRoute -> RULE
+                route == searchRoute -> SEARCH
+                else -> null
+            }
         }
 
     val shouldShowBottomBar: Boolean

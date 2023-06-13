@@ -23,11 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import com.merxury.blocker.feature.applist.appdetail.navigation.componentDetailScreen
-import com.merxury.blocker.feature.applist.appdetail.navigation.detailScreen
-import com.merxury.blocker.feature.applist.appdetail.navigation.navigateToAppDetail
 import com.merxury.blocker.feature.applist.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
+import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
 import com.merxury.blocker.feature.helpandfeedback.navigation.navigateToSupportAndFeedback
 import com.merxury.blocker.feature.helpandfeedback.navigation.supportAndFeedbackScreen
@@ -39,7 +38,6 @@ import com.merxury.blocker.feature.settings.navigation.settingsScreen
 import com.merxury.blocker.feature.sort.navigation.appSortScreen
 import com.merxury.blocker.feature.sort.navigation.componentSortScreen
 import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
-import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 import com.merxury.blocker.ui.BlockerAppState
 
 /**
@@ -70,28 +68,22 @@ fun BlockerNavHost(
             listState = appListScrollState,
             shouldShowTwoPane = appState.shouldShowTwoPane,
             snackbarHostState = snackbarHostState,
-            navigateToAppDetail = navController::navigateToAppDetail,
+            navigateToAppDetail = navController::navigateToAppList,
             navigateToSettings = navController::navigateToSettings,
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
             navigateTooAppSortScreen = navController::navigateToAppSortScreen,
             navigateToComponentDetail = navController::navigateToComponentDetail,
             navigatedToComponentSortScreen = navController::navigateToAppSortScreen,
         )
-        detailScreen(
-            onBackClick = onBackClick,
-            snackbarHostState = snackbarHostState,
-            navigateToComponentDetail = navController::navigateToComponentDetail,
-            navigatedToComponentSortScreen = navController::navigateToComponentSortScreen,
-        )
         generalRuleScreen(
             navigateToRuleDetail = navController::navigateToRuleDetail,
         )
         ruleDetailScreen(
             onBackClick = onBackClick,
-            navigateToAppDetail = navController::navigateToAppDetail,
+            navigateToAppDetail = navController::navigateToAppList,
         )
         searchScreen(
-            navigateToAppDetail = navController::navigateToAppDetail,
+            navigateToAppDetail = navController::navigateToAppList,
             navigateToRuleDetail = navController::navigateToRuleDetail,
         )
         settingsScreen(
