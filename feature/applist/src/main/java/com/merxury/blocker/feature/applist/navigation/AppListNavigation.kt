@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.applist.navigation
 
+import android.net.Uri
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.SavedStateHandle
@@ -36,7 +37,7 @@ const val appListRoute =
     "app_list_route?packageName={$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}"
 
 internal class AppDetailArgs(
-    val packageName: String? = null,
+    val packageName: String = "",
     val tabs: AppDetailTabs = AppDetailTabs.Info,
     val searchKeyword: List<String> = listOf(),
 ) {
@@ -49,21 +50,17 @@ internal class AppDetailArgs(
 }
 
 fun NavController.navigateToAppList(
-    packageName: String? = null,
+    packageName: String = "",
     tab: AppDetailTabs = AppDetailTabs.Info,
     searchKeyword: List<String> = listOf(),
     navOptions: NavOptions? = null,
 ) {
-//    val encodedId = Uri.encode(packageName)
+    val encodedId = Uri.encode(packageName)
     val keywords = searchKeyword.joinToString(",")
-    if (packageName != null) {
-        navigate(
-            "app_list_route?packageName=$packageName?screen=${tab.name}?keyword=${keywords}",
-            navOptions,
-        )
-    } else {
-        navigate("app_list_route", navOptions)
-    }
+    navigate(
+        "app_list_route?packageName=$encodedId?screen=${tab.name}?keyword=${keywords}",
+        navOptions,
+    )
 }
 
 fun NavGraphBuilder.appListScreen(
@@ -81,9 +78,18 @@ fun NavGraphBuilder.appListScreen(
     composable(
         route = appListRoute,
         arguments = listOf(
-            navArgument(packageNameArg) { type = NavType.StringType },
-            navArgument(tabArg) { type = NavType.StringType },
-            navArgument(keywordArg) { type = NavType.StringType },
+            navArgument(packageNameArg) {
+                defaultValue = ""
+                type = NavType.StringType
+            },
+            navArgument(tabArg) {
+                defaultValue = AppDetailTabs.Info.name
+                type = NavType.StringType
+            },
+            navArgument(keywordArg) {
+                defaultValue = ""
+                type = NavType.StringType
+            },
         ),
     ) {
         AppListRoute(

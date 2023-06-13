@@ -662,7 +662,7 @@ class AppDetailViewModel @Inject constructor(
 
     private fun loadAppInfo() = viewModelScope.launch {
         val packageName = appDetailArgs.packageName
-        if (packageName != null) {
+        if (packageName.isNotEmpty()) {
             val app = appRepository.getApplication(packageName).first()
             if (app == null) {
                 val error = UiMessage("Can't find $packageName in this device.")
