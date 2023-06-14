@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -55,7 +54,6 @@ import timber.log.Timber
 @Composable
 fun AppListRoute(
     onBackClick: () -> Unit,
-    listState: LazyGridState,
     shouldShowTwoPane: Boolean,
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
@@ -109,7 +107,7 @@ fun AppListRoute(
                     navigateToSettings = navigateToSettings,
                     navigateToSupportAndFeedback = navigateToSupportAndFeedback,
                     navigateTooAppSortScreen = navigateTooAppSortScreen,
-                    modifier = modifier,
+                    modifier = Modifier.matchParentSize(),
                 )
                 if (appListerrorState != null) {
                     BlockerErrorAlertDialog(

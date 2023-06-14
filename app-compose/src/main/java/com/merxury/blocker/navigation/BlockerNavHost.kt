@@ -17,7 +17,6 @@
 
 package com.merxury.blocker.navigation
 
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -57,7 +56,6 @@ fun BlockerNavHost(
     startDestination: String = appListRoute,
 ) {
     val navController = appState.navController
-    val appListScrollState = rememberLazyGridState()
     NavHost(
         navController = navController,
         startDestination = startDestination,
@@ -65,7 +63,6 @@ fun BlockerNavHost(
     ) {
         appListScreen(
             onBackClick = onBackClick,
-            listState = appListScrollState,
             shouldShowTwoPane = appState.shouldShowTwoPane,
             snackbarHostState = snackbarHostState,
             navigateToAppDetail = navController::navigateToAppList,

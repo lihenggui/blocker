@@ -85,6 +85,7 @@ fun AppListScreen(
                 },
             )
         },
+        modifier = modifier,
     ) { padding ->
         Column(
             modifier = modifier

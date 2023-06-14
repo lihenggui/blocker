@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.applist.navigation
 
 import android.net.Uri
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
@@ -65,7 +64,6 @@ fun NavController.navigateToAppList(
 
 fun NavGraphBuilder.appListScreen(
     onBackClick: () -> Unit,
-    listState: LazyGridState,
     shouldShowTwoPane: Boolean,
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
@@ -94,7 +92,6 @@ fun NavGraphBuilder.appListScreen(
     ) {
         AppListRoute(
             onBackClick = onBackClick,
-            listState = listState,
             shouldShowTwoPane = shouldShowTwoPane,
             navigateToAppDetail = navigateToAppDetail,
             navigateToSettings = navigateToSettings,
