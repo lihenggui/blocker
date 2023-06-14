@@ -105,6 +105,7 @@ fun AppListScreen(
 
                 is Success -> AppList(
                     appList = appList,
+                    selectedAppPackageName = uiState.selectedAppPackageName,
                     onAppItemClick = onAppItemClick,
                     onClearCacheClick = onClearCacheClick,
                     onClearDataClick = onClearDataClick,

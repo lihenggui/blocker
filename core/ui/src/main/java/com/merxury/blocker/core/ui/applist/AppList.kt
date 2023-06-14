@@ -41,6 +41,7 @@ import com.merxury.blocker.core.ui.applist.model.AppItem
 @Composable
 fun AppList(
     appList: List<AppItem>,
+    selectedAppPackageName: String? = "",
     onAppItemClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit,
     onClearDataClick: (String) -> Unit,
@@ -77,6 +78,7 @@ fun AppList(
                     onUninstallClick = onUninstallClick,
                     onEnableClick = onEnableClick,
                     onDisableClick = onDisableClick,
+                    isSelected = item.packageName == selectedAppPackageName,
                 )
                 LaunchedEffect(true) {
                     onServiceStateUpdate(item.packageName, index)

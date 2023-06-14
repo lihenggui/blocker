@@ -21,10 +21,12 @@ import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -49,6 +51,7 @@ import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.applist.AppListUiState.Success
+import com.merxury.blocker.feature.applist.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -69,6 +72,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AppListViewModel @Inject constructor(
     app: android.app.Application,
+    savedStateHandle: SavedStateHandle,
+    stringDecoder: StringDecoder,
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
@@ -77,6 +82,7 @@ class AppListViewModel @Inject constructor(
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
 ) : AndroidViewModel(app) {
+    private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
     private val _uiState = MutableStateFlow<AppListUiState>(Initializing())
     val uiState = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
@@ -154,7 +160,7 @@ class AppListViewModel @Inject constructor(
                     }
                 }.toMutableStateList()
                 _appListFlow.value = _appList
-                _uiState.emit(Success)
+                _uiState.emit(Success(selectedAppPackageName = appDetailArgs.packageName))
             }
     }
 
@@ -351,7 +357,7 @@ class AppListViewModel @Inject constructor(
 sealed interface AppListUiState {
     class Initializing(val processingName: String = "") : AppListUiState
     class Error(val error: UiMessage) : AppListUiState
-    object Success : AppListUiState
+    class Success(val selectedAppPackageName: String?) : AppListUiState
 }
 
 data class WarningDialogData(

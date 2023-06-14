@@ -20,6 +20,7 @@ import android.content.pm.PackageInfo
 import android.content.res.Configuration
 import android.view.MotionEvent
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -42,6 +43,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
@@ -80,6 +82,7 @@ fun AppListItem(
     onDisableClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
+    isSelected: Boolean = false,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
@@ -103,6 +106,13 @@ fun AppListItem(
                     }
                     false
                 }
+                .background(
+                    color = if (isSelected) {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    } else {
+                        Color.Transparent
+                    },
+                )
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             AppIcon(packageInfo, iconModifier.size(48.dp))
@@ -291,6 +301,7 @@ fun AppListItemWithLongAppName() {
                 onUninstallClick = { },
                 onEnableClick = { },
                 onDisableClick = { },
+                isSelected = true,
             )
         }
     }
