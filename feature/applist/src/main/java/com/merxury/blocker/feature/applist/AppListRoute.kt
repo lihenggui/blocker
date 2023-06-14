@@ -17,8 +17,8 @@
 package com.merxury.blocker.feature.applist
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -86,7 +86,7 @@ fun AppListRoute(
                     .fillMaxHeight()
                     .then(
                         if (appInfoUiState != null) {
-                            Modifier.widthIn(min = 350.dp)
+                            Modifier.widthIn(min = 300.dp)
                         } else {
                             Modifier.weight(1f)
                         },
@@ -127,8 +127,8 @@ fun AppListRoute(
         }
         AnimatedVisibility(
             visible = appInfoUiState != null,
-            enter = slideInHorizontally(initialOffsetX = { it / 2 }),
-            exit = slideOutHorizontally(targetOffsetX = { it / 2 }),
+            enter = fadeIn(initialAlpha = 0.3f),
+            exit = fadeOut(targetAlpha = 0.3f),
             modifier = Modifier
                 .fillMaxHeight()
                 .weight(1f)
