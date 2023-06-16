@@ -32,6 +32,7 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven("https://jitpack.io")
+        maven("https://androidx.dev/storage/compose-compiler/repository/")
     }
 }
 rootProject.name = "Blocker"
