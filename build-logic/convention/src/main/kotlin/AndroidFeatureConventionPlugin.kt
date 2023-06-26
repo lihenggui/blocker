@@ -16,6 +16,7 @@
 
 import com.android.build.gradle.LibraryExtension
 import com.merxury.blocker.configureGradleManagedDevices
+import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalogsExtension
@@ -38,9 +39,6 @@ class AndroidFeatureConventionPlugin : Plugin<Project> {
                 }
                 configureGradleManagedDevices(this)
             }
-
-            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-
             dependencies {
                 add("implementation", project(":core:model"))
                 add("implementation", project(":core:ui"))
