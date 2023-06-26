@@ -58,7 +58,7 @@ jobs:
           name: test-results
           path: '**/build/test-results/test*UnitTest/**.xml'
       - name: Check lint
-        run: ./gradlew :app:lintProdRelease :app-nia-catalog:lintRelease :lint:lint
+        run: ./gradlew :app-compose:lintMarketRelease :lint:lint
 
       - name: Upload lint reports (HTML)
         if: always()
