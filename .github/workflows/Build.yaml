@@ -39,14 +39,8 @@ jobs:
       - name: Check spotless
         run: ./gradlew spotlessCheck --init-script gradle/init.gradle.kts --no-configuration-cache
 
-      - name: Check lint
-        run: ./gradlew lintfossDebug
-
       - name: Build all build type and flavor permutations
         run: ./gradlew assemble
-
-      - name: Run local tests
-        run: ./gradlew testfossDebug testMarketDebug
 
       - name: Upload build outputs (APKs)
         uses: actions/upload-artifact@v3
@@ -54,12 +48,8 @@ jobs:
           name: APKs
           path: '**/build/outputs/apk/**/*.apk'
 
-      - name: Upload lint reports (HTML)
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: lint-reports
-          path: '**/build/reports/lint-results-*.html'
+      - name: Run local tests
+        run: ./gradlew testfossDebug testMarketDebug
 
       - name: Upload test results (XML)
         if: always()
@@ -67,6 +57,15 @@ jobs:
         with:
           name: test-results
           path: '**/build/test-results/test*UnitTest/**.xml'
+      - name: Check lint
+        run: ./gradlew :app:lintProdRelease :app-nia-catalog:lintRelease :lint:lint
+
+      - name: Upload lint reports (HTML)
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-reports
+          path: '**/build/reports/lint-results-*.html'
 
   androidTest:
     needs: build
