@@ -31,7 +31,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v2.4.2
 
       - name: Accept Android licenses
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
@@ -39,14 +39,8 @@ jobs:
       - name: Check spotless
         run: ./gradlew spotlessCheck --init-script gradle/init.gradle.kts --no-configuration-cache
 
-      - name: Check lint
-        run: ./gradlew lintfossDebug
-
       - name: Build all build type and flavor permutations
         run: ./gradlew assemble
-
-      - name: Run local tests
-        run: ./gradlew testfossDebug testMarketDebug
 
       - name: Upload build outputs (APKs)
         uses: actions/upload-artifact@v3
@@ -54,12 +48,8 @@ jobs:
           name: APKs
           path: '**/build/outputs/apk/**/*.apk'
 
-      - name: Upload lint reports (HTML)
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: lint-reports
-          path: '**/build/reports/lint-results-*.html'
+      - name: Run local tests
+        run: ./gradlew testfossDebug testMarketDebug
 
       - name: Upload test results (XML)
         if: always()
@@ -67,6 +57,15 @@ jobs:
         with:
           name: test-results
           path: '**/build/test-results/test*UnitTest/**.xml'
+      - name: Check lint
+        run: ./gradlew :app-compose:lintMarketRelease :lint:lint
+
+      - name: Upload lint reports (HTML)
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: lint-reports
+          path: '**/build/reports/lint-results-*.html'
 
   androidTest:
     needs: build
@@ -90,7 +89,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v2.4.2
 
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
@@ -128,7 +127,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v2.4.2
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v2
