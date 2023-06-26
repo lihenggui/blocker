@@ -137,12 +137,3 @@ dependencies {
     implementation(libs.libsu.core)
     implementation(libs.timber)
 }
-
-// androidx.test is forcing JUnit, 4.12. This forces it to use 4.13
-configurations.configureEach {
-    resolutionStrategy {
-        force(libs.junit4)
-        // Temporary workaround for https://issuetracker.google.com/174733673
-        force("org.objenesis:objenesis:2.6")
-    }
-}
