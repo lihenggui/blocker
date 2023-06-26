@@ -21,7 +21,6 @@ import com.merxury.blocker.configureGradleManagedDevices
 import com.merxury.blocker.configureKotlinAndroid
 import com.merxury.blocker.configurePrintApksTask
 import com.merxury.blocker.disableUnnecessaryAndroidTests
-import com.merxury.blocker.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
@@ -50,13 +49,6 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             extensions.configure<JavaPluginExtension> {
                 toolchain {
                     languageVersion.set(JavaLanguageVersion.of(17))
-                }
-            }
-            configurations.configureEach {
-                resolutionStrategy {
-                    force(libs.findLibrary("junit4").get())
-                    // Temporary workaround for https://issuetracker.google.com/174733673
-                    force("org.objenesis:objenesis:2.6")
                 }
             }
             dependencies {
