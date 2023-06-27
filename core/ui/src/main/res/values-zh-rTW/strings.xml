@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="clear_cache">清理緩存</string>
     <string name="clear_data">清除數據</string>
     <string name="force_stop">強制停止</string>
@@ -54,4 +54,21 @@
     <string name="block_all_components">禁用所有組件</string>
     <string name="enable_all_components">啟用所有組件</string>
     <string name="open_app_detail">打開應用詳情</string>
+    <string name="sort_options">排序選項</string>
+    <string name="sort_by">排序方式</string>
+    <string name="package_name">包名</string>
+    <string name="component_name">組件名</string>
+    <string name="order">順序</string>
+    <string name="ascending">升序</string>
+    <string name="descending">降序</string>
+    <string name="priority">優先級</string>
+    <string name="disabled_first">禁用組件優先</string>
+    <string name="enabled_first">啟用組件優先</string>
+    <string name="none">無</string>
+    <string name="name">姓名</string>
+    <string name="install_date">安裝日期</string>
+    <string name="last_updated">最後更新</string>
+    <string name="show_running_apps_on_top">置頂運行中應用</string>
+    <string name="on" tools:override="true">開啟</string>
+    <string name="off" tools:override="true">關閉</string>
 </resources>
