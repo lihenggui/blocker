@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
      Copyright 2023 Blocker
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +13,7 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="clear_cache">Clear cache</string>
     <string name="clear_data">Clear data</string>
     <string name="force_stop">Force stop</string>
@@ -57,4 +56,21 @@
     <string name="block_all_components">Block all components</string>
     <string name="enable_all_components">Enable all components</string>
     <string name="open_app_detail">Open app detail</string>
+    <string name="sort_options">Sort options</string>
+    <string name="sort_by">Sort by</string>
+    <string name="package_name">Package name</string>
+    <string name="component_name">Component name</string>
+    <string name="order">Order</string>
+    <string name="ascending">Ascending</string>
+    <string name="descending">Descending</string>
+    <string name="priority">Priority</string>
+    <string name="disabled_first">Disabled first</string>
+    <string name="enabled_first">Enabled first</string>
+    <string name="none">None</string>
+    <string name="name">Name</string>
+    <string name="install_date">Install Date</string>
+    <string name="last_updated">Last Updated</string>
+    <string name="show_running_apps_on_top">Show running apps on top</string>
+    <string name="on" tools:override="true">On</string>
+    <string name="off" tools:override="true">Off</string>
 </resources>

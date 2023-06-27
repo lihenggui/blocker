@@ -33,39 +33,48 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dokar.sheets.BottomSheet
+import com.dokar.sheets.rememberBottomSheetState
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.bottomsheet.AppSortBottomSheet
+import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
+import kotlinx.coroutines.launch
 
 @Composable
 fun AppListRoute(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AppListViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val bottomSheetUiState by viewModel.appSortInfoUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val warningState by viewModel.warningState.collectAsStateWithLifecycle()
     val appList = viewModel.appListFlow.collectAsState()
     AppListScreen(
         uiState = uiState,
+        bottomSheetUiState = bottomSheetUiState,
         appList = appList.value,
         onAppItemClick = navigateToAppDetail,
         onClearCacheClick = viewModel::clearCache,
@@ -77,7 +86,9 @@ fun AppListRoute(
         onServiceStateUpdate = viewModel::updateServiceStatus,
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-        navigateTooAppSortScreen = navigateTooAppSortScreen,
+        onSortByClick = viewModel::updateAppSorting,
+        onSortOrderClick = viewModel::updateAppSortingOrder,
+        onChangeShowRunningAppsOnTop = viewModel::updateShowRunningAppsOnTop,
         modifier = modifier,
     )
     if (errorState != null) {
@@ -101,6 +112,7 @@ fun AppListRoute(
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
+    bottomSheetUiState: AppSortInfoUiState,
     appList: List<AppItem>,
     onAppItemClick: (String) -> Unit,
     onClearCacheClick: (String) -> Unit,
@@ -110,17 +122,25 @@ fun AppListScreen(
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
     onServiceStateUpdate: (String, Int) -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
+    onSortByClick: (AppSorting) -> Unit,
+    onSortOrderClick: (SortingOrder) -> Unit,
+    onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberBottomSheetState()
     Scaffold(
         topBar = {
             BlockerTopAppBar(
                 title = stringResource(id = string.app_name),
                 actions = {
-                    IconButton(onClick = navigateTooAppSortScreen) {
+                    IconButton(onClick = {
+                        scope.launch {
+                            sheetState.expand()
+                        }
+                    }) {
                         Icon(
                             imageVector = BlockerIcons.Sort,
                             contentDescription = null,
@@ -167,6 +187,14 @@ fun AppListScreen(
                 is AppListUiState.Error -> ErrorScreen(uiState.error)
             }
         }
+    }
+    BottomSheet(state = sheetState) {
+        AppSortBottomSheet(
+            uiState = bottomSheetUiState,
+            onSortByClick = onSortByClick,
+            onSortOrderClick = onSortOrderClick,
+            onChangeShowRunningAppsOnTop = onChangeShowRunningAppsOnTop,
+        )
     }
     TrackScreenViewEvent(screenName = "AppListScreen")
 }
