@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -56,4 +57,21 @@
     <string name="block_all_components">Блокировать все компоненты</string>
     <string name="enable_all_components">Включить все компоненты</string>
     <string name="open_app_detail">Открыть детали приложения</string>
+    <string name="sort_options">Параметры сортировки</string>
+    <string name="sort_by">Сортировать по</string>
+    <string name="package_name">Имя пакета</string>
+    <string name="component_name">Имя компонента</string>
+    <string name="order">порядок</string>
+    <string name="ascending">Восходящий</string>
+    <string name="descending">Нисходящий</string>
+    <string name="priority">Приоритет</string>
+    <string name="disabled_first">Отключенный первый</string>
+    <string name="enabled_first">Включенный первый</string>
+    <string name="none">Нет</string>
+    <string name="name">Имя</string>
+    <string name="install_date">Дата установки</string>
+    <string name="last_updated">Последнее обновление</string>
+    <string name="show_running_apps_on_top">Показывать запущенные приложения сверху</string>
+    <string name="on" tools:override="true">включать</string>
+    <string name="off" tools:override="true">закрытие</string>
 </resources>
