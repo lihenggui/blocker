@@ -27,6 +27,7 @@ android {
 dependencies {
     implementation(projects.core.componentController)
     implementation(projects.core.rule)
+    implementation(libs.dialogbottomsheets)
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
