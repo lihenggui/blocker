@@ -27,6 +27,7 @@ android {
 
 dependencies {
     implementation(projects.core.ifwApi)
+    implementation(libs.dialogbottomsheets)
     implementation(libs.kotlinx.datetime)
 }
 

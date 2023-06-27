@@ -146,6 +146,7 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
+dialogbottomsheets = "io.github.dokar3:sheets:0.4.3"
 timber = "com.jakewharton.timber:timber:5.0.1"
 freereflection = "com.github.tiann:FreeReflection:3.2.0"
 simplexml = "org.simpleframework:simple-xml:2.7.1"

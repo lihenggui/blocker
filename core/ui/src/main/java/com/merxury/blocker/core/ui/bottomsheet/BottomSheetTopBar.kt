@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.bottomSheet
+package com.merxury.blocker.core.ui.bottomsheet
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
