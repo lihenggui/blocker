@@ -22,20 +22,25 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PermissionUtils
 import com.merxury.ifw.IntentFirewall
 import com.merxury.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.IfwComponentType
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import timber.log.Timber
 import javax.inject.Inject
 
 class IfwController @Inject constructor(
     @ApplicationContext private val context: Context,
+    @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,
 ) : IController {
-    private lateinit var controller: IntentFirewall
-    private lateinit var packageInfo: PackageInfo
+    private var controller: IntentFirewall? = null
+    private var packageInfo: PackageInfo? = null
 
     override suspend fun switchComponent(
         packageName: String,
@@ -43,6 +48,7 @@ class IfwController @Inject constructor(
         state: Int,
     ): Boolean {
         init(packageName)
+        assert(controller != null)
         val type = getComponentType(componentName)
         if (type == IfwComponentType.PROVIDER) {
             return when (state) {
@@ -63,16 +69,16 @@ class IfwController @Inject constructor(
         }
         val result = when (state) {
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED ->
-                controller.add(packageName, componentName, type)
+                controller?.add(packageName, componentName, type) ?: false
 
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED ->
-                controller.remove(packageName, componentName, type)
+                controller?.remove(packageName, componentName, type) ?: false
 
             else -> false
         }
         if (result) {
             try {
-                controller.save()
+                controller?.save()
                 Timber.i("Save rule for $packageName success")
             } catch (e: Exception) {
                 throw e
@@ -101,6 +107,7 @@ class IfwController @Inject constructor(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
+        assert(controller != null)
         var succeededCount = 0
         if (componentList.isEmpty()) {
             return 0
@@ -108,14 +115,14 @@ class IfwController @Inject constructor(
         componentList.forEach {
             init(it.packageName)
             val type = getComponentType(it.name)
-            if (controller.remove(it.packageName, it.name, type)) {
+            if (controller?.remove(it.packageName, it.name, type) == true) {
                 succeededCount++
             } else {
                 Timber.w("Failed to remove in the ifw list: ${it.packageName}/${it.name}")
             }
             action(it)
         }
-        controller.save()
+        controller?.save()
         return succeededCount
     }
 
@@ -123,6 +130,7 @@ class IfwController @Inject constructor(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
+        assert(controller != null)
         var succeededCount = 0
         if (componentList.isEmpty()) {
             return 0
@@ -130,14 +138,14 @@ class IfwController @Inject constructor(
         componentList.forEach {
             init(it.packageName)
             val type = getComponentType(it.name)
-            if (controller.add(it.packageName, it.name, type)) {
+            if (controller?.add(it.packageName, it.name, type) == true) {
                 succeededCount++
             } else {
                 Timber.w("Failed to add in the ifw list: ${it.packageName}/${it.name}")
             }
             action(it)
         }
-        controller.save()
+        controller?.save()
         return succeededCount
     }
 
@@ -146,6 +154,9 @@ class IfwController @Inject constructor(
         componentName: String,
     ): Boolean {
         try {
+            if (!PermissionUtils.isRootAvailable(dispatcher)) {
+                return true
+            }
             init(packageName)
         } catch (e: Throwable) {
             // For checking purpose, we don't need to throw exception, just return true
@@ -153,7 +164,7 @@ class IfwController @Inject constructor(
             // No need to log the exception, there are too many components
             return true
         }
-        return controller.getComponentEnableState(packageName, componentName)
+        return controller?.getComponentEnableState(packageName, componentName) ?: true
     }
 
     private suspend fun init(packageName: String) {
@@ -162,41 +173,46 @@ class IfwController @Inject constructor(
     }
 
     private suspend fun initController(packageName: String) {
-        if (!::controller.isInitialized || controller.packageName != packageName) {
-            if (::controller.isInitialized) {
+        val controller = this.controller
+        if (controller == null) {
+            this.controller = IntentFirewallImpl(packageName).load()
+            return
+        }
+        if (controller.packageName != packageName) {
+            if (PermissionUtils.isRootAvailable()) {
                 Timber.i("Save previous rule for ${controller.packageName}")
                 controller.save()
             }
-            Timber.i("initController: $packageName")
-            controller = IntentFirewallImpl(packageName).load()
-            return
         }
+        Timber.i("Init IFW controller: $packageName")
     }
 
     private suspend fun initPackageInfo(packageName: String) {
-        if (!::packageInfo.isInitialized || packageInfo.packageName != packageName) {
-            packageInfo =
+        val currentPackageInfo = this.packageInfo
+        if (currentPackageInfo == null || currentPackageInfo.packageName != packageName) {
+            this.packageInfo =
                 ApplicationUtil.getApplicationComponents(context.packageManager, packageName)
         }
     }
 
     private fun getComponentType(componentName: String): IfwComponentType {
-        packageInfo.receivers?.forEach {
+        check(packageInfo != null) { "Package info is null" }
+        packageInfo?.receivers?.forEach {
             if (it.name == componentName) {
                 return IfwComponentType.BROADCAST
             }
         }
-        packageInfo.services?.forEach {
+        packageInfo?.services?.forEach {
             if (it.name == componentName) {
                 return IfwComponentType.SERVICE
             }
         }
-        packageInfo.activities?.forEach {
+        packageInfo?.activities?.forEach {
             if (it.name == componentName) {
                 return IfwComponentType.ACTIVITY
             }
         }
-        packageInfo.providers?.forEach {
+        packageInfo?.providers?.forEach {
             if (it.name == componentName) {
                 return IfwComponentType.PROVIDER
             }

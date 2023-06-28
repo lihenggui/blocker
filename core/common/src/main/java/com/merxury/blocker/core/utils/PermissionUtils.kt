@@ -30,6 +30,10 @@ object PermissionUtils {
         }
     }
 
+    fun isRootAvailable(): Boolean {
+        return Shell.isAppGrantedRoot() == true
+    }
+
     private suspend fun requestRootPermission(dispatcher: CoroutineDispatcher): Boolean {
         return withContext(dispatcher) {
             Shell.cmd("su").exec().isSuccess
