@@ -156,6 +156,7 @@ fun AppDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
+        onSortOptionsClick = viewModel::loadComponentSortInfo,
         onSortByClick = viewModel::updateComponentSorting,
         onSortOrderClick = viewModel::updateComponentSortingOrder,
         onShowPriorityClick = viewModel::updateComponentShowPriority,
@@ -223,6 +224,7 @@ fun AppDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onSortOptionsClick: () -> Unit = {},
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
@@ -258,6 +260,7 @@ fun AppDetailScreen(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
+                onSortOptionsClick = onSortOptionsClick,
                 onSortByClick = onSortByClick,
                 onSortOrderClick = onSortOrderClick,
                 onShowPriorityClick = onShowPriorityClick,
@@ -295,6 +298,7 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onSortOptionsClick: () -> Unit = {},
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
@@ -352,6 +356,7 @@ fun AppDetailContent(
                         navigatedToComponentSortScreen = {
                             scope.launch {
                                 sheetState.expand()
+                                onSortOptionsClick()
                             }
                         },
                     )
@@ -397,7 +402,10 @@ fun AppDetailContent(
             onCopyFullNameClick = onCopyFullNameClick,
         )
     }
-    BottomSheet(state = sheetState) {
+    BottomSheet(
+        state = sheetState,
+        skipPeeked = true,
+    ) {
         ComponentSortBottomSheet(
             uiState = bottomSheetState,
             onSortByClick = onSortByClick,
