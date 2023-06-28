@@ -141,8 +141,8 @@ fun AppListScreen(
                     IconButton(
                         onClick = {
                             scope.launch {
-                                sheetState.expand()
                                 onSortOptionsClick()
+                                sheetState.expand()
                             }
                         },
                     ) {
