@@ -355,8 +355,8 @@ fun AppDetailContent(
                         enableAllComponents = enableAllComponents,
                         navigatedToComponentSortScreen = {
                             scope.launch {
-                                sheetState.expand()
                                 onSortOptionsClick()
+                                sheetState.expand()
                             }
                         },
                     )
