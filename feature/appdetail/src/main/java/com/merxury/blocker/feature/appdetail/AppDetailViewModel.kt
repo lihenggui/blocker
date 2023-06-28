@@ -168,7 +168,6 @@ class AppDetailViewModel @Inject constructor(
 
     init {
         loadTabInfo()
-        loadComponentSortInfo()
         updateSearchKeyword()
         loadAppInfo()
         loadComponentList()
@@ -187,7 +186,8 @@ class AppDetailViewModel @Inject constructor(
             shizukuInitializer.registerShizuku()
         }
     }
-    private fun loadComponentSortInfo() = viewModelScope.launch {
+
+    fun loadComponentSortInfo() = viewModelScope.launch {
         val userData = userDataRepository.userData.first()
         val sorting = userData.componentSorting
         val order = userData.componentSortingOrder
