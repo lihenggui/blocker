@@ -30,6 +30,17 @@ data class ComponentItem(
     val description: String? = null,
 ) {
     fun enabled() = !(pmBlocked || ifwBlocked)
+
+    fun toComponentInfo() = ComponentInfo(
+        name = name,
+        simpleName = simpleName,
+        packageName = packageName,
+        type = type,
+        pmBlocked = pmBlocked,
+        ifwBlocked = ifwBlocked,
+        description = description,
+        exported = false,
+    )
 }
 
 fun ComponentInfo.toComponentItem(isRunning: Boolean = false) = ComponentItem(

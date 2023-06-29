@@ -484,10 +484,15 @@ class AppDetailViewModel @Inject constructor(
                 Activity -> _componentListUiState.value.activity
                 Provider -> _componentListUiState.value.provider
                 else -> return@launch
+            }.map {
+                it.toComponentInfo()
             }
-            list.forEach {
-                controlComponentInternal(it.packageName, it.name, enable)
-            }
+
+            componentRepository.batchControlComponent(components = list.toList(), newState = enable)
+                .catch { exception ->
+                    _errorState.emit(exception.toErrorMessage())
+                }
+                .collect()
             analyticsHelper.logBatchOperationPerformed(enable)
         }
 
