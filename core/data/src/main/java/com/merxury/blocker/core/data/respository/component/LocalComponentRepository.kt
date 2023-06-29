@@ -129,6 +129,26 @@ class LocalComponentRepository @Inject constructor(
         emit(result)
     }
 
+    override fun batchControlComponent(
+        components: List<ComponentInfo>,
+        newState: Boolean
+    ): Flow<Int> = flow {
+        val userData = userDataRepository.userData.first()
+        val result = when (userData.controllerType) {
+            IFW -> batchControlInIfwMode(components, newState)
+            PM -> batchControlInPmMode(components, newState)
+            SHIZUKU -> batchControlInShizukuMode(components, newState)
+        }
+    }
+
+    private suspend fun batchControlInIfwMode(
+        components: List<ComponentInfo>,
+        newState: Boolean): Int {
+        if (newState) {
+            ifwController.batchEnable(components)
+        }
+    }
+
     override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
         .map { list ->
             list.map { it.toComponentInfo() }
