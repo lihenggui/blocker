@@ -131,22 +131,26 @@ class LocalComponentRepository @Inject constructor(
 
     override fun batchControlComponent(
         components: List<ComponentInfo>,
-        newState: Boolean
+        newState: Boolean,
     ): Flow<Int> = flow {
+        Timber.i("Batch control ${components.size} components to state $newState")
+        val list = components.map { it.toAndroidComponentInfo() }
         val userData = userDataRepository.userData.first()
-        val result = when (userData.controllerType) {
-            IFW -> batchControlInIfwMode(components, newState)
-            PM -> batchControlInPmMode(components, newState)
-            SHIZUKU -> batchControlInShizukuMode(components, newState)
+        val controller = when (userData.controllerType) {
+            IFW -> ifwController
+            PM -> pmController
+            SHIZUKU -> shizukuController
         }
-    }
-
-    private suspend fun batchControlInIfwMode(
-        components: List<ComponentInfo>,
-        newState: Boolean): Int {
-        if (newState) {
-            ifwController.batchEnable(components)
+        val result = if (newState) {
+            controller.batchEnable(list) {
+                updateComponentStatus(it.packageName, it.name)
+            }
+        } else {
+            controller.batchDisable(list) {
+                updateComponentStatus(it.packageName, it.name)
+            }
         }
+        emit(result)
     }
 
     override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
