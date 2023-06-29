@@ -107,6 +107,13 @@ class IfwController @Inject constructor(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
+        if (componentList.isEmpty()) {
+            Timber.w("No component to enable")
+            return 0
+        }
+        if (controller == null) {
+            init(componentList.first().packageName)
+        }
         assert(controller != null)
         var succeededCount = 0
         if (componentList.isEmpty()) {
@@ -130,6 +137,13 @@ class IfwController @Inject constructor(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
+        if (componentList.isEmpty()) {
+            Timber.w("No component to disable")
+            return 0
+        }
+        if (controller == null) {
+            init(componentList.first().packageName)
+        }
         assert(controller != null)
         var succeededCount = 0
         if (componentList.isEmpty()) {
