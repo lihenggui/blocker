@@ -86,6 +86,7 @@ fun AppListRoute(
         onServiceStateUpdate = viewModel::updateServiceStatus,
         navigateToSettings = navigateToSettings,
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
+        onSortOptionsClick = viewModel::loadAppSortInfo,
         onSortByClick = viewModel::updateAppSorting,
         onSortOrderClick = viewModel::updateAppSortingOrder,
         onChangeShowRunningAppsOnTop = viewModel::updateShowRunningAppsOnTop,
@@ -124,6 +125,7 @@ fun AppListScreen(
     onServiceStateUpdate: (String, Int) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
+    onSortOptionsClick: () -> Unit,
     onSortByClick: (AppSorting) -> Unit,
     onSortOrderClick: (SortingOrder) -> Unit,
     onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
@@ -136,11 +138,14 @@ fun AppListScreen(
             BlockerTopAppBar(
                 title = stringResource(id = string.app_name),
                 actions = {
-                    IconButton(onClick = {
-                        scope.launch {
-                            sheetState.expand()
-                        }
-                    }) {
+                    IconButton(
+                        onClick = {
+                            scope.launch {
+                                onSortOptionsClick()
+                                sheetState.expand()
+                            }
+                        },
+                    ) {
                         Icon(
                             imageVector = BlockerIcons.Sort,
                             contentDescription = null,
@@ -188,7 +193,10 @@ fun AppListScreen(
             }
         }
     }
-    BottomSheet(state = sheetState) {
+    BottomSheet(
+        state = sheetState,
+        skipPeeked = true,
+    ) {
         AppSortBottomSheet(
             uiState = bottomSheetUiState,
             onSortByClick = onSortByClick,

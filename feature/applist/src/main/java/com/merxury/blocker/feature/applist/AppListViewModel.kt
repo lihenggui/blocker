@@ -100,7 +100,6 @@ class AppListViewModel @Inject constructor(
 
     init {
         loadData()
-        loadAppSortInfo()
         updateInstalledAppList()
         listenSortingChanges()
         listenShowRunningAppsOnTopChanges()
@@ -169,7 +168,7 @@ class AppListViewModel @Inject constructor(
         loadData()
     }
 
-    private fun loadAppSortInfo() = viewModelScope.launch {
+    fun loadAppSortInfo() = viewModelScope.launch {
         val userData = userDataRepository.userData.first()
         val sorting = userData.appSorting
         val order = userData.appSortingOrder

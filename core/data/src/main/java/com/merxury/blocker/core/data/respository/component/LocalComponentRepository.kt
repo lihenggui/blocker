@@ -57,6 +57,7 @@ class LocalComponentRepository @Inject constructor(
             .map { it?.toComponentInfo() }
             .flowOn(ioDispatcher)
     }
+
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> =
         appComponentDao.getByPackageName(packageName)
             .map { list ->
@@ -83,8 +84,10 @@ class LocalComponentRepository @Inject constructor(
             val diff = (latestComponents + cachedComponents).groupBy { it.componentName }
                 .filter { it.value.size == 1 }
                 .flatMap { it.value }
-            Timber.d("Found ${diff.size} components to delete for $packageName in type $type")
-            appComponentDao.delete(diff)
+            if (diff.isNotEmpty()) {
+                Timber.d("Found ${diff.size} components to delete for $packageName in type $type")
+                appComponentDao.delete(diff)
+            }
             appComponentDao.upsertComponentList(latestComponents)
             emit(Success(Unit))
         }
@@ -99,8 +102,10 @@ class LocalComponentRepository @Inject constructor(
                 val diff = (latest + cached).groupBy { it.componentName }
                     .filter { it.value.size == 1 }
                     .flatMap { it.value }
-                Timber.d("Found ${diff.size} components to delete for $packageName")
-                appComponentDao.delete(diff)
+                if (diff.isNotEmpty()) {
+                    Timber.d("Found ${diff.size} components to delete for $packageName")
+                    appComponentDao.delete(diff)
+                }
                 Timber.d("Update component list for $packageName, size: ${latest.size}")
                 appComponentDao.upsertComponentList(latest)
                 Success(Unit)
@@ -121,6 +126,30 @@ class LocalComponentRepository @Inject constructor(
             SHIZUKU -> controlInShizukuMode(packageName, componentName, newState)
         }
         updateComponentStatus(packageName, componentName)
+        emit(result)
+    }
+
+    override fun batchControlComponent(
+        components: List<ComponentInfo>,
+        newState: Boolean,
+    ): Flow<Int> = flow {
+        Timber.i("Batch control ${components.size} components to state $newState")
+        val list = components.map { it.toAndroidComponentInfo() }
+        val userData = userDataRepository.userData.first()
+        val controller = when (userData.controllerType) {
+            IFW -> ifwController
+            PM -> pmController
+            SHIZUKU -> shizukuController
+        }
+        val result = if (newState) {
+            controller.batchEnable(list) {
+                updateComponentStatus(it.packageName, it.name)
+            }
+        } else {
+            controller.batchDisable(list) {
+                updateComponentStatus(it.packageName, it.name)
+            }
+        }
         emit(result)
     }
 
