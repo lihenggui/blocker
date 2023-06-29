@@ -39,6 +39,11 @@ interface ComponentRepository {
         newState: Boolean,
     ): Flow<Boolean>
 
+    fun batchControlComponent(
+        components: List<ComponentInfo>,
+        newState: Boolean,
+    ): Flow<Int>
+
     fun searchComponent(keyword: String): Flow<List<ComponentInfo>>
 
     suspend fun saveComponents(components: List<ComponentInfo>)
