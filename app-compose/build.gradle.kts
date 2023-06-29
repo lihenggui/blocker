@@ -132,6 +132,7 @@ dependencies {
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.svg)
     implementation(libs.hilt.ext.work)
+    implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.kotlinx.datetime)
     implementation(libs.libsu.core)
     implementation(libs.timber)
