@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
@@ -53,25 +55,25 @@ jobs:
       - name: Build all build type and flavor permutations
         run: ./gradlew assemble
 
-      - name: Upload build outputs (APKs)
-        uses: actions/upload-artifact@v3
-        with:
-          name: APKs
-          path: '**/build/outputs/apk/**/*.apk'
-
-      - name: Upload built Foss apk
+      - name: Upload Foss apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
         uses: actions/upload-artifact@v3
         with:
-          name: Foss
+          name: Foss-APK
           path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/release
 
-      - name: Upload built Market apk
+      - name: Upload Market apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
         uses: actions/upload-artifact@v3
         with:
-          name: Market
+          name: Market-APK
           path: ${{ github.workspace }}/app-compose/build/outputs/apk/market/release
+
+      - name: Upload build outputs (Raw-APKs)
+        uses: actions/upload-artifact@v3
+        with:
+          name: Raw-APKs
+          path: '**/build/outputs/apk/**/*.apk'
 
       - name: Upload mappings
         if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -125,6 +127,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
@@ -163,6 +167,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
