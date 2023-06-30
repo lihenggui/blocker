@@ -64,14 +64,14 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Foss
-          path: ${{ github.workspace }}/app/build/outputs/apk/foss/release
+          path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/release
 
       - name: Upload built Market apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
         uses: actions/upload-artifact@v3
         with:
           name: Market
-          path: ${{ github.workspace }}/app/build/outputs/apk/market/release
+          path: ${{ github.workspace }}/app-compose/build/outputs/apk/market/release
 
       - name: Upload mappings
         if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
