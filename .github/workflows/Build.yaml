@@ -25,7 +25,7 @@ jobs:
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
       - name: Write sign info
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && github.repository == 'lihenggui/Blocker'
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'lihenggui/Blocker'
         run: |
           if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
             echo releaseStorePassword='${{ secrets.SIGNING_STORE_PASSWORD }}' >> gradle.properties
@@ -74,7 +74,7 @@ jobs:
           path: ${{ github.workspace }}/app/build/outputs/apk/market/release
 
       - name: Upload mappings
-        if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+        if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v3
         with:
           name: mappings
