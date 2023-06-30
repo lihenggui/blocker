@@ -24,6 +24,17 @@ jobs:
       - name: Copy CI gradle.properties
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
+      - name: Write sign info
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && github.repository == 'lihenggui/Blocker'
+        run: |
+          if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
+            echo releaseStorePassword='${{ secrets.SIGNING_STORE_PASSWORD }}' >> gradle.properties
+            echo releaseKeyAlias='${{ secrets.SIGNING_KEY_ALIAS }}' >> gradle.properties
+            echo releaseKeyPassword='${{ secrets.SIGNING_KEY_PASSWORD }}' >> gradle.properties
+            echo releaseStoreFile='${{ github.workspace }}/key.jks' >> gradle.properties
+            echo ${{ secrets.KEYSTORE }} | base64 --decode > ${{ github.workspace }}/key.jks
+          fi
+
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -47,6 +58,42 @@ jobs:
         with:
           name: APKs
           path: '**/build/outputs/apk/**/*.apk'
+
+      - name: Upload built Foss apk
+        if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
+        uses: actions/upload-artifact@v3
+        with:
+          name: Foss
+          path: ${{ github.workspace }}/app/build/outputs/apk/foss/release
+
+      - name: Upload built Market apk
+        if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
+        uses: actions/upload-artifact@v3
+        with:
+          name: Market
+          path: ${{ github.workspace }}/app/build/outputs/apk/market/release
+
+      - name: Upload mappings
+        if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v3
+        with:
+          name: mappings
+          path: "app-compose/build/outputs/mapping/marketRelease"
+
+      - name: Set apk path
+        id: apk-path
+        run: |
+          foss_path=$(find **/build/outputs/apk/foss -name '*.apk' -type f | head -1)
+          echo "foss_path=$foss_path" >> $GITHUB_OUTPUT
+          market_path=$(find **/build/outputs/apk/market -name '*.apk' -type f | head -1)
+          echo "market_path=$market_path" >> $GITHUB_OUTPUT
+
+      - name: Get apk info
+        if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
+        id: apk-info
+        uses: zhaobozhen/apk-info-action@1.1.2
+        with:
+          apk-path: ${{ steps.apk-path.outputs.foss_path }}
 
       - name: Run local tests
         run: ./gradlew testfossDebug testMarketDebug
