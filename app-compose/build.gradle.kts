@@ -59,8 +59,16 @@ android {
 
             // To publish on the Play store a private signing key is required, but to allow anyone
             // who clones the code to sign and run the release variant, use the debug signing key.
-            // TODO: Abstract the signing configuration to a separate file to avoid hardcoding this.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (project.hasProperty("releaseStoreFile")) {
+                signingConfigs.create("release") {
+                    storeFile = File(project.properties["releaseStoreFile"] as String)
+                    storePassword = project.properties["releaseStorePassword"] as String
+                    keyAlias = project.properties["releaseKeyAlias"] as String
+                    keyPassword = project.properties["releaseKeyPassword"] as String
+                }
+            } else {
+                signingConfigs.getByName("debug")
+            }
         }
         create("benchmark") {
             // Enable all the optimizations from release build through initWith(release).
@@ -132,6 +140,7 @@ dependencies {
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.svg)
     implementation(libs.hilt.ext.work)
+    implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.kotlinx.datetime)
     implementation(libs.libsu.core)
     implementation(libs.timber)
