@@ -36,6 +36,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.metrics.performance.JankStats
+import androidx.profileinstaller.ProfileVerifier
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.merxury.blocker.MainActivityUiState.Loading
 import com.merxury.blocker.MainActivityUiState.Success
@@ -46,10 +47,16 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.ui.BlockerApp
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.guava.await
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
+
+private const val TAG = "MainActivity"
 
 @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @AndroidEntryPoint
@@ -127,11 +134,48 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         lazyStats.get().isTrackingEnabled = true
+        lifecycleScope.launch {
+            logCompilationStatus()
+        }
     }
 
     override fun onPause() {
         super.onPause()
         lazyStats.get().isTrackingEnabled = false
+    }
+
+    /**
+     * Logs the app's Baseline Profile Compilation Status using [ProfileVerifier].
+     */
+    private suspend fun logCompilationStatus() {
+        /*
+        When delivering through Google Play, the baseline profile is compiled during installation.
+        In this case you will see the correct state logged without any further action necessary.
+        To verify baseline profile installation locally, you need to manually trigger baseline
+        profile installation.
+        For immediate compilation, call:
+         `adb shell cmd package compile -f -m speed-profile com.example.macrobenchmark.target`
+        You can also trigger background optimizations:
+         `adb shell pm bg-dexopt-job`
+        Both jobs run asynchronously and might take some time complete.
+        To see quick turnaround of the ProfileVerifier, we recommend using `speed-profile`.
+        If you don't do either of these steps, you might only see the profile status reported as
+        "enqueued for compilation" when running the sample locally.
+        */
+        withContext(Dispatchers.IO) {
+            val status = ProfileVerifier.getCompilationStatusAsync().await()
+            Timber.d(TAG, "ProfileInstaller status code: ${status.profileInstallResultCode}")
+            Timber.d(
+                TAG,
+                when {
+                    status.isCompiledWithProfile -> "ProfileInstaller: is compiled with profile"
+                    status.hasProfileEnqueuedForCompilation() ->
+                        "ProfileInstaller: Enqueued for compilation"
+
+                    else -> "Profile not compiled or enqueued"
+                },
+            )
+        }
     }
 }
 
