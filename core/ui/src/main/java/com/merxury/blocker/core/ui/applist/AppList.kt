@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
+import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.core.ui.applist.model.AppItem
 
 @Composable
@@ -56,6 +57,7 @@ fun AppList(
     val scrollbarState = listState.scrollbarState(
         itemsAvailable = appList.size,
     )
+    TrackScrollJank(scrollableState = listState, stateName = "app:list")
     Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = modifier,
@@ -88,14 +90,13 @@ fun AppList(
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
-        FastScrollbar(
+        listState.FastScrollbar(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
                 .align(Alignment.CenterEnd),
             state = scrollbarState,
             orientation = Orientation.Vertical,
-            scrollInProgress = listState.isScrollInProgress,
             onThumbDisplaced = listState.rememberFastScroller(
                 itemsAvailable = appList.size,
             ),
