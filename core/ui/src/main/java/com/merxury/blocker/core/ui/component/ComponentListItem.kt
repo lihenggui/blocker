@@ -66,6 +66,7 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.R.string
@@ -200,7 +201,10 @@ fun ComponentListItem(
             BlockerBodyMediumText(text = name)
             description?.let {
                 Spacer(modifier = Modifier.height(4.dp))
-                BlockerBodyMediumText(text = it)
+                BlockerBodyMediumText(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium.condensedRegular(),
+                )
             }
         }
         Spacer(modifier = Modifier.weight(1f))
