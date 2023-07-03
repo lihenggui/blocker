@@ -61,6 +61,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.dokar.sheets.BottomSheet
+import com.dokar.sheets.rememberBottomSheetState
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
@@ -69,6 +71,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.preference.ComponentShowPriority
+import com.merxury.blocker.core.model.preference.ComponentSorting
+import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FINISHED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
@@ -85,6 +90,9 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.bottomsheet.ComponentSortBottomSheet
+import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
+import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.component.ComponentList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -109,7 +117,6 @@ import com.merxury.blocker.core.rule.R.string as rulestring
 fun AppDetailRoute(
     onBackClick: () -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigatedToComponentSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     appDetailViewModel: AppDetailViewModel = hiltViewModel(),
@@ -119,6 +126,7 @@ fun AppDetailRoute(
     val appDetailErrorState by appDetailViewModel.errorState.collectAsStateWithLifecycle()
     val topAppBarUiState by appDetailViewModel.appBarUiState.collectAsStateWithLifecycle()
     val componentListUiState by appDetailViewModel.componentListUiState.collectAsStateWithLifecycle()
+    val bottomSheetState by appDetailViewModel.componentSortInfoUiState.collectAsStateWithLifecycle()
     val event by appDetailViewModel.eventFlow.collectAsState(initial = null)
     val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
@@ -129,7 +137,7 @@ fun AppDetailRoute(
             topAppBarUiState = topAppBarUiState,
             componentListUiState = componentListUiState,
             tabState = tabState,
-            navigateToComponentDetail = navigateToComponentDetail,
+            bottomSheetState = bottomSheetState, navigateToComponentDetail = navigateToComponentDetail,
             modifier = modifier.fillMaxSize(),
             onLaunchAppClick = { packageName ->
                 appDetailViewModel.launchApp(context, packageName)
@@ -150,7 +158,10 @@ fun AppDetailRoute(
             onLaunchActivityClick = appDetailViewModel::launchActivity,
             onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
             onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-            navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+            onSortOptionsClick = appDetailViewModel::loadComponentSortInfo,
+            onSortByClick = appDetailViewModel::updateComponentSorting,
+            onSortOrderClick = appDetailViewModel::updateComponentSortingOrder,
+            onShowPriorityClick = appDetailViewModel::updateComponentShowPriority,
         )
     }
     if (appDetailErrorState != null) {
@@ -196,6 +207,7 @@ fun AppDetailScreen(
     topAppBarUiState: AppBarUiState,
     componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
+    bottomSheetState: ComponentSortInfoUiState,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
@@ -215,7 +227,10 @@ fun AppDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigatedToComponentSortScreen: () -> Unit,
+    onSortOptionsClick: () -> Unit = {},
+    onSortByClick: (ComponentSorting) -> Unit = {},
+    onSortOrderClick: (SortingOrder) -> Unit = {},
+    onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
     when (appInfoUiState) {
         is Loading -> {
@@ -228,6 +243,7 @@ fun AppDetailScreen(
                 topAppBarUiState = topAppBarUiState,
                 componentListUiState = componentListUiState,
                 tabState = tabState,
+                bottomSheetState = bottomSheetState,
                 onBackClick = onBackClick,
                 navigateToComponentDetail = navigateToComponentDetail,
                 onLaunchAppClick = onLaunchAppClick,
@@ -247,7 +263,10 @@ fun AppDetailScreen(
                 onLaunchActivityClick = onLaunchActivityClick,
                 onCopyNameClick = onCopyNameClick,
                 onCopyFullNameClick = onCopyFullNameClick,
-                navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+                onSortOptionsClick = onSortOptionsClick,
+                onSortByClick = onSortByClick,
+                onSortOrderClick = onSortOrderClick,
+                onShowPriorityClick = onShowPriorityClick,
             )
         }
 
@@ -261,6 +280,7 @@ fun AppDetailContent(
     app: AppItem,
     tabState: TabState<AppDetailTabs>,
     componentListUiState: ComponentListUiState,
+    bottomSheetState: ComponentSortInfoUiState,
     onBackClick: () -> Unit,
     onLaunchAppClick: (String) -> Unit,
     switchTab: (AppDetailTabs) -> Unit,
@@ -281,8 +301,12 @@ fun AppDetailContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigatedToComponentSortScreen: () -> Unit,
+    onSortOptionsClick: () -> Unit = {},
+    onSortByClick: (ComponentSorting) -> Unit = {},
+    onSortOrderClick: (SortingOrder) -> Unit = {},
+    onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
+    val sheetState = rememberBottomSheetState()
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
     val toolbarHeightRange = with(LocalDensity.current) {
@@ -332,7 +356,12 @@ fun AppDetailContent(
                         onSearchModeChange = onSearchModeChanged,
                         blockAllComponents = blockAllComponents,
                         enableAllComponents = enableAllComponents,
-                        navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+                        navigatedToComponentSortScreen = {
+                            scope.launch {
+                                onSortOptionsClick()
+                                sheetState.expand()
+                            }
+                        },
                     )
                 },
                 subtitle = app.packageName,
@@ -374,6 +403,17 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
+        )
+    }
+    BottomSheet(
+        state = sheetState,
+        skipPeeked = true,
+    ) {
+        ComponentSortBottomSheet(
+            uiState = bottomSheetState,
+            onSortByClick = onSortByClick,
+            onSortOrderClick = onSortOrderClick,
+            onShowPriorityClick = onShowPriorityClick,
         )
     }
 }
@@ -569,6 +609,9 @@ fun AppDetailScreenPreview() {
         Surface {
             AppDetailScreen(
                 appInfoUiState = Success(appInfo = app),
+                bottomSheetState = ComponentSortInfoUiState.Success(
+                    ComponentSortInfo(),
+                ),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 onLaunchAppClick = {},
@@ -577,7 +620,6 @@ fun AppDetailScreenPreview() {
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
-                navigatedToComponentSortScreen = {},
             )
         }
     }
@@ -616,6 +658,9 @@ fun AppDetailScreenCollapsedPreview() {
         Surface {
             AppDetailScreen(
                 appInfoUiState = Success(appInfo = app),
+                bottomSheetState = ComponentSortInfoUiState.Success(
+                    ComponentSortInfo(),
+                ),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 onLaunchAppClick = {},
@@ -624,7 +669,6 @@ fun AppDetailScreenCollapsedPreview() {
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
-                navigatedToComponentSortScreen = {},
             )
         }
     }

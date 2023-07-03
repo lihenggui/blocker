@@ -14,19 +14,12 @@
  *   limitations under the License.
  */
 
+package com.merxury.blocker
 
-import com.merxury.blocker.configureKotlinJvm
-import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalog
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.kotlin.dsl.getByType
 
-class JvmLibraryConventionPlugin : Plugin<Project> {
-    override fun apply(target: Project) {
-        with(target) {
-            with(pluginManager) {
-                apply("org.jetbrains.kotlin.jvm")
-                apply("blocker.android.lint")
-            }
-            configureKotlinJvm()
-        }
-    }
-}
+val Project.libs
+    get(): VersionCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")

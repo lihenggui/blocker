@@ -5,9 +5,9 @@ androidGradlePlugin = "8.2.0-alpha10"
 androidxActivity = "1.7.2"
 androidxAppCompat = "1.6.1"
 androidxBrowser = "1.5.0"
-androidxComposeBom = "2023.06.00"
-androidxComposeCompiler = "1.4.7"
-androidxComposeMaterial3 = "1.2.0-alpha02"
+androidxComposeBom = "2023.06.01"
+androidxComposeCompiler = "1.4.8-dev-k1.8.22-badc51991ec"
+androidxComposeMaterial3 = "1.2.0-alpha03"
 androidxComposeRuntimeTracing = "1.0.0-alpha03"
 androidxCore = "1.10.1"
 androidxCoreSplashscreen = "1.0.1"
@@ -15,7 +15,7 @@ androidxDataStore = "1.0.0"
 androidxEspresso = "3.5.1"
 androidxHiltNavigationCompose = "1.0.0"
 androidxLifecycle = "2.6.1"
-androidxMacroBenchmark = "1.1.1"
+androidxMacroBenchmark = "1.2.0-alpha16"
 androidxComposeMaterial = "1.4.3"
 androidxNavigation = "2.6.0"
 androidxMetrics = "1.0.0-alpha04"
@@ -31,8 +31,8 @@ androidxUiAutomator = "2.2.0"
 androidxWork = "2.8.1"
 appiconloader = "1.5.0"
 coil = "2.4.0"
-firebaseBom = "32.1.0"
-firebaseCrashlyticsPlugin = "2.9.5"
+firebaseBom = "32.1.1"
+firebaseCrashlyticsPlugin = "2.9.6"
 firebasePerfPlugin = "1.4.2"
 gmsPlugin = "4.3.15"
 googleOss = "17.0.1"
@@ -41,11 +41,11 @@ hilt = "2.46.1"
 hiltExt = "1.0.0"
 jacoco = "0.8.7"
 junit4 = "4.13.2"
-kotlin = "1.8.21"
-kotlinxCoroutines = "1.7.1"
+kotlin = "1.8.22"
+kotlinxCoroutines = "1.7.2"
 kotlinxDatetime = "0.4.0"
 kotlinxSerializationJson = "1.5.1"
-ksp = "1.8.21-1.0.11"
+ksp = "1.8.22-1.0.11"
 libsu = "5.1.0"
 lint = "31.0.2"
 okhttp = "4.11.0"
@@ -53,10 +53,10 @@ protobuf = "3.23.2"
 protobufPlugin = "0.9.3"
 retrofit = "2.9.0"
 retrofitKotlinxSerializationJson = "1.0.0"
-room = "2.5.1"
+room = "2.5.2"
 secrets = "2.0.1"
 shizuku = "13.1.2"
-turbine = "0.13.0"
+turbine = "1.0.0"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -129,6 +129,7 @@ hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testi
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
 kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib-jdk8", version.ref = "kotlin" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinxCoroutines" }
+kotlinx-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutines" }
 kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
@@ -146,8 +147,9 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
+dialogbottomsheets = "io.github.dokar3:sheets:0.4.3"
 timber = "com.jakewharton.timber:timber:5.0.1"
-freereflection = "com.github.tiann:FreeReflection:3.1.0"
+freereflection = "com.github.tiann:FreeReflection:3.2.0"
 simplexml = "org.simpleframework:simple-xml:2.7.1"
 
 # Dependencies of the included build-logic

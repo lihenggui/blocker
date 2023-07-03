@@ -57,19 +57,19 @@ fun AppListRoute(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigatedToComponentSortScreen: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     appListViewModel: AppListViewModel = hiltViewModel(),
     appDetailViewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val appListUiState by appListViewModel.uiState.collectAsStateWithLifecycle()
-    val appListerrorState by appListViewModel.errorState.collectAsStateWithLifecycle()
+    val appListBottomSheetState by appListViewModel.appSortInfoUiState.collectAsStateWithLifecycle()
+    val appListErrorState by appListViewModel.errorState.collectAsStateWithLifecycle()
     val warningState by appListViewModel.warningState.collectAsStateWithLifecycle()
     val appList = appListViewModel.appListFlow.collectAsState()
     val tabState by appDetailViewModel.tabState.collectAsStateWithLifecycle()
+    val appInfoBottomSheetState by appDetailViewModel.componentSortInfoUiState.collectAsStateWithLifecycle()
     val appInfoUiState by appDetailViewModel.appInfoUiState.collectAsStateWithLifecycle()
     val appDetailErrorState by appDetailViewModel.errorState.collectAsStateWithLifecycle()
     val topAppBarUiState by appDetailViewModel.appBarUiState.collectAsStateWithLifecycle()
@@ -94,6 +94,7 @@ fun AppListRoute(
             ) {
                 AppListScreen(
                     uiState = appListUiState,
+                    bottomSheetUiState = appListBottomSheetState,
                     appList = appList.value,
                     onAppItemClick = navigateToAppDetail,
                     onClearCacheClick = appListViewModel::clearCache,
@@ -105,13 +106,16 @@ fun AppListRoute(
                     onServiceStateUpdate = appListViewModel::updateServiceStatus,
                     navigateToSettings = navigateToSettings,
                     navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-                    navigateTooAppSortScreen = navigateTooAppSortScreen,
+                    onSortOptionsClick = appListViewModel::loadAppSortInfo,
+                    onSortByClick = appListViewModel::updateAppSorting,
+                    onSortOrderClick = appListViewModel::updateAppSortingOrder,
+                    onChangeShowRunningAppsOnTop = appListViewModel::updateShowRunningAppsOnTop,
                     modifier = Modifier.matchParentSize(),
                 )
-                if (appListerrorState != null) {
+                if (appListErrorState != null) {
                     BlockerErrorAlertDialog(
-                        title = appListerrorState?.title.orEmpty(),
-                        text = appListerrorState?.content.orEmpty(),
+                        title = appListErrorState?.title.orEmpty(),
+                        text = appListErrorState?.content.orEmpty(),
                         onDismissRequest = appListViewModel::dismissErrorDialog,
                     )
                 }
@@ -140,9 +144,10 @@ fun AppListRoute(
                     }
                 },
         ) {
-            appInfoUiState?.let {
+            appInfoUiState?.let { appInfoUiState ->
                 AppDetailScreen(
-                    appInfoUiState = it,
+                    appInfoUiState = appInfoUiState,
+                    bottomSheetState = appInfoBottomSheetState,
                     topAppBarUiState = topAppBarUiState,
                     componentListUiState = componentListUiState,
                     tabState = tabState,
@@ -167,7 +172,10 @@ fun AppListRoute(
                     onLaunchActivityClick = appDetailViewModel::launchActivity,
                     onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
                     onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-                    navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+                    onSortOptionsClick = appDetailViewModel::loadComponentSortInfo,
+                    onSortByClick = appDetailViewModel::updateComponentSorting,
+                    onSortOrderClick = appDetailViewModel::updateComponentSortingOrder,
+                    onShowPriorityClick = appDetailViewModel::updateComponentShowPriority,
                 )
             }
             if (appDetailErrorState != null) {

@@ -50,11 +50,14 @@ import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
+import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
+import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
@@ -78,6 +81,8 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.applist.model.toAppItem
+import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
+import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -141,6 +146,9 @@ class AppDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
+    private val _componentSortInfoUiState: MutableStateFlow<ComponentSortInfoUiState> =
+        MutableStateFlow(ComponentSortInfoUiState.Loading)
+    val componentSortInfoUiState = _componentSortInfoUiState.asStateFlow()
     private var currentFilterKeyword = appDetailArgs.searchKeyword
         .map { it.trim() }
         .filterNot { it.isEmpty() }
@@ -177,6 +185,30 @@ class AppDetailViewModel @Inject constructor(
         if (controllerType == SHIZUKU) {
             shizukuInitializer.registerShizuku()
         }
+    }
+
+    fun loadComponentSortInfo() = viewModelScope.launch {
+        val userData = userDataRepository.userData.first()
+        val sorting = userData.componentSorting
+        val order = userData.componentSortingOrder
+        val priority = userData.componentShowPriority
+        _componentSortInfoUiState.emit(
+            ComponentSortInfoUiState.Success(
+                ComponentSortInfo(sorting, order, priority),
+            ),
+        )
+    }
+
+    fun updateComponentSorting(sorting: ComponentSorting) = viewModelScope.launch {
+        userDataRepository.setComponentSorting(sorting)
+    }
+
+    fun updateComponentSortingOrder(order: SortingOrder) = viewModelScope.launch {
+        userDataRepository.setComponentSortingOrder(order)
+    }
+
+    fun updateComponentShowPriority(priority: ComponentShowPriority) = viewModelScope.launch {
+        userDataRepository.setComponentShowPriority(priority)
     }
 
     private fun deinitShizuku() = viewModelScope.launch {
@@ -454,10 +486,15 @@ class AppDetailViewModel @Inject constructor(
                 Activity -> _componentListUiState.value.activity
                 Provider -> _componentListUiState.value.provider
                 else -> return@launch
+            }.map {
+                it.toComponentInfo()
             }
-            list.forEach {
-                controlComponentInternal(it.packageName, it.name, enable)
-            }
+
+            componentRepository.batchControlComponent(components = list.toList(), newState = enable)
+                .catch { exception ->
+                    _errorState.emit(exception.toErrorMessage())
+                }
+                .collect()
             analyticsHelper.logBatchOperationPerformed(enable)
         }
 

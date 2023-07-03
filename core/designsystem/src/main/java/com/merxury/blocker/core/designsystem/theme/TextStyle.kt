@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Blocker
- * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +14,15 @@
  * limitations under the License.
  */
 
-plugins {
-    id("blocker.android.feature")
-    id("blocker.android.library.compose")
-    id("blocker.android.library.jacoco")
-    id("kotlin-parcelize")
-}
-android {
-    namespace = "com.merxury.blocker.feature.sort"
-}
-dependencies {
+package com.merxury.blocker.core.designsystem.theme
 
-}
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import com.merxury.blocker.core.designsystem.R
+
+@Composable
+fun TextStyle.condensedRegular() = this.copy(
+    fontFamily = FontFamily(Font(R.font.roboto_condensed_regular)),
+)

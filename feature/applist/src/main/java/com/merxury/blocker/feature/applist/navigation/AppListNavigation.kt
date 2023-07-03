@@ -57,7 +57,7 @@ fun NavController.navigateToAppList(
     val encodedId = Uri.encode(packageName)
     val keywords = searchKeyword.joinToString(",")
     navigate(
-        "app_list_route?packageName=$encodedId?screen=${tab.name}?keyword=${keywords}",
+        "app_list_route?packageName=$encodedId?screen=${tab.name}?keyword=$keywords",
         navOptions,
     )
 }
@@ -69,9 +69,7 @@ fun NavGraphBuilder.appListScreen(
     navigateToAppDetail: (String) -> Unit,
     navigateToSettings: () -> Unit,
     navigateToSupportAndFeedback: () -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
     navigateToComponentDetail: (String) -> Unit,
-    navigatedToComponentSortScreen: () -> Unit,
 ) {
     composable(
         route = appListRoute,
@@ -96,9 +94,7 @@ fun NavGraphBuilder.appListScreen(
             navigateToAppDetail = navigateToAppDetail,
             navigateToSettings = navigateToSettings,
             navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-            navigateTooAppSortScreen = navigateTooAppSortScreen,
             navigateToComponentDetail = navigateToComponentDetail,
-            navigatedToComponentSortScreen = navigatedToComponentSortScreen,
             snackbarHostState = snackbarHostState,
         )
     }

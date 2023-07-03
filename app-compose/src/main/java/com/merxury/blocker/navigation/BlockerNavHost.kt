@@ -34,9 +34,6 @@ import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
-import com.merxury.blocker.feature.sort.navigation.appSortScreen
-import com.merxury.blocker.feature.sort.navigation.componentSortScreen
-import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
 import com.merxury.blocker.ui.BlockerAppState
 
 /**
@@ -68,9 +65,7 @@ fun BlockerNavHost(
             navigateToAppDetail = navController::navigateToAppList,
             navigateToSettings = navController::navigateToSettings,
             navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
-            navigateTooAppSortScreen = navController::navigateToAppSortScreen,
             navigateToComponentDetail = navController::navigateToComponentDetail,
-            navigatedToComponentSortScreen = navController::navigateToAppSortScreen,
         )
         generalRuleScreen(
             navigateToRuleDetail = navController::navigateToRuleDetail,
@@ -89,12 +84,6 @@ fun BlockerNavHost(
         )
         supportAndFeedbackScreen(onBackClick)
         componentDetailScreen(
-            dismissHandler = onBackClick,
-        )
-        componentSortScreen(
-            dismissHandler = onBackClick,
-        )
-        appSortScreen(
             dismissHandler = onBackClick,
         )
     }

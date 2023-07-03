@@ -23,12 +23,10 @@ import com.merxury.blocker.configurePrintApksTask
 import com.merxury.blocker.disableUnnecessaryAndroidTests
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.kotlin
 
 class AndroidLibraryConventionPlugin : Plugin<Project> {
@@ -37,6 +35,7 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             with(pluginManager) {
                 apply("com.android.library")
                 apply("org.jetbrains.kotlin.android")
+                apply("blocker.android.lint")
             }
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)
@@ -51,14 +50,6 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             extensions.configure<JavaPluginExtension> {
                 toolchain {
                     languageVersion.set(JavaLanguageVersion.of(17))
-                }
-            }
-            val libs = extensions.getByType<VersionCatalogsExtension>().named("libs")
-            configurations.configureEach {
-                resolutionStrategy {
-                    force(libs.findLibrary("junit4").get())
-                    // Temporary workaround for https://issuetracker.google.com/174733673
-                    force("org.objenesis:objenesis:2.6")
                 }
             }
             dependencies {
