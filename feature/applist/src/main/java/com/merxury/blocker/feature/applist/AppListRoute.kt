@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -60,6 +61,7 @@ fun AppListRoute(
     navigateToComponentDetail: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
+    listState: LazyListState,
     appListViewModel: AppListViewModel = hiltViewModel(),
     appDetailViewModel: AppDetailViewModel = hiltViewModel(),
 ) {
@@ -111,6 +113,7 @@ fun AppListRoute(
                     onSortOrderClick = appListViewModel::updateAppSortingOrder,
                     onChangeShowRunningAppsOnTop = appListViewModel::updateShowRunningAppsOnTop,
                     modifier = Modifier.matchParentSize(),
+                    listState = listState,
                 )
                 if (appListErrorState != null) {
                     BlockerErrorAlertDialog(

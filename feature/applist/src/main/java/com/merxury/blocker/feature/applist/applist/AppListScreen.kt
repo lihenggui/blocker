@@ -25,26 +25,21 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.dokar.sheets.BottomSheet
 import com.dokar.sheets.rememberBottomSheetState
-import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
-import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
@@ -61,56 +56,6 @@ import com.merxury.blocker.feature.applist.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.applist.AppListUiState.Success
 import com.merxury.blocker.feature.applist.applist.component.TopAppBarMoreMenu
 import kotlinx.coroutines.launch
-
-@Composable
-fun AppListRoute(
-    navigateToAppDetail: (String) -> Unit,
-    navigateToSettings: () -> Unit,
-    navigateToSupportAndFeedback: () -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: AppListViewModel = hiltViewModel(),
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val bottomSheetUiState by viewModel.appSortInfoUiState.collectAsStateWithLifecycle()
-    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-    val warningState by viewModel.warningState.collectAsStateWithLifecycle()
-    val appList = viewModel.appListFlow.collectAsState()
-    AppListScreen(
-        uiState = uiState,
-        bottomSheetUiState = bottomSheetUiState,
-        appList = appList.value,
-        onAppItemClick = navigateToAppDetail,
-        onClearCacheClick = viewModel::clearCache,
-        onClearDataClick = viewModel::clearData,
-        onForceStopClick = viewModel::forceStop,
-        onUninstallClick = viewModel::uninstall,
-        onEnableClick = viewModel::enable,
-        onDisableClick = viewModel::disable,
-        onServiceStateUpdate = viewModel::updateServiceStatus,
-        navigateToSettings = navigateToSettings,
-        navigateToSupportAndFeedback = navigateToSupportAndFeedback,
-        onSortOptionsClick = viewModel::loadAppSortInfo,
-        onSortByClick = viewModel::updateAppSorting,
-        onSortOrderClick = viewModel::updateAppSortingOrder,
-        onChangeShowRunningAppsOnTop = viewModel::updateShowRunningAppsOnTop,
-        modifier = modifier,
-    )
-    if (errorState != null) {
-        BlockerErrorAlertDialog(
-            title = errorState?.title.orEmpty(),
-            text = errorState?.content.orEmpty(),
-            onDismissRequest = viewModel::dismissErrorDialog,
-        )
-    }
-    warningState?.let {
-        BlockerWarningAlertDialog(
-            title = it.title,
-            text = stringResource(id = it.message),
-            onDismissRequest = viewModel::dismissWarningDialog,
-            onConfirmRequest = it.onPositiveButtonClicked,
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,6 +78,7 @@ fun AppListScreen(
     onSortOrderClick: (SortingOrder) -> Unit,
     onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    listState: LazyListState,
 ) {
     val scope = rememberCoroutineScope()
     val sheetState = rememberBottomSheetState()
@@ -192,6 +138,7 @@ fun AppListScreen(
                     onDisableClick = onDisableClick,
                     onServiceStateUpdate = onServiceStateUpdate,
                     modifier = modifier.testTag(appListTestTag),
+                    listState = listState,
                 )
 
                 is Error -> ErrorScreen(uiState.error)

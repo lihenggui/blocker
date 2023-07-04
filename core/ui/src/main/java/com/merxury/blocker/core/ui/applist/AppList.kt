@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -41,6 +42,7 @@ import com.merxury.blocker.core.ui.applist.model.AppItem
 
 @Composable
 fun AppList(
+    modifier: Modifier = Modifier,
     appList: List<AppItem>,
     selectedAppPackageName: String? = "",
     onAppItemClick: (String) -> Unit,
@@ -51,9 +53,8 @@ fun AppList(
     onEnableClick: (String) -> Unit,
     onDisableClick: (String) -> Unit,
     onServiceStateUpdate: (String, Int) -> Unit,
-    modifier: Modifier = Modifier,
+    listState: LazyListState = rememberLazyListState(),
 ) {
-    val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
         itemsAvailable = appList.size,
     )
