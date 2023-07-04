@@ -101,7 +101,7 @@ class BlockerAppState(
         get() = !shouldShowBottomBar
 
     val shouldShowTwoPane: Boolean
-        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Medium
+        get() = (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Medium) || (windowSizeClass.widthSizeClass == WindowWidthSizeClass.Expanded)
 
     val isOffline = networkMonitor.isOnline
         .map(Boolean::not)
