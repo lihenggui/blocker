@@ -103,7 +103,7 @@ dependencies {
     implementation(projects.feature.generalrule)
     implementation(projects.feature.search)
     implementation(projects.feature.settings)
-    implementation(projects.feature.ruledetail)
+    implementation(projects.core.ruledetail)
 
     implementation(projects.core.analytics)
     implementation(projects.core.ui)

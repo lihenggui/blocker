@@ -22,7 +22,7 @@ plugins {
     id("kotlin-parcelize")
 }
 android {
-    namespace = "com.merxury.blocker.feature.appdetail"
+    namespace = "com.merxury.blocker.core.appdetail"
 }
 dependencies {
     implementation(projects.core.componentController)
