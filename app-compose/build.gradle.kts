@@ -98,12 +98,12 @@ android {
 }
 
 dependencies {
-    implementation(projects.feature.appdetail)
+    implementation(projects.core.appdetail)
     implementation(projects.feature.applist)
     implementation(projects.feature.generalrule)
     implementation(projects.feature.search)
     implementation(projects.feature.settings)
-    implementation(projects.core.ruledetail)
+    implementation(projects.feature.ruledetail)
 
     implementation(projects.core.analytics)
     implementation(projects.core.ui)
