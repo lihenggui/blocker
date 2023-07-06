@@ -47,25 +47,19 @@ jobs:
       - name: Build app
         run: ./gradlew :app-compose:assembleRelease :app-compose:bundleRelease
 
-      - name: Upload build outputs (APKs)
-        uses: actions/upload-artifact@v3
-        with:
-          name: APKs
-          path: '**/build/outputs/apk/**/*.apk'
-
       - name: Upload built Foss apk
         if: success()
         uses: actions/upload-artifact@v3
         with:
-          name: Foss
-          path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/release
+          name: app-compose-foss-release.apk
+          path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/app-compose-foss-release.apk
 
       - name: Upload built Market apk
         if: success()
         uses: actions/upload-artifact@v3
         with:
-          name: Market
-          path: ${{ github.workspace }}/app-compose/build/outputs/apk/market/release
+          name: app-compose-market-release.apk
+          path: ${{ github.workspace }}/app-compose/build/outputs/apk/market/release/app-compose-market-release.apk
 
       - name: Upload mappings
         if: success()
