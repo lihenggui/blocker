@@ -23,7 +23,6 @@ jobs:
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
       - name: Write sign info
-        if: github.ref == 'refs/heads/main' && github.repository == 'lihenggui/Blocker'
         run: |
           if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
             echo releaseStorePassword='${{ secrets.SIGNING_STORE_PASSWORD }}' >> gradle.properties
@@ -66,28 +65,27 @@ jobs:
           path: '**/build/outputs/apk/**/*.apk'
 
       - name: Upload built Foss apk
-        if: success() && github.repository == 'lihenggui/Blocker'
+        if: success()
         uses: actions/upload-artifact@v3
         with:
           name: Foss
           path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/release
 
       - name: Upload built Market apk
-        if: success() && github.repository == 'lihenggui/Blocker'
+        if: success()
         uses: actions/upload-artifact@v3
         with:
           name: Market
           path: ${{ github.workspace }}/app-compose/build/outputs/apk/market/release
 
       - name: Upload mappings
-        if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: success()
         uses: actions/upload-artifact@v3
         with:
           name: mappings
           path: "app-compose/build/outputs/mapping/marketRelease"
 
       - name: Publish to Play Store internal test track
-        if: github.ref == 'refs/heads/main' && github.repository == 'lihenggui/Blocker'
         uses: r0adkll/upload-google-play@v1.1.1
         with:
           serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
@@ -106,7 +104,6 @@ jobs:
           echo "market_path=$market_path" >> $GITHUB_OUTPUT
 
       - name: Get apk info
-        if: success() && github.repository == 'lihenggui/Blocker'
         id: apk-info
         uses: zhaobozhen/apk-info-action@1.1.2
         with:
