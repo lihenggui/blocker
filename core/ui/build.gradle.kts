@@ -37,6 +37,8 @@ dependencies {
     implementation(libs.coil.kt.compose)
     implementation(libs.kotlinx.datetime)
     implementation(libs.timber)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.window.manager)
 
     api(libs.androidx.compose.foundation)
     api(libs.androidx.compose.foundation.layout)
