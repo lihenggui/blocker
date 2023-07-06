@@ -46,7 +46,7 @@ jobs:
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Build app
-        run: ./gradlew :app-compose:assembleRelease
+        run: ./gradlew :app-compose:assembleRelease :app-compose:bundleRelease
 
       - name: Create Release
         id: create_release
@@ -85,6 +85,17 @@ jobs:
         with:
           name: mappings
           path: "app-compose/build/outputs/mapping/marketRelease"
+
+      - name: Publish to Play Store internal test track
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'lihenggui/Blocker'
+        uses: r0adkll/upload-google-play@v1.1.1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+          packageName: com.merxury.blocker
+          releaseFiles: app-compose/build/outputs/bundle/marketRelease/app-compose-market-release.aab
+          track: beta
+          inAppUpdatePriority: 2
+          mappingFile: app-compose/build/outputs/mapping/marketRelease/mapping.txt
 
       - name: Set apk path
         id: apk-path
