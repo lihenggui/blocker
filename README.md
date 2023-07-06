@@ -62,5 +62,8 @@ The Screens and UI elements are built entirely using Jetpack Compose.
 The app has two themes:
 
 Dynamic color - uses colors based on the user's current color theme (if supported)
+
 Default theme - uses predefined colors when dynamic color is not supported
+
 Each theme also supports dark mode.
+
