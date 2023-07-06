@@ -53,3 +53,14 @@ Shizuku是由Rikka开发的应用，具体请参见[RikkaApps/Shizuku](https://g
 在Android Oreo之后，Package Manager在更改组件状态的时候新增加了一个匹配规则，当应用程序为Test-Only版本的时候，用户可以随意通过命令行的PM应用程序控制应用程序组件状态。Shizuku的API运行在Shell权限下，我们可以修改APK，将其状态位设置为Test-Only，通过Shizuku提供的高权限API控制组件。
 
 修改应用至Test-Only模式请参考Github下的Wiki教程[[实验性功能] [开发者向]如何免Root控制应用程序组件](https://github.com/lihenggui/blocker/wiki/%5B%E5%AE%9E%E9%AA%8C%E6%80%A7%E5%8A%9F%E8%83%BD%5D-%5B%E5%BC%80%E5%8F%91%E8%80%85%E5%90%91%5D%E5%A6%82%E4%BD%95%E5%85%8DRoot%E6%8E%A7%E5%88%B6%E5%BA%94%E7%94%A8%E7%A8%8B%E5%BA%8F%E7%BB%84%E4%BB%B6)
+
+### UI
+本应用遵循[Material 3 界面规范](https://m3.material.io/)开发. 你可以从 [此处](https://www.figma.com/file/T903MNmXtahDVf1yoOgXoI/Blocker) 获取设计源文件.
+
+非常感谢我们的UI设计师: [@COPtimer](https://github.com/COPtimer)
+
+UI元素完全使用Jetpack Compose进行构建。
+
+应用程序有两个预定义主题：
+动态颜色 - 根据用户当前的颜色主题使用颜色；默认主题 - 在不支持动态颜色时使用预定义的颜色。
+同时每个主题还支持暗模式。
