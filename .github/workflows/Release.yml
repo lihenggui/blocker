@@ -47,17 +47,6 @@ jobs:
       - name: Build app
         run: ./gradlew :app-compose:assembleRelease :app-compose:bundleRelease
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: true
-          prerelease: false
-
       - name: Upload build outputs (APKs)
         uses: actions/upload-artifact@v3
         with:
@@ -84,6 +73,17 @@ jobs:
         with:
           name: mappings
           path: "app-compose/build/outputs/mapping/marketRelease"
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: true
+          prerelease: false
 
       - name: Publish to Play Store internal test track
         uses: r0adkll/upload-google-play@v1.1.1
