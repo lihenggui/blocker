@@ -48,6 +48,17 @@ protobuf {
     }
 }
 
+/**
+ * Add protobuf generated sources to the sourceSets, fixes the following error:
+ * `InjectProcessingStep was unable to process 'BlockerPreferencesDataSource(androidx.datastore.core.DataStore<UserPreferences>)' because 'UserPreferences' could not be resolved.`
+ */
+androidComponents.beforeVariants {
+    android.sourceSets.register(it.name) {
+        java.srcDir(buildDir.resolve("generated/source/proto/${it.name}/java"))
+        kotlin.srcDir(buildDir.resolve("generated/source/proto/${it.name}/kotlin"))
+    }
+}
+
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.model)
