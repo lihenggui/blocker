@@ -47,37 +47,6 @@ jobs:
       - name: Build app
         run: ./gradlew :app-compose:assembleRelease :app-compose:bundleRelease
 
-      - name: Upload built Foss apk
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-compose-foss-release.apk
-          path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/app-compose-foss-release.apk
-
-      - name: Upload built Market apk
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-compose-market-release.apk
-          path: ${{ github.workspace }}/app-compose/build/outputs/apk/market/release/app-compose-market-release.apk
-
-      - name: Upload mappings
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: mappings
-          path: "app-compose/build/outputs/mapping/marketRelease"
-
-      - name: Publish to Play Store open beta track
-        uses: r0adkll/upload-google-play@v1.1.1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
-          packageName: com.merxury.blocker
-          releaseFiles: app-compose/build/outputs/bundle/marketRelease/app-compose-market-release.aab
-          track: beta
-          inAppUpdatePriority: 2
-          mappingFile: app-compose/build/outputs/mapping/marketRelease/mapping.txt
-
       - name: Set apk path
         id: apk-path
         run: |
@@ -97,6 +66,43 @@ jobs:
         uses: mikepenz/release-changelog-builder-action@v4.0.0-b02
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
+      - name: Write whats new info
+        run: |
+          mkdir -p distribution/whatsnew/whatsnew-en-US/
+          echo '${{ steps.build_changelog.outputs.changelog }}' >> distribution/whatsnew/whatsnew-en-US/whats_new.txt
+
+      - name: Upload built Market apk
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Blocker-${{ steps.apk-info.outputs.version-code }}-Market-release.apk
+          path: ${{ steps.apk-path.outputs.market_path }}
+
+      - name: Upload built Foss apk
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Blocker-${{ steps.apk-info.outputs.version-code }}-FOSS-release.apk
+          path: ${{ steps.apk-path.outputs.foss_path }}
+
+      - name: Upload mappings
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: mappings
+          path: "app-compose/build/outputs/mapping/marketRelease"
+
+      - name: Publish to Play Store open beta track
+        uses: r0adkll/upload-google-play@v1.1.1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+          packageName: com.merxury.blocker
+          releaseFiles: app-compose/build/outputs/bundle/marketRelease/app-compose-market-release.aab
+          track: beta
+          inAppUpdatePriority: 2
+          mappingFile: app-compose/build/outputs/mapping/marketRelease/mapping.txt
+          whatsNewDirectory: distribution/whatsnew
 
       - name: Create Release
         id: create_release
