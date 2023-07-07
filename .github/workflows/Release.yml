@@ -68,7 +68,7 @@ jobs:
           name: mappings
           path: "app-compose/build/outputs/mapping/marketRelease"
 
-      - name: Publish to Play Store internal test track
+      - name: Publish to Play Store open beta track
         uses: r0adkll/upload-google-play@v1.1.1
         with:
           serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
@@ -105,9 +105,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
           draft: false
           prerelease: true
+          append_body: true
+          generate_release_notes: true
           body: |
             ${{steps.build_changelog.outputs.changelog}}
             ${{ steps.apk-info.outputs.result }}
