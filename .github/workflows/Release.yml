@@ -68,17 +68,6 @@ jobs:
           name: mappings
           path: "app-compose/build/outputs/mapping/marketRelease"
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: true
-          prerelease: false
-
       - name: Publish to Play Store internal test track
         uses: r0adkll/upload-google-play@v1.1.1
         with:
@@ -102,3 +91,26 @@ jobs:
         uses: zhaobozhen/apk-info-action@1.1.2
         with:
           apk-path: ${{ steps.apk-path.outputs.foss_path }}
+
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v4.0.0-b02
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{ github.ref }}
+          draft: false
+          prerelease: true
+          body: |
+            ${{steps.build_changelog.outputs.changelog}}
+            ${{ steps.apk-info.outputs.result }}
+          files: |
+            ${{ steps.apk-path.outputs.foss_path }}
+            ${{ steps.apk-path.outputs.market_path }}
