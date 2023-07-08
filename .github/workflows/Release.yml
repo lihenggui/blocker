@@ -69,21 +69,21 @@ jobs:
 
       - name: Write whats new info
         run: |
-          mkdir -p distribution/whatsnew/whatsnew-en-US/
-          echo '${{ steps.build_changelog.outputs.changelog }}' >> distribution/whatsnew/whatsnew-en-US/whats_new.txt
+          mkdir -p ${{ github.workspace }}/distribution/whatsnew/whatsnew-en-US/
+          echo '${{ steps.build_changelog.outputs.changelog }}' >> ${{ github.workspace }}/distribution/whatsnew/whatsnew-en-US
 
       - name: Upload built Market apk
         if: success()
         uses: actions/upload-artifact@v3
         with:
-          name: Blocker-${{ steps.apk-info.outputs.version-code }}-Market-release.apk
+          name: Blocker-${{ steps.apk-info.outputs.version-name }}-Market-release.apk
           path: ${{ steps.apk-path.outputs.market_path }}
 
       - name: Upload built Foss apk
         if: success()
         uses: actions/upload-artifact@v3
         with:
-          name: Blocker-${{ steps.apk-info.outputs.version-code }}-FOSS-release.apk
+          name: Blocker-${{ steps.apk-info.outputs.version-name }}-FOSS-release.apk
           path: ${{ steps.apk-path.outputs.foss_path }}
 
       - name: Upload mappings
@@ -102,7 +102,7 @@ jobs:
           track: beta
           inAppUpdatePriority: 2
           mappingFile: app-compose/build/outputs/mapping/marketRelease/mapping.txt
-          whatsNewDirectory: distribution/whatsnew
+          whatsNewDirectory: ${{ github.workspace }}/distribution/whatsnew
 
       - name: Create Release
         id: create_release
