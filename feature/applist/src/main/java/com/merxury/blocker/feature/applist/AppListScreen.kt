@@ -29,19 +29,22 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dokar.sheets.BottomSheet
-import com.dokar.sheets.rememberBottomSheetState
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
@@ -131,8 +134,8 @@ fun AppListScreen(
     onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val sheetState = rememberBottomSheetState()
     Scaffold(
         topBar = {
             BlockerTopAppBar(
@@ -142,7 +145,7 @@ fun AppListScreen(
                         onClick = {
                             scope.launch {
                                 onSortOptionsClick()
-                                sheetState.expand()
+                                openBottomSheet = true
                             }
                         },
                     ) {
@@ -193,16 +196,20 @@ fun AppListScreen(
             }
         }
     }
-    BottomSheet(
-        state = sheetState,
-        skipPeeked = true,
-    ) {
-        AppSortBottomSheet(
-            uiState = bottomSheetUiState,
-            onSortByClick = onSortByClick,
-            onSortOrderClick = onSortOrderClick,
-            onChangeShowRunningAppsOnTop = onChangeShowRunningAppsOnTop,
-        )
+    if (openBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { openBottomSheet = false },
+            sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+            ),
+        ) {
+            AppSortBottomSheet(
+                uiState = bottomSheetUiState,
+                onSortByClick = onSortByClick,
+                onSortOrderClick = onSortOrderClick,
+                onChangeShowRunningAppsOnTop = onChangeShowRunningAppsOnTop,
+            )
+        }
     }
     TrackScreenViewEvent(screenName = "AppListScreen")
 }
