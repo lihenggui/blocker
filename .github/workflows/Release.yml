@@ -70,7 +70,7 @@ jobs:
       - name: Write whats new info
         run: |
           mkdir -p ${{ github.workspace }}/distribution/whatsnew/
-          echo '${{ steps.build_changelog.outputs.changelog }}' | cut -c 1-490 >> ${{ github.workspace }}/distribution/whatsnew/whatsnew-en-US
+          echo '${{ steps.build_changelog.outputs.changelog }}' | head -c 490 >> ${{ github.workspace }}/distribution/whatsnew/whatsnew-en-US
 
       - name: Upload built Market apk
         if: success()
