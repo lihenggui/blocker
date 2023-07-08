@@ -37,6 +37,7 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.ui.R
+import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState.Loading
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState.Success
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -117,6 +118,7 @@ fun AppSortOptionsContent(
         )
         Spacer(modifier = Modifier.height(16.dp))
     }
+    TrackScreenViewEvent(screenName = "AppListSortBottomSheet")
 }
 
 @Composable
