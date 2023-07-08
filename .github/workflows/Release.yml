@@ -69,7 +69,7 @@ jobs:
 
       - name: Write whats new info
         run: |
-          mkdir -p ${{ github.workspace }}/distribution/whatsnew/whatsnew-en-US/
+          mkdir -p ${{ github.workspace }}/distribution/whatsnew/
           echo '${{ steps.build_changelog.outputs.changelog }}' >> ${{ github.workspace }}/distribution/whatsnew/whatsnew-en-US
 
       - name: Upload built Market apk
