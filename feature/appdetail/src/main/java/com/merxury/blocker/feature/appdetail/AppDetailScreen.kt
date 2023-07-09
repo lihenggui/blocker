@@ -32,19 +32,24 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -61,8 +66,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.dokar.sheets.BottomSheet
-import com.dokar.sheets.rememberBottomSheetState
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
@@ -272,6 +275,7 @@ fun AppDetailScreen(
     TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailContent(
     app: AppItem,
@@ -303,7 +307,7 @@ fun AppDetailContent(
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
-    val sheetState = rememberBottomSheetState()
+    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
     val toolbarHeightRange = with(LocalDensity.current) {
@@ -356,7 +360,7 @@ fun AppDetailContent(
                         navigatedToComponentSortScreen = {
                             scope.launch {
                                 onSortOptionsClick()
-                                sheetState.expand()
+                                openBottomSheet = true
                             }
                         },
                     )
@@ -402,16 +406,20 @@ fun AppDetailContent(
             onCopyFullNameClick = onCopyFullNameClick,
         )
     }
-    BottomSheet(
-        state = sheetState,
-        skipPeeked = true,
-    ) {
-        ComponentSortBottomSheet(
-            uiState = bottomSheetState,
-            onSortByClick = onSortByClick,
-            onSortOrderClick = onSortOrderClick,
-            onShowPriorityClick = onShowPriorityClick,
-        )
+    if (openBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { openBottomSheet = false },
+            sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+            ),
+        ) {
+            ComponentSortBottomSheet(
+                uiState = bottomSheetState,
+                onSortByClick = onSortByClick,
+                onSortOrderClick = onSortOrderClick,
+                onShowPriorityClick = onShowPriorityClick,
+            )
+        }
     }
 }
 
