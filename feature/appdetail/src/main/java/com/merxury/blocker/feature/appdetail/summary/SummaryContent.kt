@@ -40,6 +40,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 import java.util.Locale
 
 @Composable
@@ -107,7 +108,7 @@ fun AppSummary(
         )
         BlockerSettingItem(
             title = stringResource(id = string.last_update_time),
-            summary = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            summary = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG)
                 .withLocale(Locale.getDefault())
                 .withZone(ZoneId.systemDefault())
                 .format(lastUpdateTime?.toJavaInstant()),
