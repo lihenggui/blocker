@@ -415,6 +415,9 @@ class AppDetailViewModel @Inject constructor(
                     ENABLED_COMPONENTS_FIRST -> sortedList.sortedByDescending { it.enabled() }
                 }
             }
+            .let { sortedList ->
+                sortedList.sortedByDescending { it.isRunning }
+            }
             .toMutableStateList()
     }
 
