@@ -125,7 +125,7 @@ class ComponentDetailViewModel @Inject constructor(
 }
 
 sealed interface ComponentDetailUiState {
-    object Loading : ComponentDetailUiState
+    data object Loading : ComponentDetailUiState
     data class Success(
         val isFetchingData: Boolean,
         val detail: ComponentDetail,
