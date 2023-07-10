@@ -98,6 +98,7 @@ fun FilteredComponentItem(
                     onLongClick = {
                         if (!isSelectedMode) {
                             switchSelectedMode(true)
+                            onSelect(items)
                         }
                     },
                 )
