@@ -57,6 +57,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
@@ -80,6 +82,8 @@ class SearchViewModel @Inject constructor(
 ) : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
+    private val _selectUiState = MutableStateFlow(SelectUiState())
+    val selectUiState: StateFlow<SelectUiState> = _selectUiState.asStateFlow()
     private val _localSearchUiState =
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
@@ -261,12 +265,48 @@ class SearchViewModel @Inject constructor(
         // TODO
     }
 
-    fun switchSelectedMode(value: Boolean) {
-        // TODO, isSelectedMode = true
+    fun controlComponent(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        controlComponentInternal(packageName, componentName, enabled)
     }
 
-    fun selectItem(select: Boolean) {
-        // TODO
+    private suspend fun controlComponentInternal(
+        packageName: String,
+        componentName: String,
+        enabled: Boolean,
+    ) {
+        componentRepository.controlComponent(packageName, componentName, enabled)
+            .catch { exception ->
+                _errorState.emit(exception.toErrorMessage())
+            }
+            .collect()
+    }
+
+    fun switchSelectedMode(value: Boolean) {
+        _selectUiState.update {
+            it.copy(isSelectedMode = value)
+        }
+    }
+
+    fun selectItem(item: FilteredComponent) {
+        val selectedList: MutableList<FilteredComponent> = mutableListOf()
+        selectedList.addAll(_selectUiState.value.selectedComponentList)
+        selectedList.add(item)
+        _selectUiState.update {
+            it.copy(selectedComponentList = selectedList)
+        }
+    }
+
+    fun deselectItem(item: FilteredComponent) {
+        val selectedList: MutableList<FilteredComponent> = mutableListOf()
+        selectedList.addAll(_selectUiState.value.selectedComponentList)
+        selectedList.remove(item)
+        _selectUiState.update {
+            it.copy(selectedComponentList = selectedList)
+        }
     }
 }
 
@@ -290,20 +330,14 @@ data class SearchBoxUiState(
 
 data class AppTabUiState(
     val list: List<AppItem> = listOf(),
-    val isSelectedMode: Boolean = false,
-    val selectedAppList: List<AppItem> = listOf(),
 )
 
 data class ComponentTabUiState(
     val list: List<FilteredComponent> = listOf(),
-    val isSelectedMode: Boolean = false,
-    val selectedAppList: List<FilteredComponent> = listOf(),
 )
 
 data class RuleTabUiState(
     val list: List<GeneralRule> = listOf(),
-    val isSelectedMode: Boolean = false,
-    val selectedAppList: List<GeneralRule> = listOf(),
 )
 
 data class FilteredComponent(
@@ -312,5 +346,9 @@ data class FilteredComponent(
     val service: List<ComponentItem> = listOf(),
     val receiver: List<ComponentItem> = listOf(),
     val provider: List<ComponentItem> = listOf(),
-    val isSelected: Boolean = false,
+)
+
+data class SelectUiState(
+    val isSelectedMode: Boolean = false,
+    val selectedComponentList: List<FilteredComponent> = listOf(),
 )
