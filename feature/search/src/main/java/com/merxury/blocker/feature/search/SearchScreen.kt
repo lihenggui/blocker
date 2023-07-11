@@ -98,7 +98,7 @@ fun SearchRoute(
         onSelectAll = viewModel::selectAll,
         onDeselect = viewModel::deselectItem,
         onBlockAll = viewModel::blockAll,
-        onCheckAll = viewModel::checkAll,
+        onEnableAll = viewModel::enableAll,
         selectUiState = selectUiState,
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
@@ -127,7 +127,7 @@ fun SearchScreen(
     onClearClick: () -> Unit,
     onSelectAll: () -> Unit,
     onBlockAll: () -> Unit,
-    onCheckAll: () -> Unit,
+    onEnableAll: () -> Unit,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (FilteredComponent) -> Unit,
     onDeselect: (FilteredComponent) -> Unit,
@@ -152,7 +152,7 @@ fun SearchScreen(
                 onNavigationClick = { switchSelectedMode(false) },
                 onSelectAll = onSelectAll,
                 onBlockAll = onBlockAll,
-                onCheckAll = onCheckAll,
+                onEnableAll = onEnableAll,
                 modifier = Modifier.testTag("blockerTopAppBar"),
             )
         },
@@ -210,7 +210,7 @@ fun TopBar(
     onNavigationClick: () -> Unit,
     onSelectAll: () -> Unit,
     onBlockAll: () -> Unit,
-    onCheckAll: () -> Unit,
+    onEnableAll: () -> Unit,
 ) {
     if (selectUiState.isSelectedMode) {
         SelectedAppTopBar(
@@ -218,7 +218,7 @@ fun TopBar(
             onNavigationClick = onNavigationClick,
             onSelectAll = onSelectAll,
             onBlockAll = onBlockAll,
-            onCheckAll = onCheckAll,
+            onEnableAll = onEnableAll,
         )
     } else {
         SearchBar(
@@ -366,7 +366,7 @@ fun SearchScreenEmptyPreview() {
             switchTab = {},
             onSelectAll = {},
             onBlockAll = {},
-            onCheckAll = {},
+            onEnableAll = {},
             switchSelectedMode = {},
             onSelect = {},
             onDeselect = {},
@@ -398,7 +398,7 @@ fun SearchScreenNoResultPreview() {
             switchTab = {},
             onSelectAll = {},
             onBlockAll = {},
-            onCheckAll = {},
+            onEnableAll = {},
             switchSelectedMode = {},
             onSelect = {},
             onDeselect = {},
@@ -439,7 +439,7 @@ fun SearchScreenPreview() {
             switchTab = {},
             onSelectAll = {},
             onBlockAll = {},
-            onCheckAll = {},
+            onEnableAll = {},
             switchSelectedMode = {},
             onSelect = {},
             onDeselect = {},
@@ -480,7 +480,7 @@ fun SearchScreenSelectedPreview() {
             switchTab = {},
             onSelectAll = {},
             onBlockAll = {},
-            onCheckAll = {},
+            onEnableAll = {},
             switchSelectedMode = {},
             onSelect = {},
             selectUiState = SelectUiState(),

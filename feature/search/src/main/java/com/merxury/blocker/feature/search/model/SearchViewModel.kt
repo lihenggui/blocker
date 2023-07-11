@@ -274,7 +274,7 @@ class SearchViewModel @Inject constructor(
         // TODO
     }
 
-    fun checkAll() {
+    fun enableAll() {
         // TODO
     }
 
