@@ -327,7 +327,6 @@ fun Scrollbar(
                     a = currentThumbDisplacement + delta,
                     b = destinationThumbDisplacement,
                 )
-
                 else -> max(
                     a = currentThumbDisplacement + delta,
                     b = destinationThumbDisplacement,
