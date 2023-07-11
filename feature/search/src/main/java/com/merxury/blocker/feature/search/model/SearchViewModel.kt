@@ -286,6 +286,12 @@ class SearchViewModel @Inject constructor(
     }
 
     fun switchSelectedMode(value: Boolean) {
+        // Clear list when exit from selectedMode
+        if (!value) {
+            _selectUiState.update {
+                it.copy(selectedComponentList = listOf())
+            }
+        }
         _selectUiState.update {
             it.copy(isSelectedMode = value)
         }
