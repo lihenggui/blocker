@@ -282,14 +282,13 @@ fun ComponentSearchResultContent(
                 Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
-        FastScrollbar(
+        listState.FastScrollbar(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
                 .align(Alignment.CenterEnd),
             state = scrollbarState,
             orientation = Vertical,
-            scrollInProgress = listState.isScrollInProgress,
             onThumbDisplaced = listState.rememberFastScroller(
                 itemsAvailable = componentTabUiState.list.size,
             ),
