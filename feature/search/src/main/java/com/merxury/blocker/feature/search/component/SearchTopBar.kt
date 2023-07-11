@@ -31,7 +31,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.merxury.blocker.core.designsystem.component.BlockerLargeTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerMediumTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
@@ -48,7 +48,7 @@ fun SelectedAppTopBar(
     onBlockAll: () -> Unit,
     onCheckAll: () -> Unit,
 ) {
-    BlockerLargeTopAppBar(
+    BlockerMediumTopAppBar(
         title = selectedAppCount.toString(),
         navigation = {
             IconButton(onClick = onNavigationClick) {
