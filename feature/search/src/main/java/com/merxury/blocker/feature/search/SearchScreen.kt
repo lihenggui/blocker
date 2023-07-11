@@ -223,7 +223,8 @@ fun TopBar(
 ) {
     if (selectUiState.isSelectedMode) {
         SelectedAppTopBar(
-            selectedAppCount = selectUiState.selectedComponentList.size,
+            selectedAppCount = selectUiState.selectedAppList.size,
+            selectedComponentCount = selectUiState.selectedComponentList.size,
             onNavigationClick = onNavigationClick,
             onSelectAll = onSelectAll,
             onBlockAll = onBlockAll,
@@ -274,7 +275,7 @@ fun ComponentSearchResultContent(
                         onComponentClick(component)
                         analyticsHelper.logComponentSearchResultClicked()
                     },
-                    isSelected = selectUiState.selectedComponentList.contains(it),
+                    isSelected = selectUiState.selectedAppList.contains(it),
                 )
             }
             item {
