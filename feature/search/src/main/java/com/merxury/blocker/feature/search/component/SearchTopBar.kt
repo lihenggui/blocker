@@ -24,6 +24,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
@@ -32,6 +36,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import com.merxury.blocker.core.designsystem.component.BlockerConfirmAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerMediumTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
@@ -50,6 +55,12 @@ fun SelectedAppTopBar(
     onBlockAll: () -> Unit,
     onEnableAll: () -> Unit,
 ) {
+    var showBlockAllDialog by remember {
+        mutableStateOf(false)
+    }
+    var showEnableAllDialog by remember {
+        mutableStateOf(false)
+    }
     BlockerMediumTopAppBar(
         title = pluralStringResource(
             id = plurals.selected_app_count,
@@ -71,20 +82,43 @@ fun SelectedAppTopBar(
                     contentDescription = null,
                 )
             }
-            IconButton(onClick = onBlockAll) {
+            IconButton(onClick = { showBlockAllDialog = true }) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.Block,
                     contentDescription = null,
                 )
             }
-            IconButton(onClick = onEnableAll) {
+            IconButton(onClick = { showEnableAllDialog = true }) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.CheckCircle,
                     contentDescription = null,
                 )
+
             }
         },
     )
+    if (showBlockAllDialog) {
+        BlockerConfirmAlertDialog(
+            text = pluralStringResource(
+                id = plurals.block_all,
+                count = selectedAppCount,
+                selectedAppCount,
+            ),
+            onDismissRequest = { showBlockAllDialog = false },
+            onConfirmRequest = { onBlockAll() },
+        )
+    }
+    if (showEnableAllDialog) {
+        BlockerConfirmAlertDialog(
+            text = pluralStringResource(
+                id = plurals.enable_all,
+                count = selectedAppCount,
+                selectedAppCount,
+            ),
+            onDismissRequest = { showEnableAllDialog = false },
+            onConfirmRequest = { onEnableAll() },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -33,6 +33,7 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -270,33 +271,21 @@ class SearchViewModel @Inject constructor(
         selectedAllTag = !selectedAllTag
     }
 
-    fun blockAll() {
-        // TODO
-    }
-
-    fun enableAll() {
-        // TODO
-    }
-
-    fun controlComponent(
-        packageName: String,
-        componentName: String,
-        enabled: Boolean,
-    ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        controlComponentInternal(packageName, componentName, enabled)
-    }
-
-    private suspend fun controlComponentInternal(
-        packageName: String,
-        componentName: String,
-        enabled: Boolean,
-    ) {
-        componentRepository.controlComponent(packageName, componentName, enabled)
-            .catch { exception ->
-                _errorState.emit(exception.toErrorMessage())
+    fun controlAllComponents(enable: Boolean) =
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val list = mutableListOf<ComponentInfo>()
+            _selectUiState.value.selectedComponentList.forEach { filteredComponent ->
+                list.addAll(filteredComponent.activity.map { it.toComponentInfo() })
+                list.addAll(filteredComponent.service.map { it.toComponentInfo() })
+                list.addAll(filteredComponent.receiver.map { it.toComponentInfo() })
+                list.addAll(filteredComponent.provider.map { it.toComponentInfo() })
             }
-            .collect()
-    }
+            componentRepository.batchControlComponent(components = list.toList(), newState = enable)
+                .catch { exception ->
+                    _errorState.emit(exception.toErrorMessage())
+                }
+                .collect()
+        }
 
     fun switchSelectedMode(value: Boolean) {
         // Clear list when exit from selectedMode
