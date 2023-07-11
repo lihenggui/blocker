@@ -261,11 +261,11 @@ class SearchViewModel @Inject constructor(
         //if selectedAllTag == true, deselect all
         if (selectedAllTag) {
             _selectUiState.update {
-                it.copy(selectedComponentList = listOf())
+                it.copy(selectedAppList = listOf())
             }
         } else {
             _selectUiState.update {
-                it.copy(selectedComponentList = componentList)
+                it.copy(selectedAppList = componentList)
             }
         }
         selectedAllTag = !selectedAllTag
@@ -273,14 +273,10 @@ class SearchViewModel @Inject constructor(
 
     fun controlAllComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val list = mutableListOf<ComponentInfo>()
-            _selectUiState.value.selectedComponentList.forEach { filteredComponent ->
-                list.addAll(filteredComponent.activity.map { it.toComponentInfo() })
-                list.addAll(filteredComponent.service.map { it.toComponentInfo() })
-                list.addAll(filteredComponent.receiver.map { it.toComponentInfo() })
-                list.addAll(filteredComponent.provider.map { it.toComponentInfo() })
-            }
-            componentRepository.batchControlComponent(components = list.toList(), newState = enable)
+            componentRepository.batchControlComponent(
+                components = _selectUiState.value.selectedComponentList,
+                newState = enable,
+            )
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
@@ -295,7 +291,7 @@ class SearchViewModel @Inject constructor(
         // Clear list when exit from selectedMode
         if (!value) {
             _selectUiState.update {
-                it.copy(selectedComponentList = listOf())
+                it.copy(selectedAppList = listOf())
             }
         }
         _selectUiState.update {
@@ -305,20 +301,36 @@ class SearchViewModel @Inject constructor(
 
     fun selectItem(item: FilteredComponent) {
         val selectedList: MutableList<FilteredComponent> = mutableListOf()
-        selectedList.addAll(_selectUiState.value.selectedComponentList)
+        selectedList.addAll(_selectUiState.value.selectedAppList)
         selectedList.add(item)
         _selectUiState.update {
-            it.copy(selectedComponentList = selectedList)
+            it.copy(selectedAppList = selectedList)
         }
+        transferToComponentInoList()
     }
 
     fun deselectItem(item: FilteredComponent) {
         val selectedList: MutableList<FilteredComponent> = mutableListOf()
-        selectedList.addAll(_selectUiState.value.selectedComponentList)
+        selectedList.addAll(_selectUiState.value.selectedAppList)
         selectedList.remove(item)
         _selectUiState.update {
-            it.copy(selectedComponentList = selectedList)
+            it.copy(selectedAppList = selectedList)
         }
+        transferToComponentInoList()
+    }
+
+    private fun transferToComponentInoList(): List<ComponentInfo> {
+        val list = mutableListOf<ComponentInfo>()
+        _selectUiState.value.selectedAppList.forEach { filteredComponent ->
+            list.addAll(filteredComponent.activity.map { it.toComponentInfo() })
+            list.addAll(filteredComponent.service.map { it.toComponentInfo() })
+            list.addAll(filteredComponent.receiver.map { it.toComponentInfo() })
+            list.addAll(filteredComponent.provider.map { it.toComponentInfo() })
+        }
+        _selectUiState.update {
+            it.copy(selectedComponentList = list)
+        }
+        return list
     }
 }
 
@@ -362,5 +374,6 @@ data class FilteredComponent(
 
 data class SelectUiState(
     val isSelectedMode: Boolean = false,
-    val selectedComponentList: List<FilteredComponent> = listOf(),
+    val selectedAppList: List<FilteredComponent> = listOf(),
+    val selectedComponentList: List<ComponentInfo> = listOf(),
 )
