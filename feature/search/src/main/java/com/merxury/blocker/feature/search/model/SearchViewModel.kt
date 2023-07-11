@@ -33,6 +33,7 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -57,6 +58,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
@@ -80,9 +83,13 @@ class SearchViewModel @Inject constructor(
 ) : ViewModel() {
     private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
     val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
+    private val _selectUiState = MutableStateFlow(SelectUiState())
+    val selectUiState: StateFlow<SelectUiState> = _selectUiState.asStateFlow()
     private val _localSearchUiState =
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
+    private var componentList: MutableList<FilteredComponent> = mutableListOf()
+    private var selectedAllTag = false
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -192,6 +199,7 @@ class SearchViewModel @Inject constructor(
             searchComponentFlow,
             searchGeneralRuleFlow,
         ) { apps, components, rules ->
+            componentList.addAll(components)
             Timber.v("Find ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             LocalSearchUiState.Success(
                 searchKeyword = keyword.split(","),
@@ -250,23 +258,79 @@ class SearchViewModel @Inject constructor(
     }
 
     fun selectAll() {
-        // TODO
+        // if selectedAllTag == true, deselect all
+        if (selectedAllTag) {
+            _selectUiState.update {
+                it.copy(selectedAppList = listOf())
+            }
+        } else {
+            _selectUiState.update {
+                it.copy(selectedAppList = componentList)
+            }
+        }
+        selectedAllTag = !selectedAllTag
     }
 
-    fun blockAll() {
-        // TODO
-    }
+    fun controlAllComponents(enable: Boolean) =
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            componentRepository.batchControlComponent(
+                components = _selectUiState.value.selectedComponentList,
+                newState = enable,
+            )
+                .catch { exception ->
+                    _errorState.emit(exception.toErrorMessage())
+                }
+                .collect()
+        }
 
-    fun checkAll() {
-        // TODO
+    fun dismissAlert() = viewModelScope.launch {
+        _errorState.emit(null)
     }
 
     fun switchSelectedMode(value: Boolean) {
-        // TODO, isSelectedMode = true
+        // Clear list when exit from selectedMode
+        if (!value) {
+            _selectUiState.update {
+                it.copy(selectedAppList = listOf())
+            }
+        }
+        _selectUiState.update {
+            it.copy(isSelectedMode = value)
+        }
     }
 
-    fun selectItem(select: Boolean) {
-        // TODO
+    fun selectItem(item: FilteredComponent) {
+        val selectedList: MutableList<FilteredComponent> = mutableListOf()
+        selectedList.addAll(_selectUiState.value.selectedAppList)
+        selectedList.add(item)
+        _selectUiState.update {
+            it.copy(selectedAppList = selectedList)
+        }
+        transferToComponentInoList()
+    }
+
+    fun deselectItem(item: FilteredComponent) {
+        val selectedList: MutableList<FilteredComponent> = mutableListOf()
+        selectedList.addAll(_selectUiState.value.selectedAppList)
+        selectedList.remove(item)
+        _selectUiState.update {
+            it.copy(selectedAppList = selectedList)
+        }
+        transferToComponentInoList()
+    }
+
+    private fun transferToComponentInoList(): List<ComponentInfo> {
+        val list = mutableListOf<ComponentInfo>()
+        _selectUiState.value.selectedAppList.forEach { filteredComponent ->
+            list.addAll(filteredComponent.activity.map { it.toComponentInfo() })
+            list.addAll(filteredComponent.service.map { it.toComponentInfo() })
+            list.addAll(filteredComponent.receiver.map { it.toComponentInfo() })
+            list.addAll(filteredComponent.provider.map { it.toComponentInfo() })
+        }
+        _selectUiState.update {
+            it.copy(selectedComponentList = list)
+        }
+        return list
     }
 }
 
@@ -290,20 +354,14 @@ data class SearchBoxUiState(
 
 data class AppTabUiState(
     val list: List<AppItem> = listOf(),
-    val isSelectedMode: Boolean = false,
-    val selectedAppList: List<AppItem> = listOf(),
 )
 
 data class ComponentTabUiState(
     val list: List<FilteredComponent> = listOf(),
-    val isSelectedMode: Boolean = false,
-    val selectedAppList: List<FilteredComponent> = listOf(),
 )
 
 data class RuleTabUiState(
     val list: List<GeneralRule> = listOf(),
-    val isSelectedMode: Boolean = false,
-    val selectedAppList: List<GeneralRule> = listOf(),
 )
 
 data class FilteredComponent(
@@ -312,5 +370,10 @@ data class FilteredComponent(
     val service: List<ComponentItem> = listOf(),
     val receiver: List<ComponentItem> = listOf(),
     val provider: List<ComponentItem> = listOf(),
-    val isSelected: Boolean = false,
+)
+
+data class SelectUiState(
+    val isSelectedMode: Boolean = false,
+    val selectedAppList: List<FilteredComponent> = listOf(),
+    val selectedComponentList: List<ComponentInfo> = listOf(),
 )
