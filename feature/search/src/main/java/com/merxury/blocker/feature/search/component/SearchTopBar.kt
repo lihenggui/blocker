@@ -48,7 +48,7 @@ fun SelectedAppTopBar(
     onNavigationClick: () -> Unit,
     onSelectAll: () -> Unit,
     onBlockAll: () -> Unit,
-    onCheckAll: () -> Unit,
+    onEnableAll: () -> Unit,
 ) {
     BlockerMediumTopAppBar(
         title = pluralStringResource(
@@ -77,7 +77,7 @@ fun SelectedAppTopBar(
                     contentDescription = null,
                 )
             }
-            IconButton(onClick = onCheckAll) {
+            IconButton(onClick = onEnableAll) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.CheckCircle,
                     contentDescription = null,
@@ -131,7 +131,7 @@ fun SelectedAppTopBarPreview() {
                 onNavigationClick = {},
                 onSelectAll = {},
                 onBlockAll = {},
-                onCheckAll = {},
+                onEnableAll = {},
             )
         }
     }
