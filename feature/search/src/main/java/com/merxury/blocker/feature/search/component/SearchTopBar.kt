@@ -24,32 +24,50 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import com.merxury.blocker.core.designsystem.component.BlockerLargeTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerConfirmAlertDialog
+import com.merxury.blocker.core.designsystem.component.BlockerMediumTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.feature.search.R.plurals
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
 
 @Composable
 fun SelectedAppTopBar(
     selectedAppCount: Int,
+    selectedComponentCount: Int,
     onNavigationClick: () -> Unit,
     onSelectAll: () -> Unit,
     onBlockAll: () -> Unit,
-    onCheckAll: () -> Unit,
+    onEnableAll: () -> Unit,
 ) {
-    BlockerLargeTopAppBar(
-        title = selectedAppCount.toString(),
+    var showBlockAllDialog by remember {
+        mutableStateOf(false)
+    }
+    var showEnableAllDialog by remember {
+        mutableStateOf(false)
+    }
+    BlockerMediumTopAppBar(
+        title = pluralStringResource(
+            id = plurals.selected_app_count,
+            count = selectedAppCount,
+            selectedAppCount,
+        ),
         navigation = {
             IconButton(onClick = onNavigationClick) {
                 BlockerActionIcon(
@@ -65,13 +83,13 @@ fun SelectedAppTopBar(
                     contentDescription = null,
                 )
             }
-            IconButton(onClick = onBlockAll) {
+            IconButton(onClick = { showBlockAllDialog = true }) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.Block,
                     contentDescription = null,
                 )
             }
-            IconButton(onClick = onCheckAll) {
+            IconButton(onClick = { showEnableAllDialog = true }) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.CheckCircle,
                     contentDescription = null,
@@ -79,6 +97,28 @@ fun SelectedAppTopBar(
             }
         },
     )
+    if (showBlockAllDialog) {
+        BlockerConfirmAlertDialog(
+            text = pluralStringResource(
+                id = plurals.block_all,
+                count = selectedComponentCount,
+                selectedComponentCount,
+            ),
+            onDismissRequest = { showBlockAllDialog = false },
+            onConfirmRequest = { onBlockAll() },
+        )
+    }
+    if (showEnableAllDialog) {
+        BlockerConfirmAlertDialog(
+            text = pluralStringResource(
+                id = plurals.enable_all,
+                count = selectedComponentCount,
+                selectedComponentCount,
+            ),
+            onDismissRequest = { showEnableAllDialog = false },
+            onConfirmRequest = { onEnableAll() },
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -121,11 +161,12 @@ fun SelectedAppTopBarPreview() {
     BlockerTheme {
         Surface {
             SelectedAppTopBar(
-                selectedAppCount = 1,
+                selectedAppCount = 3,
+                selectedComponentCount = 6,
                 onNavigationClick = {},
                 onSelectAll = {},
                 onBlockAll = {},
-                onCheckAll = {},
+                onEnableAll = {},
             )
         }
     }

@@ -44,7 +44,9 @@ import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.RuleSearchResultContent
 import com.merxury.blocker.feature.search.SearchScreenTabs
+import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
+import com.merxury.blocker.feature.search.model.SelectUiState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -54,8 +56,10 @@ fun SearchResultScreen(
     tabState: TabState<SearchScreenTabs>,
     switchTab: (SearchScreenTabs) -> Unit,
     localSearchUiState: Success,
+    selectUiState: SelectUiState,
     switchSelectedMode: (Boolean) -> Unit,
-    onSelect: (Boolean) -> Unit,
+    onSelect: (FilteredComponent) -> Unit,
+    onDeselect: (FilteredComponent) -> Unit,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit = { },
     appList: List<AppItem> = emptyList(),
@@ -118,7 +122,9 @@ fun SearchResultScreen(
                 1 -> ComponentSearchResultContent(
                     componentTabUiState = localSearchUiState.componentTabUiState,
                     switchSelectedMode = switchSelectedMode,
+                    selectUiState = selectUiState,
                     onSelect = onSelect,
+                    onDeselect = onDeselect,
                     onComponentClick = { filterResult ->
                         val searchKeyword = localSearchUiState.searchKeyword
                         val firstTab = if (filterResult.receiver.isNotEmpty()) {
