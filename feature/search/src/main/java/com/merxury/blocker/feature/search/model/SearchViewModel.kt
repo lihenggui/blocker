@@ -258,7 +258,7 @@ class SearchViewModel @Inject constructor(
     }
 
     fun selectAll() {
-        //if selectedAllTag == true, deselect all
+        // if selectedAllTag == true, deselect all
         if (selectedAllTag) {
             _selectUiState.update {
                 it.copy(selectedAppList = listOf())
