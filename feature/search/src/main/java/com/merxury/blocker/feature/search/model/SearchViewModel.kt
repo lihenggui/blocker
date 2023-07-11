@@ -87,6 +87,8 @@ class SearchViewModel @Inject constructor(
     private val _localSearchUiState =
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
+    private var componentList: MutableList<FilteredComponent> = mutableListOf()
+    private var selectedAllTag = false
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -196,6 +198,7 @@ class SearchViewModel @Inject constructor(
             searchComponentFlow,
             searchGeneralRuleFlow,
         ) { apps, components, rules ->
+            componentList.addAll(components)
             Timber.v("Find ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             LocalSearchUiState.Success(
                 searchKeyword = keyword.split(","),
@@ -254,7 +257,17 @@ class SearchViewModel @Inject constructor(
     }
 
     fun selectAll() {
-        // TODO
+        //if selectedAllTag == true, deselect all
+        if (selectedAllTag) {
+            _selectUiState.update {
+                it.copy(selectedComponentList = listOf())
+            }
+        } else {
+            _selectUiState.update {
+                it.copy(selectedComponentList = componentList)
+            }
+        }
+        selectedAllTag = !selectedAllTag
     }
 
     fun blockAll() {
