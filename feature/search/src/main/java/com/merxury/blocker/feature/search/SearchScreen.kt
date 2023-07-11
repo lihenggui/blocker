@@ -61,6 +61,7 @@ import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.feature.applist.AppListViewModel
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
+import com.merxury.blocker.feature.search.component.SelectedAppTopBar
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
 import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
@@ -146,7 +147,7 @@ fun SearchScreen(
     Scaffold(
         topBar = {
             TopBar(
-                localSearchUiState = localSearchUiState,
+                selectUiState = selectUiState,
                 searchBoxUiState = searchBoxUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onClearClick = onClearClick,
@@ -204,7 +205,7 @@ fun SearchScreen(
 @Composable
 fun TopBar(
     modifier: Modifier = Modifier,
-    localSearchUiState: LocalSearchUiState,
+    selectUiState: SelectUiState,
     searchBoxUiState: SearchBoxUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
@@ -213,15 +214,14 @@ fun TopBar(
     onBlockAll: () -> Unit,
     onCheckAll: () -> Unit,
 ) {
-    if (false) {
-        // TODO Implement multi-select feature
-//        SelectedAppTopBar(
-//            localSearchUiState.selectedAppCount,
-//            onNavigationClick = onNavigationClick,
-//            onSelectAll = onSelectAll,
-//            onBlockAll = onBlockAll,
-//            onCheckAll = onCheckAll,
-//        )
+    if (selectUiState.isSelectedMode) {
+        SelectedAppTopBar(
+            selectedAppCount = selectUiState.selectedComponentList.size,
+            onNavigationClick = onNavigationClick,
+            onSelectAll = onSelectAll,
+            onBlockAll = onBlockAll,
+            onCheckAll = onCheckAll,
+        )
     } else {
         SearchBar(
             modifier = modifier,
