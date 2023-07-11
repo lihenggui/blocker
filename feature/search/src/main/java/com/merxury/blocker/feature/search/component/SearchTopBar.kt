@@ -26,6 +26,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -37,6 +38,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.feature.search.R.plurals
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.model.SearchBoxUiState
 
@@ -49,7 +51,11 @@ fun SelectedAppTopBar(
     onCheckAll: () -> Unit,
 ) {
     BlockerMediumTopAppBar(
-        title = selectedAppCount.toString(),
+        title = pluralStringResource(
+            id = plurals.selected_app_count,
+            count = selectedAppCount,
+            selectedAppCount,
+        ),
         navigation = {
             IconButton(onClick = onNavigationClick) {
                 BlockerActionIcon(
@@ -121,7 +127,7 @@ fun SelectedAppTopBarPreview() {
     BlockerTheme {
         Surface {
             SelectedAppTopBar(
-                selectedAppCount = 1,
+                selectedAppCount = 3,
                 onNavigationClick = {},
                 onSelectAll = {},
                 onBlockAll = {},
