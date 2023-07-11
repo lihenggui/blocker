@@ -287,6 +287,10 @@ class SearchViewModel @Inject constructor(
                 .collect()
         }
 
+    fun dismissAlert() = viewModelScope.launch {
+        _errorState.emit(null)
+    }
+
     fun switchSelectedMode(value: Boolean) {
         // Clear list when exit from selectedMode
         if (!value) {
