@@ -26,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarColors
@@ -38,6 +39,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
@@ -113,6 +115,38 @@ fun BlockerLargeTopAppBar(
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun BlockerMediumTopAppBar(
+    modifier: Modifier = Modifier,
+    title: String,
+    navigation: @Composable () -> Unit,
+    actions: @Composable () -> Unit,
+) {
+    MediumTopAppBar(
+        title = {
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column {
+                    Text(text = title)
+                }
+            }
+        },
+        navigationIcon = {
+            navigation()
+        },
+        actions = {
+            actions()
+        },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            scrolledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview("Top App Bar with actions and navigation")
 @Composable
 fun BlockerTopAppBarNaviActionsPreview() {
@@ -140,6 +174,44 @@ fun BlockerHomeTopAppBarPreview() {
     BlockerTheme {
         BlockerTopAppBar(
             title = stringResource(id = android.R.string.untitled),
+        )
+    }
+}
+
+@Preview("Medium Top App Bar")
+@Composable
+fun BlockerMediumTopAppBarPreview() {
+    BlockerTheme {
+        BlockerMediumTopAppBar(
+            title = stringResource(id = android.R.string.untitled),
+            navigation = {
+                IconButton(onClick = {}) {
+                    BlockerActionIcon(
+                        imageVector = BlockerIcons.Close,
+                        contentDescription = null,
+                    )
+                }
+            },
+            actions = {
+                IconButton(onClick = {}) {
+                    BlockerActionIcon(
+                        imageVector = BlockerIcons.SelectAll,
+                        contentDescription = null,
+                    )
+                }
+                IconButton(onClick = {}) {
+                    BlockerActionIcon(
+                        imageVector = BlockerIcons.Block,
+                        contentDescription = null,
+                    )
+                }
+                IconButton(onClick = {}) {
+                    BlockerActionIcon(
+                        imageVector = BlockerIcons.CheckCircle,
+                        contentDescription = null,
+                    )
+                }
+            },
         )
     }
 }
