@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
+import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -84,6 +85,7 @@ fun SearchRoute(
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val appList = appListViewModel.appListFlow.collectAsState()
     val selectUiState by viewModel.selectUiState.collectAsStateWithLifecycle()
+    val errorState by viewModel.errorState.collectAsStateWithLifecycle()
 
     SearchScreen(
         searchBoxUiState = searchBoxUiState,
@@ -113,6 +115,13 @@ fun SearchRoute(
         onDisableClick = appListViewModel::disable,
         onServiceStateUpdate = appListViewModel::updateServiceStatus,
     )
+    if (errorState != null) {
+        BlockerErrorAlertDialog(
+            title = errorState?.title.orEmpty(),
+            text = errorState?.content.orEmpty(),
+            onDismissRequest = viewModel::dismissAlert,
+        )
+    }
 }
 
 @Composable
