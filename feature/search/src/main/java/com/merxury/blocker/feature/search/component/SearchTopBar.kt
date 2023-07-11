@@ -94,7 +94,6 @@ fun SelectedAppTopBar(
                     imageVector = BlockerIcons.CheckCircle,
                     contentDescription = null,
                 )
-
             }
         },
     )
