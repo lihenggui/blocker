@@ -20,7 +20,6 @@ import android.content.pm.PackageInfo
 import android.content.res.Configuration
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,7 +31,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -60,18 +58,20 @@ import com.merxury.blocker.feature.search.model.FilteredComponent
 @Composable
 fun FilteredComponentItem(
     items: FilteredComponent,
+    isSelected: Boolean,
     modifier: Modifier = Modifier,
     isSelectedMode: Boolean,
     switchSelectedMode: (Boolean) -> Unit,
-    onSelect: (Boolean) -> Unit,
+    onSelect: (FilteredComponent) -> Unit,
+    onDeselect: (FilteredComponent) -> Unit,
     onComponentClick: (FilteredComponent) -> Unit,
 ) {
-    val color = if (isSelectedMode) {
+    val color = if (isSelected) {
         MaterialTheme.colorScheme.tertiaryContainer
     } else {
         MaterialTheme.colorScheme.background
     }
-    val shape = if (isSelectedMode) {
+    val shape = if (isSelected) {
         RoundedCornerShape(12.dp)
     } else {
         RoundedCornerShape(0.dp)
@@ -88,12 +88,17 @@ fun FilteredComponentItem(
                         if (!isSelectedMode) {
                             onComponentClick(items)
                         } else {
-                            onSelect(!items.isSelected)
+                            if (isSelected) {
+                                onDeselect(items)
+                            } else {
+                                onSelect(items)
+                            }
                         }
                     },
                     onLongClick = {
                         if (!isSelectedMode) {
                             switchSelectedMode(true)
+                            onSelect(items)
                         }
                     },
                 )
@@ -105,9 +110,7 @@ fun FilteredComponentItem(
         ) {
             SelectableAppIcon(
                 info = items.app.packageInfo,
-                isSelectedMode = isSelectedMode,
-                isSelected = items.isSelected,
-                onSelect = onSelect,
+                isSelected = isSelected,
             )
             Spacer(modifier = Modifier.width(16.dp))
             AppContent(appItem = items)
@@ -119,27 +122,18 @@ fun FilteredComponentItem(
 private fun SelectableAppIcon(
     info: PackageInfo?,
     modifier: Modifier = Modifier,
-    isSelectedMode: Boolean,
     isSelected: Boolean,
-    onSelect: (Boolean) -> Unit,
 ) {
     if (isSelected) {
-        IconButton(onClick = { onSelect(false) }) {
-            Icon(
-                imageVector = BlockerIcons.Check,
-                modifier = modifier.size(48.dp),
-                contentDescription = null,
-            )
-        }
+        Icon(
+            imageVector = BlockerIcons.Check,
+            modifier = modifier.size(48.dp),
+            contentDescription = null,
+        )
     } else {
         AsyncImage(
             modifier = modifier
-                .size(48.dp)
-                .clickable {
-                    if (isSelectedMode) {
-                        onSelect(true)
-                    }
-                },
+                .size(48.dp),
             model = Builder(LocalContext.current)
                 .data(info)
                 .crossfade(true)
@@ -224,7 +218,6 @@ fun AppListItemPreview() {
             label = "Blocker",
             isSystem = false,
         ),
-        isSelected = true,
         activity = listOf(componentInfo),
         service = listOf(componentInfo),
         receiver = listOf(componentInfo),
@@ -237,7 +230,9 @@ fun AppListItemPreview() {
                 isSelectedMode = true,
                 switchSelectedMode = {},
                 onSelect = {},
+                onDeselect = {},
                 onComponentClick = {},
+                isSelected = true,
             )
         }
     }
@@ -271,6 +266,8 @@ fun AppListItemWithoutServicePreview() {
             switchSelectedMode = {},
             onSelect = {},
             onComponentClick = {},
+            isSelected = false,
+            onDeselect = {},
         )
     }
 }

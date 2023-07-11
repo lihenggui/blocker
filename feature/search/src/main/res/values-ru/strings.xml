@@ -38,6 +38,14 @@
         <item quantity="one">%1$d приложение выбрано</item>
         <item quantity="other">%1$d приложений выбрано</item>
     </plurals>
+    <plurals name="block_all">
+        <item quantity="one">Эта операция отключит компонент %1$d. Продолжить?</item>
+        <item quantity="other">Эта операция отключит %1$d компонентов. Продолжить?</item>
+    </plurals>
+    <plurals name="enable_all">
+        <item quantity="one">Эта операция активирует компонент %1$d. Продолжить?</item>
+        <item quantity="other">Эта операция активирует компоненты: %1$d. Продолжить?</item>
+    </plurals>
     <string name="search_hint">Приложения, компоненты и правила</string>
     <string name="no_search_result">Пока нет результатов поиска</string>
 </resources>
