@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 120
 
     steps:
       - name: Checkout
@@ -23,7 +23,6 @@ jobs:
         run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
 
       - name: Write sign info
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && github.repository == 'lihenggui/Blocker'
         run: |
           if [ ! -z "${{ secrets.KEYSTORE }}" ]; then
             echo releaseStorePassword='${{ secrets.SIGNING_STORE_PASSWORD }}' >> gradle.properties
@@ -46,45 +45,7 @@ jobs:
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Build app
-        run: ./gradlew :app-compose:assembleRelease
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          draft: true
-          prerelease: false
-
-      - name: Upload build outputs (APKs)
-        uses: actions/upload-artifact@v3
-        with:
-          name: APKs
-          path: '**/build/outputs/apk/**/*.apk'
-
-      - name: Upload built Foss apk
-        if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
-        uses: actions/upload-artifact@v3
-        with:
-          name: Foss
-          path: ${{ github.workspace }}/app-compose/build/outputs/apk/foss/release
-
-      - name: Upload built Market apk
-        if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
-        uses: actions/upload-artifact@v3
-        with:
-          name: Market
-          path: ${{ github.workspace }}/app-compose/build/outputs/apk/market/release
-
-      - name: Upload mappings
-        if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v3
-        with:
-          name: mappings
-          path: "app-compose/build/outputs/mapping/marketRelease"
+        run: ./gradlew :app-compose:assembleRelease :app-compose:bundleRelease
 
       - name: Set apk path
         id: apk-path
@@ -95,8 +56,71 @@ jobs:
           echo "market_path=$market_path" >> $GITHUB_OUTPUT
 
       - name: Get apk info
-        if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
         id: apk-info
         uses: zhaobozhen/apk-info-action@1.1.2
         with:
           apk-path: ${{ steps.apk-path.outputs.foss_path }}
+
+      - name: Build Changelog
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@v4.0.0-b02
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+
+      - name: Write whats new info
+        run: |
+          mkdir -p ${{ github.workspace }}/distribution/whatsnew/
+          echo '${{ steps.build_changelog.outputs.changelog }}' | head -c 490 >> ${{ github.workspace }}/distribution/whatsnew/whatsnew-en-US
+
+      - name: Upload built Market apk
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Blocker-${{ steps.apk-info.outputs.version-name }}-market-release.apk
+          path: ${{ steps.apk-path.outputs.market_path }}
+
+      - name: Upload built Foss apk
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: Blocker-${{ steps.apk-info.outputs.version-name }}-foss-release.apk
+          path: ${{ steps.apk-path.outputs.foss_path }}
+
+      - name: Upload mappings
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: mappings
+          path: "app-compose/build/outputs/mapping/marketRelease"
+
+      - name: Publish to Play Store open beta track
+        uses: r0adkll/upload-google-play@v1.1.1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
+          packageName: com.merxury.blocker
+          releaseFiles: app-compose/build/outputs/bundle/marketRelease/app-compose-market-release.aab
+          track: beta
+          inAppUpdatePriority: 2
+          mappingFile: app-compose/build/outputs/mapping/marketRelease/mapping.txt
+          whatsNewDirectory: ${{ github.workspace }}/distribution/whatsnew
+
+      - name: Rename output APKs
+        run: |
+          mv ${{ steps.apk-path.outputs.market_path }} Blocker-${{ steps.apk-info.outputs.version-name }}-market-release.apk
+          mv ${{ steps.apk-path.outputs.foss_path }} Blocker-${{ steps.apk-info.outputs.version-name }}-foss-release.apk
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+        with:
+          tag_name: v${{ steps.apk-info.outputs.version-name }}-pre-release
+          draft: false
+          prerelease: true
+          append_body: true
+          generate_release_notes: true
+          body: ${{steps.build_changelog.outputs.changelog}}
+          files: |
+            Blocker-${{ steps.apk-info.outputs.version-name }}-market-release.apk
+            Blocker-${{ steps.apk-info.outputs.version-name }}-foss-release.apk
