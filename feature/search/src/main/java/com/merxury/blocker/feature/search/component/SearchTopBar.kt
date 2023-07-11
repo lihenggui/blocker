@@ -50,6 +50,7 @@ import com.merxury.blocker.feature.search.model.SearchBoxUiState
 @Composable
 fun SelectedAppTopBar(
     selectedAppCount: Int,
+    selectedComponentCount: Int,
     onNavigationClick: () -> Unit,
     onSelectAll: () -> Unit,
     onBlockAll: () -> Unit,
@@ -101,8 +102,8 @@ fun SelectedAppTopBar(
         BlockerConfirmAlertDialog(
             text = pluralStringResource(
                 id = plurals.block_all,
-                count = selectedAppCount,
-                selectedAppCount,
+                count = selectedComponentCount,
+                selectedComponentCount,
             ),
             onDismissRequest = { showBlockAllDialog = false },
             onConfirmRequest = { onBlockAll() },
@@ -112,8 +113,8 @@ fun SelectedAppTopBar(
         BlockerConfirmAlertDialog(
             text = pluralStringResource(
                 id = plurals.enable_all,
-                count = selectedAppCount,
-                selectedAppCount,
+                count = selectedComponentCount,
+                selectedComponentCount,
             ),
             onDismissRequest = { showEnableAllDialog = false },
             onConfirmRequest = { onEnableAll() },
@@ -162,6 +163,7 @@ fun SelectedAppTopBarPreview() {
         Surface {
             SelectedAppTopBar(
                 selectedAppCount = 3,
+                selectedComponentCount = 6,
                 onNavigationClick = {},
                 onSelectAll = {},
                 onBlockAll = {},
