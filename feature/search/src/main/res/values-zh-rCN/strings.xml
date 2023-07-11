@@ -33,6 +33,12 @@
     <plurals name="selected_app_count">
         <item quantity="other">%1$d个应用已选中</item>
     </plurals>
+    <plurals name="block_all">
+        <item quantity="other">此操作将禁用%1$d组件，是否要继续？</item>
+    </plurals>
+    <plurals name="enable_all">
+        <item quantity="other">此操作将启用%1$d个组件，是否要继续？</item>
+    </plurals>
     <string name="search_hint">应用、组件和规则</string>
     <string name="no_search_result">暂无搜索结果</string>
 </resources>

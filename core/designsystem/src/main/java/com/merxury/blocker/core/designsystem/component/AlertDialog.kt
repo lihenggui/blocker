@@ -23,6 +23,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun BlockerErrorAlertDialog(
@@ -100,4 +102,51 @@ fun BlockerWarningAlertDialog(
             }
         },
     )
+}
+
+@Composable
+fun BlockerConfirmAlertDialog(
+    text: String,
+    onDismissRequest: () -> Unit,
+    onConfirmRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AlertDialog(
+        modifier = modifier,
+        text = {
+            Text(text = text)
+        },
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            BlockerTextButton(
+                onClick = {
+                    onConfirmRequest()
+                    onDismissRequest()
+                },
+            ) {
+                Text(
+                    text = stringResource(id = android.R.string.ok),
+                )
+            }
+        },
+        dismissButton = {
+            BlockerTextButton(onClick = onDismissRequest) {
+                Text(
+                    text = stringResource(id = android.R.string.cancel),
+                )
+            }
+        },
+    )
+}
+
+@Preview
+@Composable
+fun BlockerConfirmAlertDialogPreView() {
+    BlockerTheme {
+        BlockerConfirmAlertDialog(
+            text = "This operation will block 4 components, do you want to continue?",
+            onDismissRequest = {},
+            onConfirmRequest = {},
+        )
+    }
 }
