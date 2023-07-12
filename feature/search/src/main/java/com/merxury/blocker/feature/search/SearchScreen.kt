@@ -16,9 +16,8 @@
 
 package com.merxury.blocker.feature.search
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -218,27 +217,27 @@ fun TopBar(
     onBlockAll: () -> Unit,
     onEnableAll: () -> Unit,
 ) {
-    AnimatedVisibility(
-        visible = searchUiState.isSelectedMode,
-        enter = fadeIn(),
-        exit = fadeOut(),
-    ) {
-        SelectedAppTopBar(
-            selectedAppCount = searchUiState.selectedAppList.size,
-            selectedComponentCount = searchUiState.selectedComponentList.size,
-            onNavigationClick = onNavigationClick,
-            onSelectAll = onSelectAll,
-            onBlockAll = onBlockAll,
-            onEnableAll = onEnableAll,
-        )
-    }
-    if (!searchUiState.isSelectedMode) {
-        SearchBar(
-            modifier = modifier,
-            keyword = searchUiState.keyword,
-            onSearchTextChanged = onSearchTextChanged,
-            onClearClick = onClearClick,
-        )
+    Crossfade(
+        searchUiState.isSelectedMode,
+        animationSpec = tween(500), label = "topBar",
+    ) { targetState ->
+        if (targetState) {
+            SelectedAppTopBar(
+                selectedAppCount = searchUiState.selectedAppList.size,
+                selectedComponentCount = searchUiState.selectedComponentList.size,
+                onNavigationClick = onNavigationClick,
+                onSelectAll = onSelectAll,
+                onBlockAll = onBlockAll,
+                onEnableAll = onEnableAll,
+            )
+        } else {
+            SearchBar(
+                modifier = modifier,
+                keyword = searchUiState.keyword,
+                onSearchTextChanged = onSearchTextChanged,
+                onClearClick = onClearClick,
+            )
+        }
     }
 }
 
