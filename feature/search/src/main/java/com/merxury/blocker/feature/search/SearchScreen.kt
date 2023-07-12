@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.feature.search
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,9 +68,8 @@ import com.merxury.blocker.feature.search.component.SelectedAppTopBar
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
 import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
-import com.merxury.blocker.feature.search.model.SearchBoxUiState
+import com.merxury.blocker.feature.search.model.SearchUiState
 import com.merxury.blocker.feature.search.model.SearchViewModel
-import com.merxury.blocker.feature.search.model.SelectUiState
 import com.merxury.blocker.feature.search.screen.NoSearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen
@@ -80,15 +81,13 @@ fun SearchRoute(
     viewModel: SearchViewModel = hiltViewModel(),
     appListViewModel: AppListViewModel = hiltViewModel(),
 ) {
-    val searchBoxUiState by viewModel.searchBoxUiState.collectAsStateWithLifecycle()
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val appList = appListViewModel.appListFlow.collectAsState()
-    val selectUiState by viewModel.selectUiState.collectAsStateWithLifecycle()
+    val selectUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
 
     SearchScreen(
-        searchBoxUiState = searchBoxUiState,
         tabState = tabState,
         localSearchUiState = localSearchUiState,
         switchTab = viewModel::switchTab,
@@ -101,7 +100,7 @@ fun SearchRoute(
         onDeselect = viewModel::deselectItem,
         onBlockAll = { viewModel.controlAllComponents(false) },
         onEnableAll = { viewModel.controlAllComponents(true) },
-        selectUiState = selectUiState,
+        searchUiState = selectUiState,
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         navigateToAppDetail = navigateToAppDetail,
@@ -128,9 +127,8 @@ fun SearchRoute(
 fun SearchScreen(
     modifier: Modifier = Modifier,
     tabState: TabState<SearchScreenTabs>,
-    searchBoxUiState: SearchBoxUiState,
     localSearchUiState: LocalSearchUiState,
-    selectUiState: SelectUiState,
+    searchUiState: SearchUiState,
     switchTab: (SearchScreenTabs) -> Unit,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
@@ -154,8 +152,7 @@ fun SearchScreen(
     Scaffold(
         topBar = {
             TopBar(
-                selectUiState = selectUiState,
-                searchBoxUiState = searchBoxUiState,
+                searchUiState = searchUiState,
                 onSearchTextChanged = onSearchTextChanged,
                 onClearClick = onClearClick,
                 onNavigationClick = { switchSelectedMode(false) },
@@ -188,7 +185,7 @@ fun SearchScreen(
                     tabState = tabState,
                     switchTab = switchTab,
                     localSearchUiState = localSearchUiState,
-                    selectUiState = selectUiState,
+                    searchUiState = searchUiState,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
                     onDeselect = onDeselect,
@@ -212,8 +209,7 @@ fun SearchScreen(
 @Composable
 fun TopBar(
     modifier: Modifier = Modifier,
-    selectUiState: SelectUiState,
-    searchBoxUiState: SearchBoxUiState,
+    searchUiState: SearchUiState,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
     onNavigationClick: () -> Unit,
@@ -221,29 +217,35 @@ fun TopBar(
     onBlockAll: () -> Unit,
     onEnableAll: () -> Unit,
 ) {
-    if (selectUiState.isSelectedMode) {
-        SelectedAppTopBar(
-            selectedAppCount = selectUiState.selectedAppList.size,
-            selectedComponentCount = selectUiState.selectedComponentList.size,
-            onNavigationClick = onNavigationClick,
-            onSelectAll = onSelectAll,
-            onBlockAll = onBlockAll,
-            onEnableAll = onEnableAll,
-        )
-    } else {
-        SearchBar(
-            modifier = modifier,
-            uiState = searchBoxUiState,
-            onSearchTextChanged = onSearchTextChanged,
-            onClearClick = onClearClick,
-        )
+    Crossfade(
+        searchUiState.isSelectedMode,
+        animationSpec = tween(500),
+        label = "topBar",
+    ) { targetState ->
+        if (targetState) {
+            SelectedAppTopBar(
+                selectedAppCount = searchUiState.selectedAppList.size,
+                selectedComponentCount = searchUiState.selectedComponentList.size,
+                onNavigationClick = onNavigationClick,
+                onSelectAll = onSelectAll,
+                onBlockAll = onBlockAll,
+                onEnableAll = onEnableAll,
+            )
+        } else {
+            SearchBar(
+                modifier = modifier,
+                keyword = searchUiState.keyword,
+                onSearchTextChanged = onSearchTextChanged,
+                onClearClick = onClearClick,
+            )
+        }
     }
 }
 
 @Composable
 fun ComponentSearchResultContent(
     modifier: Modifier = Modifier,
-    selectUiState: SelectUiState,
+    searchUiState: SearchUiState,
     componentTabUiState: ComponentTabUiState,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (FilteredComponent) -> Unit,
@@ -267,7 +269,7 @@ fun ComponentSearchResultContent(
             items(componentTabUiState.list, key = { it.app.packageName }) {
                 FilteredComponentItem(
                     items = it,
-                    isSelectedMode = selectUiState.isSelectedMode,
+                    isSelectedMode = searchUiState.isSelectedMode,
                     switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
                     onDeselect = onDeselect,
@@ -275,7 +277,7 @@ fun ComponentSearchResultContent(
                         onComponentClick(component)
                         analyticsHelper.logComponentSearchResultClicked()
                     },
-                    isSelected = selectUiState.selectedAppList.contains(it),
+                    isSelected = searchUiState.selectedAppList.contains(it),
                 )
             }
             item {
@@ -355,7 +357,6 @@ fun RuleSearchResultContent(
 @Composable
 @Preview
 fun SearchScreenEmptyPreview() {
-    val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Loading
     val tabState = TabState(
         items = listOf(
@@ -367,7 +368,6 @@ fun SearchScreenEmptyPreview() {
     )
     BlockerTheme {
         SearchScreen(
-            searchBoxUiState = searchBoxUiState,
             localSearchUiState = localSearchUiState,
             onSearchTextChanged = {},
             onClearClick = {},
@@ -379,7 +379,7 @@ fun SearchScreenEmptyPreview() {
             switchSelectedMode = {},
             onSelect = {},
             onDeselect = {},
-            selectUiState = SelectUiState(),
+            searchUiState = SearchUiState(),
         )
     }
 }
@@ -387,7 +387,6 @@ fun SearchScreenEmptyPreview() {
 @Composable
 @Preview
 fun SearchScreenNoResultPreview() {
-    val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Idle
     val tabState = TabState(
         items = listOf(
@@ -399,7 +398,6 @@ fun SearchScreenNoResultPreview() {
     )
     BlockerTheme {
         SearchScreen(
-            searchBoxUiState = searchBoxUiState,
             localSearchUiState = localSearchUiState,
             onSearchTextChanged = {},
             onClearClick = {},
@@ -411,7 +409,7 @@ fun SearchScreenNoResultPreview() {
             switchSelectedMode = {},
             onSelect = {},
             onDeselect = {},
-            selectUiState = SelectUiState(),
+            searchUiState = SearchUiState(),
         )
     }
 }
@@ -426,7 +424,6 @@ fun SearchScreenPreview() {
             isSystem = false,
         ),
     )
-    val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Success(
         componentTabUiState = ComponentTabUiState(list = listOf(filterAppItem)),
     )
@@ -440,7 +437,6 @@ fun SearchScreenPreview() {
     )
     BlockerTheme {
         SearchScreen(
-            searchBoxUiState = searchBoxUiState,
             localSearchUiState = localSearchUiState,
             onSearchTextChanged = {},
             onClearClick = {},
@@ -452,7 +448,7 @@ fun SearchScreenPreview() {
             switchSelectedMode = {},
             onSelect = {},
             onDeselect = {},
-            selectUiState = SelectUiState(),
+            searchUiState = SearchUiState(),
         )
     }
 }
@@ -467,7 +463,6 @@ fun SearchScreenSelectedPreview() {
             isSystem = false,
         ),
     )
-    val searchBoxUiState = SearchBoxUiState()
     val localSearchUiState = LocalSearchUiState.Success(
         componentTabUiState = ComponentTabUiState(list = listOf(filterAppItem)),
     )
@@ -481,7 +476,6 @@ fun SearchScreenSelectedPreview() {
     )
     BlockerTheme {
         SearchScreen(
-            searchBoxUiState = searchBoxUiState,
             localSearchUiState = localSearchUiState,
             onSearchTextChanged = {},
             onClearClick = {},
@@ -492,7 +486,7 @@ fun SearchScreenSelectedPreview() {
             onEnableAll = {},
             switchSelectedMode = {},
             onSelect = {},
-            selectUiState = SelectUiState(),
+            searchUiState = SearchUiState(),
             onDeselect = {},
         )
     }
