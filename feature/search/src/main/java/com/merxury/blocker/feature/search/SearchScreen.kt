@@ -16,6 +16,9 @@
 
 package com.merxury.blocker.feature.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -215,7 +218,11 @@ fun TopBar(
     onBlockAll: () -> Unit,
     onEnableAll: () -> Unit,
 ) {
-    if (searchUiState.isSelectedMode) {
+    AnimatedVisibility(
+        visible = searchUiState.isSelectedMode,
+        enter = fadeIn(),
+        exit = fadeOut(),
+    ) {
         SelectedAppTopBar(
             selectedAppCount = searchUiState.selectedAppList.size,
             selectedComponentCount = searchUiState.selectedComponentList.size,
@@ -224,7 +231,8 @@ fun TopBar(
             onBlockAll = onBlockAll,
             onEnableAll = onEnableAll,
         )
-    } else {
+    }
+    if (!searchUiState.isSelectedMode) {
         SearchBar(
             modifier = modifier,
             keyword = searchUiState.keyword,
