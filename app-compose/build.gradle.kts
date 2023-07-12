@@ -34,7 +34,7 @@ android {
     defaultConfig {
         applicationId = "com.merxury.blocker"
         val gitCommitCount = providers.exec {
-            commandLine("git", "rev-list", "--all", "--count")
+            commandLine("git", "rev-list", "--count", "HEAD")
         }.standardOutput.asText.get().trim()
         versionCode = gitCommitCount.toIntOrNull() ?: 1
         versionName = "2.0.$gitCommitCount" // X.Y.Z; X = Major, Y = minor, Z = version code
