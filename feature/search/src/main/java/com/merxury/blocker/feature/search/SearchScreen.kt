@@ -219,7 +219,8 @@ fun TopBar(
 ) {
     Crossfade(
         searchUiState.isSelectedMode,
-        animationSpec = tween(500), label = "topBar",
+        animationSpec = tween(500),
+        label = "topBar",
     ) { targetState ->
         if (targetState) {
             SelectedAppTopBar(
