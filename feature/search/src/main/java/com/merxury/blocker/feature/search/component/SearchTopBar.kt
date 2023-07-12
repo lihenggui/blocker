@@ -45,7 +45,6 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.search.R.plurals
 import com.merxury.blocker.feature.search.R.string
-import com.merxury.blocker.feature.search.model.SearchBoxUiState
 
 @Composable
 fun SelectedAppTopBar(
@@ -125,7 +124,7 @@ fun SelectedAppTopBar(
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
-    uiState: SearchBoxUiState,
+    keyword: TextFieldValue,
     onSearchTextChanged: (TextFieldValue) -> Unit,
     onClearClick: () -> Unit,
 ) {
@@ -137,7 +136,7 @@ fun SearchBar(
         title = stringResource(id = string.searching),
         actions = {
             BlockerSearchTextField(
-                keyword = uiState.keyword,
+                keyword = keyword,
                 placeholder = {
                     Text(
                         text = stringResource(id = string.search_hint),
