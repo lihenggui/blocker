@@ -73,7 +73,8 @@ fun FilteredComponentItem(
 ) {
     val animatedColor = animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.background,
-        animationSpec = tween(500, 0, LinearEasing), label = "color",
+        animationSpec = tween(500, 0, LinearEasing),
+        label = "color",
     )
     val radius = if (isSelected) {
         12.dp
@@ -131,7 +132,8 @@ private fun SelectableAppIcon(
 ) {
     Crossfade(
         isSelected,
-        animationSpec = tween(500), label = "icon",
+        animationSpec = tween(500),
+        label = "icon",
     ) { targetState ->
         if (targetState) {
             Icon(
