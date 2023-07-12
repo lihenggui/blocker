@@ -18,6 +18,11 @@ package com.merxury.blocker.feature.search.component
 
 import android.content.pm.PackageInfo
 import android.content.res.Configuration
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -66,16 +71,16 @@ fun FilteredComponentItem(
     onDeselect: (FilteredComponent) -> Unit,
     onComponentClick: (FilteredComponent) -> Unit,
 ) {
-    val color = if (isSelected) {
-        MaterialTheme.colorScheme.tertiaryContainer
+    val animatedColor = animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.background,
+        animationSpec = tween(500, 0, LinearEasing), label = "color",
+    )
+    val radius = if (isSelected) {
+        12.dp
     } else {
-        MaterialTheme.colorScheme.background
+        0.dp
     }
-    val shape = if (isSelected) {
-        RoundedCornerShape(12.dp)
-    } else {
-        RoundedCornerShape(0.dp)
-    }
+    val cornerRadius = animateDpAsState(targetValue = radius, label = "shape")
     Box(
         modifier = modifier,
     ) {
@@ -103,8 +108,8 @@ fun FilteredComponentItem(
                     },
                 )
                 .background(
-                    color = color,
-                    shape = shape,
+                    color = animatedColor.value,
+                    shape = RoundedCornerShape(cornerRadius.value),
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
@@ -124,22 +129,27 @@ private fun SelectableAppIcon(
     modifier: Modifier = Modifier,
     isSelected: Boolean,
 ) {
-    if (isSelected) {
-        Icon(
-            imageVector = BlockerIcons.Check,
-            modifier = modifier.size(48.dp),
-            contentDescription = null,
-        )
-    } else {
-        AsyncImage(
-            modifier = modifier
-                .size(48.dp),
-            model = Builder(LocalContext.current)
-                .data(info)
-                .crossfade(true)
-                .build(),
-            contentDescription = null,
-        )
+    Crossfade(
+        isSelected,
+        animationSpec = tween(500), label = "icon",
+    ) { targetState ->
+        if (targetState) {
+            Icon(
+                imageVector = BlockerIcons.Check,
+                modifier = modifier.size(48.dp),
+                contentDescription = null,
+            )
+        } else {
+            AsyncImage(
+                modifier = modifier
+                    .size(48.dp),
+                model = Builder(LocalContext.current)
+                    .data(info)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = null,
+            )
+        }
     }
 }
 
