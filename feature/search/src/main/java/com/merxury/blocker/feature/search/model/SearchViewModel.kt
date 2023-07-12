@@ -81,10 +81,8 @@ class SearchViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
-    private val _searchBoxUiState = MutableStateFlow(SearchBoxUiState())
-    val searchBoxUiState: StateFlow<SearchBoxUiState> = _searchBoxUiState.asStateFlow()
-    private val _selectUiState = MutableStateFlow(SelectUiState())
-    val selectUiState: StateFlow<SelectUiState> = _selectUiState.asStateFlow()
+    private val _searchUiState = MutableStateFlow(SearchUiState())
+    val searchUiState: StateFlow<SearchUiState> = _searchUiState.asStateFlow()
     private val _localSearchUiState =
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
@@ -134,7 +132,7 @@ class SearchViewModel @Inject constructor(
 
     fun search(changedSearchText: TextFieldValue) {
         Timber.d("Search components: $changedSearchText")
-        _searchBoxUiState.update { it.copy(keyword = changedSearchText) }
+        _searchUiState.update { it.copy(keyword = changedSearchText) }
         val keyword = changedSearchText.text
         val searchAppFlow = appRepository.searchInstalledApplications(keyword)
             .combineTransform(userDataRepository.userData) { list, userSetting ->
@@ -254,17 +252,17 @@ class SearchViewModel @Inject constructor(
         }
 
     fun resetSearchState() {
-        _searchBoxUiState.update { SearchBoxUiState() }
+        _searchUiState.update { it.copy(keyword = TextFieldValue()) }
     }
 
     fun selectAll() {
         //if selectedAllTag == true, deselect all
         if (selectedAllTag) {
-            _selectUiState.update {
+            _searchUiState.update {
                 it.copy(selectedAppList = listOf())
             }
         } else {
-            _selectUiState.update {
+            _searchUiState.update {
                 it.copy(selectedAppList = componentList)
             }
         }
@@ -274,7 +272,7 @@ class SearchViewModel @Inject constructor(
     fun controlAllComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             componentRepository.batchControlComponent(
-                components = _selectUiState.value.selectedComponentList,
+                components = _searchUiState.value.selectedComponentList,
                 newState = enable,
             )
                 .catch { exception ->
@@ -290,20 +288,20 @@ class SearchViewModel @Inject constructor(
     fun switchSelectedMode(value: Boolean) {
         // Clear list when exit from selectedMode
         if (!value) {
-            _selectUiState.update {
+            _searchUiState.update {
                 it.copy(selectedAppList = listOf())
             }
         }
-        _selectUiState.update {
+        _searchUiState.update {
             it.copy(isSelectedMode = value)
         }
     }
 
     fun selectItem(item: FilteredComponent) {
         val selectedList: MutableList<FilteredComponent> = mutableListOf()
-        selectedList.addAll(_selectUiState.value.selectedAppList)
+        selectedList.addAll(_searchUiState.value.selectedAppList)
         selectedList.add(item)
-        _selectUiState.update {
+        _searchUiState.update {
             it.copy(selectedAppList = selectedList)
         }
         transferToComponentInoList()
@@ -311,9 +309,9 @@ class SearchViewModel @Inject constructor(
 
     fun deselectItem(item: FilteredComponent) {
         val selectedList: MutableList<FilteredComponent> = mutableListOf()
-        selectedList.addAll(_selectUiState.value.selectedAppList)
+        selectedList.addAll(_searchUiState.value.selectedAppList)
         selectedList.remove(item)
-        _selectUiState.update {
+        _searchUiState.update {
             it.copy(selectedAppList = selectedList)
         }
         transferToComponentInoList()
@@ -321,13 +319,13 @@ class SearchViewModel @Inject constructor(
 
     private fun transferToComponentInoList(): List<ComponentInfo> {
         val list = mutableListOf<ComponentInfo>()
-        _selectUiState.value.selectedAppList.forEach { filteredComponent ->
+        _searchUiState.value.selectedAppList.forEach { filteredComponent ->
             list.addAll(filteredComponent.activity.map { it.toComponentInfo() })
             list.addAll(filteredComponent.service.map { it.toComponentInfo() })
             list.addAll(filteredComponent.receiver.map { it.toComponentInfo() })
             list.addAll(filteredComponent.provider.map { it.toComponentInfo() })
         }
-        _selectUiState.update {
+        _searchUiState.update {
             it.copy(selectedComponentList = list)
         }
         return list
@@ -347,10 +345,6 @@ sealed interface LocalSearchUiState {
 
     class Error(val uiMessage: UiMessage) : LocalSearchUiState
 }
-
-data class SearchBoxUiState(
-    val keyword: TextFieldValue = TextFieldValue(),
-)
 
 data class AppTabUiState(
     val list: List<AppItem> = listOf(),
@@ -372,7 +366,8 @@ data class FilteredComponent(
     val provider: List<ComponentItem> = listOf(),
 )
 
-data class SelectUiState(
+data class SearchUiState(
+    val keyword: TextFieldValue = TextFieldValue(),
     val isSelectedMode: Boolean = false,
     val selectedAppList: List<FilteredComponent> = listOf(),
     val selectedComponentList: List<ComponentInfo> = listOf(),
