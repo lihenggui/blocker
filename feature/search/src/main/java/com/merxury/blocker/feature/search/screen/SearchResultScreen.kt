@@ -46,7 +46,7 @@ import com.merxury.blocker.feature.search.RuleSearchResultContent
 import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
-import com.merxury.blocker.feature.search.model.SelectUiState
+import com.merxury.blocker.feature.search.model.SearchUiState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -56,7 +56,7 @@ fun SearchResultScreen(
     tabState: TabState<SearchScreenTabs>,
     switchTab: (SearchScreenTabs) -> Unit,
     localSearchUiState: Success,
-    selectUiState: SelectUiState,
+    searchUiState: SearchUiState,
     switchSelectedMode: (Boolean) -> Unit,
     onSelect: (FilteredComponent) -> Unit,
     onDeselect: (FilteredComponent) -> Unit,
@@ -122,7 +122,7 @@ fun SearchResultScreen(
                 1 -> ComponentSearchResultContent(
                     componentTabUiState = localSearchUiState.componentTabUiState,
                     switchSelectedMode = switchSelectedMode,
-                    selectUiState = selectUiState,
+                    searchUiState = searchUiState,
                     onSelect = onSelect,
                     onDeselect = onDeselect,
                     onComponentClick = { filterResult ->
