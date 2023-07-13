@@ -153,13 +153,13 @@ fun BlockerActionIcon(
     modifier: Modifier = Modifier,
     imageVector: ImageVector,
     contentDescription: String?,
-    tint: Color = MaterialTheme.colorScheme.onSurface,
+    tint: Color? = MaterialTheme.colorScheme.onSurface,
 ) {
     Icon(
         modifier = modifier,
         imageVector = imageVector,
         contentDescription = contentDescription,
-        tint = tint,
+        tint = tint ?: MaterialTheme.colorScheme.onSurface,
     )
 }
 
@@ -167,7 +167,7 @@ fun BlockerActionIcon(
 fun BlockerDisplayIcon(
     imageVector: ImageVector,
     contentDescription: String?,
-    tint: Color = MaterialTheme.colorScheme.outline,
+    tint: Color? = MaterialTheme.colorScheme.outline,
 ) {
     Icon(
         modifier = Modifier
@@ -175,6 +175,6 @@ fun BlockerDisplayIcon(
             .padding(8.dp),
         imageVector = imageVector,
         contentDescription = contentDescription,
-        tint = tint,
+        tint = tint ?: MaterialTheme.colorScheme.outline,
     )
 }
