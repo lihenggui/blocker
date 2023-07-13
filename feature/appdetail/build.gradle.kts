@@ -30,4 +30,5 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
+    implementation(libs.palette)
 }
