@@ -87,6 +87,7 @@ import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState.Success
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.data.ViewState
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -165,6 +166,9 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
+
+    private val _viewState = MutableStateFlow(ViewState())
+    val viewState = _viewState.asStateFlow()
 
     init {
         loadTabInfo()
