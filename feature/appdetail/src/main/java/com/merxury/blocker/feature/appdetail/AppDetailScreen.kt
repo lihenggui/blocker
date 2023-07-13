@@ -66,6 +66,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.palette.graphics.Palette
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
@@ -93,10 +94,13 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.bodyRGBAsColor
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortBottomSheet
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.component.ComponentList
+import com.merxury.blocker.core.ui.data.ViewState
+import com.merxury.blocker.core.ui.rgbAsColor
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -267,6 +271,7 @@ fun AppDetailScreen(
                 onSortByClick = onSortByClick,
                 onSortOrderClick = onSortOrderClick,
                 onShowPriorityClick = onShowPriorityClick,
+                colorPalette = appInfoUiState.viewState.colorPalette,
             )
         }
 
@@ -306,6 +311,7 @@ fun AppDetailContent(
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
+    colorPalette: Palette? = null,
 ) {
     var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -347,6 +353,8 @@ fun AppDetailContent(
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
+                backgroundColor = colorPalette?.lightVibrantSwatch?.rgbAsColor(),
+                titleColor = colorPalette?.lightVibrantSwatch?.bodyRGBAsColor(),
                 progress = toolbarState.progress,
                 onNavigationClick = onBackClick,
                 title = app.label,
@@ -404,6 +412,7 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
+            colorPalette = colorPalette,
         )
     }
     if (openBottomSheet) {
@@ -488,6 +497,7 @@ fun AppDetailTabContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    colorPalette: Palette? = null,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -502,7 +512,10 @@ fun AppDetailTabContent(
     ) {
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = colorPalette?.lightVibrantSwatch?.rgbAsColor()
+                ?: MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = colorPalette?.lightVibrantSwatch?.bodyRGBAsColor()
+                ?: MaterialTheme.colorScheme.primary,
         ) {
             tabState.items.forEachIndexed { index, tabItem ->
                 BlockerTab(
@@ -613,7 +626,7 @@ fun AppDetailScreenPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app),
+                appInfoUiState = Success(appInfo = app, viewState = ViewState()),
                 bottomSheetState = ComponentSortInfoUiState.Success(
                     ComponentSortInfo(),
                 ),
@@ -662,7 +675,7 @@ fun AppDetailScreenCollapsedPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app),
+                appInfoUiState = Success(appInfo = app, viewState = ViewState()),
                 bottomSheetState = ComponentSortInfoUiState.Success(
                     ComponentSortInfo(),
                 ),

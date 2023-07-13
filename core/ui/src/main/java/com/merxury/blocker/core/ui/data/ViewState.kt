@@ -1,8 +1,7 @@
 package com.merxury.blocker.core.ui.data
 
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.palette.graphics.Palette
 
 data class ViewState(
-    val imageBitmap: ImageBitmap? = null,
     val colorPalette: Palette? = null,
 )
