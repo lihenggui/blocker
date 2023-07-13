@@ -18,15 +18,20 @@ package com.merxury.blocker.feature.appdetail
 
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
+import androidx.palette.graphics.Palette
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
@@ -166,9 +171,6 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
-
-    private val _viewState = MutableStateFlow(ViewState())
-    val viewState = _viewState.asStateFlow()
 
     init {
         loadTabInfo()
@@ -712,16 +714,27 @@ class AppDetailViewModel @Inject constructor(
         } else {
             val packageInfo = pm.getPackageInfoCompat(packageName, 0)
             _appInfoUiState.emit(
-                AppInfoUiState.Success(app.toAppItem(packageInfo = packageInfo)),
+                AppInfoUiState.Success(
+                    app.toAppItem(packageInfo = packageInfo),
+                    ViewState(getAppTheme(packageInfo)?.let { Palette.from(it).generate() }),
+                ),
             )
         }
+    }
+
+    private fun getAppTheme(packageInfo: PackageInfo?): Bitmap? {
+        val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
+        return icon?.toBitmap()
     }
 }
 
 sealed interface AppInfoUiState {
     object Loading : AppInfoUiState
     class Error(val error: UiMessage) : AppInfoUiState
-    data class Success(val appInfo: AppItem) : AppInfoUiState
+    data class Success(
+        val appInfo: AppItem,
+        val viewState: ViewState,
+    ) : AppInfoUiState
 }
 
 data class ComponentListUiState(
