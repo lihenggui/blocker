@@ -514,7 +514,7 @@ fun AppDetailTabContent(
             selectedTabIndex = tabState.currentIndex,
             containerColor = colorPalette?.lightVibrantSwatch?.rgbAsColor()
                 ?: MaterialTheme.colorScheme.surfaceVariant,
-            contentColor = colorPalette?.lightVibrantSwatch?.bodyRGBAsColor()
+            contentColor = colorPalette?.darkVibrantSwatch?.rgbAsColor()
                 ?: MaterialTheme.colorScheme.primary,
         ) {
             tabState.items.forEachIndexed { index, tabItem ->
@@ -557,6 +557,7 @@ fun AppDetailTabContent(
                         onLaunchActivityClick = onLaunchActivityClick,
                         onCopyNameClick = onCopyNameClick,
                         onCopyFullNameClick = onCopyFullNameClick,
+                        colorPalette = colorPalette,
                     )
                 }
 
@@ -568,6 +569,7 @@ fun AppDetailTabContent(
                     onLaunchActivityClick = onLaunchActivityClick,
                     onCopyNameClick = onCopyNameClick,
                     onCopyFullNameClick = onCopyFullNameClick,
+                    colorPalette = colorPalette,
                 )
 
                 Activity -> ComponentList(
@@ -578,6 +580,7 @@ fun AppDetailTabContent(
                     onLaunchActivityClick = onLaunchActivityClick,
                     onCopyNameClick = onCopyNameClick,
                     onCopyFullNameClick = onCopyFullNameClick,
+                    colorPalette = colorPalette,
                 )
 
                 Provider -> ComponentList(
@@ -588,6 +591,7 @@ fun AppDetailTabContent(
                     onLaunchActivityClick = onLaunchActivityClick,
                     onCopyNameClick = onCopyNameClick,
                     onCopyFullNameClick = onCopyFullNameClick,
+                    colorPalette = colorPalette,
                 )
             }
         }
