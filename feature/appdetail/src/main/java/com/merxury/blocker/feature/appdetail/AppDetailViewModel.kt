@@ -31,7 +31,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
-import androidx.palette.graphics.Palette
 import androidx.work.ExistingWorkPolicy
 import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
@@ -92,7 +91,6 @@ import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState.Success
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.data.ViewState
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -716,13 +714,13 @@ class AppDetailViewModel @Inject constructor(
             _appInfoUiState.emit(
                 AppInfoUiState.Success(
                     app.toAppItem(packageInfo = packageInfo),
-                    ViewState(getAppTheme(packageInfo)?.let { Palette.from(it).generate() }),
+                    getAppIcon(packageInfo),
                 ),
             )
         }
     }
 
-    private fun getAppTheme(packageInfo: PackageInfo?): Bitmap? {
+    private fun getAppIcon(packageInfo: PackageInfo?): Bitmap? {
         val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
         return icon?.toBitmap()
     }
@@ -733,7 +731,7 @@ sealed interface AppInfoUiState {
     class Error(val error: UiMessage) : AppInfoUiState
     data class Success(
         val appInfo: AppItem,
-        val viewState: ViewState,
+        val appIcon: Bitmap?,
     ) : AppInfoUiState
 }
 

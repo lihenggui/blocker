@@ -1,5 +1,6 @@
 package com.merxury.blocker.core.ui.dynamictheme
 
+import android.graphics.Bitmap
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -8,7 +9,7 @@ import com.merxury.blocker.core.designsystem.theme.contrastAgainst
 
 @Composable
 fun DetailDynamicTheme(
-    podcastImageUrl: String,
+    imageBitmap: Bitmap?,
     content: @Composable () -> Unit,
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
@@ -20,9 +21,9 @@ fun DetailDynamicTheme(
     }
     DynamicThemePrimaryColorsFromImage(dominantColorState) {
         // Update the dominantColorState with colors coming from the podcast image URL
-        LaunchedEffect(podcastImageUrl) {
-            if (podcastImageUrl.isNotEmpty()) {
-                dominantColorState.updateColorsFromImageUrl(podcastImageUrl)
+        LaunchedEffect(imageBitmap) {
+            if (imageBitmap != null) {
+                dominantColorState.updateColorsFromImageBitmap(imageBitmap)
             } else {
                 dominantColorState.reset()
             }
