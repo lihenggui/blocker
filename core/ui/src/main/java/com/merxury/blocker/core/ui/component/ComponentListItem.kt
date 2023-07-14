@@ -38,7 +38,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,7 +57,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.palette.graphics.Palette
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
@@ -73,7 +71,6 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.TrackScrollJank
-import com.merxury.blocker.core.ui.rgbAsColor
 
 @Composable
 fun ComponentList(
@@ -85,7 +82,6 @@ fun ComponentList(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
-    colorPalette: Palette? = null,
 ) {
     if (components.isEmpty()) {
         NoComponentScreen()
@@ -119,7 +115,6 @@ fun ComponentList(
                     onCopyNameClick = { onCopyNameClick(item.simpleName) },
                     onCopyFullNameClick = { onCopyFullNameClick(item.name) },
                     onSwitchClick = onSwitchClick,
-                    colorPalette = colorPalette,
                 )
             }
         }
@@ -153,7 +148,6 @@ fun ComponentListItem(
     onCopyNameClick: () -> Unit = { },
     onCopyFullNameClick: () -> Unit = { },
     onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
-    colorPalette: Palette? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
@@ -218,10 +212,6 @@ fun ComponentListItem(
             onCheckedChange = {
                 onSwitchClick(packageName, name, !enabled)
             },
-            colors = SwitchDefaults.colors(
-                checkedTrackColor = colorPalette?.darkVibrantSwatch?.rgbAsColor()
-                    ?: MaterialTheme.colorScheme.primary,
-            ),
         )
         val offset = with(density) {
             DpOffset(touchPoint.x.toDp(), -touchPoint.y.toDp())
