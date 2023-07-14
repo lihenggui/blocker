@@ -24,7 +24,7 @@ import kotlinx.coroutines.withContext
 fun rememberDominantColorState(
     context: Context = LocalContext.current,
     defaultColor: Color = MaterialTheme.colorScheme.primary,
-    defaultOnColor: Color = MaterialTheme.colorScheme.onPrimary,
+    defaultOnColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     cacheSize: Int = 12,
     isColorValid: (Color) -> Boolean = { true },
 ): DominantColorState = remember {
@@ -45,9 +45,9 @@ fun DynamicThemePrimaryColorsFromImage(
             dominantColorState.color,
             spring(stiffness = Spring.StiffnessLow), label = "primary",
         ).value,
-        onPrimary = animateColorAsState(
+        surfaceVariant = animateColorAsState(
             dominantColorState.onColor,
-            spring(stiffness = Spring.StiffnessLow), label = "onPrimary",
+            spring(stiffness = Spring.StiffnessLow), label = "surfaceVariant",
         ).value,
     )
     MaterialTheme(colorScheme = colors, content = content)
@@ -106,7 +106,7 @@ class DominantColorState(
             ?.let { swatch ->
                 DominantColors(
                     color = Color(swatch.rgb),
-                    onColor = Color(swatch.bodyTextColor).copy(alpha = 1f),
+                    onColor = Color(swatch.rgb).copy(alpha = 0.3f),
                 )
             }
             // Cache the resulting [DominantColors]
