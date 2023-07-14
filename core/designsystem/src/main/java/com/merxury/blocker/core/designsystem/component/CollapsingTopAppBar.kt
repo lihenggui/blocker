@@ -39,7 +39,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
@@ -78,15 +77,13 @@ fun BlockerCollapsingTopAppBar(
     summary: String,
     iconSource: Any? = null,
     onIconClick: () -> Unit = {},
-    backgroundColor: Color? = MaterialTheme.colorScheme.surfaceVariant,
-    titleColor: Color? = MaterialTheme.colorScheme.onSurface,
 ) {
     val titleSize = with(LocalDensity.current) {
         lerp(collapsedTitleSize.toPx(), expandedTitleSize.toPx(), progress).toSp()
     }
 
     Surface(
-        color = backgroundColor ?: MaterialTheme.colorScheme.surfaceVariant,
+        color = MaterialTheme.colorScheme.surfaceVariant,
         modifier = modifier,
     ) {
         Box(
@@ -103,7 +100,7 @@ fun BlockerCollapsingTopAppBar(
                     Icon(
                         imageVector = BlockerIcons.Back,
                         contentDescription = stringResource(id = R.string.back),
-                        tint = titleColor ?: MaterialTheme.colorScheme.onSurface,
+                        tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
                 BlockerBodyLargeText(
@@ -112,7 +109,6 @@ fun BlockerCollapsingTopAppBar(
                     fontSize = titleSize,
                     modifier = Modifier
                         .fillMaxWidth(0.7f),
-                    color = titleColor ?: MaterialTheme.colorScheme.onSurface,
                 )
                 Row(
                     modifier = modifier
@@ -132,7 +128,6 @@ fun BlockerCollapsingTopAppBar(
                         .padding(vertical = padding)
                         .fillMaxWidth(0.7f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
-                    color = titleColor ?: MaterialTheme.colorScheme.onSurface,
                 )
                 BlockerBodySmallText(
                     text = summary,
@@ -141,7 +136,6 @@ fun BlockerCollapsingTopAppBar(
                         .padding(vertical = padding)
                         .fillMaxWidth(0.7f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
-                    color = titleColor ?: MaterialTheme.colorScheme.onSurface,
                 )
                 AsyncImage(
                     modifier = Modifier
