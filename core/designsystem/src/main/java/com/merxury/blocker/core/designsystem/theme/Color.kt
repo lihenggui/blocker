@@ -18,10 +18,16 @@
 package com.merxury.blocker.core.designsystem.theme
 
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.luminance
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Blocker colors.
  */
+const val MinContrastOfPrimaryVsSurface = 3f
+
 internal val md_theme_light_primary = Color(0xFF006D3B)
 internal val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 internal val md_theme_light_primaryContainer = Color(0xFF66FEA2)
@@ -80,3 +86,12 @@ internal val md_theme_dark_inversePrimary = Color(0xFF006D3B)
 internal val md_theme_dark_surfaceTint = Color(0xFF43E188)
 internal val md_theme_dark_outlineVariant = Color(0xFF414942)
 internal val md_theme_dark_scrim = Color(0xFF000000)
+
+fun Color.contrastAgainst(background: Color): Float {
+    val fg = if (alpha < 1f) compositeOver(background) else this
+
+    val fgLuminance = fg.luminance() + 0.05f
+    val bgLuminance = background.luminance() + 0.05f
+
+    return max(fgLuminance, bgLuminance) / min(fgLuminance, bgLuminance)
+}
