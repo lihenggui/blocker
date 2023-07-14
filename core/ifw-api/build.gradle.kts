@@ -17,6 +17,7 @@
 plugins {
     id("blocker.android.library")
     id("blocker.android.library.jacoco")
+    id("kotlinx-serialization")
     id("blocker.android.hilt")
 }
 
@@ -38,11 +39,13 @@ dependencies {
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.libsu.core)
+    implementation(libs.libsu.io)
     implementation(libs.simplexml) {
         exclude("stax", "stax")
         exclude("stax-api", "stax-api")
         exclude("xpp3", "xpp3")
     }
-    implementation(libs.libsu.core)
-    implementation(libs.libsu.io)
+    implementation(libs.xmlutil.core.android)
+    implementation(libs.xmlutil.serialization.android)
 }
