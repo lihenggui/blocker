@@ -56,6 +56,7 @@ retrofitKotlinxSerializationJson = "1.0.0"
 room = "2.5.2"
 secrets = "2.0.1"
 shizuku = "13.1.4"
+xmlutil = "0.86.1"
 turbine = "1.0.0"
 
 [libraries]
@@ -147,6 +148,8 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
+xmlutil-core-android = { group = "io.github.pdvrieze.xmlutil", name = "core-android", version.ref = "xmlutil" }
+xmlutil-serialization-android = { group = "io.github.pdvrieze.xmlutil", name = "serialization-android", version.ref = "xmlutil" }
 timber = "com.jakewharton.timber:timber:5.0.1"
 freereflection = "com.github.tiann:FreeReflection:3.2.0"
 simplexml = "org.simpleframework:simple-xml:2.7.1"
