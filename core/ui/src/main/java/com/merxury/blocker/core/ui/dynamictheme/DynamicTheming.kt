@@ -1,6 +1,7 @@
 package com.merxury.blocker.core.ui.dynamictheme
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.collection.LruCache
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
@@ -15,12 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.graphics.drawable.toBitmap
 import androidx.palette.graphics.Palette
-import coil.imageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
-import coil.size.Scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -87,21 +83,21 @@ class DominantColorState(
         else -> null
     }
 
-    suspend fun updateColorsFromImageUrl(url: String) {
-        val result = calculateDominantColor(url)
+    suspend fun updateColorsFromImageBitmap(bitmap: Bitmap) {
+        val result = calculateDominantColor(bitmap)
         color = result?.color ?: defaultColor
         onColor = result?.onColor ?: defaultOnColor
     }
 
-    private suspend fun calculateDominantColor(url: String): DominantColors? {
-        val cached = cache?.get(url)
+    private suspend fun calculateDominantColor(bitmap: Bitmap): DominantColors? {
+        val cached = cache?.get(bitmap.toString())
         if (cached != null) {
             // If we already have the result cached, return early now...
             return cached
         }
 
         // Otherwise we calculate the swatches in the image, and return the first valid color
-        return calculateSwatchesInImage(context, url)
+        return calculateSwatchesInImage(context, bitmap)
             // First we want to sort the list by the color's population
             .sortedByDescending { swatch -> swatch.population }
             // Then we want to find the first valid color
@@ -114,7 +110,7 @@ class DominantColorState(
                 )
             }
             // Cache the resulting [DominantColors]
-            ?.also { result -> cache?.put(url, result) }
+            ?.also { result -> cache?.put(bitmap.toString(), result) }
     }
 
     /**
@@ -130,26 +126,26 @@ class DominantColorState(
 private data class DominantColors(val color: Color, val onColor: Color)
 
 /**
- * Fetches the given [imageUrl] with Coil, then uses [Palette] to calculate the dominant color.
+ * Fetches the given [bitmap] with Coil, then uses [Palette] to calculate the dominant color.
  */
 private suspend fun calculateSwatchesInImage(
     context: Context,
-    imageUrl: String,
+    bitmap: Bitmap?,
 ): List<Palette.Swatch> {
-    val request = ImageRequest.Builder(context)
-        .data(imageUrl)
-        // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
-        .size(128).scale(Scale.FILL)
-        // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
-        .allowHardware(false)
-        // Set a custom memory cache key to avoid overwriting the displayed image in the cache
-        .memoryCacheKey("$imageUrl.palette")
-        .build()
-
-    val bitmap = when (val result = context.imageLoader.execute(request)) {
-        is SuccessResult -> result.drawable.toBitmap()
-        else -> null
-    }
+//    val request = ImageRequest.Builder(context)
+//        .data(bitmap)
+//        // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
+//        .size(128).scale(Scale.FILL)
+//        // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
+//        .allowHardware(false)
+//        // Set a custom memory cache key to avoid overwriting the displayed image in the cache
+//        .memoryCacheKey("$bitmap.palette")
+//        .build()
+//
+//    val bitmap = when (val result = context.imageLoader.execute(request)) {
+//        is SuccessResult -> result.drawable.toBitmap()
+//        else -> null
+//    }
 
     return bitmap?.let {
         withContext(Dispatchers.Default) {
