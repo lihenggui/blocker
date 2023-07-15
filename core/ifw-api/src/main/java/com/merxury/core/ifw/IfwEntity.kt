@@ -19,8 +19,9 @@ package com.merxury.core.ifw
 import com.merxury.core.ifw.Component.Activity
 import com.merxury.core.ifw.Component.Broadcast
 import com.merxury.core.ifw.Component.Service
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.serialization.XmlElement
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 /**
  * Format:
@@ -41,7 +42,7 @@ import kotlinx.serialization.Serializable
  */
 
 @Serializable
-@SerialName("rules")
+@XmlSerialName("rules")
 data class Rules(
     private val activity: Activity? = null,
     private val service: Service? = null,
@@ -51,35 +52,42 @@ data class Rules(
 // Base class for components (Activity, Broadcast and service)
 @Serializable
 sealed class Component {
+    @XmlElement(value = false)
     val block = true
+
+    @XmlElement(value = false)
     val log = false
+
+    @XmlElement(value = true)
     abstract val intentFilter: IntentFilter?
+
+    @XmlElement(value = true)
     abstract val componentFilter: List<ComponentFilter>
 
     @Serializable
-    @SerialName("activity")
+    @XmlSerialName(value = "activity")
     data class Activity(
         override val intentFilter: IntentFilter? = null,
         override val componentFilter: List<ComponentFilter> = listOf(),
     ) : Component()
 
     @Serializable
-    @SerialName("broadcast")
-    class Broadcast(
+    @XmlSerialName("broadcast")
+    data class Broadcast(
         override val intentFilter: IntentFilter? = null,
         override val componentFilter: List<ComponentFilter> = listOf(),
     ) : Component()
 
     @Serializable
-    @SerialName("service")
-    class Service(
+    @XmlSerialName("service")
+    data class Service(
         override val intentFilter: IntentFilter? = null,
         override val componentFilter: List<ComponentFilter> = listOf(),
     ) : Component()
 }
 
 @Serializable
-@SerialName("intent-filter")
+@XmlSerialName("intent-filter")
 data class IntentFilter(
     val path: Path? = null,
     val auth: Auth? = null,
@@ -91,54 +99,67 @@ data class IntentFilter(
 )
 
 @Serializable
-@SerialName("component-filter")
+@XmlSerialName("component-filter")
 data class ComponentFilter(
+    @XmlElement(value = false)
     val name: String,
 )
 
 @Serializable
-@SerialName("path")
+@XmlSerialName("path")
 data class Path(
+    @XmlElement(value = false)
     val literal: String,
+    @XmlElement(value = false)
     val prefix: String,
+    @XmlElement(value = false)
     val sglob: String,
 )
 
 @Serializable
-@SerialName("auth")
+@XmlSerialName("auth")
 data class Auth(
+    @XmlElement(value = false)
     val host: String,
+    @XmlElement(value = false)
     val port: String,
 )
 
 @Serializable
-@SerialName("ssp")
+@XmlSerialName("ssp")
 data class Ssp(
+    @XmlElement(value = false)
     val literal: String,
+    @XmlElement(value = false)
     val prefix: String,
+    @XmlElement(value = false)
     val sglob: String,
 )
 
 @Serializable
-@SerialName("scheme")
+@XmlSerialName("scheme")
 data class Scheme(
+    @XmlElement(value = false)
     val name: String,
 )
 
 @Serializable
-@SerialName("type")
+@XmlSerialName("type")
 data class Type(
+    @XmlElement(value = false)
     val name: String,
 )
 
 @Serializable
-@SerialName("cat")
+@XmlSerialName("cat")
 data class Cat(
+    @XmlElement(value = false)
     val name: String,
 )
 
 @Serializable
-@SerialName("action")
+@XmlSerialName("action")
 data class Action(
+    @XmlElement(value = false)
     val name: String,
 )
