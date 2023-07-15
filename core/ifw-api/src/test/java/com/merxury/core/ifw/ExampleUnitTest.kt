@@ -13,7 +13,7 @@
  *   See the License for the specific language governing permissions and
  *   limitations under the License.
  */
-package com.merxury.ifw
+package com.merxury.core.ifw
 
 import org.junit.Assert
 import org.junit.Test
