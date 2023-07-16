@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-package com.merxury.ifw.entity;
+package com.merxury.core.ifw
 
-import org.simpleframework.xml.ElementList;
+import dagger.assisted.AssistedFactory
 
-import java.util.List;
-
-public class IntentFilter {
-    @ElementList(inline = true)
-    List<Action> actions;
-
-    public List<Action> getActions() {
-        return actions;
-    }
-
-    public void setActions(List<Action> actions) {
-        this.actions = actions;
-    }
+@AssistedFactory
+interface IntentFirewallFactory {
+    fun create(packageName: String): IntentFirewall
 }

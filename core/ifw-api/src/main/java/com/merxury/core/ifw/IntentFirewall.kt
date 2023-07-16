@@ -22,7 +22,6 @@ import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.PermissionUtils
-import com.merxury.ifw.util.IfwStorageUtils
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
 import com.topjohnwu.superuser.io.SuFileOutputStream
