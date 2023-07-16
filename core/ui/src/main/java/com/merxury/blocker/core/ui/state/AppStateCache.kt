@@ -20,7 +20,7 @@ import android.content.ComponentName
 import android.content.Context
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
-import com.merxury.ifw.IntentFirewallImpl
+import com.merxury.core.ifw.IntentFirewallImpl
 
 object AppStateCache {
     private val cache = mutableMapOf<String, AppState>()

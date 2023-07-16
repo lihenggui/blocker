@@ -27,8 +27,8 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.PermissionUtils
-import com.merxury.ifw.IntentFirewall
-import com.merxury.ifw.IntentFirewallImpl
+import com.merxury.core.ifw.IntentFirewall
+import com.merxury.core.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.IfwComponentType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
