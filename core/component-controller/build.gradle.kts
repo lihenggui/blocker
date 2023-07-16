@@ -45,4 +45,7 @@ dependencies {
     implementation(libs.libsu.io)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
+    // TODO to be removed
+    implementation(libs.xmlutil.core.android)
+    implementation(libs.xmlutil.serialization.android)
 }

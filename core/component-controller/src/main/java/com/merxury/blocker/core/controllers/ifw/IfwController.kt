@@ -29,7 +29,7 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.PermissionUtils
 import com.merxury.core.ifw.IIntentFirewall
-import com.merxury.core.ifw.IntentFirewall
+import com.merxury.core.ifw.IntentFirewallFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import timber.log.Timber
@@ -37,6 +37,7 @@ import javax.inject.Inject
 
 class IfwController @Inject constructor(
     @ApplicationContext private val context: Context,
+    private val ifwFactory: IntentFirewallFactory,
     @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,
 ) : IController {
     private var controller: IIntentFirewall? = null
@@ -188,7 +189,7 @@ class IfwController @Inject constructor(
 
     private suspend fun initController(packageName: String) {
         Timber.v("Create new IFW controller instance: $packageName")
-        this.controller = IntentFirewall(packageName, dispatcher).load()
+        this.controller = ifwFactory.create(packageName).load()
         return
     }
 
