@@ -13,65 +13,61 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.merxury.ifw.util
 
-package com.merxury.ifw.util;
+import timber.log.Timber
+import java.io.File
+import java.lang.reflect.InvocationTargetException
 
-import androidx.annotation.NonNull;
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import timber.log.Timber;
-
-public class IfwStorageUtils {
-    private static final String IFW_FOLDER = "/ifw";
-    private static final File DATA_DIRECTORY
-            = getDirectory("ANDROID_DATA", "/data");
-    private static final File SECURE_DATA_DIRECTORY
-            = getDirectory("ANDROID_SECURE_DATA", "/data/secure");
-
-    private static final String SYSTEM_PROPERTY_EFS_ENABLED = "persist.security.efs.enabled";
-
-    private static File getDirectory(String variableName, String defaultPath) {
-        String path = System.getenv(variableName);
-        return path == null ? new File(defaultPath) : new File(path);
+object IfwStorageUtils {
+    private const val IFW_FOLDER = "/ifw"
+    private val DATA_DIRECTORY = getDirectory("ANDROID_DATA", "/data")
+    private val SECURE_DATA_DIRECTORY = getDirectory("ANDROID_SECURE_DATA", "/data/secure")
+    private const val SYSTEM_PROPERTY_EFS_ENABLED = "persist.security.efs.enabled"
+    private fun getDirectory(variableName: String, defaultPath: String): File {
+        val path = System.getenv(variableName)
+        return if (path == null) File(defaultPath) else File(path)
     }
 
-    /**
-     * Gets the system directory available for secure storage.
-     * If Encrypted File system is enabled, it returns an encrypted directory (/data/secure/system).
-     * Otherwise, it returns the unencrypted /data/system directory.
-     *
-     * @return File object representing the secure storage system directory.
-     */
-
-    public static File getSystemSecureDirectory() {
-        if (isEncryptedFilesystemEnabled()) {
-            return new File(SECURE_DATA_DIRECTORY, "system");
+    @get:SuppressWarnings("WeakerAccess")
+    val systemSecureDirectory: File
+        /**
+         * Gets the system directory available for secure storage.
+         * If Encrypted File system is enabled, it returns an encrypted directory (/data/secure/system).
+         * Otherwise, it returns the unencrypted /data/system directory.
+         *
+         * @return File object representing the secure storage system directory.
+         */
+        get() = if (isEncryptedFilesystemEnabled) {
+            File(SECURE_DATA_DIRECTORY, "system")
         } else {
-            return new File(DATA_DIRECTORY, "system");
+            File(DATA_DIRECTORY, "system")
         }
-    }
-
-
-    /**
-     * Returns whether the Encrypted File System feature is enabled on the device or not.
-     *
-     * @return <code>true</code> if Encrypted File System feature is enabled, <code>false</code>
-     * if disabled.
-     */
-    @SuppressWarnings("ConstantConditions")
-    public static boolean isEncryptedFilesystemEnabled() {
-        try {
-            return (boolean) Class.forName("android.os.SystemProperties")
-                    .getMethod("getBoolean", String.class, boolean.class)
-                    .invoke(null, SYSTEM_PROPERTY_EFS_ENABLED, false);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            Timber.e(e, "Cannot access internal method");
-            return false;
+    @get:SuppressWarnings("WeakerAccess")
+    val isEncryptedFilesystemEnabled: Boolean
+        /**
+         * Returns whether the Encrypted File System feature is enabled on the device or not.
+         *
+         * @return `true` if Encrypted File System feature is enabled, `false`
+         * if disabled.
+         */
+        get() = try {
+            Class.forName("android.os.SystemProperties")
+                .getMethod("getBoolean", String::class.java, Boolean::class.javaPrimitiveType)
+                .invoke(null, SYSTEM_PROPERTY_EFS_ENABLED, false) as Boolean
+        } catch (e: ClassNotFoundException) {
+            Timber.e(e, "Cannot access internal method")
+            false
+        } catch (e: NoSuchMethodException) {
+            Timber.e(e, "Cannot access internal method")
+            false
+        } catch (e: IllegalAccessException) {
+            Timber.e(e, "Cannot access internal method")
+            false
+        } catch (e: InvocationTargetException) {
+            Timber.e(e, "Cannot access internal method")
+            false
         }
-    }
-
-    @NonNull
-    public static String getIfwFolder() {
-        return IfwStorageUtils.getSystemSecureDirectory() + IFW_FOLDER + File.separator;
-    }
+    val ifwFolder: String
+        get() = systemSecureDirectory.toString() + IFW_FOLDER + File.separator
 }
