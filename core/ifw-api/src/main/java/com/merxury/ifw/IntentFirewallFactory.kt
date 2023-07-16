@@ -16,10 +16,10 @@
 
 package com.merxury.ifw
 
-import com.merxury.core.ifw.IntentFirewallImpl
+import com.merxury.core.ifw.IntentFirewall
 import dagger.assisted.AssistedFactory
 
 @AssistedFactory
 interface IntentFirewallFactory {
-    fun create(packageName: String): IntentFirewallImpl
+    fun create(packageName: String): IntentFirewall
 }
