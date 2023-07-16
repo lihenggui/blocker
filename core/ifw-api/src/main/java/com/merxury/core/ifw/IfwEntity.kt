@@ -22,6 +22,7 @@ import com.merxury.core.ifw.Component.Service
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
+import nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -55,7 +56,7 @@ data class Rules(
         @OptIn(ExperimentalXmlUtilApi::class)
         fun decodeFromString(content: String): Rules {
             val xml = XML {
-                policy = JacksonPolicy
+                policy = DefaultXmlSerializationPolicy(pedantic = false)
             }
             return xml.decodeFromString(content)
         }
