@@ -32,13 +32,12 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
-import nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy
 import nl.adaptivity.xmlutil.serialization.XML
 import timber.log.Timber
 
 class IntentFirewall @AssistedInject constructor(
-    @Assisted val packageName: String,
+    @Assisted private val packageName: String,
+    private val xmlParser: XML,
     @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,
 ) : IIntentFirewall {
 
@@ -46,18 +45,12 @@ class IntentFirewall @AssistedInject constructor(
     private val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
     private var rule: Rules = Rules()
 
-    @OptIn(ExperimentalXmlUtilApi::class)
-    private val xml = XML {
-        policy = DefaultXmlSerializationPolicy(pedantic = false)
-        indentString = "   "
-    }
-
     override suspend fun load() = withContext(dispatcher) {
         if (PermissionUtils.isRootAvailable() && destFile.exists()) {
             try {
                 val input = SuFileInputStream.open(destFile)
                 val fileContent = input.readBytes().toString(Charsets.UTF_8)
-                rule = xml.decodeFromString<Rules>(fileContent)
+                rule = xmlParser.decodeFromString<Rules>(fileContent)
             } catch (e: SerializationException) {
                 Timber.e(e, "Failed to decode $destFile")
             } catch (e: IllegalArgumentException) {
@@ -79,7 +72,7 @@ class IntentFirewall @AssistedInject constructor(
             return@withContext
         }
         // Write xml content to file
-        val fileContent = xml.encodeToString(rule)
+        val fileContent = xmlParser.encodeToString(rule)
         SuFileOutputStream.open(destFile).use {
             // Write file content to output stream
             it.write(fileContent.toByteArray(Charsets.UTF_8))
