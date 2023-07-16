@@ -16,139 +16,128 @@
 
 package com.merxury.core.ifw
 
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.exception.RootUnavailableException
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.PermissionUtils
-import com.merxury.ifw.entity.Activity
-import com.merxury.ifw.entity.Broadcast
-import com.merxury.ifw.entity.Component
-import com.merxury.ifw.entity.ComponentFilter
-import com.merxury.ifw.entity.IfwComponentType
-import com.merxury.ifw.entity.Rules
-import com.merxury.ifw.entity.Service
 import com.merxury.ifw.util.IfwStorageUtils
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
 import com.topjohnwu.superuser.io.SuFileOutputStream
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import org.simpleframework.xml.Serializer
-import org.simpleframework.xml.core.Persister
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
+import nl.adaptivity.xmlutil.serialization.XML
 import timber.log.Timber
 
 class IntentFirewall @AssistedInject constructor(
     @Assisted val packageName: String,
+    @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,
 ) : IIntentFirewall {
 
     private val filename: String = "$packageName$EXTENSION"
     private val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
     private var rule: Rules = Rules()
 
-    override suspend fun load() = withContext(Dispatchers.IO) {
+    @OptIn(ExperimentalXmlUtilApi::class)
+    private val xml = XML {
+        policy = JacksonPolicy
+    }
+
+    override suspend fun load() = withContext(dispatcher) {
         if (PermissionUtils.isRootAvailable() && destFile.exists()) {
-            val serializer: Serializer = Persister()
             try {
                 val input = SuFileInputStream.open(destFile)
-                rule = serializer.read(Rules::class.java, input)
+                val fileContent = input.readBytes().toString(Charsets.UTF_8)
+                rule = xml.decodeFromString<Rules>(fileContent)
+            } catch (e: SerializationException) {
+                Timber.e(e, "Failed to decode $destFile")
+            } catch (e: IllegalArgumentException) {
+                Timber.e(e, "the decoded input is not a valid instance of Rules: $destFile")
             } catch (e: Exception) {
-                Timber.e(e, "Error reading rules file $destFile:")
+                Timber.e(e, "Error reading rules file $destFile")
             }
         }
         return@withContext this@IntentFirewall
     }
 
-    override suspend fun save() {
-        withContext(Dispatchers.IO) {
-            ensureNoEmptyTag()
-            if (rule.activity == null && rule.broadcast == null && rule.service == null) {
-                // If there is no rules presented, delete rule file (if exists)
-                clear()
-                return@withContext
-            }
-            SuFileOutputStream.open(destFile).use {
-                val serializer: Serializer = Persister()
-                serializer.write(rule, it)
-            }
-            FileUtils.chmod(destFile.absolutePath, 644, false)
-            Timber.i("Saved $destFile")
+    override suspend fun save() = withContext(dispatcher) {
+        val isActivityEmpty = rule.activity.componentFilter.isEmpty()
+        val isBroadcastEmpty = rule.broadcast.componentFilter.isEmpty()
+        val isServiceEmpty = rule.service.componentFilter.isEmpty()
+        if (isActivityEmpty && isBroadcastEmpty && isServiceEmpty) {
+            // If there is no rules presented, delete rule file (if exists)
+            clear()
+            return@withContext
         }
+        // Write xml content to file
+        val fileContent = xml.encodeToString(rule)
+        SuFileOutputStream.open(destFile).use {
+            // Write file content to output stream
+            it.write(fileContent.toByteArray(Charsets.UTF_8))
+        }
+        FileUtils.chmod(destFile.absolutePath, 644, false)
+        Timber.i("Saved $destFile")
     }
 
-    override suspend fun clear() {
-        withContext(Dispatchers.IO) {
-            if (!PermissionUtils.isRootAvailable()) {
-                throw RootUnavailableException()
-            }
-            Timber.d("Clear IFW rule $filename")
-            if (destFile.exists()) {
-                destFile.delete()
-            }
-            rule = Rules()
+    override suspend fun clear() = withContext(dispatcher) {
+        if (!PermissionUtils.isRootAvailable()) {
+            throw RootUnavailableException()
         }
+        Timber.d("Clear IFW rule $filename")
+        if (destFile.exists()) {
+            destFile.delete()
+        }
+        rule = Rules()
     }
 
     override suspend fun add(
         packageName: String,
         componentName: String,
-        type: IfwComponentType?,
+        type: ComponentType,
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot add rule")
             throw RootUnavailableException()
         }
-        var result = false
-        when (type) {
-            IfwComponentType.ACTIVITY -> {
-                if (rule.activity == null) {
-                    rule.activity = Activity()
-                }
-                result = addComponentFilter(packageName, componentName, rule.activity)
-            }
-
-            IfwComponentType.BROADCAST -> {
-                if (rule.broadcast == null) {
-                    rule.broadcast = Broadcast()
-                }
-                result = addComponentFilter(packageName, componentName, rule.broadcast)
-            }
-
-            IfwComponentType.SERVICE -> {
-                if (rule.service == null) {
-                    rule.service = Service()
-                }
-                result = addComponentFilter(packageName, componentName, rule.service)
-            }
-
-            else -> {}
+        return when (type) {
+            ComponentType.ACTIVITY -> addComponentFilter(packageName, componentName, rule.activity)
+            ComponentType.RECEIVER -> addComponentFilter(packageName, componentName, rule.broadcast)
+            ComponentType.SERVICE -> addComponentFilter(packageName, componentName, rule.service)
+            else -> false
         }
-        return result
     }
 
     override suspend fun remove(
         packageName: String,
         componentName: String,
-        type: IfwComponentType?,
+        type: ComponentType,
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot remove rule")
             throw RootUnavailableException()
         }
         return when (type) {
-            IfwComponentType.ACTIVITY -> removeComponentFilter(
+            ComponentType.ACTIVITY -> removeComponentFilter(
                 packageName,
                 componentName,
                 rule.activity,
             )
 
-            IfwComponentType.BROADCAST -> removeComponentFilter(
+            ComponentType.RECEIVER -> removeComponentFilter(
                 packageName,
                 componentName,
                 rule.broadcast,
             )
 
-            IfwComponentType.SERVICE -> removeComponentFilter(
+            ComponentType.SERVICE -> removeComponentFilter(
                 packageName,
                 componentName,
                 rule.service,
@@ -162,29 +151,17 @@ class IntentFirewall @AssistedInject constructor(
         packageName: String,
         componentName: String,
     ): Boolean {
-        val filters: MutableList<ComponentFilter> = ArrayList()
-        rule.activity?.let {
-            filters.addAll(it.componentFilters)
+        val filters = mutableListOf<ComponentFilter>()
+        rule.activity.let {
+            filters.addAll(it.componentFilter)
         }
-        rule.broadcast?.let {
-            filters.addAll(it.componentFilters)
+        rule.broadcast.let {
+            filters.addAll(it.componentFilter)
         }
-        rule.service?.let {
-            filters.addAll(it.componentFilters)
+        rule.service.let {
+            filters.addAll(it.componentFilter)
         }
         return getFilterEnableState(packageName, componentName, filters)
-    }
-
-    private fun ensureNoEmptyTag() {
-        if (rule.activity != null && rule.activity.componentFilters.isNullOrEmpty()) {
-            rule.activity = null
-        }
-        if (rule.broadcast != null && rule.broadcast.componentFilters.isNullOrEmpty()) {
-            rule.broadcast = null
-        }
-        if (rule.service != null && rule.service.componentFilters.isNullOrEmpty()) {
-            rule.service = null
-        }
     }
 
     private fun addComponentFilter(
@@ -195,11 +172,7 @@ class IntentFirewall @AssistedInject constructor(
         if (component == null) {
             return false
         }
-        var filters = component.componentFilters
-        if (filters == null) {
-            filters = ArrayList()
-            component.componentFilters = filters
-        }
+        val filters = component.componentFilter
         val filterRule = formatName(packageName, componentName)
         // Duplicate filter detection
         for (filter in filters) {
@@ -220,10 +193,7 @@ class IntentFirewall @AssistedInject constructor(
         if (component == null) {
             return false
         }
-        var filters = component.componentFilters
-        if (filters == null) {
-            filters = ArrayList()
-        }
+        val filters = component.componentFilter
         val filterRule = formatName(packageName, componentName)
         for (filter in ArrayList(filters)) {
             if (filterRule == filter.name) {
