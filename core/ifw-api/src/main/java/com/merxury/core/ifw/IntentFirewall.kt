@@ -49,6 +49,7 @@ class IntentFirewall @AssistedInject constructor(
     @OptIn(ExperimentalXmlUtilApi::class)
     private val xml = XML {
         policy = DefaultXmlSerializationPolicy(pedantic = false)
+        indentString = "   "
     }
 
     override suspend fun load() = withContext(dispatcher) {

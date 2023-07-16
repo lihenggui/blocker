@@ -57,6 +57,7 @@ data class Rules(
         fun decodeFromString(content: String): Rules {
             val xml = XML {
                 policy = DefaultXmlSerializationPolicy(pedantic = false)
+                indentString = "   "
             }
             return xml.decodeFromString(content)
         }
