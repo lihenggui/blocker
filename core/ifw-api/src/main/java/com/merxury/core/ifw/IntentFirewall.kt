@@ -38,7 +38,7 @@ import org.simpleframework.xml.Serializer
 import org.simpleframework.xml.core.Persister
 import timber.log.Timber
 
-class IntentFirewallImpl @AssistedInject constructor(
+class IntentFirewall @AssistedInject constructor(
     @Assisted override val packageName: String,
 ) : IIntentFirewall {
 
@@ -56,7 +56,7 @@ class IntentFirewallImpl @AssistedInject constructor(
                 Timber.e(e, "Error reading rules file $destFile:")
             }
         }
-        return@withContext this@IntentFirewallImpl
+        return@withContext this@IntentFirewall
     }
 
     override suspend fun save() {

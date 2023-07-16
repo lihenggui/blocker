@@ -32,7 +32,7 @@ import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.core.ifw.IIntentFirewall
-import com.merxury.core.ifw.IntentFirewallImpl
+import com.merxury.core.ifw.IntentFirewall
 import com.merxury.ifw.entity.IfwComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.util.IfwStorageUtils
@@ -53,7 +53,7 @@ object Rule {
             versionName = applicationInfo.versionName,
             versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo),
         )
-        val ifwController = IntentFirewallImpl(packageName).load()
+        val ifwController = IntentFirewall(packageName).load()
         try {
             applicationInfo.receivers?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
@@ -174,7 +174,7 @@ object Rule {
         // Detects if contains IFW rules, if exists, create a new controller.
         rule.components.forEach ifwDetection@{
             if (it.method == ControllerType.IFW) {
-                ifwController = IntentFirewallImpl(it.packageName).load()
+                ifwController = IntentFirewall(it.packageName).load()
                 return@ifwDetection
             }
         }
