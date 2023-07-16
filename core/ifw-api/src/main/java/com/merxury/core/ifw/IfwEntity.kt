@@ -20,6 +20,9 @@ import com.merxury.core.ifw.Component.Activity
 import com.merxury.core.ifw.Component.Broadcast
 import com.merxury.core.ifw.Component.Service
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
@@ -47,7 +50,17 @@ data class Rules(
     val activity: Activity = Activity(),
     val broadcast: Broadcast = Broadcast(),
     val service: Service = Service(),
-)
+) {
+    companion object {
+        @OptIn(ExperimentalXmlUtilApi::class)
+        fun decodeFromString(content: String): Rules {
+            val xml = XML {
+                policy = JacksonPolicy
+            }
+            return xml.decodeFromString(content)
+        }
+    }
+}
 
 // Base class for components (Activity, Broadcast and service)
 @Serializable

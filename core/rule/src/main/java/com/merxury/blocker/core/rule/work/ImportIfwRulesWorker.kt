@@ -36,7 +36,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.ifw.util.RuleSerializer
+import com.merxury.core.ifw.Rules
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -93,31 +93,41 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                 setForeground(updateNotification(documentFile.name ?: "", importedCount, total))
                 var packageName: String? = null
                 context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
-                    val rule = RuleSerializer.deserialize(stream) ?: return@forEach
-                    val activities = rule.activity?.componentFilters?.asSequence()
-                        ?.map { filter -> filter.name.split("/") }?.map { names ->
+                    val fileContent = stream.bufferedReader().use { it.readText() }
+                    if (fileContent.isEmpty()) {
+                        return@forEach
+                    }
+                    val rule = Rules.decodeFromString(fileContent)
+                    val activities = rule.activity.componentFilter.asSequence()
+                        .map { filter -> filter.name.split("/") }
+                        .map { names ->
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
                             packageName = component.packageName
                             component
-                        }?.toList() ?: mutableListOf()
-                    val broadcast = rule.broadcast?.componentFilters?.asSequence()
-                        ?.map { filter -> filter.name.split("/") }?.map { names ->
+                        }
+                        .toList()
+                    val broadcast = rule.broadcast.componentFilter.asSequence()
+                        .map { filter -> filter.name.split("/") }
+                        .map { names ->
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
                             packageName = component.packageName
                             component
-                        }?.toList() ?: mutableListOf()
-                    val service = rule.service?.componentFilters?.asSequence()
-                        ?.map { filter -> filter.name.split("/") }?.map { names ->
+                        }
+                        .toList()
+                    val service = rule.service.componentFilter.asSequence()
+                        .map { filter -> filter.name.split("/") }
+                        .map { names ->
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
                             packageName = component.packageName
                             component
-                        }?.toList() ?: mutableListOf()
+                        }
+                        .toList()
                     val isSystemApp =
                         ApplicationUtil.isSystemApp(context.packageManager, packageName)
                     if (!shouldRestoreSystemApps && isSystemApp) {

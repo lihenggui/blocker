@@ -18,24 +18,17 @@ package com.merxury.blocker.core.rule
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.pm.ComponentInfo
 import android.net.Uri
 import androidx.core.content.pm.PackageInfoCompat
-import androidx.documentfile.provider.DocumentFile
 import com.merxury.blocker.core.controllers.ComponentControllerProxy
-import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.entity.ComponentRule
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IntentFirewall
-import com.merxury.ifw.entity.Rules
-import com.merxury.ifw.util.IfwStorageUtils
-import com.merxury.ifw.util.RuleSerializer
 import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 
@@ -264,78 +257,6 @@ object Rule {
             return false
         }
         return true
-    }
-
-    suspend fun importIfwRules(context: Context, importFolderUri: Uri): Int {
-        val controller = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
-        var succeedCount = 0
-        val folder = DocumentFile.fromTreeUri(context, importFolderUri)
-        if (folder == null) {
-            Timber.e("Cannot open ifw backup folder")
-            return 0
-        }
-        // { file -> file.isFile && file.name.endsWith(".xml") }
-        folder.listFiles().forEach { documentFile ->
-            if (!documentFile.isFile) {
-                return@forEach
-            }
-            context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
-                val rule = RuleSerializer.deserialize(stream) ?: return@forEach
-                updateIfwState(rule, controller)
-                succeedCount++
-            }
-        }
-        return succeedCount
-    }
-
-    suspend fun updateIfwState(
-        rule: Rules,
-        controller: IController,
-    ) {
-        val activities =
-            rule.activity?.componentFilters?.asSequence()?.map { filter -> filter.name.split("/") }
-                ?.map { names ->
-                    val component = ComponentInfo()
-                    component.packageName = names[0]
-                    component.name = names[1]
-                    component
-                }?.toList() ?: mutableListOf()
-        val broadcast =
-            rule.broadcast?.componentFilters?.asSequence()?.map { filter -> filter.name.split("/") }
-                ?.map { names ->
-                    val component = ComponentInfo()
-                    component.packageName = names[0]
-                    component.name = names[1]
-                    component
-                }?.toList() ?: mutableListOf()
-        val service =
-            rule.service?.componentFilters?.asSequence()?.map { filter -> filter.name.split("/") }
-                ?.map { names ->
-                    val component = ComponentInfo()
-                    component.packageName = names[0]
-                    component.name = names[1]
-                    component
-                }?.toList() ?: mutableListOf()
-        controller.batchDisable(activities) {}
-        controller.batchDisable(broadcast) {}
-        controller.batchDisable(service) {}
-    }
-
-    suspend fun resetIfw(): Boolean {
-        var result = true
-        try {
-            val ifwFolder = IfwStorageUtils.ifwFolder
-            val files = FileUtils.listFiles(ifwFolder)
-            files.forEach {
-                if (!FileUtils.delete(it, false)) {
-                    result = false
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Can't reset IFW")
-            return false
-        }
-        return result
     }
 
     fun isApplicationUninstalled(
