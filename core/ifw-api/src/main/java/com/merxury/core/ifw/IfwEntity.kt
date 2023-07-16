@@ -44,9 +44,9 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @Serializable
 @XmlSerialName("rules")
 data class Rules(
-    private val activity: Activity? = null,
-    private val service: Service? = null,
-    private val broadcast: Broadcast? = null,
+    val activity: Activity = Activity(),
+    val broadcast: Broadcast = Broadcast(),
+    val service: Service = Service(),
 )
 
 // Base class for components (Activity, Broadcast and service)
@@ -62,27 +62,27 @@ sealed class Component {
     abstract val intentFilter: IntentFilter?
 
     @XmlElement(value = true)
-    abstract val componentFilter: List<ComponentFilter>
+    abstract val componentFilter: MutableList<ComponentFilter>
 
     @Serializable
     @XmlSerialName(value = "activity")
     data class Activity(
         override val intentFilter: IntentFilter? = null,
-        override val componentFilter: List<ComponentFilter> = listOf(),
+        override val componentFilter: MutableList<ComponentFilter> = mutableListOf(),
     ) : Component()
 
     @Serializable
     @XmlSerialName("broadcast")
     data class Broadcast(
         override val intentFilter: IntentFilter? = null,
-        override val componentFilter: List<ComponentFilter> = listOf(),
+        override val componentFilter: MutableList<ComponentFilter> = mutableListOf(),
     ) : Component()
 
     @Serializable
     @XmlSerialName("service")
     data class Service(
         override val intentFilter: IntentFilter? = null,
-        override val componentFilter: List<ComponentFilter> = listOf(),
+        override val componentFilter: MutableList<ComponentFilter> = mutableListOf(),
     ) : Component()
 }
 
