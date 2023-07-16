@@ -62,7 +62,7 @@ class ResetIfwWorker @AssistedInject constructor(
         var count = 0
         val total: Int
         try {
-            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
             total = files.count()
             files.forEach {
@@ -95,7 +95,7 @@ class ResetIfwWorker @AssistedInject constructor(
     private suspend fun clearIfwRuleForPackage(packageName: String): Result {
         try {
             Timber.d("Start clearing IFW rules for package $packageName")
-            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
             val filename = packageName + Rule.IFW_EXTENSION
             if (files.contains(filename)) {

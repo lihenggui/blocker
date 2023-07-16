@@ -74,7 +74,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         Timber.i("Start to export IFW rules.")
         var current = 0
         try {
-            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
             val total = files.count()
             files.forEach {
@@ -107,7 +107,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
     private suspend fun exportForSingleApplication(packageName: String, backupFolder: String): Int {
         Timber.d("Export IFW rules for $packageName")
         return withContext(ioDispatcher) {
-            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
             val targetFileName = packageName + Rule.IFW_EXTENSION
             if (files.contains(targetFileName)) {

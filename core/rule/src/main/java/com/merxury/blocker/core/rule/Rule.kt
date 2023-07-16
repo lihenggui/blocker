@@ -324,7 +324,7 @@ object Rule {
     suspend fun resetIfw(): Boolean {
         var result = true
         try {
-            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
             files.forEach {
                 if (!FileUtils.delete(it, false)) {
