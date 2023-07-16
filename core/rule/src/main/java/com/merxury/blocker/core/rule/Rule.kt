@@ -31,8 +31,8 @@ import com.merxury.blocker.core.rule.entity.ComponentRule
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.ifw.IntentFirewall
-import com.merxury.ifw.IntentFirewallImpl
+import com.merxury.core.ifw.IntentFirewall
+import com.merxury.core.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.IfwComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.util.IfwStorageUtils

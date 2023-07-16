@@ -16,6 +16,7 @@
 
 package com.merxury.ifw
 
+import com.merxury.core.ifw.IntentFirewallImpl
 import dagger.assisted.AssistedFactory
 
 @AssistedFactory
