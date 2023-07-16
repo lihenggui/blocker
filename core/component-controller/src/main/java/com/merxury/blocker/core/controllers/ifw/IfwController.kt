@@ -27,7 +27,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.PermissionUtils
-import com.merxury.core.ifw.IntentFirewall
+import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IntentFirewallImpl
 import com.merxury.ifw.entity.IfwComponentType
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -39,7 +39,7 @@ class IfwController @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,
 ) : IController {
-    private var controller: IntentFirewall? = null
+    private var controller: IIntentFirewall? = null
     private var packageInfo: PackageInfo? = null
 
     override suspend fun switchComponent(
