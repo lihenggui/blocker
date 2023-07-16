@@ -38,4 +38,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     kapt(libs.hilt.compiler)
     kapt(libs.hilt.ext.compiler)
+    // TODO to be removed
+    implementation(libs.xmlutil.core.android)
+    implementation(libs.xmlutil.serialization.android)
 }

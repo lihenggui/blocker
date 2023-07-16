@@ -29,7 +29,9 @@ import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IntentFirewall
+import com.merxury.core.ifw.IntentFirewallFactory
 import kotlinx.coroutines.Dispatchers
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import timber.log.Timber
 
 object Rule {
@@ -37,6 +39,8 @@ object Rule {
     const val EXTENSION = ".json"
     const val IFW_EXTENSION = ".xml"
 
+    // TODO Rewrite this part of code
+    @OptIn(ExperimentalXmlUtilApi::class)
     suspend fun export(context: Context, packageName: String, destUri: Uri): Boolean {
         Timber.i("Backup rules for $packageName")
         val pm = context.packageManager
@@ -46,7 +50,21 @@ object Rule {
             versionName = applicationInfo.versionName,
             versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo),
         )
-        val ifwController = IntentFirewall(packageName, Dispatchers.IO).load()
+        val ifwController = object : IntentFirewallFactory {
+            override fun create(packageName: String): IntentFirewall {
+                return IntentFirewall(
+                    packageName,
+                    nl.adaptivity.xmlutil.serialization.XML {
+                        policy =
+                            nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy(
+                                pedantic = false,
+                            )
+                        indentString = "   "
+                    },
+                    Dispatchers.IO,
+                )
+            }
+        }.create(packageName)
         try {
             applicationInfo.receivers?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
@@ -151,6 +169,8 @@ object Rule {
         }
     }
 
+    // TODO to be refactored
+    @OptIn(ExperimentalXmlUtilApi::class)
     suspend fun import(
         context: Context,
         rule: BlockerRule,
@@ -167,7 +187,21 @@ object Rule {
         // Detects if contains IFW rules, if exists, create a new controller.
         rule.components.forEach ifwDetection@{
             if (it.method == ControllerType.IFW) {
-                ifwController = IntentFirewall(it.packageName, Dispatchers.IO).load()
+                ifwController = object : IntentFirewallFactory {
+                    override fun create(packageName: String): IntentFirewall {
+                        return IntentFirewall(
+                            packageName,
+                            nl.adaptivity.xmlutil.serialization.XML {
+                                policy =
+                                    nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy(
+                                        pedantic = false,
+                                    )
+                                indentString = "   "
+                            },
+                            Dispatchers.IO,
+                        )
+                    }
+                }.create(it.packageName)
                 return@ifwDetection
             }
         }

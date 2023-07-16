@@ -41,6 +41,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import nl.adaptivity.xmlutil.serialization.XML
 import timber.log.Timber
 import java.io.IOException
 
@@ -48,6 +49,7 @@ import java.io.IOException
 class ImportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
+    private val xmlParser: XML,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -97,7 +99,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                     if (fileContent.isEmpty()) {
                         return@forEach
                     }
-                    val rule = Rules.decodeFromString(fileContent)
+                    val rule = Rules.decodeFromString(xmlParser, fileContent)
                     val activities = rule.activity.componentFilter.asSequence()
                         .map { filter -> filter.name.split("/") }
                         .map { names ->

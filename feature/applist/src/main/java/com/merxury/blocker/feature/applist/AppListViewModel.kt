@@ -51,6 +51,7 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
+import com.merxury.core.ifw.IntentFirewallFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -78,6 +79,7 @@ class AppListViewModel @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
+    private val intentFirewallFactory: IntentFirewallFactory,
 ) : AndroidViewModel(app) {
     private val _appSortInfoUiState: MutableStateFlow<AppSortInfoUiState> =
         MutableStateFlow(Loading)
@@ -272,7 +274,11 @@ class AppListViewModel @Inject constructor(
             return@launch
         }
         Timber.d("Get service status for $packageName")
-        val status = AppStateCache.get(getApplication(), packageName)
+        val status = AppStateCache.get(
+            getApplication(),
+            intentFirewallFactory.create(packageName),
+            packageName,
+        )
         val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
         _appList[index] = newItem
     }
