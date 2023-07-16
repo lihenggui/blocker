@@ -19,14 +19,17 @@ import com.merxury.core.ifw.Component.Activity
 import com.merxury.core.ifw.Component.Broadcast
 import com.merxury.core.ifw.Component.Service
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
+import nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy
 import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.Test
 class IntentFirewallUnitTest {
 
     @OptIn(ExperimentalXmlUtilApi::class)
     private val xml = XML {
-        policy = JacksonPolicy
+        policy = DefaultXmlSerializationPolicy(pedantic = false)
+        indentString = "   "
     }
 
     @Test
@@ -34,37 +37,37 @@ class IntentFirewallUnitTest {
         val fileContent = """
             <rules>
                <activity block="true" log="false">
-                  <component-filter name="com.example/com.example.MainActivity"/>
+                  <component-filter name="com.example/com.example.MainActivity" />
                </activity>
                <broadcast block="true" log="false">
-                  <component-filter name="com.example/com.example.AlarmReceiver"/>
-                  <component-filter name="com.example/com.example.BootReceiver"/>
-                  <component-filter name="com.example/com.example.NotifierReceiver"/>
-                  <component-filter name="com.example/com.example.TimeZoneReceiver"/>
+                  <component-filter name="com.example/com.example.AlarmReceiver" />
+                  <component-filter name="com.example/com.example.BootReceiver" />
+                  <component-filter name="com.example/com.example.NotifierReceiver" />
+                  <component-filter name="com.example/com.example.TimeZoneReceiver" />
                </broadcast>
                <service block="true" log="false">
-                  <component-filter name="com.example/com.example.DaemonService"/>
-                  <component-filter name="com.example/com.example.ForwardService"/>
-                  <component-filter name="com.example/com.example.VpnService"/>
+                  <component-filter name="com.example/com.example.DaemonService" />
+                  <component-filter name="com.example/com.example.ForwardService" />
+                  <component-filter name="com.example/com.example.VpnService" />
                </service>
             </rules>
         """.trimIndent()
         val deserializedRule = xml.decodeFromString<Rules>(fileContent)
         val targetRule = Rules(
             activity = Activity(
-                componentFilter = listOf(
+                componentFilter = mutableListOf(
                     ComponentFilter("com.example/com.example.MainActivity"),
                 ),
             ),
             service = Service(
-                componentFilter = listOf(
+                componentFilter = mutableListOf(
                     ComponentFilter("com.example/com.example.DaemonService"),
                     ComponentFilter("com.example/com.example.ForwardService"),
                     ComponentFilter("com.example/com.example.VpnService"),
                 ),
             ),
             broadcast = Broadcast(
-                componentFilter = listOf(
+                componentFilter = mutableListOf(
                     ComponentFilter("com.example/com.example.AlarmReceiver"),
                     ComponentFilter("com.example/com.example.BootReceiver"),
                     ComponentFilter("com.example/com.example.NotifierReceiver"),
@@ -73,5 +76,51 @@ class IntentFirewallUnitTest {
             ),
         )
         assert(deserializedRule == targetRule)
+    }
+
+    @Test
+    fun verifyXmlSerializer() {
+        val targetRule = Rules(
+            activity = Activity(
+                componentFilter = mutableListOf(
+                    ComponentFilter("com.example/com.example.MainActivity"),
+                ),
+            ),
+            service = Service(
+                componentFilter = mutableListOf(
+                    ComponentFilter("com.example/com.example.DaemonService"),
+                    ComponentFilter("com.example/com.example.ForwardService"),
+                    ComponentFilter("com.example/com.example.VpnService"),
+                ),
+            ),
+            broadcast = Broadcast(
+                componentFilter = mutableListOf(
+                    ComponentFilter("com.example/com.example.AlarmReceiver"),
+                    ComponentFilter("com.example/com.example.BootReceiver"),
+                    ComponentFilter("com.example/com.example.NotifierReceiver"),
+                    ComponentFilter("com.example/com.example.TimeZoneReceiver"),
+                ),
+            ),
+        )
+        val expectedResult = """
+            <rules>
+               <activity block="true" log="false">
+                  <component-filter name="com.example/com.example.MainActivity" />
+               </activity>
+               <broadcast block="true" log="false">
+                  <component-filter name="com.example/com.example.AlarmReceiver" />
+                  <component-filter name="com.example/com.example.BootReceiver" />
+                  <component-filter name="com.example/com.example.NotifierReceiver" />
+                  <component-filter name="com.example/com.example.TimeZoneReceiver" />
+               </broadcast>
+               <service block="true" log="false">
+                  <component-filter name="com.example/com.example.DaemonService" />
+                  <component-filter name="com.example/com.example.ForwardService" />
+                  <component-filter name="com.example/com.example.VpnService" />
+               </service>
+            </rules>
+        """.trimIndent()
+        val serializedXmlContent = xml.encodeToString(targetRule)
+        assert(serializedXmlContent == expectedResult)
     }
 }

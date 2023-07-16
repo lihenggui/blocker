@@ -33,6 +33,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
+import nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy
 import nl.adaptivity.xmlutil.serialization.XML
 import timber.log.Timber
 
@@ -47,7 +48,7 @@ class IntentFirewall @AssistedInject constructor(
 
     @OptIn(ExperimentalXmlUtilApi::class)
     private val xml = XML {
-        policy = JacksonPolicy
+        policy = DefaultXmlSerializationPolicy(pedantic = false)
     }
 
     override suspend fun load() = withContext(dispatcher) {
