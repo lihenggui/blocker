@@ -18,12 +18,12 @@ package com.merxury.core.ifw
 
 import com.merxury.ifw.entity.IfwComponentType
 
-interface IntentFirewall {
+interface IIntentFirewall {
     @Throws(Exception::class)
     suspend fun save()
 
     @Throws(Exception::class)
-    suspend fun load(): IntentFirewall
+    suspend fun load(): IIntentFirewall
     suspend fun add(packageName: String, componentName: String, type: IfwComponentType?): Boolean
     suspend fun remove(packageName: String, componentName: String, type: IfwComponentType?): Boolean
 

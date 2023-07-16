@@ -40,7 +40,7 @@ import timber.log.Timber
 
 class IntentFirewallImpl @AssistedInject constructor(
     @Assisted override val packageName: String,
-) : IntentFirewall {
+) : IIntentFirewall {
 
     private val filename: String = "$packageName$EXTENSION"
     private val destFile = SuFile(IfwStorageUtils.getIfwFolder() + filename)
