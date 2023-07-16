@@ -34,5 +34,4 @@ interface IIntentFirewall {
 
     @Throws(Exception::class)
     suspend fun clear()
-    val packageName: String
 }

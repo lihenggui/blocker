@@ -187,12 +187,9 @@ class IfwController @Inject constructor(
     }
 
     private suspend fun initController(packageName: String) {
-        val controller = this.controller
-        if (controller == null || controller.packageName != packageName) {
-            Timber.v("Create new IFW controller instance: $packageName")
-            this.controller = IntentFirewall(packageName).load()
-            return
-        }
+        Timber.v("Create new IFW controller instance: $packageName")
+        this.controller = IntentFirewall(packageName).load()
+        return
     }
 
     private suspend fun initPackageInfo(packageName: String) {
