@@ -43,7 +43,7 @@ class IntentFirewall @AssistedInject constructor(
 ) : IIntentFirewall {
 
     private val filename: String = "$packageName$EXTENSION"
-    private val destFile = SuFile(IfwStorageUtils.getIfwFolder() + filename)
+    private val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
     private var rule: Rules = Rules()
 
     override suspend fun load() = withContext(Dispatchers.IO) {
