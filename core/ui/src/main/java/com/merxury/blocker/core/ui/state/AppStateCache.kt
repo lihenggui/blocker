@@ -21,6 +21,7 @@ import android.content.Context
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.core.ifw.IntentFirewall
+import kotlinx.coroutines.Dispatchers
 
 object AppStateCache {
     private val cache = mutableMapOf<String, AppState>()
@@ -45,7 +46,7 @@ object AppStateCache {
         val pm = context.packageManager
         val serviceHelper = ServiceHelper(packageName)
         serviceHelper.refresh()
-        val ifwImpl = IntentFirewall(packageName).load()
+        val ifwImpl = IntentFirewall(packageName, Dispatchers.IO).load()
         val services = ApplicationUtil.getServiceList(pm, packageName)
         var running = 0
         var blocked = 0

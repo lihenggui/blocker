@@ -24,12 +24,12 @@ import com.merxury.blocker.core.controllers.ComponentControllerProxy
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.PermissionUtils
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IntentFirewall
-import com.merxury.ifw.entity.IfwComponentType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import timber.log.Timber
@@ -50,7 +50,7 @@ class IfwController @Inject constructor(
         init(packageName)
         assert(controller != null)
         val type = getComponentType(componentName)
-        if (type == IfwComponentType.PROVIDER) {
+        if (type == ComponentType.PROVIDER) {
             return when (state) {
                 PackageManager.COMPONENT_ENABLED_STATE_DISABLED ->
                     ComponentControllerProxy.getInstance(
@@ -188,7 +188,7 @@ class IfwController @Inject constructor(
 
     private suspend fun initController(packageName: String) {
         Timber.v("Create new IFW controller instance: $packageName")
-        this.controller = IntentFirewall(packageName).load()
+        this.controller = IntentFirewall(packageName, dispatcher).load()
         return
     }
 
@@ -200,28 +200,29 @@ class IfwController @Inject constructor(
         }
     }
 
-    private fun getComponentType(componentName: String): IfwComponentType {
+    private fun getComponentType(componentName: String): ComponentType {
         check(packageInfo != null) { "Package info is null" }
         packageInfo?.receivers?.forEach {
             if (it.name == componentName) {
-                return IfwComponentType.BROADCAST
+                return ComponentType.RECEIVER
             }
         }
         packageInfo?.services?.forEach {
             if (it.name == componentName) {
-                return IfwComponentType.SERVICE
+                return ComponentType.SERVICE
             }
         }
         packageInfo?.activities?.forEach {
             if (it.name == componentName) {
-                return IfwComponentType.ACTIVITY
+                return ComponentType.ACTIVITY
             }
         }
         packageInfo?.providers?.forEach {
             if (it.name == componentName) {
-                return IfwComponentType.PROVIDER
+                return ComponentType.PROVIDER
             }
         }
-        return IfwComponentType.UNKNOWN
+        Timber.e("Component type not found: $componentName")
+        return ComponentType.PROVIDER
     }
 }

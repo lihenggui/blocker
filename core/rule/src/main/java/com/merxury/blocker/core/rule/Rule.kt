@@ -33,10 +33,10 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.core.ifw.IIntentFirewall
 import com.merxury.core.ifw.IntentFirewall
-import com.merxury.ifw.entity.IfwComponentType
 import com.merxury.ifw.entity.Rules
 import com.merxury.ifw.util.IfwStorageUtils
 import com.merxury.ifw.util.RuleSerializer
+import kotlinx.coroutines.Dispatchers
 import timber.log.Timber
 
 object Rule {
@@ -53,7 +53,7 @@ object Rule {
             versionName = applicationInfo.versionName,
             versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo),
         )
-        val ifwController = IntentFirewall(packageName).load()
+        val ifwController = IntentFirewall(packageName, Dispatchers.IO).load()
         try {
             applicationInfo.receivers?.forEach {
                 val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
@@ -174,7 +174,7 @@ object Rule {
         // Detects if contains IFW rules, if exists, create a new controller.
         rule.components.forEach ifwDetection@{
             if (it.method == ControllerType.IFW) {
-                ifwController = IntentFirewall(it.packageName).load()
+                ifwController = IntentFirewall(it.packageName, Dispatchers.IO).load()
                 return@ifwDetection
             }
         }
@@ -190,13 +190,13 @@ object Rule {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
-                                        IfwComponentType.BROADCAST,
+                                        ComponentType.RECEIVER,
                                     )
                                 } else {
                                     ifwController?.remove(
                                         it.packageName,
                                         it.name,
-                                        IfwComponentType.BROADCAST,
+                                        ComponentType.RECEIVER,
                                     )
                                 }
                             }
@@ -206,13 +206,13 @@ object Rule {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
-                                        IfwComponentType.SERVICE,
+                                        ComponentType.SERVICE,
                                     )
                                 } else {
                                     ifwController?.remove(
                                         it.packageName,
                                         it.name,
-                                        IfwComponentType.SERVICE,
+                                        ComponentType.SERVICE,
                                     )
                                 }
                             }
@@ -222,13 +222,13 @@ object Rule {
                                     ifwController?.add(
                                         it.packageName,
                                         it.name,
-                                        IfwComponentType.ACTIVITY,
+                                        ComponentType.ACTIVITY,
                                     )
                                 } else {
                                     ifwController?.remove(
                                         it.packageName,
                                         it.name,
-                                        IfwComponentType.ACTIVITY,
+                                        ComponentType.ACTIVITY,
                                     )
                                 }
                             }

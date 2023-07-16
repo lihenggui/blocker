@@ -43,6 +43,7 @@ object IfwStorageUtils {
         } else {
             File(DATA_DIRECTORY, "system")
         }
+
     @get:SuppressWarnings("WeakerAccess")
     val isEncryptedFilesystemEnabled: Boolean
         /**
