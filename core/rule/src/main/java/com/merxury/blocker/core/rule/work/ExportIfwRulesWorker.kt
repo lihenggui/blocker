@@ -30,7 +30,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.ifw.util.IfwStorageUtils
+import com.merxury.core.ifw.IfwStorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher

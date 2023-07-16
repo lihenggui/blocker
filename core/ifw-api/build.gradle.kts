@@ -41,11 +41,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
-    implementation(libs.simplexml) {
-        exclude("stax", "stax")
-        exclude("stax-api", "stax-api")
-        exclude("xpp3", "xpp3")
-    }
     implementation(libs.xmlutil.core.android)
     implementation(libs.xmlutil.serialization.android)
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.merxury.ifw.util
+package com.merxury.core.ifw
 
 import timber.log.Timber
 import java.io.File
