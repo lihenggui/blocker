@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.ifw
+package com.merxury.core.ifw
 
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.utils.FileUtils
