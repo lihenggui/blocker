@@ -70,5 +70,13 @@ object IfwStorageUtils {
             false
         }
     val ifwFolder: String
-        get() = systemSecureDirectory.toString() + IFW_FOLDER + File.separator
+        get() = _ifwFolder!!
+
+    private var _ifwFolder: String? = null
+        get() = if (field != null) {
+            field
+        } else {
+            field = systemSecureDirectory.toString() + IFW_FOLDER + File.separator
+            field
+        }
 }

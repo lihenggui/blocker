@@ -16,17 +16,22 @@
 
 package com.merxury.core.ifw
 
+import android.content.pm.PackageManager
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.PermissionUtils
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
 import com.topjohnwu.superuser.io.SuFileOutputStream
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
@@ -34,43 +39,60 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import nl.adaptivity.xmlutil.serialization.XML
 import timber.log.Timber
+import javax.inject.Inject
 
-class IntentFirewall @AssistedInject constructor(
-    @Assisted private val packageName: String,
+private const val EXTENSION = ".xml"
+class IntentFirewall @Inject constructor(
+    private val pm: PackageManager,
     private val xmlParser: XML,
     @Dispatcher(IO) private val dispatcher: CoroutineDispatcher,
+    @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : IIntentFirewall {
+    // Cache for the loaded rules to avoid IO operations
+    // Key: package name, Value: Rules
+    private val ruleCache: MutableMap<String, Rules> = mutableMapOf()
 
-    private val filename: String = "$packageName$EXTENSION"
-    private val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
-    private var rule: Rules = Rules()
-
-    override suspend fun load() = withContext(dispatcher) {
-        if (PermissionUtils.isRootAvailable() && destFile.exists()) {
-            try {
-                val input = SuFileInputStream.open(destFile)
-                val fileContent = input.readBytes().toString(Charsets.UTF_8)
-                rule = xmlParser.decodeFromString<Rules>(fileContent)
-            } catch (e: SerializationException) {
-                Timber.e(e, "Failed to decode $destFile")
-            } catch (e: IllegalArgumentException) {
-                Timber.e(e, "the decoded input is not a valid instance of Rules: $destFile")
-            } catch (e: Exception) {
-                Timber.e(e, "Error reading rules file $destFile")
-            }
+    private suspend fun load(packageName: String): Rules = withContext(dispatcher) {
+        val filename = "$packageName$EXTENSION"
+        val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
+        if (!PermissionUtils.isRootAvailable()) {
+            Timber.v("Root unavailable, cannot load rule")
+            return@withContext Rules()
         }
-        return@withContext this@IntentFirewall
+        if (!destFile.exists()) {
+            Timber.v("Rule file $filename not exists")
+            return@withContext Rules()
+        }
+        return@withContext try {
+            Timber.v("Load rule from $destFile")
+            val input = SuFileInputStream.open(destFile)
+            val fileContent = input.readBytes().toString(Charsets.UTF_8)
+            val rule = xmlParser.decodeFromString<Rules>(fileContent)
+            ruleCache[packageName] = rule
+            rule
+        } catch (e: SerializationException) {
+            Timber.e(e, "Failed to decode $destFile")
+            return@withContext Rules()
+        } catch (e: IllegalArgumentException) {
+            Timber.e(e, "the decoded input is not a valid instance of Rules: $destFile")
+            return@withContext Rules()
+        } catch (e: Exception) {
+            Timber.e(e, "Error reading rules file $destFile")
+            return@withContext Rules()
+        }
     }
 
-    override suspend fun save() = withContext(dispatcher) {
+    override suspend fun save(packageName: String, rule: Rules) = withContext(dispatcher) {
         val isActivityEmpty = rule.activity.componentFilter.isEmpty()
         val isBroadcastEmpty = rule.broadcast.componentFilter.isEmpty()
         val isServiceEmpty = rule.service.componentFilter.isEmpty()
         if (isActivityEmpty && isBroadcastEmpty && isServiceEmpty) {
             // If there is no rules presented, delete rule file (if exists)
-            clear()
+            clear(packageName)
             return@withContext
         }
+        val filename = "$packageName$EXTENSION"
+        val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
         // Write xml content to file
         val fileContent = xmlParser.encodeToString(rule)
         SuFileOutputStream.open(destFile).use {
@@ -78,10 +100,13 @@ class IntentFirewall @AssistedInject constructor(
             it.write(fileContent.toByteArray(Charsets.UTF_8))
         }
         FileUtils.chmod(destFile.absolutePath, 644, false)
+        ruleCache.remove(packageName)
         Timber.i("Saved $destFile")
     }
 
-    override suspend fun clear() = withContext(dispatcher) {
+    override suspend fun clear(packageName: String): Unit = withContext(dispatcher) {
+        val filename = "$packageName$EXTENSION"
+        val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
         if (!PermissionUtils.isRootAvailable()) {
             throw RootUnavailableException()
         }
@@ -89,136 +114,109 @@ class IntentFirewall @AssistedInject constructor(
         if (destFile.exists()) {
             destFile.delete()
         }
-        rule = Rules()
+        ruleCache.remove(packageName)
     }
 
     override suspend fun add(
         packageName: String,
         componentName: String,
-        type: ComponentType,
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot add rule")
             throw RootUnavailableException()
         }
-        return when (type) {
-            ComponentType.ACTIVITY -> addComponentFilter(packageName, componentName, rule.activity)
-            ComponentType.RECEIVER -> addComponentFilter(packageName, componentName, rule.broadcast)
-            ComponentType.SERVICE -> addComponentFilter(packageName, componentName, rule.service)
-            else -> false
+        Timber.i("Add rule for ${formatName(packageName, componentName)}")
+        val rule = ruleCache[packageName] ?: load(packageName)
+        when (getComponentType(pm, packageName, componentName)) {
+            RECEIVER -> rule.broadcast.componentFilter.add(ComponentFilter(componentName))
+            SERVICE -> rule.service.componentFilter.add(ComponentFilter(componentName))
+            ACTIVITY -> rule.activity.componentFilter.add(ComponentFilter(componentName))
+            else -> return false
         }
+        save(packageName, rule)
+        return true
     }
 
     override suspend fun remove(
         packageName: String,
         componentName: String,
-        type: ComponentType,
     ): Boolean {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot remove rule")
             throw RootUnavailableException()
         }
-        return when (type) {
-            ComponentType.ACTIVITY -> removeComponentFilter(
-                packageName,
-                componentName,
-                rule.activity,
-            )
-
-            ComponentType.RECEIVER -> removeComponentFilter(
-                packageName,
-                componentName,
-                rule.broadcast,
-            )
-
-            ComponentType.SERVICE -> removeComponentFilter(
-                packageName,
-                componentName,
-                rule.service,
-            )
-
-            else -> false
+        Timber.i("Remove rule for ${formatName(packageName, componentName)}")
+        val rule = ruleCache[packageName] ?: load(packageName)
+        when (getComponentType(pm, packageName, componentName)) {
+            RECEIVER -> rule.broadcast.componentFilter.remove(ComponentFilter(componentName))
+            SERVICE -> rule.service.componentFilter.remove(ComponentFilter(componentName))
+            ACTIVITY -> rule.activity.componentFilter.remove(ComponentFilter(componentName))
+            else -> return false
         }
+        save(packageName, rule)
+        return true
     }
 
     override suspend fun getComponentEnableState(
         packageName: String,
         componentName: String,
     ): Boolean {
-        val filters = mutableListOf<ComponentFilter>()
-        rule.activity.let {
-            filters.addAll(it.componentFilter)
-        }
-        rule.broadcast.let {
-            filters.addAll(it.componentFilter)
-        }
-        rule.service.let {
-            filters.addAll(it.componentFilter)
-        }
-        return getFilterEnableState(packageName, componentName, filters)
-    }
-
-    private fun addComponentFilter(
-        packageName: String,
-        componentName: String,
-        component: Component?,
-    ): Boolean {
-        if (component == null) {
-            return false
-        }
-        val filters = component.componentFilter
-        val filterRule = formatName(packageName, componentName)
-        // Duplicate filter detection
-        for (filter in filters) {
-            if (filter.name == filterRule) {
+        val rule = ruleCache[packageName] ?: load(packageName)
+        val formattedName = formatName(packageName, componentName)
+        for (receiver in rule.broadcast.componentFilter) {
+            if (formattedName == receiver.name) {
                 return false
             }
         }
-        filters.add(ComponentFilter(filterRule))
-        Timber.i("Added component:$packageName/$componentName")
-        return true
-    }
-
-    private fun removeComponentFilter(
-        packageName: String,
-        componentName: String,
-        component: Component?,
-    ): Boolean {
-        if (component == null) {
-            return false
-        }
-        val filters = component.componentFilter
-        val filterRule = formatName(packageName, componentName)
-        for (filter in ArrayList(filters)) {
-            if (filterRule == filter.name) {
-                filters.remove(filter)
+        for (service in rule.service.componentFilter) {
+            if (formattedName == service.name) {
+                return false
             }
         }
-        return true
-    }
-
-    private fun getFilterEnableState(
-        packageName: String,
-        componentName: String,
-        componentFilters: List<ComponentFilter>?,
-    ): Boolean {
-        if (componentFilters == null) {
-            return true
-        }
-        for (filter in componentFilters) {
-            val filterName = formatName(packageName, componentName)
-            if (filterName == filter.name) {
+        for (activity in rule.activity.componentFilter) {
+            if (formattedName == activity.name) {
                 return false
             }
         }
         return true
+    }
+
+    private suspend fun getComponentType(
+        pm: PackageManager,
+        packageName: String,
+        componentName: String,
+    ): ComponentType = withContext(cpuDispatcher) {
+        val formattedName = formatName(packageName, componentName)
+        // Check by type, start from receiver
+        val receivers = ApplicationUtil.getReceiverList(pm, packageName, dispatcher)
+        for (receiver in receivers) {
+            if (formattedName == receiver.name) {
+                return@withContext RECEIVER
+            }
+        }
+        val services = ApplicationUtil.getServiceList(pm, packageName, dispatcher)
+        for (service in services) {
+            if (formattedName == service.name) {
+                return@withContext SERVICE
+            }
+        }
+        val activities = ApplicationUtil.getActivityList(pm, packageName, dispatcher)
+        for (activity in activities) {
+            if (formattedName == activity.name) {
+                return@withContext ACTIVITY
+            }
+        }
+        val providers = ApplicationUtil.getProviderList(pm, packageName, dispatcher)
+        for (provider in providers) {
+            if (formattedName == provider.name) {
+                return@withContext PROVIDER
+            }
+        }
+        Timber.e("Cannot find component type for $formattedName")
+        return@withContext PROVIDER
     }
 
     private fun formatName(packageName: String, name: String): String {
         return "$packageName/$name"
-    }
-
-    companion object {
-        private const val EXTENSION = ".xml"
     }
 }
