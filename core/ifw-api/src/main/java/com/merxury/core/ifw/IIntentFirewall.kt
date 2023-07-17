@@ -16,22 +16,31 @@
 
 package com.merxury.core.ifw
 
-import com.merxury.blocker.core.model.ComponentType
-
 interface IIntentFirewall {
-    @Throws(Exception::class)
-    suspend fun save()
+    /**
+     * Save the rules to IFW folder
+     */
+    suspend fun save(packageName: String, rule: Rules)
 
-    @Throws(Exception::class)
-    suspend fun load(): IIntentFirewall
-    suspend fun add(packageName: String, componentName: String, type: ComponentType): Boolean
-    suspend fun remove(packageName: String, componentName: String, type: ComponentType): Boolean
+    /**
+     * Add single rule for a component
+     * @return true if this method executed successfully, the component will be blocked
+     */
+    suspend fun add(packageName: String, componentName: String): Boolean
+
+    /**
+     * Remove single rule for a component
+     * @return true if this method executed successfully, the component will be unblocked
+     */
+    suspend fun remove(packageName: String, componentName: String): Boolean
 
     /**
      * @return false if the component is blocked
      */
     suspend fun getComponentEnableState(packageName: String, componentName: String): Boolean
 
-    @Throws(Exception::class)
-    suspend fun clear()
+    /**
+     * Remove the IFW rules for specific package
+     */
+    suspend fun clear(packageName: String)
 }
