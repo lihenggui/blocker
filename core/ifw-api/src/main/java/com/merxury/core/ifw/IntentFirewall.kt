@@ -16,6 +16,7 @@
 
 package com.merxury.core.ifw
 
+import android.content.ComponentName
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -42,6 +43,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val EXTENSION = ".xml"
+
 class IntentFirewall @Inject constructor(
     private val pm: PackageManager,
     private val xmlParser: XML,
@@ -101,7 +103,7 @@ class IntentFirewall @Inject constructor(
         }
         FileUtils.chmod(destFile.absolutePath, 644, false)
         ruleCache.remove(packageName)
-        Timber.i("Saved $destFile")
+        Timber.i("Saved IFW rules to $destFile")
     }
 
     override suspend fun clear(packageName: String): Unit = withContext(dispatcher) {
@@ -155,6 +157,54 @@ class IntentFirewall @Inject constructor(
         }
         save(packageName, rule)
         return true
+    }
+
+    override suspend fun addAll(list: List<ComponentName>, callback: (ComponentName) -> Unit) {
+        if (!PermissionUtils.isRootAvailable()) {
+            Timber.e("Root unavailable, cannot add rules")
+            throw RootUnavailableException()
+        }
+        Timber.i("Add rules for ${list.size} components")
+        // the list may contain components from different packages (not likely to happen)
+        val groupedMap = list.groupBy { it.packageName }
+        groupedMap.keys.forEach { packageName ->
+            val rule = ruleCache[packageName] ?: load(packageName)
+            groupedMap[packageName]?.forEach { component ->
+                val filter = ComponentFilter(component.flattenToString())
+                when (getComponentType(pm, packageName, component.className)) {
+                    RECEIVER -> rule.broadcast.componentFilter.add(filter)
+                    SERVICE -> rule.service.componentFilter.add(filter)
+                    ACTIVITY -> rule.activity.componentFilter.add(filter)
+                    else -> {}
+                }
+                callback(component)
+            }
+            save(packageName, rule)
+        }
+    }
+
+    override suspend fun removeAll(list: List<ComponentName>, callback: (ComponentName) -> Unit) {
+        if (!PermissionUtils.isRootAvailable()) {
+            Timber.e("Root unavailable, cannot remove rules")
+            throw RootUnavailableException()
+        }
+        Timber.i("Remove rules for ${list.size} components")
+        // the list may contain components from different packages (not likely to happen)
+        val groupedMap = list.groupBy { it.packageName }
+        groupedMap.keys.forEach { packageName ->
+            val rule = ruleCache[packageName] ?: load(packageName)
+            groupedMap[packageName]?.forEach { component ->
+                val filter = ComponentFilter(component.flattenToString())
+                when (getComponentType(pm, packageName, component.className)) {
+                    RECEIVER -> rule.broadcast.componentFilter.remove(filter)
+                    SERVICE -> rule.service.componentFilter.remove(filter)
+                    ACTIVITY -> rule.activity.componentFilter.remove(filter)
+                    else -> {}
+                }
+                callback(component)
+            }
+            save(packageName, rule)
+        }
     }
 
     override suspend fun getComponentEnableState(

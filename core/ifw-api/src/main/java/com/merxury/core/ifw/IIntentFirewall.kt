@@ -16,6 +16,8 @@
 
 package com.merxury.core.ifw
 
+import android.content.ComponentName
+
 interface IIntentFirewall {
     /**
      * Save the rules to IFW folder
@@ -33,6 +35,16 @@ interface IIntentFirewall {
      * @return true if this method executed successfully, the component will be unblocked
      */
     suspend fun remove(packageName: String, componentName: String): Boolean
+
+    /**
+     * Add multiple rules for a component
+     */
+    suspend fun addAll(list: List<ComponentName>, callback: (ComponentName) -> Unit = {})
+
+    /**
+     * Remove multiple rules for a component
+     */
+    suspend fun removeAll(list: List<ComponentName>, callback: (ComponentName) -> Unit = {})
 
     /**
      * @return false if the component is blocked
