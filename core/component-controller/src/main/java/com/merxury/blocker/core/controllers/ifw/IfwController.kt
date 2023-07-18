@@ -67,7 +67,7 @@ class IfwController @Inject constructor(
         }
         var succeededCount = 0
         val list = componentList.map { ComponentName(it.packageName, it.name) }
-        intentFirewall.addAll(list) {
+        intentFirewall.removeAll(list) {
             succeededCount++
             action(
                 ComponentInfo().apply {
@@ -89,7 +89,7 @@ class IfwController @Inject constructor(
         }
         var succeededCount = 0
         val list = componentList.map { ComponentName(it.packageName, it.name) }
-        intentFirewall.removeAll(list) {
+        intentFirewall.addAll(list) {
             succeededCount++
             action(
                 ComponentInfo().apply {
