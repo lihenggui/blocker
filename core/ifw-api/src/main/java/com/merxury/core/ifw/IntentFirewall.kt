@@ -127,12 +127,13 @@ class IntentFirewall @Inject constructor(
             Timber.e("Root unavailable, cannot add rule")
             throw RootUnavailableException()
         }
-        Timber.i("Add rule for ${formatName(packageName, componentName)}")
+        val formattedName = formatName(packageName, componentName)
+        Timber.i("Add rule for $formattedName")
         val rule = ruleCache[packageName] ?: load(packageName)
         when (getComponentType(pm, packageName, componentName)) {
-            RECEIVER -> rule.broadcast.componentFilter.add(ComponentFilter(componentName))
-            SERVICE -> rule.service.componentFilter.add(ComponentFilter(componentName))
-            ACTIVITY -> rule.activity.componentFilter.add(ComponentFilter(componentName))
+            RECEIVER -> rule.broadcast.componentFilter.add(ComponentFilter(formattedName))
+            SERVICE -> rule.service.componentFilter.add(ComponentFilter(formattedName))
+            ACTIVITY -> rule.activity.componentFilter.add(ComponentFilter(formattedName))
             else -> return false
         }
         save(packageName, rule)
@@ -147,12 +148,13 @@ class IntentFirewall @Inject constructor(
             Timber.e("Root unavailable, cannot remove rule")
             throw RootUnavailableException()
         }
-        Timber.i("Remove rule for ${formatName(packageName, componentName)}")
+        val formattedName = formatName(packageName, componentName)
+        Timber.i("Remove rule for $formattedName")
         val rule = ruleCache[packageName] ?: load(packageName)
         when (getComponentType(pm, packageName, componentName)) {
-            RECEIVER -> rule.broadcast.componentFilter.remove(ComponentFilter(componentName))
-            SERVICE -> rule.service.componentFilter.remove(ComponentFilter(componentName))
-            ACTIVITY -> rule.activity.componentFilter.remove(ComponentFilter(componentName))
+            RECEIVER -> rule.broadcast.componentFilter.remove(ComponentFilter(formattedName))
+            SERVICE -> rule.service.componentFilter.remove(ComponentFilter(formattedName))
+            ACTIVITY -> rule.activity.componentFilter.remove(ComponentFilter(formattedName))
             else -> return false
         }
         save(packageName, rule)
@@ -240,33 +242,32 @@ class IntentFirewall @Inject constructor(
         packageName: String,
         componentName: String,
     ): ComponentType = withContext(cpuDispatcher) {
-        val formattedName = formatName(packageName, componentName)
         // Check by type, start from receiver
         val receivers = ApplicationUtil.getReceiverList(pm, packageName, dispatcher)
         for (receiver in receivers) {
-            if (formattedName == receiver.name) {
+            if (componentName == receiver.name) {
                 return@withContext RECEIVER
             }
         }
         val services = ApplicationUtil.getServiceList(pm, packageName, dispatcher)
         for (service in services) {
-            if (formattedName == service.name) {
+            if (componentName == service.name) {
                 return@withContext SERVICE
             }
         }
         val activities = ApplicationUtil.getActivityList(pm, packageName, dispatcher)
         for (activity in activities) {
-            if (formattedName == activity.name) {
+            if (componentName == activity.name) {
                 return@withContext ACTIVITY
             }
         }
         val providers = ApplicationUtil.getProviderList(pm, packageName, dispatcher)
         for (provider in providers) {
-            if (formattedName == provider.name) {
+            if (componentName == provider.name) {
                 return@withContext PROVIDER
             }
         }
-        Timber.e("Cannot find component type for $formattedName")
+        Timber.e("Cannot find component type for $packageName/$componentName")
         return@withContext PROVIDER
     }
 
