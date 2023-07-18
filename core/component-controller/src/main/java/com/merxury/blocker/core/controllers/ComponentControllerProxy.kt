@@ -18,47 +18,22 @@ package com.merxury.blocker.core.controllers
 
 import android.content.Context
 import android.content.pm.ComponentInfo
-import com.merxury.blocker.core.controllers.ifw.IfwController
 import com.merxury.blocker.core.controllers.root.RootController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.core.ifw.IntentFirewall
-import com.merxury.core.ifw.IntentFirewallFactory
-import kotlinx.coroutines.Dispatchers
-import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
+
 
 /**
  * Created by Mercury on 2018/3/10.
  */
 
+@Deprecated("Use Controller in DI instead")
 class ComponentControllerProxy private constructor(
     method: ControllerType,
     context: Context,
 ) : IController {
-
-    // TODO remove this file
-    @OptIn(ExperimentalXmlUtilApi::class)
     private var controller: IController = when (method) {
-        ControllerType.IFW -> IfwController(
-            context,
-            object : IntentFirewallFactory {
-                override fun create(packageName: String): IntentFirewall {
-                    return IntentFirewall(
-                        packageName,
-                        nl.adaptivity.xmlutil.serialization.XML {
-                            policy =
-                                nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy(
-                                    pedantic = false,
-                                )
-                            indentString = "   "
-                        },
-                        Dispatchers.IO,
-                    )
-                }
-            },
-            Dispatchers.IO,
-        )
-
+        ControllerType.IFW -> RootController(context)
         ControllerType.PM -> RootController(context)
         ControllerType.SHIZUKU -> ShizukuController(context)
     }

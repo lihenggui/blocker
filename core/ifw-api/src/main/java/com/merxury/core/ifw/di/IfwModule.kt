@@ -16,10 +16,17 @@
 
 package com.merxury.core.ifw.di
 
+import android.content.pm.PackageManager
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.core.ifw.IIntentFirewall
+import com.merxury.core.ifw.IntentFirewall
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy
 import nl.adaptivity.xmlutil.serialization.XML
@@ -35,5 +42,15 @@ object IfwModule {
             policy = DefaultXmlSerializationPolicy(pedantic = false)
             indentString = "   "
         }
+    }
+
+    @Provides
+    fun providesIntentFirewall(
+        pm: PackageManager,
+        xmlParser: XML,
+        @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
+        @Dispatcher(DEFAULT) cpuDispatcher: CoroutineDispatcher,
+    ): IIntentFirewall {
+        return IntentFirewall(pm, xmlParser, ioDispatcher, cpuDispatcher)
     }
 }
