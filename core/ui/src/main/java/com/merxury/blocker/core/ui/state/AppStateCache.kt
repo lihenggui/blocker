@@ -20,7 +20,7 @@ import android.content.ComponentName
 import android.content.Context
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
-import com.merxury.core.ifw.IntentFirewall
+import com.merxury.core.ifw.IIntentFirewall
 
 object AppStateCache {
     private val cache = mutableMapOf<String, AppState>()
@@ -29,7 +29,11 @@ object AppStateCache {
         return cache[packageName]
     }
 
-    suspend fun get(context: Context, intentFirewall: IntentFirewall, packageName: String): AppState {
+    suspend fun get(
+        context: Context,
+        intentFirewall: IIntentFirewall,
+        packageName: String,
+    ): AppState {
         val cachedResult = cache[packageName]
         val result: AppState
         if (cachedResult == null) {
@@ -41,7 +45,11 @@ object AppStateCache {
         return result
     }
 
-    private suspend fun getServiceStatus(context: Context, intentFirewall: IntentFirewall, packageName: String): AppState {
+    private suspend fun getServiceStatus(
+        context: Context,
+        intentFirewall: IIntentFirewall,
+        packageName: String,
+    ): AppState {
         val pm = context.packageManager
         val serviceHelper = ServiceHelper(packageName)
         serviceHelper.refresh()

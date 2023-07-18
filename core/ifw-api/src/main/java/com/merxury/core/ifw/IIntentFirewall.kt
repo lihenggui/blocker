@@ -39,12 +39,12 @@ interface IIntentFirewall {
     /**
      * Add multiple rules for a component
      */
-    suspend fun addAll(list: List<ComponentName>, callback: (ComponentName) -> Unit = {})
+    suspend fun addAll(list: List<ComponentName>, callback: suspend (ComponentName) -> Unit = {})
 
     /**
      * Remove multiple rules for a component
      */
-    suspend fun removeAll(list: List<ComponentName>, callback: (ComponentName) -> Unit = {})
+    suspend fun removeAll(list: List<ComponentName>, callback: suspend (ComponentName) -> Unit = {})
 
     /**
      * @return false if the component is blocked
