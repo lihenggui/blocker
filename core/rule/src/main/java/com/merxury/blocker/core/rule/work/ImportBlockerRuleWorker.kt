@@ -35,6 +35,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.core.ifw.IIntentFirewall
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -48,6 +49,7 @@ import timber.log.Timber
 class ImportBlockerRuleWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
+    private val intentFirewall: IIntentFirewall,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -111,7 +113,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                         return@forEach
                     }
                     setForeground(updateNotification(rule.packageName ?: "", current, total))
-                    val result = Rule.import(context, rule, controllerType)
+                    val result = Rule.import(context, intentFirewall, rule, controllerType)
                     if (result) {
                         successCount++
                     }
@@ -153,7 +155,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                     if (rule.packageName != packageName) {
                         return@forEach
                     }
-                    Rule.import(context, rule, controllerType)
+                    Rule.import(context, intentFirewall, rule, controllerType)
                     setForeground(updateNotification(rule.packageName ?: "", 1, 1))
                 }
             }

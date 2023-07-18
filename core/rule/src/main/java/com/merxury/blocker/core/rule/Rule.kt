@@ -28,10 +28,6 @@ import com.merxury.blocker.core.rule.entity.ComponentRule
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.core.ifw.IIntentFirewall
-import com.merxury.core.ifw.IntentFirewall
-import com.merxury.core.ifw.IntentFirewallFactory
-import kotlinx.coroutines.Dispatchers
-import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import timber.log.Timber
 
 object Rule {
@@ -39,9 +35,12 @@ object Rule {
     const val EXTENSION = ".json"
     const val IFW_EXTENSION = ".xml"
 
-    // TODO Rewrite this part of code
-    @OptIn(ExperimentalXmlUtilApi::class)
-    suspend fun export(context: Context, packageName: String, destUri: Uri): Boolean {
+    suspend fun export(
+        context: Context,
+        intentFirewall: IIntentFirewall,
+        packageName: String,
+        destUri: Uri,
+    ): Boolean {
         Timber.i("Backup rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationUtil.getApplicationComponents(pm, packageName)
@@ -50,24 +49,9 @@ object Rule {
             versionName = applicationInfo.versionName,
             versionCode = PackageInfoCompat.getLongVersionCode(applicationInfo),
         )
-        val ifwController = object : IntentFirewallFactory {
-            override fun create(packageName: String): IntentFirewall {
-                return IntentFirewall(
-                    packageName,
-                    nl.adaptivity.xmlutil.serialization.XML {
-                        policy =
-                            nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy(
-                                pedantic = false,
-                            )
-                        indentString = "   "
-                    },
-                    Dispatchers.IO,
-                )
-            }
-        }.create(packageName)
         try {
             applicationInfo.receivers?.forEach {
-                val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
+                val stateIFW = intentFirewall.getComponentEnableState(it.packageName, it.name)
                 val statePM = ApplicationUtil.checkComponentIsEnabled(
                     pm,
                     ComponentName(it.packageName, it.name),
@@ -92,7 +76,7 @@ object Rule {
                 )
             }
             applicationInfo.services?.forEach {
-                val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
+                val stateIFW = intentFirewall.getComponentEnableState(it.packageName, it.name)
                 val statePM = ApplicationUtil.checkComponentIsEnabled(
                     pm,
                     ComponentName(it.packageName, it.name),
@@ -117,7 +101,7 @@ object Rule {
                 )
             }
             applicationInfo.activities?.forEach {
-                val stateIFW = ifwController.getComponentEnableState(it.packageName, it.name)
+                val stateIFW = intentFirewall.getComponentEnableState(it.packageName, it.name)
                 val statePM = ApplicationUtil.checkComponentIsEnabled(
                     pm,
                     ComponentName(it.packageName, it.name),
@@ -169,10 +153,9 @@ object Rule {
         }
     }
 
-    // TODO to be refactored
-    @OptIn(ExperimentalXmlUtilApi::class)
     suspend fun import(
         context: Context,
+        intentFirewall: IIntentFirewall,
         rule: BlockerRule,
         controllerType: ControllerType,
     ): Boolean {
@@ -182,89 +165,33 @@ object Rule {
         } else {
             ComponentControllerProxy.getInstance(controllerType, context)
         }
-        var ifwController: IIntentFirewall? = null
         val pm = context.packageManager
-        // Detects if contains IFW rules, if exists, create a new controller.
-        rule.components.forEach ifwDetection@{
-            if (it.method == ControllerType.IFW) {
-                ifwController = object : IntentFirewallFactory {
-                    override fun create(packageName: String): IntentFirewall {
-                        return IntentFirewall(
-                            packageName,
-                            nl.adaptivity.xmlutil.serialization.XML {
-                                policy =
-                                    nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy(
-                                        pedantic = false,
-                                    )
-                                indentString = "   "
-                            },
-                            Dispatchers.IO,
-                        )
-                    }
-                }.create(it.packageName)
-                return@ifwDetection
-            }
-        }
         try {
             rule.components.forEach {
                 when (it.method) {
                     ControllerType.IFW -> {
                         when (it.type) {
-                            // state == false means that IFW applied
-                            // We should add in the IFW controller
-                            ComponentType.RECEIVER -> {
-                                if (!it.state) {
-                                    ifwController?.add(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.RECEIVER,
-                                    )
-                                } else {
-                                    ifwController?.remove(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.RECEIVER,
-                                    )
-                                }
-                            }
-
-                            ComponentType.SERVICE -> {
-                                if (!it.state) {
-                                    ifwController?.add(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.SERVICE,
-                                    )
-                                } else {
-                                    ifwController?.remove(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.SERVICE,
-                                    )
-                                }
-                            }
-
-                            ComponentType.ACTIVITY -> {
-                                if (!it.state) {
-                                    ifwController?.add(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.ACTIVITY,
-                                    )
-                                } else {
-                                    ifwController?.remove(
-                                        it.packageName,
-                                        it.name,
-                                        ComponentType.ACTIVITY,
-                                    )
-                                }
-                            }
                             // content provider needs PM to implement it
                             ComponentType.PROVIDER -> {
                                 if (!it.state) {
                                     controller.enable(it.packageName, it.name)
                                 } else {
                                     controller.disable(it.packageName, it.name)
+                                }
+                            }
+                            // state == false means that IFW applied
+                            // We should add in the IFW controller
+                            else -> {
+                                if (!it.state) {
+                                    intentFirewall.add(
+                                        it.packageName,
+                                        it.name,
+                                    )
+                                } else {
+                                    intentFirewall.remove(
+                                        it.packageName,
+                                        it.name,
+                                    )
                                 }
                             }
                         }
@@ -285,7 +212,6 @@ object Rule {
                     }
                 }
             }
-            ifwController?.save()
         } catch (e: RuntimeException) {
             Timber.e(e, "Failed to import Blocker rule ${rule.packageName}")
             return false

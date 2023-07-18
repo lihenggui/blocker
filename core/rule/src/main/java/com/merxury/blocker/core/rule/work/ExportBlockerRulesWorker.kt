@@ -31,6 +31,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.core.ifw.IIntentFirewall
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -41,6 +42,7 @@ import timber.log.Timber
 class ExportBlockerRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
+    private val intentFirewall: IIntentFirewall,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -88,7 +90,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 val total = list.count()
                 list.forEach {
                     setForeground(updateNotification(it.packageName, current, total))
-                    Rule.export(context, it.packageName, Uri.parse(backupPath))
+                    Rule.export(context, intentFirewall, it.packageName, Uri.parse(backupPath))
                     current++
                 }
             } catch (e: Exception) {
@@ -108,7 +110,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
     private suspend fun backupSingleApp(context: Context, packageName: String, backupPath: String) {
         Timber.d("Start to backup app rules for $packageName")
         setForeground(updateNotification(packageName, 1, 1))
-        Rule.export(context, packageName, Uri.parse(backupPath))
+        Rule.export(context, intentFirewall, packageName, Uri.parse(backupPath))
     }
 
     companion object {
