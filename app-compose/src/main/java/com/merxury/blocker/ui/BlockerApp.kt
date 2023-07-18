@@ -97,7 +97,7 @@ fun BlockerApp(
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 bottomBar = {
-                    if (appState.shouldShowBottomBar) {
+                    if (appState.shouldShowBottomBar && appState.currentTopLevelDestination != null) {
                         BlockerBottomBar(
                             destinations = appState.topLevelDestinations,
                             onNavigateToDestination = appState::navigateToTopLevelDestination,
