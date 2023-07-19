@@ -59,15 +59,11 @@ class IntentFirewall @Inject constructor(
         val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
         if (!PermissionUtils.isRootAvailable()) {
             Timber.v("Root unavailable, cannot load rule")
-            val newRule = Rules()
-            ruleCache[packageName] = newRule
-            return@withContext newRule
+            return@withContext emptyRule(packageName)
         }
         if (!destFile.exists()) {
             Timber.v("Rule file $filename not exists")
-            val newRule = Rules()
-            ruleCache[packageName] = newRule
-            return@withContext newRule
+            return@withContext emptyRule(packageName)
         }
         return@withContext try {
             Timber.v("Load rule from $destFile")
@@ -78,14 +74,20 @@ class IntentFirewall @Inject constructor(
             rule
         } catch (e: SerializationException) {
             Timber.e(e, "Failed to decode $destFile")
-            return@withContext Rules()
+            return@withContext emptyRule(packageName)
         } catch (e: IllegalArgumentException) {
             Timber.e(e, "the decoded input is not a valid instance of Rules: $destFile")
-            return@withContext Rules()
+            return@withContext emptyRule(packageName)
         } catch (e: Exception) {
             Timber.e(e, "Error reading rules file $destFile")
-            return@withContext Rules()
+            return@withContext emptyRule(packageName)
         }
+    }
+
+    private fun emptyRule(packageName: String): Rules {
+        val newRule = Rules()
+        ruleCache[packageName] = newRule
+        return newRule
     }
 
     override suspend fun save(packageName: String, rule: Rules) = withContext(dispatcher) {
