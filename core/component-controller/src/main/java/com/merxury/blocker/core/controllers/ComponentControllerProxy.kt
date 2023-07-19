@@ -22,7 +22,6 @@ import com.merxury.blocker.core.controllers.root.RootController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.model.data.ControllerType
 
-
 /**
  * Created by Mercury on 2018/3/10.
  */

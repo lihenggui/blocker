@@ -169,7 +169,8 @@ class IntentFirewall @Inject constructor(
 
     override suspend fun addAll(
         list: List<ComponentName>,
-        callback: suspend (ComponentName) -> Unit) {
+        callback: suspend (ComponentName) -> Unit,
+    ) {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot add rules")
             throw RootUnavailableException()
@@ -195,7 +196,8 @@ class IntentFirewall @Inject constructor(
 
     override suspend fun removeAll(
         list: List<ComponentName>,
-        callback: suspend (ComponentName) -> Unit) {
+        callback: suspend (ComponentName) -> Unit,
+    ) {
         if (!PermissionUtils.isRootAvailable()) {
             Timber.e("Root unavailable, cannot remove rules")
             throw RootUnavailableException()
