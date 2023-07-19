@@ -73,7 +73,7 @@ class IfwController @Inject constructor(
                 ComponentInfo().apply {
                     packageName = it.packageName
                     name = it.className
-                }
+                },
             )
         }
         return succeededCount
@@ -95,7 +95,7 @@ class IfwController @Inject constructor(
                 ComponentInfo().apply {
                     packageName = it.packageName
                     name = it.className
-                }
+                },
             )
         }
         return succeededCount
