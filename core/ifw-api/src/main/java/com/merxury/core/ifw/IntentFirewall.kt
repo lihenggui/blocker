@@ -59,11 +59,15 @@ class IntentFirewall @Inject constructor(
         val destFile = SuFile(IfwStorageUtils.ifwFolder + filename)
         if (!PermissionUtils.isRootAvailable()) {
             Timber.v("Root unavailable, cannot load rule")
-            return@withContext Rules()
+            val newRule = Rules()
+            ruleCache[packageName] = newRule
+            return@withContext newRule
         }
         if (!destFile.exists()) {
             Timber.v("Rule file $filename not exists")
-            return@withContext Rules()
+            val newRule = Rules()
+            ruleCache[packageName] = newRule
+            return@withContext newRule
         }
         return@withContext try {
             Timber.v("Load rule from $destFile")
