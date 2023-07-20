@@ -97,7 +97,7 @@ class DominantColorState(
         }
 
         // Otherwise we calculate the swatches in the image, and return the first valid color
-        return calculateSwatchesInImage(context, bitmap)
+        return calculateSwatchesInImage(bitmap)
             // First we want to sort the list by the color's population
             .sortedByDescending { swatch -> swatch.population }
             // Then we want to find the first valid color
@@ -129,7 +129,6 @@ private data class DominantColors(val color: Color, val onColor: Color)
  * Fetches the given [bitmap] with Coil, then uses [Palette] to calculate the dominant color.
  */
 private suspend fun calculateSwatchesInImage(
-    context: Context,
     bitmap: Bitmap?,
 ): List<Palette.Swatch> {
     return bitmap?.let {
