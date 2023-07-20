@@ -132,21 +132,6 @@ private suspend fun calculateSwatchesInImage(
     context: Context,
     bitmap: Bitmap?,
 ): List<Palette.Swatch> {
-//    val request = ImageRequest.Builder(context)
-//        .data(bitmap)
-//        // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
-//        .size(128).scale(Scale.FILL)
-//        // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
-//        .allowHardware(false)
-//        // Set a custom memory cache key to avoid overwriting the displayed image in the cache
-//        .memoryCacheKey("$bitmap.palette")
-//        .build()
-//
-//    val bitmap = when (val result = context.imageLoader.execute(request)) {
-//        is SuccessResult -> result.drawable.toBitmap()
-//        else -> null
-//    }
-
     return bitmap?.let {
         withContext(Dispatchers.Default) {
             val palette = Palette.Builder(bitmap)
