@@ -19,6 +19,7 @@ androidxMacroBenchmark = "1.2.0-alpha16"
 androidxComposeMaterial = "1.4.3"
 androidxNavigation = "2.6.0"
 androidxMetrics = "1.0.0-alpha04"
+androidxPalette = "1.0.0"
 androidxProfileinstaller = "1.3.1"
 androidxStartup = "1.1.1"
 androidxWindowManager = "1.1.0"
@@ -57,7 +58,6 @@ room = "2.5.2"
 secrets = "2.0.1"
 shizuku = "13.1.4"
 turbine = "1.0.0"
-palette = "1.0.0"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -96,6 +96,7 @@ androidx-lifecycle-viewModelCompose = { group = "androidx.lifecycle", name = "li
 androidx-metrics = { group = "androidx.metrics", name = "metrics-performance", version.ref = "androidxMetrics" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
 androidx-navigation-testing = { group = "androidx.navigation", name = "navigation-testing", version.ref = "androidxNavigation" }
+androidx-palette = { group = "androidx.palette", name = "palette-ktx", version.ref = "androidxPalette" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidxProfileinstaller" }
 androidx-startup = { group = "androidx.startup", name = "startup-runtime", version.ref = "androidxStartup" }
 androidx-window-manager = { module = "androidx.window:window", version.ref = "androidxWindowManager" }
@@ -148,7 +149,6 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
-palette = { group = "androidx.palette", name = "palette-ktx", version.ref = "palette" }
 timber = "com.jakewharton.timber:timber:5.0.1"
 freereflection = "com.github.tiann:FreeReflection:3.2.0"
 simplexml = "org.simpleframework:simple-xml:2.7.1"
