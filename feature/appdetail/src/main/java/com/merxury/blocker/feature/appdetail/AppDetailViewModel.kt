@@ -18,11 +18,15 @@ package com.merxury.blocker.feature.appdetail
 
 import android.app.Application
 import android.content.Context
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asFlow
@@ -110,6 +114,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -708,16 +713,28 @@ class AppDetailViewModel @Inject constructor(
         } else {
             val packageInfo = pm.getPackageInfoCompat(packageName, 0)
             _appInfoUiState.emit(
-                AppInfoUiState.Success(app.toAppItem(packageInfo = packageInfo)),
+                AppInfoUiState.Success(
+                    app.toAppItem(packageInfo = packageInfo),
+                    getAppIcon(packageInfo),
+                ),
             )
         }
     }
+
+    private suspend fun getAppIcon(packageInfo: PackageInfo?) =
+        withContext(ioDispatcher) {
+            val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
+            return@withContext icon?.toBitmap()
+        }
 }
 
 sealed interface AppInfoUiState {
     object Loading : AppInfoUiState
     class Error(val error: UiMessage) : AppInfoUiState
-    data class Success(val appInfo: AppItem) : AppInfoUiState
+    data class Success(
+        val appInfo: AppItem,
+        val appIcon: Bitmap?,
+    ) : AppInfoUiState
 }
 
 data class ComponentListUiState(
