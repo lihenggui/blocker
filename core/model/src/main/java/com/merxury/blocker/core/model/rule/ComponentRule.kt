@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.rule.entity
+package com.merxury.blocker.core.model.rule
 
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ControllerType

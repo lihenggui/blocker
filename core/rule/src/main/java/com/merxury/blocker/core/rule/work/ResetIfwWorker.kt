@@ -24,8 +24,8 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
@@ -97,7 +97,7 @@ class ResetIfwWorker @AssistedInject constructor(
             Timber.d("Start clearing IFW rules for package $packageName")
             val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
-            val filename = packageName + Rule.IFW_EXTENSION
+            val filename = packageName + IFW_EXTENSION
             if (files.contains(filename)) {
                 updateNotification(packageName, 1, 1)
                 Timber.d("Delete IFW rules for $packageName")

@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.rule.work
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -25,17 +26,22 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.merxury.blocker.core.controllers.ifw.IfwController
+import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType.PM
+import com.merxury.blocker.core.model.rule.BlockerRule
+import com.merxury.blocker.core.rule.EXTENSION
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.Rule
-import com.merxury.blocker.core.rule.entity.BlockerRule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.core.ifw.IIntentFirewall
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -49,7 +55,10 @@ import timber.log.Timber
 class ImportBlockerRuleWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
-    private val intentFirewall: IIntentFirewall,
+    private val pm: PackageManager,
+    private val rootController: RootController,
+    private val ifwController: IfwController,
+    private val shizukuController: ShizukuController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -70,7 +79,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
             )
         }
         val controllerOrdinal =
-            inputData.getInt(PARAM_CONTROLLER_TYPE, ControllerType.IFW.ordinal)
+            inputData.getInt(PARAM_CONTROLLER_TYPE, IFW.ordinal)
         val controllerType = ControllerType.values()[controllerOrdinal]
         val packageManager = context.packageManager
         val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
@@ -92,7 +101,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         var successCount = 0
         try {
             val files = documentDir.listFiles()
-                .filter { it.name?.endsWith(Rule.EXTENSION) == true }
+                .filter { it.name?.endsWith(EXTENSION) == true }
             val total = files.count()
             var current = 1
             files.forEach {
@@ -113,8 +122,8 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                         return@forEach
                     }
                     setForeground(updateNotification(rule.packageName ?: "", current, total))
-                    val result = Rule.import(context, intentFirewall, rule, controllerType)
-                    if (result) {
+                    val restoredComponentCount = import(rule, controllerType)
+                    if (restoredComponentCount > 0) {
                         successCount++
                     }
                     current++
@@ -147,7 +156,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         }
         try {
             val files = documentDir.listFiles()
-                .filter { it.name?.endsWith(Rule.EXTENSION) == true }
+                .filter { it.name?.endsWith(EXTENSION) == true }
             files.forEach {
                 Timber.i("Import ${it.uri}")
                 context.contentResolver.openInputStream(it.uri)?.use { input ->
@@ -155,7 +164,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                     if (rule.packageName != packageName) {
                         return@forEach
                     }
-                    Rule.import(context, intentFirewall, rule, controllerType)
+                    import(rule, controllerType)
                     setForeground(updateNotification(rule.packageName ?: "", 1, 1))
                 }
             }
@@ -168,6 +177,49 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         return Result.success(
             workDataOf(PARAM_IMPORT_COUNT to 1),
         )
+    }
+
+    private suspend fun import(rule: BlockerRule, type: ControllerType): Int {
+        val fallbackController = if (type == PM) {
+            rootController
+        } else {
+            shizukuController
+        }
+        var count = 0
+        rule.components.forEach {
+            if (it.method == IFW) {
+                if (it.type == PROVIDER) {
+                    // IFW controller did not support disabling provider
+                    // Fallback to other controller
+                    if (!it.state) {
+                        fallbackController.enable(it.packageName, it.name)
+                    } else {
+                        fallbackController.disable(it.packageName, it.name)
+                    }
+                } else {
+                    if (!it.state) {
+                        ifwController.enable(it.packageName, it.name)
+                    } else {
+                        ifwController.disable(it.packageName, it.name)
+                    }
+                }
+                count++
+            } else {
+                // For PM controllers, state enabled means component is enabled
+                val currentState = ApplicationUtil.checkComponentIsEnabled(
+                    pm,
+                    ComponentName(it.packageName, it.name),
+                )
+                if (currentState == it.state) return@forEach
+                if (it.state) {
+                    fallbackController.enable(it.packageName, it.name)
+                } else {
+                    fallbackController.disable(it.packageName, it.name)
+                }
+                count++
+            }
+        }
+        return count
     }
 
     companion object {
