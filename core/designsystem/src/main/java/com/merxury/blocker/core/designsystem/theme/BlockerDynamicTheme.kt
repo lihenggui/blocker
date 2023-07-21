@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 
 const val MinContrastOfPrimaryVsSurface = 3f
+
 @Composable
 fun BlockerDynamicTheme(
     imageBitmap: Bitmap?,
