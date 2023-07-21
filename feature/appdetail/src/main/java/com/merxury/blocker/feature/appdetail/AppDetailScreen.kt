@@ -97,7 +97,7 @@ import com.merxury.blocker.core.ui.bottomsheet.ComponentSortBottomSheet
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.component.ComponentList
-import com.merxury.blocker.core.ui.dynamictheme.DetailDynamicTheme
+import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -347,7 +347,7 @@ fun AppDetailContent(
             }
         }
     }
-    DetailDynamicTheme(imageBitmap = appIcon) {
+    BlockerDynamicTheme(imageBitmap = appIcon) {
         Scaffold(
             topBar = {
                 BlockerCollapsingTopAppBar(
