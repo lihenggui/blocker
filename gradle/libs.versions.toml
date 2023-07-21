@@ -19,6 +19,7 @@ androidxMacroBenchmark = "1.2.0-beta01"
 androidxComposeMaterial = "1.4.3"
 androidxNavigation = "2.6.0"
 androidxMetrics = "1.0.0-alpha04"
+androidxPalette = "1.0.0"
 androidxProfileinstaller = "1.3.1"
 androidxStartup = "1.1.1"
 androidxWindowManager = "1.1.0"
@@ -95,6 +96,7 @@ androidx-lifecycle-viewModelCompose = { group = "androidx.lifecycle", name = "li
 androidx-metrics = { group = "androidx.metrics", name = "metrics-performance", version.ref = "androidxMetrics" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "androidxNavigation" }
 androidx-navigation-testing = { group = "androidx.navigation", name = "navigation-testing", version.ref = "androidxNavigation" }
+androidx-palette = { group = "androidx.palette", name = "palette-ktx", version.ref = "androidxPalette" }
 androidx-profileinstaller = { group = "androidx.profileinstaller", name = "profileinstaller", version.ref = "androidxProfileinstaller" }
 androidx-startup = { group = "androidx.startup", name = "startup-runtime", version.ref = "androidxStartup" }
 androidx-window-manager = { module = "androidx.window:window", version.ref = "androidxWindowManager" }
