@@ -24,13 +24,16 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.controllers.ifw.IfwController
+import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType.PM
+import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
@@ -47,6 +50,9 @@ import java.io.IOException
 class ImportMatRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
+    private val ifwController: IfwController,
+    private val rootController: RootController,
+    private val shizukuController: ShizukuController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -63,8 +69,11 @@ class ImportMatRulesWorker @AssistedInject constructor(
             )
         }
         val typeOrdinal = inputData.getInt(PARAM_CONTROLLER_TYPE, IFW.ordinal)
-        val controllerType = ControllerType.values()[typeOrdinal]
-        val controller = ComponentControllerProxy.getInstance(controllerType, context)
+        val controller = when (ControllerType.values()[typeOrdinal]) {
+            IFW -> ifwController
+            PM -> rootController
+            SHIZUKU -> shizukuController
+        }
         val shouldRestoreSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
         val uninstalledAppList = mutableListOf<String>()
         var total: Int
@@ -80,7 +89,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
                     val splitResult = trimmedLine.split("/")
                     val packageName = splitResult[0]
                     val name = splitResult[1]
-                    if (Rule.isApplicationUninstalled(context, uninstalledAppList, packageName)) {
+                    if (isApplicationUninstalled(context, uninstalledAppList, packageName)) {
                         return@forEach
                     }
                     val isSystemApp = ApplicationUtil.isSystemApp(
@@ -109,6 +118,24 @@ class ImportMatRulesWorker @AssistedInject constructor(
         return@withContext Result.success(
             workDataOf(PARAM_IMPORT_COUNT to current),
         )
+    }
+
+    private fun isApplicationUninstalled(
+        context: Context,
+        savedList: MutableList<String>,
+        packageName: String,
+    ): Boolean {
+        if (packageName.trim().isEmpty()) {
+            return true
+        }
+        if (savedList.contains(packageName)) {
+            return true
+        }
+        if (!ApplicationUtil.isAppInstalled(context.packageManager, packageName)) {
+            savedList.add(packageName)
+            return true
+        }
+        return false
     }
 
     companion object {

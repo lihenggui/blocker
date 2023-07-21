@@ -31,6 +31,7 @@ import java.io.IOException
 
 object StorageUtil {
     private const val IFW_RELATIVE_PATH = "ifw"
+    private const val BLOCKER_RULE_MIME = "application/json"
 
     fun getOrCreateIfwFolder(context: Context, baseFolder: String): DocumentFile? {
         val baseDocument = DocumentFile.fromTreeUri(context, Uri.parse(baseFolder))
@@ -126,7 +127,7 @@ object StorageUtil {
         // Create blocker rule file
         var file = dir.findFile(packageName + Rule.EXTENSION)
         if (file == null) {
-            file = dir.createFile(Rule.BLOCKER_RULE_MIME, packageName)
+            file = dir.createFile(BLOCKER_RULE_MIME, packageName)
         }
         if (file == null) {
             Timber.w("Cannot create rule $packageName")

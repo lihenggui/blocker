@@ -26,7 +26,6 @@ import com.merxury.blocker.core.model.data.ControllerType
  * Created by Mercury on 2018/3/10.
  */
 
-@Deprecated("Use Controller in DI instead")
 class ComponentControllerProxy private constructor(
     method: ControllerType,
     context: Context,
