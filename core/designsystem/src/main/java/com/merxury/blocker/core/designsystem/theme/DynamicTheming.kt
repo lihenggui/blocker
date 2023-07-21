@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.dynamictheme
+package com.merxury.blocker.core.designsystem.theme
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -33,7 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette
-import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.floor
