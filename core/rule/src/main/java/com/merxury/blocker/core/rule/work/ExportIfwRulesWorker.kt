@@ -24,8 +24,8 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
@@ -109,7 +109,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         return withContext(ioDispatcher) {
             val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
-            val targetFileName = packageName + Rule.IFW_EXTENSION
+            val targetFileName = packageName + IFW_EXTENSION
             if (files.contains(targetFileName)) {
                 val content = FileUtils.read(ifwFolder + targetFileName)
                 StorageUtil.saveIfwToStorage(

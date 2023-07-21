@@ -23,12 +23,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.controllers.ifw.IfwController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
@@ -50,6 +49,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     private val xmlParser: XML,
+    private val ifwController: IfwController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -77,7 +77,6 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                 ?: return@withContext Result.failure(
                     workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
                 )
-            val controller = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
             val files = ifwFolder.listFiles()
                 .filter { it.isFile && it.name?.endsWith(".xml") == true }
             total = files.count()
@@ -87,7 +86,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                 if (!restoredPackage.isNullOrEmpty()) {
                     // Import 1 IFW file case
                     // It will follow the 'Restore system app' setting
-                    if (documentFile.name != restoredPackage + Rule.IFW_EXTENSION) {
+                    if (documentFile.name != restoredPackage + IFW_EXTENSION) {
                         return@forEach
                     }
                 }
@@ -136,9 +135,9 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                         Timber.i("Skipping system app $packageName")
                         return@forEach
                     }
-                    controller.batchDisable(activities) {}
-                    controller.batchDisable(broadcast) {}
-                    controller.batchDisable(service) {}
+                    ifwController.batchDisable(activities) {}
+                    ifwController.batchDisable(broadcast) {}
+                    ifwController.batchDisable(service) {}
                     importedCount++
                 }
             }
