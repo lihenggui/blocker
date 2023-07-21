@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.math.floor
@@ -66,7 +67,7 @@ fun DynamicThemePrimaryColorsFromImage(
             label = "surface",
         ).value,
     )
-    MaterialTheme(colorScheme = colors, content = content)
+    BlockerTheme(setColorScheme = colors, content = content)
 }
 
 /**
