@@ -4,9 +4,9 @@ import android.graphics.Bitmap
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import com.merxury.blocker.core.designsystem.theme.MinContrastOfPrimaryVsSurface
 import com.merxury.blocker.core.designsystem.theme.contrastAgainst
 
+const val MinContrastOfPrimaryVsSurface = 3f
 @Composable
 fun DetailDynamicTheme(
     imageBitmap: Bitmap?,

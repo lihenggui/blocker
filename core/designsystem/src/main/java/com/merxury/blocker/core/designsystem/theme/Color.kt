@@ -26,7 +26,6 @@ import kotlin.math.min
 /**
  * Blocker colors.
  */
-const val MinContrastOfPrimaryVsSurface = 3f
 
 internal val md_theme_light_primary = Color(0xFF006D3B)
 internal val md_theme_light_onPrimary = Color(0xFFFFFFFF)
