@@ -114,6 +114,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -720,10 +721,11 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun getAppIcon(packageInfo: PackageInfo?): Bitmap? {
-        val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
-        return icon?.toBitmap()
-    }
+    private suspend fun getAppIcon(packageInfo: PackageInfo?) =
+        withContext(ioDispatcher) {
+            val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
+            return@withContext icon?.toBitmap()
+        }
 }
 
 sealed interface AppInfoUiState {
