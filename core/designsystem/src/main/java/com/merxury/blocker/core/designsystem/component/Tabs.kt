@@ -86,6 +86,13 @@ fun BlockerScrollableTabRow(
         tabs = tabs,
         containerColor = containerColor,
         contentColor = contentColor,
+        indicator = { tabPositions ->
+            SecondaryIndicator(
+                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                height = 2.dp,
+                color = contentColor,
+            )
+        },
     )
 }
 

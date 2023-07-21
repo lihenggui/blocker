@@ -21,6 +21,7 @@ import android.os.Build
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -136,6 +137,7 @@ val DarkBlockerBackgroundTheme = BackgroundTheme(color = Color.Black)
  */
 @Composable
 fun BlockerTheme(
+    setColorScheme: ColorScheme? = null,
     darkTheme: Boolean = isSystemInDarkTheme(),
     blockerTheme: Boolean = false,
     disableDynamicTheming: Boolean = true,
@@ -181,7 +183,7 @@ fun BlockerTheme(
         LocalTintTheme provides tintTheme,
     ) {
         MaterialTheme(
-            colorScheme = colorScheme,
+            colorScheme = setColorScheme ?: colorScheme,
             typography = BlockerTypography,
             content = content,
         )
