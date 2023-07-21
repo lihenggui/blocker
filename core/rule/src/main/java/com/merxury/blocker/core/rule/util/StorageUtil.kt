@@ -19,19 +19,14 @@ package com.merxury.blocker.core.rule.util
 import android.content.Context
 import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
-import com.merxury.blocker.core.rule.Rule
-import com.merxury.blocker.core.rule.entity.BlockerRule
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.io.IOException
 
 object StorageUtil {
     private const val IFW_RELATIVE_PATH = "ifw"
-    private const val BLOCKER_RULE_MIME = "application/json"
 
     fun getOrCreateIfwFolder(context: Context, baseFolder: String): DocumentFile? {
         val baseDocument = DocumentFile.fromTreeUri(context, Uri.parse(baseFolder))
@@ -109,41 +104,6 @@ object StorageUtil {
         } catch (e: IOException) {
             Timber.e(e, "Cannot write rules for $filename")
             false
-        }
-    }
-
-    suspend fun saveRuleToStorage(
-        context: Context,
-        rule: BlockerRule,
-        packageName: String,
-        destUri: Uri,
-        dispatcher: CoroutineDispatcher = Dispatchers.IO,
-    ): Boolean {
-        val dir = DocumentFile.fromTreeUri(context, destUri)
-        if (dir == null) {
-            Timber.e("Cannot open $destUri")
-            return false
-        }
-        // Create blocker rule file
-        var file = dir.findFile(packageName + Rule.EXTENSION)
-        if (file == null) {
-            file = dir.createFile(BLOCKER_RULE_MIME, packageName)
-        }
-        if (file == null) {
-            Timber.w("Cannot create rule $packageName")
-            return false
-        }
-        return withContext(dispatcher) {
-            try {
-                context.contentResolver.openOutputStream(file.uri, "rwt")?.use {
-                    val text = Json.encodeToString(rule)
-                    it.write(text.toByteArray())
-                }
-                return@withContext true
-            } catch (e: Exception) {
-                Timber.e(e, "Cannot write rules for $packageName")
-                return@withContext false
-            }
         }
     }
 }
