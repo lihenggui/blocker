@@ -40,17 +40,23 @@ import kotlin.math.floor
 @Composable
 fun rememberDominantColorState(
     context: Context = LocalContext.current,
-    defaultColor: Color = MaterialTheme.colorScheme.primary,
-    defaultOnColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    defaultPrimary: Color = MaterialTheme.colorScheme.primary,
+    defaultOnPrimary: Color = MaterialTheme.colorScheme.onPrimary,
     defaultSurfaceColor: Color = MaterialTheme.colorScheme.surface,
+    defaultOnSurfaceColor: Color = MaterialTheme.colorScheme.onSurface,
+    defaultSurfaceVariantColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    defaultOnSurfaceVariantColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     cacheSize: Int = 12,
     isColorValid: (Color) -> Boolean = { true },
 ): DominantColorState = remember {
     DominantColorState(
         context,
-        defaultColor,
-        defaultOnColor,
+        defaultPrimary,
+        defaultOnPrimary,
         defaultSurfaceColor,
+        defaultOnSurfaceColor,
+        defaultSurfaceVariantColor,
+        defaultOnSurfaceVariantColor,
         cacheSize,
         isColorValid,
     )
@@ -67,19 +73,34 @@ fun DynamicThemePrimaryColorsFromImage(
 ) {
     val colors = MaterialTheme.colorScheme.copy(
         primary = animateColorAsState(
-            dominantColorState.color,
+            dominantColorState.primaryColor,
             spring(stiffness = Spring.StiffnessLow),
             label = "primary",
         ).value,
-        surfaceVariant = animateColorAsState(
-            dominantColorState.onColor,
+        onPrimary = animateColorAsState(
+            dominantColorState.onPrimaryColor,
             spring(stiffness = Spring.StiffnessLow),
-            label = "surfaceVariant",
+            label = "onPrimary",
         ).value,
         surface = animateColorAsState(
             dominantColorState.surfaceColor,
             spring(stiffness = Spring.StiffnessLow),
             label = "surface",
+        ).value,
+        onSurface = animateColorAsState(
+            dominantColorState.onSurfaceColor,
+            spring(stiffness = Spring.StiffnessLow),
+            label = "onSurface",
+        ).value,
+        surfaceVariant = animateColorAsState(
+            dominantColorState.surfaceVariantColor,
+            spring(stiffness = Spring.StiffnessLow),
+            label = "onSurfaceVariant",
+        ).value,
+        onSurfaceVariant = animateColorAsState(
+            dominantColorState.onSurfaceVariantColor,
+            spring(stiffness = Spring.StiffnessLow),
+            label = "onSurfaceVariant",
         ).value,
     )
     BlockerTheme(setColorScheme = colors, content = content)
@@ -90,9 +111,9 @@ fun DynamicThemePrimaryColorsFromImage(
  * from images.
  *
  * @param context Android context
- * @param defaultColor The default color, which will be used if [calculateDominantColor] fails to
+ * @param defaultPrimaryColor The default color, which will be used if [calculateDominantColor] fails to
  * calculate a dominant color
- * @param defaultOnColor The default foreground 'on color' for [defaultColor].
+ * @param defaultOnPrimaryColor The default foreground 'on color' for [defaultPrimaryColor].
  * @param cacheSize The size of the [LruCache] used to store recent results. Pass `0` to
  * disable the cache.
  * @param isColorValid A lambda which allows filtering of the calculated image colors.
@@ -100,18 +121,30 @@ fun DynamicThemePrimaryColorsFromImage(
 @Stable
 class DominantColorState(
     private val context: Context,
-    private val defaultColor: Color,
-    private val defaultOnColor: Color,
+    private val defaultPrimaryColor: Color,
+    private val defaultOnPrimaryColor: Color,
     private val defaultSurfaceColor: Color,
+    private val defaultOnSurfaceColor: Color,
+    private val defaultSurfaceVariantColor: Color,
+    private val defaultOnSurfaceVariantColor: Color,
     cacheSize: Int = 12,
     private val isColorValid: (Color) -> Boolean = { true },
 ) {
-    var color by mutableStateOf(defaultColor)
+    var primaryColor by mutableStateOf(defaultPrimaryColor)
         private set
-    var onColor by mutableStateOf(defaultOnColor)
+    var onPrimaryColor by mutableStateOf(defaultOnPrimaryColor)
         private set
 
     var surfaceColor by mutableStateOf(defaultSurfaceColor)
+        private set
+
+    var onSurfaceColor by mutableStateOf(defaultOnSurfaceColor)
+        private set
+
+    var surfaceVariantColor by mutableStateOf(defaultSurfaceVariantColor)
+        private set
+
+    var onSurfaceVariantColor by mutableStateOf(defaultOnSurfaceVariantColor)
         private set
 
     private val cache = when {
@@ -121,9 +154,12 @@ class DominantColorState(
 
     suspend fun updateColorsFromImageBitmap(bitmap: Bitmap) {
         val result = calculateDominantColor(bitmap)
-        color = result?.color ?: defaultColor
-        onColor = result?.onColor ?: defaultOnColor
-        surfaceColor = result?.surfaceColor ?: defaultSurfaceColor
+        primaryColor = result?.primary ?: defaultPrimaryColor
+        onPrimaryColor = result?.onPrimary ?: defaultOnPrimaryColor
+        surfaceColor = result?.surface ?: defaultSurfaceColor
+        onSurfaceColor = result?.onSurface ?: defaultOnSurfaceColor
+        surfaceVariantColor = result?.surfaceVariant ?: defaultSurfaceVariantColor
+        onSurfaceVariantColor = result?.onSurfaceVariant ?: defaultOnSurfaceVariantColor
     }
 
     private suspend fun calculateDominantColor(bitmap: Bitmap): DominantColors? {
@@ -142,9 +178,12 @@ class DominantColorState(
             // If we found a valid swatch, wrap it in a [DominantColors]
             ?.let { swatch ->
                 DominantColors(
-                    color = Color(swatch.rgb),
-                    onColor = Color(changeColor(swatch.rgb)),
-                    surfaceColor = Color(changeColor(swatch.rgb)),
+                    primary = Color(swatch.rgb),
+                    onPrimary = Color(changeColor(swatch.rgb)),
+                    surface = Color(changeColor(swatch.rgb)),
+                    onSurface = Color(swatch.rgb),
+                    surfaceVariant = Color(changeColor(swatch.rgb)),
+                    onSurfaceVariant = Color(swatch.rgb),
                 )
             }
             // Cache the resulting [DominantColors]
@@ -152,17 +191,27 @@ class DominantColorState(
     }
 
     /**
-     * Reset the color values to [defaultColor].
+     * Reset the color values to [defaultPrimaryColor].
      */
     fun reset() {
-        color = defaultColor
-        onColor = defaultColor
+        primaryColor = defaultPrimaryColor
+        onPrimaryColor = defaultOnPrimaryColor
         surfaceColor = defaultSurfaceColor
+        onSurfaceColor = defaultOnSurfaceColor
+        surfaceVariantColor = defaultSurfaceVariantColor
+        onSurfaceVariantColor = defaultOnSurfaceVariantColor
     }
 }
 
 @Immutable
-private data class DominantColors(val color: Color, val onColor: Color, val surfaceColor: Color)
+private data class DominantColors(
+    val primary: Color,
+    val onPrimary: Color,
+    val surface: Color,
+    val onSurface: Color,
+    val surfaceVariant: Color,
+    val onSurfaceVariant: Color,
+)
 
 /**
  * Fetches the given [bitmap] with Coil, then uses [Palette] to calculate the dominant color.
