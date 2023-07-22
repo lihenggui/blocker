@@ -63,6 +63,7 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -242,47 +243,49 @@ fun RuleDetailContent(
             }
         }
     }
-    Scaffold(
-        topBar = {
-            BlockerCollapsingTopAppBar(
-                progress = toolbarState.progress,
-                onNavigationClick = onBackClick,
-                title = ruleInfoUiState.ruleInfo.name,
-                subtitle = ruleInfoUiState.ruleInfo.company.toString(),
-                summary = "",
-                iconSource = ruleInfoUiState.ruleInfo.iconUrl,
-                onIconClick = { },
-                actions = {
-                    RuleDetailAppBarActions(
-                        appBarUiState = appBarUiState,
-                        blockAllComponents = onBlockAllInPageClick,
-                        enableAllComponents = onEnableAllInPageClick,
-                    )
-                },
+    BlockerDynamicTheme(imageBitmap = ruleInfoUiState.ruleIcon) {
+        Scaffold(
+            topBar = {
+                BlockerCollapsingTopAppBar(
+                    progress = toolbarState.progress,
+                    onNavigationClick = onBackClick,
+                    title = ruleInfoUiState.ruleInfo.name,
+                    subtitle = ruleInfoUiState.ruleInfo.company.toString(),
+                    summary = "",
+                    iconSource = ruleInfoUiState.ruleInfo.iconUrl,
+                    onIconClick = { },
+                    actions = {
+                        RuleDetailAppBarActions(
+                            appBarUiState = appBarUiState,
+                            blockAllComponents = onBlockAllInPageClick,
+                            enableAllComponents = onEnableAllInPageClick,
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
+                )
+            },
+            modifier = modifier.nestedScroll(nestedScrollConnection),
+        ) { innerPadding ->
+            RuleDetailTabContent(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
+                    .padding(top = innerPadding.calculateTopPadding())
+                    .fillMaxSize(),
+                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
+                ruleInfoUiState = ruleInfoUiState,
+                tabState = tabState,
+                switchTab = switchTab,
+                onStopServiceClick = onStopServiceClick,
+                onLaunchActivityClick = onLaunchActivityClick,
+                onCopyNameClick = onCopyNameClick,
+                onCopyFullNameClick = onCopyFullNameClick,
+                onBlockAllClick = onBlockAllClick,
+                onEnableAllClick = onEnableAllClick,
+                onSwitch = onSwitch,
+                navigateToAppDetail = navigateToAppDetail,
             )
-        },
-        modifier = modifier.nestedScroll(nestedScrollConnection),
-    ) { innerPadding ->
-        RuleDetailTabContent(
-            modifier = Modifier
-                .padding(top = innerPadding.calculateTopPadding())
-                .fillMaxSize(),
-            ruleMatchedAppListUiState = ruleMatchedAppListUiState,
-            ruleInfoUiState = ruleInfoUiState,
-            tabState = tabState,
-            switchTab = switchTab,
-            onStopServiceClick = onStopServiceClick,
-            onLaunchActivityClick = onLaunchActivityClick,
-            onCopyNameClick = onCopyNameClick,
-            onCopyFullNameClick = onCopyFullNameClick,
-            onBlockAllClick = onBlockAllClick,
-            onEnableAllClick = onEnableAllClick,
-            onSwitch = onSwitch,
-            navigateToAppDetail = navigateToAppDetail,
-        )
+        }
     }
 }
 
@@ -437,6 +440,7 @@ fun RuleDetailScreenPreView() {
     )
     val ruleInfoUiState = RuleInfoUiState.Success(
         ruleInfo = item,
+        ruleIcon = null,
     )
     val tabState = TabState(
         items = listOf(
