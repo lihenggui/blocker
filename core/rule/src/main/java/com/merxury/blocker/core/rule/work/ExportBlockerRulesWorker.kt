@@ -47,8 +47,6 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -130,7 +128,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         export(packageName, Uri.parse(backupPath))
     }
 
-    private suspend fun export(packageName: String, destUri: Uri): Flow<Boolean> = flow {
+    private suspend fun export(packageName: String, destUri: Uri): Boolean {
         Timber.i("Export Blocker rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationUtil.getApplicationComponents(pm, packageName)
@@ -236,10 +234,10 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 // No components exported, return true
                 true
             }
-            emit(result)
+            return result
         } catch (e: RuntimeException) {
             Timber.e(e, "Failed to export $packageName")
-            emit(false)
+            return false
         }
     }
 
