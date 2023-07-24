@@ -59,6 +59,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     private val rootController: RootController,
     private val ifwController: IfwController,
     private val shizukuController: ShizukuController,
+    private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -107,7 +108,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
             files.forEach {
                 Timber.i("Import ${it.uri}")
                 context.contentResolver.openInputStream(it.uri)?.use { input ->
-                    val rule = Json.decodeFromStream<BlockerRule>(input)
+                    val rule = json.decodeFromStream<BlockerRule>(input)
                     val appInstalled =
                         ApplicationUtil.isAppInstalled(packageManager, rule.packageName)
                     val isSystemApp = ApplicationUtil.isSystemApp(packageManager, rule.packageName)
@@ -160,12 +161,12 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
             files.forEach {
                 Timber.i("Import ${it.uri}")
                 context.contentResolver.openInputStream(it.uri)?.use { input ->
-                    val rule = Json.decodeFromStream<BlockerRule>(input)
+                    val rule = json.decodeFromStream<BlockerRule>(input)
                     if (rule.packageName != packageName) {
                         return@forEach
                     }
-                    import(rule, controllerType)
                     setForeground(updateNotification(rule.packageName ?: "", 1, 1))
+                    import(rule, controllerType)
                 }
             }
         } catch (e: Exception) {
