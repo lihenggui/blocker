@@ -34,6 +34,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -508,6 +509,7 @@ fun AppDetailTabContent(
     ) {
         BlockerScrollableTabRow(
             selectedTabIndex = tabState.currentIndex,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ) {
             tabState.items.forEachIndexed { index, tabItem ->
                 BlockerTab(

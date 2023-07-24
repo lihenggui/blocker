@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
      Copyright 2021 The Android Open Source Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +15,7 @@
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="NightAdjusted.Theme.Blocker" parent="android:Theme.Material.NoActionBar">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
-    </style>
+    <style name="NightAdjusted.Theme.Blocker" parent="android:Theme.Material.NoActionBar" />
 
     <style name="NightAdjusted.Theme.Splash" parent="Theme.SplashScreen">
         <item name="android:windowLightStatusBar" tools:targetApi="23">false</item>
