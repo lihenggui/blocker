@@ -33,9 +33,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette
+import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.math.floor
 
 @Composable
 fun rememberDominantColorState(
@@ -141,10 +141,11 @@ class DominantColorState(
             .firstOrNull { swatch -> isColorValid(Color(swatch.rgb)) }
             // If we found a valid swatch, wrap it in a [DominantColors]
             ?.let { swatch ->
+                val colorRoles = MaterialColors.getColorRoles(context, swatch.rgb)
                 DominantColors(
-                    primary = Color(swatch.rgb),
-                    surface = Color(changeColor(swatch.rgb)),
-                    surfaceVariant = Color(changeColor(swatch.rgb)),
+                    primary = Color(colorRoles.accent),
+                    surface = Color(colorRoles.accentContainer),
+                    surfaceVariant = Color(colorRoles.accentContainer),
                 )
             }
             // Cache the resulting [DominantColors]
@@ -189,14 +190,4 @@ private suspend fun calculateSwatchesInImage(
             palette.swatches
         }
     } ?: emptyList()
-}
-
-private fun changeColor(rgb: Int): Int {
-    var red = rgb shr 16 and 0xFF
-    var green = rgb shr 8 and 0xFF
-    var blue = rgb and 0xFF
-    red = floor(red * (1 - 0.2)).toInt()
-    green = floor(green * (1 - 0.2)).toInt()
-    blue = floor(blue * (1 - 0.2)).toInt()
-    return android.graphics.Color.argb(80, red, green, blue)
 }
