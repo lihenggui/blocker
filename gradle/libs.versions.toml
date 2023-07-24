@@ -36,6 +36,7 @@ firebaseBom = "32.2.0"
 firebaseCrashlyticsPlugin = "2.9.7"
 firebasePerfPlugin = "1.4.2"
 gmsPlugin = "4.3.15"
+googleAndroidMaterial = "1.9.0"
 googleOss = "17.0.1"
 googleOssPlugin = "0.10.6"
 hilt = "2.47"
@@ -59,6 +60,7 @@ secrets = "2.0.1"
 shizuku = "13.1.4"
 xmlutil = "0.86.1"
 turbine = "1.0.0"
+material = "1.9.0"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -121,6 +123,7 @@ firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashly
 firebase-crashlytics-gradlePlugin = { group = "com.google.firebase", name="firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin"}
 firebase-performance = { group = "com.google.firebase", name = "firebase-perf-ktx"}
 firebase-performance-gradlePlugin = { group = "com.google.firebase", name = "perf-plugin", version.ref = "firebasePerfPlugin"}
+google-android-material = { group = "com.google.android.material", name = "material", version.ref = "googleAndroidMaterial" }
 google-services = { module = "com.google.gms:google-services", version.ref = "gmsPlugin" }
 google-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "googleOss" }
 google-oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "googleOssPlugin" }
@@ -159,6 +162,7 @@ freereflection = "com.github.tiann:FreeReflection:3.2.0"
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
