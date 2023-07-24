@@ -18,19 +18,10 @@
 
     <!-- Allows us to override night specific attributes in the
          values-night folder. -->
-    <style name="NightAdjusted.Theme.Blocker" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
-        <item name="android:windowLightNavigationBar" tools:targetApi="27">true</item>
-    </style>
-
-    <!-- Allows us to override platform level specific attributes in their
-         respective values-vXX folder. -->
-    <style name="PlatformAdjusted.Theme.Blocker" parent="NightAdjusted.Theme.Blocker">
-        <item name="android:statusBarColor">@color/black30</item>
-    </style>
+    <style name="NightAdjusted.Theme.Blocker" parent="android:Theme.Material.Light.NoActionBar" />
 
     <!-- The final theme we use -->
-    <style name="Theme.Blocker" parent="PlatformAdjusted.Theme.Blocker" />
+    <style name="Theme.Blocker" parent="NightAdjusted.Theme.Blocker" />
 
     <style name="NightAdjusted.Theme.Splash" parent="Theme.SplashScreen">
         <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
