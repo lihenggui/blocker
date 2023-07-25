@@ -42,7 +42,7 @@ fun rememberDominantColorState(
     context: Context = LocalContext.current,
     defaultPrimary: Color = MaterialTheme.colorScheme.primary,
     defaultSurfaceColor: Color = MaterialTheme.colorScheme.surface,
-    defaultOnSurfaceVariantColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    defaultSurfaceVariantColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     cacheSize: Int = 12,
     isColorValid: (Color) -> Boolean = { true },
 ): DominantColorState = remember {
@@ -50,7 +50,7 @@ fun rememberDominantColorState(
         context,
         defaultPrimary,
         defaultSurfaceColor,
-        defaultOnSurfaceVariantColor,
+        defaultSurfaceVariantColor,
         cacheSize,
         isColorValid,
     )
