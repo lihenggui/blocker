@@ -119,14 +119,17 @@ class DominantColorState(
         else -> null
     }
 
-    suspend fun updateColorsFromImageBitmap(bitmap: Bitmap) {
-        val result = calculateDominantColor(bitmap)
+    suspend fun updateColorsFromImageBitmap(bitmap: Bitmap, isSystemInDarkTheme: Boolean) {
+        val result = calculateDominantColor(bitmap, isSystemInDarkTheme)
         primaryColor = result?.primary ?: defaultPrimaryColor
         surfaceColor = result?.surface ?: defaultSurfaceColor
         surfaceVariantColor = result?.surfaceVariant ?: defaultSurfaceVariantColor
     }
 
-    private suspend fun calculateDominantColor(bitmap: Bitmap): DominantColors? {
+    private suspend fun calculateDominantColor(
+        bitmap: Bitmap,
+        isSystemInDarkTheme: Boolean,
+    ): DominantColors? {
         val cached = cache?.get(bitmap.toString())
         if (cached != null) {
             // If we already have the result cached, return early now...
@@ -142,11 +145,19 @@ class DominantColorState(
             // If we found a valid swatch, wrap it in a [DominantColors]
             ?.let { swatch ->
                 val colorRoles = MaterialColors.getColorRoles(context, swatch.rgb)
-                DominantColors(
-                    primary = Color(colorRoles.accent),
-                    surface = Color(colorRoles.accentContainer),
-                    surfaceVariant = Color(colorRoles.accentContainer),
-                )
+                if (isSystemInDarkTheme) {
+                    DominantColors(
+                        primary = Color(colorRoles.onAccent),
+                        surface = Color(colorRoles.onAccentContainer),
+                        surfaceVariant = Color(colorRoles.onAccentContainer),
+                    )
+                } else {
+                    DominantColors(
+                        primary = Color(colorRoles.accent),
+                        surface = Color(colorRoles.accentContainer),
+                        surfaceVariant = Color(colorRoles.accentContainer),
+                    )
+                }
             }
             // Cache the resulting [DominantColors]
             ?.also { result -> cache?.put(bitmap.toString(), result) }
