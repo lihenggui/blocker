@@ -17,8 +17,8 @@
 plugins {
     id("blocker.android.library")
     id("blocker.android.library.jacoco")
-    id("blocker.android.hilt")
     id("kotlinx-serialization")
+    id("blocker.android.hilt")
 }
 
 android {

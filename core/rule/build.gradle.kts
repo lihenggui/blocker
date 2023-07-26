@@ -29,13 +29,15 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.componentController)
-    implementation(projects.core.datastore)
     implementation(projects.core.ifwApi)
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.android)
     implementation(libs.hilt.ext.work)
     implementation(libs.kotlinx.serialization.json)
+    implementation(libs.xmlutil.core.android)
+    implementation(libs.xmlutil.serialization.android)
+
     kapt(libs.hilt.compiler)
     kapt(libs.hilt.ext.compiler)
 }
