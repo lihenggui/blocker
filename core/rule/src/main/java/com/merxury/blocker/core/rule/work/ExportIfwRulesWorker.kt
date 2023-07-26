@@ -24,13 +24,13 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.FileUtils
-import com.merxury.ifw.util.IfwStorageUtils
+import com.merxury.core.ifw.IfwStorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -74,7 +74,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         Timber.i("Start to export IFW rules.")
         var current = 0
         try {
-            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
             val total = files.count()
             files.forEach {
@@ -107,9 +107,9 @@ class ExportIfwRulesWorker @AssistedInject constructor(
     private suspend fun exportForSingleApplication(packageName: String, backupFolder: String): Int {
         Timber.d("Export IFW rules for $packageName")
         return withContext(ioDispatcher) {
-            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
-            val targetFileName = packageName + Rule.IFW_EXTENSION
+            val targetFileName = packageName + IFW_EXTENSION
             if (files.contains(targetFileName)) {
                 val content = FileUtils.read(ifwFolder + targetFileName)
                 StorageUtil.saveIfwToStorage(

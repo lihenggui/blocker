@@ -712,10 +712,15 @@ class AppDetailViewModel @Inject constructor(
             _appInfoUiState.emit(AppInfoUiState.Error(error))
         } else {
             val packageInfo = pm.getPackageInfoCompat(packageName, 0)
+            val userData = userDataRepository.userData.first()
             _appInfoUiState.emit(
                 AppInfoUiState.Success(
                     app.toAppItem(packageInfo = packageInfo),
-                    getAppIcon(packageInfo),
+                    if (userData.useDynamicColor) {
+                        getAppIcon(packageInfo)
+                    } else {
+                        null
+                    },
                 ),
             )
         }

@@ -1,8 +1,8 @@
 [versions]
 accompanist = "0.31.5-beta"
 androidDesugarJdkLibs = "2.0.3"
-androidGradlePlugin = "8.2.0-alpha13"
-androidxActivity = "1.7.2"
+androidGradlePlugin = "8.2.0-alpha14"
+androidxActivity = "1.8.0-alpha06"
 androidxAppCompat = "1.6.1"
 androidxBrowser = "1.5.0"
 androidxComposeBom = "2023.06.01"
@@ -36,6 +36,7 @@ firebaseBom = "32.2.0"
 firebaseCrashlyticsPlugin = "2.9.7"
 firebasePerfPlugin = "1.4.2"
 gmsPlugin = "4.3.15"
+googleAndroidMaterial = "1.9.0"
 googleOss = "17.0.1"
 googleOssPlugin = "0.10.6"
 hilt = "2.47"
@@ -43,12 +44,12 @@ hiltExt = "1.0.0"
 jacoco = "0.8.7"
 junit4 = "4.13.2"
 kotlin = "1.9.0"
-kotlinxCoroutines = "1.7.2"
+kotlinxCoroutines = "1.7.3"
 kotlinxDatetime = "0.4.0"
 kotlinxSerializationJson = "1.5.1"
 ksp = "1.9.0-1.0.12"
 libsu = "5.2.0"
-lint = "31.0.2"
+lint = "31.1.0"
 okhttp = "4.11.0"
 protobuf = "3.23.4"
 protobufPlugin = "0.9.3"
@@ -57,11 +58,12 @@ retrofitKotlinxSerializationJson = "1.0.0"
 room = "2.5.2"
 secrets = "2.0.1"
 shizuku = "13.1.4"
+xmlutil = "0.86.1"
 turbine = "1.0.0"
+material = "1.9.0"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
-accompanist-systemuicontroller = { group = "com.google.accompanist", name = "accompanist-systemuicontroller", version.ref = "accompanist" }
 accompanist-testharness = { group = "com.google.accompanist", name = "accompanist-testharness", version.ref = "accompanist" }
 accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist" }
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "androidDesugarJdkLibs" }
@@ -120,6 +122,7 @@ firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashly
 firebase-crashlytics-gradlePlugin = { group = "com.google.firebase", name="firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin"}
 firebase-performance = { group = "com.google.firebase", name = "firebase-perf-ktx"}
 firebase-performance-gradlePlugin = { group = "com.google.firebase", name = "perf-plugin", version.ref = "firebasePerfPlugin"}
+google-android-material = { group = "com.google.android.material", name = "material", version.ref = "googleAndroidMaterial" }
 google-services = { module = "com.google.gms:google-services", version.ref = "gmsPlugin" }
 google-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "googleOss" }
 google-oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "googleOssPlugin" }
@@ -149,14 +152,16 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
+xmlutil-core-android = { group = "io.github.pdvrieze.xmlutil", name = "core-android", version.ref = "xmlutil" }
+xmlutil-serialization-android = { group = "io.github.pdvrieze.xmlutil", name = "serialization-android", version.ref = "xmlutil" }
 timber = "com.jakewharton.timber:timber:5.0.1"
 freereflection = "com.github.tiann:FreeReflection:3.2.0"
-simplexml = "org.simpleframework:simple-xml:2.7.1"
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }

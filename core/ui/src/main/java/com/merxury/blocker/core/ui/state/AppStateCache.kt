@@ -20,7 +20,7 @@ import android.content.ComponentName
 import android.content.Context
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
-import com.merxury.ifw.IntentFirewallImpl
+import com.merxury.core.ifw.IIntentFirewall
 
 object AppStateCache {
     private val cache = mutableMapOf<String, AppState>()
@@ -29,11 +29,15 @@ object AppStateCache {
         return cache[packageName]
     }
 
-    suspend fun get(context: Context, packageName: String): AppState {
+    suspend fun get(
+        context: Context,
+        intentFirewall: IIntentFirewall,
+        packageName: String,
+    ): AppState {
         val cachedResult = cache[packageName]
         val result: AppState
         if (cachedResult == null) {
-            result = getServiceStatus(context, packageName)
+            result = getServiceStatus(context, intentFirewall, packageName)
             cache[packageName] = result
         } else {
             result = cachedResult
@@ -41,17 +45,20 @@ object AppStateCache {
         return result
     }
 
-    private suspend fun getServiceStatus(context: Context, packageName: String): AppState {
+    private suspend fun getServiceStatus(
+        context: Context,
+        intentFirewall: IIntentFirewall,
+        packageName: String,
+    ): AppState {
         val pm = context.packageManager
         val serviceHelper = ServiceHelper(packageName)
         serviceHelper.refresh()
-        val ifwImpl = IntentFirewallImpl(packageName).load()
         val services = ApplicationUtil.getServiceList(pm, packageName)
         var running = 0
         var blocked = 0
         for (service in services) {
             val component = ComponentName(packageName, service.name)
-            val ifwState = ifwImpl.getComponentEnableState(packageName, service.name)
+            val ifwState = intentFirewall.getComponentEnableState(packageName, service.name)
             val pmState = ApplicationUtil.checkComponentIsEnabled(pm, component)
             if (!ifwState || !pmState) {
                 blocked++
