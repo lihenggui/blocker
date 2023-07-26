@@ -23,12 +23,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.merxury.blocker.core.controllers.ComponentControllerProxy
+import com.merxury.blocker.core.controllers.ifw.IfwController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.model.data.ControllerType
+import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_STORAGE_PERMISSION
@@ -36,11 +35,12 @@ import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.rule.util.StorageUtil
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.ifw.util.RuleSerializer
+import com.merxury.core.ifw.Rules
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import nl.adaptivity.xmlutil.serialization.XML
 import timber.log.Timber
 import java.io.IOException
 
@@ -48,6 +48,8 @@ import java.io.IOException
 class ImportIfwRulesWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
+    private val xmlParser: XML,
+    private val ifwController: IfwController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
@@ -75,7 +77,6 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                 ?: return@withContext Result.failure(
                     workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
                 )
-            val controller = ComponentControllerProxy.getInstance(ControllerType.IFW, context)
             val files = ifwFolder.listFiles()
                 .filter { it.isFile && it.name?.endsWith(".xml") == true }
             total = files.count()
@@ -85,7 +86,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                 if (!restoredPackage.isNullOrEmpty()) {
                     // Import 1 IFW file case
                     // It will follow the 'Restore system app' setting
-                    if (documentFile.name != restoredPackage + Rule.IFW_EXTENSION) {
+                    if (documentFile.name != restoredPackage + IFW_EXTENSION) {
                         return@forEach
                     }
                 }
@@ -93,40 +94,50 @@ class ImportIfwRulesWorker @AssistedInject constructor(
                 setForeground(updateNotification(documentFile.name ?: "", importedCount, total))
                 var packageName: String? = null
                 context.contentResolver.openInputStream(documentFile.uri)?.use { stream ->
-                    val rule = RuleSerializer.deserialize(stream) ?: return@forEach
-                    val activities = rule.activity?.componentFilters?.asSequence()
-                        ?.map { filter -> filter.name.split("/") }?.map { names ->
+                    val fileContent = stream.bufferedReader().use { it.readText() }
+                    if (fileContent.isEmpty()) {
+                        return@forEach
+                    }
+                    val rule = Rules.decodeFromString(xmlParser, fileContent)
+                    val activities = rule.activity.componentFilter.asSequence()
+                        .map { filter -> filter.name.split("/") }
+                        .map { names ->
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
                             packageName = component.packageName
                             component
-                        }?.toList() ?: mutableListOf()
-                    val broadcast = rule.broadcast?.componentFilters?.asSequence()
-                        ?.map { filter -> filter.name.split("/") }?.map { names ->
+                        }
+                        .toList()
+                    val broadcast = rule.broadcast.componentFilter.asSequence()
+                        .map { filter -> filter.name.split("/") }
+                        .map { names ->
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
                             packageName = component.packageName
                             component
-                        }?.toList() ?: mutableListOf()
-                    val service = rule.service?.componentFilters?.asSequence()
-                        ?.map { filter -> filter.name.split("/") }?.map { names ->
+                        }
+                        .toList()
+                    val service = rule.service.componentFilter.asSequence()
+                        .map { filter -> filter.name.split("/") }
+                        .map { names ->
                             val component = ComponentInfo()
                             component.packageName = names[0]
                             component.name = names[1]
                             packageName = component.packageName
                             component
-                        }?.toList() ?: mutableListOf()
+                        }
+                        .toList()
                     val isSystemApp =
                         ApplicationUtil.isSystemApp(context.packageManager, packageName)
                     if (!shouldRestoreSystemApps && isSystemApp) {
                         Timber.i("Skipping system app $packageName")
                         return@forEach
                     }
-                    controller.batchDisable(activities) {}
-                    controller.batchDisable(broadcast) {}
-                    controller.batchDisable(service) {}
+                    ifwController.batchDisable(activities) {}
+                    ifwController.batchDisable(broadcast) {}
+                    ifwController.batchDisable(service) {}
                     importedCount++
                 }
             }

@@ -25,7 +25,9 @@ android {
 
 dependencies {
     implementation(projects.core.common)
+    implementation(projects.core.componentController)
     implementation(projects.core.data)
+    implementation(projects.core.ifwApi)
     implementation(projects.core.model)
 
     testImplementation(projects.core.testing)
