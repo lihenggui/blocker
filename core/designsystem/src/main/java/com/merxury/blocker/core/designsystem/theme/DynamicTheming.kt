@@ -145,12 +145,11 @@ class DominantColorState(
             // If we found a valid swatch, wrap it in a [DominantColors]
             ?.let { swatch ->
                 val colorRoles = MaterialColors.getColorRoles(swatch.rgb, !isSystemInDarkTheme)
-                    DominantColors(
-                        primary = Color(colorRoles.accent),
-                        surface = Color(colorRoles.accentContainer),
-                        surfaceVariant = Color(colorRoles.accentContainer),
-                    )
-
+                DominantColors(
+                    primary = Color(colorRoles.accent),
+                    surface = Color(colorRoles.accentContainer),
+                    surfaceVariant = Color(colorRoles.accentContainer),
+                )
             }
             // Cache the resulting [DominantColors]
             ?.also { result -> cache?.put(bitmap.toString(), result) }
