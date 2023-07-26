@@ -14,7 +14,17 @@
  * limitations under the License.
  */
 
-package com.merxury.ifw.entity;
+package com.merxury.blocker.core.model.rule
 
-public class Service extends Component {
-}
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.data.ControllerType
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class ComponentRule(
+    var packageName: String = "",
+    var name: String = "",
+    var state: Boolean = true,
+    var type: ComponentType = ComponentType.RECEIVER,
+    var method: ControllerType = ControllerType.PM,
+)

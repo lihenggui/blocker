@@ -25,7 +25,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
@@ -38,6 +37,7 @@ private const val BASE_FOLDER = "componentdetail"
 
 class LocalComponentDetailDataSource @Inject constructor(
     filesDir: File,
+    private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
 
@@ -53,7 +53,7 @@ class LocalComponentDetailDataSource @Inject constructor(
         val file = workingDir.resolve(path)
         if (file.exists()) {
             try {
-                val componentDetail = Json.decodeFromString<ComponentDetail>(file.readText())
+                val componentDetail = json.decodeFromString<ComponentDetail>(file.readText())
                 emit(componentDetail)
             } catch (e: SerializationException) {
                 Timber.e(e, "given JSON string is not a valid JSON input for the type")
@@ -83,7 +83,7 @@ class LocalComponentDetailDataSource @Inject constructor(
                     file.parentFile?.mkdirs()
                     file.createNewFile()
                 }
-                val content = Json.encodeToString(component)
+                val content = json.encodeToString(component)
                 file.writeText(content)
                 true
             } catch (e: IOException) {

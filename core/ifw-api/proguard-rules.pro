@@ -6,4 +6,5 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keep class com.merxury.ifw.entity.** { *; }
+-keep class com.merxury.core.ifw.entity.** { *; }
 -keep class org.simpleframework.** { *; }
