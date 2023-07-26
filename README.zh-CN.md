@@ -1,4 +1,6 @@
-## 介绍
+## Blocker
+[![release](https://img.shields.io/github/v/release/lihenggui/blocker?label=release&color=red)](https://github.com/lihenggui/blocker/releases) [![download](https://shields.io/github/downloads/lihenggui/blocker/total?label=download)](https://github.com/lihenggui/blocker/releases/latest) [![license](https://img.shields.io/github/license/lihenggui/blocker)](LICENSE) [![follow](https://img.shields.io/badge/follow-Telegram-blue.svg?label=follow)](https://t.me/blockerandroid) 
+
 Blocker是一款操作Android应用程序四大组件的程序。它支持多种不同的控制器控制组件，目前支持的有使用软件包管理器方式（PackageManager）和意图防火墙模式（Intent Firewall）。支持无缝切换使用模式，导入导出Blocker规则，导入导出纯IFW规则，兼容MyAndroidTools规则导入，或是将其转换为Intent Firewall规则导入。
 
 [<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"

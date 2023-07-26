@@ -18,11 +18,9 @@ package com.merxury.blocker.core.controllers
 
 import android.content.Context
 import android.content.pm.ComponentInfo
-import com.merxury.blocker.core.controllers.ifw.IfwController
 import com.merxury.blocker.core.controllers.root.RootController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.model.data.ControllerType
-import kotlinx.coroutines.Dispatchers
 
 /**
  * Created by Mercury on 2018/3/10.
@@ -32,9 +30,8 @@ class ComponentControllerProxy private constructor(
     method: ControllerType,
     context: Context,
 ) : IController {
-
     private var controller: IController = when (method) {
-        ControllerType.IFW -> IfwController(context, Dispatchers.IO)
+        ControllerType.IFW -> RootController(context)
         ControllerType.PM -> RootController(context)
         ControllerType.SHIZUKU -> ShizukuController(context)
     }

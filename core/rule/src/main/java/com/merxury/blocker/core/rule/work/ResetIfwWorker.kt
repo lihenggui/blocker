@@ -24,14 +24,14 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.rule.IFW_EXTENSION
 import com.merxury.blocker.core.rule.R
-import com.merxury.blocker.core.rule.Rule
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.MISSING_ROOT_PERMISSION
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.PARAM_WORK_RESULT
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.UNEXPECTED_EXCEPTION
 import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.core.utils.PermissionUtils
-import com.merxury.ifw.util.IfwStorageUtils
+import com.merxury.core.ifw.IfwStorageUtils
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.CoroutineDispatcher
@@ -62,7 +62,7 @@ class ResetIfwWorker @AssistedInject constructor(
         var count = 0
         val total: Int
         try {
-            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
             total = files.count()
             files.forEach {
@@ -95,9 +95,9 @@ class ResetIfwWorker @AssistedInject constructor(
     private suspend fun clearIfwRuleForPackage(packageName: String): Result {
         try {
             Timber.d("Start clearing IFW rules for package $packageName")
-            val ifwFolder = IfwStorageUtils.getIfwFolder()
+            val ifwFolder = IfwStorageUtils.ifwFolder
             val files = FileUtils.listFiles(ifwFolder)
-            val filename = packageName + Rule.IFW_EXTENSION
+            val filename = packageName + IFW_EXTENSION
             if (files.contains(filename)) {
                 updateNotification(packageName, 1, 1)
                 Timber.d("Delete IFW rules for $packageName")

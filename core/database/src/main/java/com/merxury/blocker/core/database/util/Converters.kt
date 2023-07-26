@@ -18,7 +18,6 @@ package com.merxury.blocker.core.database.util
 
 import androidx.room.TypeConverter
 import kotlinx.datetime.Instant
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
