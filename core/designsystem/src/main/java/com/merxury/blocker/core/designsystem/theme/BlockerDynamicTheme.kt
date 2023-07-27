@@ -16,17 +16,20 @@
 
 package com.merxury.blocker.core.designsystem.theme
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import com.merxury.blocker.core.model.data.ThemingBasedIconState
 
 const val MinContrastOfPrimaryVsSurface = 3f
 
 @Composable
 fun BlockerDynamicTheme(
-    imageBitmap: Bitmap?,
+    themingBasedIconState: ThemingBasedIconState,
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    blockerTheme: Boolean = false,
+    disableDynamicTheming: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val surfaceColor = MaterialTheme.colorScheme.surface
@@ -34,8 +37,14 @@ fun BlockerDynamicTheme(
         // We want a color which has sufficient contrast against the surface color
         color.contrastAgainst(surfaceColor) >= MinContrastOfPrimaryVsSurface
     }
+    val imageBitmap = themingBasedIconState.icon
     val isDarkTheme = isSystemInDarkTheme()
-    DynamicThemePrimaryColorsFromImage(dominantColorState) {
+    DynamicThemePrimaryColorsFromImage(
+        dominantColorState = dominantColorState,
+        darkTheme = darkTheme,
+        blockerTheme = blockerTheme,
+        disableDynamicTheming = disableDynamicTheming,
+    ) {
         // Update the dominantColorState with colors coming from the podcast image URL
         LaunchedEffect(imageBitmap) {
             if (imageBitmap != null) {
