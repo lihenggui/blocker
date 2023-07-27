@@ -18,13 +18,11 @@ package com.merxury.blocker.core.ui.rule
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -38,6 +36,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
+import com.merxury.blocker.core.designsystem.component.BlockerCard
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -51,10 +50,8 @@ fun RuleCard(
     item: GeneralRule,
     onCardClick: (Int) -> Unit = { },
 ) {
-    OutlinedCard(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp),
+    BlockerCard(
+        modifier = Modifier,
         onClick = { onCardClick(item.id) },
     ) {
         CardHeader(
@@ -74,25 +71,19 @@ private fun CardHeader(iconUrl: String?, name: String, matchedAppCount: Int, com
             modifier = Modifier
                 .padding(16.dp)
                 .size(40.dp),
-            model = Builder(LocalContext.current)
-                .data(iconUrl)
-                .error(BlockerIcons.Android)
-                .placeholder(BlockerIcons.Android)
-                .crossfade(true)
-                .build(),
+            model = Builder(LocalContext.current).data(iconUrl).error(BlockerIcons.Android)
+                .placeholder(BlockerIcons.Android).crossfade(true).build(),
             contentDescription = stringResource(id = string.rule_icon_description),
         )
         Column(modifier = Modifier.weight(1f)) {
             BlockerBodyLargeText(
                 text = name,
-                modifier = Modifier
-                    .padding(top = 16.dp, end = 16.dp),
+                modifier = Modifier.padding(top = 16.dp, end = 16.dp),
             )
             company?.let {
                 BlockerBodyMediumText(
                     text = it,
-                    modifier = Modifier
-                        .padding(top = 4.dp, end = 16.dp),
+                    modifier = Modifier.padding(top = 4.dp, end = 16.dp),
                 )
             }
         }
@@ -143,11 +134,7 @@ fun RuleBasicInfoPreview() {
         name = "Android WorkerManager",
         iconUrl = null,
         company = "Google",
-        description = "WorkManager is the recommended solution for persistent work. " +
-            "Work is persistent when it remains scheduled through app restarts and " +
-            "system reboots. Because most background processing is best accomplished " +
-            "through persistent work, WorkManager is the primary recommended API for " +
-            "background processing.",
+        description = "WorkManager is the recommended solution for persistent work. " + "Work is persistent when it remains scheduled through app restarts and " + "system reboots. Because most background processing is best accomplished " + "through persistent work, WorkManager is the primary recommended API for " + "background processing.",
         sideEffect = "Background works won't be able to execute",
         safeToBlock = false,
         contributors = listOf("Google"),
