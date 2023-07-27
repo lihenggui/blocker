@@ -103,7 +103,7 @@ fun BlockerApp(
                     )
                 },
                 bottomBar = {
-                    if (appState.shouldShowBottomBar && appState.currentTopLevelDestination != null) {
+                    if (appState.shouldShowBottomBar) {
                         BlockerBottomBar(
                             destinations = appState.topLevelDestinations,
                             onNavigateToDestination = appState::navigateToTopLevelDestination,
