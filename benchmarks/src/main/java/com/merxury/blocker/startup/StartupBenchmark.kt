@@ -28,6 +28,7 @@ import androidx.benchmark.macro.StartupTimingMetric
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import com.merxury.blocker.PACKAGE_NAME
+import com.merxury.blocker.allowNotifications
 import com.merxury.blocker.applist.appListWaitForContent
 import org.junit.Rule
 import org.junit.Test
@@ -87,6 +88,7 @@ abstract class AbstractStartupBenchmark(private val startupMode: StartupMode) {
         },
     ) {
         startActivityAndWait()
+        allowNotifications()
         // Waits until the content is ready to capture Time To Full Display
         appListWaitForContent()
     }

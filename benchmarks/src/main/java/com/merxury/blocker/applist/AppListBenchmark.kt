@@ -22,6 +22,7 @@ import androidx.benchmark.macro.StartupMode
 import androidx.benchmark.macro.junit4.MacrobenchmarkRule
 import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import com.merxury.blocker.PACKAGE_NAME
+import com.merxury.blocker.allowNotifications
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -47,6 +48,7 @@ class AppListBenchmark {
             // Start the app
             pressHome()
             startActivityAndWait()
+            allowNotifications()
         },
     ) {
         appListWaitForContent()
