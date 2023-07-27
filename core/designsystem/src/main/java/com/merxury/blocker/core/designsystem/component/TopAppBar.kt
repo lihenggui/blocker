@@ -51,7 +51,7 @@ fun BlockerTopAppBar(
     hasNavigationIcon: Boolean = false,
     onNavigationClick: () -> Unit = {},
     actions: @Composable () -> Unit = {},
-    colors: TopAppBarColors = topAppBarColors(),
+    colors: TopAppBarColors = topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
 ) {
     TopAppBar(
         modifier = modifier,
