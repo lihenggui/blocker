@@ -43,7 +43,8 @@ import com.merxury.blocker.MainActivityUiState.Success
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.util.NetworkMonitor
-import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
+import com.merxury.blocker.core.model.data.ThemingBasedIconState
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.ui.BlockerApp
 import dagger.hilt.android.AndroidEntryPoint
@@ -81,6 +82,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         var uiState: MainActivityUiState by mutableStateOf(Loading)
+        var themingBasedIconState: ThemingBasedIconState by mutableStateOf(ThemingBasedIconState())
 
         // Update the uiState
         lifecycleScope.launch {
@@ -88,6 +90,16 @@ class MainActivity : ComponentActivity() {
                 viewModel.uiState
                     .onEach {
                         uiState = it
+                    }
+                    .collect()
+            }
+        }
+        // observe theming based icon state
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.themingBasedIconState
+                    .onEach {
+                        themingBasedIconState = it
                     }
                     .collect()
             }
@@ -135,14 +147,16 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
             CompositionLocalProvider(LocalAnalyticsHelper provides analyticsHelper) {
-                BlockerTheme(
+                BlockerDynamicTheme(
                     darkTheme = darkTheme,
                     blockerTheme = shouldDisableDynamicTheming(uiState),
                     disableDynamicTheming = shouldDisableDynamicTheming(uiState),
+                    themingBasedIconState = themingBasedIconState,
                 ) {
                     BlockerApp(
                         networkMonitor = networkMonitor,
                         windowSizeClass = calculateWindowSizeClass(this),
+                        updateThemingBasedIconState = viewModel::updateThemingBasedIconState,
                     )
                 }
             }

@@ -22,6 +22,7 @@ import androidx.collection.LruCache
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -43,6 +44,8 @@ fun rememberDominantColorState(
     defaultPrimary: Color = MaterialTheme.colorScheme.primary,
     defaultSurfaceColor: Color = MaterialTheme.colorScheme.surface,
     defaultSurfaceVariantColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    defaultOnPrimaryContainerColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
+    defaultPrimaryContainerColor: Color = MaterialTheme.colorScheme.primaryContainer,
     cacheSize: Int = 12,
     isColorValid: (Color) -> Boolean = { true },
 ): DominantColorState = remember {
@@ -51,6 +54,8 @@ fun rememberDominantColorState(
         defaultPrimary,
         defaultSurfaceColor,
         defaultSurfaceVariantColor,
+        defaultPrimaryContainerColor,
+        defaultOnPrimaryContainerColor,
         cacheSize,
         isColorValid,
     )
@@ -63,6 +68,9 @@ fun rememberDominantColorState(
 @Composable
 fun DynamicThemePrimaryColorsFromImage(
     dominantColorState: DominantColorState = rememberDominantColorState(),
+    darkTheme: Boolean = isSystemInDarkTheme(),
+    blockerTheme: Boolean = false,
+    disableDynamicTheming: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme.copy(
@@ -81,8 +89,24 @@ fun DynamicThemePrimaryColorsFromImage(
             spring(stiffness = Spring.StiffnessLow),
             label = "onSurfaceVariant",
         ).value,
+        onPrimaryContainer = animateColorAsState(
+            dominantColorState.onPrimaryContainerColor,
+            spring(stiffness = Spring.StiffnessLow),
+            label = "onPrimaryContainerColor",
+        ).value,
+        primaryContainer = animateColorAsState(
+            dominantColorState.primaryContainerColor,
+            spring(stiffness = Spring.StiffnessLow),
+            label = "primaryContainerColor",
+        ).value,
     )
-    BlockerTheme(setColorScheme = colors, content = content)
+    BlockerTheme(
+        setColorScheme = colors,
+        darkTheme = darkTheme,
+        blockerTheme = blockerTheme,
+        disableDynamicTheming = disableDynamicTheming,
+        content = content,
+    )
 }
 
 /**
@@ -102,6 +126,8 @@ class DominantColorState(
     private val defaultPrimaryColor: Color,
     private val defaultSurfaceColor: Color,
     private val defaultSurfaceVariantColor: Color,
+    private val defaultPrimaryContainerColor: Color,
+    private val defaultOnPrimaryContainerColor: Color,
     cacheSize: Int = 12,
     private val isColorValid: (Color) -> Boolean = { true },
 ) {
@@ -114,6 +140,12 @@ class DominantColorState(
     var surfaceVariantColor by mutableStateOf(defaultSurfaceVariantColor)
         private set
 
+    var primaryContainerColor by mutableStateOf(defaultPrimaryContainerColor)
+        private set
+
+    var onPrimaryContainerColor by mutableStateOf(defaultOnPrimaryContainerColor)
+        private set
+
     private val cache = when {
         cacheSize > 0 -> LruCache<String, DominantColors>(cacheSize)
         else -> null
@@ -124,6 +156,8 @@ class DominantColorState(
         primaryColor = result?.primary ?: defaultPrimaryColor
         surfaceColor = result?.surface ?: defaultSurfaceColor
         surfaceVariantColor = result?.surfaceVariant ?: defaultSurfaceVariantColor
+        primaryContainerColor = result?.primaryContainer ?: defaultPrimaryContainerColor
+        onPrimaryContainerColor = result?.onPrimaryContainer ?: defaultOnPrimaryContainerColor
     }
 
     private suspend fun calculateDominantColor(
@@ -149,6 +183,8 @@ class DominantColorState(
                     primary = Color(colorRoles.accent),
                     surface = Color(colorRoles.accentContainer),
                     surfaceVariant = Color(colorRoles.accentContainer),
+                    primaryContainer = Color(colorRoles.accentContainer),
+                    onPrimaryContainer = Color(colorRoles.accent),
                 )
             }
             // Cache the resulting [DominantColors]
@@ -162,6 +198,8 @@ class DominantColorState(
         primaryColor = defaultPrimaryColor
         surfaceColor = defaultSurfaceColor
         surfaceVariantColor = defaultSurfaceVariantColor
+        primaryContainerColor = defaultPrimaryContainerColor
+        onPrimaryContainerColor = defaultOnPrimaryContainerColor
     }
 }
 
@@ -170,6 +208,8 @@ private data class DominantColors(
     val primary: Color,
     val surface: Color,
     val surfaceVariant: Color,
+    val primaryContainer: Color,
+    val onPrimaryContainer: Color,
 )
 
 /**
