@@ -153,7 +153,7 @@ class RuleDetailViewModel @Inject constructor(
             .first()
         val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
         _ruleInfoUiState.update {
-            RuleInfoUiState.Success(ruleInfo = ruleWithIcon, ruleIcon = getRuleIcon(rule.iconUrl, context = context))
+            RuleInfoUiState.Success(ruleInfo = ruleWithIcon, ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context))
         }
         currentSearchKeyword = rule.searchKeyword
         loadMatchedApps(rule.searchKeyword)
