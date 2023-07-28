@@ -45,9 +45,9 @@ fun BlockerDynamicTheme(
         blockerTheme = blockerTheme,
         disableDynamicTheming = disableDynamicTheming,
     ) {
-        // Update the dominantColorState with colors coming from the podcast image URL
         LaunchedEffect(imageBitmap) {
-            if (imageBitmap != null) {
+            // Update the dominantColorState with colors coming from the podcast image URL
+            if (imageBitmap != null && !disableDynamicTheming) {
                 dominantColorState.updateColorsFromImageBitmap(imageBitmap, isDarkTheme)
             } else {
                 dominantColorState.reset()
