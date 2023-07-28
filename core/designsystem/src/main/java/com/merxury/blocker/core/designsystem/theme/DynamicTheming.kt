@@ -42,7 +42,7 @@ import kotlinx.coroutines.withContext
 fun rememberDominantColorState(
     context: Context = LocalContext.current,
     defaultPrimary: Color = MaterialTheme.colorScheme.primary,
-    defaultSurfaceColor: Color = MaterialTheme.colorScheme.surface,
+    defaultSurfaceTintColor: Color = MaterialTheme.colorScheme.surfaceTint,
     defaultSurfaceVariantColor: Color = MaterialTheme.colorScheme.surfaceVariant,
     defaultOnPrimaryContainerColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     defaultPrimaryContainerColor: Color = MaterialTheme.colorScheme.primaryContainer,
@@ -52,7 +52,7 @@ fun rememberDominantColorState(
     DominantColorState(
         context,
         defaultPrimary,
-        defaultSurfaceColor,
+        defaultSurfaceTintColor,
         defaultSurfaceVariantColor,
         defaultPrimaryContainerColor,
         defaultOnPrimaryContainerColor,
@@ -79,8 +79,8 @@ fun DynamicThemePrimaryColorsFromImage(
             spring(stiffness = Spring.StiffnessLow),
             label = "primary",
         ).value,
-        surface = animateColorAsState(
-            dominantColorState.surfaceColor,
+        surfaceTint = animateColorAsState(
+            dominantColorState.surfaceTintColor,
             spring(stiffness = Spring.StiffnessLow),
             label = "surface",
         ).value,
@@ -124,7 +124,7 @@ fun DynamicThemePrimaryColorsFromImage(
 class DominantColorState(
     private val context: Context,
     private val defaultPrimaryColor: Color,
-    private val defaultSurfaceColor: Color,
+    private val defaultSurfaceTintColor: Color,
     private val defaultSurfaceVariantColor: Color,
     private val defaultPrimaryContainerColor: Color,
     private val defaultOnPrimaryContainerColor: Color,
@@ -134,7 +134,7 @@ class DominantColorState(
     var primaryColor by mutableStateOf(defaultPrimaryColor)
         private set
 
-    var surfaceColor by mutableStateOf(defaultSurfaceColor)
+    var surfaceTintColor by mutableStateOf(defaultSurfaceTintColor)
         private set
 
     var surfaceVariantColor by mutableStateOf(defaultSurfaceVariantColor)
@@ -154,7 +154,7 @@ class DominantColorState(
     suspend fun updateColorsFromImageBitmap(bitmap: Bitmap, isSystemInDarkTheme: Boolean) {
         val result = calculateDominantColor(bitmap, isSystemInDarkTheme)
         primaryColor = result?.primary ?: defaultPrimaryColor
-        surfaceColor = result?.surface ?: defaultSurfaceColor
+        surfaceTintColor = result?.surfaceTint ?: defaultSurfaceTintColor
         surfaceVariantColor = result?.surfaceVariant ?: defaultSurfaceVariantColor
         primaryContainerColor = result?.primaryContainer ?: defaultPrimaryContainerColor
         onPrimaryContainerColor = result?.onPrimaryContainer ?: defaultOnPrimaryContainerColor
@@ -181,7 +181,7 @@ class DominantColorState(
                 val colorRoles = MaterialColors.getColorRoles(swatch.rgb, !isSystemInDarkTheme)
                 DominantColors(
                     primary = Color(colorRoles.accent),
-                    surface = Color(colorRoles.accentContainer),
+                    surfaceTint = Color(colorRoles.accentContainer),
                     surfaceVariant = Color(colorRoles.accentContainer),
                     primaryContainer = Color(colorRoles.accentContainer),
                     onPrimaryContainer = Color(colorRoles.accent),
@@ -196,7 +196,7 @@ class DominantColorState(
      */
     fun reset() {
         primaryColor = defaultPrimaryColor
-        surfaceColor = defaultSurfaceColor
+        surfaceTintColor = defaultSurfaceTintColor
         surfaceVariantColor = defaultSurfaceVariantColor
         primaryContainerColor = defaultPrimaryContainerColor
         onPrimaryContainerColor = defaultOnPrimaryContainerColor
@@ -206,7 +206,7 @@ class DominantColorState(
 @Immutable
 private data class DominantColors(
     val primary: Color,
-    val surface: Color,
+    val surfaceTint: Color,
     val surfaceVariant: Color,
     val primaryContainer: Color,
     val onPrimaryContainer: Color,
