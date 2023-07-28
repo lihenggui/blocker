@@ -18,6 +18,7 @@ package com.merxury.blocker.baselineprofile
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import com.merxury.blocker.PACKAGE_NAME
+import com.merxury.blocker.allowNotifications
 import com.merxury.blocker.applist.appListScrollDownUp
 import com.merxury.blocker.applist.appListWaitForContent
 import com.merxury.blocker.rules.goToRulesScreen
@@ -41,6 +42,7 @@ class BaselineProfileGenerator {
 
             pressHome()
             startActivityAndWait()
+            allowNotifications()
 
             appListWaitForContent()
             appListScrollDownUp()
