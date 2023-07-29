@@ -29,7 +29,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 120
 
     steps:
@@ -136,7 +136,7 @@ jobs:
 
   androidTest:
     needs: build
-    runs-on: macOS-latest # enables hardware acceleration in the virtual machine
+    runs-on: self-hosted
     timeout-minutes: 60
     strategy:
       matrix:
@@ -179,7 +179,7 @@ jobs:
 
   androidTest-GMD:
     needs: build
-    runs-on: macOS-latest # enables hardware acceleration in the virtual machine
+    runs-on: self-hosted
     timeout-minutes: 55
 
     steps:
