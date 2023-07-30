@@ -23,7 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -119,9 +119,9 @@ fun AppSummary(
                 summary = dataDir,
             )
         }
-        Divider()
+        HorizontalDivider()
         BlockerRuleSection(onExportRules = onExportRules, onImportRules = onImportRules)
-        Divider()
+        HorizontalDivider()
         IfwRuleSection(
             onExportIfw = onExportIfw,
             onImportIfw = onImportIfw,
