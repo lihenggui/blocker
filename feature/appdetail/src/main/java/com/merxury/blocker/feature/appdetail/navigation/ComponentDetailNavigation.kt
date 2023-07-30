@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail.navigation
 
-import android.net.Uri
 import androidx.annotation.VisibleForTesting
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
@@ -24,8 +23,9 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.dialog
 import androidx.navigation.navArgument
-import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailDialogRoute
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 @VisibleForTesting
 internal const val componentNameArg = "componentName"
@@ -33,16 +33,16 @@ internal const val componentNameArg = "componentName"
 internal class ComponentDetailArgs(
     val name: String,
 ) {
-    constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
+    constructor(savedStateHandle: SavedStateHandle) :
         this(
-            stringDecoder.decodeString(checkNotNull(savedStateHandle[componentNameArg])),
+            URLDecoder.decode(checkNotNull(savedStateHandle[componentNameArg]), "UTF-8"),
         )
 }
 
 fun NavController.navigateToComponentDetail(
     name: String,
 ) {
-    val encodedId = Uri.encode(name)
+    val encodedId = URLEncoder.encode(name, "UTF-8")
     navigate("app_component_detail_route/$encodedId")
 }
 

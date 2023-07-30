@@ -21,7 +21,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
-import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -43,12 +42,11 @@ import javax.inject.Inject
 @HiltViewModel
 class ComponentDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    stringDecoder: StringDecoder,
     private val componentRepository: LocalComponentRepository,
     private val componentDetailRepository: ComponentDetailRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
-    private val componentDetailArg = ComponentDetailArgs(savedStateHandle, stringDecoder)
+    private val componentDetailArg = ComponentDetailArgs(savedStateHandle)
 
     private val _uiState = MutableStateFlow<ComponentDetailUiState>(Loading)
     val uiState = _uiState.asStateFlow()
