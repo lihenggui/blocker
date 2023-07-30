@@ -164,7 +164,7 @@ jobs:
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api-level }}
-          arch: x86_64
+          arch: arm64-v8a
           disable-animations: true
           disk-size: 6000M
           heap-size: 600M
