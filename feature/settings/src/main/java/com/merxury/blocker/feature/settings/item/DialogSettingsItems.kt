@@ -29,7 +29,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
@@ -101,7 +101,7 @@ fun <T> SettingDialog(
             )
         },
         text = {
-            Divider()
+            HorizontalDivider()
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 items.forEach { item ->
                     val value = item.first

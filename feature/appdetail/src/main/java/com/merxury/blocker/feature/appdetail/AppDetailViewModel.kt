@@ -41,7 +41,6 @@ import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -122,7 +121,6 @@ import javax.inject.Inject
 class AppDetailViewModel @Inject constructor(
     private val appContext: Application,
     savedStateHandle: SavedStateHandle,
-    stringDecoder: StringDecoder,
     private val analyticsHelper: AnalyticsHelper,
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
@@ -133,7 +131,7 @@ class AppDetailViewModel @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
-    private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle, stringDecoder)
+    private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle)
     private val _appInfoUiState: MutableStateFlow<AppInfoUiState> = MutableStateFlow(Loading)
     val appInfoUiState = _appInfoUiState.asStateFlow()
     private val _appBarUiState = MutableStateFlow(AppBarUiState())
