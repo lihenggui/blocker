@@ -26,7 +26,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.decoder.StringDecoder
-import com.merxury.blocker.core.model.data.ThemingBasedIconState
+import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
 
@@ -69,7 +69,7 @@ fun NavController.navigateToAppDetail(
 fun NavGraphBuilder.detailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    updateThemingBasedIconState: (ThemingBasedIconState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
 ) {
     composable(

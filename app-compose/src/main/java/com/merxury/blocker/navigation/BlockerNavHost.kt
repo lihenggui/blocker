@@ -22,7 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
-import com.merxury.blocker.core.model.data.ThemingBasedIconState
+import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
@@ -53,7 +53,7 @@ fun BlockerNavHost(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = appListRoute,
-    updateThemingBasedIconState: (ThemingBasedIconState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
 ) {
     NavHost(
         navController = navController,
