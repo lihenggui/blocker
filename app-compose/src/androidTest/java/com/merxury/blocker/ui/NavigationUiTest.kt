@@ -81,6 +81,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        updateIconBasedThemingState = {},
                     )
                 }
             }
@@ -100,6 +101,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        updateIconBasedThemingState = {},
                     )
                 }
             }
@@ -119,6 +121,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        updateIconBasedThemingState = {},
                     )
                 }
             }
@@ -138,6 +141,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        updateIconBasedThemingState = {},
                     )
                 }
             }
@@ -157,6 +161,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        updateIconBasedThemingState = {},
                     )
                 }
             }
@@ -176,6 +181,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        updateIconBasedThemingState = {},
                     )
                 }
             }
@@ -195,6 +201,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        updateIconBasedThemingState = {},
                     )
                 }
             }
@@ -214,6 +221,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        updateIconBasedThemingState = {},
                     )
                 }
             }
@@ -233,6 +241,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        updateIconBasedThemingState = {},
                     )
                 }
             }
