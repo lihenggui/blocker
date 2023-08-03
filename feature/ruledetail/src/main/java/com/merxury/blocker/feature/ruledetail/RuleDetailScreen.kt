@@ -67,7 +67,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.ThemingBasedIconState
+import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.model.AppItem
@@ -96,7 +96,7 @@ import kotlinx.coroutines.launch
 fun RuleDetailRoute(
     onBackClick: () -> Unit,
     navigateToAppDetail: (String) -> Unit,
-    updateThemingBasedIconState: (ThemingBasedIconState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
@@ -136,7 +136,7 @@ fun RuleDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateThemingBasedIconState(ThemingBasedIconState(icon = null, isBasedIcon = false))
+            updateThemingBasedIconState(IconBasedThemingState(icon = null, isBasedIcon = false))
         }
     }
 }
@@ -160,7 +160,7 @@ fun RuleDetailScreen(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateThemingBasedIconState: (ThemingBasedIconState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -216,7 +216,7 @@ fun RuleDetailContent(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateThemingBasedIconState: (ThemingBasedIconState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -254,7 +254,7 @@ fun RuleDetailContent(
             }
         }
     }
-    updateThemingBasedIconState(ThemingBasedIconState(icon = ruleInfoUiState.ruleIcon, isBasedIcon = true))
+    updateThemingBasedIconState(IconBasedThemingState(icon = ruleInfoUiState.ruleIcon, isBasedIcon = true))
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
