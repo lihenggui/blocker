@@ -241,7 +241,7 @@ fun AppDetailScreen(
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = {},
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -642,7 +642,6 @@ fun AppDetailScreenPreview() {
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
-                updateThemingBasedIconState = {},
             )
         }
     }
@@ -692,7 +691,6 @@ fun AppDetailScreenCollapsedPreview() {
                 topAppBarUiState = AppBarUiState(),
                 onSearchTextChanged = {},
                 onSearchModeChanged = {},
-                updateThemingBasedIconState = {},
             )
         }
     }
