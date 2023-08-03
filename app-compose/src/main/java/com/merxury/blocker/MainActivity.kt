@@ -148,7 +148,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(LocalAnalyticsHelper provides analyticsHelper) {
                 BlockerDynamicTheme(
                     darkTheme = darkTheme,
-                    blockerTheme = shouldDisableDynamicTheming(uiState),
+                    defaultTheme = shouldDisableDynamicTheming(uiState),
                     disableDynamicTheming = shouldDisableDynamicTheming(uiState),
                     iconBasedThemingState = iconBasedThemingState,
                 ) {
