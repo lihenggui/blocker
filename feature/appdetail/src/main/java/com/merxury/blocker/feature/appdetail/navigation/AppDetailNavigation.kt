@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail.navigation
 
-import android.net.Uri
 import androidx.annotation.VisibleForTesting
 import androidx.compose.material3.SnackbarHostState
 import androidx.lifecycle.SavedStateHandle
@@ -25,7 +24,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
