@@ -16,12 +16,13 @@
 
 package com.merxury.blocker.feature.ruledetail.model
 
+import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import androidx.core.graphics.drawable.toBitmap
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import coil.imageLoader
 import coil.request.ImageRequest
@@ -78,7 +79,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RuleDetailViewModel @Inject constructor(
-    appContext: android.app.Application,
+    private val appContext: Application,
     savedStateHandle: SavedStateHandle,
     private val pm: PackageManager,
     private val ruleRepository: GeneralRuleRepository,
@@ -88,7 +89,7 @@ class RuleDetailViewModel @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val shizukuInitializer: ShizukuInitializer,
     private val analyticsHelper: AnalyticsHelper,
-) : AndroidViewModel(appContext) {
+) : ViewModel() {
     private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
     private val _ruleMatchedAppListUiState: MutableStateFlow<RuleMatchedAppListUiState> =
         MutableStateFlow(Loading)
@@ -143,7 +144,7 @@ class RuleDetailViewModel @Inject constructor(
     }
 
     private fun loadData() = viewModelScope.launch {
-        val context: Context = getApplication()
+        val context: Context = appContext
         val ruleId = ruleIdArgs.ruleId
         val baseUrl = userDataRepository.userData
             .first()
@@ -280,7 +281,7 @@ class RuleDetailViewModel @Inject constructor(
 }
 
 sealed interface RuleInfoUiState {
-    object Loading : RuleInfoUiState
+    data object Loading : RuleInfoUiState
     class Error(val error: UiMessage) : RuleInfoUiState
     data class Success(
         val ruleInfo: GeneralRule,
