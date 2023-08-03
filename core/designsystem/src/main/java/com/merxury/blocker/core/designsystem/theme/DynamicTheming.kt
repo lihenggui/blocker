@@ -82,7 +82,7 @@ fun DynamicThemePrimaryColorsFromImage(
         surfaceTint = animateColorAsState(
             dominantColorState.surfaceTintColor,
             spring(stiffness = Spring.StiffnessLow),
-            label = "surface",
+            label = "surfaceTint",
         ).value,
         surfaceVariant = animateColorAsState(
             dominantColorState.surfaceVariantColor,
