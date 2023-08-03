@@ -76,7 +76,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.ThemingBasedIconState
+import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
@@ -123,7 +123,7 @@ fun AppDetailRoute(
     navigateToComponentDetail: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    updateThemingBasedIconState: (ThemingBasedIconState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -178,7 +178,7 @@ fun AppDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateThemingBasedIconState(ThemingBasedIconState(icon = null, isBasedIcon = false))
+            updateThemingBasedIconState(IconBasedThemingState(icon = null, isBasedIcon = false))
         }
     }
     event?.let {
@@ -241,7 +241,7 @@ fun AppDetailScreen(
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
-    updateThemingBasedIconState: (ThemingBasedIconState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -320,7 +320,7 @@ fun AppDetailContent(
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
-    updateThemingBasedIconState: (ThemingBasedIconState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
 ) {
     var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -359,7 +359,7 @@ fun AppDetailContent(
             }
         }
     }
-    updateThemingBasedIconState(ThemingBasedIconState(icon = appIcon, isBasedIcon = true))
+    updateThemingBasedIconState(IconBasedThemingState(icon = appIcon, isBasedIcon = true))
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(

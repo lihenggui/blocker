@@ -18,7 +18,7 @@ package com.merxury.blocker.core.model.data
 
 import android.graphics.Bitmap
 
-data class ThemingBasedIconState(
+data class IconBasedThemingState(
     val icon: Bitmap? = null,
     val isBasedIcon: Boolean = false,
 )

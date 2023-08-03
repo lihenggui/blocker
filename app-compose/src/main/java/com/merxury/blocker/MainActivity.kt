@@ -44,7 +44,7 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
-import com.merxury.blocker.core.model.data.ThemingBasedIconState
+import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.ui.BlockerApp
 import dagger.hilt.android.AndroidEntryPoint
@@ -82,7 +82,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         var uiState: MainActivityUiState by mutableStateOf(Loading)
-        var themingBasedIconState: ThemingBasedIconState by mutableStateOf(ThemingBasedIconState())
+        var iconBasedThemingState: IconBasedThemingState by mutableStateOf(IconBasedThemingState())
 
         // Update the uiState
         lifecycleScope.launch {
@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.themingBasedIconState
                     .onEach {
-                        themingBasedIconState = it
+                        iconBasedThemingState = it
                     }
                     .collect()
             }
@@ -151,12 +151,12 @@ class MainActivity : ComponentActivity() {
                     darkTheme = darkTheme,
                     blockerTheme = shouldDisableDynamicTheming(uiState),
                     disableDynamicTheming = shouldDisableDynamicTheming(uiState),
-                    themingBasedIconState = themingBasedIconState,
+                    iconBasedThemingState = iconBasedThemingState,
                 ) {
                     BlockerApp(
                         networkMonitor = networkMonitor,
                         windowSizeClass = calculateWindowSizeClass(this),
-                        updateThemingBasedIconState = viewModel::updateThemingBasedIconState,
+                        updateIconBasedThemingState = viewModel::updateThemingBasedIconState,
                     )
                 }
             }
