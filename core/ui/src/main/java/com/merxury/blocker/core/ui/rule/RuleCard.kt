@@ -36,8 +36,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
-import com.merxury.blocker.core.designsystem.component.BlockerOutlinedCard
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
+import com.merxury.blocker.core.designsystem.component.BlockerOutlinedCard
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -71,8 +71,12 @@ private fun CardHeader(iconUrl: String?, name: String, matchedAppCount: Int, com
             modifier = Modifier
                 .padding(16.dp)
                 .size(40.dp),
-            model = Builder(LocalContext.current).data(iconUrl).error(BlockerIcons.Android)
-                .placeholder(BlockerIcons.Android).crossfade(true).build(),
+            model = Builder(LocalContext.current)
+                .data(iconUrl)
+                .error(BlockerIcons.Android)
+                .placeholder(BlockerIcons.Android)
+                .crossfade(true)
+                .build(),
             contentDescription = stringResource(id = string.rule_icon_description),
         )
         Column(modifier = Modifier.weight(1f)) {
