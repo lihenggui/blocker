@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BlockerCard(
+fun BlockerOutlinedCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
     content: @Composable ColumnScope.() -> Unit,

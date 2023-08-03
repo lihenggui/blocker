@@ -36,7 +36,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
-import com.merxury.blocker.core.designsystem.component.BlockerCard
+import com.merxury.blocker.core.designsystem.component.BlockerOutlinedCard
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -50,7 +50,7 @@ fun RuleCard(
     item: GeneralRule,
     onCardClick: (Int) -> Unit = { },
 ) {
-    BlockerCard(
+    BlockerOutlinedCard(
         modifier = Modifier,
         onClick = { onCardClick(item.id) },
     ) {
