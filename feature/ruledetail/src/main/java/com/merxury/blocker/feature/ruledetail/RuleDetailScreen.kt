@@ -160,7 +160,7 @@ fun RuleDetailScreen(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -472,7 +472,6 @@ fun RuleDetailScreenPreView() {
                 onCopyNameClick = { _ -> },
                 onCopyFullNameClick = { _ -> },
                 onSwitch = { _, _, _ -> },
-                updateThemingBasedIconState = {},
             )
         }
     }
@@ -520,7 +519,6 @@ fun RuleDetailScreenLoadingPreView() {
                 onCopyNameClick = { _ -> },
                 onCopyFullNameClick = { _ -> },
                 onSwitch = { _, _, _ -> },
-                updateThemingBasedIconState = {},
             )
         }
     }
@@ -568,7 +566,6 @@ fun RuleDetailScreenErrorPreView() {
                 onCopyNameClick = { _ -> },
                 onCopyFullNameClick = { _ -> },
                 onSwitch = { _, _, _ -> },
-                updateThemingBasedIconState = {},
             )
         }
     }
