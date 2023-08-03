@@ -29,6 +29,8 @@ import com.merxury.blocker.core.decoder.StringDecoder
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
+import java.net.URLDecoder
+import java.net.URLEncoder
 
 @VisibleForTesting
 internal const val packageNameArg = "packageName"
@@ -44,11 +46,12 @@ internal class AppDetailArgs(
     val tabs: AppDetailTabs = AppDetailTabs.Info,
     val searchKeyword: List<String> = listOf(),
 ) {
-    constructor(savedStateHandle: SavedStateHandle, stringDecoder: StringDecoder) :
+    constructor(savedStateHandle: SavedStateHandle) :
         this(
-            stringDecoder.decodeString(checkNotNull(savedStateHandle[packageNameArg])),
+            URLDecoder.decode(checkNotNull(savedStateHandle[packageNameArg]), "UTF-8"),
             AppDetailTabs.fromName(savedStateHandle[tabArg]),
-            stringDecoder.decodeString(checkNotNull(savedStateHandle[keywordArg])).split(","),
+            URLDecoder.decode(checkNotNull(savedStateHandle[keywordArg]), "UTF-8")
+                .split(","),
         )
 }
 
@@ -57,8 +60,8 @@ fun NavController.navigateToAppDetail(
     tab: AppDetailTabs = AppDetailTabs.Info,
     searchKeyword: List<String> = listOf(),
 ) {
-    val encodedId = Uri.encode(packageName)
-    val keywords = searchKeyword.joinToString(",")
+    val encodedId = URLEncoder.encode(packageName, "UTF-8")
+    val keywords = URLEncoder.encode(searchKeyword.joinToString(","), "UTF-8")
     this.navigate("app_detail_route/$encodedId?screen=${tab.name}?keyword=$keywords") {
         // Avoid multiple copies of the same destination when
         // reselecting the same item
