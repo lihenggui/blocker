@@ -28,7 +28,7 @@ const val MinContrastOfPrimaryVsSurface = 3f
 fun BlockerDynamicTheme(
     iconBasedThemingState: IconBasedThemingState,
     darkTheme: Boolean = isSystemInDarkTheme(),
-    blockerTheme: Boolean = false,
+    defaultTheme: Boolean = false,
     disableDynamicTheming: Boolean = true,
     content: @Composable () -> Unit,
 ) {
@@ -42,7 +42,7 @@ fun BlockerDynamicTheme(
     DynamicThemePrimaryColorsFromImage(
         dominantColorState = dominantColorState,
         darkTheme = darkTheme,
-        blockerTheme = blockerTheme,
+        blockerTheme = defaultTheme,
         disableDynamicTheming = disableDynamicTheming,
     ) {
         LaunchedEffect(imageBitmap) {
