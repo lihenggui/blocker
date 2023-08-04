@@ -53,7 +53,7 @@ fun BlockerNavHost(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = appListRoute,
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = {},
 ) {
     NavHost(
         navController = navController,
