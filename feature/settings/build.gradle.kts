@@ -30,7 +30,4 @@ dependencies {
     implementation(libs.androidx.browser)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
-    implementation(libs.google.oss.licenses) {
-        exclude(group = "androidx.appcompat")
-    }
 }

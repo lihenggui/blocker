@@ -22,10 +22,8 @@ plugins {
     id("blocker.android.application.flavors")
     id("blocker.android.application.jacoco")
     id("blocker.android.hilt")
-    id("blocker.android.application.firebase")
     id("jacoco")
     id("kotlin-parcelize")
-    id("com.google.android.gms.oss-licenses-plugin")
     alias(libs.plugins.ksp)
 }
 
