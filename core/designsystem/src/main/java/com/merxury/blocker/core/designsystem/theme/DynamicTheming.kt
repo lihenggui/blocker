@@ -16,14 +16,13 @@
 
 package com.merxury.blocker.core.designsystem.theme
 
-import android.content.Context
 import android.graphics.Bitmap
 import androidx.collection.LruCache
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
@@ -32,7 +31,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette
 import com.google.android.material.color.MaterialColors
 import kotlinx.coroutines.Dispatchers
@@ -40,24 +38,18 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun rememberDominantColorState(
-    context: Context = LocalContext.current,
-    defaultPrimary: Color = MaterialTheme.colorScheme.primary,
-    defaultSurfaceTintColor: Color = MaterialTheme.colorScheme.surfaceTint,
-    defaultSurfaceVariantColor: Color = MaterialTheme.colorScheme.surfaceVariant,
-    defaultOnPrimaryContainerColor: Color = MaterialTheme.colorScheme.onPrimaryContainer,
-    defaultPrimaryContainerColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    colorScheme: ColorScheme,
     cacheSize: Int = 12,
     isColorValid: (Color) -> Boolean = { true },
 ): DominantColorState = remember {
     DominantColorState(
-        context,
-        defaultPrimary,
-        defaultSurfaceTintColor,
-        defaultSurfaceVariantColor,
-        defaultPrimaryContainerColor,
-        defaultOnPrimaryContainerColor,
-        cacheSize,
-        isColorValid,
+        defaultPrimaryColor = colorScheme.primary,
+        defaultSurfaceTintColor = colorScheme.surfaceTint,
+        defaultSurfaceVariantColor = colorScheme.surfaceVariant,
+        defaultPrimaryContainerColor = colorScheme.primaryContainer,
+        defaultOnPrimaryContainerColor = colorScheme.onPrimaryContainer,
+        cacheSize = cacheSize,
+        isColorValid = isColorValid,
     )
 }
 
@@ -67,13 +59,14 @@ fun rememberDominantColorState(
  */
 @Composable
 fun DynamicThemePrimaryColorsFromImage(
-    dominantColorState: DominantColorState = rememberDominantColorState(),
+    colorScheme: ColorScheme,
     darkTheme: Boolean = isSystemInDarkTheme(),
     blockerTheme: Boolean = false,
     disableDynamicTheming: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val colors = MaterialTheme.colorScheme.copy(
+    val dominantColorState = rememberDominantColorState(colorScheme = colorScheme)
+    val colors = colorScheme.copy(
         primary = animateColorAsState(
             dominantColorState.primaryColor,
             spring(stiffness = Spring.StiffnessLow),
@@ -101,7 +94,7 @@ fun DynamicThemePrimaryColorsFromImage(
         ).value,
     )
     BlockerTheme(
-        setColorScheme = colors,
+        customizedColorScheme = colors,
         darkTheme = darkTheme,
         blockerTheme = blockerTheme,
         disableDynamicTheming = disableDynamicTheming,
@@ -113,7 +106,6 @@ fun DynamicThemePrimaryColorsFromImage(
  * A class which stores and caches the result of any calculated dominant colors
  * from images.
  *
- * @param context Android context
  * @param defaultPrimaryColor The default color, which will be used if [calculateDominantColor] fails to
  * calculate a dominant color
  * @param cacheSize The size of the [LruCache] used to store recent results. Pass `0` to
@@ -122,7 +114,6 @@ fun DynamicThemePrimaryColorsFromImage(
  */
 @Stable
 class DominantColorState(
-    private val context: Context,
     private val defaultPrimaryColor: Color,
     private val defaultSurfaceTintColor: Color,
     private val defaultSurfaceVariantColor: Color,

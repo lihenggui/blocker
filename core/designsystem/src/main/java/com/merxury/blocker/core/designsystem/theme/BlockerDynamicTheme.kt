@@ -17,9 +17,11 @@
 package com.merxury.blocker.core.designsystem.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 
 const val MinContrastOfPrimaryVsSurface = 3f
@@ -32,15 +34,24 @@ fun BlockerDynamicTheme(
     disableDynamicTheming: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val surfaceColor = MaterialTheme.colorScheme.surface
-    val dominantColorState = rememberDominantColorState { color ->
+    val defaultColorScheme = when {
+        !disableDynamicTheming && supportsDynamicTheming() -> {
+            val context = LocalContext.current
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+        }
+
+        else -> if (darkTheme) DarkBlockerColorScheme else LightBlockerColorScheme
+    }
+    val dominantColorState = rememberDominantColorState(
+        colorScheme = defaultColorScheme,
+    ) { color ->
         // We want a color which has sufficient contrast against the surface color
-        color.contrastAgainst(surfaceColor) >= MinContrastOfPrimaryVsSurface
+        color.contrastAgainst(defaultColorScheme.surface) >= MinContrastOfPrimaryVsSurface
     }
     val icon = iconBasedThemingState.icon
     val isDarkTheme = isSystemInDarkTheme()
     DynamicThemePrimaryColorsFromImage(
-        dominantColorState = dominantColorState,
+        colorScheme = defaultColorScheme,
         darkTheme = darkTheme,
         blockerTheme = defaultTheme,
         disableDynamicTheming = disableDynamicTheming,
