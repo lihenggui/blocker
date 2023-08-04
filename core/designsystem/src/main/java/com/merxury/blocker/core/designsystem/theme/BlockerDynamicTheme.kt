@@ -37,7 +37,7 @@ fun BlockerDynamicTheme(
         // We want a color which has sufficient contrast against the surface color
         color.contrastAgainst(surfaceColor) >= MinContrastOfPrimaryVsSurface
     }
-    val imageBitmap = iconBasedThemingState.icon
+    val icon = iconBasedThemingState.icon
     val isDarkTheme = isSystemInDarkTheme()
     DynamicThemePrimaryColorsFromImage(
         dominantColorState = dominantColorState,
@@ -45,10 +45,10 @@ fun BlockerDynamicTheme(
         blockerTheme = defaultTheme,
         disableDynamicTheming = disableDynamicTheming,
     ) {
-        LaunchedEffect(imageBitmap) {
+        LaunchedEffect(icon) {
             // Update the dominantColorState with colors coming from the podcast image URL
-            if (imageBitmap != null && !disableDynamicTheming) {
-                dominantColorState.updateColorsFromImageBitmap(imageBitmap, isDarkTheme)
+            if (icon != null && !disableDynamicTheming) {
+                dominantColorState.updateColorsFromImageBitmap(icon, isDarkTheme)
             } else {
                 dominantColorState.reset()
             }
