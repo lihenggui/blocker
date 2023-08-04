@@ -76,7 +76,7 @@ fun BlockerApp(
         networkMonitor = networkMonitor,
         windowSizeClass = windowSizeClass,
     ),
-    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
     val shouldShowGradientBackground =
         appState.currentTopLevelDestination == TopLevelDestination.APP
