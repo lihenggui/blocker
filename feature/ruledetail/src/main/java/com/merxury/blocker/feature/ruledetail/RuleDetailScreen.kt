@@ -216,7 +216,7 @@ fun RuleDetailContent(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = { _ -> }
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
