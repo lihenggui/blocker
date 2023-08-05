@@ -19,7 +19,6 @@ package com.merxury.blocker.core.designsystem.theme
 
 import android.os.Build
 import androidx.annotation.ChecksSdkIntAtLeast
-import androidx.annotation.VisibleForTesting
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -37,7 +36,6 @@ import androidx.compose.ui.unit.dp
 /**
  * Light Blocker theme color scheme
  */
-@VisibleForTesting
 val LightBlockerColorScheme = lightColorScheme(
     primary = md_theme_light_primary,
     onPrimary = md_theme_light_onPrimary,
@@ -73,7 +71,6 @@ val LightBlockerColorScheme = lightColorScheme(
 /**
  * Dark Blocker theme color scheme
  */
-@VisibleForTesting
 val DarkBlockerColorScheme = darkColorScheme(
     primary = md_theme_dark_primary,
     onPrimary = md_theme_dark_onPrimary,
@@ -137,7 +134,7 @@ val DarkBlockerBackgroundTheme = BackgroundTheme(color = Color.Black)
  */
 @Composable
 fun BlockerTheme(
-    setColorScheme: ColorScheme? = null,
+    customizedColorScheme: ColorScheme? = null,
     darkTheme: Boolean = isSystemInDarkTheme(),
     blockerTheme: Boolean = false,
     disableDynamicTheming: Boolean = true,
@@ -149,6 +146,7 @@ fun BlockerTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
+
         else -> if (darkTheme) DarkBlockerColorScheme else LightBlockerColorScheme
     }
     // Gradient colors
@@ -183,7 +181,7 @@ fun BlockerTheme(
         LocalTintTheme provides tintTheme,
     ) {
         MaterialTheme(
-            colorScheme = setColorScheme ?: colorScheme,
+            colorScheme = customizedColorScheme ?: colorScheme,
             typography = BlockerTypography,
             content = content,
         )

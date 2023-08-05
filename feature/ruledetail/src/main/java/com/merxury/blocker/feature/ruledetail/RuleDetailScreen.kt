@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -66,6 +67,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.model.AppItem
@@ -94,6 +96,7 @@ import kotlinx.coroutines.launch
 fun RuleDetailRoute(
     onBackClick: () -> Unit,
     navigateToAppDetail: (String) -> Unit,
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
@@ -119,6 +122,7 @@ fun RuleDetailRoute(
         onEnableAllInPageClick = { viewModel.controlAllComponentsInPage(true) },
         onSwitch = viewModel::controlComponent,
         navigateToAppDetail = navigateToAppDetail,
+        updateThemingBasedIconState = updateThemingBasedIconState,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -129,6 +133,11 @@ fun RuleDetailRoute(
     }
     LaunchedEffect(Unit) {
         viewModel.initShizuku()
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            updateThemingBasedIconState(IconBasedThemingState(icon = null, isBasedIcon = false))
+        }
     }
 }
 
@@ -151,6 +160,7 @@ fun RuleDetailScreen(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -176,6 +186,7 @@ fun RuleDetailScreen(
                 onEnableAllInPageClick = onEnableAllInPageClick,
                 onSwitch = onSwitch,
                 navigateToAppDetail = navigateToAppDetail,
+                updateThemingBasedIconState = updateThemingBasedIconState,
             )
         }
 
@@ -205,6 +216,7 @@ fun RuleDetailContent(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
+    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -242,6 +254,7 @@ fun RuleDetailContent(
             }
         }
     }
+    updateThemingBasedIconState(IconBasedThemingState(icon = ruleInfoUiState.ruleIcon, isBasedIcon = true))
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
@@ -437,6 +450,7 @@ fun RuleDetailScreenPreView() {
     )
     val ruleInfoUiState = RuleInfoUiState.Success(
         ruleInfo = item,
+        ruleIcon = null,
     )
     val tabState = TabState(
         items = listOf(
