@@ -41,7 +41,7 @@ fun rememberDominantColorState(
     colorScheme: ColorScheme,
     cacheSize: Int = 12,
     isColorValid: (Color) -> Boolean = { true },
-): DominantColorState = remember {
+): DominantColorState = remember(colorScheme) {
     DominantColorState(
         defaultPrimaryColor = colorScheme.primary,
         defaultSurfaceTintColor = colorScheme.surfaceTint,
@@ -59,14 +59,14 @@ fun rememberDominantColorState(
  */
 @Composable
 fun DynamicThemePrimaryColorsFromImage(
-    colorScheme: ColorScheme,
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    blockerTheme: Boolean = false,
+    defaultColorScheme: ColorScheme,
+    dominantColorState: DominantColorState,
+    useDarkTheme: Boolean = isSystemInDarkTheme(),
+    useBlockerTheme: Boolean = false,
     disableDynamicTheming: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val dominantColorState = rememberDominantColorState(colorScheme = colorScheme)
-    val colors = colorScheme.copy(
+    val colors = defaultColorScheme.copy(
         primary = animateColorAsState(
             dominantColorState.primaryColor,
             spring(stiffness = Spring.StiffnessLow),
@@ -95,8 +95,8 @@ fun DynamicThemePrimaryColorsFromImage(
     )
     BlockerTheme(
         customizedColorScheme = colors,
-        darkTheme = darkTheme,
-        blockerTheme = blockerTheme,
+        darkTheme = useDarkTheme,
+        blockerTheme = useBlockerTheme,
         disableDynamicTheming = disableDynamicTheming,
         content = content,
     )
