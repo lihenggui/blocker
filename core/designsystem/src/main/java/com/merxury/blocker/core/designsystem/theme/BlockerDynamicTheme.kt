@@ -51,9 +51,10 @@ fun BlockerDynamicTheme(
     val icon = iconBasedThemingState.icon
     val isDarkTheme = isSystemInDarkTheme()
     DynamicThemePrimaryColorsFromImage(
-        colorScheme = defaultColorScheme,
-        darkTheme = darkTheme,
-        blockerTheme = defaultTheme,
+        defaultColorScheme = defaultColorScheme,
+        dominantColorState = dominantColorState,
+        useDarkTheme = darkTheme,
+        useBlockerTheme = defaultTheme,
         disableDynamicTheming = disableDynamicTheming,
     ) {
         LaunchedEffect(icon) {
