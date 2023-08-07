@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.Orientation.Vertical
@@ -202,6 +203,9 @@ fun SearchScreen(
                 )
             }
         }
+    }
+    BackHandler(enabled = searchUiState.isSelectedMode) {
+        switchSelectedMode(false)
     }
     TrackScreenViewEvent(screenName = "SearchScreen")
 }
