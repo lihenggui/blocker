@@ -32,7 +32,7 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -293,7 +293,7 @@ class SettingsViewModel @Inject constructor(
 
 data class UserEditableSettings(
     val controllerType: ControllerType = IFW,
-    val ruleServerProvider: RuleServerProvider = GITLAB,
+    val ruleServerProvider: RuleServerProvider = GITHUB,
     val ruleBackupFolder: String = "",
     val backupSystemApp: Boolean = false,
     val restoreSystemApp: Boolean = false,

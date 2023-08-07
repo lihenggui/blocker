@@ -65,10 +65,10 @@ class BlockerPreferencesDataSource @Inject constructor(
             ruleServerProvider = when (it.ruleServerProvider) {
                 null,
                 RuleServerProviderProto.UNRECOGNIZED,
-                RuleServerProviderProto.GITLAB,
-                -> RuleServerProvider.GITLAB
+                RuleServerProviderProto.GITHUB,
+                -> RuleServerProvider.GITHUB
 
-                RuleServerProviderProto.GITHUB -> RuleServerProvider.GITHUB
+                RuleServerProviderProto.GITLAB -> RuleServerProvider.GITLAB
             },
             ruleBackupFolder = it.ruleBackupFolder,
             backupSystemApp = it.backupSystemApp,
