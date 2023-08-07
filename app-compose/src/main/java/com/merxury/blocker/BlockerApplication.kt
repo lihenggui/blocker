@@ -88,7 +88,6 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
                     blockerNetworkDataSource.changeServerProvider(GITLAB)
                 } else {
                     Timber.i("Set default server provider to GitHub")
-                    Timber.i("Current locale is $locale")
                     blockerNetworkDataSource.changeServerProvider(GITHUB)
                 }
                 userDataRepository.setIsFirstTimeInitializationCompleted(true)
