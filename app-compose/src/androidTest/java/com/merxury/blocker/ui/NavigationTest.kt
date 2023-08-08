@@ -17,30 +17,41 @@
 package com.merxury.blocker.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
+import androidx.test.espresso.Espresso
+import androidx.test.espresso.NoActivityResumedException
 import com.merxury.blocker.MainActivity
 import com.merxury.blocker.R
+import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.model.data.GeneralRule
 import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import javax.inject.Inject
 import kotlin.properties.ReadOnlyProperty
+import com.merxury.blocker.core.ui.R as UiR
 import com.merxury.blocker.feature.applist.R as FeatureApplistR
 import com.merxury.blocker.feature.search.R as FeatureSearchR
-import com.merxury.blocker.core.ui.R as UiR
 
 @HiltAndroidTest
 class NavigationTest {
@@ -65,6 +76,9 @@ class NavigationTest {
     @get:Rule(order = 3)
     val composeTestRule = createAndroidComposeRule<MainActivity>()
 
+    @Inject
+    lateinit var rulesRepository: GeneralRuleRepository
+
     private fun AndroidComposeTestRule<*, *>.stringResource(@StringRes resId: Int) =
         ReadOnlyProperty<Any?, String> { _, _ -> activity.getString(resId) }
 
@@ -78,6 +92,7 @@ class NavigationTest {
     private val supportAndFeedback by composeTestRule.stringResource(FeatureApplistR.string.support_and_feedback)
     private val sortMenu by composeTestRule.stringResource(FeatureApplistR.string.sort_menu)
     private val sortOptions by composeTestRule.stringResource(UiR.string.sort_options)
+    private val loading by composeTestRule.stringResource(UiR.string.loading)
 
     @Before
     fun setup() = hiltRule.inject()
@@ -178,6 +193,65 @@ class NavigationTest {
                         hasTestTag("BlockerBottomBar") or hasTestTag("BlockerNavRail"),
                     ),
             ).assertIsSelected()
+        }
+    }
+
+    /*
+     * There should always be at most one instance of a top-level destination at the same time.
+     */
+    @Test(expected = NoActivityResumedException::class)
+    fun homeDestination_back_quitsApp() {
+        composeTestRule.apply {
+            // GIVEN the user navigates to the rules destination
+            onNodeWithText(rules).performClick()
+            // and then navigates to the apps destination
+            onNodeWithText(apps).performClick()
+            // WHEN the user uses the system button/gesture to go back
+            Espresso.pressBack()
+            // THEN the app quits
+        }
+    }
+
+    /*
+     * When pressing back from any top level destination except "apps", the app navigates back
+     * to the "apps" destination, no matter which destinations you visited in between.
+     */
+    @Test
+    fun navigationBar_backFromAnyDestination_returnsToApps() {
+        composeTestRule.apply {
+            // GIVEN the user navigated to the rules destination
+            onNodeWithText(rules).performClick()
+            // TODO: Add another destination here to increase test coverage, see b/226357686.
+            // WHEN the user uses the system button/gesture to go back,
+            Espresso.pressBack()
+            // THEN the app shows the Apps destination
+            onNodeWithText(apps).assertExists()
+        }
+    }
+
+    @OptIn(ExperimentalTestApi::class)
+    @Test
+    fun navigationBar_multipleBackStackRules() = runTest {
+        composeTestRule.apply {
+            // GIVEN the user navigated to the rules destination
+            onNodeWithText(rules).performClick()
+
+            // Waiting for the loading indicator to disappear
+            waitUntilDoesNotExist(hasContentDescription(loading))
+
+            // Select the last rule
+            val rule = rulesRepository.getGeneralRules().first().sortedBy(GeneralRule::name).last().name
+            onNodeWithTag("rules:rule").performScrollToNode(hasText(rule))
+            onNodeWithText(rule).performClick()
+
+            // Switch tab
+            onNodeWithText(apps).performClick()
+
+            // Come back to rules
+            onNodeWithText(rules).performClick()
+
+            // Verify we're not in the list of rules, keep the last rule selected
+            onNodeWithTag("rules:rule").assertDoesNotExist()
         }
     }
 }
