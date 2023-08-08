@@ -40,6 +40,7 @@ import org.junit.rules.TemporaryFolder
 import kotlin.properties.ReadOnlyProperty
 import com.merxury.blocker.feature.applist.R as FeatureApplistR
 import com.merxury.blocker.feature.search.R as FeatureSearchR
+import com.merxury.blocker.core.ui.R as UiR
 
 @HiltAndroidTest
 class NavigationTest {
@@ -75,6 +76,8 @@ class NavigationTest {
     private val searchHint by composeTestRule.stringResource(FeatureSearchR.string.search_hint)
     private val moreMenu by composeTestRule.stringResource(FeatureApplistR.string.more_menu)
     private val supportAndFeedback by composeTestRule.stringResource(FeatureApplistR.string.support_and_feedback)
+    private val sortMenu by composeTestRule.stringResource(FeatureApplistR.string.sort_menu)
+    private val sortOptions by composeTestRule.stringResource(UiR.string.sort_options)
 
     @Before
     fun setup() = hiltRule.inject()
@@ -106,23 +109,26 @@ class NavigationTest {
     }
 
     /*
-    * more icon only shows on the Apps tab
+    * more icon and sort icon only shows on the Apps tab
     */
     @Test
-    fun topLevelDestinations_showMoreIcon() {
+    fun topLevelDestinations_showMoreAndSortIcon() {
         composeTestRule.apply {
             onNodeWithContentDescription(moreMenu).assertExists()
+            onNodeWithContentDescription(sortMenu).assertExists()
 
             onNodeWithText(rules).performClick()
             onNodeWithContentDescription(moreMenu).assertDoesNotExist()
+            onNodeWithContentDescription(sortMenu).assertDoesNotExist()
 
             onNodeWithText(search).performClick()
             onNodeWithContentDescription(moreMenu).assertDoesNotExist()
+            onNodeWithContentDescription(sortMenu).assertDoesNotExist()
         }
     }
 
     @Test
-    fun whenSettingsIconIsClicked_moreDialogIsShown() {
+    fun whenMoreIconIsClicked_moreDialogIsShown() {
         composeTestRule.apply {
             onNodeWithContentDescription(moreMenu).performClick()
 
@@ -136,6 +142,33 @@ class NavigationTest {
         composeTestRule.apply {
             // Open the more menu dialog, then close it.
             onNodeWithContentDescription(moreMenu).performClick()
+            onNodeWithText(appName).performClick()
+
+            // Check that the apps screen is still visible and selected.
+            onNode(
+                hasText(apps) and
+                    hasAnyAncestor(
+                        hasTestTag("BlockerBottomBar") or hasTestTag("BlockerNavRail"),
+                    ),
+            ).assertIsSelected()
+        }
+    }
+
+    @Test
+    fun whenSortIconIsClicked_sortBottomSheetIsShown() {
+        composeTestRule.apply {
+            onNodeWithContentDescription(sortMenu).performClick()
+
+            // Check that one of the sort menu item is actually displayed.
+            onNodeWithText(sortOptions).assertExists()
+        }
+    }
+
+    @Test
+    fun whenSortBottomSheetDismissed_previousScreenIsDisplayed() {
+        composeTestRule.apply {
+            // Open the more menu dialog, then close it.
+            onNodeWithContentDescription(sortMenu).performClick()
             onNodeWithText(appName).performClick()
 
             // Check that the apps screen is still visible and selected.
