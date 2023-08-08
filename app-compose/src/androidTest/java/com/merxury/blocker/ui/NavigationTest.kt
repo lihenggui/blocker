@@ -19,21 +19,26 @@ package com.merxury.blocker.ui
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.merxury.blocker.MainActivity
+import com.merxury.blocker.R
 import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import kotlin.properties.ReadOnlyProperty
-import com.merxury.blocker.R
-import org.junit.Test
+import com.merxury.blocker.feature.applist.R as FeatureApplistR
 import com.merxury.blocker.feature.search.R as FeatureSearchR
 
 @HiltAndroidTest
@@ -68,6 +73,8 @@ class NavigationTest {
     private val rules by composeTestRule.stringResource(R.string.rules)
     private val search by composeTestRule.stringResource(R.string.search)
     private val searchHint by composeTestRule.stringResource(FeatureSearchR.string.search_hint)
+    private val moreMenu by composeTestRule.stringResource(FeatureApplistR.string.more_menu)
+    private val supportAndFeedback by composeTestRule.stringResource(FeatureApplistR.string.support_and_feedback)
 
     @Before
     fun setup() = hiltRule.inject()
@@ -95,6 +102,49 @@ class NavigationTest {
             // Verify that search bar contains search hint text on the search tab.
             onNodeWithText(search).performClick()
             onNodeWithText(searchHint).assertExists()
+        }
+    }
+
+    /*
+    * more icon only shows on the Apps tab
+    */
+    @Test
+    fun topLevelDestinations_showMoreIcon() {
+        composeTestRule.apply {
+            onNodeWithContentDescription(moreMenu).assertExists()
+
+            onNodeWithText(rules).performClick()
+            onNodeWithContentDescription(moreMenu).assertDoesNotExist()
+
+            onNodeWithText(search).performClick()
+            onNodeWithContentDescription(moreMenu).assertDoesNotExist()
+        }
+    }
+
+    @Test
+    fun whenSettingsIconIsClicked_moreDialogIsShown() {
+        composeTestRule.apply {
+            onNodeWithContentDescription(moreMenu).performClick()
+
+            // Check that one of the more menu item is actually displayed.
+            onNodeWithText(supportAndFeedback).assertExists()
+        }
+    }
+
+    @Test
+    fun whenMoreDialogDismissed_previousScreenIsDisplayed() {
+        composeTestRule.apply {
+            // Open the more menu dialog, then close it.
+            onNodeWithContentDescription(moreMenu).performClick()
+            onNodeWithText(appName).performClick()
+
+            // Check that the apps screen is still visible and selected.
+            onNode(
+                hasText(apps) and
+                    hasAnyAncestor(
+                        hasTestTag("BlockerBottomBar") or hasTestTag("BlockerNavRail"),
+                    ),
+            ).assertIsSelected()
         }
     }
 }
