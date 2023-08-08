@@ -65,10 +65,10 @@ class BlockerPreferencesDataSource @Inject constructor(
             ruleServerProvider = when (it.ruleServerProvider) {
                 null,
                 RuleServerProviderProto.UNRECOGNIZED,
-                RuleServerProviderProto.GITLAB,
-                -> RuleServerProvider.GITLAB
+                RuleServerProviderProto.GITHUB,
+                -> RuleServerProvider.GITHUB
 
-                RuleServerProviderProto.GITHUB -> RuleServerProvider.GITHUB
+                RuleServerProviderProto.GITLAB -> RuleServerProvider.GITLAB
             },
             ruleBackupFolder = it.ruleBackupFolder,
             backupSystemApp = it.backupSystemApp,
@@ -124,6 +124,7 @@ class BlockerPreferencesDataSource @Inject constructor(
             },
             useDynamicColor = it.useDynamicColor,
             showRunningAppsOnTop = it.showRunningAppsOnTop,
+            isFirstTimeInitializationCompleted = it.isFirstTimeInitializationCompleted,
         )
     }
 
@@ -270,6 +271,12 @@ class BlockerPreferencesDataSource @Inject constructor(
     suspend fun setShowRunningAppsOnTop(showRunningAppsOnTop: Boolean) {
         userPreferences.updateData {
             it.copy { this.showRunningAppsOnTop = showRunningAppsOnTop }
+        }
+    }
+
+    suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.isFirstTimeInitializationCompleted = completed }
         }
     }
 }

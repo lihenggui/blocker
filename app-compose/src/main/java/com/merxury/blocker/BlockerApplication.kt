@@ -23,14 +23,18 @@ import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
+import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -74,6 +78,20 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
 
     private fun initServerProvider() {
         applicationScope.launch {
+            val userData = userDataRepository.userData.first()
+            if (!userData.isFirstTimeInitializationCompleted) {
+                // Set default server provider for first time run
+                val locale = Locale.getDefault().toString()
+                if (locale == "zh_CN") {
+                    // Set default server provider to GitLab for Chinese users
+                    Timber.i("Set default server provider to GitLab")
+                    blockerNetworkDataSource.changeServerProvider(GITLAB)
+                } else {
+                    Timber.i("Set default server provider to GitHub")
+                    blockerNetworkDataSource.changeServerProvider(GITHUB)
+                }
+                userDataRepository.setIsFirstTimeInitializationCompleted(true)
+            }
             userDataRepository.userData
                 .map { it.ruleServerProvider }
                 .distinctUntilChanged()
