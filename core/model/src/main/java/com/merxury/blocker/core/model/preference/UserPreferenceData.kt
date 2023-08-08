@@ -34,4 +34,5 @@ data class UserPreferenceData(
     val componentSortingOrder: SortingOrder,
     val componentShowPriority: ComponentShowPriority,
     val showRunningAppsOnTop: Boolean,
+    val isFirstTimeInitializationCompleted: Boolean,
 )

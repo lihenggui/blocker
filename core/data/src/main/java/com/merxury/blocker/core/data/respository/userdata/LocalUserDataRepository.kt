@@ -122,4 +122,8 @@ class LocalUserDataRepository @Inject constructor(
         blockerPreferenceDataSource.setShowRunningAppsOnTop(shouldShowRunningAppsOnTop)
         analyticsHelper.logShowRunningAppsOnTopPreferenceChanged(shouldShowRunningAppsOnTop)
     }
+
+    override suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {
+        blockerPreferenceDataSource.setIsFirstTimeInitializationCompleted(completed)
+    }
 }
