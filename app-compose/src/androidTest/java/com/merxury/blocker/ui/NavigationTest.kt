@@ -17,11 +17,9 @@
 package com.merxury.blocker.ui
 
 import androidx.annotation.StringRes
-import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasAnyAncestor
-import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.AndroidComposeTestRule
@@ -92,7 +90,6 @@ class NavigationTest {
     private val supportAndFeedback by composeTestRule.stringResource(FeatureApplistR.string.support_and_feedback)
     private val sortMenu by composeTestRule.stringResource(FeatureApplistR.string.sort_menu)
     private val sortOptions by composeTestRule.stringResource(UiR.string.sort_options)
-    private val loading by composeTestRule.stringResource(UiR.string.loading)
 
     @Before
     fun setup() = hiltRule.inject()
@@ -229,18 +226,15 @@ class NavigationTest {
         }
     }
 
-    @OptIn(ExperimentalTestApi::class)
     @Test
     fun navigationBar_multipleBackStackRules() = runTest {
         composeTestRule.apply {
             // GIVEN the user navigated to the rules destination
             onNodeWithText(rules).performClick()
 
-            // Waiting for the loading indicator to disappear
-            waitUntilDoesNotExist(hasContentDescription(loading))
-
             // Select the last rule
-            val rule = rulesRepository.getGeneralRules().first().sortedBy(GeneralRule::name).last().name
+            val rule =
+                rulesRepository.getGeneralRules().first().sortedBy(GeneralRule::name).last().name
             onNodeWithTag("rules:rule").performScrollToNode(hasText(rule))
             onNodeWithText(rule).performClick()
 
