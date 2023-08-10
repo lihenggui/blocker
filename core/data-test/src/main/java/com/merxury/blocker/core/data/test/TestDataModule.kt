@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.test
 import com.merxury.blocker.core.data.di.DataModule
 import com.merxury.blocker.core.data.respository.fake.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.util.NetworkMonitor
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.components.SingletonComponent
@@ -34,4 +35,9 @@ interface TestDataModule {
     fun bindsTestGeneralRuleRepository(
         testGeneralRuleRepository: FakeGeneralRuleRepository,
     ): GeneralRuleRepository
+
+    @Binds
+    fun bindsNetworkMonitor(
+        networkMonitor: AlwaysOnlineNetworkMonitor,
+    ): NetworkMonitor
 }
