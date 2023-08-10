@@ -18,7 +18,10 @@ package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.core.data.di.DataModule
 import com.merxury.blocker.core.data.respository.fake.FakeGeneralRuleRepository
+import com.merxury.blocker.core.data.respository.fake.FakeUserDataRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.userdata.LocalUserDataRepository
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import dagger.Binds
 import dagger.Module
@@ -31,6 +34,10 @@ import dagger.hilt.testing.TestInstallIn
     replaces = [DataModule::class],
 )
 interface TestDataModule {
+    @Binds
+    fun bindUserDataRepository(
+        userDataRepository: FakeUserDataRepository,
+    ): UserDataRepository
     @Binds
     fun bindsTestGeneralRuleRepository(
         testGeneralRuleRepository: FakeGeneralRuleRepository,
