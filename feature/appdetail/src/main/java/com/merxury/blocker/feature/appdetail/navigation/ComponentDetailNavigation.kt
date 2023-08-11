@@ -26,6 +26,9 @@ import androidx.navigation.navArgument
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailDialogRoute
 import java.net.URLDecoder
 import java.net.URLEncoder
+import kotlin.text.Charsets.UTF_8
+
+private val URL_CHARACTER_ENCODING = UTF_8.name()
 
 @VisibleForTesting
 internal const val componentNameArg = "componentName"
@@ -35,14 +38,17 @@ internal class ComponentDetailArgs(
 ) {
     constructor(savedStateHandle: SavedStateHandle) :
         this(
-            URLDecoder.decode(checkNotNull(savedStateHandle[componentNameArg]), "UTF-8"),
+            URLDecoder.decode(
+                checkNotNull(savedStateHandle[componentNameArg]),
+                URL_CHARACTER_ENCODING,
+            ),
         )
 }
 
 fun NavController.navigateToComponentDetail(
     name: String,
 ) {
-    val encodedId = URLEncoder.encode(name, "UTF-8")
+    val encodedId = URLEncoder.encode(name, URL_CHARACTER_ENCODING)
     navigate("app_component_detail_route/$encodedId")
 }
 
