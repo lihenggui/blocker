@@ -24,6 +24,5 @@ import javax.inject.Inject
 class FirebaseAnalyticsHelper @Inject constructor() : AnalyticsHelper {
 
     override fun logEvent(event: AnalyticsEvent) {
-
     }
 }
