@@ -322,17 +322,17 @@ fun MoreActionMenu(
 ) {
     val items = listOf(
         DropDownMenuItem(
-            string.block_all_of_this_page,
+            string.feature_ruledetail_block_all_of_this_page,
             blockAllComponents,
         ),
         DropDownMenuItem(
-            string.enable_all_of_this_page,
+            string.feature_ruledetail_enable_all_of_this_page,
             enableAllComponents,
         ),
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
-        menuIconDesc = com.merxury.blocker.core.ui.R.string.more_menu,
+        menuIconDesc = com.merxury.blocker.core.ui.R.string.core_ui_more_menu,
         menuList = items,
     )
 }

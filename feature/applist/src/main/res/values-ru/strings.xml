@@ -15,19 +15,17 @@
   -->
 
 <resources>
-    <string name="loading">Загрузка</string>
-    <string name="show_system_apps">Показать системные приложения</string>
-    <string name="sort_menu">Сортировать меню</string>
-    <string name="name_asc">Название ↑</string>
-    <string name="name_desc">Название ↓</string>
-    <string name="installation_date_asc">First Install Date ↑</string>
-    <string name="installation_date_desc">First Install Dat ↓</string>
-    <string name="last_update_time_asc">Last Update Time ↑</string>
-    <string name="last_update_time_desc">Last Update Time ↓</string>
-    <string name="more_menu">Больше меню</string>
-    <string name="settings">Настройки</string>
-    <string name="support_and_feedback">поддержка и обратная связь</string>
-    <string name="app_name">Blocker</string>
-    <string name="do_you_want_to_clear_data_of_this_app">Вы хотите очистить данные этого приложения?</string>
-    <string name="do_you_want_to_uninstall_this_app">Вы хотите удалить это приложение?</string>
+    <string name="feature_applist_show_system_apps">Показать системные приложения</string>
+    <string name="feature_applist_sort_menu">Сортировать меню</string>
+    <string name="feature_applist_name_asc">Название ↑</string>
+    <string name="feature_applist_name_desc">Название ↓</string>
+    <string name="feature_applist_installation_date_asc">First Install Date ↑</string>
+    <string name="feature_applist_installation_date_desc">First Install Dat ↓</string>
+    <string name="feature_applist_last_update_time_asc">Last Update Time ↑</string>
+    <string name="feature_applist_last_update_time_desc">Last Update Time ↓</string>
+    <string name="feature_applist_settings">Настройки</string>
+    <string name="feature_applist_support_and_feedback">поддержка и обратная связь</string>
+    <string name="feature_applist_app_name">Blocker</string>
+    <string name="feature_applist_do_you_want_to_clear_data_of_this_app">Вы хотите очистить данные этого приложения?</string>
+    <string name="feature_applist_do_you_want_to_uninstall_this_app">Вы хотите удалить это приложение?</string>
 </resources>

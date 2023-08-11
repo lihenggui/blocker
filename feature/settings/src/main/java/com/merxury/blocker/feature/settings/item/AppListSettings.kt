@@ -40,16 +40,16 @@ fun AppListSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            title = stringResource(id = string.application_list),
+            title = stringResource(id = string.feature_search_application_list),
             extraIconPadding = true,
         )
         SwitchSettingItem(
-            itemRes = string.show_system_apps,
+            itemRes = string.feature_search_show_system_apps,
             checked = showSystemApps,
             onCheckedChange = onChangeShowSystemApps,
         )
         SwitchSettingItem(
-            itemRes = string.show_service_info,
+            itemRes = string.feature_search_show_service_info,
             checked = showServiceInfo,
             onCheckedChange = onChangeShowServiceInfo,
         )

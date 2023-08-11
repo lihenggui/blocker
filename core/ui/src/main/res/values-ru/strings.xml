@@ -16,62 +16,62 @@
   -->
 
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
-    <string name="clear_cache">Очистить кэш</string>
-    <string name="clear_data">Очистить данные</string>
-    <string name="force_stop">Принудительная остановка</string>
-    <string name="uninstall">Удалить</string>
-    <string name="enable">включить</string>
-    <string name="disable">Запрещать</string>
-    <string name="service_status_template">Службы: %1$d запущено, %2$d заблокировано, всего %3$d.</string>
-    <string name="running">Бег</string>
-    <string name="disabled">Неполноценный</string>
-    <string name="service">Службы</string>
-    <string name="receiver">Приемники</string>
-    <string name="activity">Активити</string>
-    <string name="content_provider">Поставщики</string>
-    <string name="rule_icon_description">Значок правила</string>
-    <string name="copy_name">Скопировать полное имя</string>
-    <string name="copy_full_name">Копировать имя пакета</string>
-    <string name="launch_activity">Запуск активности</string>
-    <string name="stop_service">Остановить службу</string>
-    <string name="no_components">Нет компонентов</string>
-    <plurals name="matched_component" tools:ignore="MissingQuantity">
+    <string name="core_ui_clear_cache">Очистить кэш</string>
+    <string name="core_ui_clear_data">Очистить данные</string>
+    <string name="core_ui_force_stop">Принудительная остановка</string>
+    <string name="core_ui_uninstall">Удалить</string>
+    <string name="core_ui_enable">включить</string>
+    <string name="core_ui_disable">Запрещать</string>
+    <string name="core_ui_service_status_template">Службы: %1$d запущено, %2$d заблокировано, всего %3$d.</string>
+    <string name="core_ui_running">Бег</string>
+    <string name="core_ui_disabled">Неполноценный</string>
+    <string name="core_ui_service">Службы</string>
+    <string name="core_ui_receiver">Приемники</string>
+    <string name="core_ui_activity">Активити</string>
+    <string name="core_ui_content_provider">Поставщики</string>
+    <string name="core_ui_rule_icon_description">Значок правила</string>
+    <string name="core_ui_copy_name">Скопировать полное имя</string>
+    <string name="core_ui_copy_full_name">Копировать имя пакета</string>
+    <string name="core_ui_launch_activity">Запуск активности</string>
+    <string name="core_ui_stop_service">Остановить службу</string>
+    <string name="core_ui_no_components">Нет компонентов</string>
+    <plurals name="core_ui_matched_component" tools:ignore="MissingQuantity">
         <item quantity="one">Соответствует %1$d компоненту</item>
         <item quantity="other">Соответствует %1$d компонентам</item>
     </plurals>
-    <plurals name="matched_apps">
+    <plurals name="core_ui_matched_apps">
         <item quantity="one">Соответствует %1$d приложению</item>
         <item quantity="other">Соответствует %1$d приложениям</item>
     </plurals>
-    <string name="description">Описание</string>
-    <string name="applicable_application">Применимое приложение</string>
-    <string name="loading">Загрузка</string>
-    <string name="no_applicable_app">Нет применимого приложения</string>
-    <string name="app_info">приложение</string>
-    <string name="activity_with_count">Активити(%1$d)</string>
-    <string name="service_with_count">Службы(%1$d)</string>
-    <string name="receiver_with_count">Приемники(%1$d)</string>
-    <string name="provider_with_count">Поставщики(%1$d)</string>
-    <string name="initializing_database">Инициализация базы данных</string>
-    <string name="more_menu">Больше</string>
-    <string name="block_all_components">Блокировать все компоненты</string>
-    <string name="enable_all_components">Включить все компоненты</string>
-    <string name="open_app_detail">Открыть детали приложения</string>
-    <string name="sort_options">Параметры сортировки</string>
-    <string name="sort_by">Сортировать по</string>
-    <string name="package_name">Имя пакета</string>
-    <string name="component_name">Имя компонента</string>
-    <string name="order">порядок</string>
-    <string name="ascending">Восходящий</string>
-    <string name="descending">Нисходящий</string>
-    <string name="priority">Приоритет</string>
-    <string name="disabled_first">Отключенный первый</string>
-    <string name="enabled_first">Включенный первый</string>
-    <string name="none">Нет</string>
-    <string name="name">Имя</string>
-    <string name="install_date">Дата установки</string>
-    <string name="last_updated">Последнее обновление</string>
-    <string name="show_running_apps_on_top">Показывать запущенные приложения сверху</string>
-    <string name="on" tools:override="true">включать</string>
-    <string name="off" tools:override="true">закрытие</string>
+    <string name="core_ui_description">Описание</string>
+    <string name="core_ui_applicable_application">Применимое приложение</string>
+    <string name="core_ui_loading">Загрузка</string>
+    <string name="core_ui_no_applicable_app">Нет применимого приложения</string>
+    <string name="core_ui_app_info">приложение</string>
+    <string name="core_ui_activity_with_count">Активити(%1$d)</string>
+    <string name="core_ui_service_with_count">Службы(%1$d)</string>
+    <string name="core_ui_receiver_with_count">Приемники(%1$d)</string>
+    <string name="core_ui_provider_with_count">Поставщики(%1$d)</string>
+    <string name="core_ui_initializing_database">Инициализация базы данных</string>
+    <string name="core_ui_more_menu">Больше</string>
+    <string name="core_ui_block_all_components">Блокировать все компоненты</string>
+    <string name="core_ui_enable_all_components">Включить все компоненты</string>
+    <string name="core_ui_open_app_detail">Открыть детали приложения</string>
+    <string name="core_ui_sort_options">Параметры сортировки</string>
+    <string name="core_ui_sort_by">Сортировать по</string>
+    <string name="core_ui_package_name">Имя пакета</string>
+    <string name="core_ui_component_name">Имя компонента</string>
+    <string name="core_ui_order">порядок</string>
+    <string name="core_ui_ascending">Восходящий</string>
+    <string name="core_ui_descending">Нисходящий</string>
+    <string name="core_ui_priority">Приоритет</string>
+    <string name="core_ui_disabled_first">Отключенный первый</string>
+    <string name="core_ui_enabled_first">Включенный первый</string>
+    <string name="core_ui_none">Нет</string>
+    <string name="core_ui_name">Имя</string>
+    <string name="core_ui_install_date">Дата установки</string>
+    <string name="core_ui_last_updated">Последнее обновление</string>
+    <string name="core_ui_show_running_apps_on_top">Показывать запущенные приложения сверху</string>
+    <string name="core_ui_on" tools:override="true">включать</string>
+    <string name="core_ui_off" tools:override="true">закрытие</string>
 </resources>

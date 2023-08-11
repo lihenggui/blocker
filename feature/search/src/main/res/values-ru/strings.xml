@@ -14,38 +14,38 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
-    <string name="application_with_count">Приложение (%1$d)</string>
-    <string name="component_with_count">Компонент (%1$d)</string>
-    <string name="online_rule_with_count">Онлайн правило (%1$d)</string>
-    <string name="searching">Поиск</string>
-    <plurals name="activity_count">
+    <string name="feature_search_application_with_count">Приложение (%1$d)</string>
+    <string name="feature_search_component_with_count">Компонент (%1$d)</string>
+    <string name="feature_search_online_rule_with_count">Онлайн правило (%1$d)</string>
+    <string name="feature_search_searching">Поиск</string>
+    <plurals name="feature_search_activity_count">
         <item quantity="one">%1$d Активность</item>
         <item quantity="other">%1$d Деятельность</item>
     </plurals>
-    <plurals name="content_provider_count">
+    <plurals name="feature_search_content_provider_count">
         <item quantity="one">%1$d Поставщик контента</item>
         <item quantity="other">%1$d Поставщики контента</item>
     </plurals>
-    <plurals name="receiver_count">
+    <plurals name="feature_search_receiver_count">
         <item quantity="one">%1$d Приемник</item>
         <item quantity="other">%1$d Приемники</item>
     </plurals>
-    <plurals name="service_count">
+    <plurals name="feature_search_service_count">
         <item quantity="one">%1$d Сервис</item>
         <item quantity="other">%1$d Сервисы</item>
     </plurals>
-    <plurals name="selected_app_count">
+    <plurals name="feature_search_selected_app_count">
         <item quantity="one">%1$d приложение выбрано</item>
         <item quantity="other">%1$d приложений выбрано</item>
     </plurals>
-    <plurals name="block_all">
+    <plurals name="feature_search_block_all">
         <item quantity="one">Эта операция отключит компонент %1$d. Продолжить?</item>
         <item quantity="other">Эта операция отключит %1$d компонентов. Продолжить?</item>
     </plurals>
-    <plurals name="enable_all">
+    <plurals name="feature_search_enable_all">
         <item quantity="one">Эта операция активирует компонент %1$d. Продолжить?</item>
         <item quantity="other">Эта операция активирует компоненты: %1$d. Продолжить?</item>
     </plurals>
-    <string name="search_hint">Приложения, компоненты и правила</string>
-    <string name="no_search_result">Пока нет результатов поиска</string>
+    <string name="feature_search_search_hint">Приложения, компоненты и правила</string>
+    <string name="feature_search_no_search_result">Пока нет результатов поиска</string>
 </resources>

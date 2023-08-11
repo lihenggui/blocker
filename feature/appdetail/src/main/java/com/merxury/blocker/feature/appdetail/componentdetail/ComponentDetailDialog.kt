@@ -81,7 +81,7 @@ fun ComponentDetailDialog(
                 text = if (uiState is Success) {
                     uiState.detail.name.split(".").last()
                 } else {
-                    stringResource(id = string.unknown)
+                    stringResource(id = string.feature_appdetail_unknown)
                 },
                 style = MaterialTheme.typography.headlineSmall,
             )
@@ -90,7 +90,7 @@ fun ComponentDetailDialog(
             when (uiState) {
                 Loading -> {
                     Text(
-                        text = stringResource(string.loading),
+                        text = stringResource(string.core_ui_loading),
                         modifier = Modifier.padding(vertical = 16.dp),
                     )
                 }
@@ -121,7 +121,7 @@ fun ComponentDetailDialog(
                     onDismiss()
                 },
             ) {
-                Text(text = stringResource(string.save))
+                Text(text = stringResource(string.feature_appdetail_save))
             }
         },
         dismissButton = {
@@ -146,7 +146,7 @@ fun ComponentDetailPanel(
         OutlinedTextField(
             value = componentDetailInfo.description ?: "",
             label = {
-                Text(text = stringResource(id = string.description))
+                Text(text = stringResource(id = string.core_ui_description))
             },
             onValueChange = {
                 onInfoChange.invoke(componentDetailInfo.copy(description = it))
@@ -156,7 +156,7 @@ fun ComponentDetailPanel(
         OutlinedTextField(
             value = componentDetailInfo.disableEffect ?: "",
             label = {
-                Text(text = stringResource(id = string.blocking_effect))
+                Text(text = stringResource(id = string.feature_appdetail_blocking_effect))
             },
             onValueChange = {
                 onInfoChange.invoke(componentDetailInfo.copy(disableEffect = it))
@@ -171,7 +171,7 @@ fun ComponentDetailPanel(
                 },
             )
             Spacer(modifier = modifier.width(8.dp))
-            Text(text = stringResource(id = string.recommended_blocking))
+            Text(text = stringResource(id = string.feature_appdetail_recommended_blocking))
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(
@@ -180,7 +180,7 @@ fun ComponentDetailPanel(
                     onInfoChange.invoke(
                         componentDetailInfo.copy(
                             sdkName = if (it) {
-                                string.unknown.toString()
+                                string.feature_appdetail_unknown.toString()
                             } else {
                                 null
                             },
@@ -189,7 +189,7 @@ fun ComponentDetailPanel(
                 },
             )
             Spacer(modifier = modifier.width(8.dp))
-            Text(text = stringResource(id = string.belonging_sdk))
+            Text(text = stringResource(id = string.feature_appdetail_belonging_sdk))
         }
     }
 }

@@ -63,7 +63,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
-    override fun getNotificationTitle(): Int = R.string.import_app_rules_please_wait
+    override fun getNotificationTitle(): Int = R.string.core_rule_import_app_rules_please_wait
 
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
