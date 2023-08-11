@@ -183,16 +183,16 @@ fun AppDetailRoute(
     }
     event?.let {
         val messageRes = when (it.second) {
-            STARTED -> rulestring.processing_please_wait
-            FINISHED -> rulestring.done
+            STARTED -> rulestring.core_rule_processing_please_wait
+            FINISHED -> rulestring.core_rule_done
             FOLDER_NOT_DEFINED,
             MISSING_STORAGE_PERMISSION,
-            -> rulestring.error_msg_folder_not_defined
+            -> rulestring.core_rule_error_msg_folder_not_defined
 
-            MISSING_ROOT_PERMISSION -> rulestring.error_msg_missing_root_permission
-            UNEXPECTED_EXCEPTION -> rulestring.error_msg_unexpected_exception
-            CANCELLED -> rulestring.task_cancelled
-            else -> rulestring.error_msg_unexpected_exception
+            MISSING_ROOT_PERMISSION -> rulestring.core_rule_error_msg_missing_root_permission
+            UNEXPECTED_EXCEPTION -> rulestring.core_rule_error_msg_unexpected_exception
+            CANCELLED -> rulestring.core_rule_task_cancelled
+            else -> rulestring.core_rule_error_msg_unexpected_exception
         }
         val message = stringResource(id = messageRes)
         LaunchedEffect(message) {
@@ -383,7 +383,7 @@ fun AppDetailContent(
                 },
                 subtitle = app.packageName,
                 summary = stringResource(
-                    id = string.data_with_explanation,
+                    id = string.feature_appdetail_data_with_explanation,
                     app.versionName,
                     app.versionCode,
                 ),
@@ -455,7 +455,7 @@ fun AppDetailAppBarActions(
                 keyword = appBarUiState.keyword,
                 onValueChange = onSearchTextChanged,
                 placeholder = {
-                    Text(text = stringResource(id = string.search_components))
+                    Text(text = stringResource(id = string.feature_appdetail_search_components))
                 },
                 onClearClick = {
                     if (appBarUiState.keyword.text.isEmpty()) {

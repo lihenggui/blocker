@@ -38,7 +38,7 @@ abstract class RuleNotificationWorker(private val context: Context, params: Work
     fun updateNotification(summary: String, current: Int, total: Int): ForegroundInfo {
         val id = NotificationUtil.PROCESSING_INDICATOR_CHANNEL_ID
         val title = context.getString(getNotificationTitle())
-        val cancel = context.getString(R.string.cancel)
+        val cancel = context.getString(R.string.core_rule_cancel)
         // This PendingIntent can be used to cancel the worker
         val intent = WorkManager.getInstance(context)
             .createCancelPendingIntent(getId())
@@ -50,7 +50,7 @@ abstract class RuleNotificationWorker(private val context: Context, params: Work
             .setContentTitle(title)
             .setTicker(title)
             .setSubText(summary)
-            .setSmallIcon(com.merxury.blocker.core.common.R.drawable.ic_blocker_notification)
+            .setSmallIcon(com.merxury.blocker.core.common.R.drawable.core_common_ic_blocker_notification)
             .setProgress(total, current, false)
             .setOngoing(true)
             .addAction(android.R.drawable.ic_delete, cancel, intent)

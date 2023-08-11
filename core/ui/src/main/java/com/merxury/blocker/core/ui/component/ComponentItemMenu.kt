@@ -41,20 +41,20 @@ fun ComponentItemMenu(
     val items = buildList {
         add(
             DropDownMenuItem(
-                textRes = R.string.copy_name,
+                textRes = R.string.core_ui_copy_name,
                 onClick = onCopyNameClick,
             ),
         )
         add(
             DropDownMenuItem(
-                textRes = R.string.copy_full_name,
+                textRes = R.string.core_ui_copy_full_name,
                 onClick = onCopyPackageNameClick,
             ),
         )
         if (type == SERVICE && isServiceRunning) {
             add(
                 DropDownMenuItem(
-                    textRes = R.string.stop_service,
+                    textRes = R.string.core_ui_stop_service,
                     onClick = onStopServiceClick,
                 ),
             )
@@ -62,7 +62,7 @@ fun ComponentItemMenu(
         if (type == ACTIVITY) {
             add(
                 DropDownMenuItem(
-                    textRes = R.string.launch_activity,
+                    textRes = R.string.core_ui_launch_activity,
                     onClick = onLaunchActivityClick,
                 ),
             )

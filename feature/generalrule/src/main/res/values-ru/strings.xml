@@ -15,9 +15,8 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="local_search">локальный поиск</string>
-    <string name="rules">Правило</string>
-    <string name="search">Поиск</string>
-    <string name="icon">Значок</string>
-    <string name="loading">Загрузка</string>
+    <string name="feature_generalrule_local_search">локальный поиск</string>
+    <string name="feature_generalrule_rules">Правило</string>
+    <string name="feature_generalrule_search">Поиск</string>
+    <string name="feature_generalrule_icon">Значок</string>
 </resources>
