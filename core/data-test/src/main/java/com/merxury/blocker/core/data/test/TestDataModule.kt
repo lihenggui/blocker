@@ -50,6 +50,7 @@ interface TestDataModule {
     fun bindAppPropertiesRepository(
         appPropertiesRepository: FakeAppPropertiesRepository,
     ): AppPropertiesRepository
+
     @Binds
     fun bindsTestGeneralRuleRepository(
         testGeneralRuleRepository: FakeGeneralRuleRepository,

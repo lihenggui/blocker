@@ -16,26 +16,16 @@
 
 package com.merxury.blocker.core.data.respository.fake
 
-import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.component.LocalComponentDataSource
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.database.app.AppComponentDao
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Success
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-class FakeComponentRepository@Inject constructor(
-) : ComponentRepository {
+class FakeComponentRepository@Inject constructor() : ComponentRepository {
     override fun getComponent(name: String): Flow<ComponentInfo?> = flowOf()
 
     override fun getComponentList(packageName: String): Flow<List<ComponentInfo>> = flowOf(emptyList())
@@ -46,10 +36,12 @@ class FakeComponentRepository@Inject constructor(
     ): Flow<List<ComponentInfo>> = flowOf(emptyList())
 
     override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> = flowOf(
-        Success(Unit))
+        Success(Unit),
+    )
 
     override fun updateComponentList(packageName: String): Flow<Result<Unit>> = flowOf(
-        Success(Unit))
+        Success(Unit),
+    )
 
     override fun controlComponent(
         packageName: String,

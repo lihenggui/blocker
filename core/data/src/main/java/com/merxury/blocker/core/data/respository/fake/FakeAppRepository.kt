@@ -23,8 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-class FakeAppRepository @Inject constructor(
-) : AppRepository {
+class FakeAppRepository @Inject constructor() : AppRepository {
     override fun getApplicationList(): Flow<List<InstalledApp>> = flowOf(emptyList())
 
     override fun updateApplication(packageName: String): Flow<Result<Unit>> =
