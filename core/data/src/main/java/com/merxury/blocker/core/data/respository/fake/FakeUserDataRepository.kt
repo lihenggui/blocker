@@ -31,7 +31,7 @@ import javax.inject.Inject
 
 class FakeUserDataRepository@Inject constructor(
     private val blockerPreferenceDataSource: BlockerPreferencesDataSource,
-): UserDataRepository {
+) : UserDataRepository {
     override val userData: Flow<UserPreferenceData> =
         blockerPreferenceDataSource.userData
     override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
