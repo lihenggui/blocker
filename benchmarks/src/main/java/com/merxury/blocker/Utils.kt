@@ -21,7 +21,6 @@ import androidx.test.uiautomator.Direction
 import androidx.test.uiautomator.UiDevice
 import androidx.test.uiautomator.UiObject2
 import androidx.test.uiautomator.Until
-import androidx.test.uiautomator.v18.BuildConfig
 import com.merxury.blocker.benchmarks.BuildConfig
 import java.io.ByteArrayOutputStream
 
