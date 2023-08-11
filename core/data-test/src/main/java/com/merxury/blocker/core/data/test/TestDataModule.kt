@@ -17,6 +17,9 @@
 package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.core.data.di.DataModule
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.OfflineFirstComponentDetailRepository
+import com.merxury.blocker.core.data.respository.fake.FakeComponentDetailRepository
 import com.merxury.blocker.core.data.respository.fake.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.respository.fake.FakeUserDataRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
@@ -42,6 +45,11 @@ interface TestDataModule {
     fun bindsTestGeneralRuleRepository(
         testGeneralRuleRepository: FakeGeneralRuleRepository,
     ): GeneralRuleRepository
+
+    @Binds
+    fun bindsComponentDetailRepository(
+        componentDetailRepository: FakeComponentDetailRepository,
+    ): ComponentDetailRepository
 
     @Binds
     fun bindsNetworkMonitor(
