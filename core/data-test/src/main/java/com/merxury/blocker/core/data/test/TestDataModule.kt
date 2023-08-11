@@ -17,19 +17,17 @@
 package com.merxury.blocker.core.data.test
 
 import com.merxury.blocker.core.data.di.DataModule
+import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
-import com.merxury.blocker.core.data.respository.componentdetail.OfflineFirstComponentDetailRepository
 import com.merxury.blocker.core.data.respository.fake.FakeAppPropertiesRepository
+import com.merxury.blocker.core.data.respository.fake.FakeAppRepository
 import com.merxury.blocker.core.data.respository.fake.FakeComponentDetailRepository
 import com.merxury.blocker.core.data.respository.fake.FakeComponentRepository
 import com.merxury.blocker.core.data.respository.fake.FakeGeneralRuleRepository
 import com.merxury.blocker.core.data.respository.fake.FakeUserDataRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
-import com.merxury.blocker.core.data.respository.userdata.LocalAppPropertiesRepository
-import com.merxury.blocker.core.data.respository.userdata.LocalUserDataRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import dagger.Binds
@@ -63,12 +61,17 @@ interface TestDataModule {
     ): ComponentDetailRepository
 
     @Binds
-    fun bindsLocalComponentRepository(
-        localComponentRepository: FakeComponentRepository,
+    fun bindsComponentRepository(
+        componentRepository: FakeComponentRepository,
     ): ComponentRepository
 
     @Binds
     fun bindsNetworkMonitor(
         networkMonitor: AlwaysOnlineNetworkMonitor,
     ): NetworkMonitor
+
+    @Binds
+    fun bindsAppRepository(
+        appRepository: FakeAppRepository,
+    ): AppRepository
 }
