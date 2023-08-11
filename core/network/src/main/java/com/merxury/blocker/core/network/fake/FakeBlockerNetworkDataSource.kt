@@ -40,7 +40,7 @@ class FakeBlockerNetworkDataSource@Inject constructor(
     private val assets: FakeAssetManager = JvmUnitTestFakeAssetManager,
 ) : BlockerNetworkDataSource {
     override suspend fun getComponentData(path: String): NetworkComponentDetail? {
-        TODO("Not yet implemented")
+        return null
     }
 
     override suspend fun getGeneralRules(): List<NetworkGeneralRule> {
