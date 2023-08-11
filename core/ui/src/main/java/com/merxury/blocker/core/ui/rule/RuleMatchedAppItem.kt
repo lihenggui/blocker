@@ -103,24 +103,24 @@ fun MatchedComponentItem(
             )
             val items = listOf(
                 DropDownMenuItem(
-                    R.string.open_app_detail,
+                    R.string.core_ui_open_app_detail,
                 ) {
                     navigateToAppDetail(ruleMatchedApp.app.packageName)
                 },
                 DropDownMenuItem(
-                    R.string.block_all_components,
+                    R.string.core_ui_block_all_components,
                 ) {
                     onBlockAllClick(ruleMatchedApp.componentList)
                 },
                 DropDownMenuItem(
-                    R.string.enable_all_components,
+                    R.string.core_ui_enable_all_components,
                 ) {
                     onEnableAllClick(ruleMatchedApp.componentList)
                 },
             )
             BlockerAppTopBarMenu(
                 menuIcon = BlockerIcons.MoreVert,
-                menuIconDesc = R.string.more_menu,
+                menuIconDesc = R.string.core_ui_more_menu,
                 menuList = items,
             )
         }
@@ -159,7 +159,7 @@ private fun MatchedAppInfo(
         )
         BlockerBodyMediumText(
             text = pluralStringResource(
-                id = plurals.matched_component,
+                id = plurals.core_ui_matched_component,
                 matchedComponentCount,
                 matchedComponentCount,
             ),

@@ -114,7 +114,7 @@ fun NoApplicableAppScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         BlockerBodyLargeText(
-            text = stringResource(id = string.no_applicable_app),
+            text = stringResource(id = string.core_ui_no_applicable_app),
             color = MaterialTheme.colorScheme.outline,
         )
     }

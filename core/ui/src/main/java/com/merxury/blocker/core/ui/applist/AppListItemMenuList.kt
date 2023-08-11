@@ -44,7 +44,7 @@ fun AppListItemMenuList(
         if (isAppRunning) {
             add(
                 DropDownMenuItem(
-                    textRes = R.string.force_stop,
+                    textRes = R.string.core_ui_force_stop,
                     onClick = onForceStopClick,
                 ),
             )
@@ -52,33 +52,33 @@ fun AppListItemMenuList(
         if (isAppEnabled) {
             add(
                 DropDownMenuItem(
-                    textRes = R.string.disable,
+                    textRes = R.string.core_ui_disable,
                     onClick = onDisableClick,
                 ),
             )
         } else {
             add(
                 DropDownMenuItem(
-                    textRes = R.string.enable,
+                    textRes = R.string.core_ui_enable,
                     onClick = onEnableClick,
                 ),
             )
         }
         add(
             DropDownMenuItem(
-                textRes = R.string.clear_cache,
+                textRes = R.string.core_ui_clear_cache,
                 onClick = onClearCacheClick,
             ),
         )
         add(
             DropDownMenuItem(
-                textRes = R.string.clear_data,
+                textRes = R.string.core_ui_clear_data,
                 onClick = onClearDataClick,
             ),
         )
         add(
             DropDownMenuItem(
-                textRes = R.string.uninstall,
+                textRes = R.string.core_ui_uninstall,
                 onClick = onUninstallClick,
             ),
         )

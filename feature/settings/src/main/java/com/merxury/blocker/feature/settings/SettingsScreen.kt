@@ -83,7 +83,7 @@ import com.merxury.blocker.feature.settings.item.BlockerSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.rule.R.string as rulestring
+import com.merxury.blocker.core.rule.R.string as CoreRuleR
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -127,22 +127,22 @@ fun SettingsRoute(
         val result = it.second
         val messageRes = when (result) {
             RuleWorkResult.STARTED -> when (work) {
-                IMPORT_BLOCKER_RULES -> string.import_app_rules_please_wait
-                EXPORT_BLOCKER_RULES -> string.backing_up_apps_please_wait
-                EXPORT_IFW_RULES -> string.backing_up_ifw_please_wait
-                IMPORT_IFW_RULES -> string.import_ifw_please_wait
-                RESET_IFW -> string.reset_ifw_please_wait
+                IMPORT_BLOCKER_RULES -> CoreRuleR.core_rule_import_app_rules_please_wait
+                EXPORT_BLOCKER_RULES -> CoreRuleR.core_rule_backing_up_apps_please_wait
+                EXPORT_IFW_RULES -> CoreRuleR.core_rule_backing_up_ifw_please_wait
+                IMPORT_IFW_RULES -> CoreRuleR.core_rule_import_ifw_please_wait
+                RESET_IFW -> CoreRuleR.core_rule_reset_ifw_please_wait
             }
 
-            RuleWorkResult.FINISHED -> rulestring.done
+            RuleWorkResult.FINISHED -> CoreRuleR.core_rule_done
             RuleWorkResult.FOLDER_NOT_DEFINED,
             RuleWorkResult.MISSING_STORAGE_PERMISSION,
-            -> rulestring.error_msg_folder_not_defined
+            -> CoreRuleR.core_rule_error_msg_folder_not_defined
 
-            RuleWorkResult.MISSING_ROOT_PERMISSION -> rulestring.error_msg_missing_root_permission
-            RuleWorkResult.UNEXPECTED_EXCEPTION -> rulestring.error_msg_unexpected_exception
-            RuleWorkResult.CANCELLED -> rulestring.task_cancelled
-            else -> rulestring.error_msg_unexpected_exception
+            RuleWorkResult.MISSING_ROOT_PERMISSION -> CoreRuleR.core_rule_error_msg_missing_root_permission
+            RuleWorkResult.UNEXPECTED_EXCEPTION -> CoreRuleR.core_rule_error_msg_unexpected_exception
+            RuleWorkResult.CANCELLED -> CoreRuleR.core_rule_task_cancelled
+            else -> CoreRuleR.core_rule_error_msg_unexpected_exception
         }
         val message = stringResource(id = messageRes)
         val duration = if (result == RuleWorkResult.STARTED) {
@@ -188,7 +188,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             BlockerTopAppBar(
-                title = stringResource(id = string.settings),
+                title = stringResource(id = string.feature_search_settings),
                 hasNavigationIcon = true,
                 onNavigationClick = onNavigationClick,
             )
@@ -303,7 +303,7 @@ fun SettingsContent(
         )
         HorizontalDivider()
         BlockerSettingItem(
-            title = stringResource(id = string.import_mat_rules),
+            title = stringResource(id = string.feature_search_import_mat_rules),
             onItemClick = {
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
