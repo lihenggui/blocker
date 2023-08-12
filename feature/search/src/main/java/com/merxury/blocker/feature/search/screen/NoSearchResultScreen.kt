@@ -44,7 +44,7 @@ fun NoSearchResultScreen() {
             contentDescription = null,
         )
         BlockerBodyLargeText(
-            text = stringResource(id = string.no_search_result),
+            text = stringResource(id = string.feature_search_no_search_result),
             color = MaterialTheme.colorScheme.outline,
         )
     }
