@@ -15,9 +15,8 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="local_search">Local search</string>
-    <string name="rules">Rules</string>
-    <string name="search">Search</string>
-    <string name="icon">Icon</string>
-    <string name="loading">Loading</string>
+    <string name="feature_generalrule_local_search">Local search</string>
+    <string name="feature_generalrule_rules">Rules</string>
+    <string name="feature_generalrule_search">Search</string>
+    <string name="feature_generalrule_icon">Icon</string>
 </resources>

@@ -14,13 +14,13 @@
      limitations under the License.
 -->
 <resources>
-    <string name="safe_to_block">Safe to block</string>
-    <string name="side_effect">Side effect</string>
-    <string name="contributors">Contributors</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
-    <string name="unknown">Unknown</string>
-    <string name="no_description">No description</string>
-    <string name="block_all_of_this_page">Block all of this page</string>
-    <string name="enable_all_of_this_page">Enable all of this page</string>
+    <string name="feature_ruledetail_safe_to_block">Safe to block</string>
+    <string name="feature_ruledetail_side_effect">Side effect</string>
+    <string name="feature_ruledetail_contributors">Contributors</string>
+    <string name="feature_ruledetail_yes">Yes</string>
+    <string name="feature_ruledetail_no">No</string>
+    <string name="feature_ruledetail_unknown">Unknown</string>
+    <string name="feature_ruledetail_no_description">No description</string>
+    <string name="feature_ruledetail_block_all_of_this_page">Block all of this page</string>
+    <string name="feature_ruledetail_enable_all_of_this_page">Enable all of this page</string>
 </resources>

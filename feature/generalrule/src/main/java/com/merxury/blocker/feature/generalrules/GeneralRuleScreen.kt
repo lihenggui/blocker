@@ -82,7 +82,7 @@ fun GeneralRulesScreen(
     Scaffold(
         topBar = {
             BlockerTopAppBar(
-                title = stringResource(id = R.string.rules),
+                title = stringResource(id = R.string.feature_generalrule_rules),
                 modifier = Modifier.testTag("blockerTopAppBar"),
             )
         },

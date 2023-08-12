@@ -55,7 +55,7 @@ fun SupportAndFeedbackRoute(
     Scaffold(
         topBar = {
             BlockerTopAppBar(
-                title = stringResource(id = string.support_and_feedback),
+                title = stringResource(id = string.feature_settings_support_and_feedback),
                 hasNavigationIcon = true,
                 onNavigationClick = onNavigationClick,
             )
@@ -96,32 +96,32 @@ fun SupportAndFeedbackScreen(
     Column {
         BlockerSettingItem(
             icon = DrawableResourceIcon(BlockerIcons.GitHub),
-            title = stringResource(id = string.project_homepage),
+            title = stringResource(id = string.feature_settings_project_homepage),
             onItemClick = { onProjectHomeClick() },
         )
         BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.Rule),
-            title = stringResource(id = string.rule_repository),
+            title = stringResource(id = string.feature_settings_rule_repository),
             onItemClick = { onRulesRepositoryClick() },
         )
         BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.BugReport),
-            title = stringResource(id = string.report_bugs_or_submit_ideas),
+            title = stringResource(id = string.feature_settings_report_bugs_or_submit_ideas),
             onItemClick = { onReportBugClick() },
         )
         BlockerSettingItem(
             icon = DrawableResourceIcon(BlockerIcons.Telegram),
-            title = stringResource(id = string.telegram_group),
+            title = stringResource(id = string.feature_settings_telegram_group),
             onItemClick = { onTelegramGroupLinkClick() },
         )
         BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.DesignService),
-            title = stringResource(id = string.designers_homepage),
+            title = stringResource(id = string.feature_settings_designers_homepage),
             onItemClick = { onDesignLinkClick() },
         )
         BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.DocumentScanner),
-            title = stringResource(id = string.open_source_licenses),
+            title = stringResource(id = string.feature_settings_open_source_licenses),
             onItemClick = { onOpenSourceLicenseClick() },
         )
 //        BlockerSettingItem(

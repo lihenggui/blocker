@@ -198,7 +198,7 @@ fun ComponentListItem(
                                 )
                             }
                             .padding(horizontal = 2.dp, vertical = 1.dp),
-                        text = stringResource(id = string.running),
+                        text = stringResource(id = string.core_ui_running),
                         color = MaterialTheme.colorScheme.onTertiary,
                     )
                 }
@@ -248,7 +248,7 @@ fun NoComponentScreen() {
             contentDescription = null,
         )
         BlockerBodyLargeText(
-            text = stringResource(id = string.no_components),
+            text = stringResource(id = string.core_ui_no_components),
             color = MaterialTheme.colorScheme.outline,
         )
     }

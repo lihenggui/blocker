@@ -61,7 +61,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
-    override fun getNotificationTitle(): Int = R.string.backing_up_apps_please_wait
+    override fun getNotificationTitle(): Int = R.string.core_rule_backing_up_apps_please_wait
 
     override suspend fun doWork(): Result {
         // Check storage permission first
