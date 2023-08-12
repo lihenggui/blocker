@@ -39,9 +39,9 @@ fun SearchingScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        BlockerLoadingWheel(contentDesc = stringResource(id = string.searching))
+        BlockerLoadingWheel(contentDesc = stringResource(id = string.feature_search_searching))
         BlockerBodyLargeText(
-            text = stringResource(id = string.searching),
+            text = stringResource(id = string.feature_search_searching),
             color = MaterialTheme.colorScheme.outline,
         )
     }

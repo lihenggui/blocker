@@ -14,13 +14,13 @@
      limitations under the License.
 -->
 <resources>
-    <string name="safe_to_block">能否安全阻止</string>
-    <string name="side_effect">禁用後副作用</string>
-    <string name="contributors">貢獻者</string>
-    <string name="yes">是</string>
-    <string name="no">否</string>
-    <string name="unknown">未知</string>
-    <string name="no_description">無描述</string>
-    <string name="block_all_of_this_page">阻止本頁所有組件</string>
-    <string name="enable_all_of_this_page">啟用本頁所有組件</string>
+    <string name="feature_ruledetail_safe_to_block">能否安全阻止</string>
+    <string name="feature_ruledetail_side_effect">禁用後副作用</string>
+    <string name="feature_ruledetail_contributors">貢獻者</string>
+    <string name="feature_ruledetail_yes">是</string>
+    <string name="feature_ruledetail_no">否</string>
+    <string name="feature_ruledetail_unknown">未知</string>
+    <string name="feature_ruledetail_no_description">無描述</string>
+    <string name="feature_ruledetail_block_all_of_this_page">阻止本頁所有組件</string>
+    <string name="feature_ruledetail_enable_all_of_this_page">啟用本頁所有組件</string>
 </resources>

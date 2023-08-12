@@ -302,7 +302,7 @@ class AppListViewModel @Inject constructor(
             ?: packageName
         val data = WarningDialogData(
             title = label,
-            message = R.string.do_you_want_to_clear_data_of_this_app,
+            message = R.string.feature_applist_do_you_want_to_clear_data_of_this_app,
             onPositiveButtonClicked = action,
         )
         _warningState.emit(data)
@@ -340,7 +340,7 @@ class AppListViewModel @Inject constructor(
             ?: packageName
         val data = WarningDialogData(
             title = label,
-            message = R.string.do_you_want_to_uninstall_this_app,
+            message = R.string.feature_applist_do_you_want_to_uninstall_this_app,
             onPositiveButtonClicked = action,
         )
         _warningState.emit(data)

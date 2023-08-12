@@ -91,23 +91,23 @@ fun AppSummary(
 ) {
     Column {
         BlockerSettingItem(
-            title = stringResource(id = string.target_sdk_version),
+            title = stringResource(id = string.feature_appdetail_target_sdk_version),
             summary = stringResource(
-                id = string.data_with_explanation,
+                id = string.feature_appdetail_data_with_explanation,
                 targetSdkVersion,
                 AndroidCodeName.getCodeName(targetSdkVersion),
             ),
         )
         BlockerSettingItem(
-            title = stringResource(id = string.minimum_sdk_version),
+            title = stringResource(id = string.feature_appdetail_minimum_sdk_version),
             summary = stringResource(
-                id = string.data_with_explanation,
+                id = string.feature_appdetail_data_with_explanation,
                 minSdkVersion,
                 AndroidCodeName.getCodeName(minSdkVersion),
             ),
         )
         BlockerSettingItem(
-            title = stringResource(id = string.last_update_time),
+            title = stringResource(id = string.feature_appdetail_last_update_time),
             summary = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG)
                 .withLocale(Locale.getDefault())
                 .withZone(ZoneId.systemDefault())
@@ -115,7 +115,7 @@ fun AppSummary(
         )
         if (dataDir != null) {
             BlockerSettingItem(
-                title = stringResource(id = string.data_dir),
+                title = stringResource(id = string.feature_appdetail_data_dir),
                 summary = dataDir,
             )
         }
@@ -139,13 +139,13 @@ fun BlockerRuleSection(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
-        ItemHeader(title = stringResource(id = string.blocker_rules))
+        ItemHeader(title = stringResource(id = string.feature_appdetail_blocker_rules))
         BlockerSettingItem(
-            title = stringResource(id = string.export_rules),
+            title = stringResource(id = string.feature_appdetail_export_rules),
             onItemClick = onExportRules,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.import_rules),
+            title = stringResource(id = string.feature_appdetail_import_rules),
             onItemClick = onImportRules,
         )
     }
@@ -161,17 +161,17 @@ fun IfwRuleSection(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
-        ItemHeader(title = stringResource(id = string.ifw_rules))
+        ItemHeader(title = stringResource(id = string.feature_appdetail_ifw_rules))
         BlockerSettingItem(
-            title = stringResource(id = string.export_ifw_rules),
+            title = stringResource(id = string.feature_appdetail_export_ifw_rules),
             onItemClick = onExportIfw,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.import_ifw_rules),
+            title = stringResource(id = string.feature_appdetail_import_ifw_rules),
             onItemClick = onImportIfw,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.reset_ifw),
+            title = stringResource(id = string.feature_appdetail_reset_ifw),
             onItemClick = onResetIfw,
         )
     }

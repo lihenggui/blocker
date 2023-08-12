@@ -81,38 +81,38 @@ fun SortOptionsContent(
     onShowPriorityClick: (ComponentShowPriority) -> Unit,
 ) {
     val sortModeList = listOf(
-        COMPONENT_NAME to R.string.component_name,
-        PACKAGE_NAME to R.string.package_name,
+        COMPONENT_NAME to R.string.core_ui_component_name,
+        PACKAGE_NAME to R.string.core_ui_package_name,
     )
     val sortByRuleList = listOf(
-        ASCENDING to R.string.ascending,
-        DESCENDING to R.string.descending,
+        ASCENDING to R.string.core_ui_ascending,
+        DESCENDING to R.string.core_ui_descending,
     )
     val priorityList = listOf(
-        NONE to R.string.none,
-        DISABLED_COMPONENTS_FIRST to R.string.disabled_first,
-        ENABLED_COMPONENTS_FIRST to R.string.enabled_first,
+        NONE to R.string.core_ui_none,
+        DISABLED_COMPONENTS_FIRST to R.string.core_ui_disabled_first,
+        ENABLED_COMPONENTS_FIRST to R.string.core_ui_enabled_first,
     )
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(id = R.string.sort_options),
+            text = stringResource(id = R.string.core_ui_sort_options),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             modifier = modifier.fillMaxWidth(),
         )
-        ItemHeader(title = stringResource(id = R.string.sort_by))
+        ItemHeader(title = stringResource(id = R.string.core_ui_sort_by))
         SegmentedButtons(
             items = sortModeList,
             selectedValue = uiState.componentSortInfo.sorting,
             onItemSelection = onSortByClick,
         )
-        ItemHeader(title = stringResource(id = R.string.order))
+        ItemHeader(title = stringResource(id = R.string.core_ui_order))
         SegmentedButtons(
             items = sortByRuleList,
             selectedValue = uiState.componentSortInfo.order,
             onItemSelection = onSortOrderClick,
         )
-        ItemHeader(title = stringResource(id = R.string.priority))
+        ItemHeader(title = stringResource(id = R.string.core_ui_priority))
         SegmentedButtons(
             items = priorityList,
             selectedValue = uiState.componentSortInfo.priority,
