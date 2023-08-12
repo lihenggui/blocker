@@ -45,7 +45,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
-    override fun getNotificationTitle(): Int = R.string.backing_up_ifw_please_wait
+    override fun getNotificationTitle(): Int = R.string.core_rule_backing_up_ifw_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         val folderPath = inputData.getString(PARAM_FOLDER_PATH)

@@ -53,7 +53,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
 
-    override fun getNotificationTitle(): Int = R.string.import_ifw_please_wait
+    override fun getNotificationTitle(): Int = R.string.core_rule_import_ifw_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         val folderPath = inputData.getString(PARAM_FOLDER_PATH)
