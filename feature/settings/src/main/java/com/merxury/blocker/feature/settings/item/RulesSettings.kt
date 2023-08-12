@@ -41,16 +41,16 @@ fun BlockerRulesSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            title = stringResource(id = string.feature_search_blocker_rules),
+            title = stringResource(id = string.feature_settings_blocker_rules),
             extraIconPadding = true,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.feature_search_export_rules),
+            title = stringResource(id = string.feature_settings_export_rules),
             onItemClick = exportRules,
             extraIconPadding = true,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.feature_search_import_rules),
+            title = stringResource(id = string.feature_settings_import_rules),
             onItemClick = importRules,
             extraIconPadding = true,
         )
@@ -69,21 +69,21 @@ fun IfwRulesSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            title = stringResource(id = string.feature_search_ifw_rules),
+            title = stringResource(id = string.feature_settings_ifw_rules),
             extraIconPadding = true,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.feature_search_export_ifw_rules),
+            title = stringResource(id = string.feature_settings_export_ifw_rules),
             onItemClick = exportIfwRules,
             extraIconPadding = true,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.feature_search_import_ifw_rules),
+            title = stringResource(id = string.feature_settings_import_ifw_rules),
             onItemClick = importIfwRules,
             extraIconPadding = true,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.feature_search_reset_ifw),
+            title = stringResource(id = string.feature_settings_reset_ifw),
             onItemClick = resetIfwRules,
             extraIconPadding = true,
         )

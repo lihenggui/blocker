@@ -47,23 +47,23 @@ fun ThemeSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            title = stringResource(id = string.feature_search_theme),
+            title = stringResource(id = string.feature_settings_theme),
             extraIconPadding = true,
         )
         if (supportDynamicColor) {
             SwitchSettingItem(
-                itemRes = string.feature_search_dynamic_color,
+                itemRes = string.feature_settings_dynamic_color,
                 checked = settings.useDynamicColor,
                 onCheckedChange = onChangeDynamicColorPreference,
             )
         }
         DialogSettingsItems(
-            titleRes = string.feature_search_dark_mode,
+            titleRes = string.feature_settings_dark_mode,
             selectedItem = settings.darkThemeConfig,
             itemList = listOf(
-                FOLLOW_SYSTEM to string.feature_search_system_default,
-                LIGHT to string.feature_search_light,
-                DARK to string.feature_search_dark,
+                FOLLOW_SYSTEM to string.feature_settings_system_default,
+                LIGHT to string.feature_settings_light,
+                DARK to string.feature_settings_dark,
             ),
             onValueChange = onChangeDarkThemeConfig,
         )

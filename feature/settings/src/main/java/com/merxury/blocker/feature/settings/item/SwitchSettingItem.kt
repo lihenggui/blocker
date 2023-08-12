@@ -63,7 +63,7 @@ fun SwitchSettingsItemPreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
-                itemRes = R.string.feature_search_show_system_apps,
+                itemRes = R.string.feature_settings_show_system_apps,
                 checked = true,
                 onCheckedChange = {},
             )

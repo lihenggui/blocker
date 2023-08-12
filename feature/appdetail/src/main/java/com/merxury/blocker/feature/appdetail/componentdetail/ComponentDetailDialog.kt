@@ -46,6 +46,7 @@ import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Error
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Loading
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Success
+import com.merxury.blocker.core.ui.R.string as UiString
 
 @Composable
 fun ComponentDetailDialogRoute(
@@ -90,7 +91,7 @@ fun ComponentDetailDialog(
             when (uiState) {
                 Loading -> {
                     Text(
-                        text = stringResource(string.core_ui_loading),
+                        text = stringResource(UiString.core_ui_loading),
                         modifier = Modifier.padding(vertical = 16.dp),
                     )
                 }
@@ -146,7 +147,7 @@ fun ComponentDetailPanel(
         OutlinedTextField(
             value = componentDetailInfo.description ?: "",
             label = {
-                Text(text = stringResource(id = string.core_ui_description))
+                Text(text = stringResource(id = UiString.core_ui_description))
             },
             onValueChange = {
                 onInfoChange.invoke(componentDetailInfo.copy(description = it))
