@@ -44,7 +44,7 @@ fun InitializingScreen(processingName: String) {
     ) {
         BlockerLoadingWheel(contentDesc = processingName)
         BlockerBodyMediumText(
-            text = stringResource(id = R.string.initializing_database),
+            text = stringResource(id = R.string.core_ui_initializing_database),
             color = MaterialTheme.colorScheme.onSurface,
         )
         Spacer(modifier = Modifier.size(8.dp))

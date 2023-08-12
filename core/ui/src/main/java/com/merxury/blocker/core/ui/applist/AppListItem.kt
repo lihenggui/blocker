@@ -175,7 +175,7 @@ private fun AppContent(
                             )
                         }
                         .padding(horizontal = 2.dp, vertical = 1.dp),
-                    text = stringResource(id = string.running),
+                    text = stringResource(id = string.core_ui_running),
                     color = MaterialTheme.colorScheme.onTertiary,
                 )
             }
@@ -191,17 +191,17 @@ private fun AppContent(
                             )
                         }
                         .padding(horizontal = 2.dp, vertical = 1.dp),
-                    text = stringResource(id = string.disabled),
+                    text = stringResource(id = string.core_ui_disabled),
                 )
             }
         }
         BlockerBodyMediumText(
-            text = stringResource(id = string.version_code_template, versionName, versionCode),
+            text = stringResource(id = string.core_ui_version_code_template, versionName, versionCode),
         )
         if (serviceStatus != null) {
             BlockerBodyMediumText(
                 text = stringResource(
-                    id = string.service_status_template,
+                    id = string.core_ui_service_status_template,
                     serviceStatus.running,
                     serviceStatus.blocked,
                     serviceStatus.total,

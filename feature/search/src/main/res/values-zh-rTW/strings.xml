@@ -14,31 +14,31 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="application_with_count">應用程式（%1$d）</string>
-    <string name="component_with_count">元件（%1$d）</string>
-    <string name="online_rule_with_count">線上規則（%1$d）</string>
-    <string name="searching">搜尋中</string>
-    <plurals name="activity_count">
+    <string name="feature_search_application_with_count">應用程式（%1$d）</string>
+    <string name="feature_search_component_with_count">元件（%1$d）</string>
+    <string name="feature_search_online_rule_with_count">線上規則（%1$d）</string>
+    <string name="feature_search_searching">搜尋中</string>
+    <plurals name="feature_search_activity_count">
         <item quantity="other">%1$d個活動</item>
     </plurals>
-    <plurals name="content_provider_count">
+    <plurals name="feature_search_content_provider_count">
         <item quantity="other">%1$d個內容提供者</item>
     </plurals>
-    <plurals name="receiver_count">
+    <plurals name="feature_search_receiver_count">
         <item quantity="other">%1$d個接收器</item>
     </plurals>
-    <plurals name="service_count">
+    <plurals name="feature_search_service_count">
         <item quantity="other">%1$d個服務</item>
     </plurals>
-    <plurals name="selected_app_count">
+    <plurals name="feature_search_selected_app_count">
         <item quantity="other">%1$d個應用程式已選取</item>
     </plurals>
-    <plurals name="block_all">
+    <plurals name="feature_search_block_all">
         <item quantity="other">此操作將禁用%1$d個組件，是否要繼續？</item>
     </plurals>
-    <plurals name="enable_all">
+    <plurals name="feature_search_enable_all">
         <item quantity="other">此操作將启用%1$d個組件，是否要繼續？</item>
     </plurals>
-    <string name="search_hint">應用程式、元件和規則</string>
-    <string name="no_search_result">尚未有搜尋結果</string>
+    <string name="feature_search_search_hint">應用程式、元件和規則</string>
+    <string name="feature_search_no_search_result">尚未有搜尋結果</string>
 </resources>
