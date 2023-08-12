@@ -93,4 +93,8 @@ class FakeUserDataRepository@Inject constructor(
     override suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean) {
         blockerPreferenceDataSource.setShowRunningAppsOnTop(shouldShowRunningAppsOnTop)
     }
+
+    override suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {
+        blockerPreferenceDataSource.setIsFirstTimeInitializationCompleted(completed)
+    }
 }
