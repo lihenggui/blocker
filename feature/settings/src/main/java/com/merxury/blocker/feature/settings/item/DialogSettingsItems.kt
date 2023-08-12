@@ -159,12 +159,12 @@ fun DialogSettingsItemPreview() {
     BlockerTheme {
         Surface {
             SettingDialog(
-                titleRes = R.string.feature_search_theme,
+                titleRes = R.string.feature_settings_theme,
                 items = listOf(
-                    "Android" to R.string.feature_search_android,
-                    "Default" to R.string.feature_search_theme_default,
+                    "Android" to R.string.feature_settings_android,
+                    "Default" to R.string.feature_settings_theme_default,
                 ),
-                selectedValue = "Default" to R.string.feature_search_theme_default,
+                selectedValue = "Default" to R.string.feature_settings_theme_default,
                 onValueChange = {},
             ) {}
         }
