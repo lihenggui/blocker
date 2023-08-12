@@ -151,7 +151,7 @@ fun AppListScreen(
                     ) {
                         Icon(
                             imageVector = BlockerIcons.Sort,
-                            contentDescription = stringResource(id = string.sort_menu),
+                            contentDescription = stringResource(id = string.feature_applist_sort_menu),
                             tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }

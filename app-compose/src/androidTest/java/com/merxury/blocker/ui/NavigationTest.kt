@@ -81,15 +81,15 @@ class NavigationTest {
         ReadOnlyProperty<Any?, String> { _, _ -> activity.getString(resId) }
 
     // The strings used for matching in these tests
-    private val appName by composeTestRule.stringResource(R.string.app_name)
+    private val appName by composeTestRule.stringResource(R.string.feature_applist_app_name)
     private val apps by composeTestRule.stringResource(R.string.apps)
-    private val rules by composeTestRule.stringResource(R.string.rules)
-    private val search by composeTestRule.stringResource(R.string.search)
-    private val searchHint by composeTestRule.stringResource(FeatureSearchR.string.search_hint)
-    private val moreMenu by composeTestRule.stringResource(FeatureApplistR.string.more_menu)
-    private val supportAndFeedback by composeTestRule.stringResource(FeatureApplistR.string.support_and_feedback)
-    private val sortMenu by composeTestRule.stringResource(FeatureApplistR.string.sort_menu)
-    private val sortOptions by composeTestRule.stringResource(UiR.string.sort_options)
+    private val rules by composeTestRule.stringResource(R.string.feature_generalrule_rules)
+    private val search by composeTestRule.stringResource(R.string.feature_generalrule_search)
+    private val searchHint by composeTestRule.stringResource(FeatureSearchR.string.feature_search_search_hint)
+    private val moreMenu by composeTestRule.stringResource(UiR.string.core_ui_more_menu)
+    private val supportAndFeedback by composeTestRule.stringResource(FeatureApplistR.string.feature_applist_support_and_feedback)
+    private val sortMenu by composeTestRule.stringResource(FeatureApplistR.string.feature_applist_sort_menu)
+    private val sortOptions by composeTestRule.stringResource(UiR.string.core_ui_sort_options)
 
     @Before
     fun setup() = hiltRule.inject()
@@ -235,7 +235,7 @@ class NavigationTest {
             // Select the last rule
             val rule =
                 rulesRepository.getGeneralRules().first().sortedBy(GeneralRule::name).last().name
-            onNodeWithTag("rules:rule").performScrollToNode(hasText(rule))
+            onNodeWithTag("rule:list").performScrollToNode(hasText(rule))
             onNodeWithText(rule).performClick()
 
             // Switch tab
@@ -245,7 +245,7 @@ class NavigationTest {
             onNodeWithText(rules).performClick()
 
             // Verify we're not in the list of rules, keep the last rule selected
-            onNodeWithTag("rules:rule").assertDoesNotExist()
+            onNodeWithTag("rule:list").assertDoesNotExist()
         }
     }
 }
