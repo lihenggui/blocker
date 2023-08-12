@@ -63,7 +63,7 @@ fun SelectedAppTopBar(
     }
     BlockerMediumTopAppBar(
         title = pluralStringResource(
-            id = plurals.selected_app_count,
+            id = plurals.feature_search_selected_app_count,
             count = selectedAppCount,
             selectedAppCount,
         ),
@@ -99,7 +99,7 @@ fun SelectedAppTopBar(
     if (showBlockAllDialog) {
         BlockerConfirmAlertDialog(
             text = pluralStringResource(
-                id = plurals.block_all,
+                id = plurals.feature_search_block_all,
                 count = selectedComponentCount,
                 selectedComponentCount,
             ),
@@ -110,7 +110,7 @@ fun SelectedAppTopBar(
     if (showEnableAllDialog) {
         BlockerConfirmAlertDialog(
             text = pluralStringResource(
-                id = plurals.enable_all,
+                id = plurals.feature_search_enable_all,
                 count = selectedComponentCount,
                 selectedComponentCount,
             ),
@@ -133,13 +133,13 @@ fun SearchBar(
         unfocusedIndicatorColor = Color.Transparent,
     )
     BlockerTopAppBar(
-        title = stringResource(id = string.searching),
+        title = stringResource(id = string.feature_search_searching),
         actions = {
             BlockerSearchTextField(
                 keyword = keyword,
                 placeholder = {
                     Text(
-                        text = stringResource(id = string.search_hint),
+                        text = stringResource(id = string.feature_search_search_hint),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )

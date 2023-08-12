@@ -49,23 +49,23 @@ fun RuleDescription(
         ) {
             InfoItemHeading(description = listOf(rule.description))
             InfoItemHeading(
-                heading = stringResource(id = string.safe_to_block),
+                heading = stringResource(id = string.feature_ruledetail_safe_to_block),
                 description = listOf(
                     if (rule.safeToBlock == true) {
-                        stringResource(id = string.yes)
+                        stringResource(id = string.feature_ruledetail_yes)
                     } else {
-                        stringResource(id = string.no)
+                        stringResource(id = string.feature_ruledetail_no)
                     },
                 ),
             )
             InfoItemHeading(
-                heading = stringResource(id = string.side_effect),
+                heading = stringResource(id = string.feature_ruledetail_side_effect),
                 description = listOf(
-                    rule.sideEffect ?: stringResource(id = string.unknown),
+                    rule.sideEffect ?: stringResource(id = string.feature_ruledetail_unknown),
                 ),
             )
             InfoItemHeading(
-                heading = stringResource(id = string.contributors),
+                heading = stringResource(id = string.feature_ruledetail_contributors),
                 description = rule.contributors,
             )
         }
@@ -89,7 +89,7 @@ fun InfoItemHeading(
         description.forEach { string ->
             BlockerBodyLargeText(
                 text = if (string.isNullOrEmpty()) {
-                    stringResource(id = R.string.no_description)
+                    stringResource(id = R.string.feature_ruledetail_no_description)
                 } else {
                     string
                 },

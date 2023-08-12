@@ -77,7 +77,7 @@ private fun CardHeader(iconUrl: String?, name: String, matchedAppCount: Int, com
                 .placeholder(BlockerIcons.Android)
                 .crossfade(true)
                 .build(),
-            contentDescription = stringResource(id = string.rule_icon_description),
+            contentDescription = stringResource(id = string.core_ui_rule_icon_description),
         )
         Column(modifier = Modifier.weight(1f)) {
             BlockerBodyLargeText(
@@ -103,7 +103,7 @@ private fun CardHeader(iconUrl: String?, name: String, matchedAppCount: Int, com
                 }
                 .padding(horizontal = 2.dp, vertical = 1.dp),
             text = pluralStringResource(
-                id = plurals.matched_apps,
+                id = plurals.core_ui_matched_apps,
                 matchedAppCount,
                 matchedAppCount,
             ),

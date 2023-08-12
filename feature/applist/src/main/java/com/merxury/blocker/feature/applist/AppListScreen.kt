@@ -139,7 +139,7 @@ fun AppListScreen(
     Scaffold(
         topBar = {
             BlockerTopAppBar(
-                title = stringResource(id = string.app_name),
+                title = stringResource(id = string.feature_applist_app_name),
                 actions = {
                     IconButton(
                         onClick = {

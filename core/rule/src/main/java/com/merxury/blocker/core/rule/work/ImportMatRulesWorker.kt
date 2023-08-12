@@ -58,7 +58,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
 
     private val uriString = params.inputData.getString(PARAM_FILE_URI)
 
-    override fun getNotificationTitle(): Int = R.string.import_mat_rule_please_wait
+    override fun getNotificationTitle(): Int = R.string.core_rule_import_mat_rule_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         val uri = Uri.parse(uriString)

@@ -61,4 +61,6 @@ interface UserDataRepository {
     suspend fun setComponentSorting(sorting: ComponentSorting)
 
     suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean)
+
+    suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean)
 }
