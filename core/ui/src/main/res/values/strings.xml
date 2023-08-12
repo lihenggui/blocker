@@ -14,63 +14,63 @@
      limitations under the License.
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="clear_cache">Clear cache</string>
-    <string name="clear_data">Clear data</string>
-    <string name="force_stop">Force stop</string>
-    <string name="uninstall">Uninstall</string>
-    <string name="enable">Enable</string>
-    <string name="disable">Disable</string>
-    <string name="running">Running</string>
-    <string name="disabled">Disabled</string>
-    <string name="version_code_template" translatable="false">%1$s (%2$s)</string>
-    <string name="service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
-    <string name="service">Service</string>
-    <string name="receiver">Receiver</string>
-    <string name="activity">Activity</string>
-    <string name="content_provider">Content Provider</string>
-    <string name="rule_icon_description">Rule icon</string>
-    <string name="copy_name">Copy name</string>
-    <string name="copy_full_name">Copy full name</string>
-    <string name="launch_activity">Launch activity</string>
-    <string name="stop_service">Stop service</string>
-    <string name="no_components">No components</string>
-    <plurals name="matched_component">
+    <string name="core_ui_clear_cache">Clear cache</string>
+    <string name="core_ui_clear_data">Clear data</string>
+    <string name="core_ui_force_stop">Force stop</string>
+    <string name="core_ui_uninstall">Uninstall</string>
+    <string name="core_ui_enable">Enable</string>
+    <string name="core_ui_disable">Disable</string>
+    <string name="core_ui_running">Running</string>
+    <string name="core_ui_disabled">Disabled</string>
+    <string name="core_ui_version_code_template" translatable="false">%1$s (%2$s)</string>
+    <string name="core_ui_service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
+    <string name="core_ui_service">Service</string>
+    <string name="core_ui_receiver">Receiver</string>
+    <string name="core_ui_activity">Activity</string>
+    <string name="core_ui_content_provider">Content Provider</string>
+    <string name="core_ui_rule_icon_description">Rule icon</string>
+    <string name="core_ui_copy_name">Copy name</string>
+    <string name="core_ui_copy_full_name">Copy full name</string>
+    <string name="core_ui_launch_activity">Launch activity</string>
+    <string name="core_ui_stop_service">Stop service</string>
+    <string name="core_ui_no_components">No components</string>
+    <plurals name="core_ui_matched_component">
         <item quantity="one">%1$d matched component</item>
         <item quantity="other">%1$d matched components</item>
     </plurals>
-    <plurals name="matched_apps">
+    <plurals name="core_ui_matched_apps">
         <item quantity="one">%1$d matched app</item>
         <item quantity="other">%1$d matched apps</item>
     </plurals>
-    <string name="description">Description</string>
-    <string name="applicable_application">Applicable app</string>
-    <string name="loading">Loading</string>
-    <string name="no_applicable_app">No applicable app</string>
-    <string name="app_info">App info</string>
-    <string name="activity_with_count">Activity (%1$d)</string>
-    <string name="service_with_count">Service (%1$d)</string>
-    <string name="receiver_with_count">Receiver (%1$d)</string>
-    <string name="provider_with_count">Provider (%1$d)</string>
-    <string name="initializing_database">Initializing database</string>
-    <string name="more_menu">More menu</string>
-    <string name="block_all_components">Block all components</string>
-    <string name="enable_all_components">Enable all components</string>
-    <string name="open_app_detail">Open app detail</string>
-    <string name="sort_options">Sort options</string>
-    <string name="sort_by">Sort by</string>
-    <string name="package_name">Package name</string>
-    <string name="component_name">Component name</string>
-    <string name="order">Order</string>
-    <string name="ascending">Ascending</string>
-    <string name="descending">Descending</string>
-    <string name="priority">Priority</string>
-    <string name="disabled_first">Disabled first</string>
-    <string name="enabled_first">Enabled first</string>
-    <string name="none">None</string>
-    <string name="name">Name</string>
-    <string name="install_date">Install Date</string>
-    <string name="last_updated">Last Updated</string>
-    <string name="show_running_apps_on_top">Show running apps on top</string>
-    <string name="on" tools:override="true">On</string>
-    <string name="off" tools:override="true">Off</string>
+    <string name="core_ui_description">Description</string>
+    <string name="core_ui_applicable_application">Applicable app</string>
+    <string name="core_ui_loading">Loading</string>
+    <string name="core_ui_no_applicable_app">No applicable app</string>
+    <string name="core_ui_app_info">App info</string>
+    <string name="core_ui_activity_with_count">Activity (%1$d)</string>
+    <string name="core_ui_service_with_count">Service (%1$d)</string>
+    <string name="core_ui_receiver_with_count">Receiver (%1$d)</string>
+    <string name="core_ui_provider_with_count">Provider (%1$d)</string>
+    <string name="core_ui_initializing_database">Initializing database</string>
+    <string name="core_ui_more_menu">More menu</string>
+    <string name="core_ui_block_all_components">Block all components</string>
+    <string name="core_ui_enable_all_components">Enable all components</string>
+    <string name="core_ui_open_app_detail">Open app detail</string>
+    <string name="core_ui_sort_options">Sort options</string>
+    <string name="core_ui_sort_by">Sort by</string>
+    <string name="core_ui_package_name">Package name</string>
+    <string name="core_ui_component_name">Component name</string>
+    <string name="core_ui_order">Order</string>
+    <string name="core_ui_ascending">Ascending</string>
+    <string name="core_ui_descending">Descending</string>
+    <string name="core_ui_priority">Priority</string>
+    <string name="core_ui_disabled_first">Disabled first</string>
+    <string name="core_ui_enabled_first">Enabled first</string>
+    <string name="core_ui_none">None</string>
+    <string name="core_ui_name">Name</string>
+    <string name="core_ui_install_date">Install Date</string>
+    <string name="core_ui_last_updated">Last Updated</string>
+    <string name="core_ui_show_running_apps_on_top">Show running apps on top</string>
+    <string name="core_ui_on" tools:override="true">On</string>
+    <string name="core_ui_off" tools:override="true">Off</string>
 </resources>

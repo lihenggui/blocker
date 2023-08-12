@@ -14,39 +14,39 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="application_with_count">App (%1$d)</string>
-    <string name="component_with_count">Component (%1$d)</string>
-    <string name="online_rule_with_count">Online rule (%1$d)</string>
-    <string name="searching">Searching</string>
-    <plurals name="activity_count">
+    <string name="feature_search_application_with_count">App (%1$d)</string>
+    <string name="feature_search_component_with_count">Component (%1$d)</string>
+    <string name="feature_search_online_rule_with_count">Online rule (%1$d)</string>
+    <string name="feature_search_searching">Searching</string>
+    <plurals name="feature_search_activity_count">
         <item quantity="one">%1$d Activity</item>
         <item quantity="other">%1$d Activities</item>
     </plurals>
-    <plurals name="content_provider_count">
+    <plurals name="feature_search_content_provider_count">
         <item quantity="one">%1$d Content provider</item>
         <item quantity="other">%1$d Content providers</item>
     </plurals>
-    <plurals name="receiver_count">
+    <plurals name="feature_search_receiver_count">
         <item quantity="one">%1$d Receiver</item>
         <item quantity="other">%1$d Receivers</item>
     </plurals>
-    <plurals name="service_count">
+    <plurals name="feature_search_service_count">
         <item quantity="one">%1$d Service</item>
         <item quantity="other">%1$d Services</item>
     </plurals>
-    <plurals name="selected_app_count">
+    <plurals name="feature_search_selected_app_count">
         <item quantity="one">%1$d app selected</item>
         <item quantity="other">%1$d apps selected</item>
     </plurals>
-    <plurals name="block_all">
-        <item quantity="one">This operation will disable %1$d components, do you want to continue?</item>
+    <plurals name="feature_search_block_all">
+        <item quantity="one">This operation will disable %1$d component, do you want to continue?</item>
         <item quantity="other">This operation will disable %1$d components, do you want to continue?</item>
     </plurals>
-    <plurals name="enable_all">
+    <plurals name="feature_search_enable_all">
         <item quantity="one">This operation will enable %1$d component, do you want to continue?</item>
         <item quantity="other">This operation will enable %1$d components, do you want to continue?</item>
     </plurals>
-    <string name="delimiter" translatable="false">&#160;/&#160;</string>
-    <string name="search_hint">Apps, components and rules</string>
-    <string name="no_search_result">No search result yet</string>
+    <string name="feature_search_delimiter" translatable="false">&#160;/&#160;</string>
+    <string name="feature_search_search_hint">Apps, components and rules</string>
+    <string name="feature_search_no_search_result">No search result yet</string>
 </resources>

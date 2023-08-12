@@ -14,13 +14,13 @@
      limitations under the License.
 -->
 <resources>
-    <string name="safe_to_block">Безопасно для блокировки</string>
-    <string name="side_effect">Побочный эффект</string>
-    <string name="contributors">Соавторы</string>
-    <string name="yes">Да</string>
-    <string name="no">Нет</string>
-    <string name="unknown">неизвестно</string>
-    <string name="no_description">Нет описания</string>
-    <string name="block_all_of_this_page">Блокировать всю эту страницу</string>
-    <string name="enable_all_of_this_page">Включить всю эту страницу</string>
+    <string name="feature_ruledetail_safe_to_block">Безопасно для блокировки</string>
+    <string name="feature_ruledetail_side_effect">Побочный эффект</string>
+    <string name="feature_ruledetail_contributors">Соавторы</string>
+    <string name="feature_ruledetail_yes">Да</string>
+    <string name="feature_ruledetail_no">Нет</string>
+    <string name="feature_ruledetail_unknown">неизвестно</string>
+    <string name="feature_ruledetail_no_description">Нет описания</string>
+    <string name="feature_ruledetail_block_all_of_this_page">Блокировать всю эту страницу</string>
+    <string name="feature_ruledetail_enable_all_of_this_page">Включить всю эту страницу</string>
 </resources>
