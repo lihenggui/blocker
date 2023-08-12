@@ -47,8 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavBackStackEntry
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerGradientBackground
@@ -107,7 +106,7 @@ fun BlockerApp(
                         BlockerBottomBar(
                             destinations = appState.topLevelDestinations,
                             onNavigateToDestination = appState::navigateToTopLevelDestination,
-                            currentDestination = appState.currentDestination,
+                            backstackEntries = appState.backStackEntries,
                             modifier = Modifier.testTag("BlockerBottomBar"),
                         )
                     }
@@ -128,7 +127,7 @@ fun BlockerApp(
                         BlockerNavRail(
                             destinations = appState.topLevelDestinations,
                             onNavigateToDestination = appState::navigateToTopLevelDestination,
-                            currentDestination = appState.currentDestination,
+                            backstackEntries = appState.backStackEntries,
                             modifier = Modifier
                                 .testTag("BlockerNavRail")
                                 .safeDrawingPadding(),
@@ -158,13 +157,13 @@ fun BlockerApp(
 private fun BlockerNavRail(
     destinations: List<TopLevelDestination>,
     onNavigateToDestination: (TopLevelDestination) -> Unit,
-    currentDestination: NavDestination?,
+    backstackEntries: List<NavBackStackEntry>,
     modifier: Modifier = Modifier,
 ) {
     BlockerNavigationRail(modifier = modifier) {
         Spacer(Modifier.weight(1f))
         destinations.forEach { destination ->
-            val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
+            val selected = backstackEntries.isTopLevelDestinationInHierarchy(destination)
             BlockerNavigationRailItem(
                 selected = selected,
                 onClick = { onNavigateToDestination(destination) },
@@ -197,14 +196,14 @@ private fun BlockerNavRail(
 private fun BlockerBottomBar(
     destinations: List<TopLevelDestination>,
     onNavigateToDestination: (TopLevelDestination) -> Unit,
-    currentDestination: NavDestination?,
+    backstackEntries: List<NavBackStackEntry>,
     modifier: Modifier = Modifier,
 ) {
     BlockerNavigationBar(
         modifier = modifier,
     ) {
         destinations.forEach { destination ->
-            val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
+            val selected = backstackEntries.isTopLevelDestinationInHierarchy(destination)
             BlockerNavigationBarItem(
                 selected = selected,
                 onClick = { onNavigateToDestination(destination) },
@@ -232,11 +231,30 @@ private fun BlockerBottomBar(
     }
 }
 
-private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopLevelDestination) =
-    this?.hierarchy?.any {
-        it.route
-            ?.split("/")
-            ?.firstOrNull()
-            ?.contains(destination.name, true)
-            ?: false
-    } ?: false
+/**
+ * Checks the backstack to determine the current [TopLevelDestination] in focus.
+ */
+private fun List<NavBackStackEntry>.isTopLevelDestinationInHierarchy(
+    destination: TopLevelDestination,
+): Boolean = when (destination) {
+    // The APP destination is always in the back stack since it is the
+    // start destination in the nav graph. Check that other top level destinations are not present.
+    TopLevelDestination.APP -> none { entry ->
+        TopLevelDestination.RULE.matches(entry) || TopLevelDestination.SEARCH.matches(entry)
+    }
+    // The presence of either of these top level destinations in the back stack indicates
+    // that is is the current top level.
+    TopLevelDestination.RULE,
+    TopLevelDestination.SEARCH,
+    -> any(destination::matches)
+}
+
+/**
+ * Checks if a [TopLevelDestination] matches a [NavBackStackEntry]
+ */
+private fun TopLevelDestination.matches(
+    navBackStackEntry: NavBackStackEntry,
+) = navBackStackEntry.destination.route?.contains(
+    other = name,
+    ignoreCase = true,
+) ?: false
