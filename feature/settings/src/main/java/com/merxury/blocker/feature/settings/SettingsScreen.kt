@@ -188,7 +188,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             BlockerTopAppBar(
-                title = stringResource(id = string.feature_search_settings),
+                title = stringResource(id = string.feature_settings_settings),
                 hasNavigationIcon = true,
                 onNavigationClick = onNavigationClick,
             )
@@ -303,7 +303,7 @@ fun SettingsContent(
         )
         HorizontalDivider()
         BlockerSettingItem(
-            title = stringResource(id = string.feature_search_import_mat_rules),
+            title = stringResource(id = string.feature_settings_import_mat_rules),
             onItemClick = {
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
