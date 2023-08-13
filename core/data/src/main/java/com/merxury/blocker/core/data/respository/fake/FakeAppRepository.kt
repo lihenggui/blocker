@@ -34,7 +34,5 @@ class FakeAppRepository @Inject constructor() : AppRepository {
     override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> =
         flowOf(emptyList())
 
-    override fun getApplication(packageName: String): Flow<InstalledApp?> {
-        TODO("Not yet implemented")
-    }
+    override fun getApplication(packageName: String): Flow<InstalledApp?> = flowOf(null)
 }
