@@ -29,4 +29,9 @@ interface ComponentDataSource {
     fun getComponentList(
         packageName: String,
     ): Flow<List<ComponentInfo>>
+
+    fun getComponentType(
+        packageName: String,
+        componentName: String,
+    ): Flow<ComponentType?>
 }
