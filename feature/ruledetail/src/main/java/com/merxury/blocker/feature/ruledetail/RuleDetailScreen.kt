@@ -393,9 +393,7 @@ fun RuleDetailTabContent(
             state = pagerState,
         ) {
             when (it) {
-                0 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
-
-                1 -> RuleMatchedAppList(
+                0 -> RuleMatchedAppList(
                     ruleMatchedAppListUiState = ruleMatchedAppListUiState,
                     onStopServiceClick = onStopServiceClick,
                     onLaunchActivityClick = onLaunchActivityClick,
@@ -406,6 +404,8 @@ fun RuleDetailTabContent(
                     onEnableAllClick = onEnableAllClick,
                     onSwitch = onSwitch,
                 )
+
+                1 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
             }
         }
     }
@@ -454,10 +454,10 @@ fun RuleDetailScreenPreView() {
     )
     val tabState = TabState(
         items = listOf(
-            Description,
             Applicable,
+            Description,
         ),
-        selectedItem = Description,
+        selectedItem = Applicable,
     )
     BlockerTheme {
         Surface {
@@ -501,8 +501,8 @@ fun RuleDetailScreenLoadingPreView() {
     val ruleInfoUiState = RuleInfoUiState.Loading
     val tabState = TabState(
         items = listOf(
-            Description,
             Applicable,
+            Description,
         ),
         selectedItem = Description,
     )
