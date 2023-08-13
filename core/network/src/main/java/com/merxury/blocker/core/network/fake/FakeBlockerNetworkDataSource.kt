@@ -26,6 +26,7 @@ import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import okio.use
@@ -34,7 +35,7 @@ import javax.inject.Inject
 /**
  * [BlockerNetworkDataSource] implementation that provides static news resources to aid development
  */
-class FakeBlockerNetworkDataSource@Inject constructor(
+class FakeBlockerNetworkDataSource @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val networkJson: Json,
     private val assets: FakeAssetManager = JvmUnitTestFakeAssetManager,
@@ -43,6 +44,7 @@ class FakeBlockerNetworkDataSource@Inject constructor(
         return null
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     override suspend fun getGeneralRules(): List<NetworkGeneralRule> {
         return withContext(ioDispatcher) {
             assets.open(RULES_ASSET).use(networkJson::decodeFromStream)
