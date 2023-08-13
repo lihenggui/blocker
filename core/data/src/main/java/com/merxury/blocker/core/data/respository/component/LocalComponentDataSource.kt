@@ -75,6 +75,35 @@ class LocalComponentDataSource @Inject constructor(
             ?: emptyList()
         emit(activity + service + receiver + provider)
     }
+        .flowOn(ioDispatcher)
+
+    override fun getComponentType(packageName: String, componentName: String): Flow<ComponentType?> =
+        flow {
+            val components = ApplicationUtil.getApplicationComponents(pm, packageName, ioDispatcher)
+            val isProvider = components.providers?.any { it.name == componentName } ?: false
+            if (isProvider) {
+                emit(PROVIDER)
+                return@flow
+            }
+            val isReceiver = components.receivers?.any { it.name == componentName } ?: false
+            if (isReceiver) {
+                emit(RECEIVER)
+                return@flow
+            }
+            val isService = components.services?.any { it.name == componentName } ?: false
+            if (isService) {
+                emit(SERVICE)
+                return@flow
+            }
+            val isActivity = components.activities?.any { it.name == componentName } ?: false
+            if (isActivity) {
+                emit(ACTIVITY)
+                return@flow
+            }
+            // If not found, emit null
+            emit(null)
+        }
+            .flowOn(ioDispatcher)
 
     private suspend fun toComponentInfo(
         info: android.content.pm.ComponentInfo,

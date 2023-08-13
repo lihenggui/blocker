@@ -173,6 +173,14 @@ class LocalComponentRepository @Inject constructor(
         componentName: String,
         newState: Boolean,
     ): Boolean {
+        // Intent Firewall doesn't have the ability to enable/disable providers
+        // Use PM controller instead in this case
+        val type = localDataSource.getComponentType(packageName, componentName)
+            .first()
+        if (type == ComponentType.PROVIDER) {
+            Timber.v("Component $packageName/$componentName is provider.")
+            return controlInPmMode(packageName, componentName, newState)
+        }
         return if (newState) {
             // Need to enable the component by PM controller first
             val blockedByPm = !pmController.checkComponentEnableState(packageName, componentName)
