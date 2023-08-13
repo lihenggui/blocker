@@ -29,7 +29,7 @@ import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class FakeUserDataRepository@Inject constructor(
+class FakeUserDataRepository @Inject constructor(
     private val blockerPreferenceDataSource: BlockerPreferencesDataSource,
 ) : UserDataRepository {
     override val userData: Flow<UserPreferenceData> =
