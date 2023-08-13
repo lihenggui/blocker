@@ -141,6 +141,27 @@ class LocalComponentRepository @Inject constructor(
             PM -> pmController
             SHIZUKU -> shizukuController
         }
+        // Filter providers first in the list if preferred controller is IFW
+        if (userData.controllerType == IFW) {
+            // IFW doesn't have the ability to enable/disable providers
+            val providers = components.filter { it.type == ComponentType.PROVIDER }
+            providers.forEach {
+                if (newState) {
+                    pmController.enable(it.packageName, it.name)
+                } else {
+                    pmController.disable(it.packageName, it.name)
+                }
+            }
+            // if users want to enable the component, check if it's blocked by PM controller
+            if (newState) {
+                val blockedByPm = components.filter {
+                    it.pmBlocked && it.type != ComponentType.PROVIDER
+                }
+                blockedByPm.forEach {
+                    pmController.enable(it.packageName, it.name)
+                }
+            }
+        }
         val result = if (newState) {
             controller.batchEnable(list) {
                 updateComponentStatus(it.packageName, it.name)
