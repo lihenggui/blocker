@@ -37,7 +37,7 @@ import javax.inject.Inject
  * backend.
  */
 
-class FakeGeneralRuleRepository@Inject constructor(
+class FakeGeneralRuleRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val datasource: FakeBlockerNetworkDataSource,
 ) : GeneralRuleRepository {
