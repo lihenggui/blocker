@@ -1,4 +1,3 @@
-package com.merxury.blocker.core.network
 /*
  * Copyright 2023 Blocker
  *
@@ -14,6 +13,8 @@ package com.merxury.blocker.core.network
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package com.merxury.blocker.core.network
 
 import androidx.annotation.VisibleForTesting
 import com.merxury.blocker.core.network.fake.FakeAssetManager

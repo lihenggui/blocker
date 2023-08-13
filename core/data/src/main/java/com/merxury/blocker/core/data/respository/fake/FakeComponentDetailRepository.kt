@@ -19,17 +19,12 @@ package com.merxury.blocker.core.data.respository.fake
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
-class FakeComponentDetailRepository@Inject constructor(
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+class FakeComponentDetailRepository @Inject constructor(
     private val userGeneratedDataSource: LocalComponentDetailDataSource,
     private val dbDataSource: DbComponentDetailDataSource,
 ) : ComponentDetailRepository {
@@ -39,17 +34,9 @@ class FakeComponentDetailRepository@Inject constructor(
     override fun getDbComponentDetail(name: String): Flow<ComponentDetail?> =
         dbDataSource.getComponentDetail(name)
 
-    override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> {
-        return flow {
-            emit(null)
-        }.flowOn(ioDispatcher)
-    }
+    override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 
-    override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> {
-        return flow {
-            emit(null)
-        }.flowOn(ioDispatcher)
-    }
+    override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> = flowOf(null)
 
     override suspend fun saveComponentDetail(
         componentDetail: ComponentDetail,
