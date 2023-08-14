@@ -111,7 +111,7 @@ fun GeneralRulesScreen(
                         navigateToRuleDetail(id)
                         analyticsHelper.logGeneralRuleClicked(id)
                     },
-                    modifier = Modifier.testTag("rule:list"),
+                    modifier = modifier,
                 )
 
                 is Error -> ErrorScreen(error = uiState.error)
