@@ -548,8 +548,8 @@ fun RuleDetailScreenErrorPreView() {
     val ruleInfoUiState = RuleInfoUiState.Error(UiMessage("Error"))
     val tabState = TabState(
         items = listOf(
-            Description,
             Applicable,
+            Description,
         ),
         selectedItem = Description,
     )
