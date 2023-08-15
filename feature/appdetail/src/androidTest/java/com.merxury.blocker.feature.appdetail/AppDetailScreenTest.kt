@@ -1,15 +1,20 @@
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
+import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.appdetail.AppDetailScreen
@@ -18,6 +23,7 @@ import com.merxury.blocker.feature.appdetail.ComponentListUiState
 import org.junit.Rule
 import org.junit.Test
 import com.merxury.blocker.core.ui.R as uiR
+import com.merxury.blocker.feature.appdetail.R
 
 /*
  * Copyright 2022 Blocker Open Source Project
@@ -52,6 +58,15 @@ class AppDetailScreenTest {
             selectedItem = Info,
         )
     private val errorMessage = UiMessage("Can't find apps in this device.")
+    private val receiverComponentList: SnapshotStateList<ComponentItem> = mutableStateListOf(
+        ComponentItem(
+            name = "AlarmManagerSchedulerBroadcastReceiver",
+            simpleName = "AlarmReceiver",
+            packageName = "com.merxury.blocker",
+            pmBlocked = false,
+            type = RECEIVER
+        ),
+    )
 
     @Test
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
@@ -100,5 +115,45 @@ class AppDetailScreenTest {
             )
             .assertExists()
         composeTestRule.onNodeWithText(errorMessage.title).assertExists()
+    }
+
+    @Test
+    fun tabSelector_whenComponentTabSelected_showSearchMoreIcon() {
+        val tabState =
+            TabState(
+                items = listOf(
+                    Info,
+                    Receiver,
+                ),
+                selectedItem = Receiver,
+            )
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState.Success(
+                        appInfo = AppItem(label = "App", packageName = "com.merxury.blocker"),
+                        appIcon = null,
+                    ),
+                    topAppBarUiState = AppBarUiState(),
+                    componentListUiState = ComponentListUiState(receiver = receiverComponentList),
+                    tabState = tabState,
+                    bottomSheetState = ComponentSortInfoUiState.Loading,
+                    onBackClick = {},
+                    onLaunchAppClick = {},
+                    switchTab = {},
+                )
+            }
+        }
+        composeTestRule
+            .onNodeWithContentDescription(
+                composeTestRule.activity.resources.getString(uiR.string.core_ui_search_icon),
+            )
+            .assertExists()
+        composeTestRule
+            .onNodeWithContentDescription(
+                composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
+            )
+            .assertExists()
+
     }
 }
