@@ -43,6 +43,7 @@
     <string name="core_ui_description">描述</string>
     <string name="core_ui_applicable_application">适用应用程序</string>
     <string name="core_ui_loading">正在加载</string>
+    <string name="core_ui_error">错误</string>
     <string name="core_ui_no_applicable_app">没有适用的应用</string>
     <string name="core_ui_app_info">应用信息</string>
     <string name="core_ui_activity_with_count">活动 (%1$d)</string>

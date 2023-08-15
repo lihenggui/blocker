@@ -46,6 +46,7 @@
     <string name="core_ui_description">Описание</string>
     <string name="core_ui_applicable_application">Применимое приложение</string>
     <string name="core_ui_loading">Загрузка</string>
+    <string name="core_ui_error">Ошибка</string>
     <string name="core_ui_no_applicable_app">Нет применимого приложения</string>
     <string name="core_ui_app_info">приложение</string>
     <string name="core_ui_activity_with_count">Активити(%1$d)</string>

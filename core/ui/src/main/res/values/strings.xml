@@ -45,6 +45,7 @@
     <string name="core_ui_description">Description</string>
     <string name="core_ui_applicable_application">Applicable app</string>
     <string name="core_ui_loading">Loading</string>
+    <string name="core_ui_error">Error</string>
     <string name="core_ui_no_applicable_app">No applicable app</string>
     <string name="core_ui_app_info">App info</string>
     <string name="core_ui_activity_with_count">Activity (%1$d)</string>
