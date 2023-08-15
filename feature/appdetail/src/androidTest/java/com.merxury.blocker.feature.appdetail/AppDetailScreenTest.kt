@@ -23,7 +23,6 @@ import com.merxury.blocker.feature.appdetail.ComponentListUiState
 import org.junit.Rule
 import org.junit.Test
 import com.merxury.blocker.core.ui.R as uiR
-import com.merxury.blocker.feature.appdetail.R
 
 /*
  * Copyright 2022 Blocker Open Source Project
@@ -40,7 +39,6 @@ import com.merxury.blocker.feature.appdetail.R
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 
 class AppDetailScreenTest {
     @get:Rule(order = 0)
@@ -64,7 +62,7 @@ class AppDetailScreenTest {
             simpleName = "AlarmReceiver",
             packageName = "com.merxury.blocker",
             pmBlocked = false,
-            type = RECEIVER
+            type = RECEIVER,
         ),
     )
 
@@ -154,6 +152,5 @@ class AppDetailScreenTest {
                 composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
             )
             .assertExists()
-
     }
 }
