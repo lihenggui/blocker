@@ -108,10 +108,10 @@ class RuleDetailViewModel @Inject constructor(
     private val _tabState = MutableStateFlow(
         TabState(
             items = listOf(
-                Description,
                 Applicable,
+                Description,
             ),
-            selectedItem = Description,
+            selectedItem = Applicable,
         ),
     )
     val tabState: StateFlow<TabState<RuleDetailTabs>> = _tabState.asStateFlow()
