@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
@@ -65,7 +66,8 @@ fun BlockerSearchTextField(
             .padding(horizontal = 16.dp, vertical = 2.dp)
             .onFocusChanged { focusState ->
                 showClearButton = (focusState.isFocused)
-            },
+            }
+            .testTag("BlockerSearchTextField"),
         value = keyword,
         onValueChange = onValueChange,
         placeholder = placeholder,
