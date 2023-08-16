@@ -230,7 +230,7 @@ class AppDetailScreenTest {
     }
 
     @Test
-    fun showComponentIno() {
+    fun showComponentInfo() {
         val itemCountMap = mapOf(
             Info to 1,
             Receiver to 1,
