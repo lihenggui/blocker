@@ -25,12 +25,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.data.UiMessage
 
 @Composable
@@ -42,7 +44,7 @@ fun ErrorScreen(error: UiMessage) {
     ) {
         BlockerDisplayIcon(
             imageVector = BlockerIcons.Error,
-            contentDescription = null,
+            contentDescription = stringResource(id = R.string.core_ui_error),
             tint = MaterialTheme.colorScheme.errorContainer,
         )
         BlockerBodyLargeText(
