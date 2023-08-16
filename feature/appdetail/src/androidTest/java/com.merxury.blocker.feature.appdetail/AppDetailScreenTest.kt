@@ -34,6 +34,8 @@ import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import org.junit.Rule
 import org.junit.Test
@@ -57,8 +59,8 @@ class AppDetailScreenTest {
     private val errorMessage = UiMessage("Can't find apps in this device.")
     private val receiverComponentList: SnapshotStateList<ComponentItem> = mutableStateListOf(
         ComponentItem(
-            name = "AlarmManagerSchedulerBroadcastReceiver",
-            simpleName = "AlarmReceiver",
+            name = "AlarmManagerSchedulerBroadcast",
+            simpleName = "AlarmManagerSchedulerBroadcast",
             packageName = "com.merxury.blocker",
             pmBlocked = false,
             type = RECEIVER,
@@ -131,7 +133,12 @@ class AppDetailScreenTest {
                         appInfo = AppItem(label = "App", packageName = "com.merxury.blocker"),
                         appIcon = null,
                     ),
-                    topAppBarUiState = AppBarUiState(),
+                    topAppBarUiState = AppBarUiState(
+                        actions = listOf(
+                            SEARCH,
+                            MORE,
+                        ),
+                    ),
                     componentListUiState = ComponentListUiState(receiver = receiverComponentList),
                     tabState = tabState,
                     bottomSheetState = ComponentSortInfoUiState.Loading,
