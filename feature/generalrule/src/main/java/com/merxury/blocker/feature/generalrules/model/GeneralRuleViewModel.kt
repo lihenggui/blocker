@@ -105,7 +105,7 @@ class GeneralRulesViewModel @Inject constructor(
 }
 
 sealed interface GeneralRuleUiState {
-    object Loading : GeneralRuleUiState
+    data object Loading : GeneralRuleUiState
     class Success(
         val rules: List<GeneralRule>,
     ) : GeneralRuleUiState
