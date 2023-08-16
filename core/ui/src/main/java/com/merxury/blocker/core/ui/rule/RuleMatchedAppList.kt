@@ -121,7 +121,7 @@ fun NoApplicableAppScreen() {
 }
 
 sealed interface RuleMatchedAppListUiState {
-    object Loading : RuleMatchedAppListUiState
+    data object Loading : RuleMatchedAppListUiState
     data class Success(
         val list: List<RuleMatchedApp>,
     ) : RuleMatchedAppListUiState
