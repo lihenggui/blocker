@@ -25,13 +25,13 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.testing.testing.data.appInfoTestData
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -131,7 +131,7 @@ class AppDetailScreenTest {
             BoxWithConstraints {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState.Success(
-                        appInfo = AppItem(label = "App", packageName = "com.merxury.blocker"),
+                        appInfo = appInfoTestData,
                         appIcon = null,
                     ),
                     topAppBarUiState = AppBarUiState(
@@ -175,7 +175,7 @@ class AppDetailScreenTest {
             BoxWithConstraints {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState.Success(
-                        appInfo = AppItem(label = "App", packageName = "com.merxury.blocker"),
+                        appInfo = appInfoTestData,
                         appIcon = null,
                     ),
                     topAppBarUiState = AppBarUiState(
@@ -196,6 +196,31 @@ class AppDetailScreenTest {
         }
         composeTestRule
             .onNodeWithTag("BlockerSearchTextField")
+            .assertExists()
+    }
+
+    @Test
+    fun showAppIno() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState.Success(
+                        appInfo = appInfoTestData,
+                        appIcon = null,
+                    ),
+                    topAppBarUiState = AppBarUiState(),
+                    componentListUiState = ComponentListUiState(),
+                    tabState = tabState,
+                    bottomSheetState = ComponentSortInfoUiState.Loading,
+                    onBackClick = {},
+                    onLaunchAppClick = {},
+                    switchTab = {},
+                )
+            }
+        }
+        composeTestRule.onNodeWithText(appInfoTestData.label).assertExists()
+        composeTestRule
+            .onNodeWithTag("AppDetailSummaryContent")
             .assertExists()
     }
 }

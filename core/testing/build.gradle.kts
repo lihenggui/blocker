@@ -27,6 +27,8 @@ dependencies {
     implementation(projects.core.common)
     implementation(projects.core.data)
     implementation(projects.core.model)
+    implementation(projects.core.ui)
+    implementation(libs.kotlinx.datetime)
 
     api(libs.junit4)
     api(libs.androidx.test.core)
