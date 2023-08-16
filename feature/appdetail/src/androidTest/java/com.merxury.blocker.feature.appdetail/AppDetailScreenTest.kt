@@ -204,7 +204,7 @@ class AppDetailScreenTest {
     }
 
     @Test
-    fun showAppIno() {
+    fun showAppInfo() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 AppDetailScreen(
