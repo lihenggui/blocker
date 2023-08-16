@@ -20,8 +20,10 @@ import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
@@ -157,6 +159,44 @@ class AppDetailScreenTest {
             .onNodeWithContentDescription(
                 composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
             )
+            .assertExists()
+    }
+
+    @Test
+    fun search_whenInSearchMode_showSearchSearchTextField() {
+        val tabState =
+            TabState(
+                items = listOf(
+                    Info,
+                    Receiver,
+                ),
+                selectedItem = Receiver,
+            )
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                AppDetailScreen(
+                    appInfoUiState = AppInfoUiState.Success(
+                        appInfo = AppItem(label = "App", packageName = "com.merxury.blocker"),
+                        appIcon = null,
+                    ),
+                    topAppBarUiState = AppBarUiState(
+                        actions = listOf(
+                            SEARCH,
+                            MORE,
+                        ),
+                        isSearchMode = true,
+                    ),
+                    componentListUiState = ComponentListUiState(receiver = receiverComponentList),
+                    tabState = tabState,
+                    bottomSheetState = ComponentSortInfoUiState.Loading,
+                    onBackClick = {},
+                    onLaunchAppClick = {},
+                    switchTab = {},
+                )
+            }
+        }
+        composeTestRule
+            .onNodeWithTag("BlockerSearchTextField")
             .assertExists()
     }
 }
