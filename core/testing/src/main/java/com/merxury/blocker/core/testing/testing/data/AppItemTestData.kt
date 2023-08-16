@@ -31,6 +31,6 @@ val appInfoTestData = AppItem(
     isEnabled = true,
     firstInstallTime = Clock.System.now(),
     lastUpdateTime = Clock.System.now(),
-    appServiceStatus =null,
+    appServiceStatus = null,
     packageInfo = null,
-    )
+)
