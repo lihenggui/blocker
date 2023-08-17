@@ -57,4 +57,8 @@ class TestComponentDetailRepository : ComponentDetailRepository {
         this.componentDetail.tryEmit(componentDetail)
         return true
     }
+
+    fun sendComponentDetail(componentDetail: ComponentDetail) {
+        this.componentDetail.tryEmit(componentDetail)
+    }
 }
