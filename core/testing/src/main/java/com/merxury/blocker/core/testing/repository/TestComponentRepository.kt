@@ -25,7 +25,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 
-class TestComponentRepository: ComponentRepository {
+class TestComponentRepository : ComponentRepository {
 
     private val componentList: MutableSharedFlow<List<ComponentInfo>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)

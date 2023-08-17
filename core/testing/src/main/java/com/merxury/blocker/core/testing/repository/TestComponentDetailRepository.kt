@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 
-class TestComponentDetailRepository: ComponentDetailRepository {
+class TestComponentDetailRepository : ComponentDetailRepository {
     private val componentDetail: MutableSharedFlow<ComponentDetail> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> {
