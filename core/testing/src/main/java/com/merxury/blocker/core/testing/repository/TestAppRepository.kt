@@ -26,11 +26,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 
 class TestAppRepository : AppRepository {
-    private val appList = MutableSharedFlow<List<InstalledApp>>(replay = 1, onBufferOverflow = DROP_OLDEST)
-    override fun getApplicationList(): Flow<List<InstalledApp>> = appList
+    private val appListFlow = MutableSharedFlow<List<InstalledApp>>(replay = 1, onBufferOverflow = DROP_OLDEST)
+    override fun getApplicationList(): Flow<List<InstalledApp>> = appListFlow
 
     override fun updateApplication(packageName: String): Flow<Result<Unit>> {
-        return appList.map {
+        return appListFlow.map {
             val app = it.find { app -> app.packageName == packageName }
             if (app == null) {
                 Success(Unit)
@@ -41,20 +41,24 @@ class TestAppRepository : AppRepository {
     }
 
     override fun updateApplicationList(): Flow<Result<Unit>> {
-        return appList.map {
+        return appListFlow.map {
             Success(Unit)
         }
     }
 
     override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> {
-        return appList.map {
+        return appListFlow.map {
             it.filter { app -> app.packageName.contains(keyword) }
         }
     }
 
     override fun getApplication(packageName: String): Flow<InstalledApp?> {
-        return appList.map {
+        return appListFlow.map {
             it.find { app -> app.packageName == packageName }
         }
+    }
+
+    fun sendAppList(appList: List<InstalledApp>) {
+        appListFlow.tryEmit(appList)
     }
 }

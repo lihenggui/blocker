@@ -20,13 +20,14 @@ import android.app.Application
 import android.content.pm.PackageManager
 import androidx.lifecycle.SavedStateHandle
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
+import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
-import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
@@ -97,10 +98,31 @@ class AppDetailViewModelTest {
         collectJob1.cancel()
         collectJob2.cancel()
     }
+
+    @Test
+    fun showAppInfoWhenGetAppInfo() = runTest {
+        val collectJob1 =
+            launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
+        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
+
+        appRepository.sendAppList(sampleAppList)
+        viewModel.loadAppInfo()
+        assertEquals(
+            AppInfoUiState.Success(
+                appInfo = sampleAppList.first().toAppItem(),
+                appIcon = null,
+            ),
+            viewModel.appInfoUiState.value,
+        )
+        assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
+
+        collectJob1.cancel()
+        collectJob2.cancel()
+    }
 }
 
 private val sampleAppList = listOf(
-    AppItem(
+    InstalledApp(
         label = "App",
         packageName = "com.merxury.blocker",
         versionName = "1.0.0",
@@ -108,14 +130,11 @@ private val sampleAppList = listOf(
         minSdkVersion = 33,
         targetSdkVersion = 21,
         isSystem = false,
-        isRunning = false,
         isEnabled = true,
         firstInstallTime = System.now(),
         lastUpdateTime = System.now(),
-        appServiceStatus = null,
-        packageInfo = null,
     ),
-    AppItem(
+    InstalledApp(
         label = "App",
         packageName = "com.merxury.test",
         versionName = "23.3.2",
@@ -123,14 +142,11 @@ private val sampleAppList = listOf(
         minSdkVersion = 33,
         targetSdkVersion = 21,
         isSystem = true,
-        isRunning = true,
         isEnabled = true,
         firstInstallTime = System.now(),
         lastUpdateTime = System.now(),
-        appServiceStatus = null,
-        packageInfo = null,
     ),
-    AppItem(
+    InstalledApp(
         label = "App",
         packageName = "com.merxury.system",
         versionName = "0.13.2",
@@ -138,11 +154,7 @@ private val sampleAppList = listOf(
         minSdkVersion = 33,
         targetSdkVersion = 21,
         isSystem = true,
-        isRunning = true,
         isEnabled = false,
         firstInstallTime = System.now(),
-        lastUpdateTime = System.now(),
-        appServiceStatus = null,
-        packageInfo = null,
     ),
 )

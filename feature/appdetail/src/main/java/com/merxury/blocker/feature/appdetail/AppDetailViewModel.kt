@@ -701,7 +701,7 @@ class AppDetailViewModel @Inject constructor(
         _eventFlow.emit(ruleWorkType to workResult)
     }
 
-    private fun loadAppInfo() = viewModelScope.launch {
+    fun loadAppInfo() = viewModelScope.launch {
         val packageName = appDetailArgs.packageName
         val app = appRepository.getApplication(packageName).first()
         if (app == null) {
