@@ -121,4 +121,8 @@ class TestUserDataRepository : UserDataRepository {
     override suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {
         _userData.tryEmit(currentUserData.copy(isFirstTimeInitializationCompleted = completed))
     }
+
+    fun sendUserData(userData: UserPreferenceData) {
+        _userData.tryEmit(userData)
+    }
 }
