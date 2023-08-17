@@ -26,9 +26,14 @@ import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
+import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.datetime.Clock.System
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -77,5 +82,67 @@ class AppDetailViewModelTest {
         assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
     }
 
+    @Test
+    fun stateIsLoadingWhenDataAreLoading() = runTest {
+        val collectJob1 =
+            launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
+        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
 
+        assertEquals(
+            AppInfoUiState.Loading,
+            viewModel.appInfoUiState.value,
+        )
+        assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
+
+        collectJob1.cancel()
+        collectJob2.cancel()
+    }
 }
+
+private val sampleAppList = listOf(
+    AppItem(
+        label = "App",
+        packageName = "com.merxury.blocker",
+        versionName = "1.0.0",
+        versionCode = 1,
+        minSdkVersion = 33,
+        targetSdkVersion = 21,
+        isSystem = false,
+        isRunning = false,
+        isEnabled = true,
+        firstInstallTime = System.now(),
+        lastUpdateTime = System.now(),
+        appServiceStatus = null,
+        packageInfo = null,
+    ),
+    AppItem(
+        label = "App",
+        packageName = "com.merxury.test",
+        versionName = "23.3.2",
+        versionCode = 23,
+        minSdkVersion = 33,
+        targetSdkVersion = 21,
+        isSystem = true,
+        isRunning = true,
+        isEnabled = true,
+        firstInstallTime = System.now(),
+        lastUpdateTime = System.now(),
+        appServiceStatus = null,
+        packageInfo = null,
+    ),
+    AppItem(
+        label = "App",
+        packageName = "com.merxury.system",
+        versionName = "0.13.2",
+        versionCode = 13,
+        minSdkVersion = 33,
+        targetSdkVersion = 21,
+        isSystem = true,
+        isRunning = true,
+        isEnabled = false,
+        firstInstallTime = System.now(),
+        lastUpdateTime = System.now(),
+        appServiceStatus = null,
+        packageInfo = null,
+    ),
+)
