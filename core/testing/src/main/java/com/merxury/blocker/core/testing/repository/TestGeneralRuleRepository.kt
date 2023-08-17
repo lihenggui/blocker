@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 
-class TestGeneralRuleRepository: GeneralRuleRepository {
+class TestGeneralRuleRepository : GeneralRuleRepository {
     /**
      * The backing hot flow for the list of topics ids for testing.
      */
