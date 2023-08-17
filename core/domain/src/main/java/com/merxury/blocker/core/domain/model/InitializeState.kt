@@ -17,6 +17,6 @@
 package com.merxury.blocker.core.domain.model
 
 sealed class InitializeState {
-    class Initializing(val processingName: String) : InitializeState()
-    object Done : InitializeState()
+    data class Initializing(val processingName: String) : InitializeState()
+    data object Done : InitializeState()
 }
