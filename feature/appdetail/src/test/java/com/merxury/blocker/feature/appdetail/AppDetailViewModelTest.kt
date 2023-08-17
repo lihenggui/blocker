@@ -20,7 +20,16 @@ import android.app.Application
 import android.content.pm.PackageManager
 import androidx.lifecycle.SavedStateHandle
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
+import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.model.preference.ComponentShowPriority
+import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
+import com.merxury.blocker.core.model.preference.DarkThemeConfig
+import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
+import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
@@ -28,7 +37,9 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.applist.model.toAppItem
+import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
+import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -87,7 +98,8 @@ class AppDetailViewModelTest {
     fun stateIsLoadingWhenDataAreLoading() = runTest {
         val collectJob1 =
             launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
-        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
+        val collectJob2 =
+            launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
 
         assertEquals(
             AppInfoUiState.Loading,
@@ -100,13 +112,31 @@ class AppDetailViewModelTest {
     }
 
     @Test
-    fun showAppInfoWhenGetAppInfo() = runTest {
+    fun stateIsDefaultWhenNotUpdate() = runTest {
+        val collectJob1 =
+            launch(UnconfinedTestDispatcher()) { viewModel.componentListUiState.collect() }
+        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+
+        assertEquals(ComponentListUiState(), viewModel.componentListUiState.value)
+        assertEquals(AppBarUiState(), viewModel.appBarUiState.value)
+
+        collectJob1.cancel()
+        collectJob2.cancel()
+    }
+
+    @Test
+    fun stateIsSuccessWhenGetData() = runTest {
         val collectJob1 =
             launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
-        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
+        val collectJob2 =
+            launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
 
         appRepository.sendAppList(sampleAppList)
+        userDataRepository.sendUserData(sampleUserData)
+
         viewModel.loadAppInfo()
+        viewModel.loadComponentSortInfo()
+
         assertEquals(
             AppInfoUiState.Success(
                 appInfo = sampleAppList.first().toAppItem(),
@@ -114,12 +144,40 @@ class AppDetailViewModelTest {
             ),
             viewModel.appInfoUiState.value,
         )
-        assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
+        assertEquals(
+            ComponentSortInfoUiState.Success(
+                ComponentSortInfo(
+                    sorting = sampleUserData.componentSorting,
+                    order = sampleUserData.componentSortingOrder,
+                    priority = sampleUserData.componentShowPriority,
+                ),
+            ),
+            viewModel.componentSortInfoUiState.value,
+        )
 
         collectJob1.cancel()
         collectJob2.cancel()
     }
 }
+
+private val sampleUserData = UserPreferenceData(
+    darkThemeConfig = DarkThemeConfig.DARK,
+    useDynamicColor = true,
+    controllerType = ControllerType.SHIZUKU,
+    ruleServerProvider = RuleServerProvider.GITLAB,
+    ruleBackupFolder = "",
+    backupSystemApp = true,
+    restoreSystemApp = true,
+    showSystemApps = true,
+    showServiceInfo = true,
+    appSorting = AppSorting.LAST_UPDATE_TIME,
+    appSortingOrder = SortingOrder.DESCENDING,
+    componentShowPriority = ComponentShowPriority.NONE,
+    componentSortingOrder = ASCENDING,
+    componentSorting = PACKAGE_NAME,
+    isFirstTimeInitializationCompleted = true,
+    showRunningAppsOnTop = true,
+)
 
 private val sampleAppList = listOf(
     InstalledApp(
@@ -158,3 +216,4 @@ private val sampleAppList = listOf(
         firstInstallTime = System.now(),
     ),
 )
+

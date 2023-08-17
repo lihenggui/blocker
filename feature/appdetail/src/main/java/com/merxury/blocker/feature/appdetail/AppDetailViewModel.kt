@@ -297,7 +297,7 @@ class AppDetailViewModel @Inject constructor(
         )
     }
 
-    private fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+    fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         val packageName = appDetailArgs.packageName
         componentRepository.getComponentList(packageName)
             .collect { origList ->
