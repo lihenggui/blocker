@@ -26,6 +26,7 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.data)
+    implementation(projects.core.analytics)
     implementation(projects.core.model)
     implementation(projects.core.ui)
     implementation(libs.kotlinx.datetime)
