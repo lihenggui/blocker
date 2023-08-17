@@ -72,5 +72,5 @@ sealed interface GeneralRuleUiState {
 
     data class Error(val message: String?) : GeneralRuleUiState
 
-    object Loading : GeneralRuleUiState
+    data object Loading : GeneralRuleUiState
 }
