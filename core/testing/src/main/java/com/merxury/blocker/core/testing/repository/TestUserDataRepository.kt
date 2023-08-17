@@ -57,7 +57,6 @@ class TestUserDataRepository : UserDataRepository {
     private val _userData = MutableSharedFlow<UserPreferenceData>(replay = 1, onBufferOverflow = DROP_OLDEST)
     private val currentUserData get() = _userData.replayCache.firstOrNull() ?: emptyUserData
 
-
     override val userData: Flow<UserPreferenceData> = _userData.filterNotNull()
     override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         _userData.tryEmit(currentUserData.copy(darkThemeConfig = darkThemeConfig))
