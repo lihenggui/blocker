@@ -38,7 +38,7 @@ import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
-import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
+import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -125,7 +125,7 @@ class AppDetailViewModel @Inject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
-    private val componentRepository: LocalComponentRepository,
+    private val componentRepository: ComponentRepository,
     private val componentDetailRepository: ComponentDetailRepository,
     private val shizukuInitializer: ShizukuInitializer,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
