@@ -94,4 +94,8 @@ class TestComponentRepository : ComponentRepository {
     override suspend fun deleteComponents(packageName: String) {
         componentList.emit(emptyList())
     }
+
+    fun sendComponentList(componentList: List<ComponentInfo>) {
+        this.componentList.tryEmit(componentList)
+    }
 }
