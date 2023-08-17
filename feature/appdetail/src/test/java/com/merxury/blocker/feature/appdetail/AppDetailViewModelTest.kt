@@ -24,6 +24,8 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
+import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
+import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
@@ -157,6 +159,40 @@ class AppDetailViewModelTest {
 
         collectJob1.cancel()
         collectJob2.cancel()
+    }
+
+    @Test
+    fun componentSortInfoUiStateUpdateAfterChanged() = runTest {
+        val collectJob =
+            launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
+
+        userDataRepository.sendUserData(sampleUserData)
+        assertEquals(
+            ComponentSortInfoUiState.Success(
+                ComponentSortInfo(
+                    sorting = sampleUserData.componentSorting,
+                    order = sampleUserData.componentSortingOrder,
+                    priority = sampleUserData.componentShowPriority,
+                ),
+            ),
+            viewModel.componentSortInfoUiState.value,
+        )
+
+        viewModel.updateComponentSorting(sorting = COMPONENT_NAME)
+        viewModel.updateComponentSortingOrder(order = ASCENDING)
+        viewModel.updateComponentShowPriority(priority = ENABLED_COMPONENTS_FIRST)
+        assertEquals(
+            ComponentSortInfoUiState.Success(
+                ComponentSortInfo(
+                    sorting = COMPONENT_NAME,
+                    order = ASCENDING,
+                    priority = ENABLED_COMPONENTS_FIRST,
+                ),
+            ),
+            viewModel.componentSortInfoUiState.value,
+        )
+
+        collectJob.cancel()
     }
 }
 
