@@ -20,6 +20,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
+import androidx.work.WorkManager
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -76,7 +77,6 @@ class AppDetailViewModelTest {
         context = ApplicationProvider.getApplicationContext()
         pm = context.packageManager
         viewModel = AppDetailViewModel(
-            appContext = context,
             savedStateHandle = savedStateHandle,
             pm = pm,
             userDataRepository = userDataRepository,
@@ -85,6 +85,7 @@ class AppDetailViewModelTest {
             componentDetailRepository = componentDetailRepository,
             shizukuInitializer = shizukuInitializer,
             analyticsHelper = analyticsHelper,
+            workerManager = WorkManager.getInstance(context),
             ioDispatcher = ioDispatcher,
             cpuDispatcher = cpuDispatcher,
         )
