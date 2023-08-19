@@ -24,7 +24,7 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 
 sealed interface ComponentSortInfoUiState {
-    object Loading : ComponentSortInfoUiState
+    data object Loading : ComponentSortInfoUiState
     data class Success(val componentSortInfo: ComponentSortInfo) : ComponentSortInfoUiState
 }
 

@@ -731,8 +731,8 @@ class AppDetailViewModel @Inject constructor(
 }
 
 sealed interface AppInfoUiState {
-    object Loading : AppInfoUiState
-    class Error(val error: UiMessage) : AppInfoUiState
+    data object Loading : AppInfoUiState
+    data class Error(val error: UiMessage) : AppInfoUiState
     data class Success(
         val appInfo: AppItem,
         val appIcon: Bitmap?,
