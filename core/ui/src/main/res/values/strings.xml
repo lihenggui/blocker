@@ -45,6 +45,7 @@
     <string name="core_ui_description">Description</string>
     <string name="core_ui_applicable_application">Applicable app</string>
     <string name="core_ui_loading">Loading</string>
+    <string name="core_ui_error">Error</string>
     <string name="core_ui_no_applicable_app">No applicable app</string>
     <string name="core_ui_app_info">App info</string>
     <string name="core_ui_activity_with_count">Activity (%1$d)</string>
@@ -53,6 +54,7 @@
     <string name="core_ui_provider_with_count">Provider (%1$d)</string>
     <string name="core_ui_initializing_database">Initializing database</string>
     <string name="core_ui_more_menu">More menu</string>
+    <string name="core_ui_search_icon">Search</string>
     <string name="core_ui_block_all_components">Block all components</string>
     <string name="core_ui_enable_all_components">Enable all components</string>
     <string name="core_ui_open_app_detail">Open app detail</string>
