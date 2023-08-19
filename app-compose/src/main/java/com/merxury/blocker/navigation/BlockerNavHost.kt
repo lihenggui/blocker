@@ -17,6 +17,9 @@
 
 package com.merxury.blocker.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -65,6 +68,8 @@ fun BlockerNavHost(
             navController = navController,
             startDestination = startDestination,
             modifier = modifier,
+            enterTransition = { fadeIn(animationSpec = tween(300)) },
+            exitTransition = { fadeOut(animationSpec = tween(300)) },
         ) {
             appListScreen(
                 navigateToAppDetail = navController::navigateToAppDetail,
