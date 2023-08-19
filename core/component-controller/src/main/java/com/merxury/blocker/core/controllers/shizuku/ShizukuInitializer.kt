@@ -30,7 +30,7 @@ private const val REQUEST_CODE_PERMISSION = 101
 @Singleton
 class ShizukuInitializer @Inject constructor(
     @ApplicationContext private val context: Context,
-): IShizukuInitializer {
+) : IShizukuInitializer {
     private val binderReceivedListener = Shizuku.OnBinderReceivedListener {
         if (Shizuku.isPreV11()) {
             Timber.e("Shizuku pre-v11 is not supported")
