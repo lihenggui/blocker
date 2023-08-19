@@ -43,6 +43,7 @@
     <string name="core_ui_description">描述</string>
     <string name="core_ui_applicable_application">適用應用程序</string>
     <string name="core_ui_loading">正在加載</string>
+    <string name="core_ui_error">錯誤</string>
     <string name="core_ui_no_applicable_app">沒有適用的應用</string>
     <string name="core_ui_app_info">應用信息</string>
     <string name="core_ui_activity_with_count">活動 (%1$d)</string>
@@ -51,6 +52,7 @@
     <string name="core_ui_provider_with_count">內容提供者 (%1$d)</string>
     <string name="core_ui_initializing_database">初始化數據</string>
     <string name="core_ui_more_menu">更多</string>
+    <string name="core_ui_search_icon">搜索</string>
     <string name="core_ui_block_all_components">禁用所有組件</string>
     <string name="core_ui_enable_all_components">啟用所有組件</string>
     <string name="core_ui_open_app_detail">打開應用詳情</string>
