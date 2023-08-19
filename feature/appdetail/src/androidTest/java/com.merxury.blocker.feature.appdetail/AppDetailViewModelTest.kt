@@ -40,10 +40,16 @@ import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
+import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.navigation.keywordArg
+import com.merxury.blocker.feature.appdetail.navigation.packageNameArg
+import com.merxury.blocker.feature.appdetail.navigation.tabArg
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -58,9 +64,14 @@ import kotlin.test.assertEquals
 class AppDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
-
+    private val savedStateHandle = SavedStateHandle(
+        mapOf(
+            packageNameArg to sampleAppList.first().packageName,
+            tabArg to AppDetailTabs.INFO,
+            keywordArg to "",
+        ),
+    )
     private val analyticsHelper = TestAnalyticsHelper()
-    private val savedStateHandle = SavedStateHandle()
     private val userDataRepository = TestUserDataRepository()
     private val appRepository = TestAppRepository()
     private val componentRepository = TestComponentRepository()
@@ -94,7 +105,7 @@ class AppDetailViewModelTest {
     @Test
     fun stateIsInitiallyLoading() = runTest {
         assertEquals(
-            AppInfoUiState.Loading,
+            Loading,
             viewModel.appInfoUiState.value,
         )
         assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
@@ -108,7 +119,7 @@ class AppDetailViewModelTest {
             launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
 
         assertEquals(
-            AppInfoUiState.Loading,
+            Loading,
             viewModel.appInfoUiState.value,
         )
         assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
@@ -144,7 +155,7 @@ class AppDetailViewModelTest {
         viewModel.loadComponentSortInfo()
 
         assertEquals(
-            AppInfoUiState.Success(
+            Success(
                 appInfo = sampleAppList.first().toAppItem(),
                 appIcon = null,
             ),
@@ -256,4 +267,3 @@ private val sampleAppList = listOf(
         firstInstallTime = System.now(),
     ),
 )
-
