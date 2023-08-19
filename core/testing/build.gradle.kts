@@ -25,6 +25,7 @@ android {
 
 dependencies {
     implementation(projects.core.common)
+    implementation(projects.core.componentController)
     implementation(projects.core.data)
     implementation(projects.core.analytics)
     implementation(projects.core.model)

@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail
 
-import android.app.Application
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -36,7 +35,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
+import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
@@ -119,7 +118,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
-    private val appContext: Application,
+    private val appContext: Context,
     savedStateHandle: SavedStateHandle,
     private val analyticsHelper: AnalyticsHelper,
     private val pm: PackageManager,
@@ -127,7 +126,7 @@ class AppDetailViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val componentDetailRepository: ComponentDetailRepository,
-    private val shizukuInitializer: ShizukuInitializer,
+    private val shizukuInitializer: IShizukuInitializer,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
