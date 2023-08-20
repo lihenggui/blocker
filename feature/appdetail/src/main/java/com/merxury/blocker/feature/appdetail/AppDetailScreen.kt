@@ -251,7 +251,7 @@ fun AppDetailScreen(
         is Success -> {
             AppDetailContent(
                 app = appInfoUiState.appInfo,
-                appIcon = appInfoUiState.appIcon,
+                appIcon = appInfoUiState.iconBasedTheming,
                 topAppBarUiState = topAppBarUiState,
                 componentListUiState = componentListUiState,
                 tabState = tabState,
@@ -630,7 +630,7 @@ fun AppDetailScreenPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, appIcon = null),
+                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
                 bottomSheetState = ComponentSortInfoUiState.Success(
                     ComponentSortInfo(),
                 ),
@@ -679,7 +679,7 @@ fun AppDetailScreenCollapsedPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, appIcon = null),
+                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
                 bottomSheetState = ComponentSortInfoUiState.Success(
                     ComponentSortInfo(),
                 ),
