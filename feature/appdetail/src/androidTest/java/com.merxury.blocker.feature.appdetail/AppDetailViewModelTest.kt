@@ -187,6 +187,7 @@ class AppDetailViewModelTest {
             launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
 
         userDataRepository.sendUserData(sampleUserData)
+        viewModel.loadComponentSortInfo()
         assertEquals(
             ComponentSortInfoUiState.Success(
                 ComponentSortInfo(
