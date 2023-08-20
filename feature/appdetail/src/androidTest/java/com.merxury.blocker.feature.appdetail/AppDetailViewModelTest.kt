@@ -188,6 +188,7 @@ class AppDetailViewModelTest {
 
         userDataRepository.sendUserData(sampleUserData)
         viewModel.loadComponentSortInfo()
+
         assertEquals(
             ComponentSortInfoUiState.Success(
                 ComponentSortInfo(
@@ -202,6 +203,7 @@ class AppDetailViewModelTest {
         viewModel.updateComponentSorting(sorting = COMPONENT_NAME)
         viewModel.updateComponentSortingOrder(order = ASCENDING)
         viewModel.updateComponentShowPriority(priority = ENABLED_COMPONENTS_FIRST)
+        viewModel.loadComponentSortInfo()
         assertEquals(
             ComponentSortInfoUiState.Success(
                 ComponentSortInfo(
