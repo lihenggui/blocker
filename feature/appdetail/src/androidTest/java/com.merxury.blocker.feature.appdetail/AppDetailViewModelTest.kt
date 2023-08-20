@@ -21,6 +21,7 @@ import android.content.pm.PackageManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
+import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -134,7 +135,10 @@ class AppDetailViewModelTest {
             launch(UnconfinedTestDispatcher()) { viewModel.componentListUiState.collect() }
         val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
 
-        assertEquals(ComponentListUiState(), viewModel.componentListUiState.value)
+        assertEquals(0, viewModel.componentListUiState.value.activity.size)
+        assertEquals(0, viewModel.componentListUiState.value.provider.size)
+        assertEquals(0, viewModel.componentListUiState.value.receiver.size)
+        assertEquals(0, viewModel.componentListUiState.value.service.size)
         assertEquals(AppBarUiState(), viewModel.appBarUiState.value)
 
         collectJob1.cancel()
@@ -150,14 +154,15 @@ class AppDetailViewModelTest {
 
         appRepository.sendAppList(sampleAppList)
         userDataRepository.sendUserData(sampleUserData)
-
+        val packageName = sampleAppList.first().packageName
+        val packageInfo = pm.getPackageInfoCompat(packageName, 0)
         viewModel.loadAppInfo()
         viewModel.loadComponentSortInfo()
 
         assertEquals(
             Success(
-                appInfo = sampleAppList.first().toAppItem(),
-                appIcon = null,
+                appInfo = sampleAppList.first().toAppItem(packageInfo),
+                iconBasedTheming = null,
             ),
             viewModel.appInfoUiState.value,
         )
@@ -213,7 +218,7 @@ class AppDetailViewModelTest {
 
 private val sampleUserData = UserPreferenceData(
     darkThemeConfig = DarkThemeConfig.DARK,
-    useDynamicColor = true,
+    useDynamicColor = false,
     controllerType = ControllerType.SHIZUKU,
     ruleServerProvider = RuleServerProvider.GITLAB,
     ruleBackupFolder = "",
