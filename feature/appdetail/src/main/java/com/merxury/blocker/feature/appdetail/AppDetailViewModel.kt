@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail
 
-import android.app.Application
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -36,7 +35,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
+import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
@@ -119,7 +118,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
-    private val appContext: Application,
     savedStateHandle: SavedStateHandle,
     private val analyticsHelper: AnalyticsHelper,
     private val pm: PackageManager,
@@ -127,7 +125,8 @@ class AppDetailViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val componentDetailRepository: ComponentDetailRepository,
-    private val shizukuInitializer: ShizukuInitializer,
+    private val shizukuInitializer: IShizukuInitializer,
+    private val workerManager: WorkManager,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -570,7 +569,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.d("Export Blocker rule for $packageName")
         val taskName = "ExportBlockerRule:$packageName"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.REPLACE,
@@ -595,7 +594,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.d("Import Blocker rule for $packageName")
         val taskName = "ImportBlockerRule:$packageName"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.REPLACE,
@@ -621,7 +620,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.d("Export IFW rule for $packageName")
         val taskName = "ExportIfwRule:$packageName"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
@@ -645,7 +644,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.d("Import IFW rule for $packageName")
         val taskName = "ImportIfwRule:$packageName"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
@@ -669,7 +668,7 @@ class AppDetailViewModel @Inject constructor(
     fun resetIfw(packageName: String) = viewModelScope.launch {
         Timber.d("Reset IFW rule for $packageName")
         val taskName = "ResetIfw:$packageName"
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
