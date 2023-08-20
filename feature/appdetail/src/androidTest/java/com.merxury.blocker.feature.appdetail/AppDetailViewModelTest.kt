@@ -16,10 +16,11 @@
 
 package com.merxury.blocker.feature.appdetail
 
-import android.app.Application
+import android.content.Context
 import android.content.pm.PackageManager
 import androidx.lifecycle.SavedStateHandle
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
+import androidx.test.core.app.ApplicationProvider
+import androidx.work.WorkManager
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -32,16 +33,23 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.UserPreferenceData
+import com.merxury.blocker.core.testing.controller.FakeShizukuInitializer
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
+import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
+import com.merxury.blocker.feature.appdetail.navigation.keywordArg
+import com.merxury.blocker.feature.appdetail.navigation.packageNameArg
+import com.merxury.blocker.feature.appdetail.navigation.tabArg
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -56,24 +64,30 @@ import kotlin.test.assertEquals
 class AppDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
-
+    private val savedStateHandle = SavedStateHandle(
+        mapOf(
+            packageNameArg to sampleAppList.first().packageName,
+            tabArg to AppDetailTabs.INFO,
+            keywordArg to "",
+        ),
+    )
     private val analyticsHelper = TestAnalyticsHelper()
-    private val savedStateHandle = SavedStateHandle()
-    private val appContext = Application()
-    private val pm: PackageManager = appContext.packageManager
     private val userDataRepository = TestUserDataRepository()
     private val appRepository = TestAppRepository()
     private val componentRepository = TestComponentRepository()
     private val componentDetailRepository = TestComponentDetailRepository()
-    private val shizukuInitializer: ShizukuInitializer = ShizukuInitializer(appContext)
+    private val shizukuInitializer = FakeShizukuInitializer()
     private val ioDispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val cpuDispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private lateinit var viewModel: AppDetailViewModel
+    private lateinit var context: Context
+    private lateinit var pm: PackageManager
 
     @Before
     fun setup() {
+        context = ApplicationProvider.getApplicationContext()
+        pm = context.packageManager
         viewModel = AppDetailViewModel(
-            appContext = appContext,
             savedStateHandle = savedStateHandle,
             pm = pm,
             userDataRepository = userDataRepository,
@@ -82,6 +96,7 @@ class AppDetailViewModelTest {
             componentDetailRepository = componentDetailRepository,
             shizukuInitializer = shizukuInitializer,
             analyticsHelper = analyticsHelper,
+            workerManager = WorkManager.getInstance(context),
             ioDispatcher = ioDispatcher,
             cpuDispatcher = cpuDispatcher,
         )
@@ -90,7 +105,7 @@ class AppDetailViewModelTest {
     @Test
     fun stateIsInitiallyLoading() = runTest {
         assertEquals(
-            AppInfoUiState.Loading,
+            Loading,
             viewModel.appInfoUiState.value,
         )
         assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
@@ -104,7 +119,7 @@ class AppDetailViewModelTest {
             launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
 
         assertEquals(
-            AppInfoUiState.Loading,
+            Loading,
             viewModel.appInfoUiState.value,
         )
         assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
@@ -140,7 +155,7 @@ class AppDetailViewModelTest {
         viewModel.loadComponentSortInfo()
 
         assertEquals(
-            AppInfoUiState.Success(
+            Success(
                 appInfo = sampleAppList.first().toAppItem(),
                 appIcon = null,
             ),
@@ -252,4 +267,3 @@ private val sampleAppList = listOf(
         firstInstallTime = System.now(),
     ),
 )
-
