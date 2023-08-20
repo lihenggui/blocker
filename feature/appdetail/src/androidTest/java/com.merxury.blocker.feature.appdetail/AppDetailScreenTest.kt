@@ -136,7 +136,7 @@ class AppDetailScreenTest {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState.Success(
                         appInfo = appInfoTestData,
-                        appIcon = null,
+                        iconBasedTheming = null,
                     ),
                     topAppBarUiState = AppBarUiState(
                         actions = listOf(
@@ -180,7 +180,7 @@ class AppDetailScreenTest {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState.Success(
                         appInfo = appInfoTestData,
-                        appIcon = null,
+                        iconBasedTheming = null,
                     ),
                     topAppBarUiState = AppBarUiState(
                         actions = listOf(
@@ -210,7 +210,7 @@ class AppDetailScreenTest {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState.Success(
                         appInfo = appInfoTestData,
-                        appIcon = null,
+                        iconBasedTheming = null,
                     ),
                     topAppBarUiState = AppBarUiState(),
                     componentListUiState = ComponentListUiState(),
@@ -249,7 +249,7 @@ class AppDetailScreenTest {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState.Success(
                         appInfo = appInfoTestData,
-                        appIcon = null,
+                        iconBasedTheming = null,
                     ),
                     topAppBarUiState = AppBarUiState(),
                     componentListUiState = ComponentListUiState(receiver = componentInfoTestData),

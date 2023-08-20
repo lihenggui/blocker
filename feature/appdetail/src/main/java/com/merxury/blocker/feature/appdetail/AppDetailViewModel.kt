@@ -735,7 +735,7 @@ sealed interface AppInfoUiState {
     data class Error(val error: UiMessage) : AppInfoUiState
     data class Success(
         val appInfo: AppItem,
-        val appIcon: Bitmap?,
+        val iconBasedTheming: Bitmap?,
     ) : AppInfoUiState
 }
 
