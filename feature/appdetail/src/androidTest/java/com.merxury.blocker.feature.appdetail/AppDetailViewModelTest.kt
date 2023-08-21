@@ -283,7 +283,8 @@ class AppDetailViewModelTest {
         assertEquals(
             AppBarUiState(
                 actions = listOf(
-                    SEARCH, MORE,
+                    SEARCH,
+                    MORE,
                 ),
                 isSearchMode = true,
             ),
