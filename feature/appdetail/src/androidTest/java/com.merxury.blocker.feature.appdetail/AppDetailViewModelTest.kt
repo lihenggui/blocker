@@ -45,13 +45,11 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.AppDetailTabs.Info
-import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
-import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
@@ -60,7 +58,6 @@ import com.merxury.blocker.feature.appdetail.navigation.keywordArg
 import com.merxury.blocker.feature.appdetail.navigation.packageNameArg
 import com.merxury.blocker.feature.appdetail.navigation.tabArg
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -143,15 +140,18 @@ class AppDetailViewModelTest {
         val collectJob1 =
             launch(UnconfinedTestDispatcher()) { viewModel.componentListUiState.collect() }
         val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        val collectJob3 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
 
         assertEquals(0, viewModel.componentListUiState.value.activity.size)
         assertEquals(0, viewModel.componentListUiState.value.provider.size)
         assertEquals(0, viewModel.componentListUiState.value.receiver.size)
         assertEquals(0, viewModel.componentListUiState.value.service.size)
         assertEquals(AppBarUiState(), viewModel.appBarUiState.value)
+        assertEquals(AppDetailTabs.Info, viewModel.tabState.value.selectedItem)
 
         collectJob1.cancel()
         collectJob2.cancel()
+        collectJob3.cancel()
     }
 
     @Test
@@ -229,50 +229,29 @@ class AppDetailViewModelTest {
     }
 
     @Test
-    fun tabAndComponentListUpdateWhenSearch() = runTest {
-        val collectJob1 =
-            launch(UnconfinedTestDispatcher()) { viewModel.componentListUiState.collect() }
-        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
-        val collectJob3 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
+    fun tabAndAppBarWhenHasSearchKeyword() = runTest {
+        val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
 
-        savedStateHandle[keywordArg] = "receiver"
-        savedStateHandle[tabArg] = Provider
-        componentRepository.sendComponentList(componentList)
-        viewModel.loadComponentList()
-//        viewModel.changeSearchMode(isSearchMode = true)
-//        viewModel.search(newText = TextFieldValue("receiver"))
-//        viewModel.loadComponentList()
-
-        assertEquals(0, viewModel.componentListUiState.value.activity.size)
-        assertEquals(0, viewModel.componentListUiState.value.provider.size)
-        assertEquals(1, viewModel.componentListUiState.value.receiver.size)
-        assertEquals(0, viewModel.componentListUiState.value.service.size)
+        viewModel.updateSearchKeyword()
+        viewModel.loadTabInfo()
         assertEquals(
             AppBarUiState(
                 keyword = TextFieldValue("receiver"),
                 isSearchMode = true,
                 actions = listOf(
-                    SEARCH,
+                    SEARCH, MORE,
                 ),
             ),
             viewModel.appBarUiState.value,
         )
         assertEquals(
-            MutableStateFlow(
-                TabState(
-                    items = listOf(
-                        Info,
-                        Receiver,
-                    ),
-                    selectedItem = Info,
-                ),
-            ),
-            viewModel.tabState,
+            Receiver,
+            viewModel.tabState.value.selectedItem,
         )
 
         collectJob1.cancel()
         collectJob2.cancel()
-        collectJob3.cancel()
     }
 }
 

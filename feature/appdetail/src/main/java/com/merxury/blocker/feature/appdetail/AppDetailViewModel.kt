@@ -423,7 +423,7 @@ class AppDetailViewModel @Inject constructor(
             .toMutableStateList()
     }
 
-    private fun updateSearchKeyword() {
+    fun updateSearchKeyword() {
         val keyword = appDetailArgs.searchKeyword
             .map { it.trim() }
             .filterNot { it.isEmpty() }
@@ -439,7 +439,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadTabInfo() {
+    fun loadTabInfo() {
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
