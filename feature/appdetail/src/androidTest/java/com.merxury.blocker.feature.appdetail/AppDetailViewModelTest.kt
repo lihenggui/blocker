@@ -293,6 +293,36 @@ class AppDetailViewModelTest {
         collectJob1.cancel()
         collectJob2.cancel()
     }
+
+    @Test
+    fun controlAllComponents() = runTest {
+        val collectJob =
+            launch(UnconfinedTestDispatcher()) { viewModel.componentListUiState.collect() }
+
+        componentRepository.sendComponentList(componentList)
+        viewModel.loadComponentList()
+        viewModel.controlAllComponents(true)
+
+        /*
+        assertEquals(
+            true,
+            viewModel.componentListUiState.value.activity.first().pmBlocked,
+        )
+        assertEquals(
+            true,
+            viewModel.componentListUiState.value.provider.first().pmBlocked,
+        )
+        assertEquals(
+            true,
+            viewModel.componentListUiState.value.receiver.first().pmBlocked,
+        )
+        assertEquals(
+            true,
+            viewModel.componentListUiState.value.service.first().pmBlocked,
+        )
+*/
+        collectJob.cancel()
+    }
 }
 
 private val sampleUserData = UserPreferenceData(
