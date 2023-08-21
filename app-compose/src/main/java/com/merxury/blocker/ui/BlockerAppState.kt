@@ -39,6 +39,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.get
 import androidx.navigation.navOptions
 import androidx.tracing.trace
+import com.google.accompanist.navigation.material.BottomSheetNavigator
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
@@ -53,21 +56,25 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+@OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    navController: NavHostController = rememberNavController(),
+    bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator(),
+    navController: NavHostController = rememberNavController(bottomSheetNavigator),
 ): BlockerAppState {
     NavigationTrackingSideEffect(navController)
-    return remember(navController, coroutineScope, windowSizeClass, networkMonitor) {
-        BlockerAppState(navController, coroutineScope, windowSizeClass, networkMonitor)
+    return remember(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor) {
+        BlockerAppState(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor)
     }
 }
 
 @Stable
+@OptIn(ExperimentalMaterialNavigationApi::class)
 class BlockerAppState(
+    val bottomSheetNavigator: BottomSheetNavigator,
     val navController: NavHostController,
     val coroutineScope: CoroutineScope,
     val windowSizeClass: WindowSizeClass,

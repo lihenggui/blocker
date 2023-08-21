@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.appdetail.ui
 
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
@@ -32,7 +33,7 @@ fun SearchActionMenu(onSearchModeChange: (Boolean) -> Unit) {
     ) {
         BlockerActionIcon(
             imageVector = BlockerIcons.Search,
-            contentDescription = null,
+            contentDescription = stringResource(id = UiR.string.core_ui_search_icon),
         )
     }
 }

@@ -1,5 +1,5 @@
 [versions]
-accompanist = "0.31.5-beta"
+accompanist = "0.33.0-alpha"
 androidDesugarJdkLibs = "2.0.3"
 androidGradlePlugin = "8.2.0-alpha16"
 androidxActivity = "1.8.0-alpha06"
@@ -51,7 +51,7 @@ ksp = "1.9.0-1.0.13"
 libsu = "5.2.0"
 lint = "31.1.0"
 okhttp = "4.11.0"
-protobuf = "3.24.0"
+protobuf = "3.24.1"
 protobufPlugin = "0.9.4"
 retrofit = "2.9.0"
 retrofitKotlinxSerializationJson = "1.0.0"
@@ -66,6 +66,7 @@ material = "1.9.0"
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
 accompanist-testharness = { group = "com.google.accompanist", name = "accompanist-testharness", version.ref = "accompanist" }
 accompanist-navigation-animation = { group = "com.google.accompanist", name = "accompanist-navigation-animation", version.ref = "accompanist" }
+accompanist-navigation-material = { group = "com.google.accompanist", name = "accompanist-navigation-material", version.ref = "accompanist" }
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "androidDesugarJdkLibs" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppCompat" }
