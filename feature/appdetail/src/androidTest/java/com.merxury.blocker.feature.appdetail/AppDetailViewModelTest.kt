@@ -272,18 +272,20 @@ class AppDetailViewModelTest {
     }
 
     @Test
-    fun tabAndAppBarWhenSwitchTab() = runTest {
+    fun tabAndAppBarUpdateWhenSwitchTabAndSearch() = runTest {
         val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
         val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
 
         viewModel.switchTab(AppDetailTabs.Receiver)
 
         assertEquals(AppDetailTabs.Receiver, viewModel.tabState.value.selectedItem)
+        viewModel.changeSearchMode(true)
         assertEquals(
             AppBarUiState(
                 actions = listOf(
                     SEARCH, MORE,
                 ),
+                isSearchMode = true,
             ),
             viewModel.appBarUiState.value,
         )
