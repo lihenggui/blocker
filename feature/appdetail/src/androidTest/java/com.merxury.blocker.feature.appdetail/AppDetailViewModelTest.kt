@@ -47,6 +47,8 @@ import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
@@ -267,6 +269,27 @@ class AppDetailViewModelTest {
                 assertEquals(1, viewModel.componentListUiState.value.service.size)
         */
         collectJob.cancel()
+    }
+
+    @Test
+    fun tabAndAppBarWhenSwitchTab() = runTest {
+        val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
+        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+
+        viewModel.switchTab(AppDetailTabs.Receiver)
+
+        assertEquals(AppDetailTabs.Receiver, viewModel.tabState.value.selectedItem)
+        assertEquals(
+            AppBarUiState(
+                actions = listOf(
+                    SEARCH, MORE,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+
+        collectJob1.cancel()
+        collectJob2.cancel()
     }
 }
 
