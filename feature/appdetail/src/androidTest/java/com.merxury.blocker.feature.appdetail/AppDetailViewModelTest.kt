@@ -18,10 +18,13 @@ package com.merxury.blocker.feature.appdetail
 
 import android.content.Context
 import android.content.pm.PackageManager
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.preference.AppSorting
@@ -42,9 +45,14 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.AppDetailTabs.Info
+import com.merxury.blocker.core.ui.AppDetailTabs.Provider
+import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
@@ -52,6 +60,7 @@ import com.merxury.blocker.feature.appdetail.navigation.keywordArg
 import com.merxury.blocker.feature.appdetail.navigation.packageNameArg
 import com.merxury.blocker.feature.appdetail.navigation.tabArg
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -204,6 +213,7 @@ class AppDetailViewModelTest {
         viewModel.updateComponentSortingOrder(order = ASCENDING)
         viewModel.updateComponentShowPriority(priority = ENABLED_COMPONENTS_FIRST)
         viewModel.loadComponentSortInfo()
+
         assertEquals(
             ComponentSortInfoUiState.Success(
                 ComponentSortInfo(
@@ -216,6 +226,53 @@ class AppDetailViewModelTest {
         )
 
         collectJob.cancel()
+    }
+
+    @Test
+    fun tabAndComponentListUpdateWhenSearch() = runTest {
+        val collectJob1 =
+            launch(UnconfinedTestDispatcher()) { viewModel.componentListUiState.collect() }
+        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
+        val collectJob3 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
+
+        savedStateHandle[keywordArg] = "receiver"
+        savedStateHandle[tabArg] = Provider
+        componentRepository.sendComponentList(componentList)
+        viewModel.loadComponentList()
+//        viewModel.changeSearchMode(isSearchMode = true)
+//        viewModel.search(newText = TextFieldValue("receiver"))
+//        viewModel.loadComponentList()
+
+        assertEquals(0, viewModel.componentListUiState.value.activity.size)
+        assertEquals(0, viewModel.componentListUiState.value.provider.size)
+        assertEquals(1, viewModel.componentListUiState.value.receiver.size)
+        assertEquals(0, viewModel.componentListUiState.value.service.size)
+        assertEquals(
+            AppBarUiState(
+                keyword = TextFieldValue("receiver"),
+                isSearchMode = true,
+                actions = listOf(
+                    SEARCH,
+                ),
+            ),
+            viewModel.appBarUiState.value,
+        )
+        assertEquals(
+            MutableStateFlow(
+                TabState(
+                    items = listOf(
+                        Info,
+                        Receiver,
+                    ),
+                    selectedItem = Info,
+                ),
+            ),
+            viewModel.tabState,
+        )
+
+        collectJob1.cancel()
+        collectJob2.cancel()
+        collectJob3.cancel()
     }
 }
 
@@ -273,5 +330,48 @@ private val sampleAppList = listOf(
         isSystem = true,
         isEnabled = false,
         firstInstallTime = System.now(),
+    ),
+)
+
+private val componentList = listOf(
+    ComponentInfo(
+        name = "Activity",
+        simpleName = "Activity",
+        packageName = "com.merxury.blocker",
+        type = ComponentType.ACTIVITY,
+        exported = true,
+        pmBlocked = false,
+        ifwBlocked = false,
+        description = null,
+    ),
+    ComponentInfo(
+        name = "Provider",
+        simpleName = "Provider",
+        packageName = "com.merxury.blocker",
+        type = ComponentType.PROVIDER,
+        exported = true,
+        pmBlocked = false,
+        ifwBlocked = false,
+        description = null,
+    ),
+    ComponentInfo(
+        name = "Receiver",
+        simpleName = "Receiver",
+        packageName = "com.merxury.blocker",
+        type = ComponentType.RECEIVER,
+        exported = true,
+        pmBlocked = false,
+        ifwBlocked = false,
+        description = null,
+    ),
+    ComponentInfo(
+        name = "Service",
+        simpleName = "Service",
+        packageName = "com.merxury.blocker",
+        type = ComponentType.SERVICE,
+        exported = true,
+        pmBlocked = false,
+        ifwBlocked = false,
+        description = null,
     ),
 )
