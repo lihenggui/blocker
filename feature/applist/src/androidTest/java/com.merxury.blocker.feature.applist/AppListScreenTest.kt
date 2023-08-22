@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import com.merxury.blocker.core.testing.testing.data.appListTestData
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState
 import com.merxury.blocker.core.ui.data.UiMessage
 import org.junit.Before
@@ -108,5 +109,34 @@ class AppListScreenTest {
             )
             .assertExists()
         composeTestRule.onNodeWithText(errorMessage.title).assertExists()
+    }
+
+    @Test
+    fun showAppList() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                AppListScreen(
+                    uiState = AppListUiState.Success,
+                    bottomSheetUiState = AppSortInfoUiState.Loading,
+                    onAppItemClick = {},
+                    appList = appListTestData,
+                    navigateToSettings = {},
+                    navigateToSupportAndFeedback = {},
+                    onClearCacheClick = {},
+                    onChangeShowRunningAppsOnTop = {},
+                    onClearDataClick = {},
+                    onForceStopClick = {},
+                    onUninstallClick = {},
+                    onDisableClick = {},
+                    onEnableClick = {},
+                    onServiceStateUpdate = { _, _ -> },
+                    onSortByClick = {},
+                    onSortOrderClick = {},
+                    onSortOptionsClick = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(appListTestData.first().label).assertExists()
     }
 }
