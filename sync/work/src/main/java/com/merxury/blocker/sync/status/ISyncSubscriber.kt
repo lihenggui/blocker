@@ -1,6 +1,6 @@
 /*
  * Copyright 2023 Blocker
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.datastore
+package com.merxury.blocker.sync.status
 
 /**
- * Class summarizing the local version of each model for sync
+ * Subscribes to backend requested synchronization
  */
-data class ChangeListVersions(
-    val ruleCommitId: String = "",
-)
+interface ISyncSubscriber {
+    suspend fun subscribe()
+}

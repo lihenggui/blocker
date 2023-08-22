@@ -1,5 +1,4 @@
 /*
- * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.datastore
+package com.merxury.blocker.core.data.util
+
+import kotlinx.coroutines.flow.Flow
 
 /**
- * Class summarizing the local version of each model for sync
+ * Reports on if synchronization is in progress
  */
-data class ChangeListVersions(
-    val ruleCommitId: String = "",
-)
+interface SyncManager {
+    val isSyncing: Flow<Boolean>
+    fun requestSync()
+}

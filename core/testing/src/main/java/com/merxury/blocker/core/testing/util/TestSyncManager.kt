@@ -14,13 +14,26 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.util
+package com.merxury.blocker.core.testing.util
 
+import com.merxury.blocker.core.data.util.SyncManager
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
-/**
- * Reports on if synchronization is in progress
- */
-interface SyncStatusMonitor {
-    val isSyncing: Flow<Boolean>
+class TestSyncManager : SyncManager {
+
+    private val syncStatusFlow = MutableStateFlow(false)
+
+    override val isSyncing: Flow<Boolean> = syncStatusFlow
+
+    override fun requestSync() {
+        TODO("Not yet implemented")
+    }
+
+    /**
+     * A test-only API to set the sync status from tests.
+     */
+    fun setSyncing(isSyncing: Boolean) {
+        syncStatusFlow.value = isSyncing
+    }
 }
