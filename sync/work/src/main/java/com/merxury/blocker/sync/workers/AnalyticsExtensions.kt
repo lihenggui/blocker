@@ -1,6 +1,6 @@
 /*
  * Copyright 2023 Blocker
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,19 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.datastore
+package com.merxury.blocker.sync.workers
 
-/**
- * Class summarizing the local version of each model for sync
- */
-data class ChangeListVersions(
-    val ruleCommitId: String = "",
-)
+import com.merxury.blocker.core.analytics.AnalyticsEvent
+import com.merxury.blocker.core.analytics.AnalyticsHelper
+
+fun AnalyticsHelper.logSyncStarted() =
+    logEvent(
+        AnalyticsEvent(type = "network_sync_started"),
+    )
+
+fun AnalyticsHelper.logSyncFinished(syncedSuccessfully: Boolean) {
+    val eventType = if (syncedSuccessfully) "network_sync_successful" else "network_sync_failed"
+    logEvent(
+        AnalyticsEvent(type = eventType),
+    )
+}

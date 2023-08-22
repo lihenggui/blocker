@@ -1,5 +1,6 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 Blocker
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +15,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.testing.util
+package com.merxury.blocker.sync.status
 
-import com.merxury.blocker.core.data.util.SyncStatusMonitor
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import timber.log.Timber
+import javax.inject.Inject
 
-class TestSyncStatusMonitor : SyncStatusMonitor {
-
-    private val syncStatusFlow = MutableStateFlow(false)
-
-    override val isSyncing: Flow<Boolean> = syncStatusFlow
-
-    /**
-     * A test-only API to set the sync status from tests.
-     */
-    fun setSyncing(isSyncing: Boolean) {
-        syncStatusFlow.value = isSyncing
+class SyncSubscriber @Inject constructor() : ISyncSubscriber {
+    override suspend fun subscribe() {
+        Timber.d("Subscribing to sync")
     }
 }

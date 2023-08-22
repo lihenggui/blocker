@@ -113,6 +113,8 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.provider)
 
+    implementation(projects.sync.work)
+
     androidTestImplementation(projects.core.testing)
     androidTestImplementation(projects.core.datastoreTest)
     androidTestImplementation(projects.core.dataTest)
