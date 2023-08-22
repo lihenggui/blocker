@@ -75,4 +75,6 @@
     <string name="core_ui_show_running_apps_on_top">Show running apps on top</string>
     <string name="core_ui_on" tools:override="true">On</string>
     <string name="core_ui_off" tools:override="true">Off</string>
+    <string name="core_ui_expand_less">Expand less</string>
+    <string name="core_ui_expand_more">Expand more</string>
 </resources>

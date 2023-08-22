@@ -82,7 +82,7 @@ class RuleDetailScreenTest {
     }
 
     @Test
-    fun showRuleApplicableApps_showMoreIcon() {
+    fun showRuleApplicableApps_showMoreIconExpandMoreIcon() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 RuleDetailScreen(
@@ -101,19 +101,29 @@ class RuleDetailScreenTest {
             }
         }
 
+        // Check more icon is shown, and show a more icon in the app item
         composeTestRule
             .onAllNodesWithContentDescription(
                 composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
             )
             .assertCountEquals(2)
+        //Check showing rules info
         composeTestRule.onNodeWithText(generalRuleTestData.name)
             .assertExists()
+        //Check tab is selected
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(uiR.string.core_ui_applicable_application),
         )
             .assertExists()
             .assertIsSelected()
+        //Check showing rules matched app list
         composeTestRule.onNodeWithTag("RuleMatchedAppList")
+            .assertExists()
+        composeTestRule.onNodeWithText(ruleMatchedAppListTestData.first().app.label)
+            .assertExists()
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.resources.getString(uiR.string.core_ui_expand_more),
+        )
             .assertExists()
     }
 
@@ -142,11 +152,13 @@ class RuleDetailScreenTest {
             }
         }
 
+        // Check more icon is hidden
         composeTestRule
             .onNodeWithContentDescription(
                 composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
             )
             .assertDoesNotExist()
+        //Check showing rules detail description
         composeTestRule.onNodeWithText(generalRuleTestData.name)
             .assertExists()
         composeTestRule.onNodeWithText(
