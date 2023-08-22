@@ -75,6 +75,7 @@ fun AppListRoute(
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val warningState by viewModel.warningState.collectAsStateWithLifecycle()
     val appList = viewModel.appListFlow.collectAsState()
+    var isOpenBottomSheet by rememberSaveable { mutableStateOf(false) }
     AppListScreen(
         uiState = uiState,
         bottomSheetUiState = bottomSheetUiState,
@@ -94,6 +95,8 @@ fun AppListRoute(
         onSortOrderClick = viewModel::updateAppSortingOrder,
         onChangeShowRunningAppsOnTop = viewModel::updateShowRunningAppsOnTop,
         modifier = modifier,
+        isOpenBottomSheet = isOpenBottomSheet,
+        changeBottomSheetState = { isOpenBottomSheet = it },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -133,8 +136,9 @@ fun AppListScreen(
     onSortOrderClick: (SortingOrder) -> Unit,
     onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    isOpenBottomSheet: Boolean = false,
+    changeBottomSheetState: (Boolean) -> Unit = {},
 ) {
-    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     Scaffold(
         topBar = {
@@ -145,7 +149,7 @@ fun AppListScreen(
                         onClick = {
                             scope.launch {
                                 onSortOptionsClick()
-                                openBottomSheet = true
+                                changeBottomSheetState(true)
                             }
                         },
                     ) {
@@ -196,12 +200,13 @@ fun AppListScreen(
             }
         }
     }
-    if (openBottomSheet) {
+    if (isOpenBottomSheet) {
         ModalBottomSheet(
-            onDismissRequest = { openBottomSheet = false },
+            onDismissRequest = { changeBottomSheetState(false) },
             sheetState = rememberModalBottomSheetState(
                 skipPartiallyExpanded = true,
             ),
+            modifier = modifier.testTag("appListBottomSheet"),
         ) {
             AppSortBottomSheet(
                 uiState = bottomSheetUiState,
