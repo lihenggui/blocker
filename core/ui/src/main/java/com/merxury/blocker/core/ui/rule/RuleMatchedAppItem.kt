@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
@@ -71,6 +72,11 @@ fun MatchedComponentItem(
     var expanded by remember {
         mutableStateOf(false)
     }
+    val expandIconContentDescription = if (expanded) {
+        R.string.core_ui_expand_less
+    } else {
+        R.string.core_ui_expand_more
+    }
     val expandIcon = if (expanded) {
         BlockerIcons.ExpandLess
     } else {
@@ -87,7 +93,7 @@ fun MatchedComponentItem(
             IconButton(onClick = { expanded = !expanded }) {
                 Icon(
                     imageVector = expandIcon,
-                    contentDescription = null,
+                    contentDescription = stringResource(expandIconContentDescription),
                 )
             }
             AppIcon(

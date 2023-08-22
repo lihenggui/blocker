@@ -73,4 +73,6 @@
     <string name="core_ui_show_running_apps_on_top">置顶运行中应用</string>
     <string name="core_ui_on" tools:override="true">开启</string>
     <string name="core_ui_off" tools:override="true">关闭</string>
+    <string name="core_ui_expand_less">收起更多</string>
+    <string name="core_ui_expand_more">展开更多</string>
 </resources>
