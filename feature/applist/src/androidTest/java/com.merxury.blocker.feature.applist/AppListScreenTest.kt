@@ -18,9 +18,14 @@ package com.merxury.blocker.feature.applist
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollToNode
 import com.merxury.blocker.core.testing.testing.data.appListTestData
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -137,6 +142,42 @@ class AppListScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText(appListTestData.first().label).assertExists()
+        composeTestRule.onNodeWithText(appListTestData.first().label)
+            .assertExists()
+            .assertHasClickAction()
+    }
+
+    @Test
+    fun showFastScrollbar() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                AppListScreen(
+                    uiState = AppListUiState.Success,
+                    bottomSheetUiState = AppSortInfoUiState.Loading,
+                    onAppItemClick = {},
+                    appList = appListTestData,
+                    navigateToSettings = {},
+                    navigateToSupportAndFeedback = {},
+                    onClearCacheClick = {},
+                    onChangeShowRunningAppsOnTop = {},
+                    onClearDataClick = {},
+                    onForceStopClick = {},
+                    onUninstallClick = {},
+                    onDisableClick = {},
+                    onEnableClick = {},
+                    onServiceStateUpdate = { _, _ -> },
+                    onSortByClick = {},
+                    onSortOrderClick = {},
+                    onSortOptionsClick = {},
+                )
+            }
+        }
+
+        composeTestRule.onNode(hasScrollToNodeAction())
+            .performScrollToNode(
+                hasText(appListTestData.last().label),
+            )
+        composeTestRule.onNodeWithTag("appListScrollbar")
+            .assertExists()
     }
 }
