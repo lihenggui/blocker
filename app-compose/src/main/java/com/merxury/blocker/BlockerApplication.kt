@@ -26,7 +26,6 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
-import com.merxury.blocker.sync.initializers.Sync
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.MainScope
@@ -66,7 +65,8 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
-        Sync.initialize(context = this)
+        // TODO Uncomment this after component detail feature implemented
+//        Sync.initialize(context = this)
         Shell.setDefaultBuilder(
             Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)
