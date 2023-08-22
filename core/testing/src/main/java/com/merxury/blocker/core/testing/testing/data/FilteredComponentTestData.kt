@@ -16,17 +16,14 @@
 
 package com.merxury.blocker.core.testing.testing.data
 
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import com.merxury.blocker.core.model.ComponentType.RECEIVER
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.FilteredComponent
 
-val componentInfoTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
-    ComponentItem(
-        name = "AlarmManagerSchedulerBroadcast",
-        simpleName = "AlarmManagerSchedulerBroadcast",
-        packageName = "com.merxury.blocker",
-        pmBlocked = false,
-        type = RECEIVER,
+val filteredComponentTestData = listOf(
+    FilteredComponent(
+        app = appInfoTestData,
+        activity = componentInfoTestData,
+        service = listOf(),
+        receiver = componentInfoTestData,
+        provider = listOf(),
     ),
 )

@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.rule
+package com.merxury.blocker.core.model.data
 
-import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.ComponentItem
-
-data class RuleMatchedApp(
-    val app: AppItem,
-    val componentList: List<ComponentItem>,
+data class AppState(
+    var running: Int = 0,
+    var blocked: Int = 0,
+    var total: Int = 0,
+    var packageName: String,
 )

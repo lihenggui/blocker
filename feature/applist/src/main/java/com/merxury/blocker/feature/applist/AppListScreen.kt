@@ -49,11 +49,11 @@ import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
-import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomsheet.AppSortBottomSheet
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState
 import com.merxury.blocker.core.ui.screen.ErrorScreen
