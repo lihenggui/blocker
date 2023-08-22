@@ -1,5 +1,4 @@
 /*
- * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +14,26 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.datastore
+package com.merxury.blocker.core.testing.util
 
-/**
- * Class summarizing the local version of each model for sync
- */
-data class ChangeListVersions(
-    val ruleCommitId: String = "",
-)
+import com.merxury.blocker.core.data.util.SyncManager
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+
+class TestSyncManager : SyncManager {
+
+    private val syncStatusFlow = MutableStateFlow(false)
+
+    override val isSyncing: Flow<Boolean> = syncStatusFlow
+
+    override fun requestSync() {
+        TODO("Not yet implemented")
+    }
+
+    /**
+     * A test-only API to set the sync status from tests.
+     */
+    fun setSyncing(isSyncing: Boolean) {
+        syncStatusFlow.value = isSyncing
+    }
+}
