@@ -61,7 +61,7 @@ fun BlockerNavHost(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = appListRoute,
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = {},
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
     ModalBottomSheetLayout(bottomSheetNavigator) {
         NavHost(
@@ -80,7 +80,7 @@ fun BlockerNavHost(
                 onBackClick = onBackClick,
                 snackbarHostState = snackbarHostState,
                 navigateToComponentDetail = navController::navigateToComponentDetail,
-                updateThemingBasedIconState = updateThemingBasedIconState,
+                updateIconBasedThemingState = updateIconBasedThemingState,
             )
             generalRuleScreen(
                 navigateToRuleDetail = navController::navigateToRuleDetail,
@@ -88,7 +88,7 @@ fun BlockerNavHost(
             ruleDetailScreen(
                 onBackClick = onBackClick,
                 navigateToAppDetail = navController::navigateToAppDetail,
-                updateThemingBasedIconState = updateThemingBasedIconState,
+                updateIconBasedThemingState = updateIconBasedThemingState,
             )
             searchScreen(
                 navigateToAppDetail = navController::navigateToAppDetail,

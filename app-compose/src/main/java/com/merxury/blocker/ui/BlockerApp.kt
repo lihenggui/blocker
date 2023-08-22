@@ -143,7 +143,7 @@ fun BlockerApp(
                             navController = appState.navController,
                             onBackClick = appState::onBackClick,
                             snackbarHostState = snackbarHostState,
-                            updateThemingBasedIconState = updateIconBasedThemingState,
+                            updateIconBasedThemingState = updateIconBasedThemingState,
                         )
                     }
 
