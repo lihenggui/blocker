@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.TrackScrollJank
-import com.merxury.blocker.core.ui.applist.model.AppItem
 
 @Composable
 fun AppList(

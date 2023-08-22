@@ -33,10 +33,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.utils.AndroidCodeName
 import com.merxury.blocker.feature.appdetail.R.string
-import kotlinx.datetime.Clock
+import kotlinx.datetime.Clock.System
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
 import java.time.ZoneId
@@ -187,8 +187,8 @@ fun PreviewAppInfoTabContent() {
         packageName = "com.mercury.blocker",
         versionName = "1.2.69-alpha",
         isEnabled = false,
-        firstInstallTime = Clock.System.now(),
-        lastUpdateTime = Clock.System.now(),
+        firstInstallTime = System.now(),
+        lastUpdateTime = System.now(),
         packageInfo = null,
     )
     BlockerTheme {

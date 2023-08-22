@@ -41,9 +41,9 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScr
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
 
 @Composable
 fun RuleMatchedAppList(

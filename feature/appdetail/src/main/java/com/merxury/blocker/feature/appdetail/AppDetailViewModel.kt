@@ -81,13 +81,13 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.applist.model.toAppItem
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState.Success
-import com.merxury.blocker.core.ui.component.ComponentItem
-import com.merxury.blocker.core.ui.component.toComponentItem
+import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction

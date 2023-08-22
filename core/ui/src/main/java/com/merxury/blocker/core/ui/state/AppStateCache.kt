@@ -18,6 +18,7 @@ package com.merxury.blocker.core.ui.state
 
 import android.content.ComponentName
 import android.content.Context
+import com.merxury.blocker.core.model.data.AppState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.core.ifw.IIntentFirewall
@@ -70,10 +71,3 @@ object AppStateCache {
         return AppState(running, blocked, services.count(), packageName)
     }
 }
-
-data class AppState(
-    var running: Int = 0,
-    var blocked: Int = 0,
-    var total: Int = 0,
-    var packageName: String,
-)

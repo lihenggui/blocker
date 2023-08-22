@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.component
+package com.merxury.blocker.core.model.data
 
 import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.ComponentInfo
 
 data class ComponentItem(
     val name: String,
