@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.applist.model
-
-import com.merxury.blocker.core.ui.state.AppState
+package com.merxury.blocker.core.model.data
 
 data class AppServiceStatus(
     val packageName: String,

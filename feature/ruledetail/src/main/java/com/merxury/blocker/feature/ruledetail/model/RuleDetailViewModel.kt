@@ -39,12 +39,12 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.toAppItem
+import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.applist.model.toAppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
-import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
