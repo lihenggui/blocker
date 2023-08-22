@@ -26,6 +26,7 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
+import com.merxury.blocker.sync.initializers.Sync
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.MainScope
@@ -55,11 +56,17 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     @Inject
     lateinit var imageLoader: Provider<ImageLoader>
 
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
+
     private val applicationScope = MainScope()
 
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
+        Sync.initialize(context = this)
         Shell.setDefaultBuilder(
             Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)
@@ -70,11 +77,6 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     }
 
     override fun newImageLoader(): ImageLoader = imageLoader.get()
-
-    override fun getWorkManagerConfiguration(): Configuration =
-        Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
 
     private fun initServerProvider() {
         applicationScope.launch {
