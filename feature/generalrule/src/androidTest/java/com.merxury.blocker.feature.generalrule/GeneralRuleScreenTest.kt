@@ -19,9 +19,13 @@ package com.merxury.blocker.feature.generalrule
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollToNode
 import com.merxury.blocker.core.testing.testing.data.generalRuleListTestData
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -95,5 +99,24 @@ class GeneralRuleScreenTest {
         composeTestRule.onNodeWithText(generalRuleListTestData.first().name)
             .assertExists()
             .assertHasClickAction()
+    }
+
+    @Test
+    fun showFastScrollbar_whenRulesListMoreThanOneScreen() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                GeneralRulesScreen(
+                    uiState = GeneralRuleUiState.Success(generalRuleListTestData),
+                    navigateToRuleDetail = {},
+                )
+            }
+        }
+
+        composeTestRule.onNode(hasScrollToNodeAction())
+            .performScrollToNode(
+                hasText(generalRuleListTestData.last().name),
+            )
+        composeTestRule.onNodeWithTag("rule:scrollbar")
+            .assertExists()
     }
 }
