@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
         // observe theming based icon state
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.IconBasedThemingState
+                viewModel.iconBasedThemingState
                     .collect {
                         iconBasedThemingState = it
                     }
