@@ -32,7 +32,6 @@ import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
-import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
@@ -61,7 +60,7 @@ fun BlockerNavHost(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = appListRoute,
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = {},
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
     ModalBottomSheetLayout(bottomSheetNavigator) {
         NavHost(
@@ -79,8 +78,10 @@ fun BlockerNavHost(
             detailScreen(
                 onBackClick = onBackClick,
                 snackbarHostState = snackbarHostState,
-                navigateToComponentDetail = navController::navigateToComponentDetail,
-                updateThemingBasedIconState = updateThemingBasedIconState,
+                // TODO Temporary disable showing component detail function
+                navigateToComponentDetail = { },
+//                navigateToComponentDetail = navController::navigateToComponentDetail,
+                updateIconBasedThemingState = updateIconBasedThemingState,
             )
             generalRuleScreen(
                 navigateToRuleDetail = navController::navigateToRuleDetail,
@@ -88,7 +89,7 @@ fun BlockerNavHost(
             ruleDetailScreen(
                 onBackClick = onBackClick,
                 navigateToAppDetail = navController::navigateToAppDetail,
-                updateThemingBasedIconState = updateThemingBasedIconState,
+                updateIconBasedThemingState = updateIconBasedThemingState,
             )
             searchScreen(
                 navigateToAppDetail = navController::navigateToAppDetail,
