@@ -18,9 +18,11 @@ package com.merxury.blocker.feature.generalrule
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import com.merxury.blocker.core.testing.testing.data.generalRuleListTestData
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.feature.generalrules.GeneralRulesScreen
@@ -77,5 +79,21 @@ class GeneralRuleScreenTest {
             )
             .assertExists()
         composeTestRule.onNodeWithText(errorMessage.title).assertExists()
+    }
+
+    @Test
+    fun showRulesList() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                GeneralRulesScreen(
+                    uiState = GeneralRuleUiState.Success(generalRuleListTestData),
+                    navigateToRuleDetail = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(generalRuleListTestData.first().name)
+            .assertExists()
+            .assertHasClickAction()
     }
 }
