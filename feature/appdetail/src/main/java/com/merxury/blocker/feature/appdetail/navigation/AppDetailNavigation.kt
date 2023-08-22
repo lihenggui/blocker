@@ -76,7 +76,7 @@ fun NavController.navigateToAppDetail(
 fun NavGraphBuilder.detailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
 ) {
     composable(
@@ -91,7 +91,7 @@ fun NavGraphBuilder.detailScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,
-            updateThemingBasedIconState = updateThemingBasedIconState,
+            updateIconBasedThemingState = updateIconBasedThemingState,
         )
     }
 }

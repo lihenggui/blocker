@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
         // observe theming based icon state
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.themingBasedIconState
+                viewModel.IconBasedThemingState
                     .collect {
                         iconBasedThemingState = it
                     }
@@ -155,7 +155,7 @@ class MainActivity : ComponentActivity() {
                     BlockerApp(
                         networkMonitor = networkMonitor,
                         windowSizeClass = calculateWindowSizeClass(this),
-                        updateIconBasedThemingState = viewModel::updateThemingBasedIconState,
+                        updateIconBasedThemingState = viewModel::updateIconBasedThemingState,
                     )
                 }
             }

@@ -45,9 +45,9 @@ class MainActivityViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5_000),
     )
     private val _iconBasedThemingState: MutableStateFlow<IconBasedThemingState> = MutableStateFlow(IconBasedThemingState())
-    val themingBasedIconState = _iconBasedThemingState.asStateFlow()
+    val IconBasedThemingState = _iconBasedThemingState.asStateFlow()
 
-    fun updateThemingBasedIconState(state: IconBasedThemingState) {
+    fun updateIconBasedThemingState(state: IconBasedThemingState) {
         _iconBasedThemingState.value = state
     }
 }
