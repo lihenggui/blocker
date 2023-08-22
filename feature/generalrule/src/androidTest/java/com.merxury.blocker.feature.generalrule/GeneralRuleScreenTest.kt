@@ -1,0 +1,81 @@
+/*
+ * Copyright 2023 Blocker
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.merxury.blocker.feature.generalrule
+
+import androidx.activity.ComponentActivity
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithText
+import com.merxury.blocker.core.ui.R
+import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.feature.generalrules.GeneralRulesScreen
+import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+
+class GeneralRuleScreenTest {
+    @get:Rule(order = 0)
+    val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+
+    private lateinit var errorMessage: UiMessage
+
+    @Before
+    fun setup() {
+        composeTestRule.activity.apply {
+            errorMessage = UiMessage("Can't get rules.")
+        }
+    }
+
+    @Test
+    fun circularProgressIndicator_whenScreenIsLoading_exists() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                GeneralRulesScreen(
+                    uiState = GeneralRuleUiState.Loading,
+                    navigateToRuleDetail = {},
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                composeTestRule.activity.resources.getString(R.string.core_ui_loading),
+            )
+            .assertExists()
+    }
+
+    @Test
+    fun errorIndicator_whenFailToLoadInfo_exists() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                GeneralRulesScreen(
+                    uiState = GeneralRuleUiState.Error(errorMessage),
+                    navigateToRuleDetail = {},
+                )
+            }
+        }
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                composeTestRule.activity.resources.getString(R.string.core_ui_error),
+            )
+            .assertExists()
+        composeTestRule.onNodeWithText(errorMessage.title).assertExists()
+    }
+}
