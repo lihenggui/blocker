@@ -24,6 +24,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.text.input.TextFieldValue
+import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.testing.testing.data.appInfoTestData
 import com.merxury.blocker.core.testing.testing.data.filteredComponentTestData
 import com.merxury.blocker.core.testing.testing.data.generalRuleListTestData
@@ -142,6 +143,34 @@ class SearchScreenTest {
     }
 
     @Test
+    fun showClearIcon_whenHaveInput() {
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                SearchScreen(
+                    tabState = tabState,
+                    localSearchUiState = LocalSearchUiState.Idle,
+                    searchUiState = SearchUiState(
+                        keyword = TextFieldValue(searchKeyword),
+                    ),
+                    switchTab = {},
+                    onSearchTextChanged = {},
+                    onClearClick = {},
+                    onSelectAll = {},
+                    onBlockAll = {},
+                    onEnableAll = {},
+                    switchSelectedMode = {},
+                    onSelect = {},
+                    onDeselect = {},
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithContentDescription(
+            composeTestRule.activity.resources.getString(R.string.core_designsystem_clear_icon),
+        ).assertExists()
+    }
+
+    @Test
     fun showSearchResult_appTab() {
         tabState = TabState(
             items = listOf(
@@ -180,7 +209,9 @@ class SearchScreenTest {
         }
 
         composeTestRule.onNodeWithText(searchKeyword).assertExists()
-        composeTestRule.onNodeWithText("App (1)").assertExists().assertIsSelected()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.resources.getString(tabState.selectedItem.title, 1),
+        ).assertExists().assertIsSelected()
         composeTestRule.onNodeWithText(appInfoTestData.label).assertExists()
     }
 
@@ -223,7 +254,9 @@ class SearchScreenTest {
         }
 
         composeTestRule.onNodeWithText(searchKeyword).assertExists()
-        composeTestRule.onNodeWithText("Component (1)").assertExists().assertIsSelected()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.resources.getString(tabState.selectedItem.title, 1),
+        ).assertExists().assertIsSelected()
         composeTestRule.onNodeWithText(filteredComponentTestData.first().app.label).assertExists()
     }
 
@@ -266,7 +299,9 @@ class SearchScreenTest {
         }
 
         composeTestRule.onNodeWithText(searchKeyword).assertExists()
-        composeTestRule.onNodeWithText("Online rule (5)").assertExists().assertIsSelected()
+        composeTestRule.onNodeWithText(
+            composeTestRule.activity.resources.getString(tabState.selectedItem.title, 5),
+        ).assertExists().assertIsSelected()
         composeTestRule.onNodeWithText(generalRuleListTestData.first().name).assertExists()
     }
 }
