@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.search
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -212,7 +213,9 @@ class SearchScreenTest {
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(tabState.selectedItem.title, 1),
         ).assertExists().assertIsSelected()
-        composeTestRule.onNodeWithText(appInfoTestData.label).assertExists()
+        composeTestRule.onNodeWithText(appInfoTestData.label)
+            .assertExists()
+            .assertHasClickAction()
     }
 
     @Test
@@ -257,7 +260,9 @@ class SearchScreenTest {
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(tabState.selectedItem.title, 1),
         ).assertExists().assertIsSelected()
-        composeTestRule.onNodeWithText(filteredComponentTestData.first().app.label).assertExists()
+        composeTestRule.onNodeWithText(filteredComponentTestData.first().app.label)
+            .assertExists()
+            .assertHasClickAction()
     }
 
     @Test
@@ -302,6 +307,8 @@ class SearchScreenTest {
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(tabState.selectedItem.title, 5),
         ).assertExists().assertIsSelected()
-        composeTestRule.onNodeWithText(generalRuleListTestData.first().name).assertExists()
+        composeTestRule.onNodeWithText(generalRuleListTestData.first().name)
+            .assertExists()
+            .assertHasClickAction()
     }
 }
