@@ -226,4 +226,47 @@ class SearchScreenTest {
         composeTestRule.onNodeWithText("Component (1)").assertExists().assertIsSelected()
         composeTestRule.onNodeWithText(filteredComponentTestData.first().app.label).assertExists()
     }
+
+    @Test
+    fun showSearchResult_ruleTab() {
+        tabState = TabState(
+            items = listOf(
+                SearchScreenTabs.App(1),
+                SearchScreenTabs.Component(1),
+                SearchScreenTabs.Rule(5),
+            ),
+            selectedItem = SearchScreenTabs.Rule(5),
+        )
+
+        composeTestRule.setContent {
+            BoxWithConstraints {
+                SearchScreen(
+                    tabState = tabState,
+                    localSearchUiState = LocalSearchUiState.Success(
+                        searchKeyword = listOf(searchKeyword),
+                        appTabUiState = AppTabUiState(listOf(appInfoTestData)),
+                        componentTabUiState = ComponentTabUiState(filteredComponentTestData),
+                        ruleTabUiState = RuleTabUiState(generalRuleListTestData),
+                    ),
+                    searchUiState = SearchUiState(
+                        keyword = TextFieldValue(searchKeyword),
+                    ),
+                    switchTab = {},
+                    onSearchTextChanged = {},
+                    onClearClick = {},
+                    onSelectAll = {},
+                    onBlockAll = {},
+                    onEnableAll = {},
+                    switchSelectedMode = {},
+                    onSelect = {},
+                    onDeselect = {},
+                    appList = listOf(appInfoTestData),
+                )
+            }
+        }
+
+        composeTestRule.onNodeWithText(searchKeyword).assertExists()
+        composeTestRule.onNodeWithText("Online rule (5)").assertExists().assertIsSelected()
+        composeTestRule.onNodeWithText(generalRuleListTestData.first().name).assertExists()
+    }
 }
