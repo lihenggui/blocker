@@ -75,7 +75,7 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_options_gitlab),
         ).assertExists().assertHasClickAction()
-        //Theme settings
+        // Theme settings
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_theme),
         ).assertExists()
@@ -88,7 +88,7 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_dark),
         ).assertExists().assertHasClickAction()
-        //Application list settings
+        // Application list settings
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_application_list),
         ).assertExists()
@@ -98,7 +98,7 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_show_service_info),
         ).assertExists().assertHasClickAction()
-        //Backup settings
+        // Backup settings
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_backup),
         ).assertExists()
@@ -111,7 +111,7 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_restore_system_apps),
         ).assertExists().assertHasClickAction()
-        //Blocker rules settings
+        // Blocker rules settings
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_blocker_rules),
         ).assertExists()
@@ -121,7 +121,7 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_import_rules),
         ).assertExists().assertHasClickAction()
-        //IFW rules settings
+        // IFW rules settings
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_ifw_rules),
         ).assertExists()
