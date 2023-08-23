@@ -47,8 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.navigation.NavDestination
-import androidx.navigation.NavDestination.Companion.hierarchy
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerGradientBackground
@@ -67,6 +66,7 @@ import com.merxury.blocker.navigation.TopLevelDestination
 @OptIn(
     ExperimentalLayoutApi::class,
     ExperimentalComposeUiApi::class,
+    ExperimentalMaterialNavigationApi::class,
 )
 @Composable
 fun BlockerApp(
@@ -107,7 +107,7 @@ fun BlockerApp(
                         BlockerBottomBar(
                             destinations = appState.topLevelDestinations,
                             onNavigateToDestination = appState::navigateToTopLevelDestination,
-                            currentDestination = appState.currentDestination,
+                            currentTopLevelDestination = appState.currentTopLevelDestination,
                             modifier = Modifier.testTag("BlockerBottomBar"),
                         )
                     }
@@ -128,7 +128,7 @@ fun BlockerApp(
                         BlockerNavRail(
                             destinations = appState.topLevelDestinations,
                             onNavigateToDestination = appState::navigateToTopLevelDestination,
-                            currentDestination = appState.currentDestination,
+                            currentTopLevelDestination = appState.currentTopLevelDestination,
                             modifier = Modifier
                                 .testTag("BlockerNavRail")
                                 .safeDrawingPadding(),
@@ -139,10 +139,11 @@ fun BlockerApp(
                         // TODO Show the top app bar on top level destinations.
 
                         BlockerNavHost(
+                            bottomSheetNavigator = appState.bottomSheetNavigator,
                             navController = appState.navController,
                             onBackClick = appState::onBackClick,
                             snackbarHostState = snackbarHostState,
-                            updateThemingBasedIconState = updateIconBasedThemingState,
+                            updateIconBasedThemingState = updateIconBasedThemingState,
                         )
                     }
 
@@ -158,13 +159,13 @@ fun BlockerApp(
 private fun BlockerNavRail(
     destinations: List<TopLevelDestination>,
     onNavigateToDestination: (TopLevelDestination) -> Unit,
-    currentDestination: NavDestination?,
+    currentTopLevelDestination: TopLevelDestination?,
     modifier: Modifier = Modifier,
 ) {
     BlockerNavigationRail(modifier = modifier) {
         Spacer(Modifier.weight(1f))
         destinations.forEach { destination ->
-            val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
+            val selected = destination == currentTopLevelDestination
             BlockerNavigationRailItem(
                 selected = selected,
                 onClick = { onNavigateToDestination(destination) },
@@ -187,6 +188,7 @@ private fun BlockerNavRail(
                     }
                 },
                 label = { Text(stringResource(destination.iconTextId)) },
+                modifier = Modifier.testTag(destination.name),
             )
         }
         Spacer(Modifier.weight(1f))
@@ -197,14 +199,14 @@ private fun BlockerNavRail(
 private fun BlockerBottomBar(
     destinations: List<TopLevelDestination>,
     onNavigateToDestination: (TopLevelDestination) -> Unit,
-    currentDestination: NavDestination?,
+    currentTopLevelDestination: TopLevelDestination?,
     modifier: Modifier = Modifier,
 ) {
     BlockerNavigationBar(
         modifier = modifier,
     ) {
         destinations.forEach { destination ->
-            val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
+            val selected = destination == currentTopLevelDestination
             BlockerNavigationBarItem(
                 selected = selected,
                 onClick = { onNavigateToDestination(destination) },
@@ -227,16 +229,8 @@ private fun BlockerBottomBar(
                     }
                 },
                 label = { Text(stringResource(destination.iconTextId)) },
+                modifier = Modifier.testTag(destination.name),
             )
         }
     }
 }
-
-private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopLevelDestination) =
-    this?.hierarchy?.any {
-        it.route
-            ?.split("/")
-            ?.firstOrNull()
-            ?.contains(destination.name, true)
-            ?: false
-    } ?: false

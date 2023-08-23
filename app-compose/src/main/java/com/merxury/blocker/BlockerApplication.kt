@@ -55,11 +55,18 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     @Inject
     lateinit var imageLoader: Provider<ImageLoader>
 
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
+
     private val applicationScope = MainScope()
 
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
+        // TODO Uncomment this after component detail feature implemented
+//        Sync.initialize(context = this)
         Shell.setDefaultBuilder(
             Shell.Builder.create()
                 .setFlags(Shell.FLAG_REDIRECT_STDERR)
@@ -70,11 +77,6 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     }
 
     override fun newImageLoader(): ImageLoader = imageLoader.get()
-
-    override fun getWorkManagerConfiguration(): Configuration =
-        Configuration.Builder()
-            .setWorkerFactory(workerFactory)
-            .build()
 
     private fun initServerProvider() {
         applicationScope.launch {

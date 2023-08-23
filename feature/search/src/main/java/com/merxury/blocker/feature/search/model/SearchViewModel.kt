@@ -334,8 +334,8 @@ class SearchViewModel @Inject constructor(
 
 sealed interface LocalSearchUiState {
     class Initializing(val processingName: String) : LocalSearchUiState
-    object Idle : LocalSearchUiState
-    object Loading : LocalSearchUiState
+    data object Idle : LocalSearchUiState
+    data object Loading : LocalSearchUiState
     data class Success(
         val searchKeyword: List<String> = listOf(),
         val appTabUiState: AppTabUiState = AppTabUiState(),

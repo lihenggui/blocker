@@ -96,7 +96,7 @@ import kotlinx.coroutines.launch
 fun RuleDetailRoute(
     onBackClick: () -> Unit,
     navigateToAppDetail: (String) -> Unit,
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
@@ -122,7 +122,7 @@ fun RuleDetailRoute(
         onEnableAllInPageClick = { viewModel.controlAllComponentsInPage(true) },
         onSwitch = viewModel::controlComponent,
         navigateToAppDetail = navigateToAppDetail,
-        updateThemingBasedIconState = updateThemingBasedIconState,
+        updateIconBasedThemingState = updateIconBasedThemingState,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -136,7 +136,7 @@ fun RuleDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateThemingBasedIconState(IconBasedThemingState(icon = null, isBasedIcon = false))
+            updateIconBasedThemingState(IconBasedThemingState(icon = null, isBasedIcon = false))
         }
     }
 }
@@ -160,7 +160,7 @@ fun RuleDetailScreen(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = { _ -> },
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -186,7 +186,7 @@ fun RuleDetailScreen(
                 onEnableAllInPageClick = onEnableAllInPageClick,
                 onSwitch = onSwitch,
                 navigateToAppDetail = navigateToAppDetail,
-                updateThemingBasedIconState = updateThemingBasedIconState,
+                updateIconBasedThemingState = updateIconBasedThemingState,
             )
         }
 
@@ -216,7 +216,7 @@ fun RuleDetailContent(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = { _ -> },
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -254,7 +254,7 @@ fun RuleDetailContent(
             }
         }
     }
-    updateThemingBasedIconState(IconBasedThemingState(icon = ruleInfoUiState.ruleIcon, isBasedIcon = true))
+    updateIconBasedThemingState(IconBasedThemingState(icon = ruleInfoUiState.ruleIcon, isBasedIcon = true))
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
@@ -393,9 +393,7 @@ fun RuleDetailTabContent(
             state = pagerState,
         ) {
             when (it) {
-                0 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
-
-                1 -> RuleMatchedAppList(
+                0 -> RuleMatchedAppList(
                     ruleMatchedAppListUiState = ruleMatchedAppListUiState,
                     onStopServiceClick = onStopServiceClick,
                     onLaunchActivityClick = onLaunchActivityClick,
@@ -406,6 +404,8 @@ fun RuleDetailTabContent(
                     onEnableAllClick = onEnableAllClick,
                     onSwitch = onSwitch,
                 )
+
+                1 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
             }
         }
     }
@@ -454,10 +454,10 @@ fun RuleDetailScreenPreView() {
     )
     val tabState = TabState(
         items = listOf(
-            Description,
             Applicable,
+            Description,
         ),
-        selectedItem = Description,
+        selectedItem = Applicable,
     )
     BlockerTheme {
         Surface {
@@ -501,8 +501,8 @@ fun RuleDetailScreenLoadingPreView() {
     val ruleInfoUiState = RuleInfoUiState.Loading
     val tabState = TabState(
         items = listOf(
-            Description,
             Applicable,
+            Description,
         ),
         selectedItem = Description,
     )
@@ -548,8 +548,8 @@ fun RuleDetailScreenErrorPreView() {
     val ruleInfoUiState = RuleInfoUiState.Error(UiMessage("Error"))
     val tabState = TabState(
         items = listOf(
-            Description,
             Applicable,
+            Description,
         ),
         selectedItem = Description,
     )

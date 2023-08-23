@@ -25,7 +25,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
-import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
+import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.feature.ruledetail.RuleDetailRoute
 
 @VisibleForTesting
@@ -34,7 +34,7 @@ internal const val ruleIdArg = "ruleId"
 @VisibleForTesting
 internal const val tabArg = "tab"
 
-internal class RuleIdArgs(val ruleId: Int, val tabs: RuleDetailTabs = Description) {
+internal class RuleIdArgs(val ruleId: Int, val tabs: RuleDetailTabs = Applicable) {
     constructor(savedStateHandle: SavedStateHandle) :
         this(
             checkNotNull(savedStateHandle[ruleIdArg]),
@@ -42,7 +42,7 @@ internal class RuleIdArgs(val ruleId: Int, val tabs: RuleDetailTabs = Descriptio
         )
 }
 
-fun NavController.navigateToRuleDetail(ruleId: Int, tab: RuleDetailTabs = Description) {
+fun NavController.navigateToRuleDetail(ruleId: Int, tab: RuleDetailTabs = Applicable) {
     this.navigate("rule_detail_route/$ruleId?screen=${tab.name}") {
         // Avoid multiple copies of the same destination when
         // reselecting the same item
@@ -53,7 +53,7 @@ fun NavController.navigateToRuleDetail(ruleId: Int, tab: RuleDetailTabs = Descri
 fun NavGraphBuilder.ruleDetailScreen(
     onBackClick: () -> Unit,
     navigateToAppDetail: (String) -> Unit,
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
 ) {
     composable(
         route = "rule_detail_route/{$ruleIdArg}?screen={$tabArg}",
@@ -62,6 +62,6 @@ fun NavGraphBuilder.ruleDetailScreen(
             navArgument(tabArg) { type = NavType.StringType },
         ),
     ) {
-        RuleDetailRoute(onBackClick, navigateToAppDetail, updateThemingBasedIconState)
+        RuleDetailRoute(onBackClick, navigateToAppDetail, updateIconBasedThemingState)
     }
 }
