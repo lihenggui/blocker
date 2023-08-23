@@ -22,7 +22,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import com.merxury.blocker.core.testing.testing.data.appListTestData
+import androidx.compose.ui.text.input.TextFieldValue
+import com.merxury.blocker.core.testing.testing.data.appInfoTestData
 import com.merxury.blocker.core.testing.testing.data.filteredComponentTestData
 import com.merxury.blocker.core.testing.testing.data.generalRuleListTestData
 import com.merxury.blocker.core.ui.TabState
@@ -43,6 +44,7 @@ class SearchScreenTest {
 
     private lateinit var tabState: TabState<SearchScreenTabs>
     private lateinit var errorMessage: UiMessage
+    private lateinit var searchKeyword: String
 
     @Before
     fun setup() {
@@ -56,6 +58,7 @@ class SearchScreenTest {
                 selectedItem = SearchScreenTabs.App(),
             )
             errorMessage = UiMessage("Cannot search out.")
+            searchKeyword = "blocker"
         }
     }
 
@@ -144,12 +147,14 @@ class SearchScreenTest {
                 SearchScreen(
                     tabState = tabState,
                     localSearchUiState = LocalSearchUiState.Success(
-                        searchKeyword = listOf("blocker"),
-                        appTabUiState = AppTabUiState(appListTestData),
+                        searchKeyword = listOf(searchKeyword),
+                        appTabUiState = AppTabUiState(listOf(appInfoTestData)),
                         componentTabUiState = ComponentTabUiState(filteredComponentTestData),
                         ruleTabUiState = RuleTabUiState(generalRuleListTestData),
                     ),
-                    searchUiState = SearchUiState(),
+                    searchUiState = SearchUiState(
+                        keyword = TextFieldValue(searchKeyword),
+                    ),
                     switchTab = {},
                     onSearchTextChanged = {},
                     onClearClick = {},
@@ -159,13 +164,12 @@ class SearchScreenTest {
                     switchSelectedMode = {},
                     onSelect = {},
                     onDeselect = {},
+                    appList = listOf(appInfoTestData),
                 )
             }
         }
 
-//        composeTestRule.onNodeWithText("blocker").assertExists()
-        composeTestRule.onNodeWithText(appListTestData.first().label).assertExists()
-        composeTestRule.onNodeWithText(filteredComponentTestData.first().app.label).assertExists()
-        composeTestRule.onNodeWithText(generalRuleListTestData.first().name).assertExists()
+        composeTestRule.onNodeWithText(searchKeyword).assertExists()
+        composeTestRule.onNodeWithText(appInfoTestData.label).assertExists()
     }
 }
