@@ -17,13 +17,16 @@
 package com.merxury.blocker.core.data.respository.componentdetail
 
 import com.merxury.blocker.core.data.Synchronizer
+import com.merxury.blocker.core.data.changeListSync
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.NetworkComponentDetailDataSource
+import com.merxury.blocker.core.datastore.ChangeListVersions
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
+import com.merxury.blocker.core.network.model.NetworkChangeList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -84,6 +87,16 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
     }
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean {
-        TODO("Not yet implemented")
+        return synchronizer.changeListSync(
+            versionReader = ChangeListVersions::ruleCommitId,
+            changeFetcher = {
+                val commitId = network.getRuleLatestCommitId().ruleCommitId
+                NetworkChangeList(commitId)
+            },
+            versionUpdater = { latestVersion ->
+                copy(ruleCommitId = latestVersion)
+            },
+            modelUpdater = {},
+        )
     }
 }
