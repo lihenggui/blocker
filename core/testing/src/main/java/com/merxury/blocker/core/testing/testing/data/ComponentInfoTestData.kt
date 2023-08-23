@@ -30,3 +30,20 @@ val componentInfoTestData: SnapshotStateList<ComponentItem> = mutableStateListOf
         type = RECEIVER,
     ),
 )
+
+val componentInfoTestData2: SnapshotStateList<ComponentItem> = mutableStateListOf(
+    ComponentItem(
+        name = "AlarmManagerSchedulerBroadcast",
+        simpleName = "AlarmManagerSchedulerBroadcast",
+        packageName = "com.merxury.blocker",
+        pmBlocked = false,
+        type = RECEIVER,
+    ),
+    ComponentItem(
+        name = "Broadcast",
+        simpleName = "SchedulerBroadcast",
+        packageName = "com.merxury.blocker",
+        pmBlocked = false,
+        type = RECEIVER,
+    ),
+)
