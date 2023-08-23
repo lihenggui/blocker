@@ -107,16 +107,16 @@ class RuleDetailScreenTest {
                 composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
             )
             .assertCountEquals(2)
-        //Check showing rules info
+        // Check showing rules info
         composeTestRule.onNodeWithText(generalRuleTestData.name)
             .assertExists()
-        //Check tab is selected
+        // Check tab is selected
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(uiR.string.core_ui_applicable_application),
         )
             .assertExists()
             .assertIsSelected()
-        //Check showing rules matched app list
+        // Check showing rules matched app list
         composeTestRule.onNodeWithTag("RuleMatchedAppList")
             .assertExists()
         composeTestRule.onNodeWithText(ruleMatchedAppListTestData.first().app.label)
@@ -158,7 +158,7 @@ class RuleDetailScreenTest {
                 composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
             )
             .assertDoesNotExist()
-        //Check showing rules detail description
+        // Check showing rules detail description
         composeTestRule.onNodeWithText(generalRuleTestData.name)
             .assertExists()
         composeTestRule.onNodeWithText(
