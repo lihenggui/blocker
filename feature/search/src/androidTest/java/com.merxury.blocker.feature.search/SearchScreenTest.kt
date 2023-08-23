@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.search
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -142,6 +143,15 @@ class SearchScreenTest {
 
     @Test
     fun showSearchResult() {
+        tabState = TabState(
+            items = listOf(
+                SearchScreenTabs.App(1),
+                SearchScreenTabs.Component(),
+                SearchScreenTabs.Rule(),
+            ),
+            selectedItem = SearchScreenTabs.App(),
+        )
+
         composeTestRule.setContent {
             BoxWithConstraints {
                 SearchScreen(
@@ -170,6 +180,7 @@ class SearchScreenTest {
         }
 
         composeTestRule.onNodeWithText(searchKeyword).assertExists()
+        composeTestRule.onNodeWithText("App (1)").assertExists().assertIsSelected()
         composeTestRule.onNodeWithText(appInfoTestData.label).assertExists()
     }
 }

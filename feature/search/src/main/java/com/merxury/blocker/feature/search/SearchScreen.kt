@@ -472,7 +472,7 @@ fun SearchScreenSelectedPreview() {
     )
     val tabState = TabState(
         items = listOf(
-            SearchScreenTabs.App(),
+            SearchScreenTabs.App(1),
             SearchScreenTabs.Component(),
             SearchScreenTabs.Rule(),
         ),
