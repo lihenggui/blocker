@@ -25,7 +25,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import com.merxury.blocker.core.testing.testing.data.userEditableSettingsTestData
 import com.merxury.blocker.feature.settings.R.string
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import com.merxury.blocker.core.ui.R as uiR
@@ -33,13 +32,6 @@ import com.merxury.blocker.core.ui.R as uiR
 class SettingsScreenTest {
     @get:Rule(order = 0)
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
-
-    @Before
-    fun setup() {
-        composeTestRule.activity.apply {
-
-        }
-    }
 
     @Test
     fun loadingScreen() {
