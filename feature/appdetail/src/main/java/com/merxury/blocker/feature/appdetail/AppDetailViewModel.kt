@@ -50,8 +50,12 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.data.toAppItem
+import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
@@ -81,13 +85,9 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState.Success
-import com.merxury.blocker.core.model.data.ComponentItem
-import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction

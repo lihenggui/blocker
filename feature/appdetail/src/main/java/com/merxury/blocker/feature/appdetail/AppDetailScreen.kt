@@ -76,6 +76,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
@@ -95,7 +96,6 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
-import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortBottomSheet
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState

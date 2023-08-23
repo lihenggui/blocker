@@ -26,6 +26,7 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
@@ -44,7 +45,6 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
