@@ -23,7 +23,7 @@ val filteredComponentTestData = listOf(
         app = appInfoTestData,
         activity = componentInfoTestData,
         service = listOf(),
-        receiver = componentInfoTestData,
+        receiver = componentInfoTestData2,
         provider = listOf(),
     ),
 )
