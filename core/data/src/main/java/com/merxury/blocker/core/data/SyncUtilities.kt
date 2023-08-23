@@ -1,4 +1,5 @@
 /*
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,7 +79,7 @@ private suspend fun <T> suspendRunCatching(block: suspend () -> T): Result<T> = 
 suspend fun Synchronizer.changeListSync(
     versionReader: (ChangeListVersions) -> Int,
     changeListFetcher: suspend (Int) -> List<NetworkChangeList>,
-    versionUpdater: ChangeListVersions.(Int) -> ChangeListVersions,
+    versionUpdater: ChangeListVersions.(String) -> ChangeListVersions,
     modelDeleter: suspend (List<Int>) -> Unit,
     modelUpdater: suspend (List<Int>) -> Unit,
 ) = suspendRunCatching {
@@ -86,17 +87,8 @@ suspend fun Synchronizer.changeListSync(
     val currentVersion = versionReader(getChangeListVersions())
     val changeList = changeListFetcher(currentVersion)
     if (changeList.isEmpty()) return@suspendRunCatching true
-
-    val (deleted, updated) = changeList.partition(NetworkChangeList::isDelete)
-
-    // Delete models that have been deleted server-side
-    modelDeleter(deleted.map(NetworkChangeList::id))
-
-    // Using the change list, pull down and save the changes (akin to a git pull)
-    modelUpdater(updated.map(NetworkChangeList::id))
-
     // Update the last synced version (akin to updating local git HEAD)
-    val latestVersion = changeList.last().changeListVersion
+    val latestVersion = changeList.last().ruleCommitId
     updateChangeListVersions {
         versionUpdater(latestVersion)
     }
