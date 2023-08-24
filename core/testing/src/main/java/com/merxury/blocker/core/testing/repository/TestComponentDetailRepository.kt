@@ -53,10 +53,7 @@ class TestComponentDetailRepository : ComponentDetailRepository {
     override suspend fun saveComponentDetail(
         componentDetail: ComponentDetail,
         userGenerated: Boolean,
-    ): Boolean {
-        this.componentDetail.tryEmit(componentDetail)
-        return true
-    }
+    ): Boolean = true
 
     fun sendComponentDetail(componentDetail: ComponentDetail) {
         this.componentDetail.tryEmit(componentDetail)
