@@ -23,6 +23,7 @@ import com.merxury.blocker.core.result.Result.Success
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class TestAppRepository : AppRepository {
@@ -41,9 +42,7 @@ class TestAppRepository : AppRepository {
     }
 
     override fun updateApplicationList(): Flow<Result<Unit>> {
-        return appListFlow.map {
-            Success(Unit)
-        }
+        return flowOf(Success(Unit))
     }
 
     override fun searchInstalledApplications(keyword: String): Flow<List<InstalledApp>> {

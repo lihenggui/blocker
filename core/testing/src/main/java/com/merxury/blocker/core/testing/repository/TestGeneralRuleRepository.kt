@@ -22,11 +22,12 @@ import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class TestGeneralRuleRepository : GeneralRuleRepository {
     /**
-     * The backing hot flow for the list of topics ids for testing.
+     * The backing hot flow for the list of rule for testing.
      */
     private val rulesFlow: MutableSharedFlow<List<GeneralRule>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
@@ -37,7 +38,7 @@ class TestGeneralRuleRepository : GeneralRuleRepository {
     }
 
     override fun updateGeneralRule(): Flow<Result<Unit>> {
-        return rulesFlow.map { Result.Success(Unit) }
+        return flowOf(Result.Success(Unit))
     }
 
     override suspend fun saveGeneralRule(rule: GeneralRule) {
