@@ -296,7 +296,7 @@ class AppDetailViewModel @Inject constructor(
         )
     }
 
-    fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+    private fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         val packageName = appDetailArgs.packageName
         componentRepository.getComponentList(packageName)
             .collect { origList ->
@@ -423,7 +423,7 @@ class AppDetailViewModel @Inject constructor(
             .toMutableStateList()
     }
 
-    fun updateSearchKeyword() {
+    private fun updateSearchKeyword() {
         val keyword = appDetailArgs.searchKeyword
             .map { it.trim() }
             .filterNot { it.isEmpty() }
@@ -439,7 +439,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun loadTabInfo() {
+    private fun loadTabInfo() {
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
