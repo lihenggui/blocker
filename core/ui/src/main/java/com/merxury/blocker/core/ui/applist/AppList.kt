@@ -94,7 +94,7 @@ fun AppList(
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
                 .align(Alignment.CenterEnd)
-                .testTag("appListScrollbar"),
+                .testTag("appList:scrollbar"),
             state = scrollbarState,
             orientation = Orientation.Vertical,
             onThumbDisplaced = listState.rememberFastScroller(

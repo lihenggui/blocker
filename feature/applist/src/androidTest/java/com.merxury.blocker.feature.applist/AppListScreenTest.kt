@@ -62,21 +62,7 @@ class AppListScreenTest {
                 AppListScreen(
                     uiState = AppListUiState.Initializing(processingName),
                     bottomSheetUiState = AppSortInfoUiState.Loading,
-                    onAppItemClick = {},
                     appList = emptyList(),
-                    navigateToSettings = {},
-                    navigateToSupportAndFeedback = {},
-                    onClearCacheClick = {},
-                    onChangeShowRunningAppsOnTop = {},
-                    onClearDataClick = {},
-                    onForceStopClick = {},
-                    onUninstallClick = {},
-                    onDisableClick = {},
-                    onEnableClick = {},
-                    onServiceStateUpdate = { _, _ -> },
-                    onSortByClick = {},
-                    onSortOrderClick = {},
-                    onSortOptionsClick = {},
                 )
             }
         }
@@ -95,21 +81,7 @@ class AppListScreenTest {
                 AppListScreen(
                     uiState = AppListUiState.Error(errorMessage),
                     bottomSheetUiState = AppSortInfoUiState.Loading,
-                    onAppItemClick = {},
                     appList = emptyList(),
-                    navigateToSettings = {},
-                    navigateToSupportAndFeedback = {},
-                    onClearCacheClick = {},
-                    onChangeShowRunningAppsOnTop = {},
-                    onClearDataClick = {},
-                    onForceStopClick = {},
-                    onUninstallClick = {},
-                    onDisableClick = {},
-                    onEnableClick = {},
-                    onServiceStateUpdate = { _, _ -> },
-                    onSortByClick = {},
-                    onSortOrderClick = {},
-                    onSortOptionsClick = {},
                 )
             }
         }
@@ -129,21 +101,7 @@ class AppListScreenTest {
                 AppListScreen(
                     uiState = AppListUiState.Success,
                     bottomSheetUiState = AppSortInfoUiState.Loading,
-                    onAppItemClick = {},
                     appList = appListTestData,
-                    navigateToSettings = {},
-                    navigateToSupportAndFeedback = {},
-                    onClearCacheClick = {},
-                    onChangeShowRunningAppsOnTop = {},
-                    onClearDataClick = {},
-                    onForceStopClick = {},
-                    onUninstallClick = {},
-                    onDisableClick = {},
-                    onEnableClick = {},
-                    onServiceStateUpdate = { _, _ -> },
-                    onSortByClick = {},
-                    onSortOrderClick = {},
-                    onSortOptionsClick = {},
                 )
             }
         }
@@ -160,21 +118,7 @@ class AppListScreenTest {
                 AppListScreen(
                     uiState = AppListUiState.Success,
                     bottomSheetUiState = AppSortInfoUiState.Loading,
-                    onAppItemClick = {},
                     appList = appListTestData,
-                    navigateToSettings = {},
-                    navigateToSupportAndFeedback = {},
-                    onClearCacheClick = {},
-                    onChangeShowRunningAppsOnTop = {},
-                    onClearDataClick = {},
-                    onForceStopClick = {},
-                    onUninstallClick = {},
-                    onDisableClick = {},
-                    onEnableClick = {},
-                    onServiceStateUpdate = { _, _ -> },
-                    onSortByClick = {},
-                    onSortOrderClick = {},
-                    onSortOptionsClick = {},
                 )
             }
         }
@@ -194,21 +138,7 @@ class AppListScreenTest {
                 AppListScreen(
                     uiState = AppListUiState.Success,
                     bottomSheetUiState = AppSortInfoUiState.Loading,
-                    onAppItemClick = {},
                     appList = appListTestData,
-                    navigateToSettings = {},
-                    navigateToSupportAndFeedback = {},
-                    onClearCacheClick = {},
-                    onChangeShowRunningAppsOnTop = {},
-                    onClearDataClick = {},
-                    onForceStopClick = {},
-                    onUninstallClick = {},
-                    onDisableClick = {},
-                    onEnableClick = {},
-                    onServiceStateUpdate = { _, _ -> },
-                    onSortByClick = {},
-                    onSortOrderClick = {},
-                    onSortOptionsClick = {},
                     isOpenBottomSheet = true,
                 )
             }
@@ -229,21 +159,7 @@ class AppListScreenTest {
                 AppListScreen(
                     uiState = AppListUiState.Success,
                     bottomSheetUiState = AppSortInfoUiState.Success(AppSortInfoTestData),
-                    onAppItemClick = {},
                     appList = appListTestData,
-                    navigateToSettings = {},
-                    navigateToSupportAndFeedback = {},
-                    onClearCacheClick = {},
-                    onChangeShowRunningAppsOnTop = {},
-                    onClearDataClick = {},
-                    onForceStopClick = {},
-                    onUninstallClick = {},
-                    onDisableClick = {},
-                    onEnableClick = {},
-                    onServiceStateUpdate = { _, _ -> },
-                    onSortByClick = {},
-                    onSortOrderClick = {},
-                    onSortOptionsClick = {},
                     isOpenBottomSheet = true,
                 )
             }
