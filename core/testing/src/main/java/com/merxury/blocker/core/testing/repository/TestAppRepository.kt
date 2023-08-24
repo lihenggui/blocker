@@ -31,14 +31,7 @@ class TestAppRepository : AppRepository {
     override fun getApplicationList(): Flow<List<InstalledApp>> = appListFlow
 
     override fun updateApplication(packageName: String): Flow<Result<Unit>> {
-        return appListFlow.map {
-            val app = it.find { app -> app.packageName == packageName }
-            if (app == null) {
-                Success(Unit)
-            } else {
-                Success(Unit)
-            }
-        }
+        return flowOf(Success(Unit))
     }
 
     override fun updateApplicationList(): Flow<Result<Unit>> {
