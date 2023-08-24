@@ -59,7 +59,7 @@ fun SummaryContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .testTag("sppDetail:summaryContent"),
+                .testTag("appDetail:summaryContent"),
             state = listState,
         ) {
             item {
