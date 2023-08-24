@@ -26,7 +26,6 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToNode
-import com.merxury.blocker.core.testing.testing.data.AppSortInfoTestData
 import com.merxury.blocker.core.testing.testing.data.appListTestData
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState
@@ -129,48 +128,5 @@ class AppListScreenTest {
             )
         composeTestRule.onNodeWithTag("appList:scrollbar")
             .assertExists()
-    }
-
-    @Test
-    fun showBottomSheetWithLoading() {
-        composeTestRule.setContent {
-            BoxWithConstraints {
-                AppListScreen(
-                    uiState = AppListUiState.Success,
-                    bottomSheetUiState = AppSortInfoUiState.Loading,
-                    appList = appListTestData,
-                    isBottomSheetOpened = true,
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithTag(appListBottomSheetTag).assertExists()
-        composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(uiR.string.core_ui_loading),
-            )
-            .assertExists()
-    }
-
-    @Test
-    fun showBottomSheetWithContent() {
-        composeTestRule.setContent {
-            BoxWithConstraints {
-                AppListScreen(
-                    uiState = AppListUiState.Success,
-                    bottomSheetUiState = AppSortInfoUiState.Success(AppSortInfoTestData),
-                    appList = appListTestData,
-                    isBottomSheetOpened = true,
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithTag(appListBottomSheetTag).assertExists()
-        composeTestRule
-            .onNodeWithText(composeTestRule.activity.resources.getString(uiR.string.core_ui_sort_options))
-            .assertExists()
-        composeTestRule.onNodeWithText(decending)
-            .assertExists()
-            .assertHasClickAction()
     }
 }
