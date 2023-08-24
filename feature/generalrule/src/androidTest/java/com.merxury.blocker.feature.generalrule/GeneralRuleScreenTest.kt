@@ -44,7 +44,8 @@ class GeneralRuleScreenTest {
     @Before
     fun setup() {
         composeTestRule.activity.apply {
-            errorMessage = UiMessage("Can't get rules.")
+            errorMessage =
+                UiMessage(composeTestRule.activity.resources.getString(R.string.core_ui_error))
         }
     }
 

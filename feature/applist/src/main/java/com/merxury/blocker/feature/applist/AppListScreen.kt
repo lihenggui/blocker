@@ -75,7 +75,7 @@ fun AppListRoute(
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val warningState by viewModel.warningState.collectAsStateWithLifecycle()
     val appList = viewModel.appListFlow.collectAsState()
-    var isOpenBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var isBottomSheetOpened by rememberSaveable { mutableStateOf(false) }
     AppListScreen(
         uiState = uiState,
         bottomSheetUiState = bottomSheetUiState,
@@ -95,8 +95,8 @@ fun AppListRoute(
         onSortOrderClick = viewModel::updateAppSortingOrder,
         onChangeShowRunningAppsOnTop = viewModel::updateShowRunningAppsOnTop,
         modifier = modifier,
-        isOpenBottomSheet = isOpenBottomSheet,
-        changeBottomSheetState = { isOpenBottomSheet = it },
+        isBottomSheetOpened = isBottomSheetOpened,
+        changeBottomSheetState = { isBottomSheetOpened = it },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -136,7 +136,7 @@ fun AppListScreen(
     onSortByClick: (AppSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onChangeShowRunningAppsOnTop: (Boolean) -> Unit = {},
-    isOpenBottomSheet: Boolean = false,
+    isBottomSheetOpened: Boolean = false,
     changeBottomSheetState: (Boolean) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
@@ -200,7 +200,7 @@ fun AppListScreen(
             }
         }
     }
-    if (isOpenBottomSheet) {
+    if (isBottomSheetOpened) {
         ModalBottomSheet(
             onDismissRequest = { changeBottomSheetState(false) },
             sheetState = rememberModalBottomSheetState(
