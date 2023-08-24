@@ -49,26 +49,32 @@ class AppDetailScreenTest {
 
     private lateinit var errorMessage: UiMessage
     private lateinit var ifwRulesText: String
-    private lateinit var tabState: TabState<AppDetailTabs>
+    private var tabState: TabState<AppDetailTabs> = TabState(
+        items = listOf(
+            Info,
+            Receiver,
+            Service,
+            Activity,
+            Provider,
+        ),
+        selectedItem = Info,
+    )
     private lateinit var receiverText: String
+    private lateinit var searchIconDescription: String
+    private lateinit var moreMenuDescription: String
+    private lateinit var error: String
+    private lateinit var loadingDescription: String
 
     @Before
     fun setup() {
         composeTestRule.activity.apply {
+            error = getString(uiR.string.core_ui_error)
             ifwRulesText = getString(R.string.feature_appdetail_ifw_rules)
-            errorMessage = UiMessage("Can't find apps in this device.")
-            tabState =
-                TabState(
-                    items = listOf(
-                        Info,
-                        Receiver,
-                        Service,
-                        Activity,
-                        Provider,
-                    ),
-                    selectedItem = Info,
-                )
+            errorMessage = UiMessage(error)
             receiverText = getString(uiR.string.core_ui_receiver_with_count, 1)
+            searchIconDescription = getString(uiR.string.core_ui_search_icon)
+            moreMenuDescription = getString(uiR.string.core_ui_more_menu)
+            loadingDescription = getString(uiR.string.core_ui_loading)
         }
     }
 
@@ -90,10 +96,7 @@ class AppDetailScreenTest {
         }
 
         composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(uiR.string.core_ui_loading),
-            )
-            .assertExists()
+            .onNodeWithContentDescription(loadingDescription).assertExists()
     }
 
     @Test
@@ -113,11 +116,7 @@ class AppDetailScreenTest {
             }
         }
 
-        composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(uiR.string.core_ui_error),
-            )
-            .assertExists()
+        composeTestRule.onNodeWithContentDescription(error).assertExists()
         composeTestRule.onNodeWithText(errorMessage.title).assertExists()
     }
 
@@ -154,15 +153,9 @@ class AppDetailScreenTest {
             }
         }
         composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(uiR.string.core_ui_search_icon),
-            )
-            .assertExists()
+            .onNodeWithContentDescription(searchIconDescription).assertExists()
         composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
-            )
-            .assertExists()
+            .onNodeWithContentDescription(moreMenuDescription).assertExists()
     }
 
     @Test
