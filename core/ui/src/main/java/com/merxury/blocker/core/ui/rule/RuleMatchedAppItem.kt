@@ -89,9 +89,9 @@ fun MatchedComponentItem(
                 Icon(
                     imageVector = expandIcon,
                     contentDescription = if (expanded) {
-                        stringResource(R.string.core_ui_expand_less)
+                        stringResource(R.string.core_ui_collapse_list)
                     } else {
-                        stringResource(R.string.core_ui_expand_more)
+                        stringResource(R.string.core_ui_expand_list)
                     },
                 )
             }
