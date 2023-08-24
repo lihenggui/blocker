@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.search
+package com.merxury.blocker.feature.ruledetail
 
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,11 +30,16 @@ import com.merxury.blocker.core.testing.testing.data.appInfoTestData
 import com.merxury.blocker.core.testing.testing.data.filteredComponentTestData
 import com.merxury.blocker.core.testing.testing.data.generalRuleListTestData
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.feature.search.R.string
+import com.merxury.blocker.feature.search.SearchScreen
+import com.merxury.blocker.feature.search.SearchScreenTabs
+import com.merxury.blocker.feature.search.SearchScreenTabs.App
+import com.merxury.blocker.feature.search.SearchScreenTabs.Component
 import com.merxury.blocker.feature.search.model.AppTabUiState
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
-import com.merxury.blocker.feature.search.model.LocalSearchUiState
+import com.merxury.blocker.feature.search.model.LocalSearchUiState.Idle
+import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
+import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
 import com.merxury.blocker.feature.search.model.RuleTabUiState
 import com.merxury.blocker.feature.search.model.SearchUiState
 import org.junit.Before
@@ -46,23 +51,20 @@ class SearchScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private lateinit var tabState: TabState<SearchScreenTabs>
-    private lateinit var errorMessage: UiMessage
     private lateinit var searchKeyword: String
 
     @Before
     fun setup() {
-        composeTestRule.activity.apply {
             tabState = TabState(
                 items = listOf(
-                    SearchScreenTabs.App(),
-                    SearchScreenTabs.Component(),
+                    App(),
+                    Component(),
                     SearchScreenTabs.Rule(),
                 ),
-                selectedItem = SearchScreenTabs.App(),
+                selectedItem = App(),
             )
-            errorMessage = UiMessage("Cannot search out.")
             searchKeyword = "blocker"
-        }
+
     }
 
     @Test
@@ -71,7 +73,7 @@ class SearchScreenTest {
             BoxWithConstraints {
                 SearchScreen(
                     tabState = tabState,
-                    localSearchUiState = LocalSearchUiState.Idle,
+                    localSearchUiState = Idle,
                     searchUiState = SearchUiState(),
                     switchTab = {},
                     onSearchTextChanged = {},
@@ -99,7 +101,7 @@ class SearchScreenTest {
             BoxWithConstraints {
                 SearchScreen(
                     tabState = tabState,
-                    localSearchUiState = LocalSearchUiState.Loading,
+                    localSearchUiState = Loading,
                     searchUiState = SearchUiState(),
                     switchTab = {},
                     onSearchTextChanged = {},
@@ -120,36 +122,12 @@ class SearchScreenTest {
     }
 
     @Test
-    fun errorScreen() {
-        composeTestRule.setContent {
-            BoxWithConstraints {
-                SearchScreen(
-                    tabState = tabState,
-                    localSearchUiState = LocalSearchUiState.Error(errorMessage),
-                    searchUiState = SearchUiState(),
-                    switchTab = {},
-                    onSearchTextChanged = {},
-                    onClearClick = {},
-                    onSelectAll = {},
-                    onBlockAll = {},
-                    onEnableAll = {},
-                    switchSelectedMode = {},
-                    onSelect = {},
-                    onDeselect = {},
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithText(errorMessage.title).assertExists()
-    }
-
-    @Test
     fun showClearIcon_whenHaveInput() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 SearchScreen(
                     tabState = tabState,
-                    localSearchUiState = LocalSearchUiState.Idle,
+                    localSearchUiState = Idle,
                     searchUiState = SearchUiState(
                         keyword = TextFieldValue(searchKeyword),
                     ),
@@ -175,18 +153,18 @@ class SearchScreenTest {
     fun showSearchResult_appTab() {
         tabState = TabState(
             items = listOf(
-                SearchScreenTabs.App(1),
-                SearchScreenTabs.Component(),
+                App(1),
+                Component(),
                 SearchScreenTabs.Rule(),
             ),
-            selectedItem = SearchScreenTabs.App(),
+            selectedItem = App(),
         )
 
         composeTestRule.setContent {
             BoxWithConstraints {
                 SearchScreen(
                     tabState = tabState,
-                    localSearchUiState = LocalSearchUiState.Success(
+                    localSearchUiState = Success(
                         searchKeyword = listOf(searchKeyword),
                         appTabUiState = AppTabUiState(listOf(appInfoTestData)),
                         componentTabUiState = ComponentTabUiState(filteredComponentTestData),
@@ -222,18 +200,18 @@ class SearchScreenTest {
     fun showSearchResult_componentTab() {
         tabState = TabState(
             items = listOf(
-                SearchScreenTabs.App(1),
-                SearchScreenTabs.Component(1),
+                App(1),
+                Component(1),
                 SearchScreenTabs.Rule(5),
             ),
-            selectedItem = SearchScreenTabs.Component(1),
+            selectedItem = Component(1),
         )
 
         composeTestRule.setContent {
             BoxWithConstraints {
                 SearchScreen(
                     tabState = tabState,
-                    localSearchUiState = LocalSearchUiState.Success(
+                    localSearchUiState = Success(
                         searchKeyword = listOf(searchKeyword),
                         appTabUiState = AppTabUiState(listOf(appInfoTestData)),
                         componentTabUiState = ComponentTabUiState(filteredComponentTestData),
@@ -269,8 +247,8 @@ class SearchScreenTest {
     fun showSearchResult_ruleTab() {
         tabState = TabState(
             items = listOf(
-                SearchScreenTabs.App(1),
-                SearchScreenTabs.Component(1),
+                App(1),
+                Component(1),
                 SearchScreenTabs.Rule(5),
             ),
             selectedItem = SearchScreenTabs.Rule(5),
@@ -280,7 +258,7 @@ class SearchScreenTest {
             BoxWithConstraints {
                 SearchScreen(
                     tabState = tabState,
-                    localSearchUiState = LocalSearchUiState.Success(
+                    localSearchUiState = Success(
                         searchKeyword = listOf(searchKeyword),
                         appTabUiState = AppTabUiState(listOf(appInfoTestData)),
                         componentTabUiState = ComponentTabUiState(filteredComponentTestData),
