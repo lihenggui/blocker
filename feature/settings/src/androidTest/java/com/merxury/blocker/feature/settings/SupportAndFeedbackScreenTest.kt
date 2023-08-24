@@ -23,12 +23,32 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.merxury.blocker.feature.helpandfeedback.SupportAndFeedbackScreen
 import com.merxury.blocker.feature.settings.R.string
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 class SupportAndFeedbackScreenTest {
     @get:Rule(order = 0)
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+
+    private lateinit var projectHomepage: String
+    private lateinit var ruleRepository: String
+    private lateinit var reportBugsOrSubmitIdeas: String
+    private lateinit var telegramGroup: String
+    private lateinit var designersHomepage: String
+    private lateinit var openSourceLicenses: String
+
+    @Before
+    fun setup() {
+        composeTestRule.activity.apply {
+            projectHomepage = getString(string.feature_settings_project_homepage)
+            ruleRepository = getString(string.feature_settings_rule_repository)
+            reportBugsOrSubmitIdeas = getString(string.feature_settings_report_bugs_or_submit_ideas)
+            telegramGroup = getString(string.feature_settings_telegram_group)
+            designersHomepage = getString(string.feature_settings_designers_homepage)
+            openSourceLicenses = getString(string.feature_settings_open_source_licenses)
+        }
+    }
 
     @Test
     fun showScreen() {
@@ -38,23 +58,12 @@ class SupportAndFeedbackScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText(
-            composeTestRule.activity.resources.getString(string.feature_settings_project_homepage),
-        ).assertExists().assertHasClickAction()
-        composeTestRule.onNodeWithText(
-            composeTestRule.activity.resources.getString(string.feature_settings_rule_repository),
-        ).assertExists().assertHasClickAction()
-        composeTestRule.onNodeWithText(
-            composeTestRule.activity.resources.getString(string.feature_settings_report_bugs_or_submit_ideas),
-        ).assertExists().assertHasClickAction()
-        composeTestRule.onNodeWithText(
-            composeTestRule.activity.resources.getString(string.feature_settings_telegram_group),
-        ).assertExists().assertHasClickAction()
-        composeTestRule.onNodeWithText(
-            composeTestRule.activity.resources.getString(string.feature_settings_designers_homepage),
-        ).assertExists().assertHasClickAction()
-        composeTestRule.onNodeWithText(
-            composeTestRule.activity.resources.getString(string.feature_settings_open_source_licenses),
-        ).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithText(projectHomepage).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithText(ruleRepository).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithText(reportBugsOrSubmitIdeas).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithText(telegramGroup).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithText(designersHomepage).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithText(openSourceLicenses).assertExists().assertHasClickAction()
     }
 }
