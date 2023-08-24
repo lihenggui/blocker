@@ -50,21 +50,26 @@ class SearchScreenTest {
     @get:Rule(order = 0)
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-    private lateinit var tabState: TabState<SearchScreenTabs>
-    private lateinit var searchKeyword: String
+    private var tabState: TabState<SearchScreenTabs> = TabState(
+        items = listOf(
+            App(),
+            Component(),
+            SearchScreenTabs.Rule(),
+        ),
+        selectedItem = App(),
+    )
+    private var searchKeyword: String = "blocker"
+    private lateinit var noSearchResult: String
+    private lateinit var searching: String
+    private lateinit var clearIconDescription: String
 
     @Before
     fun setup() {
-            tabState = TabState(
-                items = listOf(
-                    App(),
-                    Component(),
-                    SearchScreenTabs.Rule(),
-                ),
-                selectedItem = App(),
-            )
-            searchKeyword = "blocker"
-
+        composeTestRule.activity.apply {
+            noSearchResult = getString(string.feature_search_no_search_result)
+            searching = getString(string.feature_search_searching)
+            clearIconDescription = getString(R.string.core_designsystem_clear_icon)
+        }
     }
 
     @Test
@@ -88,9 +93,7 @@ class SearchScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithText(
-            composeTestRule.activity.resources.getString(string.feature_search_no_search_result),
-        ).assertExists()
+        composeTestRule.onNodeWithText(noSearchResult).assertExists()
         composeTestRule.onNodeWithTag("blockerTopAppBar")
             .assertExists()
     }
@@ -116,9 +119,7 @@ class SearchScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription(
-            composeTestRule.activity.resources.getString(string.feature_search_searching),
-        ).assertExists()
+        composeTestRule.onNodeWithContentDescription(searching).assertExists()
     }
 
     @Test
@@ -144,9 +145,7 @@ class SearchScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithContentDescription(
-            composeTestRule.activity.resources.getString(R.string.core_designsystem_clear_icon),
-        ).assertExists()
+        composeTestRule.onNodeWithContentDescription(clearIconDescription).assertExists()
     }
 
     @Test
