@@ -34,7 +34,7 @@ class SettingsScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun loadingScreen() {
+    fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
             BoxWithConstraints {
                 SettingsScreen(
