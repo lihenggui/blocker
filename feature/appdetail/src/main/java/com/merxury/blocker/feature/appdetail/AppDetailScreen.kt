@@ -359,7 +359,7 @@ fun AppDetailContent(
             }
         }
     }
-    updateThemingBasedIconState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
+    updateIconBasedThemingState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
