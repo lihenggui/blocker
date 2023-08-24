@@ -40,12 +40,15 @@ class GeneralRuleScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private lateinit var errorMessage: UiMessage
+    private lateinit var loadingDescription: String
+    private lateinit var error: String
 
     @Before
     fun setup() {
         composeTestRule.activity.apply {
-            errorMessage =
-                UiMessage(composeTestRule.activity.resources.getString(R.string.core_ui_error))
+            error = getString(R.string.core_ui_error)
+            errorMessage = UiMessage(error)
+            loadingDescription = getString(R.string.core_ui_loading)
         }
     }
 
@@ -60,11 +63,7 @@ class GeneralRuleScreenTest {
             }
         }
 
-        composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(R.string.core_ui_loading),
-            )
-            .assertExists()
+        composeTestRule.onNodeWithContentDescription(loadingDescription).assertExists()
     }
 
     @Test
@@ -78,11 +77,7 @@ class GeneralRuleScreenTest {
             }
         }
 
-        composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(R.string.core_ui_error),
-            )
-            .assertExists()
+        composeTestRule.onNodeWithContentDescription(error).assertExists()
         composeTestRule.onNodeWithText(errorMessage.title).assertExists()
     }
 
