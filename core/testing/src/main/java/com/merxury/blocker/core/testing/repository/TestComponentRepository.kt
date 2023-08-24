@@ -52,9 +52,7 @@ class TestComponentRepository : ComponentRepository {
     }
 
     override fun updateComponentList(packageName: String, type: ComponentType): Flow<Result<Unit>> {
-        return componentList.map {
-            Result.Success(Unit)
-        }
+        return flowOf(Result.Success(Unit))
     }
 
     override fun updateComponentList(packageName: String): Flow<Result<Unit>> {
@@ -65,20 +63,12 @@ class TestComponentRepository : ComponentRepository {
         packageName: String,
         componentName: String,
         newState: Boolean,
-    ): Flow<Boolean> {
-        return componentList.map {
-            false
-        }
-    }
+    ): Flow<Boolean> = flowOf(true)
 
     override fun batchControlComponent(
         components: List<ComponentInfo>,
         newState: Boolean,
-    ): Flow<Int> {
-        return componentList.map {
-            0
-        }
-    }
+    ): Flow<Int> = flowOf(components.size)
 
     override fun searchComponent(keyword: String): Flow<List<ComponentInfo>> {
         return componentList.map {

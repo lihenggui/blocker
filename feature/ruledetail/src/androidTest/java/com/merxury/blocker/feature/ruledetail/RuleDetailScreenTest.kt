@@ -64,7 +64,7 @@ class RuleDetailScreenTest {
             loadingDescription = getString(R.string.core_ui_loading)
             moreMenuDescription = getString(uiR.string.core_ui_more_menu)
             applicableApplication = getString(uiR.string.core_ui_applicable_application)
-            expandMore = getString(uiR.string.core_ui_expand_more)
+            expandMore = getString(uiR.string.core_ui_expand_list)
             description = getString(uiR.string.core_ui_description)
         }
     }
@@ -118,7 +118,7 @@ class RuleDetailScreenTest {
             .assertExists()
             .assertIsSelected()
         // Check showing rules matched app list
-        composeTestRule.onNodeWithTag("search:ruleMatchedAppList")
+        composeTestRule.onNodeWithTag("rule:matchedAppList")
             .assertExists()
         composeTestRule.onNodeWithText(ruleMatchedAppListTestData.first().app.label)
             .assertExists()
