@@ -72,11 +72,6 @@ fun MatchedComponentItem(
     var expanded by remember {
         mutableStateOf(false)
     }
-    val expandIconContentDescription = if (expanded) {
-        R.string.core_ui_expand_less
-    } else {
-        R.string.core_ui_expand_more
-    }
     val expandIcon = if (expanded) {
         BlockerIcons.ExpandLess
     } else {
@@ -93,7 +88,11 @@ fun MatchedComponentItem(
             IconButton(onClick = { expanded = !expanded }) {
                 Icon(
                     imageVector = expandIcon,
-                    contentDescription = stringResource(expandIconContentDescription),
+                    contentDescription = if (expanded) {
+                        stringResource(R.string.core_ui_expand_less)
+                    } else {
+                        stringResource(R.string.core_ui_expand_more)
+                    },
                 )
             }
             AppIcon(
