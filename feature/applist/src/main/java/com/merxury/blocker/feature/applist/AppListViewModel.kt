@@ -108,7 +108,7 @@ class AppListViewModel @Inject constructor(
         listenShowSystemAppsChanges()
     }
 
-    fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+    private fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
         // Init DB first to get correct data
         initializeDatabase()
             .takeWhile { it is InitializeState.Initializing }

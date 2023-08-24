@@ -40,17 +40,16 @@ class AppListScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private lateinit var errorMessage: UiMessage
-    private lateinit var processingName: String
-    private lateinit var decending: String
-    private lateinit var appListBottomSheetTag: String
+    private var processingName: String = "Processing..."
+    private lateinit var descending: String
+    private lateinit var error: String
 
     @Before
     fun setup() {
         composeTestRule.activity.apply {
-            errorMessage = UiMessage("Can't find apps in this device.")
-            processingName = "Processing..."
-            decending = getString(R.string.core_ui_descending)
-            appListBottomSheetTag = "appListBottomSheet"
+            error = getString(uiR.string.core_ui_error)
+            errorMessage = UiMessage(error)
+            descending = getString(R.string.core_ui_descending)
         }
     }
 
@@ -85,11 +84,7 @@ class AppListScreenTest {
             }
         }
 
-        composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(uiR.string.core_ui_error),
-            )
-            .assertExists()
+        composeTestRule.onNodeWithContentDescription(error).assertExists()
         composeTestRule.onNodeWithText(errorMessage.title).assertExists()
     }
 
