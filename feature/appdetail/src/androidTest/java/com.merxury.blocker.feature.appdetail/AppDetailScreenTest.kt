@@ -224,7 +224,7 @@ class AppDetailScreenTest {
         }
         composeTestRule.onNodeWithText(appInfoTestData.label).assertExists()
         composeTestRule
-            .onNodeWithTag("AppDetailSummaryContent")
+            .onNodeWithTag("appDetail:summaryContent")
             .assertExists()
         composeTestRule.onNodeWithText(ifwRulesText).assertExists()
     }

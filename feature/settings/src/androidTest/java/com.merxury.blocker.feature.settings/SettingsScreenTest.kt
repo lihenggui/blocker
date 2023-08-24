@@ -62,7 +62,7 @@ class SettingsScreenTest {
             }
         }
 
-        composeTestRule.onNodeWithTag("SettingsContent").assertExists()
+        composeTestRule.onNodeWithTag("settings:content").assertExists()
         composeTestRule.onNodeWithText(
             composeTestRule.activity.resources.getString(string.feature_settings_controller_type),
         ).assertExists().assertHasClickAction()
