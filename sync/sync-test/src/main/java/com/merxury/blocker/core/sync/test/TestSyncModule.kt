@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.testing.util
+package com.merxury.blocker.core.sync.test
 
-import com.merxury.blocker.core.data.util.SyncStatusMonitor
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.merxury.blocker.core.data.util.SyncManager
+import com.merxury.blocker.sync.di.SyncModule
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.components.SingletonComponent
+import dagger.hilt.testing.TestInstallIn
 
-class TestSyncStatusMonitor : SyncStatusMonitor {
-
-    private val syncStatusFlow = MutableStateFlow(false)
-
-    override val isSyncing: Flow<Boolean> = syncStatusFlow
-
-    /**
-     * A test-only API to set the sync status from tests.
-     */
-    fun setSyncing(isSyncing: Boolean) {
-        syncStatusFlow.value = isSyncing
-    }
+@Module
+@TestInstallIn(
+    components = [SingletonComponent::class],
+    replaces = [SyncModule::class],
+)
+interface TestSyncModule {
+    @Binds
+    fun bindsSyncStatusMonitor(
+        syncStatusMonitor: NeverSyncingSyncManager,
+    ): SyncManager
 }
