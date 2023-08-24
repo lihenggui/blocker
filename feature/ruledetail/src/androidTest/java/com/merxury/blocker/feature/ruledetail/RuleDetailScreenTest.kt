@@ -45,18 +45,27 @@ class RuleDetailScreenTest {
     @get:Rule(order = 0)
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-    private lateinit var tabState: TabState<RuleDetailTabs>
+    private var tabState: TabState<RuleDetailTabs> = TabState(
+        items = listOf(
+            Applicable,
+            Description,
+        ),
+        selectedItem = Applicable,
+    )
+    private lateinit var loadingDescription: String
+    private lateinit var moreMenuDescription: String
+    private lateinit var applicableApplication: String
+    private lateinit var expandMore: String
+    private lateinit var description: String
 
     @Before
     fun setup() {
         composeTestRule.activity.apply {
-            tabState = TabState(
-                items = listOf(
-                    Applicable,
-                    Description,
-                ),
-                selectedItem = Applicable,
-            )
+            loadingDescription = getString(R.string.core_ui_loading)
+            moreMenuDescription = getString(uiR.string.core_ui_more_menu)
+            applicableApplication = getString(uiR.string.core_ui_applicable_application)
+            expandMore = getString(uiR.string.core_ui_expand_more)
+            description = getString(uiR.string.core_ui_description)
         }
     }
 
@@ -74,11 +83,7 @@ class RuleDetailScreenTest {
             }
         }
 
-        composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(R.string.core_ui_loading),
-            )
-            .assertExists()
+        composeTestRule.onNodeWithContentDescription(loadingDescription).assertExists()
     }
 
     @Test
@@ -103,17 +108,13 @@ class RuleDetailScreenTest {
 
         // Check more icon is shown, and show a more icon in the app item
         composeTestRule
-            .onAllNodesWithContentDescription(
-                composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
-            )
+            .onAllNodesWithContentDescription(moreMenuDescription)
             .assertCountEquals(2)
         // Check showing rules info
         composeTestRule.onNodeWithText(generalRuleTestData.name)
             .assertExists()
         // Check tab is selected
-        composeTestRule.onNodeWithText(
-            composeTestRule.activity.resources.getString(uiR.string.core_ui_applicable_application),
-        )
+        composeTestRule.onNodeWithText(applicableApplication)
             .assertExists()
             .assertIsSelected()
         // Check showing rules matched app list
@@ -121,10 +122,7 @@ class RuleDetailScreenTest {
             .assertExists()
         composeTestRule.onNodeWithText(ruleMatchedAppListTestData.first().app.label)
             .assertExists()
-        composeTestRule.onNodeWithContentDescription(
-            composeTestRule.activity.resources.getString(uiR.string.core_ui_expand_more),
-        )
-            .assertExists()
+        composeTestRule.onNodeWithContentDescription(expandMore).assertExists()
     }
 
     @Test
@@ -154,16 +152,12 @@ class RuleDetailScreenTest {
 
         // Check more icon is hidden
         composeTestRule
-            .onNodeWithContentDescription(
-                composeTestRule.activity.resources.getString(uiR.string.core_ui_more_menu),
-            )
+            .onNodeWithContentDescription(moreMenuDescription)
             .assertDoesNotExist()
         // Check showing rules detail description
         composeTestRule.onNodeWithText(generalRuleTestData.name)
             .assertExists()
-        composeTestRule.onNodeWithText(
-            composeTestRule.activity.resources.getString(uiR.string.core_ui_description),
-        )
+        composeTestRule.onNodeWithText(description)
             .assertExists()
             .assertIsSelected()
         composeTestRule.onNodeWithTag("ruleDetail:description")
