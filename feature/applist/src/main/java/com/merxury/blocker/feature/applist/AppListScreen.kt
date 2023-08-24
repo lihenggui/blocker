@@ -121,6 +121,7 @@ fun AppListScreen(
     uiState: AppListUiState,
     bottomSheetUiState: AppSortInfoUiState,
     appList: List<AppItem>,
+    modifier: Modifier = Modifier,
     onAppItemClick: (String) -> Unit = {},
     onClearCacheClick: (String) -> Unit = {},
     onClearDataClick: (String) -> Unit = {},
@@ -135,7 +136,6 @@ fun AppListScreen(
     onSortByClick: (AppSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onChangeShowRunningAppsOnTop: (Boolean) -> Unit = {},
-    modifier: Modifier = Modifier,
     isOpenBottomSheet: Boolean = false,
     changeBottomSheetState: (Boolean) -> Unit = {},
 ) {
