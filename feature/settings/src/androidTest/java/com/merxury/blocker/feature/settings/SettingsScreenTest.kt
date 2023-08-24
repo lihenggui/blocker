@@ -82,7 +82,6 @@ class SettingsScreenTest {
             ifwRules = getString(string.feature_settings_ifw_rules)
             exportIfwRules = getString(string.feature_settings_export_ifw_rules)
             importIfwRules = getString(string.feature_settings_import_ifw_rules)
-
         }
     }
 
