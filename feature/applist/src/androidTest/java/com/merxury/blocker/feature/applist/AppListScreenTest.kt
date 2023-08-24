@@ -49,7 +49,7 @@ class AppListScreenTest {
         composeTestRule.activity.apply {
             errorMessage = UiMessage("Can't find apps in this device.")
             processingName = "Processing..."
-            decending = composeTestRule.activity.resources.getString(R.string.core_ui_descending)
+            decending = getString(R.string.core_ui_descending)
             appListBottomSheetTag = "appListBottomSheet"
         }
     }
