@@ -47,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerGradientBackground
@@ -65,6 +66,7 @@ import com.merxury.blocker.navigation.TopLevelDestination
 @OptIn(
     ExperimentalLayoutApi::class,
     ExperimentalComposeUiApi::class,
+    ExperimentalMaterialNavigationApi::class,
 )
 @Composable
 fun BlockerApp(
@@ -137,10 +139,11 @@ fun BlockerApp(
                         // TODO Show the top app bar on top level destinations.
 
                         BlockerNavHost(
+                            bottomSheetNavigator = appState.bottomSheetNavigator,
                             navController = appState.navController,
                             onBackClick = appState::onBackClick,
                             snackbarHostState = snackbarHostState,
-                            updateThemingBasedIconState = updateIconBasedThemingState,
+                            updateIconBasedThemingState = updateIconBasedThemingState,
                         )
                     }
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,14 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+plugins {
+    id("blocker.android.library")
+    id("blocker.android.hilt")
+}
 
-package com.merxury.blocker.core.data.util
+android {
+    namespace = "com.merxury.blocker.core.sync.test"
+}
 
-import kotlinx.coroutines.flow.Flow
-
-/**
- * Reports on if synchronization is in progress
- */
-interface SyncStatusMonitor {
-    val isSyncing: Flow<Boolean>
+dependencies {
+    api(projects.sync.work)
+    implementation(projects.core.data)
+    implementation(projects.core.testing)
 }

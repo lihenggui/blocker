@@ -123,7 +123,7 @@ fun AppDetailRoute(
     navigateToComponentDetail: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -167,7 +167,7 @@ fun AppDetailRoute(
         onSortByClick = viewModel::updateComponentSorting,
         onSortOrderClick = viewModel::updateComponentSortingOrder,
         onShowPriorityClick = viewModel::updateComponentShowPriority,
-        updateThemingBasedIconState = updateThemingBasedIconState,
+        updateIconBasedThemingState = updateIconBasedThemingState,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -178,7 +178,7 @@ fun AppDetailRoute(
     }
     DisposableEffect(Unit) {
         onDispose {
-            updateThemingBasedIconState(IconBasedThemingState(icon = null, isBasedIcon = false))
+            updateIconBasedThemingState(IconBasedThemingState(icon = null, isBasedIcon = false))
         }
     }
     event?.let {
@@ -241,7 +241,7 @@ fun AppDetailScreen(
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit = {},
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -279,7 +279,7 @@ fun AppDetailScreen(
                 onSortByClick = onSortByClick,
                 onSortOrderClick = onSortOrderClick,
                 onShowPriorityClick = onShowPriorityClick,
-                updateThemingBasedIconState = updateThemingBasedIconState,
+                updateIconBasedThemingState = updateIconBasedThemingState,
             )
         }
 
@@ -320,7 +320,7 @@ fun AppDetailContent(
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
-    updateThemingBasedIconState: (IconBasedThemingState) -> Unit,
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
 ) {
     var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
