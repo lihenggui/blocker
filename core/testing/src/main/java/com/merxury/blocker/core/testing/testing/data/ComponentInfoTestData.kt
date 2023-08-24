@@ -21,7 +21,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.data.ComponentItem
 
-val componentInfoTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
+val receiverTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
     ComponentItem(
         name = "AlarmManagerSchedulerBroadcast",
         simpleName = "AlarmManagerSchedulerBroadcast",
@@ -31,7 +31,7 @@ val componentInfoTestData: SnapshotStateList<ComponentItem> = mutableStateListOf
     ),
 )
 
-val componentInfoTestData2: SnapshotStateList<ComponentItem> = mutableStateListOf(
+val activityTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
     ComponentItem(
         name = "AlarmManagerSchedulerBroadcast",
         simpleName = "AlarmManagerSchedulerBroadcast",

@@ -20,7 +20,7 @@ import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 
 val ruleMatchedAppTestData = RuleMatchedApp(
     app = appInfoTestData,
-    componentList = componentInfoTestData,
+    componentList = receiverTestData,
 )
 
 val ruleMatchedAppListTestData = listOf(

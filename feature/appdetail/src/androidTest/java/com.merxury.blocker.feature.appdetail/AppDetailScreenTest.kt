@@ -25,7 +25,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import com.merxury.blocker.core.testing.testing.data.appInfoTestData
-import com.merxury.blocker.core.testing.testing.data.componentInfoTestData
+import com.merxury.blocker.core.testing.testing.data.receiverTestData
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
@@ -144,7 +144,7 @@ class AppDetailScreenTest {
                             MORE,
                         ),
                     ),
-                    componentListUiState = ComponentListUiState(receiver = componentInfoTestData),
+                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
                     tabState = tabState,
                     bottomSheetState = ComponentSortInfoUiState.Loading,
                     onBackClick = {},
@@ -189,7 +189,7 @@ class AppDetailScreenTest {
                         ),
                         isSearchMode = true,
                     ),
-                    componentListUiState = ComponentListUiState(receiver = componentInfoTestData),
+                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
                     tabState = tabState,
                     bottomSheetState = ComponentSortInfoUiState.Loading,
                     onBackClick = {},
@@ -252,7 +252,7 @@ class AppDetailScreenTest {
                         iconBasedTheming = null,
                     ),
                     topAppBarUiState = AppBarUiState(),
-                    componentListUiState = ComponentListUiState(receiver = componentInfoTestData),
+                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
                     tabState = tabState,
                     bottomSheetState = ComponentSortInfoUiState.Loading,
                     onBackClick = {},
@@ -265,7 +265,7 @@ class AppDetailScreenTest {
         composeTestRule
             .onNodeWithTag("component:list")
             .assertExists()
-        composeTestRule.onNodeWithText(componentInfoTestData[0].name).assertExists()
+        composeTestRule.onNodeWithText(receiverTestData[0].name).assertExists()
             .assertHasClickAction()
     }
 }

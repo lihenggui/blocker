@@ -21,9 +21,9 @@ import com.merxury.blocker.core.model.data.FilteredComponent
 val filteredComponentTestData = listOf(
     FilteredComponent(
         app = appInfoTestData,
-        activity = componentInfoTestData,
+        activity = activityTestData,
         service = listOf(),
-        receiver = componentInfoTestData2,
+        receiver = receiverTestData,
         provider = listOf(),
     ),
 )
