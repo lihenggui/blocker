@@ -82,16 +82,16 @@ suspend fun Synchronizer.changeListSync(
     modelUpdater: suspend (String) -> Unit,
 ) = suspendRunCatching {
     // Fetch the change list since last sync (akin to a git fetch)
-    val changes = changeFetcher()
-    if (changes.ruleCommitId.isEmpty()) return@suspendRunCatching true
+    val currentVersion = versionReader(getChangeListVersions())
+    val changedVersion = changeFetcher().ruleCommitId
+    if (changedVersion.isEmpty() || changedVersion == currentVersion) return@suspendRunCatching true
 
     // Using the change list, pull down and save the changes (akin to a git pull)
-    modelUpdater(changes.ruleCommitId)
+    modelUpdater(changedVersion)
 
     // Update the last synced version (akin to updating local git HEAD)
-    val latestVersion = changes.ruleCommitId
     updateChangeListVersions {
-        versionUpdater(latestVersion)
+        versionUpdater(changedVersion)
     }
 }.isSuccess
 
