@@ -251,7 +251,7 @@ fun AppDetailScreen(
         is Success -> {
             AppDetailContent(
                 app = appInfoUiState.appInfo,
-                appIcon = appInfoUiState.iconBasedTheming,
+                iconBasedTheming = appInfoUiState.iconBasedTheming,
                 topAppBarUiState = topAppBarUiState,
                 componentListUiState = componentListUiState,
                 tabState = tabState,
@@ -292,7 +292,7 @@ fun AppDetailScreen(
 @Composable
 fun AppDetailContent(
     app: AppItem,
-    appIcon: Bitmap?,
+    iconBasedTheming: Bitmap?,
     tabState: TabState<AppDetailTabs>,
     componentListUiState: ComponentListUiState,
     bottomSheetState: ComponentSortInfoUiState,
@@ -359,7 +359,7 @@ fun AppDetailContent(
             }
         }
     }
-    updateThemingBasedIconState(IconBasedThemingState(icon = appIcon, isBasedIcon = true))
+    updateThemingBasedIconState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
