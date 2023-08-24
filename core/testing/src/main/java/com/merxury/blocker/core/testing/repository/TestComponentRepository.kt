@@ -23,6 +23,7 @@ import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class TestComponentRepository : ComponentRepository {
@@ -57,9 +58,7 @@ class TestComponentRepository : ComponentRepository {
     }
 
     override fun updateComponentList(packageName: String): Flow<Result<Unit>> {
-        return componentList.map {
-            Result.Success(Unit)
-        }
+        return flowOf(Result.Success(Unit))
     }
 
     override fun controlComponent(
