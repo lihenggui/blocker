@@ -71,7 +71,7 @@ fun RuleMatchedAppList(
             )
             Box(modifier = Modifier.fillMaxSize()) {
                 LazyColumn(
-                    modifier = modifier.testTag("RuleMatchedAppList"),
+                    modifier = modifier.testTag("search:ruleMatchedAppList"),
                     state = listState,
                 ) {
                     items(

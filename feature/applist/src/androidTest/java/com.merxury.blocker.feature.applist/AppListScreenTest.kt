@@ -127,7 +127,7 @@ class AppListScreenTest {
             .performScrollToNode(
                 hasText(appListTestData.last().label),
             )
-        composeTestRule.onNodeWithTag("appListScrollbar")
+        composeTestRule.onNodeWithTag("appList:scrollbar")
             .assertExists()
     }
 
@@ -139,7 +139,7 @@ class AppListScreenTest {
                     uiState = AppListUiState.Success,
                     bottomSheetUiState = AppSortInfoUiState.Loading,
                     appList = appListTestData,
-                    isOpenBottomSheet = true,
+                    isBottomSheetOpened = true,
                 )
             }
         }
@@ -160,7 +160,7 @@ class AppListScreenTest {
                     uiState = AppListUiState.Success,
                     bottomSheetUiState = AppSortInfoUiState.Success(AppSortInfoTestData),
                     appList = appListTestData,
-                    isOpenBottomSheet = true,
+                    isBottomSheetOpened = true,
                 )
             }
         }

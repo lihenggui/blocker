@@ -47,7 +47,7 @@ fun RuleDescription(
             modifier = modifier
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
-                .testTag("RuleDescription"),
+                .testTag("ruleDetail:description"),
         ) {
             InfoItemHeading(description = listOf(rule.description))
             InfoItemHeading(

@@ -265,7 +265,7 @@ fun SettingsContent(
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
-            .testTag("SettingsContent"),
+            .testTag("settings:content"),
     ) {
         BlockerSettings(
             settings = settings,
