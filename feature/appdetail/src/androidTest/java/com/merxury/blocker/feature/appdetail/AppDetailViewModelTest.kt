@@ -22,8 +22,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
 import com.merxury.blocker.core.extension.getPackageInfoCompat
-import com.merxury.blocker.core.model.ComponentType
-import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
@@ -228,50 +226,6 @@ class AppDetailViewModelTest {
     }
 
     @Test
-    fun tabAndAppBarWhenHasSearchKeyword() = runTest {
-        val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
-        val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
-        /*
-                savedStateHandle[tabArg] = RECEIVER
-                savedStateHandle[keywordArg] = "receiver"
-                viewModel.updateSearchKeyword()
-                viewModel.loadTabInfo()
-                assertEquals(
-                    AppBarUiState(
-                        keyword = TextFieldValue("receiver"),
-                        isSearchMode = true,
-                        actions = listOf(
-                            SEARCH, MORE,
-                        ),
-                    ),
-                    viewModel.appBarUiState.value,
-                )
-                assertEquals(
-                    Receiver,
-                    viewModel.tabState.value.selectedItem,
-                )
-        */
-        collectJob1.cancel()
-        collectJob2.cancel()
-    }
-
-    @Test
-    fun componentListUpdateWhenGetData() = runTest {
-        val collectJob =
-            launch(UnconfinedTestDispatcher()) { viewModel.componentListUiState.collect() }
-
-        componentRepository.sendComponentList(componentList)
-        viewModel.loadComponentList()
-        /*
-                assertEquals(1, viewModel.componentListUiState.value.activity.size)
-                assertEquals(1, viewModel.componentListUiState.value.provider.size)
-                assertEquals(1, viewModel.componentListUiState.value.receiver.size)
-                assertEquals(1, viewModel.componentListUiState.value.service.size)
-        */
-        collectJob.cancel()
-    }
-
-    @Test
     fun tabAndAppBarUpdateWhenSwitchTabAndSearch() = runTest {
         val collectJob1 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
         val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
@@ -293,36 +247,6 @@ class AppDetailViewModelTest {
 
         collectJob1.cancel()
         collectJob2.cancel()
-    }
-
-    @Test
-    fun controlAllComponents() = runTest {
-        val collectJob =
-            launch(UnconfinedTestDispatcher()) { viewModel.componentListUiState.collect() }
-
-        componentRepository.sendComponentList(componentList)
-        viewModel.loadComponentList()
-        viewModel.controlAllComponents(true)
-
-        /*
-        assertEquals(
-            true,
-            viewModel.componentListUiState.value.activity.first().pmBlocked,
-        )
-        assertEquals(
-            true,
-            viewModel.componentListUiState.value.provider.first().pmBlocked,
-        )
-        assertEquals(
-            true,
-            viewModel.componentListUiState.value.receiver.first().pmBlocked,
-        )
-        assertEquals(
-            true,
-            viewModel.componentListUiState.value.service.first().pmBlocked,
-        )
-*/
-        collectJob.cancel()
     }
 }
 
@@ -380,48 +304,5 @@ private val sampleAppList = listOf(
         isSystem = true,
         isEnabled = false,
         firstInstallTime = System.now(),
-    ),
-)
-
-private val componentList = listOf(
-    ComponentInfo(
-        name = "Activity",
-        simpleName = "Activity",
-        packageName = "com.merxury.blocker",
-        type = ComponentType.ACTIVITY,
-        exported = true,
-        pmBlocked = false,
-        ifwBlocked = false,
-        description = null,
-    ),
-    ComponentInfo(
-        name = "Provider",
-        simpleName = "Provider",
-        packageName = "com.merxury.blocker",
-        type = ComponentType.PROVIDER,
-        exported = true,
-        pmBlocked = false,
-        ifwBlocked = false,
-        description = null,
-    ),
-    ComponentInfo(
-        name = "Receiver",
-        simpleName = "Receiver",
-        packageName = "com.merxury.blocker",
-        type = ComponentType.RECEIVER,
-        exported = true,
-        pmBlocked = false,
-        ifwBlocked = false,
-        description = null,
-    ),
-    ComponentInfo(
-        name = "Service",
-        simpleName = "Service",
-        packageName = "com.merxury.blocker",
-        type = ComponentType.SERVICE,
-        exported = true,
-        pmBlocked = false,
-        ifwBlocked = false,
-        description = null,
     ),
 )
