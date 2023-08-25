@@ -67,9 +67,7 @@ class AppListScreenTest {
         }
 
         composeTestRule
-            .onNodeWithContentDescription(
-                processingName,
-            )
+            .onNodeWithContentDescription(processingName)
             .assertExists()
     }
 
