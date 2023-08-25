@@ -96,7 +96,8 @@ class AppDetailScreenTest {
         }
 
         composeTestRule
-            .onNodeWithContentDescription(loadingDescription).assertExists()
+            .onNodeWithContentDescription(loadingDescription)
+            .assertExists()
     }
 
     @Test
