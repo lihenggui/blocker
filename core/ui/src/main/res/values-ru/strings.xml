@@ -78,4 +78,5 @@
     <string name="core_ui_off" tools:override="true">закрытие</string>
     <string name="core_ui_collapse_list">Свернуть список</string>
     <string name="core_ui_expand_list">расширить список</string>
+    <string name="core_ui_processing">Обработка</string>
 </resources>
