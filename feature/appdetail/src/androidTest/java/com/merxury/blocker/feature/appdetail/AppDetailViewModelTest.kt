@@ -189,8 +189,9 @@ class AppDetailViewModelTest {
 
     @Test
     fun componentSortInfoUiStateUpdateAfterChanged() = runTest {
-        val collectJob =
-            launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
+        val collectJob = launch(UnconfinedTestDispatcher()) {
+            viewModel.componentSortInfoUiState.collect()
+        }
 
         userDataRepository.sendUserData(sampleUserData)
         viewModel.loadComponentSortInfo()
