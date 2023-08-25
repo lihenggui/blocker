@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.applist
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasText
@@ -56,13 +55,11 @@ class AppListScreenTest {
     @Test
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppListScreen(
-                    uiState = AppListUiState.Initializing(processingName),
-                    bottomSheetUiState = AppSortInfoUiState.Loading,
-                    appList = emptyList(),
-                )
-            }
+            AppListScreen(
+                uiState = AppListUiState.Initializing(processingName),
+                bottomSheetUiState = AppSortInfoUiState.Loading,
+                appList = emptyList(),
+            )
         }
 
         composeTestRule
@@ -75,13 +72,11 @@ class AppListScreenTest {
     @Test
     fun errorIndicator_whenFailToLoadInfo_exists() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppListScreen(
-                    uiState = AppListUiState.Error(errorMessage),
-                    bottomSheetUiState = AppSortInfoUiState.Loading,
-                    appList = emptyList(),
-                )
-            }
+            AppListScreen(
+                uiState = AppListUiState.Error(errorMessage),
+                bottomSheetUiState = AppSortInfoUiState.Loading,
+                appList = emptyList(),
+            )
         }
 
         composeTestRule.onNodeWithContentDescription(error).assertExists()
@@ -91,13 +86,11 @@ class AppListScreenTest {
     @Test
     fun showAppList() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppListScreen(
-                    uiState = AppListUiState.Success,
-                    bottomSheetUiState = AppSortInfoUiState.Loading,
-                    appList = appListTestData,
-                )
-            }
+            AppListScreen(
+                uiState = AppListUiState.Success,
+                bottomSheetUiState = AppSortInfoUiState.Loading,
+                appList = appListTestData,
+            )
         }
 
         composeTestRule.onNodeWithText(appListTestData.first().label)
@@ -108,13 +101,11 @@ class AppListScreenTest {
     @Test
     fun showFastScrollbar_whenAppListMoreThanOneScreen() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppListScreen(
-                    uiState = AppListUiState.Success,
-                    bottomSheetUiState = AppSortInfoUiState.Loading,
-                    appList = appListTestData,
-                )
-            }
+            AppListScreen(
+                uiState = AppListUiState.Success,
+                bottomSheetUiState = AppSortInfoUiState.Loading,
+                appList = appListTestData,
+            )
         }
 
         composeTestRule.onNode(hasScrollToNodeAction())
