@@ -115,7 +115,7 @@ class RuleDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<RuleDetailTabs>> = _tabState.asStateFlow()
-    private val _appBarUiState = MutableStateFlow(AppBarUiState())
+    private val _appBarUiState = MutableStateFlow(AppBarUiState(actions = getAppBarAction()))
     val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
     private var currentSearchKeyword: List<String> = emptyList()
 
@@ -154,7 +154,10 @@ class RuleDetailViewModel @Inject constructor(
             .first()
         val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
         _ruleInfoUiState.update {
-            RuleInfoUiState.Success(ruleInfo = ruleWithIcon, ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context))
+            RuleInfoUiState.Success(
+                ruleInfo = ruleWithIcon,
+                ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
+            )
         }
         currentSearchKeyword = rule.searchKeyword
         loadMatchedApps(rule.searchKeyword)
