@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.settings
 
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -114,7 +115,9 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText(optionsGitlab).assertExists().assertHasClickAction()
         // Theme settings
         composeTestRule.onNodeWithText(themeString).assertExists()
-        composeTestRule.onNodeWithText(dynamicColor).assertExists().assertHasClickAction()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            composeTestRule.onNodeWithText(dynamicColor).assertExists().assertHasClickAction()
+        }
         composeTestRule.onNodeWithText(darkMode).assertExists().assertHasClickAction()
         composeTestRule.onNodeWithText(dark).assertExists().assertHasClickAction()
         // Application list settings
