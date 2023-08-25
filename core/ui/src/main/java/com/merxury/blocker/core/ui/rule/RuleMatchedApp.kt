@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.core.ui.rule
 
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentItem
 
 data class RuleMatchedApp(
     val app: AppItem,

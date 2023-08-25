@@ -32,14 +32,14 @@ import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.toAppServiceStatus
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.applist.model.toAppServiceStatus
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState.Loading
@@ -108,7 +108,7 @@ class AppListViewModel @Inject constructor(
         listenShowSystemAppsChanges()
     }
 
-    fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+    private fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
         // Init DB first to get correct data
         initializeDatabase()
             .takeWhile { it is InitializeState.Initializing }

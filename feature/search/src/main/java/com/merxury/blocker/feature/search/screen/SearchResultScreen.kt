@@ -26,12 +26,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
@@ -39,18 +40,16 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.RuleSearchResultContent
 import com.merxury.blocker.feature.search.SearchScreenTabs
-import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
 import com.merxury.blocker.feature.search.model.SearchUiState
 import kotlinx.coroutines.launch
 
 @Composable
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 fun SearchResultScreen(
     modifier: Modifier,
     tabState: TabState<SearchScreenTabs>,
