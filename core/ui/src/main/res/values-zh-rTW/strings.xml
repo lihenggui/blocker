@@ -75,5 +75,4 @@
     <string name="core_ui_off" tools:override="true">關閉</string>
     <string name="core_ui_collapse_list">折疊列表</string>
     <string name="core_ui_expand_list">展開列表</string>
-    <string name="core_ui_processing">處理中</string>
 </resources>
