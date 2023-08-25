@@ -23,6 +23,7 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.text.input.TextFieldValue
 import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.testing.testing.data.appInfoTestData
@@ -137,8 +138,10 @@ class SearchScreenTest {
                 onDeselect = {},
             )
         }
-
-        composeTestRule.onNodeWithContentDescription(clearIconDescription).assertExists()
+        composeTestRule.onNodeWithText(searchKeyword)
+            .requestFocus()
+        composeTestRule.onNodeWithContentDescription(clearIconDescription)
+            .assertExists()
     }
 
     @Test
