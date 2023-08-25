@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.respository.fake
 
+import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
@@ -42,4 +43,6 @@ class FakeComponentDetailRepository @Inject constructor(
         componentDetail: ComponentDetail,
         userGenerated: Boolean,
     ): Boolean = true
+
+    override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
 }

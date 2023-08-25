@@ -16,10 +16,11 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail
 
+import com.merxury.blocker.core.data.Syncable
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.flow.Flow
 
-interface ComponentDetailRepository {
+interface ComponentDetailRepository : Syncable {
 
     fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
 

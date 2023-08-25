@@ -16,8 +16,8 @@
 
 package com.merxury.blocker.feature.settings
 
+import android.os.Build
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -88,12 +88,10 @@ class SettingsScreenTest {
     @Test
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SettingsScreen(
-                    onNavigationClick = {},
-                    uiState = SettingsUiState.Loading,
-                )
-            }
+            SettingsScreen(
+                onNavigationClick = {},
+                uiState = SettingsUiState.Loading,
+            )
         }
 
         composeTestRule.onNodeWithContentDescription(loadingDescription).assertExists()
@@ -102,14 +100,12 @@ class SettingsScreenTest {
     @Test
     fun showSettings_afterLoading() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SettingsScreen(
-                    onNavigationClick = {},
-                    uiState = SettingsUiState.Success(
-                        userEditableSettingsTestData,
-                    ),
-                )
-            }
+            SettingsScreen(
+                onNavigationClick = {},
+                uiState = SettingsUiState.Success(
+                    userEditableSettingsTestData,
+                ),
+            )
         }
 
         composeTestRule.onNodeWithTag("settings:content").assertExists()
@@ -119,7 +115,9 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText(optionsGitlab).assertExists().assertHasClickAction()
         // Theme settings
         composeTestRule.onNodeWithText(themeString).assertExists()
-        composeTestRule.onNodeWithText(dynamicColor).assertExists().assertHasClickAction()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            composeTestRule.onNodeWithText(dynamicColor).assertExists().assertHasClickAction()
+        }
         composeTestRule.onNodeWithText(darkMode).assertExists().assertHasClickAction()
         composeTestRule.onNodeWithText(dark).assertExists().assertHasClickAction()
         // Application list settings
