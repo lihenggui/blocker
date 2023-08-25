@@ -18,6 +18,7 @@ package com.merxury.blocker.core.testing.testing.data
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.data.ComponentItem
 
@@ -33,17 +34,17 @@ val receiverTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
 
 val activityTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
     ComponentItem(
-        name = "AlarmManagerSchedulerBroadcast",
-        simpleName = "AlarmManagerSchedulerBroadcast",
+        name = "ComponentActivity",
+        simpleName = "ComponentActivity",
         packageName = "com.merxury.blocker",
         pmBlocked = false,
-        type = RECEIVER,
+        type = ACTIVITY,
     ),
     ComponentItem(
-        name = "Broadcast",
-        simpleName = "SchedulerBroadcast",
+        name = "PreviewActivity",
+        simpleName = "PreviewActivity",
         packageName = "com.merxury.blocker",
         pmBlocked = false,
-        type = RECEIVER,
+        type = ACTIVITY,
     ),
 )
