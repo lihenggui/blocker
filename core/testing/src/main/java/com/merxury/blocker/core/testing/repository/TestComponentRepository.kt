@@ -30,6 +30,7 @@ class TestComponentRepository : ComponentRepository {
 
     private val componentList: MutableSharedFlow<List<ComponentInfo>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
+
     override fun getComponent(name: String): Flow<ComponentInfo?> {
         return componentList.map {
             it.find { componentInfo -> componentInfo.name == name }
