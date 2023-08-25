@@ -25,6 +25,13 @@ import com.merxury.blocker.core.network.model.GitLab
 import com.merxury.blocker.core.network.model.NetworkChangeList
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.Call
+import okhttp3.Request
 import retrofit2.Retrofit
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -41,9 +48,6 @@ interface BlockerNetworkApi {
 
     @GET("zh-cn/general.json")
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
-
-    @GET(value = "zh-cn/changeList")
-    suspend fun getGeneralRuleChangeList(): List<NetworkChangeList>
 }
 
 /**
@@ -51,11 +55,13 @@ interface BlockerNetworkApi {
  */
 @Singleton
 class RetrofitBlockerNetwork @Inject constructor(
+    private val okhttpCallFactory: Call.Factory,
     @GitHub private val gitHubNetworkApi: BlockerNetworkApi,
     @GitLab private val gitLabNetworkApi: BlockerNetworkApi,
 ) : BlockerNetworkDataSource {
 
     private var networkApi: BlockerNetworkApi = gitHubNetworkApi
+    private var provider: RuleServerProvider = GITHUB
 
     override suspend fun getComponentData(path: String): NetworkComponentDetail? =
         networkApi.getOnlineComponentData(path)
@@ -63,11 +69,57 @@ class RetrofitBlockerNetwork @Inject constructor(
     override suspend fun getGeneralRules(): List<NetworkGeneralRule> =
         networkApi.getGeneralRules()
 
-    override suspend fun getGeneralRuleChangeList(): List<NetworkChangeList> =
-        networkApi.getGeneralRuleChangeList()
+    override suspend fun getRuleLatestCommitId(): NetworkChangeList {
+        val request = Request.Builder()
+            .url(provider.commitApiUrl)
+            .build()
+        return try {
+            val json = okhttpCallFactory.newCall(request)
+                .await()
+                .body
+                ?.string() ?: ""
+            val commitId = getLatestCommitId(json)
+            NetworkChangeList(commitId)
+        } catch (e: Exception) {
+            Timber.e("Failed to get latest commit id from $provider", e)
+            NetworkChangeList("")
+        }
+    }
+
+    private fun getLatestCommitId(json: String): String {
+        if (json.isBlank()) {
+            Timber.e("Json is blank, cannot get latest commit id.")
+            return ""
+        }
+        try {
+            val elements = Json.parseToJsonElement(json)
+            val firstElementInList = elements.jsonArray.firstOrNull()
+            if (firstElementInList == null) {
+                Timber.e("Cannot get first element in list.")
+                return ""
+            }
+            val commitId = if (provider == GITHUB) {
+                firstElementInList.jsonObject["sha"]?.jsonPrimitive?.content
+            } else {
+                firstElementInList.jsonObject["id"]?.jsonPrimitive?.content
+            }
+            if (commitId.isNullOrBlank()) {
+                Timber.e("Cannot get commit id from json.")
+                return ""
+            }
+            return commitId
+        } catch (e: SerializationException) {
+            Timber.e("The given string is not a valid JSON", e)
+            return ""
+        } catch (e: IllegalArgumentException) {
+            Timber.e("Malformed JSON string", e)
+            return ""
+        }
+    }
 
     override fun changeServerProvider(provider: RuleServerProvider) {
         Timber.d("Switch backend API to $provider")
+        this.provider = provider
         networkApi = if (provider == GITHUB) {
             gitHubNetworkApi
         } else {
