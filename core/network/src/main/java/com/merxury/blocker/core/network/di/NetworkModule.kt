@@ -66,10 +66,11 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideBlockerNetworkDataSource(
+        okHttpCallFactory: Call.Factory,
         @GitHub gitHubNetworkApi: BlockerNetworkApi,
         @GitLab gitLabNetworkApi: BlockerNetworkApi,
     ): BlockerNetworkDataSource {
-        return RetrofitBlockerNetwork(gitHubNetworkApi, gitLabNetworkApi)
+        return RetrofitBlockerNetwork(okHttpCallFactory, gitHubNetworkApi, gitLabNetworkApi)
     }
 
     @Provides

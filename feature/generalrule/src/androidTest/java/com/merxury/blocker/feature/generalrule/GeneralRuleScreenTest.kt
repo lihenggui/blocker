@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.generalrule
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.hasScrollToNodeAction
 import androidx.compose.ui.test.hasText
@@ -55,12 +54,10 @@ class GeneralRuleScreenTest {
     @Test
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                GeneralRulesScreen(
-                    uiState = GeneralRuleUiState.Loading,
-                    navigateToRuleDetail = {},
-                )
-            }
+            GeneralRulesScreen(
+                uiState = GeneralRuleUiState.Loading,
+                navigateToRuleDetail = {},
+            )
         }
 
         composeTestRule.onNodeWithContentDescription(loadingDescription).assertExists()
@@ -69,12 +66,10 @@ class GeneralRuleScreenTest {
     @Test
     fun errorIndicator_whenFailToLoadInfo_exists() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                GeneralRulesScreen(
-                    uiState = GeneralRuleUiState.Error(errorMessage),
-                    navigateToRuleDetail = {},
-                )
-            }
+            GeneralRulesScreen(
+                uiState = GeneralRuleUiState.Error(errorMessage),
+                navigateToRuleDetail = {},
+            )
         }
 
         composeTestRule.onNodeWithContentDescription(error).assertExists()
@@ -84,12 +79,10 @@ class GeneralRuleScreenTest {
     @Test
     fun showRulesList() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                GeneralRulesScreen(
-                    uiState = GeneralRuleUiState.Success(generalRuleListTestData),
-                    navigateToRuleDetail = {},
-                )
-            }
+            GeneralRulesScreen(
+                uiState = GeneralRuleUiState.Success(generalRuleListTestData),
+                navigateToRuleDetail = {},
+            )
         }
 
         composeTestRule.onNodeWithText(generalRuleListTestData.first().name)
@@ -100,12 +93,10 @@ class GeneralRuleScreenTest {
     @Test
     fun showFastScrollbar_whenRulesListMoreThanOneScreen() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                GeneralRulesScreen(
-                    uiState = GeneralRuleUiState.Success(generalRuleListTestData),
-                    navigateToRuleDetail = {},
-                )
-            }
+            GeneralRulesScreen(
+                uiState = GeneralRuleUiState.Success(generalRuleListTestData),
+                navigateToRuleDetail = {},
+            )
         }
 
         composeTestRule.onNode(hasScrollToNodeAction())
