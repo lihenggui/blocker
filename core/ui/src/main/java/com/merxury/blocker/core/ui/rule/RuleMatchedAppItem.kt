@@ -38,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
@@ -47,11 +48,11 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.applist.AppIcon
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.component.ComponentListItem
 
 @Composable
@@ -87,7 +88,11 @@ fun MatchedComponentItem(
             IconButton(onClick = { expanded = !expanded }) {
                 Icon(
                     imageVector = expandIcon,
-                    contentDescription = null,
+                    contentDescription = if (expanded) {
+                        stringResource(R.string.core_ui_collapse_list)
+                    } else {
+                        stringResource(R.string.core_ui_expand_list)
+                    },
                 )
             }
             AppIcon(

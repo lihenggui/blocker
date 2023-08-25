@@ -49,11 +49,11 @@ import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
-import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomsheet.AppSortBottomSheet
 import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState
 import com.merxury.blocker.core.ui.screen.ErrorScreen
@@ -118,23 +118,23 @@ fun AppListScreen(
     uiState: AppListUiState,
     bottomSheetUiState: AppSortInfoUiState,
     appList: List<AppItem>,
-    onAppItemClick: (String) -> Unit,
-    onClearCacheClick: (String) -> Unit,
-    onClearDataClick: (String) -> Unit,
-    onForceStopClick: (String) -> Unit,
-    onUninstallClick: (String) -> Unit,
-    onEnableClick: (String) -> Unit,
-    onDisableClick: (String) -> Unit,
-    onServiceStateUpdate: (String, Int) -> Unit,
-    navigateToSettings: () -> Unit,
-    navigateToSupportAndFeedback: () -> Unit,
-    onSortOptionsClick: () -> Unit,
-    onSortByClick: (AppSorting) -> Unit,
-    onSortOrderClick: (SortingOrder) -> Unit,
-    onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
+    onAppItemClick: (String) -> Unit = {},
+    onClearCacheClick: (String) -> Unit = {},
+    onClearDataClick: (String) -> Unit = {},
+    onForceStopClick: (String) -> Unit = {},
+    onUninstallClick: (String) -> Unit = {},
+    onEnableClick: (String) -> Unit = {},
+    onDisableClick: (String) -> Unit = {},
+    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
+    navigateToSettings: () -> Unit = {},
+    navigateToSupportAndFeedback: () -> Unit = {},
+    onSortOptionsClick: () -> Unit = {},
+    onSortByClick: (AppSorting) -> Unit = {},
+    onSortOrderClick: (SortingOrder) -> Unit = {},
+    onChangeShowRunningAppsOnTop: (Boolean) -> Unit = {},
 ) {
-    var openBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var isBottomSheetOpened by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     Scaffold(
         topBar = {
@@ -145,7 +145,7 @@ fun AppListScreen(
                         onClick = {
                             scope.launch {
                                 onSortOptionsClick()
-                                openBottomSheet = true
+                                isBottomSheetOpened = true
                             }
                         },
                     ) {
@@ -196,12 +196,13 @@ fun AppListScreen(
             }
         }
     }
-    if (openBottomSheet) {
+    if (isBottomSheetOpened) {
         ModalBottomSheet(
-            onDismissRequest = { openBottomSheet = false },
+            onDismissRequest = { isBottomSheetOpened = false },
             sheetState = rememberModalBottomSheetState(
                 skipPartiallyExpanded = true,
             ),
+            modifier = modifier.testTag("appListBottomSheet"),
         ) {
             AppSortBottomSheet(
                 uiState = bottomSheetUiState,
