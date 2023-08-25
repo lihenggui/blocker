@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+      - '!v*-fdroid'
 
 jobs:
   build:
@@ -115,7 +116,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
         with:
-          tag_name: v${{ steps.apk-info.outputs.version-name }}-pre-release
+          tag_name: v${{ steps.apk-info.outputs.version-name }}
           draft: false
           prerelease: true
           append_body: true

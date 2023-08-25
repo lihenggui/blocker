@@ -17,13 +17,13 @@
 package com.merxury.blocker.feature.ruledetail
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.text.input.TextFieldValue
 import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.testing.testing.data.appInfoTestData
@@ -75,13 +75,11 @@ class SearchScreenTest {
     @Test
     fun emptyScreen_whenFirstEnter() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SearchScreen(
-                    tabState = tabState,
-                    localSearchUiState = Idle,
-                    searchUiState = SearchUiState(),
-                )
-            }
+            SearchScreen(
+                tabState = tabState,
+                localSearchUiState = Idle,
+                searchUiState = SearchUiState(),
+            )
         }
 
         composeTestRule.onNodeWithText(noSearchResult).assertExists()
@@ -92,13 +90,11 @@ class SearchScreenTest {
     @Test
     fun loadingScreen_whenSearching() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SearchScreen(
-                    tabState = tabState,
-                    localSearchUiState = Loading,
-                    searchUiState = SearchUiState(),
-                )
-            }
+            SearchScreen(
+                tabState = tabState,
+                localSearchUiState = Loading,
+                searchUiState = SearchUiState(),
+            )
         }
 
         composeTestRule.onNodeWithContentDescription(searching).assertExists()
@@ -107,18 +103,18 @@ class SearchScreenTest {
     @Test
     fun showClearIcon_whenHaveInput() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SearchScreen(
-                    tabState = tabState,
-                    localSearchUiState = Idle,
-                    searchUiState = SearchUiState(
-                        keyword = TextFieldValue(searchKeyword),
-                    ),
-                )
-            }
+            SearchScreen(
+                tabState = tabState,
+                localSearchUiState = Idle,
+                searchUiState = SearchUiState(
+                    keyword = TextFieldValue(searchKeyword),
+                ),
+            )
         }
-
-        composeTestRule.onNodeWithContentDescription(clearIconDescription).assertExists()
+        composeTestRule.onNodeWithText(searchKeyword)
+            .requestFocus()
+        composeTestRule.onNodeWithContentDescription(clearIconDescription)
+            .assertExists()
     }
 
     @Test
@@ -133,21 +129,19 @@ class SearchScreenTest {
         )
 
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SearchScreen(
-                    tabState = tabState,
-                    localSearchUiState = Success(
-                        searchKeyword = listOf(searchKeyword),
-                        appTabUiState = AppTabUiState(listOf(appInfoTestData)),
-                        componentTabUiState = ComponentTabUiState(filteredComponentTestData),
-                        ruleTabUiState = RuleTabUiState(generalRuleListTestData),
-                    ),
-                    searchUiState = SearchUiState(
-                        keyword = TextFieldValue(searchKeyword),
-                    ),
-                    appList = listOf(appInfoTestData),
-                )
-            }
+            SearchScreen(
+                tabState = tabState,
+                localSearchUiState = Success(
+                    searchKeyword = listOf(searchKeyword),
+                    appTabUiState = AppTabUiState(listOf(appInfoTestData)),
+                    componentTabUiState = ComponentTabUiState(filteredComponentTestData),
+                    ruleTabUiState = RuleTabUiState(generalRuleListTestData),
+                ),
+                searchUiState = SearchUiState(
+                    keyword = TextFieldValue(searchKeyword),
+                ),
+                appList = listOf(appInfoTestData),
+            )
         }
 
         composeTestRule.onNodeWithText(searchKeyword).assertExists()
@@ -171,21 +165,19 @@ class SearchScreenTest {
         )
 
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SearchScreen(
-                    tabState = tabState,
-                    localSearchUiState = Success(
-                        searchKeyword = listOf(searchKeyword),
-                        appTabUiState = AppTabUiState(listOf(appInfoTestData)),
-                        componentTabUiState = ComponentTabUiState(filteredComponentTestData),
-                        ruleTabUiState = RuleTabUiState(generalRuleListTestData),
-                    ),
-                    searchUiState = SearchUiState(
-                        keyword = TextFieldValue(searchKeyword),
-                    ),
-                    appList = listOf(appInfoTestData),
-                )
-            }
+            SearchScreen(
+                tabState = tabState,
+                localSearchUiState = Success(
+                    searchKeyword = listOf(searchKeyword),
+                    appTabUiState = AppTabUiState(listOf(appInfoTestData)),
+                    componentTabUiState = ComponentTabUiState(filteredComponentTestData),
+                    ruleTabUiState = RuleTabUiState(generalRuleListTestData),
+                ),
+                searchUiState = SearchUiState(
+                    keyword = TextFieldValue(searchKeyword),
+                ),
+                appList = listOf(appInfoTestData),
+            )
         }
 
         composeTestRule.onNodeWithText(searchKeyword).assertExists()
@@ -209,21 +201,19 @@ class SearchScreenTest {
         )
 
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SearchScreen(
-                    tabState = tabState,
-                    localSearchUiState = Success(
-                        searchKeyword = listOf(searchKeyword),
-                        appTabUiState = AppTabUiState(listOf(appInfoTestData)),
-                        componentTabUiState = ComponentTabUiState(filteredComponentTestData),
-                        ruleTabUiState = RuleTabUiState(generalRuleListTestData),
-                    ),
-                    searchUiState = SearchUiState(
-                        keyword = TextFieldValue(searchKeyword),
-                    ),
-                    appList = listOf(appInfoTestData),
-                )
-            }
+            SearchScreen(
+                tabState = tabState,
+                localSearchUiState = Success(
+                    searchKeyword = listOf(searchKeyword),
+                    appTabUiState = AppTabUiState(listOf(appInfoTestData)),
+                    componentTabUiState = ComponentTabUiState(filteredComponentTestData),
+                    ruleTabUiState = RuleTabUiState(generalRuleListTestData),
+                ),
+                searchUiState = SearchUiState(
+                    keyword = TextFieldValue(searchKeyword),
+                ),
+                appList = listOf(appInfoTestData),
+            )
         }
 
         composeTestRule.onNodeWithText(searchKeyword).assertExists()

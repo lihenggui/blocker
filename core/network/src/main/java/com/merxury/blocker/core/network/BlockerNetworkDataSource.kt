@@ -26,7 +26,7 @@ interface BlockerNetworkDataSource {
 
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
 
-    suspend fun getGeneralRuleChangeList(): List<NetworkChangeList>
+    suspend fun getRuleLatestCommitId(): NetworkChangeList
 
     fun changeServerProvider(provider: RuleServerProvider)
 }
