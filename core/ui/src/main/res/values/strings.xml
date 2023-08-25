@@ -77,5 +77,4 @@
     <string name="core_ui_off" tools:override="true">Off</string>
     <string name="core_ui_collapse_list">Collapse list</string>
     <string name="core_ui_expand_list">Expand more</string>
-    <string name="core_ui_processing">Processing</string>
 </resources>
