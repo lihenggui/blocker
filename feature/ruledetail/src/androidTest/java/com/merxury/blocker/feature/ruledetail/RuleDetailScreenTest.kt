@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.ruledetail
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -72,15 +71,13 @@ class RuleDetailScreenTest {
     @Test
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                RuleDetailScreen(
-                    ruleMatchedAppListUiState = RuleMatchedAppListUiState.Loading,
-                    ruleInfoUiState = RuleInfoUiState.Loading,
-                    onBackClick = {},
-                    tabState = tabState,
-                    switchTab = {},
-                )
-            }
+            RuleDetailScreen(
+                ruleMatchedAppListUiState = RuleMatchedAppListUiState.Loading,
+                ruleInfoUiState = RuleInfoUiState.Loading,
+                onBackClick = {},
+                tabState = tabState,
+                switchTab = {},
+            )
         }
 
         composeTestRule.onNodeWithContentDescription(loadingDescription).assertExists()
@@ -89,21 +86,19 @@ class RuleDetailScreenTest {
     @Test
     fun showRuleApplicableApps_showMoreIconExpandMoreIcon() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                RuleDetailScreen(
-                    ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
-                        ruleMatchedAppListTestData,
-                    ),
-                    ruleInfoUiState = RuleInfoUiState.Success(
-                        ruleInfo = generalRuleTestData,
-                        ruleIcon = null,
-                    ),
-                    onBackClick = {},
-                    tabState = tabState,
-                    switchTab = {},
-                    appBarUiState = AppBarUiState(actions = listOf(MORE)),
-                )
-            }
+            RuleDetailScreen(
+                ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
+                    ruleMatchedAppListTestData,
+                ),
+                ruleInfoUiState = RuleInfoUiState.Success(
+                    ruleInfo = generalRuleTestData,
+                    ruleIcon = null,
+                ),
+                onBackClick = {},
+                tabState = tabState,
+                switchTab = {},
+                appBarUiState = AppBarUiState(actions = listOf(MORE)),
+            )
         }
 
         // Check more icon is shown, and show a more icon in the app item
@@ -135,19 +130,17 @@ class RuleDetailScreenTest {
             selectedItem = Description,
         )
         composeTestRule.setContent {
-            BoxWithConstraints {
-                RuleDetailScreen(
-                    ruleMatchedAppListUiState = RuleMatchedAppListUiState.Loading,
-                    ruleInfoUiState = RuleInfoUiState.Success(
-                        ruleInfo = generalRuleTestData,
-                        ruleIcon = null,
-                    ),
-                    onBackClick = {},
-                    tabState = tabState,
-                    switchTab = {},
-                    appBarUiState = AppBarUiState(actions = listOf()),
-                )
-            }
+            RuleDetailScreen(
+                ruleMatchedAppListUiState = RuleMatchedAppListUiState.Loading,
+                ruleInfoUiState = RuleInfoUiState.Success(
+                    ruleInfo = generalRuleTestData,
+                    ruleIcon = null,
+                ),
+                onBackClick = {},
+                tabState = tabState,
+                switchTab = {},
+                appBarUiState = AppBarUiState(actions = listOf()),
+            )
         }
 
         // Check more icon is hidden
