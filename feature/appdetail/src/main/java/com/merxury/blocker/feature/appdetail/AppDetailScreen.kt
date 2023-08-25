@@ -76,6 +76,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
@@ -95,7 +96,6 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
-import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortBottomSheet
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
@@ -251,7 +251,7 @@ fun AppDetailScreen(
         is Success -> {
             AppDetailContent(
                 app = appInfoUiState.appInfo,
-                appIcon = appInfoUiState.appIcon,
+                iconBasedTheming = appInfoUiState.iconBasedTheming,
                 topAppBarUiState = topAppBarUiState,
                 componentListUiState = componentListUiState,
                 tabState = tabState,
@@ -292,7 +292,7 @@ fun AppDetailScreen(
 @Composable
 fun AppDetailContent(
     app: AppItem,
-    appIcon: Bitmap?,
+    iconBasedTheming: Bitmap?,
     tabState: TabState<AppDetailTabs>,
     componentListUiState: ComponentListUiState,
     bottomSheetState: ComponentSortInfoUiState,
@@ -359,7 +359,7 @@ fun AppDetailContent(
             }
         }
     }
-    updateIconBasedThemingState(IconBasedThemingState(icon = appIcon, isBasedIcon = true))
+    updateIconBasedThemingState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
@@ -630,7 +630,7 @@ fun AppDetailScreenPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, appIcon = null),
+                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
                 bottomSheetState = ComponentSortInfoUiState.Success(
                     ComponentSortInfo(),
                 ),
@@ -679,7 +679,7 @@ fun AppDetailScreenCollapsedPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, appIcon = null),
+                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
                 bottomSheetState = ComponentSortInfoUiState.Success(
                     ComponentSortInfo(),
                 ),

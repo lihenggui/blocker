@@ -53,11 +53,11 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.feature.search.R
 import com.merxury.blocker.feature.search.R.string
-import com.merxury.blocker.feature.search.model.FilteredComponent
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

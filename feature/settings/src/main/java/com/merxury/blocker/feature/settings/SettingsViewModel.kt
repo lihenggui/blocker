@@ -29,10 +29,9 @@ import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -309,18 +308,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 }
-
-data class UserEditableSettings(
-    val controllerType: ControllerType = IFW,
-    val ruleServerProvider: RuleServerProvider = GITHUB,
-    val ruleBackupFolder: String = "",
-    val backupSystemApp: Boolean = false,
-    val restoreSystemApp: Boolean = false,
-    val showSystemApps: Boolean = false,
-    val showServiceInfo: Boolean = false,
-    val darkThemeConfig: DarkThemeConfig,
-    val useDynamicColor: Boolean,
-)
 
 sealed interface SettingsUiState {
     data object Loading : SettingsUiState

@@ -19,7 +19,9 @@ package com.merxury.blocker.core.controllers.di
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.ifw.IfwController
 import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
+import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -36,4 +38,7 @@ interface ControllerModule {
 
     @Binds
     fun bindsShizukuController(shizukuController: ShizukuController): IController
+
+    @Binds
+    fun bindsShizukuInitializer(shizukuInitializer: ShizukuInitializer): IShizukuInitializer
 }

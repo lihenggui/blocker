@@ -32,12 +32,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.TrackScrollJank
-import com.merxury.blocker.core.ui.applist.model.AppItem
 
 @Composable
 fun AppList(
@@ -92,7 +93,8 @@ fun AppList(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
-                .align(Alignment.CenterEnd),
+                .align(Alignment.CenterEnd)
+                .testTag("appList:scrollbar"),
             state = scrollbarState,
             orientation = Orientation.Vertical,
             onThumbDisplaced = listState.rememberFastScroller(

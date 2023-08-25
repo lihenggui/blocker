@@ -33,11 +33,11 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
     }
 
     companion object {
-        private const val INFO = "info"
-        private const val RECEIVER = "receiver"
-        private const val SERVICE = "service"
-        private const val ACTIVITY = "activity"
-        private const val PROVIDER = "provider"
+        const val INFO = "info"
+        const val RECEIVER = "receiver"
+        const val SERVICE = "service"
+        const val ACTIVITY = "activity"
+        const val PROVIDER = "provider"
 
         fun fromName(name: String?): AppDetailTabs = when (name) {
             INFO -> Info
