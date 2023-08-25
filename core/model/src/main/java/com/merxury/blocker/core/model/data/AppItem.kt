@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.applist.model
+package com.merxury.blocker.core.model.data
 
 import android.content.pm.PackageInfo
-import com.merxury.blocker.core.model.data.InstalledApp
 import kotlinx.datetime.Instant
 
 /**

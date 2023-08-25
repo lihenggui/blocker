@@ -27,12 +27,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.DARK
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.LIGHT
 import com.merxury.blocker.feature.settings.R.string
-import com.merxury.blocker.feature.settings.UserEditableSettings
 
 @Composable
 fun ThemeSettings(

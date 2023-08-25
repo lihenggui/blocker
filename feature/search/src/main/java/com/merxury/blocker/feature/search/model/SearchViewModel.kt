@@ -33,19 +33,19 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.InstalledApp
+import com.merxury.blocker.core.model.data.toAppItem
+import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.applist.model.toAppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
-import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.feature.search.SearchScreenTabs
@@ -356,14 +356,6 @@ data class ComponentTabUiState(
 
 data class RuleTabUiState(
     val list: List<GeneralRule> = listOf(),
-)
-
-data class FilteredComponent(
-    val app: AppItem,
-    val activity: List<ComponentItem> = listOf(),
-    val service: List<ComponentItem> = listOf(),
-    val receiver: List<ComponentItem> = listOf(),
-    val provider: List<ComponentItem> = listOf(),
 )
 
 data class SearchUiState(

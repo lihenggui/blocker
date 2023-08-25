@@ -57,8 +57,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.ui.R.string
-import com.merxury.blocker.core.ui.applist.model.AppServiceStatus
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
