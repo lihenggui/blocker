@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.testing.repository
 
+import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
@@ -55,6 +56,8 @@ class TestComponentDetailRepository : ComponentDetailRepository {
         componentDetail: ComponentDetail,
         userGenerated: Boolean,
     ): Boolean = true
+
+    override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
 
     fun sendComponentDetail(componentDetail: ComponentDetail) {
         this.componentDetail.tryEmit(componentDetail)

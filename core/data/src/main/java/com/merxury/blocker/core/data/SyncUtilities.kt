@@ -1,4 +1,5 @@
 /*
+ * Copyright 2023 Blocker
  * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,38 +68,30 @@ private suspend fun <T> suspendRunCatching(block: suspend () -> T): Result<T> = 
 /**
  * Utility function for syncing a repository with the network.
  * [versionReader] Reads the current version of the model that needs to be synced
- * [changeListFetcher] Fetches the change list for the model
+ * [changeFetcher] Fetches the changes for the model
  * [versionUpdater] Updates the [ChangeListVersions] after a successful sync
- * [modelDeleter] Deletes models by consuming the ids of the models that have been deleted.
  * [modelUpdater] Updates models by consuming the ids of the models that have changed.
  *
  * Note that the blocks defined above are never run concurrently, and the [Synchronizer]
  * implementation must guarantee this.
  */
 suspend fun Synchronizer.changeListSync(
-    versionReader: (ChangeListVersions) -> Int,
-    changeListFetcher: suspend (Int) -> List<NetworkChangeList>,
-    versionUpdater: ChangeListVersions.(Int) -> ChangeListVersions,
-    modelDeleter: suspend (List<Int>) -> Unit,
-    modelUpdater: suspend (List<Int>) -> Unit,
+    versionReader: (ChangeListVersions) -> String,
+    changeFetcher: suspend () -> NetworkChangeList,
+    versionUpdater: ChangeListVersions.(String) -> ChangeListVersions,
+    modelUpdater: suspend (String) -> Unit,
 ) = suspendRunCatching {
     // Fetch the change list since last sync (akin to a git fetch)
     val currentVersion = versionReader(getChangeListVersions())
-    val changeList = changeListFetcher(currentVersion)
-    if (changeList.isEmpty()) return@suspendRunCatching true
-
-    val (deleted, updated) = changeList.partition(NetworkChangeList::isDelete)
-
-    // Delete models that have been deleted server-side
-    modelDeleter(deleted.map(NetworkChangeList::id))
+    val changedVersion = changeFetcher().ruleCommitId
+    if (changedVersion.isEmpty() || changedVersion == currentVersion) return@suspendRunCatching true
 
     // Using the change list, pull down and save the changes (akin to a git pull)
-    modelUpdater(updated.map(NetworkChangeList::id))
+    modelUpdater(changedVersion)
 
     // Update the last synced version (akin to updating local git HEAD)
-    val latestVersion = changeList.last().changeListVersion
     updateChangeListVersions {
-        versionUpdater(latestVersion)
+        versionUpdater(changedVersion)
     }
 }.isSuccess
 

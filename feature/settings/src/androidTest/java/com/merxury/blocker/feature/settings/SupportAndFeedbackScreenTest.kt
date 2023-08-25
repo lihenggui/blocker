@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.settings
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -53,9 +52,7 @@ class SupportAndFeedbackScreenTest {
     @Test
     fun showScreen() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SupportAndFeedbackScreen()
-            }
+            SupportAndFeedbackScreen()
         }
 
         composeTestRule.onNodeWithText(projectHomepage).assertExists().assertHasClickAction()

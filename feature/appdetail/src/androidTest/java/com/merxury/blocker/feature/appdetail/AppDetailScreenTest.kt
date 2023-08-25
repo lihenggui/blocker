@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.appdetail
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -81,18 +80,16 @@ class AppDetailScreenTest {
     @Test
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppDetailScreen(
-                    appInfoUiState = AppInfoUiState.Loading,
-                    topAppBarUiState = AppBarUiState(),
-                    componentListUiState = ComponentListUiState(),
-                    tabState = tabState,
-                    bottomSheetState = ComponentSortInfoUiState.Loading,
-                    onBackClick = {},
-                    onLaunchAppClick = {},
-                    switchTab = {},
-                )
-            }
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Loading,
+                topAppBarUiState = AppBarUiState(),
+                componentListUiState = ComponentListUiState(),
+                tabState = tabState,
+                bottomSheetState = ComponentSortInfoUiState.Loading,
+                onBackClick = {},
+                onLaunchAppClick = {},
+                switchTab = {},
+            )
         }
 
         composeTestRule
@@ -103,18 +100,16 @@ class AppDetailScreenTest {
     @Test
     fun errorIndicator_whenFailToLoadInfo_exists() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppDetailScreen(
-                    appInfoUiState = AppInfoUiState.Error(errorMessage),
-                    topAppBarUiState = AppBarUiState(),
-                    componentListUiState = ComponentListUiState(),
-                    tabState = tabState,
-                    bottomSheetState = ComponentSortInfoUiState.Loading,
-                    onBackClick = {},
-                    onLaunchAppClick = {},
-                    switchTab = {},
-                )
-            }
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Error(errorMessage),
+                topAppBarUiState = AppBarUiState(),
+                componentListUiState = ComponentListUiState(),
+                tabState = tabState,
+                bottomSheetState = ComponentSortInfoUiState.Loading,
+                onBackClick = {},
+                onLaunchAppClick = {},
+                switchTab = {},
+            )
         }
 
         composeTestRule.onNodeWithContentDescription(error).assertExists()
@@ -132,26 +127,24 @@ class AppDetailScreenTest {
                 selectedItem = Receiver,
             )
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppDetailScreen(
-                    appInfoUiState = AppInfoUiState.Success(
-                        appInfo = appInfoTestData,
-                        iconBasedTheming = null,
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Success(
+                    appInfo = appInfoTestData,
+                    iconBasedTheming = null,
+                ),
+                topAppBarUiState = AppBarUiState(
+                    actions = listOf(
+                        SEARCH,
+                        MORE,
                     ),
-                    topAppBarUiState = AppBarUiState(
-                        actions = listOf(
-                            SEARCH,
-                            MORE,
-                        ),
-                    ),
-                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
-                    tabState = tabState,
-                    bottomSheetState = ComponentSortInfoUiState.Loading,
-                    onBackClick = {},
-                    onLaunchAppClick = {},
-                    switchTab = {},
-                )
-            }
+                ),
+                componentListUiState = ComponentListUiState(receiver = receiverTestData),
+                tabState = tabState,
+                bottomSheetState = ComponentSortInfoUiState.Loading,
+                onBackClick = {},
+                onLaunchAppClick = {},
+                switchTab = {},
+            )
         }
         composeTestRule
             .onNodeWithContentDescription(searchIconDescription).assertExists()
@@ -170,27 +163,25 @@ class AppDetailScreenTest {
                 selectedItem = Receiver,
             )
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppDetailScreen(
-                    appInfoUiState = AppInfoUiState.Success(
-                        appInfo = appInfoTestData,
-                        iconBasedTheming = null,
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Success(
+                    appInfo = appInfoTestData,
+                    iconBasedTheming = null,
+                ),
+                topAppBarUiState = AppBarUiState(
+                    actions = listOf(
+                        SEARCH,
+                        MORE,
                     ),
-                    topAppBarUiState = AppBarUiState(
-                        actions = listOf(
-                            SEARCH,
-                            MORE,
-                        ),
-                        isSearchMode = true,
-                    ),
-                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
-                    tabState = tabState,
-                    bottomSheetState = ComponentSortInfoUiState.Loading,
-                    onBackClick = {},
-                    onLaunchAppClick = {},
-                    switchTab = {},
-                )
-            }
+                    isSearchMode = true,
+                ),
+                componentListUiState = ComponentListUiState(receiver = receiverTestData),
+                tabState = tabState,
+                bottomSheetState = ComponentSortInfoUiState.Loading,
+                onBackClick = {},
+                onLaunchAppClick = {},
+                switchTab = {},
+            )
         }
         composeTestRule
             .onNodeWithTag("BlockerSearchTextField")
@@ -200,21 +191,19 @@ class AppDetailScreenTest {
     @Test
     fun showAppInfo() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppDetailScreen(
-                    appInfoUiState = AppInfoUiState.Success(
-                        appInfo = appInfoTestData,
-                        iconBasedTheming = null,
-                    ),
-                    topAppBarUiState = AppBarUiState(),
-                    componentListUiState = ComponentListUiState(),
-                    tabState = tabState,
-                    bottomSheetState = ComponentSortInfoUiState.Loading,
-                    onBackClick = {},
-                    onLaunchAppClick = {},
-                    switchTab = {},
-                )
-            }
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Success(
+                    appInfo = appInfoTestData,
+                    iconBasedTheming = null,
+                ),
+                topAppBarUiState = AppBarUiState(),
+                componentListUiState = ComponentListUiState(),
+                tabState = tabState,
+                bottomSheetState = ComponentSortInfoUiState.Loading,
+                onBackClick = {},
+                onLaunchAppClick = {},
+                switchTab = {},
+            )
         }
         composeTestRule.onNodeWithText(appInfoTestData.label).assertExists()
         composeTestRule
@@ -239,21 +228,19 @@ class AppDetailScreenTest {
                 itemCount = itemCountMap,
             )
         composeTestRule.setContent {
-            BoxWithConstraints {
-                AppDetailScreen(
-                    appInfoUiState = AppInfoUiState.Success(
-                        appInfo = appInfoTestData,
-                        iconBasedTheming = null,
-                    ),
-                    topAppBarUiState = AppBarUiState(),
-                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
-                    tabState = tabState,
-                    bottomSheetState = ComponentSortInfoUiState.Loading,
-                    onBackClick = {},
-                    onLaunchAppClick = {},
-                    switchTab = {},
-                )
-            }
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Success(
+                    appInfo = appInfoTestData,
+                    iconBasedTheming = null,
+                ),
+                topAppBarUiState = AppBarUiState(),
+                componentListUiState = ComponentListUiState(receiver = receiverTestData),
+                tabState = tabState,
+                bottomSheetState = ComponentSortInfoUiState.Loading,
+                onBackClick = {},
+                onLaunchAppClick = {},
+                switchTab = {},
+            )
         }
         composeTestRule.onNodeWithText(receiverText).assertExists().assertIsSelected()
         composeTestRule
