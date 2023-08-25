@@ -31,6 +31,7 @@ class TestGeneralRuleRepository : GeneralRuleRepository {
      */
     private val rulesFlow: MutableSharedFlow<List<GeneralRule>> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
+
     override fun getGeneralRules(): Flow<List<GeneralRule>> = rulesFlow
 
     override fun getGeneralRule(id: Int): Flow<GeneralRule> {
@@ -42,7 +43,7 @@ class TestGeneralRuleRepository : GeneralRuleRepository {
     }
 
     override suspend fun saveGeneralRule(rule: GeneralRule) {
-        rulesFlow.tryEmit(listOf(rule))
+        // no-op
     }
 
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> {

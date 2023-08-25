@@ -46,7 +46,8 @@ internal class ContinuationCallback(
     override fun invoke(cause: Throwable?) {
         try {
             call.cancel()
-        } catch (_: Throwable) {}
+        } catch (_: Throwable) {
+        }
     }
 }
 

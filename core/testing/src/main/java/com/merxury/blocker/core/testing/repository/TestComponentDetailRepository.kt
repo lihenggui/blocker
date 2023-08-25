@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.map
 class TestComponentDetailRepository : ComponentDetailRepository {
     private val componentDetail: MutableSharedFlow<ComponentDetail> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
+
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> {
         return componentDetail.map {
             it.takeIf { componentDetail -> componentDetail.name == name }

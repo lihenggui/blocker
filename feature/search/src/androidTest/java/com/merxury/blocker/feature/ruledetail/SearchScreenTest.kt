@@ -79,15 +79,6 @@ class SearchScreenTest {
                 tabState = tabState,
                 localSearchUiState = Idle,
                 searchUiState = SearchUiState(),
-                switchTab = {},
-                onSearchTextChanged = {},
-                onClearClick = {},
-                onSelectAll = {},
-                onBlockAll = {},
-                onEnableAll = {},
-                switchSelectedMode = {},
-                onSelect = {},
-                onDeselect = {},
             )
         }
 
@@ -103,15 +94,6 @@ class SearchScreenTest {
                 tabState = tabState,
                 localSearchUiState = Loading,
                 searchUiState = SearchUiState(),
-                switchTab = {},
-                onSearchTextChanged = {},
-                onClearClick = {},
-                onSelectAll = {},
-                onBlockAll = {},
-                onEnableAll = {},
-                switchSelectedMode = {},
-                onSelect = {},
-                onDeselect = {},
             )
         }
 
@@ -127,15 +109,6 @@ class SearchScreenTest {
                 searchUiState = SearchUiState(
                     keyword = TextFieldValue(searchKeyword),
                 ),
-                switchTab = {},
-                onSearchTextChanged = {},
-                onClearClick = {},
-                onSelectAll = {},
-                onBlockAll = {},
-                onEnableAll = {},
-                switchSelectedMode = {},
-                onSelect = {},
-                onDeselect = {},
             )
         }
         composeTestRule.onNodeWithText(searchKeyword)
@@ -167,15 +140,6 @@ class SearchScreenTest {
                 searchUiState = SearchUiState(
                     keyword = TextFieldValue(searchKeyword),
                 ),
-                switchTab = {},
-                onSearchTextChanged = {},
-                onClearClick = {},
-                onSelectAll = {},
-                onBlockAll = {},
-                onEnableAll = {},
-                switchSelectedMode = {},
-                onSelect = {},
-                onDeselect = {},
                 appList = listOf(appInfoTestData),
             )
         }
@@ -212,15 +176,6 @@ class SearchScreenTest {
                 searchUiState = SearchUiState(
                     keyword = TextFieldValue(searchKeyword),
                 ),
-                switchTab = {},
-                onSearchTextChanged = {},
-                onClearClick = {},
-                onSelectAll = {},
-                onBlockAll = {},
-                onEnableAll = {},
-                switchSelectedMode = {},
-                onSelect = {},
-                onDeselect = {},
                 appList = listOf(appInfoTestData),
             )
         }
@@ -257,15 +212,6 @@ class SearchScreenTest {
                 searchUiState = SearchUiState(
                     keyword = TextFieldValue(searchKeyword),
                 ),
-                switchTab = {},
-                onSearchTextChanged = {},
-                onClearClick = {},
-                onSelectAll = {},
-                onBlockAll = {},
-                onEnableAll = {},
-                switchSelectedMode = {},
-                onSelect = {},
-                onDeselect = {},
                 appList = listOf(appInfoTestData),
             )
         }
