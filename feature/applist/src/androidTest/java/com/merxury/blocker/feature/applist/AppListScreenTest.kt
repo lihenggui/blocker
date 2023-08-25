@@ -39,9 +39,10 @@ class AppListScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private lateinit var errorMessage: UiMessage
-    private var processingName: String = "Processing..."
+    private var processingAppName: String = "blocker"
     private lateinit var descending: String
     private lateinit var error: String
+    private lateinit var initializingDatabase: String
 
     @Before
     fun setup() {
@@ -49,6 +50,7 @@ class AppListScreenTest {
             error = getString(uiR.string.core_ui_error)
             errorMessage = UiMessage(error)
             descending = getString(R.string.core_ui_descending)
+            initializingDatabase = getString(R.string.core_ui_initializing_database)
         }
     }
 
@@ -56,16 +58,17 @@ class AppListScreenTest {
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
             AppListScreen(
-                uiState = AppListUiState.Initializing(processingName),
+                uiState = AppListUiState.Initializing(processingAppName),
                 bottomSheetUiState = AppSortInfoUiState.Loading,
                 appList = emptyList(),
             )
         }
 
         composeTestRule
-            .onNodeWithContentDescription(
-                processingName,
-            )
+            .onNodeWithContentDescription(processingAppName)
+            .assertExists()
+        composeTestRule
+            .onNodeWithText(initializingDatabase)
             .assertExists()
     }
 

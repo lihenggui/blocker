@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.map
 
 class TestAppRepository : AppRepository {
     private val appListFlow = MutableSharedFlow<List<InstalledApp>>(replay = 1, onBufferOverflow = DROP_OLDEST)
+
     override fun getApplicationList(): Flow<List<InstalledApp>> = appListFlow
 
     override fun updateApplication(packageName: String): Flow<Result<Unit>> {
