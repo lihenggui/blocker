@@ -39,8 +39,8 @@ import coil.request.ImageRequest.Builder
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.ui.applist.model.AppItem
 
 @Composable
 fun BottomSheetTopBar(
