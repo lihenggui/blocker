@@ -40,7 +40,7 @@ class AppListScreenTest {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private lateinit var errorMessage: UiMessage
-    private var processingName: String = "Processing..."
+    private lateinit var processingName: String
     private lateinit var descending: String
     private lateinit var error: String
 
@@ -50,6 +50,7 @@ class AppListScreenTest {
             error = getString(uiR.string.core_ui_error)
             errorMessage = UiMessage(error)
             descending = getString(R.string.core_ui_descending)
+            processingName = getString(R.string.core_ui_processing)
         }
     }
 
