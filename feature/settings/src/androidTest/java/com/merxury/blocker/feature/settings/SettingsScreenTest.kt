@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.settings
 
 import androidx.activity.ComponentActivity
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -88,12 +87,10 @@ class SettingsScreenTest {
     @Test
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SettingsScreen(
-                    onNavigationClick = {},
-                    uiState = SettingsUiState.Loading,
-                )
-            }
+            SettingsScreen(
+                onNavigationClick = {},
+                uiState = SettingsUiState.Loading,
+            )
         }
 
         composeTestRule.onNodeWithContentDescription(loadingDescription).assertExists()
@@ -102,14 +99,12 @@ class SettingsScreenTest {
     @Test
     fun showSettings_afterLoading() {
         composeTestRule.setContent {
-            BoxWithConstraints {
-                SettingsScreen(
-                    onNavigationClick = {},
-                    uiState = SettingsUiState.Success(
-                        userEditableSettingsTestData,
-                    ),
-                )
-            }
+            SettingsScreen(
+                onNavigationClick = {},
+                uiState = SettingsUiState.Success(
+                    userEditableSettingsTestData,
+                ),
+            )
         }
 
         composeTestRule.onNodeWithTag("settings:content").assertExists()
