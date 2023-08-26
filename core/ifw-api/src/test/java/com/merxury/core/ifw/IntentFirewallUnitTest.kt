@@ -55,19 +55,19 @@ class IntentFirewallUnitTest {
         val deserializedRule = xml.decodeFromString<Rules>(fileContent)
         val targetRule = Rules(
             activity = Activity(
-                componentFilter = mutableListOf(
+                componentFilter = mutableSetOf(
                     ComponentFilter("com.example/com.example.MainActivity"),
                 ),
             ),
             service = Service(
-                componentFilter = mutableListOf(
+                componentFilter = mutableSetOf(
                     ComponentFilter("com.example/com.example.DaemonService"),
                     ComponentFilter("com.example/com.example.ForwardService"),
                     ComponentFilter("com.example/com.example.VpnService"),
                 ),
             ),
             broadcast = Broadcast(
-                componentFilter = mutableListOf(
+                componentFilter = mutableSetOf(
                     ComponentFilter("com.example/com.example.AlarmReceiver"),
                     ComponentFilter("com.example/com.example.BootReceiver"),
                     ComponentFilter("com.example/com.example.NotifierReceiver"),
@@ -82,19 +82,19 @@ class IntentFirewallUnitTest {
     fun verifyXmlSerializer() {
         val targetRule = Rules(
             activity = Activity(
-                componentFilter = mutableListOf(
+                componentFilter = mutableSetOf(
                     ComponentFilter("com.example/com.example.MainActivity"),
                 ),
             ),
             service = Service(
-                componentFilter = mutableListOf(
+                componentFilter = mutableSetOf(
                     ComponentFilter("com.example/com.example.DaemonService"),
                     ComponentFilter("com.example/com.example.ForwardService"),
                     ComponentFilter("com.example/com.example.VpnService"),
                 ),
             ),
             broadcast = Broadcast(
-                componentFilter = mutableListOf(
+                componentFilter = mutableSetOf(
                     ComponentFilter("com.example/com.example.AlarmReceiver"),
                     ComponentFilter("com.example/com.example.BootReceiver"),
                     ComponentFilter("com.example/com.example.NotifierReceiver"),
