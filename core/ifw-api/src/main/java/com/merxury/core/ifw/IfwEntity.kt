@@ -70,27 +70,27 @@ sealed class Component {
     abstract val intentFilter: IntentFilter?
 
     @XmlElement(value = true)
-    abstract val componentFilter: MutableList<ComponentFilter>
+    abstract val componentFilter: MutableSet<ComponentFilter>
 
     @Serializable
     @XmlSerialName(value = "activity")
     data class Activity(
         override val intentFilter: IntentFilter? = null,
-        override val componentFilter: MutableList<ComponentFilter> = mutableListOf(),
+        override val componentFilter: MutableSet<ComponentFilter> = mutableSetOf(),
     ) : Component()
 
     @Serializable
     @XmlSerialName("broadcast")
     data class Broadcast(
         override val intentFilter: IntentFilter? = null,
-        override val componentFilter: MutableList<ComponentFilter> = mutableListOf(),
+        override val componentFilter: MutableSet<ComponentFilter> = mutableSetOf(),
     ) : Component()
 
     @Serializable
     @XmlSerialName("service")
     data class Service(
         override val intentFilter: IntentFilter? = null,
-        override val componentFilter: MutableList<ComponentFilter> = mutableListOf(),
+        override val componentFilter: MutableSet<ComponentFilter> = mutableSetOf(),
     ) : Component()
 }
 
