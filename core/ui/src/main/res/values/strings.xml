@@ -23,7 +23,7 @@
     <string name="core_ui_running">Running</string>
     <string name="core_ui_disabled">Disabled</string>
     <string name="core_ui_version_code_template" translatable="false">%1$s (%2$s)</string>
-    <string name="core_ui_service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
+    <string name="core_ui_service_status_template" tools:ignore="PluralsCandidate">Service: %1$d running, %2$d blocked, %3$d in total.</string>
     <string name="core_ui_service">Service</string>
     <string name="core_ui_receiver">Receiver</string>
     <string name="core_ui_activity">Activity</string>
