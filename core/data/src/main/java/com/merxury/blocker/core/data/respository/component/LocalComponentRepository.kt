@@ -141,6 +141,7 @@ class LocalComponentRepository @Inject constructor(
             PM -> pmController
             SHIZUKU -> shizukuController
         }
+        var count = 0
         // Filter providers first in the list if preferred controller is IFW
         if (userData.controllerType == IFW) {
             // IFW doesn't have the ability to enable/disable providers
@@ -151,6 +152,7 @@ class LocalComponentRepository @Inject constructor(
                 } else {
                     pmController.disable(it.packageName, it.name)
                 }
+                emit(++count)
             }
             // if users want to enable the component, check if it's blocked by PM controller
             if (newState) {
@@ -162,16 +164,17 @@ class LocalComponentRepository @Inject constructor(
                 }
             }
         }
-        val result = if (newState) {
+        if (newState) {
             controller.batchEnable(list) {
                 updateComponentStatus(it.packageName, it.name)
+                emit(++count)
             }
         } else {
             controller.batchDisable(list) {
                 updateComponentStatus(it.packageName, it.name)
+                emit(++count)
             }
         }
-        emit(result)
     }
 
     override fun searchComponent(keyword: String) = appComponentDao.searchByKeyword(keyword)
