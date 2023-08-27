@@ -24,10 +24,6 @@
     <string name="core_ui_disabled">Disabled</string>
     <string name="core_ui_version_code_template" translatable="false">%1$s (%2$s)</string>
     <string name="core_ui_service_status_template" tools:ignore="PluralsCandidate">Service: %1$d running, %2$d blocked, %3$d in total.</string>
-    <string name="core_ui_service">Service</string>
-    <string name="core_ui_receiver">Receiver</string>
-    <string name="core_ui_activity">Activity</string>
-    <string name="core_ui_content_provider">Content Provider</string>
     <string name="core_ui_rule_icon_description">Rule icon</string>
     <string name="core_ui_copy_name">Copy name</string>
     <string name="core_ui_copy_full_name">Copy full name</string>

@@ -27,8 +27,6 @@
     <string name="feature_appdetail_minimum_sdk_version">Минимальная версия SDK</string>
     <string name="feature_appdetail_last_update_time">Время последнего обновления</string>
     <string name="feature_appdetail_data_dir">каталог данных</string>
-    <string name="feature_appdetail_enable_application">Включить приложение</string>
-    <string name="feature_appdetail_refresh">Обновить</string>
     <string name="feature_appdetail_block_all_of_this_page">Заблокировать всю эту страницу</string>
     <string name="feature_appdetail_enable_all_of_this_page">Включить всю эту страницу</string>
     <string name="feature_appdetail_blocking_effect">Эффект блокировки</string>
