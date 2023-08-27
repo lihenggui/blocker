@@ -29,10 +29,9 @@ import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
-import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -58,6 +57,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -72,7 +72,7 @@ class SettingsViewModel @Inject constructor(
                     settings = UserEditableSettings(
                         controllerType = userData.controllerType,
                         ruleServerProvider = userData.ruleServerProvider,
-                        ruleBackupFolder = userData.ruleBackupFolder,
+                        ruleBackupFolder = getPathFromUriString(userData.ruleBackupFolder),
                         backupSystemApp = userData.backupSystemApp,
                         restoreSystemApp = userData.restoreSystemApp,
                         showSystemApps = userData.showSystemApps,
@@ -91,6 +91,24 @@ class SettingsViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
+
+    private fun getPathFromUriString(path: String): String {
+        if (path.isEmpty()) return path
+        return try {
+            val uri = Uri.parse(path)
+            val file = uri.path?.let { File(it) } ?: return ""
+            val realPath = file.path.split(":")
+            if (realPath.size < 2) {
+                Timber.v("Illegal path: $path")
+                ""
+            } else {
+                "/" + realPath[1]
+            }
+        } catch (e: Exception) {
+            Timber.e("Can't get path from uri string: $path", e)
+            ""
+        }
+    }
 
     fun updateControllerType(type: ControllerType) {
         viewModelScope.launch {
@@ -291,20 +309,8 @@ class SettingsViewModel @Inject constructor(
     }
 }
 
-data class UserEditableSettings(
-    val controllerType: ControllerType = IFW,
-    val ruleServerProvider: RuleServerProvider = GITLAB,
-    val ruleBackupFolder: String = "",
-    val backupSystemApp: Boolean = false,
-    val restoreSystemApp: Boolean = false,
-    val showSystemApps: Boolean = false,
-    val showServiceInfo: Boolean = false,
-    val darkThemeConfig: DarkThemeConfig,
-    val useDynamicColor: Boolean,
-)
-
 sealed interface SettingsUiState {
-    object Loading : SettingsUiState
+    data object Loading : SettingsUiState
 
     data class Success(val settings: UserEditableSettings) : SettingsUiState
 }

@@ -44,4 +44,6 @@ message UserPreferences {
     bool use_dynamic_color = 13;
     bool show_running_apps_on_top = 14;
     ComponentSortingOrderProto component_sorting_order = 15;
+    bool is_first_time_initialization_completed = 16;
+    string rule_commit_id = 17;
 }

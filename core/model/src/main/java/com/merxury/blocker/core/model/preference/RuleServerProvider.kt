@@ -19,7 +19,13 @@ package com.merxury.blocker.core.model.preference
 /**
  * Model representation for the online data provider
  */
-enum class RuleServerProvider(val baseUrl: String) {
-    GITHUB("https://raw.githubusercontent.com/lihenggui/blocker-general-rules/main/"),
-    GITLAB("https://jihulab.com/mercuryli/blocker-general-rules/-/raw/main/"),
+enum class RuleServerProvider(val baseUrl: String, val commitApiUrl: String) {
+    GITHUB(
+        baseUrl = "https://raw.githubusercontent.com/lihenggui/blocker-general-rules/main/",
+        commitApiUrl = "https://api.github.com/repos/lihenggui/blocker-general-rules/commits",
+    ),
+    GITLAB(
+        baseUrl = "https://jihulab.com/mercuryli/blocker-general-rules/-/raw/main/",
+        commitApiUrl = "https://jihulab.com/api/v4/projects/43543/repository/commits",
+    ),
 }

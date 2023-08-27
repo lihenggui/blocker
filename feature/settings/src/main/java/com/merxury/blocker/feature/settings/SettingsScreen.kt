@@ -24,7 +24,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -36,7 +35,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -49,6 +47,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,6 +61,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.supportsDynamicTheming
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.RuleServerProvider
@@ -83,7 +83,7 @@ import com.merxury.blocker.feature.settings.item.BlockerSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.rule.R.string as rulestring
+import com.merxury.blocker.core.rule.R.string as CoreRuleR
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -127,22 +127,22 @@ fun SettingsRoute(
         val result = it.second
         val messageRes = when (result) {
             RuleWorkResult.STARTED -> when (work) {
-                IMPORT_BLOCKER_RULES -> string.import_app_rules_please_wait
-                EXPORT_BLOCKER_RULES -> string.backing_up_apps_please_wait
-                EXPORT_IFW_RULES -> string.backing_up_ifw_please_wait
-                IMPORT_IFW_RULES -> string.import_ifw_please_wait
-                RESET_IFW -> string.reset_ifw_please_wait
+                IMPORT_BLOCKER_RULES -> CoreRuleR.core_rule_import_app_rules_please_wait
+                EXPORT_BLOCKER_RULES -> CoreRuleR.core_rule_backing_up_apps_please_wait
+                EXPORT_IFW_RULES -> CoreRuleR.core_rule_backing_up_ifw_please_wait
+                IMPORT_IFW_RULES -> CoreRuleR.core_rule_import_ifw_please_wait
+                RESET_IFW -> CoreRuleR.core_rule_reset_ifw_please_wait
             }
 
-            RuleWorkResult.FINISHED -> rulestring.done
+            RuleWorkResult.FINISHED -> CoreRuleR.core_rule_done
             RuleWorkResult.FOLDER_NOT_DEFINED,
             RuleWorkResult.MISSING_STORAGE_PERMISSION,
-            -> rulestring.error_msg_folder_not_defined
+            -> CoreRuleR.core_rule_error_msg_folder_not_defined
 
-            RuleWorkResult.MISSING_ROOT_PERMISSION -> rulestring.error_msg_missing_root_permission
-            RuleWorkResult.UNEXPECTED_EXCEPTION -> rulestring.error_msg_unexpected_exception
-            RuleWorkResult.CANCELLED -> rulestring.task_cancelled
-            else -> rulestring.error_msg_unexpected_exception
+            RuleWorkResult.MISSING_ROOT_PERMISSION -> CoreRuleR.core_rule_error_msg_missing_root_permission
+            RuleWorkResult.UNEXPECTED_EXCEPTION -> CoreRuleR.core_rule_error_msg_unexpected_exception
+            RuleWorkResult.CANCELLED -> CoreRuleR.core_rule_task_cancelled
+            else -> CoreRuleR.core_rule_error_msg_unexpected_exception
         }
         val message = stringResource(id = messageRes)
         val duration = if (result == RuleWorkResult.STARTED) {
@@ -163,7 +163,6 @@ fun SettingsRoute(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     onNavigationClick: () -> Unit,
@@ -188,7 +187,7 @@ fun SettingsScreen(
     Scaffold(
         topBar = {
             BlockerTopAppBar(
-                title = stringResource(id = string.settings),
+                title = stringResource(id = string.feature_settings_settings),
                 hasNavigationIcon = true,
                 onNavigationClick = onNavigationClick,
             )
@@ -263,7 +262,11 @@ fun SettingsContent(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { importMatRules(it) },
     )
-    Column(modifier = modifier.verticalScroll(rememberScrollState())) {
+    Column(
+        modifier = modifier
+            .verticalScroll(rememberScrollState())
+            .testTag("settings:content"),
+    ) {
         BlockerSettings(
             settings = settings,
             onChangeControllerType = onChangeControllerType,
@@ -303,7 +306,7 @@ fun SettingsContent(
         )
         HorizontalDivider()
         BlockerSettingItem(
-            title = stringResource(id = string.import_mat_rules),
+            title = stringResource(id = string.feature_settings_import_mat_rules),
             onItemClick = {
                 val intent = Intent(Intent.ACTION_GET_CONTENT)
                 intent.addCategory(Intent.CATEGORY_OPENABLE)

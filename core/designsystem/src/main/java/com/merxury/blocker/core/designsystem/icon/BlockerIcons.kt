@@ -127,10 +127,10 @@ object BlockerIcons {
     val DesignService = Icons.Outlined.DesignServices
     val DocumentScanner = Icons.Outlined.DocumentScanner
 
-    val Rectangle = R.drawable.ic_rectangle
-    val Android = R.drawable.ic_android
-    val GitHub = R.drawable.ic_github
-    val Telegram = R.drawable.ic_telegram
+    val Rectangle = R.drawable.core_designsystem_ic_rectangle
+    val Android = R.drawable.core_designsystem_ic_android
+    val GitHub = R.drawable.core_designsystem_ic_github
+    val Telegram = R.drawable.core_designsystem_ic_telegram
 
     val ArrowDropDown = Icons.Rounded.ArrowDropDown
     val ArrowDropUp = Icons.Rounded.ArrowDropUp

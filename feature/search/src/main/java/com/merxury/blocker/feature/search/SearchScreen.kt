@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.Orientation.Vertical
@@ -52,12 +53,13 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
-import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
@@ -66,7 +68,6 @@ import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.component.SelectedAppTopBar
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
-import com.merxury.blocker.feature.search.model.FilteredComponent
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchUiState
 import com.merxury.blocker.feature.search.model.SearchViewModel
@@ -129,15 +130,15 @@ fun SearchScreen(
     tabState: TabState<SearchScreenTabs>,
     localSearchUiState: LocalSearchUiState,
     searchUiState: SearchUiState,
-    switchTab: (SearchScreenTabs) -> Unit,
-    onSearchTextChanged: (TextFieldValue) -> Unit,
-    onClearClick: () -> Unit,
-    onSelectAll: () -> Unit,
-    onBlockAll: () -> Unit,
-    onEnableAll: () -> Unit,
-    switchSelectedMode: (Boolean) -> Unit,
-    onSelect: (FilteredComponent) -> Unit,
-    onDeselect: (FilteredComponent) -> Unit,
+    switchTab: (SearchScreenTabs) -> Unit = {},
+    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onClearClick: () -> Unit = {},
+    onSelectAll: () -> Unit = {},
+    onBlockAll: () -> Unit = {},
+    onEnableAll: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onSelect: (FilteredComponent) -> Unit = {},
+    onDeselect: (FilteredComponent) -> Unit = {},
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit = { },
     appList: List<AppItem> = emptyList(),
@@ -202,6 +203,9 @@ fun SearchScreen(
                 )
             }
         }
+    }
+    BackHandler(enabled = searchUiState.isSelectedMode) {
+        switchSelectedMode(false)
     }
     TrackScreenViewEvent(screenName = "SearchScreen")
 }
@@ -468,7 +472,7 @@ fun SearchScreenSelectedPreview() {
     )
     val tabState = TabState(
         items = listOf(
-            SearchScreenTabs.App(),
+            SearchScreenTabs.App(1),
             SearchScreenTabs.Component(),
             SearchScreenTabs.Rule(),
         ),

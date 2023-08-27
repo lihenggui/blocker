@@ -31,6 +31,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,9 +41,9 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScr
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
 
 @Composable
 fun RuleMatchedAppList(
@@ -70,7 +71,7 @@ fun RuleMatchedAppList(
             )
             Box(modifier = Modifier.fillMaxSize()) {
                 LazyColumn(
-                    modifier = modifier,
+                    modifier = modifier.testTag("rule:matchedAppList"),
                     state = listState,
                 ) {
                     items(
@@ -114,14 +115,14 @@ fun NoApplicableAppScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         BlockerBodyLargeText(
-            text = stringResource(id = string.no_applicable_app),
+            text = stringResource(id = string.core_ui_no_applicable_app),
             color = MaterialTheme.colorScheme.outline,
         )
     }
 }
 
 sealed interface RuleMatchedAppListUiState {
-    object Loading : RuleMatchedAppListUiState
+    data object Loading : RuleMatchedAppListUiState
     data class Success(
         val list: List<RuleMatchedApp>,
     ) : RuleMatchedAppListUiState

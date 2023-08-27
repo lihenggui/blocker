@@ -33,7 +33,10 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.model.preference.UserPreferenceData
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
+import java.io.IOException
 import javax.inject.Inject
 
 class BlockerPreferencesDataSource @Inject constructor(
@@ -65,10 +68,10 @@ class BlockerPreferencesDataSource @Inject constructor(
             ruleServerProvider = when (it.ruleServerProvider) {
                 null,
                 RuleServerProviderProto.UNRECOGNIZED,
-                RuleServerProviderProto.GITLAB,
-                -> RuleServerProvider.GITLAB
+                RuleServerProviderProto.GITHUB,
+                -> RuleServerProvider.GITHUB
 
-                RuleServerProviderProto.GITHUB -> RuleServerProvider.GITHUB
+                RuleServerProviderProto.GITLAB -> RuleServerProvider.GITLAB
             },
             ruleBackupFolder = it.ruleBackupFolder,
             backupSystemApp = it.backupSystemApp,
@@ -124,6 +127,7 @@ class BlockerPreferencesDataSource @Inject constructor(
             },
             useDynamicColor = it.useDynamicColor,
             showRunningAppsOnTop = it.showRunningAppsOnTop,
+            isFirstTimeInitializationCompleted = it.isFirstTimeInitializationCompleted,
         )
     }
 
@@ -270,6 +274,41 @@ class BlockerPreferencesDataSource @Inject constructor(
     suspend fun setShowRunningAppsOnTop(showRunningAppsOnTop: Boolean) {
         userPreferences.updateData {
             it.copy { this.showRunningAppsOnTop = showRunningAppsOnTop }
+        }
+    }
+
+    suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {
+        userPreferences.updateData {
+            it.copy { this.isFirstTimeInitializationCompleted = completed }
+        }
+    }
+
+    suspend fun getChangeListVersions() = userPreferences.data
+        .map {
+            ChangeListVersions(
+                ruleCommitId = it.ruleCommitId,
+            )
+        }
+        .firstOrNull() ?: ChangeListVersions()
+
+    /**
+     * Update the [ChangeListVersions] using [update].
+     */
+    suspend fun updateChangeListVersion(update: ChangeListVersions.() -> ChangeListVersions) {
+        try {
+            userPreferences.updateData { currentPreferences ->
+                val updatedChangeListVersions = update(
+                    ChangeListVersions(
+                        ruleCommitId = currentPreferences.ruleCommitId,
+                    ),
+                )
+
+                currentPreferences.copy {
+                    ruleCommitId = updatedChangeListVersions.ruleCommitId
+                }
+            }
+        } catch (ioException: IOException) {
+            Timber.e("Failed to update user preferences", ioException)
         }
     }
 }

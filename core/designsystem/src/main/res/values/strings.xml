@@ -15,5 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="back">Back button</string>
+    <string name="core_designsystem_back">Back button</string>
+    <string name="core_designsystem_clear_icon">Clear icon</string>
 </resources>

@@ -25,6 +25,7 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.applist.R
+import com.merxury.blocker.core.ui.R as UiR
 
 @Composable
 fun TopAppBarMoreMenu(
@@ -33,17 +34,17 @@ fun TopAppBarMoreMenu(
 ) {
     val items = listOf(
         DropDownMenuItem(
-            R.string.settings,
+            R.string.feature_applist_settings,
             navigateToSettings,
         ),
         DropDownMenuItem(
-            R.string.support_and_feedback,
+            R.string.feature_applist_support_and_feedback,
             navigateToFeedback,
         ),
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
-        menuIconDesc = R.string.more_menu,
+        menuIconDesc = UiR.string.core_ui_more_menu,
         menuList = items,
     )
 }

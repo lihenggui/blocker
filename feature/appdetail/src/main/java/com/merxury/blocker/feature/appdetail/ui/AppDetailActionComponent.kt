@@ -18,11 +18,13 @@ package com.merxury.blocker.feature.appdetail.ui
 
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.core.ui.R as UiR
 
 @Composable
 fun SearchActionMenu(onSearchModeChange: (Boolean) -> Unit) {
@@ -31,7 +33,7 @@ fun SearchActionMenu(onSearchModeChange: (Boolean) -> Unit) {
     ) {
         BlockerActionIcon(
             imageVector = BlockerIcons.Search,
-            contentDescription = null,
+            contentDescription = stringResource(id = UiR.string.core_ui_search_icon),
         )
     }
 }
@@ -44,21 +46,21 @@ fun MoreActionMenu(
 ) {
     val items = listOf(
         DropDownMenuItem(
-            string.block_all_of_this_page,
+            string.feature_appdetail_block_all_of_this_page,
             blockAllComponents,
         ),
         DropDownMenuItem(
-            string.enable_all_of_this_page,
+            string.feature_appdetail_enable_all_of_this_page,
             enableAllComponents,
         ),
         DropDownMenuItem(
-            string.sort_options,
+            UiR.string.core_ui_sort_options,
             onAdvanceSortClick,
         ),
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
-        menuIconDesc = string.more_menu,
+        menuIconDesc = UiR.string.core_ui_more_menu,
         menuList = items,
     )
 }

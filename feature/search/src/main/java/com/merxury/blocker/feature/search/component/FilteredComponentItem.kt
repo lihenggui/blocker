@@ -53,11 +53,11 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.feature.search.R
 import com.merxury.blocker.feature.search.R.string
-import com.merxury.blocker.feature.search.model.FilteredComponent
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -176,7 +176,7 @@ private fun getComponentCountDescription(appItem: FilteredComponent): String {
     if (appItem.receiver.isNotEmpty()) {
         countDescriptions.add(
             pluralStringResource(
-                id = R.plurals.receiver_count,
+                id = R.plurals.feature_search_receiver_count,
                 count = appItem.receiver.size,
                 appItem.receiver.size,
             ),
@@ -185,7 +185,7 @@ private fun getComponentCountDescription(appItem: FilteredComponent): String {
     if (appItem.service.isNotEmpty()) {
         countDescriptions.add(
             pluralStringResource(
-                id = R.plurals.service_count,
+                id = R.plurals.feature_search_service_count,
                 count = appItem.service.size,
                 appItem.service.size,
             ),
@@ -194,7 +194,7 @@ private fun getComponentCountDescription(appItem: FilteredComponent): String {
     if (appItem.activity.isNotEmpty()) {
         countDescriptions.add(
             pluralStringResource(
-                id = R.plurals.activity_count,
+                id = R.plurals.feature_search_activity_count,
                 count = appItem.activity.size,
                 appItem.activity.size,
             ),
@@ -203,14 +203,14 @@ private fun getComponentCountDescription(appItem: FilteredComponent): String {
     if (appItem.provider.isNotEmpty()) {
         countDescriptions.add(
             pluralStringResource(
-                id = R.plurals.content_provider_count,
+                id = R.plurals.feature_search_content_provider_count,
                 count = appItem.provider.size,
                 appItem.provider.size,
             ),
         )
     }
     return countDescriptions
-        .joinToString(separator = stringResource(id = string.delimiter))
+        .joinToString(separator = stringResource(id = string.feature_search_delimiter))
 }
 
 @Composable

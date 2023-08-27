@@ -32,7 +32,6 @@ dependencyResolutionManagement {
         google()
         mavenCentral()
         maven("https://jitpack.io")
-        maven("https://androidx.dev/storage/compose-compiler/repository/")
     }
 }
 rootProject.name = "Blocker"
@@ -62,4 +61,6 @@ include(":feature:ruledetail")
 include(":feature:search")
 include(":feature:settings")
 include(":lint")
+include(":sync:work")
+include(":sync:sync-test")
 include(":ui-test-hilt-manifest")

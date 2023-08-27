@@ -16,10 +16,18 @@
 
 package com.merxury.blocker.feature.ruledetail.model
 
+import android.app.Application
+import android.content.Context
 import android.content.pm.PackageManager
-import androidx.lifecycle.AndroidViewModel
+import android.graphics.Bitmap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil.imageLoader
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import coil.size.Scale
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
@@ -31,12 +39,12 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.toAppItem
+import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.applist.model.toAppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
-import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
@@ -65,12 +73,13 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class RuleDetailViewModel @Inject constructor(
-    app: android.app.Application,
+    private val appContext: Application,
     savedStateHandle: SavedStateHandle,
     private val pm: PackageManager,
     private val ruleRepository: GeneralRuleRepository,
@@ -80,7 +89,7 @@ class RuleDetailViewModel @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val shizukuInitializer: ShizukuInitializer,
     private val analyticsHelper: AnalyticsHelper,
-) : AndroidViewModel(app) {
+) : ViewModel() {
     private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
     private val _ruleMatchedAppListUiState: MutableStateFlow<RuleMatchedAppListUiState> =
         MutableStateFlow(Loading)
@@ -99,14 +108,14 @@ class RuleDetailViewModel @Inject constructor(
     private val _tabState = MutableStateFlow(
         TabState(
             items = listOf(
-                Description,
                 Applicable,
+                Description,
             ),
-            selectedItem = Description,
+            selectedItem = Applicable,
         ),
     )
     val tabState: StateFlow<TabState<RuleDetailTabs>> = _tabState.asStateFlow()
-    private val _appBarUiState = MutableStateFlow(AppBarUiState())
+    private val _appBarUiState = MutableStateFlow(AppBarUiState(actions = getAppBarAction()))
     val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
     private var currentSearchKeyword: List<String> = emptyList()
 
@@ -135,6 +144,7 @@ class RuleDetailViewModel @Inject constructor(
     }
 
     private fun loadData() = viewModelScope.launch {
+        val context: Context = appContext
         val ruleId = ruleIdArgs.ruleId
         val baseUrl = userDataRepository.userData
             .first()
@@ -144,7 +154,10 @@ class RuleDetailViewModel @Inject constructor(
             .first()
         val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
         _ruleInfoUiState.update {
-            RuleInfoUiState.Success(ruleWithIcon)
+            RuleInfoUiState.Success(
+                ruleInfo = ruleWithIcon,
+                ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
+            )
         }
         currentSearchKeyword = rule.searchKeyword
         loadMatchedApps(rule.searchKeyword)
@@ -249,12 +262,32 @@ class RuleDetailViewModel @Inject constructor(
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
     }
+
+    private suspend fun getRuleIcon(iconUrl: String?, context: Context) =
+        withContext(ioDispatcher) {
+            val request = ImageRequest.Builder(context)
+                .data(iconUrl)
+                // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
+                .size(128).scale(Scale.FILL)
+                // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
+                .allowHardware(false)
+                // Set a custom memory cache key to avoid overwriting the displayed image in the cache
+                .memoryCacheKey("$iconUrl.palette")
+                .build()
+
+            val bitmap = when (val result = context.imageLoader.execute(request)) {
+                is SuccessResult -> result.drawable.toBitmap()
+                else -> null
+            }
+            return@withContext bitmap
+        }
 }
 
 sealed interface RuleInfoUiState {
-    object Loading : RuleInfoUiState
+    data object Loading : RuleInfoUiState
     class Error(val error: UiMessage) : RuleInfoUiState
     data class Success(
         val ruleInfo: GeneralRule,
+        val ruleIcon: Bitmap?,
     ) : RuleInfoUiState
 }

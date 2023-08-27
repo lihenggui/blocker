@@ -56,6 +56,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
@@ -72,6 +73,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.TrackScrollJank
 
@@ -97,7 +99,7 @@ fun ComponentList(
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
     Box(modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = modifier,
+            modifier = modifier.testTag("component:list"),
             state = listState,
         ) {
             itemsIndexed(
@@ -198,7 +200,7 @@ fun ComponentListItem(
                                 )
                             }
                             .padding(horizontal = 2.dp, vertical = 1.dp),
-                        text = stringResource(id = string.running),
+                        text = stringResource(id = string.core_ui_running),
                         color = MaterialTheme.colorScheme.onTertiary,
                     )
                 }
@@ -248,7 +250,7 @@ fun NoComponentScreen() {
             contentDescription = null,
         )
         BlockerBodyLargeText(
-            text = stringResource(id = string.no_components),
+            text = stringResource(id = string.core_ui_no_components),
             color = MaterialTheme.colorScheme.outline,
         )
     }

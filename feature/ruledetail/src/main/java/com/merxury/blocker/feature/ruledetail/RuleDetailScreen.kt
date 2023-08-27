@@ -36,6 +36,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -65,11 +66,12 @@ import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.component.ComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
@@ -94,6 +96,7 @@ import kotlinx.coroutines.launch
 fun RuleDetailRoute(
     onBackClick: () -> Unit,
     navigateToAppDetail: (String) -> Unit,
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
@@ -119,6 +122,7 @@ fun RuleDetailRoute(
         onEnableAllInPageClick = { viewModel.controlAllComponentsInPage(true) },
         onSwitch = viewModel::controlComponent,
         navigateToAppDetail = navigateToAppDetail,
+        updateIconBasedThemingState = updateIconBasedThemingState,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -129,6 +133,11 @@ fun RuleDetailRoute(
     }
     LaunchedEffect(Unit) {
         viewModel.initShizuku()
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            updateIconBasedThemingState(IconBasedThemingState(icon = null, isBasedIcon = false))
+        }
     }
 }
 
@@ -151,6 +160,7 @@ fun RuleDetailScreen(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -176,6 +186,7 @@ fun RuleDetailScreen(
                 onEnableAllInPageClick = onEnableAllInPageClick,
                 onSwitch = onSwitch,
                 navigateToAppDetail = navigateToAppDetail,
+                updateIconBasedThemingState = updateIconBasedThemingState,
             )
         }
 
@@ -205,6 +216,7 @@ fun RuleDetailContent(
     onEnableAllInPageClick: () -> Unit = { },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -218,7 +230,7 @@ fun RuleDetailContent(
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 toolbarState.scrollTopLimitReached =
                     listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-                toolbarState.scrollOffset = toolbarState.scrollOffset - available.y
+                toolbarState.scrollOffset -= available.y
                 return Offset(0f, toolbarState.consumed)
             }
 
@@ -232,8 +244,7 @@ fun RuleDetailContent(
                         ) { value, _ ->
                             toolbarState.scrollTopLimitReached =
                                 listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
-                            toolbarState.scrollOffset =
-                                toolbarState.scrollOffset - (value - (toolbarState.height + toolbarState.offset))
+                            toolbarState.scrollOffset -= (value - (toolbarState.height + toolbarState.offset))
                             if (toolbarState.scrollOffset == 0f) scope.coroutineContext.cancelChildren()
                         }
                     }
@@ -242,6 +253,12 @@ fun RuleDetailContent(
             }
         }
     }
+    updateIconBasedThemingState(
+        IconBasedThemingState(
+            icon = ruleInfoUiState.ruleIcon,
+            isBasedIcon = true,
+        ),
+    )
     Scaffold(
         topBar = {
             BlockerCollapsingTopAppBar(
@@ -309,17 +326,17 @@ fun MoreActionMenu(
 ) {
     val items = listOf(
         DropDownMenuItem(
-            string.block_all_of_this_page,
+            string.feature_ruledetail_block_all_of_this_page,
             blockAllComponents,
         ),
         DropDownMenuItem(
-            string.enable_all_of_this_page,
+            string.feature_ruledetail_enable_all_of_this_page,
             enableAllComponents,
         ),
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
-        menuIconDesc = com.merxury.blocker.core.ui.R.string.more_menu,
+        menuIconDesc = com.merxury.blocker.core.ui.R.string.core_ui_more_menu,
         menuList = items,
     )
 }
@@ -380,9 +397,7 @@ fun RuleDetailTabContent(
             state = pagerState,
         ) {
             when (it) {
-                0 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
-
-                1 -> RuleMatchedAppList(
+                0 -> RuleMatchedAppList(
                     ruleMatchedAppListUiState = ruleMatchedAppListUiState,
                     onStopServiceClick = onStopServiceClick,
                     onLaunchActivityClick = onLaunchActivityClick,
@@ -393,6 +408,8 @@ fun RuleDetailTabContent(
                     onEnableAllClick = onEnableAllClick,
                     onSwitch = onSwitch,
                 )
+
+                1 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
             }
         }
     }
@@ -437,13 +454,14 @@ fun RuleDetailScreenPreView() {
     )
     val ruleInfoUiState = RuleInfoUiState.Success(
         ruleInfo = item,
+        ruleIcon = null,
     )
     val tabState = TabState(
         items = listOf(
-            Description,
             Applicable,
+            Description,
         ),
-        selectedItem = Description,
+        selectedItem = Applicable,
     )
     BlockerTheme {
         Surface {
@@ -487,8 +505,8 @@ fun RuleDetailScreenLoadingPreView() {
     val ruleInfoUiState = RuleInfoUiState.Loading
     val tabState = TabState(
         items = listOf(
-            Description,
             Applicable,
+            Description,
         ),
         selectedItem = Description,
     )
@@ -534,8 +552,8 @@ fun RuleDetailScreenErrorPreView() {
     val ruleInfoUiState = RuleInfoUiState.Error(UiMessage("Error"))
     val tabState = TabState(
         items = listOf(
-            Description,
             Applicable,
+            Description,
         ),
         selectedItem = Description,
     )

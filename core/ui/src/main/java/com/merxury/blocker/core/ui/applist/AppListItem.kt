@@ -57,8 +57,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.ui.R.string
-import com.merxury.blocker.core.ui.applist.model.AppServiceStatus
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -175,7 +175,7 @@ private fun AppContent(
                             )
                         }
                         .padding(horizontal = 2.dp, vertical = 1.dp),
-                    text = stringResource(id = string.running),
+                    text = stringResource(id = string.core_ui_running),
                     color = MaterialTheme.colorScheme.onTertiary,
                 )
             }
@@ -191,17 +191,17 @@ private fun AppContent(
                             )
                         }
                         .padding(horizontal = 2.dp, vertical = 1.dp),
-                    text = stringResource(id = string.disabled),
+                    text = stringResource(id = string.core_ui_disabled),
                 )
             }
         }
         BlockerBodyMediumText(
-            text = stringResource(id = string.version_code_template, versionName, versionCode),
+            text = stringResource(id = string.core_ui_version_code_template, versionName, versionCode),
         )
         if (serviceStatus != null) {
             BlockerBodyMediumText(
                 text = stringResource(
-                    id = string.service_status_template,
+                    id = string.core_ui_service_status_template,
                     serviceStatus.running,
                     serviceStatus.blocked,
                     serviceStatus.total,

@@ -60,31 +60,31 @@ fun BackupSettings(
             .padding(vertical = 4.dp),
     ) {
         ItemHeader(
-            title = stringResource(id = string.backup),
+            title = stringResource(id = string.feature_settings_backup),
             extraIconPadding = true,
         )
         BlockerSettingItem(
             icon = ImageVectorIcon(BlockerIcons.Folder),
-            title = stringResource(id = string.folder_to_save),
+            title = stringResource(id = string.feature_settings_folder_to_save),
             summary = ruleBackupFolder.ifEmpty {
-                stringResource(id = string.directory_invalid_or_not_set)
+                stringResource(id = string.feature_settings_directory_invalid_or_not_set)
             },
             onItemClick = {
                 val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
                 if (intent.resolveActivity(context.packageManager) != null) {
                     getFolderResult.launch(null)
                 } else {
-                    Toast.makeText(context, string.file_manager_required, Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, string.feature_settings_file_manager_required, Toast.LENGTH_LONG).show()
                 }
             },
         )
         SwitchSettingItem(
-            itemRes = string.backup_system_apps,
+            itemRes = string.feature_settings_backup_system_apps,
             checked = backupSystemApps,
             onCheckedChange = onChangeBackupSystemApp,
         )
         SwitchSettingItem(
-            itemRes = string.restore_system_apps,
+            itemRes = string.feature_settings_restore_system_apps,
             checked = restoreSystemApp,
             onCheckedChange = onChangeRestoreSystemApp,
         )

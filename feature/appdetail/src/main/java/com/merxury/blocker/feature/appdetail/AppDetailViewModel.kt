@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail
 
-import android.app.Application
 import android.content.Context
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -36,9 +35,9 @@ import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
+import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
-import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
+import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -51,8 +50,12 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.data.toAppItem
+import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
@@ -82,13 +85,9 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.applist.model.AppItem
-import com.merxury.blocker.core.ui.applist.model.toAppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState.Success
-import com.merxury.blocker.core.ui.component.ComponentItem
-import com.merxury.blocker.core.ui.component.toComponentItem
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
@@ -119,15 +118,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
-    private val appContext: Application,
     savedStateHandle: SavedStateHandle,
     private val analyticsHelper: AnalyticsHelper,
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
-    private val componentRepository: LocalComponentRepository,
+    private val componentRepository: ComponentRepository,
     private val componentDetailRepository: ComponentDetailRepository,
-    private val shizukuInitializer: ShizukuInitializer,
+    private val shizukuInitializer: IShizukuInitializer,
+    private val workerManager: WorkManager,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -570,7 +569,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.d("Export Blocker rule for $packageName")
         val taskName = "ExportBlockerRule:$packageName"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.REPLACE,
@@ -595,7 +594,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.d("Import Blocker rule for $packageName")
         val taskName = "ImportBlockerRule:$packageName"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.REPLACE,
@@ -621,7 +620,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.d("Export IFW rule for $packageName")
         val taskName = "ExportIfwRule:$packageName"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
@@ -645,7 +644,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.d("Import IFW rule for $packageName")
         val taskName = "ImportIfwRule:$packageName"
         val userData = userDataRepository.userData.first()
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
@@ -669,7 +668,7 @@ class AppDetailViewModel @Inject constructor(
     fun resetIfw(packageName: String) = viewModelScope.launch {
         Timber.d("Reset IFW rule for $packageName")
         val taskName = "ResetIfw:$packageName"
-        WorkManager.getInstance(appContext).apply {
+        workerManager.apply {
             enqueueUniqueWork(
                 taskName,
                 ExistingWorkPolicy.KEEP,
@@ -701,7 +700,7 @@ class AppDetailViewModel @Inject constructor(
         _eventFlow.emit(ruleWorkType to workResult)
     }
 
-    private fun loadAppInfo() = viewModelScope.launch {
+    fun loadAppInfo() = viewModelScope.launch {
         val packageName = appDetailArgs.packageName
         val app = appRepository.getApplication(packageName).first()
         if (app == null) {
@@ -732,11 +731,11 @@ class AppDetailViewModel @Inject constructor(
 }
 
 sealed interface AppInfoUiState {
-    object Loading : AppInfoUiState
-    class Error(val error: UiMessage) : AppInfoUiState
+    data object Loading : AppInfoUiState
+    data class Error(val error: UiMessage) : AppInfoUiState
     data class Success(
         val appInfo: AppItem,
-        val appIcon: Bitmap?,
+        val iconBasedTheming: Bitmap?,
     ) : AppInfoUiState
 }
 

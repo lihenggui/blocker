@@ -43,6 +43,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -74,8 +75,9 @@ import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
-import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.SortingOrder
@@ -94,7 +96,6 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
-import com.merxury.blocker.core.ui.applist.model.AppItem
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortBottomSheet
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
 import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
@@ -122,6 +123,7 @@ fun AppDetailRoute(
     navigateToComponentDetail: (String) -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
@@ -165,6 +167,7 @@ fun AppDetailRoute(
         onSortByClick = viewModel::updateComponentSorting,
         onSortOrderClick = viewModel::updateComponentSortingOrder,
         onShowPriorityClick = viewModel::updateComponentShowPriority,
+        updateIconBasedThemingState = updateIconBasedThemingState,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -173,18 +176,23 @@ fun AppDetailRoute(
             onDismissRequest = viewModel::dismissAlert,
         )
     }
+    DisposableEffect(Unit) {
+        onDispose {
+            updateIconBasedThemingState(IconBasedThemingState(icon = null, isBasedIcon = false))
+        }
+    }
     event?.let {
         val messageRes = when (it.second) {
-            STARTED -> rulestring.processing_please_wait
-            FINISHED -> rulestring.done
+            STARTED -> rulestring.core_rule_processing_please_wait
+            FINISHED -> rulestring.core_rule_done
             FOLDER_NOT_DEFINED,
             MISSING_STORAGE_PERMISSION,
-            -> rulestring.error_msg_folder_not_defined
+            -> rulestring.core_rule_error_msg_folder_not_defined
 
-            MISSING_ROOT_PERMISSION -> rulestring.error_msg_missing_root_permission
-            UNEXPECTED_EXCEPTION -> rulestring.error_msg_unexpected_exception
-            CANCELLED -> rulestring.task_cancelled
-            else -> rulestring.error_msg_unexpected_exception
+            MISSING_ROOT_PERMISSION -> rulestring.core_rule_error_msg_missing_root_permission
+            UNEXPECTED_EXCEPTION -> rulestring.core_rule_error_msg_unexpected_exception
+            CANCELLED -> rulestring.core_rule_task_cancelled
+            else -> rulestring.core_rule_error_msg_unexpected_exception
         }
         val message = stringResource(id = messageRes)
         LaunchedEffect(message) {
@@ -233,6 +241,7 @@ fun AppDetailScreen(
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -242,7 +251,7 @@ fun AppDetailScreen(
         is Success -> {
             AppDetailContent(
                 app = appInfoUiState.appInfo,
-                appIcon = appInfoUiState.appIcon,
+                iconBasedTheming = appInfoUiState.iconBasedTheming,
                 topAppBarUiState = topAppBarUiState,
                 componentListUiState = componentListUiState,
                 tabState = tabState,
@@ -270,6 +279,7 @@ fun AppDetailScreen(
                 onSortByClick = onSortByClick,
                 onSortOrderClick = onSortOrderClick,
                 onShowPriorityClick = onShowPriorityClick,
+                updateIconBasedThemingState = updateIconBasedThemingState,
             )
         }
 
@@ -282,7 +292,7 @@ fun AppDetailScreen(
 @Composable
 fun AppDetailContent(
     app: AppItem,
-    appIcon: Bitmap?,
+    iconBasedTheming: Bitmap?,
     tabState: TabState<AppDetailTabs>,
     componentListUiState: ComponentListUiState,
     bottomSheetState: ComponentSortInfoUiState,
@@ -310,6 +320,7 @@ fun AppDetailContent(
     onSortByClick: (ComponentSorting) -> Unit = {},
     onSortOrderClick: (SortingOrder) -> Unit = {},
     onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
 ) {
     var openBottomSheet by rememberSaveable { mutableStateOf(false) }
     val listState = rememberLazyListState()
@@ -348,83 +359,82 @@ fun AppDetailContent(
             }
         }
     }
-    BlockerDynamicTheme(imageBitmap = appIcon) {
-        Scaffold(
-            topBar = {
-                BlockerCollapsingTopAppBar(
-                    progress = toolbarState.progress,
-                    onNavigationClick = onBackClick,
-                    title = app.label,
-                    actions = {
-                        AppDetailAppBarActions(
-                            appBarUiState = topAppBarUiState,
-                            onSearchTextChanged = onSearchTextChanged,
-                            onSearchModeChange = onSearchModeChanged,
-                            blockAllComponents = blockAllComponents,
-                            enableAllComponents = enableAllComponents,
-                            navigatedToComponentSortScreen = {
-                                scope.launch {
-                                    onSortOptionsClick()
-                                    openBottomSheet = true
-                                }
-                            },
-                        )
-                    },
-                    subtitle = app.packageName,
-                    summary = stringResource(
-                        id = string.data_with_explanation,
-                        app.versionName,
-                        app.versionCode,
-                    ),
-                    iconSource = app.packageInfo,
-                    onIconClick = { onLaunchAppClick(app.packageName) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
-                )
-            },
-            modifier = modifier.nestedScroll(nestedScrollConnection),
-        ) { innerPadding ->
-            AppDetailTabContent(
-                app = app,
-                componentListUiState = componentListUiState,
-                tabState = tabState,
-                switchTab = switchTab,
-                modifier = Modifier
-                    .padding(top = innerPadding.calculateTopPadding())
-                    .fillMaxSize()
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onPress = { scope.coroutineContext.cancelChildren() },
-                        )
-                    },
-                navigateToComponentDetail = navigateToComponentDetail,
-                onExportRules = onExportRules,
-                onImportRules = onImportRules,
-                onExportIfw = onExportIfw,
-                onImportIfw = onImportIfw,
-                onResetIfw = onResetIfw,
-                onSwitchClick = onSwitchClick,
-                onStopServiceClick = onStopServiceClick,
-                onLaunchActivityClick = onLaunchActivityClick,
-                onCopyNameClick = onCopyNameClick,
-                onCopyFullNameClick = onCopyFullNameClick,
-            )
-        }
-        if (openBottomSheet) {
-            ModalBottomSheet(
-                onDismissRequest = { openBottomSheet = false },
-                sheetState = rememberModalBottomSheetState(
-                    skipPartiallyExpanded = true,
+    updateIconBasedThemingState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
+    Scaffold(
+        topBar = {
+            BlockerCollapsingTopAppBar(
+                progress = toolbarState.progress,
+                onNavigationClick = onBackClick,
+                title = app.label,
+                actions = {
+                    AppDetailAppBarActions(
+                        appBarUiState = topAppBarUiState,
+                        onSearchTextChanged = onSearchTextChanged,
+                        onSearchModeChange = onSearchModeChanged,
+                        blockAllComponents = blockAllComponents,
+                        enableAllComponents = enableAllComponents,
+                        navigatedToComponentSortScreen = {
+                            scope.launch {
+                                onSortOptionsClick()
+                                openBottomSheet = true
+                            }
+                        },
+                    )
+                },
+                subtitle = app.packageName,
+                summary = stringResource(
+                    id = string.feature_appdetail_data_with_explanation,
+                    app.versionName,
+                    app.versionCode,
                 ),
-            ) {
-                ComponentSortBottomSheet(
-                    uiState = bottomSheetState,
-                    onSortByClick = onSortByClick,
-                    onSortOrderClick = onSortOrderClick,
-                    onShowPriorityClick = onShowPriorityClick,
-                )
-            }
+                iconSource = app.packageInfo,
+                onIconClick = { onLaunchAppClick(app.packageName) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
+            )
+        },
+        modifier = modifier.nestedScroll(nestedScrollConnection),
+    ) { innerPadding ->
+        AppDetailTabContent(
+            app = app,
+            componentListUiState = componentListUiState,
+            tabState = tabState,
+            switchTab = switchTab,
+            modifier = Modifier
+                .padding(top = innerPadding.calculateTopPadding())
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = { scope.coroutineContext.cancelChildren() },
+                    )
+                },
+            navigateToComponentDetail = navigateToComponentDetail,
+            onExportRules = onExportRules,
+            onImportRules = onImportRules,
+            onExportIfw = onExportIfw,
+            onImportIfw = onImportIfw,
+            onResetIfw = onResetIfw,
+            onSwitchClick = onSwitchClick,
+            onStopServiceClick = onStopServiceClick,
+            onLaunchActivityClick = onLaunchActivityClick,
+            onCopyNameClick = onCopyNameClick,
+            onCopyFullNameClick = onCopyFullNameClick,
+        )
+    }
+    if (openBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { openBottomSheet = false },
+            sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+            ),
+        ) {
+            ComponentSortBottomSheet(
+                uiState = bottomSheetState,
+                onSortByClick = onSortByClick,
+                onSortOrderClick = onSortOrderClick,
+                onShowPriorityClick = onShowPriorityClick,
+            )
         }
     }
 }
@@ -445,7 +455,7 @@ fun AppDetailAppBarActions(
                 keyword = appBarUiState.keyword,
                 onValueChange = onSearchTextChanged,
                 placeholder = {
-                    Text(text = stringResource(id = string.search_components))
+                    Text(text = stringResource(id = string.feature_appdetail_search_components))
                 },
                 onClearClick = {
                     if (appBarUiState.keyword.text.isEmpty()) {
@@ -620,7 +630,7 @@ fun AppDetailScreenPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, appIcon = null),
+                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
                 bottomSheetState = ComponentSortInfoUiState.Success(
                     ComponentSortInfo(),
                 ),
@@ -669,7 +679,7 @@ fun AppDetailScreenCollapsedPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, appIcon = null),
+                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
                 bottomSheetState = ComponentSortInfoUiState.Success(
                     ComponentSortInfo(),
                 ),

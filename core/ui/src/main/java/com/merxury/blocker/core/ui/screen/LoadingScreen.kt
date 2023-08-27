@@ -37,7 +37,7 @@ fun LoadingScreen() {
         verticalArrangement = Arrangement.Center,
     ) {
         BlockerLoadingWheel(
-            contentDesc = stringResource(id = R.string.loading),
+            contentDesc = stringResource(id = R.string.core_ui_loading),
         )
     }
 }

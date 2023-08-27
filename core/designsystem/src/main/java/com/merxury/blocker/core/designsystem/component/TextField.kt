@@ -35,19 +35,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun BlockerSearchTextField(
     modifier: Modifier = Modifier,
@@ -65,7 +66,8 @@ fun BlockerSearchTextField(
             .padding(horizontal = 16.dp, vertical = 2.dp)
             .onFocusChanged { focusState ->
                 showClearButton = (focusState.isFocused)
-            },
+            }
+            .testTag("BlockerSearchTextField"),
         value = keyword,
         onValueChange = onValueChange,
         placeholder = placeholder,
@@ -84,7 +86,7 @@ fun BlockerSearchTextField(
                 IconButton(onClick = { onClearClick?.invoke() }) {
                     Icon(
                         imageVector = BlockerIcons.Clear,
-                        contentDescription = null,
+                        contentDescription = stringResource(id = R.string.core_designsystem_clear_icon),
                     )
                 }
             }

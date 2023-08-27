@@ -24,10 +24,14 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.appdetail.AppDetailRoute
 import java.net.URLDecoder
 import java.net.URLEncoder
+import kotlin.text.Charsets.UTF_8
+
+private val URL_CHARACTER_ENCODING = UTF_8.name()
 
 @VisibleForTesting
 internal const val packageNameArg = "packageName"
@@ -45,9 +49,12 @@ internal class AppDetailArgs(
 ) {
     constructor(savedStateHandle: SavedStateHandle) :
         this(
-            URLDecoder.decode(checkNotNull(savedStateHandle[packageNameArg]), "UTF-8"),
+            URLDecoder.decode(
+                checkNotNull(savedStateHandle[packageNameArg]),
+                URL_CHARACTER_ENCODING,
+            ),
             AppDetailTabs.fromName(savedStateHandle[tabArg]),
-            URLDecoder.decode(checkNotNull(savedStateHandle[keywordArg]), "UTF-8")
+            URLDecoder.decode(checkNotNull(savedStateHandle[keywordArg]), URL_CHARACTER_ENCODING)
                 .split(","),
         )
 }
@@ -57,8 +64,8 @@ fun NavController.navigateToAppDetail(
     tab: AppDetailTabs = AppDetailTabs.Info,
     searchKeyword: List<String> = listOf(),
 ) {
-    val encodedId = URLEncoder.encode(packageName, "UTF-8")
-    val keywords = URLEncoder.encode(searchKeyword.joinToString(","), "UTF-8")
+    val encodedId = URLEncoder.encode(packageName, URL_CHARACTER_ENCODING)
+    val keywords = URLEncoder.encode(searchKeyword.joinToString(","), URL_CHARACTER_ENCODING)
     this.navigate("app_detail_route/$encodedId?screen=${tab.name}?keyword=$keywords") {
         // Avoid multiple copies of the same destination when
         // reselecting the same item
@@ -69,6 +76,7 @@ fun NavController.navigateToAppDetail(
 fun NavGraphBuilder.detailScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
+    updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
 ) {
     composable(
@@ -83,6 +91,7 @@ fun NavGraphBuilder.detailScreen(
             onBackClick = onBackClick,
             snackbarHostState = snackbarHostState,
             navigateToComponentDetail = navigateToComponentDetail,
+            updateIconBasedThemingState = updateIconBasedThemingState,
         )
     }
 }

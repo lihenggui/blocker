@@ -99,7 +99,7 @@ fun BlockerCollapsingTopAppBar(
                 ) {
                     Icon(
                         imageVector = BlockerIcons.Back,
-                        contentDescription = stringResource(id = R.string.back),
+                        contentDescription = stringResource(id = R.string.core_designsystem_back),
                         tint = MaterialTheme.colorScheme.onSurface,
                     )
                 }
@@ -277,7 +277,7 @@ fun CollapsingToolbarCollapsedPreview() {
             },
             subtitle = "packageName",
             summary = "versionCode",
-            iconSource = R.drawable.ic_android,
+            iconSource = R.drawable.core_designsystem_ic_android,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
@@ -317,7 +317,7 @@ fun CollapsingToolbarHalfwayPreview() {
             },
             subtitle = "packageName",
             summary = "versionCode",
-            iconSource = R.drawable.ic_android,
+            iconSource = R.drawable.core_designsystem_ic_android,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(94.dp),
@@ -353,7 +353,7 @@ fun CollapsingToolbarExpandedPreview() {
             },
             subtitle = "packageName with long long long name 0123456789",
             summary = "versionCode with long long long name 0123456789",
-            iconSource = R.drawable.ic_android,
+            iconSource = R.drawable.core_designsystem_ic_android,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(188.dp),

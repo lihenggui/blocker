@@ -27,15 +27,16 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.ui.applist.model.AppItem
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.utils.AndroidCodeName
 import com.merxury.blocker.feature.appdetail.R.string
-import kotlinx.datetime.Clock
+import kotlinx.datetime.Clock.System
 import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
 import java.time.ZoneId
@@ -57,7 +58,8 @@ fun SummaryContent(
     Box(modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .testTag("appDetail:summaryContent"),
             state = listState,
         ) {
             item {
@@ -91,23 +93,23 @@ fun AppSummary(
 ) {
     Column {
         BlockerSettingItem(
-            title = stringResource(id = string.target_sdk_version),
+            title = stringResource(id = string.feature_appdetail_target_sdk_version),
             summary = stringResource(
-                id = string.data_with_explanation,
+                id = string.feature_appdetail_data_with_explanation,
                 targetSdkVersion,
                 AndroidCodeName.getCodeName(targetSdkVersion),
             ),
         )
         BlockerSettingItem(
-            title = stringResource(id = string.minimum_sdk_version),
+            title = stringResource(id = string.feature_appdetail_minimum_sdk_version),
             summary = stringResource(
-                id = string.data_with_explanation,
+                id = string.feature_appdetail_data_with_explanation,
                 minSdkVersion,
                 AndroidCodeName.getCodeName(minSdkVersion),
             ),
         )
         BlockerSettingItem(
-            title = stringResource(id = string.last_update_time),
+            title = stringResource(id = string.feature_appdetail_last_update_time),
             summary = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG)
                 .withLocale(Locale.getDefault())
                 .withZone(ZoneId.systemDefault())
@@ -115,7 +117,7 @@ fun AppSummary(
         )
         if (dataDir != null) {
             BlockerSettingItem(
-                title = stringResource(id = string.data_dir),
+                title = stringResource(id = string.feature_appdetail_data_dir),
                 summary = dataDir,
             )
         }
@@ -139,13 +141,13 @@ fun BlockerRuleSection(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
-        ItemHeader(title = stringResource(id = string.blocker_rules))
+        ItemHeader(title = stringResource(id = string.feature_appdetail_blocker_rules))
         BlockerSettingItem(
-            title = stringResource(id = string.export_rules),
+            title = stringResource(id = string.feature_appdetail_export_rules),
             onItemClick = onExportRules,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.import_rules),
+            title = stringResource(id = string.feature_appdetail_import_rules),
             onItemClick = onImportRules,
         )
     }
@@ -161,17 +163,17 @@ fun IfwRuleSection(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
-        ItemHeader(title = stringResource(id = string.ifw_rules))
+        ItemHeader(title = stringResource(id = string.feature_appdetail_ifw_rules))
         BlockerSettingItem(
-            title = stringResource(id = string.export_ifw_rules),
+            title = stringResource(id = string.feature_appdetail_export_ifw_rules),
             onItemClick = onExportIfw,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.import_ifw_rules),
+            title = stringResource(id = string.feature_appdetail_import_ifw_rules),
             onItemClick = onImportIfw,
         )
         BlockerSettingItem(
-            title = stringResource(id = string.reset_ifw),
+            title = stringResource(id = string.feature_appdetail_reset_ifw),
             onItemClick = onResetIfw,
         )
     }
@@ -185,8 +187,8 @@ fun PreviewAppInfoTabContent() {
         packageName = "com.mercury.blocker",
         versionName = "1.2.69-alpha",
         isEnabled = false,
-        firstInstallTime = Clock.System.now(),
-        lastUpdateTime = Clock.System.now(),
+        firstInstallTime = System.now(),
+        lastUpdateTime = System.now(),
         packageInfo = null,
     )
     BlockerTheme {

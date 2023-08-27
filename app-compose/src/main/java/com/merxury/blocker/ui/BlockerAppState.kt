@@ -20,25 +20,33 @@ package com.merxury.blocker.ui
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.get
 import androidx.navigation.navOptions
 import androidx.tracing.trace
+import com.google.accompanist.navigation.material.BottomSheetNavigator
+import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
-import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
-import com.merxury.blocker.feature.generalrules.navigation.generalRuleRoute
 import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
 import com.merxury.blocker.feature.search.navigation.navigateToSearch
-import com.merxury.blocker.feature.search.navigation.searchRoute
 import com.merxury.blocker.navigation.TopLevelDestination
 import com.merxury.blocker.navigation.TopLevelDestination.APP
 import com.merxury.blocker.navigation.TopLevelDestination.RULE
@@ -48,21 +56,25 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
+@OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
-    navController: NavHostController = rememberNavController(),
+    bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator(),
+    navController: NavHostController = rememberNavController(bottomSheetNavigator),
 ): BlockerAppState {
     NavigationTrackingSideEffect(navController)
-    return remember(navController, coroutineScope, windowSizeClass, networkMonitor) {
-        BlockerAppState(navController, coroutineScope, windowSizeClass, networkMonitor)
+    return remember(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor) {
+        BlockerAppState(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor)
     }
 }
 
 @Stable
+@OptIn(ExperimentalMaterialNavigationApi::class)
 class BlockerAppState(
+    val bottomSheetNavigator: BottomSheetNavigator,
     val navController: NavHostController,
     val coroutineScope: CoroutineScope,
     val windowSizeClass: WindowSizeClass,
@@ -73,11 +85,36 @@ class BlockerAppState(
             .currentBackStackEntryAsState().value?.destination
 
     val currentTopLevelDestination: TopLevelDestination?
-        @Composable get() = when (currentDestination?.route) {
-            appListRoute -> APP
-            generalRuleRoute -> RULE
-            searchRoute -> SEARCH
-            else -> null
+        @Composable get() {
+            // TODO: Read backStack directly from the navController when
+            //  https://issuetracker.google.com/issues/295553995 is resolved.
+            // Get compose navigator so backstack can be read
+            val composeNavigator = remember {
+                navController.navigatorProvider[ComposeNavigator::class]
+            }
+            // The navigator needs to be attached before the backstack can be read
+            var navigatorAttached by remember { mutableStateOf(false) }
+            // When the current destination has changed, the navigator
+            // is guaranteed to be attached
+            DisposableEffect(navController) {
+                val onDestinationChangedListener =
+                    NavController.OnDestinationChangedListener { _, _, _ ->
+                        navigatorAttached = true
+                    }
+                navController.addOnDestinationChangedListener(onDestinationChangedListener)
+                onDispose {
+                    navController.removeOnDestinationChangedListener(onDestinationChangedListener)
+                }
+            }
+            return when (navigatorAttached) {
+                false -> null
+                true ->
+                    composeNavigator
+                        .backStack
+                        .collectAsStateWithLifecycle()
+                        .value
+                        .currentTopLevelDestination(topLevelDestinations)
+            }
         }
 
     val shouldShowBottomBar: Boolean
@@ -153,3 +190,28 @@ private fun NavigationTrackingSideEffect(navController: NavHostController) {
         }
     }
 }
+
+/**
+ * Walks the backstack to determine the current [TopLevelDestination] in focus.
+ */
+private fun List<NavBackStackEntry>.currentTopLevelDestination(
+    topLevelDestinations: List<TopLevelDestination>,
+): TopLevelDestination? {
+    // Walk the back stack from the top to find the first entry that matches a
+    // top level destination
+    for (index in lastIndex downTo 0) {
+        val firstMatch = topLevelDestinations.firstOrNull(this[index]::matches)
+        if (firstMatch != null) return firstMatch
+    }
+    return null
+}
+
+/**
+ * Checks if a [NavBackStackEntry] matches a [TopLevelDestination]
+ */
+private fun NavBackStackEntry.matches(
+    topLevelDestination: TopLevelDestination,
+) = destination.route?.contains(
+    other = topLevelDestination.name,
+    ignoreCase = true,
+) ?: false

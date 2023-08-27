@@ -27,12 +27,12 @@ import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.feature.settings.R.string
-import com.merxury.blocker.feature.settings.UserEditableSettings
 
 @Composable
 fun BlockerSettings(
@@ -42,22 +42,22 @@ fun BlockerSettings(
 ) {
     DialogSettingsItems(
         icon = ImageVectorIcon(BlockerIcons.AutoFix),
-        titleRes = string.controller_type,
+        titleRes = string.feature_settings_controller_type,
         selectedItem = settings.controllerType,
         itemList = listOf(
-            IFW to string.intent_firewall,
-            PM to string.package_manager,
-            SHIZUKU to string.shizuku,
+            IFW to string.feature_settings_intent_firewall,
+            PM to string.feature_settings_package_manager,
+            SHIZUKU to string.feature_settings_shizuku,
         ),
         onValueChange = onChangeControllerType,
     )
     DialogSettingsItems(
         icon = ImageVectorIcon(BlockerIcons.Block),
-        titleRes = string.online_rule_source,
+        titleRes = string.feature_settings_online_rule_source,
         selectedItem = settings.ruleServerProvider,
         itemList = listOf(
-            GITHUB to string.options_github,
-            GITLAB to string.options_gitlab,
+            GITHUB to string.feature_settings_options_github,
+            GITLAB to string.feature_settings_options_gitlab,
         ),
         onValueChange = onChangeRuleServerProvider,
     )
