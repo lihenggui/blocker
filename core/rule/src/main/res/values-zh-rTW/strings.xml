@@ -22,13 +22,6 @@
     <string name="core_rule_import_ifw_please_wait">正在導入IFW應用規則，請稍等…</string>
     <string name="core_rule_import_mat_rule_please_wait">正在導入MAT應用規則，請稍等…</string>
     <string name="core_rule_reset_ifw_please_wait">重置IFW中，請稍等…</string>
-    <string name="core_rule_import_failed_message">導入Blocker規則失敗，請檢查超級用戶權限是否授予</string>
-    <string name="core_rule_no_rules_imported">沒有規則被導入，請檢查目錄是否正確設置或者權限是否被正確授予</string>
-    <string name="core_rule_import_ifw_failed_message">導入IFW規則失敗，請檢查超級用戶權限是否被正確授予。</string>
-    <string name="core_rule_export_ifw_successful_message">成功導出%1$d個IFW規則</string>
-    <string name="core_rule_import_successfully">導入規則成功</string>
-    <string name="core_rule_clear_ifw_message">清除了%1$d個IFW規則</string>
-    <string name="core_rule_import_mat_failed_message">導入MAT規則失敗，請檢查超級用戶權限是否授予</string>
     <string name="core_rule_import_app_rules_please_wait">正在導入應用規則，請稍等…</string>
     <string name="core_rule_cancel">取消</string>
     <string name="core_rule_processing_please_wait">正在處理，請稍等…</string>
