@@ -27,8 +27,6 @@
     <string name="feature_appdetail_minimum_sdk_version">Minimum SDK version</string>
     <string name="feature_appdetail_last_update_time">Last update time</string>
     <string name="feature_appdetail_data_dir">Data dir</string>
-    <string name="feature_appdetail_enable_application">Enable application</string>
-    <string name="feature_appdetail_refresh">Refresh</string>
     <string name="feature_appdetail_block_all_of_this_page">Block all of this page</string>
     <string name="feature_appdetail_enable_all_of_this_page">Enable all of this page</string>
     <string name="feature_appdetail_blocking_effect">Blocking effect</string>

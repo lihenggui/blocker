@@ -25,10 +25,6 @@
     <string name="core_ui_service_status_template">Службы: %1$d запущено, %2$d заблокировано, всего %3$d.</string>
     <string name="core_ui_running">Бег</string>
     <string name="core_ui_disabled">Неполноценный</string>
-    <string name="core_ui_service">Службы</string>
-    <string name="core_ui_receiver">Приемники</string>
-    <string name="core_ui_activity">Активити</string>
-    <string name="core_ui_content_provider">Поставщики</string>
     <string name="core_ui_rule_icon_description">Значок правила</string>
     <string name="core_ui_copy_name">Скопировать полное имя</string>
     <string name="core_ui_copy_full_name">Копировать имя пакета</string>
