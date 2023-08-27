@@ -17,19 +17,17 @@
 package com.merxury.blocker.core.ui.state.toolbar
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.structuralEqualityPolicy
 
 class ExitUntilCollapsedState(
     heightRange: IntRange,
     scrollOffset: Float = 0f,
 ) : FixedScrollFlagState(heightRange) {
 
-    override var _scrollOffset by mutableStateOf(
+    override var _scrollOffset by mutableFloatStateOf(
         value = scrollOffset.coerceIn(0f, rangeDifference.toFloat()),
-        policy = structuralEqualityPolicy(),
     )
 
     override var scrollOffset: Float
