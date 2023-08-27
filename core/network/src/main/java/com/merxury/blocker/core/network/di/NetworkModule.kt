@@ -61,6 +61,8 @@ object NetworkModule {
     @Singleton
     fun providesNetworkJson(): Json = Json {
         ignoreUnknownKeys = true
+        prettyPrint = true
+        encodeDefaults = true
     }
 
     @Provides
