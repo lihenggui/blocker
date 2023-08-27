@@ -461,11 +461,12 @@ class AppDetailViewModel @Inject constructor(
         else -> listOf(SEARCH, MORE)
     }
 
-    fun launchApp(context: Context, packageName: String) {
+    fun launchApp(context: Context, packageName: String): Boolean {
         Timber.i("Launch app $packageName")
-        pm.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
+        return pm.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             context.startActivity(launchIntent)
-        }
+            true
+        } ?: false
     }
 
     fun changeSearchMode(isSearchMode: Boolean) {

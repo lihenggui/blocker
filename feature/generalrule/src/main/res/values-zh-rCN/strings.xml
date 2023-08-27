@@ -15,8 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_generalrule_local_search">本地搜索</string>
     <string name="feature_generalrule_rules">规则</string>
     <string name="feature_generalrule_search">搜索</string>
-    <string name="feature_generalrule_icon">图标</string>
 </resources>
