@@ -65,7 +65,6 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     override fun onCreate() {
         super.onCreate()
         Timber.plant(Timber.DebugTree())
-        // TODO Uncomment this after component detail feature implemented
 //        Sync.initialize(context = this)
         Shell.setDefaultBuilder(
             Shell.Builder.create()

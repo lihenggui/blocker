@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.applist.model
+package com.merxury.blocker.core.testing.testing.data
 
-import com.merxury.blocker.core.ui.state.AppState
+import com.merxury.blocker.core.model.data.FilteredComponent
 
-data class AppServiceStatus(
-    val packageName: String,
-    val running: Int = 0,
-    val blocked: Int = 0,
-    val total: Int = 0,
-)
-
-fun AppState.toAppServiceStatus() = AppServiceStatus(
-    packageName = packageName,
-    running = running,
-    blocked = blocked,
-    total = total,
+val filteredComponentTestData = listOf(
+    FilteredComponent(
+        app = appInfoTestData,
+        activity = activityTestData,
+        service = listOf(),
+        receiver = receiverTestData,
+        provider = listOf(),
+    ),
 )

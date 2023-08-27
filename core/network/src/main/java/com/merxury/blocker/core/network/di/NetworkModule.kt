@@ -61,15 +61,18 @@ object NetworkModule {
     @Singleton
     fun providesNetworkJson(): Json = Json {
         ignoreUnknownKeys = true
+        prettyPrint = true
+        encodeDefaults = true
     }
 
     @Provides
     @Singleton
     fun provideBlockerNetworkDataSource(
+        okHttpCallFactory: Call.Factory,
         @GitHub gitHubNetworkApi: BlockerNetworkApi,
         @GitLab gitLabNetworkApi: BlockerNetworkApi,
     ): BlockerNetworkDataSource {
-        return RetrofitBlockerNetwork(gitHubNetworkApi, gitLabNetworkApi)
+        return RetrofitBlockerNetwork(okHttpCallFactory, gitHubNetworkApi, gitLabNetworkApi)
     }
 
     @Provides

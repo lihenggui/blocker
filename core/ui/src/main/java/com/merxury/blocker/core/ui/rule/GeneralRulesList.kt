@@ -69,7 +69,8 @@ fun GeneralRulesList(
             modifier = Modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
-                .align(Alignment.CenterEnd),
+                .align(Alignment.CenterEnd)
+                .testTag("rule:scrollbar"),
             state = scrollbarState,
             orientation = Vertical,
             onThumbDisplaced = listState.rememberFastScroller(
