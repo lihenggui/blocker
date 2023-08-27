@@ -1,6 +1,8 @@
 # Don't obsufcate classes under com.merxury package
 # In order to make the error readable, we need to keep the class name
 -keep class com.merxury.** { *; }
+# Keep file names and line numbers for Crashlytics.
+-keepattributes SourceFile,LineNumberTable
 
 # Will be fixed in okhttp5 https://github.com/square/okhttp/issues/6258
 -dontwarn org.bouncycastle.jsse.BCSSLParameters
