@@ -22,7 +22,6 @@
     <string name="feature_appdetail_export_ifw_rules">匯出IFW規則</string>
     <string name="feature_appdetail_import_ifw_rules">匯入IFW規則</string>
     <string name="feature_appdetail_reset_ifw">重置IFW</string>
-    <string name="feature_appdetail_more_info">更多信息</string>
     <string name="feature_appdetail_target_sdk_version">目標SDK版本</string>
     <string name="feature_appdetail_minimum_sdk_version">最低SDK版本</string>
     <string name="feature_appdetail_last_update_time">最後更新時間</string>
@@ -31,8 +30,6 @@
     <string name="feature_appdetail_refresh">刷新</string>
     <string name="feature_appdetail_block_all_of_this_page">阻止本頁所有組件</string>
     <string name="feature_appdetail_enable_all_of_this_page">啟用本頁所有組件</string>
-    <string name="feature_appdetail_disabling_hint">禁用組件中…</string>
-    <string name="feature_appdetail_enabling_hint">啟用組件中…</string>
     <string name="feature_appdetail_blocking_effect">阻止效果</string>
     <string name="feature_appdetail_recommended_blocking">推薦阻止</string>
     <string name="feature_appdetail_belonging_sdk">歸屬SDK</string>

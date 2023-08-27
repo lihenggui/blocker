@@ -24,7 +24,6 @@
     <string name="core_rule_import_mat_rule_please_wait">正在导入MAT应用规则，请稍等…</string>
     <string name="core_rule_import_failed_message">导入Blocker规则失败，请检查超级用户权限是否授予</string>
     <string name="core_rule_no_rules_imported">没有规则被导入，请检查目录是否正确设置或者权限是否被正确授予</string>
-    <string name="core_rule_export_ifw_failed_message">导出IFW规则失败，请检查权限是否被正确授予。</string>
     <string name="core_rule_import_ifw_failed_message">导入IFW规则失败，请检查超级用户权限是否被正确授予。</string>
     <string name="core_rule_export_ifw_successful_message">成功导出%1$d个IFW规则</string>
     <string name="core_rule_import_successfully">导入规则成功</string>

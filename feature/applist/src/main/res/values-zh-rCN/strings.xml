@@ -16,12 +16,6 @@
   -->
 <resources>
     <string name="feature_applist_sort_menu">排序菜单</string>
-    <string name="feature_applist_name_asc">名称（升序）</string>
-    <string name="feature_applist_name_desc">名称（降序）</string>
-    <string name="feature_applist_installation_date_asc">安装日期（升序）</string>
-    <string name="feature_applist_installation_date_desc">安装日期（降序）</string>
-    <string name="feature_applist_last_update_time_asc">最后更新时间（升序）</string>
-    <string name="feature_applist_last_update_time_desc">最后更新时间（降序）</string>
     <string name="feature_applist_settings">设置</string>
     <string name="feature_applist_support_and_feedback">帮助与反馈</string>
     <string name="feature_applist_app_name">Blocker</string>

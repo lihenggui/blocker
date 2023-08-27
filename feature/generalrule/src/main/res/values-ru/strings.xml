@@ -17,5 +17,4 @@
 <resources>
     <string name="feature_generalrule_rules">Правило</string>
     <string name="feature_generalrule_search">Поиск</string>
-    <string name="feature_generalrule_icon">Значок</string>
 </resources>
