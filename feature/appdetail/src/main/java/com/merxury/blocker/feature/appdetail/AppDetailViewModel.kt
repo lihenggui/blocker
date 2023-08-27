@@ -498,7 +498,7 @@ class AppDetailViewModel @Inject constructor(
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect()
+                .collect {}
             analyticsHelper.logBatchOperationPerformed(enable)
         }
 
