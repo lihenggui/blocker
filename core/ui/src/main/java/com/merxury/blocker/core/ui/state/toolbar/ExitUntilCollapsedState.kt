@@ -27,7 +27,7 @@ class ExitUntilCollapsedState(
 ) : FixedScrollFlagState(heightRange) {
 
     override var _scrollOffset by mutableFloatStateOf(
-        value = scrollOffset.coerceIn(0f, rangeDifference.toFloat())
+        value = scrollOffset.coerceIn(0f, rangeDifference.toFloat()),
     )
 
     override var scrollOffset: Float
