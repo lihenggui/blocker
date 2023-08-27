@@ -15,7 +15,6 @@
   -->
 
 <resources>
-    <string name="feature_applist_show_system_apps">Показать системные приложения</string>
     <string name="feature_applist_sort_menu">Сортировать меню</string>
     <string name="feature_applist_name_asc">Название ↑</string>
     <string name="feature_applist_name_desc">Название ↓</string>

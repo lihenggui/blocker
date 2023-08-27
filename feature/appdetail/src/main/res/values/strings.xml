@@ -15,7 +15,6 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_appdetail_launch_app">Launch app</string>
     <string name="feature_appdetail_cannot_launch_this_app">Cannot launch this app</string>
     <string name="feature_appdetail_blocker_rules">Blocker rules</string>
     <string name="feature_appdetail_export_rules">Export Rules</string>
