@@ -15,7 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_applist_show_system_apps">Show system apps</string>
     <string name="feature_applist_sort_menu">Sort menu</string>
     <string name="feature_applist_name_asc">Name (Ascending)</string>
     <string name="feature_applist_name_desc">Name (Descending)</string>

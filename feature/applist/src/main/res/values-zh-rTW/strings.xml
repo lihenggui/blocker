@@ -15,7 +15,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_applist_show_system_apps">顯示系統應用</string>
     <string name="feature_applist_sort_menu">排序菜單</string>
     <string name="feature_applist_name_asc">名稱（升序）</string>
     <string name="feature_applist_name_desc">名稱（降序）</string>

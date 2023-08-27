@@ -52,8 +52,6 @@
     <string name="feature_settings_intent_firewall">Intent Firewall</string>
     <string name="feature_settings_package_manager">Package Manager</string>
     <string name="feature_settings_dynamic_color">Динамический цвет</string>
-    <string name="feature_settings_options_on">На</string>
-    <string name="feature_settings_options_off">Выключенный</string>
     <string name="feature_settings_report_bugs_or_submit_ideas">Сообщайте об ошибках или предлагайте идеи</string>
     <string name="feature_settings_designers_homepage">Домашняя страница дизайнеров</string>
     <string name="feature_settings_open_source_licenses">Лицензии с открытым исходным кодом</string>
