@@ -53,8 +53,6 @@
     <string name="feature_settings_telegram_group">Telegram group</string>
     <string name="feature_settings_export_error_log">Export error log</string>
     <string name="feature_settings_dynamic_color">Dynamic Color</string>
-    <string name="feature_settings_options_on">On</string>
-    <string name="feature_settings_options_off">Off</string>
     <string name="feature_settings_report_bugs_or_submit_ideas">Report bugs or submit ideas</string>
     <string name="feature_settings_designers_homepage">Designer\'s homepage</string>
     <string name="feature_settings_open_source_licenses">Open source licenses</string>

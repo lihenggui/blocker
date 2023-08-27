@@ -52,8 +52,6 @@
     <string name="feature_settings_intent_firewall">Intent Firewall（意图防火墙）</string>
     <string name="feature_settings_package_manager">Package Manager（系统包管理器）</string>
     <string name="feature_settings_dynamic_color">动态主题颜色</string>
-    <string name="feature_settings_options_on">启用</string>
-    <string name="feature_settings_options_off">关闭</string>
     <string name="feature_settings_report_bugs_or_submit_ideas">问题反馈 &amp; 我有新点子</string>
     <string name="feature_settings_designers_homepage">设计师主页</string>
     <string name="feature_settings_open_source_licenses">开源许可证</string>
