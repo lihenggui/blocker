@@ -145,7 +145,16 @@ fun AppDetailRoute(
         navigateToComponentDetail = navigateToComponentDetail,
         modifier = modifier.fillMaxSize(),
         onLaunchAppClick = { packageName ->
-            viewModel.launchApp(context, packageName)
+            val result = viewModel.launchApp(context, packageName)
+            if (!result) {
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = context.getString(string.feature_appdetail_cannot_launch_this_app),
+                        duration = SnackbarDuration.Short,
+                        withDismissAction = true,
+                    )
+                }
+            }
         },
         switchTab = viewModel::switchTab,
         onBackClick = onBackClick,
