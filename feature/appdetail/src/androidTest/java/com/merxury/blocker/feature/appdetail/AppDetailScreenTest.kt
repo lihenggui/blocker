@@ -32,7 +32,6 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
@@ -85,10 +84,6 @@ class AppDetailScreenTest {
                 topAppBarUiState = AppBarUiState(),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
-                bottomSheetState = ComponentSortInfoUiState.Loading,
-                onBackClick = {},
-                onLaunchAppClick = {},
-                switchTab = {},
             )
         }
 
@@ -105,10 +100,6 @@ class AppDetailScreenTest {
                 topAppBarUiState = AppBarUiState(),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
-                bottomSheetState = ComponentSortInfoUiState.Loading,
-                onBackClick = {},
-                onLaunchAppClick = {},
-                switchTab = {},
             )
         }
 
@@ -140,10 +131,6 @@ class AppDetailScreenTest {
                 ),
                 componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 tabState = tabState,
-                bottomSheetState = ComponentSortInfoUiState.Loading,
-                onBackClick = {},
-                onLaunchAppClick = {},
-                switchTab = {},
             )
         }
         composeTestRule
@@ -177,10 +164,6 @@ class AppDetailScreenTest {
                 ),
                 componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 tabState = tabState,
-                bottomSheetState = ComponentSortInfoUiState.Loading,
-                onBackClick = {},
-                onLaunchAppClick = {},
-                switchTab = {},
             )
         }
         composeTestRule
@@ -199,7 +182,6 @@ class AppDetailScreenTest {
                 topAppBarUiState = AppBarUiState(),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
-                bottomSheetState = ComponentSortInfoUiState.Loading,
                 onBackClick = {},
                 onLaunchAppClick = {},
                 switchTab = {},
@@ -236,7 +218,6 @@ class AppDetailScreenTest {
                 topAppBarUiState = AppBarUiState(),
                 componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 tabState = tabState,
-                bottomSheetState = ComponentSortInfoUiState.Loading,
                 onBackClick = {},
                 onLaunchAppClick = {},
                 switchTab = {},

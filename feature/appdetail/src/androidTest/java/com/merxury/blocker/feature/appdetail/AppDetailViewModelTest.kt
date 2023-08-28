@@ -27,8 +27,6 @@ import com.merxury.blocker.core.model.data.InstalledApp
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
-import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
-import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
@@ -43,8 +41,6 @@ import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.AppDetailTabs
-import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
-import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
@@ -112,30 +108,27 @@ class AppDetailViewModelTest {
             Loading,
             viewModel.appInfoUiState.value,
         )
-        assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
     }
 
     @Test
     fun stateIsLoadingWhenDataAreLoading() = runTest {
-        val collectJob1 =
-            launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
-        val collectJob2 =
-            launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
+        val collectJob = launch(UnconfinedTestDispatcher()) {
+            viewModel.appInfoUiState.collect()
+        }
 
         assertEquals(
             Loading,
             viewModel.appInfoUiState.value,
         )
-        assertEquals(ComponentSortInfoUiState.Loading, viewModel.componentSortInfoUiState.value)
 
-        collectJob1.cancel()
-        collectJob2.cancel()
+        collectJob.cancel()
     }
 
     @Test
     fun stateIsDefaultWhenNotUpdate() = runTest {
-        val collectJob1 =
-            launch(UnconfinedTestDispatcher()) { viewModel.componentListUiState.collect() }
+        val collectJob1 = launch(UnconfinedTestDispatcher()) {
+            viewModel.componentListUiState.collect()
+        }
         val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
         val collectJob3 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
 
@@ -153,17 +146,15 @@ class AppDetailViewModelTest {
 
     @Test
     fun stateIsSuccessWhenGetData() = runTest {
-        val collectJob1 =
-            launch(UnconfinedTestDispatcher()) { viewModel.appInfoUiState.collect() }
-        val collectJob2 =
-            launch(UnconfinedTestDispatcher()) { viewModel.componentSortInfoUiState.collect() }
+        val collectJob = launch(UnconfinedTestDispatcher()) {
+            viewModel.appInfoUiState.collect()
+        }
 
         appRepository.sendAppList(sampleAppList)
         userDataRepository.sendUserData(sampleUserData)
         val packageName = sampleAppList.first().packageName
         val packageInfo = pm.getPackageInfoCompat(packageName, 0)
         viewModel.loadAppInfo()
-        viewModel.loadComponentSortInfo()
 
         assertEquals(
             Success(
@@ -171,56 +162,6 @@ class AppDetailViewModelTest {
                 iconBasedTheming = null,
             ),
             viewModel.appInfoUiState.value,
-        )
-        assertEquals(
-            ComponentSortInfoUiState.Success(
-                ComponentSortInfo(
-                    sorting = sampleUserData.componentSorting,
-                    order = sampleUserData.componentSortingOrder,
-                    priority = sampleUserData.componentShowPriority,
-                ),
-            ),
-            viewModel.componentSortInfoUiState.value,
-        )
-
-        collectJob1.cancel()
-        collectJob2.cancel()
-    }
-
-    @Test
-    fun componentSortInfoUiStateUpdateAfterChanged() = runTest {
-        val collectJob = launch(UnconfinedTestDispatcher()) {
-            viewModel.componentSortInfoUiState.collect()
-        }
-
-        userDataRepository.sendUserData(sampleUserData)
-        viewModel.loadComponentSortInfo()
-
-        assertEquals(
-            ComponentSortInfoUiState.Success(
-                ComponentSortInfo(
-                    sorting = sampleUserData.componentSorting,
-                    order = sampleUserData.componentSortingOrder,
-                    priority = sampleUserData.componentShowPriority,
-                ),
-            ),
-            viewModel.componentSortInfoUiState.value,
-        )
-
-        viewModel.updateComponentSorting(sorting = COMPONENT_NAME)
-        viewModel.updateComponentSortingOrder(order = ASCENDING)
-        viewModel.updateComponentShowPriority(priority = ENABLED_COMPONENTS_FIRST)
-        viewModel.loadComponentSortInfo()
-
-        assertEquals(
-            ComponentSortInfoUiState.Success(
-                ComponentSortInfo(
-                    sorting = COMPONENT_NAME,
-                    order = ASCENDING,
-                    priority = ENABLED_COMPONENTS_FIRST,
-                ),
-            ),
-            viewModel.componentSortInfoUiState.value,
         )
 
         collectJob.cancel()

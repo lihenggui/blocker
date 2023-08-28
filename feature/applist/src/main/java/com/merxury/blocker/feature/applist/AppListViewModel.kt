@@ -40,9 +40,6 @@ import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.ui.bottomsheet.AppSortInfo
-import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState
-import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState.Loading
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.AppStateCache
@@ -81,9 +78,6 @@ class AppListViewModel @Inject constructor(
     private val analyticsHelper: AnalyticsHelper,
     private val intentFirewall: IIntentFirewall,
 ) : AndroidViewModel(app) {
-    private val _appSortInfoUiState: MutableStateFlow<AppSortInfoUiState> =
-        MutableStateFlow(Loading)
-    val appSortInfoUiState = _appSortInfoUiState.asStateFlow()
     private val _uiState = MutableStateFlow<AppListUiState>(Initializing())
     val uiState = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
@@ -168,30 +162,6 @@ class AppListViewModel @Inject constructor(
     fun filter(keyword: String) {
         currentSearchKeyword = keyword
         loadData()
-    }
-
-    fun loadAppSortInfo() = viewModelScope.launch {
-        val userData = userDataRepository.userData.first()
-        val sorting = userData.appSorting
-        val order = userData.appSortingOrder
-        val showRunningAppsOnTop = userData.showRunningAppsOnTop
-        _appSortInfoUiState.emit(
-            AppSortInfoUiState.Success(AppSortInfo(sorting, order, showRunningAppsOnTop)),
-        )
-    }
-
-    fun updateAppSorting(sorting: AppSorting) = viewModelScope.launch {
-        userDataRepository.setAppSorting(sorting)
-    }
-
-    fun updateAppSortingOrder(order: SortingOrder) = viewModelScope.launch {
-        userDataRepository.setAppSortingOrder(order)
-    }
-
-    fun updateShowRunningAppsOnTop(shouldShow: Boolean) {
-        viewModelScope.launch {
-            userDataRepository.setShowRunningAppsOnTop(shouldShow)
-        }
     }
 
     private fun appComparator(sortType: AppSorting, sortOrder: SortingOrder): Comparator<AppItem> =

@@ -27,7 +27,6 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performScrollToNode
 import com.merxury.blocker.core.testing.testing.data.appListTestData
 import com.merxury.blocker.core.ui.R
-import com.merxury.blocker.core.ui.bottomsheet.AppSortInfoUiState
 import com.merxury.blocker.core.ui.data.UiMessage
 import org.junit.Before
 import org.junit.Rule
@@ -40,7 +39,6 @@ class AppListScreenTest {
 
     private lateinit var errorMessage: UiMessage
     private var processingAppName: String = "blocker"
-    private lateinit var descending: String
     private lateinit var error: String
     private lateinit var initializingDatabase: String
 
@@ -49,7 +47,6 @@ class AppListScreenTest {
         composeTestRule.activity.apply {
             error = getString(uiR.string.core_ui_error)
             errorMessage = UiMessage(error)
-            descending = getString(R.string.core_ui_descending)
             initializingDatabase = getString(R.string.core_ui_initializing_database)
         }
     }
@@ -59,7 +56,6 @@ class AppListScreenTest {
         composeTestRule.setContent {
             AppListScreen(
                 uiState = AppListUiState.Initializing(processingAppName),
-                bottomSheetUiState = AppSortInfoUiState.Loading,
                 appList = emptyList(),
             )
         }
@@ -77,7 +73,6 @@ class AppListScreenTest {
         composeTestRule.setContent {
             AppListScreen(
                 uiState = AppListUiState.Error(errorMessage),
-                bottomSheetUiState = AppSortInfoUiState.Loading,
                 appList = emptyList(),
             )
         }
@@ -91,7 +86,6 @@ class AppListScreenTest {
         composeTestRule.setContent {
             AppListScreen(
                 uiState = AppListUiState.Success,
-                bottomSheetUiState = AppSortInfoUiState.Loading,
                 appList = appListTestData,
             )
         }
@@ -106,7 +100,6 @@ class AppListScreenTest {
         composeTestRule.setContent {
             AppListScreen(
                 uiState = AppListUiState.Success,
-                bottomSheetUiState = AppSortInfoUiState.Loading,
                 appList = appListTestData,
             )
         }
