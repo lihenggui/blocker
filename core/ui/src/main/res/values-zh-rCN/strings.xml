@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="core_ui_clear_cache">清理缓存</string>
     <string name="core_ui_clear_data">清除数据</string>
     <string name="core_ui_force_stop">强制停止</string>
@@ -53,22 +53,6 @@
     <string name="core_ui_enable_all_components">启用所有组件</string>
     <string name="core_ui_open_app_detail">打开应用详情</string>
     <string name="core_ui_sort_options">排序选项</string>
-    <string name="core_ui_sort_by">排序依据</string>
-    <string name="core_ui_package_name">包名</string>
-    <string name="core_ui_component_name">组件名</string>
-    <string name="core_ui_order">顺序</string>
-    <string name="core_ui_ascending">升序</string>
-    <string name="core_ui_descending">降序</string>
-    <string name="core_ui_priority">优先级</string>
-    <string name="core_ui_disabled_first">禁用优先</string>
-    <string name="core_ui_enabled_first">启用优先</string>
-    <string name="core_ui_none">无</string>
-    <string name="core_ui_name">姓名</string>
-    <string name="core_ui_install_date">安装日期</string>
-    <string name="core_ui_last_updated">最后更新</string>
-    <string name="core_ui_show_running_apps_on_top">置顶运行中应用</string>
-    <string name="core_ui_on" tools:override="true">开启</string>
-    <string name="core_ui_off" tools:override="true">关闭</string>
     <string name="core_ui_collapse_list">折叠列表</string>
     <string name="core_ui_expand_list">展开列表</string>
 </resources>
