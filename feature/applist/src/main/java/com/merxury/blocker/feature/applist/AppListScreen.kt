@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -97,23 +96,22 @@ fun AppListRoute(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
     appList: List<AppItem>,
-    onAppItemClick: (String) -> Unit,
-    onClearCacheClick: (String) -> Unit,
-    onClearDataClick: (String) -> Unit,
-    onForceStopClick: (String) -> Unit,
-    onUninstallClick: (String) -> Unit,
-    onEnableClick: (String) -> Unit,
-    onDisableClick: (String) -> Unit,
-    onServiceStateUpdate: (String, Int) -> Unit,
-    navigateTooAppSortScreen: () -> Unit,
-    navigateToSettings: () -> Unit,
-    navigateToSupportAndFeedback: () -> Unit,
     modifier: Modifier = Modifier,
+    onAppItemClick: (String) -> Unit = {},
+    onClearCacheClick: (String) -> Unit = {},
+    onClearDataClick: (String) -> Unit = {},
+    onForceStopClick: (String) -> Unit = {},
+    onUninstallClick: (String) -> Unit = {},
+    onEnableClick: (String) -> Unit = {},
+    onDisableClick: (String) -> Unit = {},
+    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
+    navigateTooAppSortScreen: () -> Unit = {},
+    navigateToSettings: () -> Unit = {},
+    navigateToSupportAndFeedback: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
