@@ -635,13 +635,7 @@ fun AppDetailScreenCollapsedPreview() {
                 appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
-                onLaunchAppClick = {},
-                onBackClick = {},
-                switchTab = {},
                 topAppBarUiState = AppBarUiState(),
-                onSearchTextChanged = {},
-                onSearchModeChanged = {},
-                navigatedToComponentSortScreen = {},
             )
         }
     }
