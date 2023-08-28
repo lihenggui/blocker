@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.network
 
 import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.network.model.BinaryFileWriter
 import com.merxury.blocker.core.network.model.NetworkChangeList
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
@@ -27,6 +28,8 @@ interface BlockerNetworkDataSource {
     suspend fun getGeneralRules(): List<NetworkGeneralRule>
 
     suspend fun getRuleLatestCommitId(): NetworkChangeList
+
+    suspend fun downloadRules(writer: BinaryFileWriter): Long
 
     fun changeServerProvider(provider: RuleServerProvider)
 }

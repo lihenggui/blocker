@@ -27,6 +27,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.Synchronizer
+import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.datastore.ChangeListVersions
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -48,6 +49,7 @@ class SyncWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val blockerPreferences: BlockerPreferencesDataSource,
+    private val componentDetailRepository: ComponentDetailRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
     private val syncSubscriber: ISyncSubscriber,
@@ -62,8 +64,7 @@ class SyncWorker @AssistedInject constructor(
 
             syncSubscriber.subscribe()
 
-            // TODO sync the repositories
-            val syncedSuccessfully = true
+            val syncedSuccessfully = componentDetailRepository.sync()
 
             analyticsHelper.logSyncFinished(syncedSuccessfully)
 
