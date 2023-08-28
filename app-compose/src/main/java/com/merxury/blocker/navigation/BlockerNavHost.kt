@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
+import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
@@ -42,6 +43,10 @@ import com.merxury.blocker.feature.ruledetail.navigation.ruleDetailScreen
 import com.merxury.blocker.feature.search.navigation.searchScreen
 import com.merxury.blocker.feature.settings.navigation.navigateToSettings
 import com.merxury.blocker.feature.settings.navigation.settingsScreen
+import com.merxury.blocker.feature.sort.navigation.appSortScreen
+import com.merxury.blocker.feature.sort.navigation.componentSortScreen
+import com.merxury.blocker.feature.sort.navigation.navigateToAppSortScreen
+import com.merxury.blocker.feature.sort.navigation.navigateToComponentSortScreen
 
 /**
  * Top-level navigation graph. Navigation is organized as explained at
@@ -74,13 +79,13 @@ fun BlockerNavHost(
                 navigateToAppDetail = navController::navigateToAppDetail,
                 navigateToSettings = navController::navigateToSettings,
                 navigateToSupportAndFeedback = navController::navigateToSupportAndFeedback,
+                navigateTooAppSortScreen = navController::navigateToAppSortScreen,
             )
             detailScreen(
                 onBackClick = onBackClick,
                 snackbarHostState = snackbarHostState,
-                // TODO Temporary disable showing component detail function
-                navigateToComponentDetail = { },
-//                navigateToComponentDetail = navController::navigateToComponentDetail,
+                navigateToComponentDetail = navController::navigateToComponentDetail,
+                navigatedToComponentSortScreen = navController::navigateToComponentSortScreen,
                 updateIconBasedThemingState = updateIconBasedThemingState,
             )
             generalRuleScreen(
@@ -101,6 +106,12 @@ fun BlockerNavHost(
             )
             supportAndFeedbackScreen(onBackClick)
             componentDetailScreen(
+                dismissHandler = onBackClick,
+            )
+            componentSortScreen(
+                dismissHandler = onBackClick,
+            )
+            appSortScreen(
                 dismissHandler = onBackClick,
             )
         }
