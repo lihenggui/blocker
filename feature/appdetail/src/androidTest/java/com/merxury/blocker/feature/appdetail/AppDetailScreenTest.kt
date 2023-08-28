@@ -182,9 +182,6 @@ class AppDetailScreenTest {
                 topAppBarUiState = AppBarUiState(),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
-                onBackClick = {},
-                onLaunchAppClick = {},
-                switchTab = {},
             )
         }
         composeTestRule.onNodeWithText(appInfoTestData.label).assertExists()
@@ -218,9 +215,6 @@ class AppDetailScreenTest {
                 topAppBarUiState = AppBarUiState(),
                 componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 tabState = tabState,
-                onBackClick = {},
-                onLaunchAppClick = {},
-                switchTab = {},
             )
         }
         composeTestRule.onNodeWithText(receiverText).assertExists().assertIsSelected()
