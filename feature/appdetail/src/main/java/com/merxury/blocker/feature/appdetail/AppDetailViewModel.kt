@@ -56,14 +56,11 @@ import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
-import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
-import com.merxury.blocker.core.model.preference.ComponentSorting
 import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
-import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
@@ -85,9 +82,6 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
-import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfo
-import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState
-import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState.Success
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
@@ -148,9 +142,6 @@ class AppDetailViewModel @Inject constructor(
         ),
     )
     val tabState: StateFlow<TabState<AppDetailTabs>> = _tabState.asStateFlow()
-    private val _componentSortInfoUiState: MutableStateFlow<ComponentSortInfoUiState> =
-        MutableStateFlow(ComponentSortInfoUiState.Loading)
-    val componentSortInfoUiState = _componentSortInfoUiState.asStateFlow()
     private var currentFilterKeyword = appDetailArgs.searchKeyword
         .map { it.trim() }
         .filterNot { it.isEmpty() }
@@ -187,28 +178,6 @@ class AppDetailViewModel @Inject constructor(
         if (controllerType == SHIZUKU) {
             shizukuInitializer.registerShizuku()
         }
-    }
-
-    fun loadComponentSortInfo() = viewModelScope.launch {
-        val userData = userDataRepository.userData.first()
-        val sorting = userData.componentSorting
-        val order = userData.componentSortingOrder
-        val priority = userData.componentShowPriority
-        _componentSortInfoUiState.emit(
-            Success(ComponentSortInfo(sorting, order, priority)),
-        )
-    }
-
-    fun updateComponentSorting(sorting: ComponentSorting) = viewModelScope.launch {
-        userDataRepository.setComponentSorting(sorting)
-    }
-
-    fun updateComponentSortingOrder(order: SortingOrder) = viewModelScope.launch {
-        userDataRepository.setComponentSortingOrder(order)
-    }
-
-    fun updateComponentShowPriority(priority: ComponentShowPriority) = viewModelScope.launch {
-        userDataRepository.setComponentShowPriority(priority)
     }
 
     private fun deinitShizuku() = viewModelScope.launch {
@@ -461,11 +430,12 @@ class AppDetailViewModel @Inject constructor(
         else -> listOf(SEARCH, MORE)
     }
 
-    fun launchApp(context: Context, packageName: String) {
+    fun launchApp(context: Context, packageName: String): Boolean {
         Timber.i("Launch app $packageName")
-        pm.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
+        return pm.getLaunchIntentForPackage(packageName)?.let { launchIntent ->
             context.startActivity(launchIntent)
-        }
+            true
+        } ?: false
     }
 
     fun changeSearchMode(isSearchMode: Boolean) {
@@ -497,7 +467,7 @@ class AppDetailViewModel @Inject constructor(
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect()
+                .collect {}
             analyticsHelper.logBatchOperationPerformed(enable)
         }
 
