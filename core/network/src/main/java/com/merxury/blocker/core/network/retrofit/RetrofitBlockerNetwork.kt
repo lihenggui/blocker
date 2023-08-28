@@ -20,6 +20,7 @@ package com.merxury.blocker.core.network.retrofit
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
+import com.merxury.blocker.core.network.model.BinaryFileWriter
 import com.merxury.blocker.core.network.model.GitHub
 import com.merxury.blocker.core.network.model.GitLab
 import com.merxury.blocker.core.network.model.NetworkChangeList
@@ -84,6 +85,21 @@ class RetrofitBlockerNetwork @Inject constructor(
             Timber.e("Failed to get latest commit id from $provider", e)
             NetworkChangeList("")
         }
+    }
+
+    override suspend fun downloadRules(writer: BinaryFileWriter): Long {
+        val request = Request.Builder()
+            .url(provider.downloadLink)
+            .build()
+        val response = okhttpCallFactory.newCall(request)
+            .await()
+        val responseBody = response.body
+        if (responseBody == null) {
+            Timber.e("Response body is null.")
+            return 0
+        }
+        val length = response.header("Content-Length", "0")?.toLong() ?: 0L
+        return writer.write(responseBody.byteStream(), length)
     }
 
     private fun getLatestCommitId(json: String): String {

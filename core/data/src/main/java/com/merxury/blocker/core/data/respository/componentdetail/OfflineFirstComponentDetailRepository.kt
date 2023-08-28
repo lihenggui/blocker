@@ -97,6 +97,7 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
                 copy(ruleCommitId = latestVersion)
             },
             modelUpdater = { commitId ->
+
             },
         )
     }
