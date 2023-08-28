@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.bottomsheet
+package com.merxury.blocker.feature.sort
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -42,10 +51,40 @@ import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
-import com.merxury.blocker.core.ui.R
-import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState.Loading
-import com.merxury.blocker.core.ui.bottomsheet.ComponentSortInfoUiState.Success
 import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfo
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Loading
+import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Success
+import com.merxury.blocker.feature.sort.viewmodel.SortViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ComponentSortBottomSheetRoute(
+    dismissHandler: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: SortViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.componentSortInfoUiState.collectAsStateWithLifecycle()
+    val skipPartiallyExpanded by remember { mutableStateOf(false) }
+    val bottomSheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = skipPartiallyExpanded,
+    )
+    ModalBottomSheet(
+        onDismissRequest = { dismissHandler() },
+        sheetState = bottomSheetState,
+        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        scrimColor = Color.Transparent,
+    ) {
+        ComponentSortBottomSheet(
+            uiState = uiState,
+            modifier = modifier,
+            onSortByClick = viewModel::updateComponentSorting,
+            onSortOrderClick = viewModel::updateComponentSortingOrder,
+            onShowPriorityClick = viewModel::updateComponentShowPriority,
+        )
+    }
+}
 
 @Composable
 fun ComponentSortBottomSheet(
@@ -81,38 +120,38 @@ fun SortOptionsContent(
     onShowPriorityClick: (ComponentShowPriority) -> Unit,
 ) {
     val sortModeList = listOf(
-        COMPONENT_NAME to R.string.core_ui_component_name,
-        PACKAGE_NAME to R.string.core_ui_package_name,
+        COMPONENT_NAME to R.string.feature_sort_component_name,
+        PACKAGE_NAME to R.string.feature_sort_package_name,
     )
     val sortByRuleList = listOf(
-        ASCENDING to R.string.core_ui_ascending,
-        DESCENDING to R.string.core_ui_descending,
+        ASCENDING to R.string.feature_sort_ascending,
+        DESCENDING to R.string.feature_sort_descending,
     )
     val priorityList = listOf(
-        NONE to R.string.core_ui_none,
-        DISABLED_COMPONENTS_FIRST to R.string.core_ui_disabled_first,
-        ENABLED_COMPONENTS_FIRST to R.string.core_ui_enabled_first,
+        NONE to R.string.feature_sort_none,
+        DISABLED_COMPONENTS_FIRST to R.string.feature_sort_disabled_first,
+        ENABLED_COMPONENTS_FIRST to R.string.feature_sort_enabled_first,
     )
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(id = R.string.core_ui_sort_options),
+            text = stringResource(id = R.string.feature_sort_sort_options),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             modifier = modifier.fillMaxWidth(),
         )
-        ItemHeader(title = stringResource(id = R.string.core_ui_sort_by))
+        ItemHeader(title = stringResource(id = R.string.feature_sort_sort_by))
         SegmentedButtons(
             items = sortModeList,
             selectedValue = uiState.componentSortInfo.sorting,
             onItemSelection = onSortByClick,
         )
-        ItemHeader(title = stringResource(id = R.string.core_ui_order))
+        ItemHeader(title = stringResource(id = R.string.feature_sort_order))
         SegmentedButtons(
             items = sortByRuleList,
             selectedValue = uiState.componentSortInfo.order,
             onItemSelection = onSortOrderClick,
         )
-        ItemHeader(title = stringResource(id = R.string.core_ui_priority))
+        ItemHeader(title = stringResource(id = R.string.feature_sort_priority))
         SegmentedButtons(
             items = priorityList,
             selectedValue = uiState.componentSortInfo.priority,
