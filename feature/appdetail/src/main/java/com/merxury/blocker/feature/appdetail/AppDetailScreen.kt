@@ -212,10 +212,10 @@ fun AppDetailScreen(
     topAppBarUiState: AppBarUiState,
     componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
-    onBackClick: () -> Unit,
-    onLaunchAppClick: (String) -> Unit,
-    switchTab: (AppDetailTabs) -> Unit,
     modifier: Modifier = Modifier,
+    onBackClick: () -> Unit = {},
+    onLaunchAppClick: (String) -> Unit = {},
+    switchTab: (AppDetailTabs) -> Unit = {},
     navigateToComponentDetail: (String) -> Unit = {},
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
@@ -231,7 +231,7 @@ fun AppDetailScreen(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigatedToComponentSortScreen: () -> Unit,
+    navigatedToComponentSortScreen: () -> Unit = {},
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
     when (appInfoUiState) {
@@ -595,13 +595,7 @@ fun AppDetailScreenPreview() {
                 appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
-                onLaunchAppClick = {},
-                onBackClick = {},
-                switchTab = {},
                 topAppBarUiState = AppBarUiState(),
-                onSearchTextChanged = {},
-                onSearchModeChanged = {},
-                navigatedToComponentSortScreen = {},
             )
         }
     }
