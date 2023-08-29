@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.network.io
 
+import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.IOException
 import java.io.InputStream
@@ -30,6 +31,10 @@ class BinaryFileWriter(
 
     @Throws(IOException::class)
     fun write(inputStream: InputStream?, length: Long): Long {
+        if (length.toInt() == 0) {
+            Timber.w("Nothing to write, file length is 0")
+            return 0
+        }
         BufferedInputStream(inputStream).use { input ->
             val dataBuffer =
                 ByteArray(CHUNK_SIZE)

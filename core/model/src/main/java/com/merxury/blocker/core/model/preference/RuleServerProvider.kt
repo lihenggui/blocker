@@ -27,11 +27,11 @@ enum class RuleServerProvider(
     GITHUB(
         baseUrl = "https://raw.githubusercontent.com/lihenggui/blocker-general-rules/main/",
         commitApiUrl = "https://api.github.com/repos/lihenggui/blocker-general-rules/commits",
-        downloadLink = "https://github.com/lihenggui/blocker-general-rules/archive/refs/heads/main.zip"
-        ),
+        downloadLink = "https://github.com/lihenggui/blocker-general-rules/archive/refs/heads/main.zip",
+    ),
     GITLAB(
         baseUrl = "https://jihulab.com/mercuryli/blocker-general-rules/-/raw/main/",
         commitApiUrl = "https://jihulab.com/api/v4/projects/43543/repository/commits",
-        downloadLink = "https://jihulab.com/mercuryli/blocker-general-rules/-/archive/main/blocker-general-rules-main.zip"
+        downloadLink = "https://jihulab.com/mercuryli/blocker-general-rules/-/archive/main/blocker-general-rules-main.zip",
     ),
 }
