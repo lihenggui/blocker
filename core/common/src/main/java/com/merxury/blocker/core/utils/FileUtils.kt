@@ -16,6 +16,11 @@
 
 package com.merxury.blocker.core.utils
 
+import android.content.Context
+import android.net.Uri
+import android.system.Os
+import androidx.core.net.toFile
+import androidx.documentfile.provider.DocumentFile
 import com.merxury.blocker.core.extension.exec
 import com.topjohnwu.superuser.io.SuFile
 import com.topjohnwu.superuser.io.SuFileInputStream
@@ -119,4 +124,34 @@ object FileUtils {
             return@withContext output
         }
     }
+
+    @Throws(IllegalArgumentException::class)
+    fun getFileFromUri(
+        context: Context,
+        uri: Uri
+    ): File {
+        val cr  = context.contentResolver
+
+        if (uri.scheme == "file") {
+            return uri.toFile()
+        }
+
+        require(uri.scheme == "content") { "Uri lacks 'content' scheme: $uri" }
+
+        val df = requireNotNull(
+            DocumentFile.fromTreeUri(context, uri)
+        ) { "DocumentFile is null: $this" }
+
+        val path = cr.openFileDescriptor(df.uri, "r")?.use {
+            Os.readlink("/proc/self/fd/${it.fd}")
+        }
+
+        return File(requireNotNull(path) { "path is null: $this" })
+    }
+
+    @Throws(IllegalArgumentException::class)
+    fun getFileFromUriString(
+        context: Context,
+        uriString: String
+    ): File = getFileFromUri(context, Uri.parse(uriString))
 }
