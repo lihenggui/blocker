@@ -82,7 +82,7 @@ class RetrofitBlockerNetwork @Inject constructor(
             val commitId = getLatestCommitId(json)
             NetworkChangeList(commitId)
         } catch (e: Exception) {
-            Timber.e("Failed to get latest commit id from $provider", e)
+            Timber.e(e, "Failed to get latest commit id from $provider")
             NetworkChangeList("")
         }
     }
@@ -98,7 +98,7 @@ class RetrofitBlockerNetwork @Inject constructor(
             Timber.e("Response body is null.")
             return 0
         }
-        val length = response.header("Content-Length", "0")?.toLong() ?: 0L
+        val length = response.header("content-length", "0")?.toLong() ?: 0L
         return writer.write(responseBody.byteStream(), length)
     }
 
