@@ -128,9 +128,9 @@ object FileUtils {
     @Throws(IllegalArgumentException::class)
     fun getFileFromUri(
         context: Context,
-        uri: Uri
+        uri: Uri,
     ): File {
-        val cr  = context.contentResolver
+        val cr = context.contentResolver
 
         if (uri.scheme == "file") {
             return uri.toFile()
@@ -139,7 +139,7 @@ object FileUtils {
         require(uri.scheme == "content") { "Uri lacks 'content' scheme: $uri" }
 
         val df = requireNotNull(
-            DocumentFile.fromTreeUri(context, uri)
+            DocumentFile.fromTreeUri(context, uri),
         ) { "DocumentFile is null: $this" }
 
         val path = cr.openFileDescriptor(df.uri, "r")?.use {
@@ -152,6 +152,6 @@ object FileUtils {
     @Throws(IllegalArgumentException::class)
     fun getFileFromUriString(
         context: Context,
-        uriString: String
+        uriString: String,
     ): File = getFileFromUri(context, Uri.parse(uriString))
 }

@@ -53,7 +53,7 @@ import javax.inject.Inject
 class LocalUserDataRepository @Inject constructor(
     private val blockerPreferenceDataSource: BlockerPreferencesDataSource,
     private val analyticsHelper: AnalyticsHelper,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) : UserDataRepository {
     override val userData: Flow<UserPreferenceData>
         get() = blockerPreferenceDataSource.userData
