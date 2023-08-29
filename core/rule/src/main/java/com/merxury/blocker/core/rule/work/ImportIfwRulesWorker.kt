@@ -42,6 +42,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import nl.adaptivity.xmlutil.serialization.XML
 import timber.log.Timber
+import java.io.File
 import java.io.IOException
 
 @HiltWorker
@@ -56,13 +57,13 @@ class ImportIfwRulesWorker @AssistedInject constructor(
     override fun getNotificationTitle(): Int = R.string.core_rule_import_ifw_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        val folderPath = inputData.getString(PARAM_FOLDER_PATH)
-        if (folderPath.isNullOrEmpty()) {
+        val folderPath = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
+        if (folderPath == null || !folderPath.isDirectory) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to FOLDER_NOT_DEFINED),
             )
         }
-        if (!StorageUtil.isFolderReadable(context, folderPath)) {
+        if (!StorageUtil.isFolderReadable(folderPath)) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to MISSING_STORAGE_PERMISSION),
             )
@@ -73,7 +74,7 @@ class ImportIfwRulesWorker @AssistedInject constructor(
         try {
             val shouldRestoreSystemApps = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
             // Check directory is readable
-            val ifwFolder = StorageUtil.getOrCreateIfwFolder(context, folderPath)
+            val ifwFolder = StorageUtil.getOrCreateIfwFolder(folderPath)
                 ?: return@withContext Result.failure(
                     workDataOf(PARAM_WORK_RESULT to UNEXPECTED_EXCEPTION),
                 )

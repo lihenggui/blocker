@@ -45,6 +45,7 @@ import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
+import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -57,7 +58,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -72,7 +72,7 @@ class SettingsViewModel @Inject constructor(
                     settings = UserEditableSettings(
                         controllerType = userData.controllerType,
                         ruleServerProvider = userData.ruleServerProvider,
-                        ruleBackupFolder = getPathFromUriString(userData.ruleBackupFolder),
+                        ruleBackupFolder = userData.ruleBackupFolder,
                         backupSystemApp = userData.backupSystemApp,
                         restoreSystemApp = userData.restoreSystemApp,
                         showSystemApps = userData.showSystemApps,
@@ -91,24 +91,6 @@ class SettingsViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
-
-    private fun getPathFromUriString(path: String): String {
-        if (path.isEmpty()) return path
-        return try {
-            val uri = Uri.parse(path)
-            val file = uri.path?.let { File(it) } ?: return ""
-            val realPath = file.path.split(":")
-            if (realPath.size < 2) {
-                Timber.v("Illegal path: $path")
-                ""
-            } else {
-                "/" + realPath[1]
-            }
-        } catch (e: Exception) {
-            Timber.e("Can't get path from uri string: $path", e)
-            ""
-        }
-    }
 
     fun updateControllerType(type: ControllerType) {
         viewModelScope.launch {
@@ -141,10 +123,13 @@ class SettingsViewModel @Inject constructor(
                 return@launch
             }
             val context: Context = getApplication()
-            val flags =
-                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+
+            val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             context.contentResolver.takePersistableUriPermission(uri, flags)
-            userDataRepository.setRuleBackupFolder(uri.toString())
+
+            val file = FileUtils.getFileFromUri(context, uri)
+            userDataRepository.setRuleBackupFolder(file.absolutePath)
         }
     }
 
