@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network.model
+package com.merxury.blocker.core.network.io
 
 import org.junit.Test
+import java.io.PipedOutputStream
 
 class BinaryFileWriterUnitTest {
+    private val outputStream = PipedOutputStream()
 
     @Test
     fun givenInputStream_whenWrite_thenExpectWritten() {
+
+    }
+
+    @Test
+    fun givenInputStreamEmpty_whenWrite_thenExpectNotWritten() {
 
     }
 }
