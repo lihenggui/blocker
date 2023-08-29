@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.respository.userdata
 
+import android.content.Context
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.respository.logAppSortingChanged
 import com.merxury.blocker.core.data.respository.logAppSortingOrderChanged
@@ -40,15 +41,34 @@ import com.merxury.blocker.core.model.preference.DarkThemeConfig
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
+import com.merxury.blocker.core.utils.FileUtils
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class LocalUserDataRepository @Inject constructor(
     private val blockerPreferenceDataSource: BlockerPreferencesDataSource,
     private val analyticsHelper: AnalyticsHelper,
+    @ApplicationContext private val context: Context,
 ) : UserDataRepository {
     override val userData: Flow<UserPreferenceData>
         get() = blockerPreferenceDataSource.userData
+
+    init {
+        val coroutineScope = CoroutineScope(Dispatchers.IO)
+        coroutineScope.launch {
+            val ruleBackupFolder = userData.first().ruleBackupFolder
+
+            if (ruleBackupFolder.startsWith("content")) {
+                val dir = FileUtils.getFileFromUriString(context, ruleBackupFolder)
+                setRuleBackupFolder(dir.absolutePath)
+            }
+        }
+    }
 
     override suspend fun setDarkThemeConfig(darkThemeConfig: DarkThemeConfig) {
         blockerPreferenceDataSource.setDarkThemeConfig(darkThemeConfig)

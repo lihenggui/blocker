@@ -18,7 +18,6 @@ package com.merxury.blocker.core.rule.work
 
 import android.content.ComponentName
 import android.content.Context
-import android.net.Uri
 import androidx.core.content.pm.PackageInfoCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
@@ -51,6 +50,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
+import java.io.File
 
 @HiltWorker
 class ExportBlockerRulesWorker @AssistedInject constructor(
@@ -65,13 +65,13 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         // Check storage permission first
-        val backupPath = inputData.getString(PARAM_FOLDER_PATH)
-        if (backupPath.isNullOrEmpty()) {
+        val backupPath = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
+        if (backupPath == null || !backupPath.isDirectory) {
             return Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
             )
         }
-        if (!StorageUtil.isFolderReadable(context, backupPath)) {
+        if (!StorageUtil.isFolderReadable(backupPath)) {
             return Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
@@ -105,7 +105,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 val total = list.count()
                 list.forEach {
                     setForeground(updateNotification(it.packageName, current, total))
-                    export(it.packageName, Uri.parse(backupPath))
+                    export(it.packageName, backupPath)
                     current++
                 }
             } catch (e: Exception) {
@@ -122,13 +122,13 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         }
     }
 
-    private suspend fun backupSingleApp(packageName: String, backupPath: String) {
+    private suspend fun backupSingleApp(packageName: String, backupFolder: File) {
         Timber.d("Start to backup app rules for $packageName")
         setForeground(updateNotification(packageName, 1, 1))
-        export(packageName, Uri.parse(backupPath))
+        export(packageName, backupFolder)
     }
 
-    private suspend fun export(packageName: String, destUri: Uri): Boolean {
+    private suspend fun export(packageName: String, backupFolder: File): Boolean {
         Timber.i("Export Blocker rules for $packageName")
         val pm = context.packageManager
         val applicationInfo = ApplicationUtil.getApplicationComponents(pm, packageName)
@@ -229,7 +229,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 )
             }
             val result = if (rule.components.isNotEmpty()) {
-                saveRuleToStorage(context, rule, packageName, destUri, ioDispatcher)
+                saveRuleToStorage(context, rule, packageName, backupFolder, ioDispatcher)
             } else {
                 // No components exported, return true
                 true
@@ -245,14 +245,10 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         context: Context,
         rule: BlockerRule,
         packageName: String,
-        destUri: Uri,
+        backupFolder: File,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Boolean {
-        val dir = DocumentFile.fromTreeUri(context, destUri)
-        if (dir == null) {
-            Timber.e("Cannot open $destUri")
-            return false
-        }
+        val dir = DocumentFile.fromFile(backupFolder)
         // Create blocker rule file
         var file = dir.findFile(packageName + EXTENSION)
         if (file == null) {
