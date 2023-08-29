@@ -65,13 +65,13 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         // Check storage permission first
-        val backupPath = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
-        if (backupPath == null || !backupPath.isDirectory) {
+        val backupDir = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
+        if (backupDir == null || !backupDir.isDirectory) {
             return Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
             )
         }
-        if (!StorageUtil.isFolderReadable(backupPath)) {
+        if (!StorageUtil.isFolderReadable(backupDir)) {
             return Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
@@ -80,7 +80,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
         val packageName = inputData.getString(PARAM_BACKUP_APP_PACKAGE_NAME)
         if (!packageName.isNullOrEmpty()) {
             try {
-                backupSingleApp(packageName, backupPath)
+                backupSingleApp(packageName, backupDir)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to export blocker rule for $packageName")
                 return Result.failure(
@@ -105,7 +105,7 @@ class ExportBlockerRulesWorker @AssistedInject constructor(
                 val total = list.count()
                 list.forEach {
                     setForeground(updateNotification(it.packageName, current, total))
-                    export(it.packageName, backupPath)
+                    export(it.packageName, backupDir)
                     current++
                 }
             } catch (e: Exception) {
