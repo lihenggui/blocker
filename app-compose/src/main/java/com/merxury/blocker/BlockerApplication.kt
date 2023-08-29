@@ -87,9 +87,11 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
                 if (locale == "zh_CN") {
                     // Set default server provider to GitLab for Chinese users
                     Timber.i("Set default server provider to GitLab")
+                    userDataRepository.setRuleServerProvider(GITLAB)
                     blockerNetworkDataSource.changeServerProvider(GITLAB)
                 } else {
                     Timber.i("Set default server provider to GitHub")
+                    userDataRepository.setRuleServerProvider(GITHUB)
                     blockerNetworkDataSource.changeServerProvider(GITHUB)
                 }
                 userDataRepository.setIsFirstTimeInitializationCompleted(true)
