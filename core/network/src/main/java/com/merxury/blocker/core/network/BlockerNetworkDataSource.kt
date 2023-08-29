@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.network
 
 import com.merxury.blocker.core.model.preference.RuleServerProvider
-import com.merxury.blocker.core.network.model.BinaryFileWriter
+import com.merxury.blocker.core.network.io.BinaryFileWriter
 import com.merxury.blocker.core.network.model.NetworkChangeList
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule

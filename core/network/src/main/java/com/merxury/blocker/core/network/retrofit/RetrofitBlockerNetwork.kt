@@ -20,7 +20,7 @@ package com.merxury.blocker.core.network.retrofit
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
-import com.merxury.blocker.core.network.model.BinaryFileWriter
+import com.merxury.blocker.core.network.io.BinaryFileWriter
 import com.merxury.blocker.core.network.model.GitHub
 import com.merxury.blocker.core.network.model.GitLab
 import com.merxury.blocker.core.network.model.NetworkChangeList
