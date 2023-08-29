@@ -20,6 +20,9 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.system.Os
+import androidx.core.net.toFile
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
@@ -45,7 +48,6 @@ import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
-import com.merxury.blocker.core.utils.FileUtils
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -58,7 +60,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
+
+private const val FILE_SCHEME = "file"
+private const val CONTENT_SCHEME = "content"
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -68,6 +74,11 @@ class SettingsViewModel @Inject constructor(
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData
             .map { userData ->
+                if (userData.ruleBackupFolder.startsWith(CONTENT_SCHEME)) {
+                    convertToReadablePath(userData.ruleBackupFolder)
+                    Timber.i("Convert previously saved path to a readable path")
+                    return@map Loading
+                }
                 Success(
                     settings = UserEditableSettings(
                         controllerType = userData.controllerType,
@@ -128,7 +139,7 @@ class SettingsViewModel @Inject constructor(
                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             context.contentResolver.takePersistableUriPermission(uri, flags)
 
-            val file = FileUtils.getFileFromUri(context, uri)
+            val file = getFileFromUri(context, uri)
             userDataRepository.setRuleBackupFolder(file.absolutePath)
         }
     }
@@ -292,6 +303,38 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setDynamicColorPreference(useDynamicColor)
         }
     }
+
+    private suspend fun convertToReadablePath(originalPath: String) {
+        val context: Context = getApplication()
+        if (originalPath.startsWith(CONTENT_SCHEME)) {
+            val dir = getFileFromUriString(context, originalPath)
+            userDataRepository.setRuleBackupFolder(dir.absolutePath)
+        }
+    }
+
+    private fun getFileFromUri(
+        context: Context,
+        uri: Uri,
+    ): File {
+        val cr = context.contentResolver
+        if (uri.scheme == FILE_SCHEME) {
+            return uri.toFile()
+        }
+        require(uri.scheme == CONTENT_SCHEME) { "Uri lacks 'content' scheme: $uri" }
+        val df = requireNotNull(
+            DocumentFile.fromTreeUri(context, uri),
+        ) { "DocumentFile is null: $this" }
+        val path = cr.openFileDescriptor(df.uri, "r")?.use {
+            Os.readlink("/proc/self/fd/${it.fd}")
+        }
+        return File(requireNotNull(path) { "path is null: $this" })
+    }
+
+    @Throws(IllegalArgumentException::class)
+    private fun getFileFromUriString(
+        context: Context,
+        uriString: String,
+    ): File = getFileFromUri(context, Uri.parse(uriString))
 }
 
 sealed interface SettingsUiState {

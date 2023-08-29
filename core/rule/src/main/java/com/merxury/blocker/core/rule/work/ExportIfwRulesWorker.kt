@@ -48,13 +48,13 @@ class ExportIfwRulesWorker @AssistedInject constructor(
     override fun getNotificationTitle(): Int = R.string.core_rule_backing_up_ifw_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        val folderPath = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
-        if (folderPath == null || !folderPath.isDirectory) {
+        val folder = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
+        if (folder == null || !folder.isDirectory) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
             )
         }
-        if (!StorageUtil.isFolderReadable(folderPath)) {
+        if (!StorageUtil.isFolderReadable(folder)) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
@@ -62,7 +62,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
         val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
         if (!backupPackageName.isNullOrEmpty()) {
             try {
-                val result = exportForSingleApplication(backupPackageName, folderPath)
+                val result = exportForSingleApplication(backupPackageName, folder)
                 return@withContext Result.success(workDataOf(PARAM_EXPORT_COUNT to result))
             } catch (e: IOException) {
                 Timber.e(e, "Can't read IFW rules for $backupPackageName")
@@ -82,7 +82,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
                 val filename = it.split(File.separator).last()
                 setForeground(updateNotification(filename, current, total))
                 val content = FileUtils.read(ifwFolder + it)
-                StorageUtil.saveIfwToStorage(context, folderPath, filename, content, ioDispatcher)
+                StorageUtil.saveIfwToStorage(context, folder, filename, content, ioDispatcher)
                 current++
             }
         } catch (e: RuntimeException) {
