@@ -27,7 +27,6 @@ android {
 dependencies {
     api(projects.core.model)
     api(libs.timber)
-    implementation(libs.androidx.documentfile)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)

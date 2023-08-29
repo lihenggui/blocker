@@ -68,13 +68,13 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         // Check storage permission first
-        val backupPath = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
-        if (backupPath == null || !backupPath.isDirectory) {
+        val backupDir = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
+        if (backupDir == null || !backupDir.isDirectory) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
             )
         }
-        if (!StorageUtil.isFolderReadable(backupPath)) {
+        if (!StorageUtil.isFolderReadable(backupDir)) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
@@ -85,7 +85,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         val packageManager = context.packageManager
         val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
         val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
-        val documentDir = DocumentFile.fromFile(backupPath)
+        val documentDir = DocumentFile.fromFile(backupDir)
         if (!backupPackageName.isNullOrEmpty()) {
             return@withContext importSingleRule(
                 packageManager,
