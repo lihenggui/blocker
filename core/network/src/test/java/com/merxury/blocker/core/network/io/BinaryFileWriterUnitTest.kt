@@ -24,11 +24,9 @@ class BinaryFileWriterUnitTest {
 
     @Test
     fun givenInputStream_whenWrite_thenExpectWritten() {
-
     }
 
     @Test
     fun givenInputStreamEmpty_whenWrite_thenExpectNotWritten() {
-
     }
 }

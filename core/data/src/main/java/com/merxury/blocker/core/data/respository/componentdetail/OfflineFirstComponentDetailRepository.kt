@@ -26,19 +26,28 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
+import com.merxury.blocker.core.network.io.BinaryFileWriter
 import com.merxury.blocker.core.network.model.NetworkChangeList
+import com.merxury.blocker.core.utils.FileUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
+private const val RULE_FOLDER_NAME = "rules"
+private const val RULE_ZIP_FILENAME = "rules.zip"
+private const val COMMIT_INFO_FILE = "commit_info.txt"
 class OfflineFirstComponentDetailRepository @Inject constructor(
     private val dbDataSource: DbComponentDetailDataSource,
     private val networkDataSource: NetworkComponentDetailDataSource,
     private val userGeneratedDataSource: LocalComponentDetailDataSource,
     private val network: BlockerNetworkDataSource,
+    private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailRepository {
 
@@ -87,6 +96,7 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
     }
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean {
+        Timber.d("Syncing component detail")
         return synchronizer.changeListSync(
             versionReader = ChangeListVersions::ruleCommitId,
             changeFetcher = {
@@ -97,7 +107,21 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
                 copy(ruleCommitId = latestVersion)
             },
             modelUpdater = { commitId ->
-
+                withContext(ioDispatcher) {
+                    val ruleFolder = filesDir.resolve(RULE_FOLDER_NAME)
+                    if (!ruleFolder.exists()) {
+                        ruleFolder.mkdirs()
+                    }
+                    val file = File(ruleFolder, RULE_ZIP_FILENAME)
+                    file.outputStream().use { outputStream ->
+                        network.downloadRules(BinaryFileWriter(outputStream))
+                    }
+                    // unzip the folder to rule folder
+                    FileUtils.unzip(file, ruleFolder.absolutePath)
+                    // write commit id to file
+                    val commitInfoFile = File(ruleFolder, COMMIT_INFO_FILE)
+                    commitInfoFile.writeText(commitId)
+                }
             },
         )
     }

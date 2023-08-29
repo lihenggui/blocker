@@ -21,6 +21,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.network.JvmUnitTestFakeAssetManager
+import com.merxury.blocker.core.network.io.BinaryFileWriter
 import com.merxury.blocker.core.network.model.NetworkChangeList
 import com.merxury.blocker.core.network.model.NetworkComponentDetail
 import com.merxury.blocker.core.network.model.NetworkGeneralRule
@@ -57,6 +58,8 @@ class FakeBlockerNetworkDataSource @Inject constructor(
 
     override fun changeServerProvider(provider: RuleServerProvider) {
     }
+
+    override suspend fun downloadRules(writer: BinaryFileWriter): Long = 0
 
     companion object {
         private const val RULES_ASSET = "rules.json"
