@@ -31,6 +31,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
@@ -51,6 +53,7 @@ import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -59,31 +62,25 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
+import java.io.IOException
 import javax.inject.Inject
-
-private const val FILE_SCHEME = "file"
-private const val CONTENT_SCHEME = "content"
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     appContext: Application,
     private val userDataRepository: UserDataRepository,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(appContext) {
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData
             .map { userData ->
-                if (userData.ruleBackupFolder.startsWith(CONTENT_SCHEME)) {
-                    convertToReadablePath(userData.ruleBackupFolder)
-                    Timber.i("Convert previously saved path to a readable path")
-                    return@map Loading
-                }
                 Success(
                     settings = UserEditableSettings(
                         controllerType = userData.controllerType,
                         ruleServerProvider = userData.ruleServerProvider,
-                        ruleBackupFolder = userData.ruleBackupFolder,
+                        ruleBackupFolder = getPathFromUriString(userData.ruleBackupFolder),
                         backupSystemApp = userData.backupSystemApp,
                         restoreSystemApp = userData.restoreSystemApp,
                         showSystemApps = userData.showSystemApps,
@@ -102,6 +99,27 @@ class SettingsViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
+
+    private suspend fun getPathFromUriString(path: String): String = withContext(ioDispatcher) {
+        if (path.isEmpty()) return@withContext path
+        return@withContext try {
+            val context: Context = getApplication()
+            val uri = Uri.parse(path)
+            val cr = context.contentResolver
+            if (uri.scheme == "file") {
+                return@withContext uri.toFile().absolutePath
+            }
+            require(uri.scheme == "content") { "Uri lacks 'content' scheme: $uri" }
+            val df = DocumentFile.fromTreeUri(context, uri)
+                ?: throw IOException("Can't get DocumentFile from uri: $uri")
+            cr.openFileDescriptor(df.uri, "r")?.use {
+                Os.readlink("/proc/self/fd/${it.fd}")
+            } ?: throw IOException("Can't open file descriptor for uri: $uri")
+        } catch (e: Exception) {
+            Timber.e("Can't get path from uri string: $path", e)
+            ""
+        }
+    }
 
     fun updateControllerType(type: ControllerType) {
         viewModelScope.launch {
@@ -134,13 +152,10 @@ class SettingsViewModel @Inject constructor(
                 return@launch
             }
             val context: Context = getApplication()
-
-            val flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            val flags =
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             context.contentResolver.takePersistableUriPermission(uri, flags)
-
-            val file = getFileFromUri(context, uri)
-            userDataRepository.setRuleBackupFolder(file.absolutePath)
+            userDataRepository.setRuleBackupFolder(uri.toString())
         }
     }
 
@@ -303,38 +318,6 @@ class SettingsViewModel @Inject constructor(
             userDataRepository.setDynamicColorPreference(useDynamicColor)
         }
     }
-
-    private suspend fun convertToReadablePath(originalPath: String) {
-        val context: Context = getApplication()
-        if (originalPath.startsWith(CONTENT_SCHEME)) {
-            val dir = getFileFromUriString(context, originalPath)
-            userDataRepository.setRuleBackupFolder(dir.absolutePath)
-        }
-    }
-
-    private fun getFileFromUri(
-        context: Context,
-        uri: Uri,
-    ): File {
-        val cr = context.contentResolver
-        if (uri.scheme == FILE_SCHEME) {
-            return uri.toFile()
-        }
-        require(uri.scheme == CONTENT_SCHEME) { "Uri lacks 'content' scheme: $uri" }
-        val df = requireNotNull(
-            DocumentFile.fromTreeUri(context, uri),
-        ) { "DocumentFile is null: $this" }
-        val path = cr.openFileDescriptor(df.uri, "r")?.use {
-            Os.readlink("/proc/self/fd/${it.fd}")
-        }
-        return File(requireNotNull(path) { "path is null: $this" })
-    }
-
-    @Throws(IllegalArgumentException::class)
-    private fun getFileFromUriString(
-        context: Context,
-        uriString: String,
-    ): File = getFileFromUri(context, Uri.parse(uriString))
 }
 
 sealed interface SettingsUiState {
