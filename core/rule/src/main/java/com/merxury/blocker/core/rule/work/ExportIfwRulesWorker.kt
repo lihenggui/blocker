@@ -48,13 +48,13 @@ class ExportIfwRulesWorker @AssistedInject constructor(
     override fun getNotificationTitle(): Int = R.string.core_rule_backing_up_ifw_please_wait
 
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        val folderPath = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
-        if (folderPath == null || !folderPath.isDirectory) {
+        val folderPath = inputData.getString(PARAM_FOLDER_PATH)
+        if (folderPath.isNullOrEmpty()) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
             )
         }
-        if (!StorageUtil.isFolderReadable(folderPath)) {
+        if (!StorageUtil.isFolderReadable(context, folderPath)) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
@@ -104,7 +104,7 @@ class ExportIfwRulesWorker @AssistedInject constructor(
 
     // Export IFW rules for a single application
     // Return value is the number of exported rules
-    private suspend fun exportForSingleApplication(packageName: String, backupFolder: File): Int {
+    private suspend fun exportForSingleApplication(packageName: String, backupFolder: String): Int {
         Timber.d("Export IFW rules for $packageName")
         return withContext(ioDispatcher) {
             val ifwFolder = IfwStorageUtils.ifwFolder

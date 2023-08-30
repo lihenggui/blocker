@@ -17,19 +17,23 @@
 package com.merxury.blocker.core.rule.util
 
 import android.content.Context
+import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
 import java.io.IOException
 
 object StorageUtil {
     private const val IFW_RELATIVE_PATH = "ifw"
 
-    fun getOrCreateIfwFolder(baseFolder: File): DocumentFile? {
-        val baseDocument = DocumentFile.fromFile(baseFolder)
+    fun getOrCreateIfwFolder(context: Context, baseFolder: String): DocumentFile? {
+        val baseDocument = DocumentFile.fromTreeUri(context, Uri.parse(baseFolder))
+        if (baseDocument == null) {
+            Timber.e("Can't parse the path of the base folder.")
+            return null
+        }
         val ifwFolder = baseDocument.findFile(IFW_RELATIVE_PATH) ?: run {
             baseDocument.createDirectory(IFW_RELATIVE_PATH) ?: run {
                 Timber.e("Create ifw folder failed")
@@ -39,32 +43,47 @@ object StorageUtil {
         return ifwFolder
     }
 
-    fun isFolderReadable(path: File): Boolean {
-        val folder = DocumentFile.fromFile(path)
+    fun isFolderReadable(context: Context, path: String): Boolean {
+        val uri = Uri.parse(path)
+        // Hasn't set the dir to store
+        val folder = try {
+            DocumentFile.fromTreeUri(context, uri)
+        } catch (e: Exception) {
+            Timber.e(e, "Uri $uri is not readable.")
+            return false
+        }
         // Folder may be unreachable
-        val isFolderUnreachable = !folder.canRead() || !folder.canWrite()
+        val isFolderUnreachable = (folder == null) || !folder.canRead() || !folder.canWrite()
         if (isFolderUnreachable) {
-            Timber.w("Path $path is not reachable.")
+            Timber.w("Uri $uri is not reachable.")
         }
         return !isFolderUnreachable
     }
-
     suspend fun saveIfwToStorage(
         context: Context,
-        baseFolder: File,
+        baseFolder: String,
         filename: String,
         content: String,
         dispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): Boolean = withContext(dispatcher) {
         // Get base dir
-        val dir = DocumentFile.fromFile(baseFolder)
+        val destUri = Uri.parse(baseFolder)
+        if (destUri == null) {
+            Timber.w("No dest folder defined")
+            return@withContext false
+        }
+        val dir = DocumentFile.fromTreeUri(context, destUri)
+        if (dir == null) {
+            Timber.e("Cannot open $destUri")
+            return@withContext false
+        }
         // Find IFW folder
         var ifwDir = dir.findFile(IFW_RELATIVE_PATH)
         if (ifwDir == null) {
             ifwDir = dir.createDirectory(IFW_RELATIVE_PATH)
         }
         if (ifwDir == null) {
-            Timber.e("Cannot create ifw dir in $baseFolder")
+            Timber.e("Cannot create ifw dir in $destUri")
             return@withContext false
         }
         // Create IFW file
