@@ -69,7 +69,7 @@ class ImportMatRulesWorker @AssistedInject constructor(
             )
         }
         val typeOrdinal = inputData.getInt(PARAM_CONTROLLER_TYPE, IFW.ordinal)
-        val controller = when (ControllerType.entries[typeOrdinal]) {
+        val controller = when (ControllerType.values()[typeOrdinal]) {
             IFW -> ifwController
             PM -> rootController
             SHIZUKU -> shizukuController
