@@ -19,6 +19,7 @@ package com.merxury.blocker.core.rule.work
 import android.content.ComponentName
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.documentfile.provider.DocumentFile
 import androidx.hilt.work.HiltWorker
 import androidx.work.OneTimeWorkRequestBuilder
@@ -49,7 +50,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
 import timber.log.Timber
-import java.io.File
 
 @HiltWorker
 class ImportBlockerRuleWorker @AssistedInject constructor(
@@ -68,13 +68,13 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     @OptIn(ExperimentalSerializationApi::class)
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
         // Check storage permission first
-        val backupDir = inputData.getString(PARAM_FOLDER_PATH)?.let { File(it) }
-        if (backupDir == null || !backupDir.isDirectory) {
+        val backupPath = inputData.getString(PARAM_FOLDER_PATH)
+        if (backupPath.isNullOrEmpty()) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.FOLDER_NOT_DEFINED),
             )
         }
-        if (!StorageUtil.isFolderReadable(backupDir)) {
+        if (!StorageUtil.isFolderReadable(context, backupPath)) {
             return@withContext Result.failure(
                 workDataOf(PARAM_WORK_RESULT to RuleWorkResult.MISSING_STORAGE_PERMISSION),
             )
@@ -85,7 +85,11 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         val packageManager = context.packageManager
         val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
         val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)
-        val documentDir = DocumentFile.fromFile(backupDir)
+        val documentDir = DocumentFile.fromTreeUri(context, Uri.parse(backupPath))
+        if (documentDir == null) {
+            Timber.e("Cannot create DocumentFile")
+            return@withContext Result.failure()
+        }
         if (!backupPackageName.isNullOrEmpty()) {
             return@withContext importSingleRule(
                 packageManager,
