@@ -37,4 +37,26 @@
     <string name="feature_appdetail_add_description_hint">目前没有可用的组件信息。成为第一个贡献者吧！</string>
     <string name="feature_appdetail_how_to_contribute">如何贡献？</string>
     <string name="feature_appdetail_unknown">未知</string>
+    <string name="feature_appdetail_select_mutiple">选择多项</string>
+    <string name="feature_appdetail_cancel_current_selection">取消当前选择</string>
+    <string name="feature_appdetail_reverse_selection">反选</string>
+    <string name="feature_appdetail_select_all">选择全部</string>
+    <plurals name="feature_appdetail_selected_service_count">
+        <item quantity="other">已选择%1$d个服务</item>
+    </plurals>
+    <plurals name="feature_appdetail_selected_activity_count">
+        <item quantity="other">已选择%1$d个活动</item>
+    </plurals>
+    <plurals name="feature_appdetail_selected_receiver_count">
+        <item quantity="other">已选择%1$d个接收器</item>
+    </plurals>
+    <plurals name="feature_appdetail_selected_provider_count">
+        <item quantity="other">已选择%1$d个内容提供者</item>
+    </plurals>
+    <plurals name="feature_appdetail_block_all">
+        <item quantity="other">此操作将禁用%1$d组件，是否要继续？</item>
+    </plurals>
+    <plurals name="feature_appdetail_enable_all">
+        <item quantity="other">此操作将启用%1$d个组件，是否要继续？</item>
+    </plurals>
 </resources>
