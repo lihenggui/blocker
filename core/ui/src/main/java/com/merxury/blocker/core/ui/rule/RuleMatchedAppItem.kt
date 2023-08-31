@@ -134,9 +134,7 @@ fun MatchedComponentItem(
             Column {
                 ruleMatchedApp.componentList.forEach {
                     ComponentListItem(
-                        simpleName = it.simpleName,
-                        name = it.name,
-                        packageName = it.packageName,
+                        item = it,
                         enabled = it.enabled(),
                         type = it.type,
                         isServiceRunning = it.isRunning,
