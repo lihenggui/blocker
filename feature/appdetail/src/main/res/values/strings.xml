@@ -58,12 +58,4 @@
         <item quantity="one">%1$d component provider selected</item>
         <item quantity="other">%1$d component providers selected</item>
     </plurals>
-    <plurals name="feature_appdetail_block_all">
-        <item quantity="one">This operation will disable %1$d component, do you want to continue?</item>
-        <item quantity="other">This operation will disable %1$d components, do you want to continue?</item>
-    </plurals>
-    <plurals name="feature_appdetail_enable_all">
-        <item quantity="one">This operation will enable %1$d component, do you want to continue?</item>
-        <item quantity="other">This operation will enable %1$d components, do you want to continue?</item>
-    </plurals>
 </resources>

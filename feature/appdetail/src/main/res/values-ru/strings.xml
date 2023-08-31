@@ -53,16 +53,8 @@
         <item quantity="one">Выбран %1$d получатель</item>
         <item quantity="other">Выбрано %1$d получателей</item>
     </plurals>
-    <plurals name="feature_appdetail_block_all">
-        <item quantity="one">Эта операция отключит компонент %1$d. Продолжить?</item>
-        <item quantity="other">Эта операция отключит %1$d компонентов. Продолжить?</item>
-    </plurals>
     <plurals name="feature_appdetail_selected_provider_count">
         <item quantity="one">Выбран %1$d поставщик компонентов</item>
         <item quantity="other">Выбрано %1$d поставщиков компонентов</item>
-    </plurals>
-    <plurals name="feature_appdetail_enable_all">
-        <item quantity="one">Эта операция активирует компонент %1$d. Продолжить?</item>
-        <item quantity="other">Эта операция активирует компоненты: %1$d. Продолжить?</item>
     </plurals>
 </resources>
