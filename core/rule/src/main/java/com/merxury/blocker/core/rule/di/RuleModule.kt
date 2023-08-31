@@ -29,6 +29,7 @@ import dagger.hilt.components.SingletonComponent
 object RuleModule {
 
     @Provides
-    fun provideWorkerManager(@ApplicationContext appContext: Context): WorkManager =
-        WorkManager.getInstance(appContext)
+    fun provideWorkerManager(@ApplicationContext appContext: Context): WorkManager {
+        return WorkManager.getInstance(appContext)
+    }
 }
