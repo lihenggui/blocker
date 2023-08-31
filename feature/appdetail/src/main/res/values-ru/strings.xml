@@ -38,9 +38,6 @@
     <string name="feature_appdetail_how_to_contribute">Как внести свой вклад?</string>
     <string name="feature_appdetail_unknown">Неизвестно</string>
     <string name="feature_appdetail_select_mutiple">Выбрать несколько</string>
-    <string name="feature_appdetail_cancel_current_selection">Отменить текущий выбор</string>
-    <string name="feature_appdetail_reverse_selection">Обратный выбор</string>
-    <string name="feature_appdetail_select_all">Выбрать все</string>
     <plurals name="feature_appdetail_selected_service_count">
         <item quantity="one">Выбрана %1$d услуга</item>
         <item quantity="other">Выбрано %1$d услуг</item>
