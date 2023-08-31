@@ -585,9 +585,16 @@ fun AppDetailTabContent(
                     onResetIfw = onResetIfw,
                 )
 
-                Receiver -> {
+                else -> {
+                    val components = when (tabState.items[it]) {
+                        Receiver -> componentListUiState.receiver
+                        Service -> componentListUiState.service
+                        Activity -> componentListUiState.activity
+                        Provider -> componentListUiState.provider
+                        else -> emptyList()
+                    }
                     ComponentList(
-                        components = componentListUiState.receiver,
+                        components = components,
                         selectedComponentList = selectedComponentList,
                         isSelectedMode = isSelectedMode,
                         navigateToComponentDetail = navigateToComponentDetail,
@@ -601,51 +608,6 @@ fun AppDetailTabContent(
                         onDeselect = onDeselect,
                     )
                 }
-
-                Service -> ComponentList(
-                    components = componentListUiState.service,
-                    selectedComponentList = selectedComponentList,
-                    isSelectedMode = isSelectedMode,
-                    navigateToComponentDetail = navigateToComponentDetail,
-                    onSwitchClick = onSwitchClick,
-                    onStopServiceClick = onStopServiceClick,
-                    onLaunchActivityClick = onLaunchActivityClick,
-                    onCopyNameClick = onCopyNameClick,
-                    onCopyFullNameClick = onCopyFullNameClick,
-                    switchSelectedMode = switchSelectedMode,
-                    onSelect = onSelect,
-                    onDeselect = onDeselect,
-                )
-
-                Activity -> ComponentList(
-                    components = componentListUiState.activity,
-                    selectedComponentList = selectedComponentList,
-                    isSelectedMode = isSelectedMode,
-                    navigateToComponentDetail = navigateToComponentDetail,
-                    onSwitchClick = onSwitchClick,
-                    onStopServiceClick = onStopServiceClick,
-                    onLaunchActivityClick = onLaunchActivityClick,
-                    onCopyNameClick = onCopyNameClick,
-                    onCopyFullNameClick = onCopyFullNameClick,
-                    switchSelectedMode = switchSelectedMode,
-                    onSelect = onSelect,
-                    onDeselect = onDeselect,
-                )
-
-                Provider -> ComponentList(
-                    components = componentListUiState.provider,
-                    selectedComponentList = selectedComponentList,
-                    isSelectedMode = isSelectedMode,
-                    navigateToComponentDetail = navigateToComponentDetail,
-                    onSwitchClick = onSwitchClick,
-                    onStopServiceClick = onStopServiceClick,
-                    onLaunchActivityClick = onLaunchActivityClick,
-                    onCopyNameClick = onCopyNameClick,
-                    onCopyFullNameClick = onCopyFullNameClick,
-                    switchSelectedMode = switchSelectedMode,
-                    onSelect = onSelect,
-                    onDeselect = onDeselect,
-                )
             }
         }
     }
