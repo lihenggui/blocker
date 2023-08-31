@@ -53,10 +53,4 @@
     <plurals name="feature_appdetail_selected_provider_count">
         <item quantity="other">已选择%1$d个内容提供者</item>
     </plurals>
-    <plurals name="feature_appdetail_block_all">
-        <item quantity="other">此操作将禁用%1$d组件，是否要继续？</item>
-    </plurals>
-    <plurals name="feature_appdetail_enable_all">
-        <item quantity="other">此操作将启用%1$d个组件，是否要继续？</item>
-    </plurals>
 </resources>
