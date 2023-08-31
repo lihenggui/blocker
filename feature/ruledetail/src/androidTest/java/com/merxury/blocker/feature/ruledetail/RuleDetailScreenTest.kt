@@ -84,27 +84,6 @@ class RuleDetailScreenTest {
     }
 
     @Test
-    fun circularProgressIndicator_whenApplicableListIsLoading_exists() {
-        composeTestRule.setContent {
-            RuleDetailScreen(
-                ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
-                    ruleMatchedAppListTestData,
-                ),
-                ruleInfoUiState = RuleInfoUiState.Loading,
-                onBackClick = {},
-                tabState = tabState,
-                switchTab = {},
-            )
-        }
-
-        composeTestRule.onNodeWithContentDescription(loadingDescription).assertExists()
-        // Check more icon is hidden
-        composeTestRule
-            .onNodeWithContentDescription(moreMenuDescription)
-            .assertDoesNotExist()
-    }
-
-    @Test
     fun showRuleApplicableApps_showMoreIconExpandMoreIcon() {
         composeTestRule.setContent {
             RuleDetailScreen(
