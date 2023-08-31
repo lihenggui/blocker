@@ -18,7 +18,12 @@ package com.merxury.blocker.core.ui.component
 
 import android.content.res.Configuration
 import android.view.MotionEvent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +43,7 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -73,6 +79,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.TrackScrollJank
@@ -81,12 +88,17 @@ import com.merxury.blocker.core.ui.TrackScrollJank
 fun ComponentList(
     components: List<ComponentItem>,
     modifier: Modifier = Modifier,
+    selectedComponentList: List<ComponentInfo> = emptyList(),
     navigateToComponentDetail: (String) -> Unit = { _ -> },
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    isSelectedMode: Boolean = false,
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onSelect: (ComponentInfo) -> Unit = {},
+    onDeselect: (ComponentInfo) -> Unit = {},
 ) {
     if (components.isEmpty()) {
         NoComponentScreen()
@@ -107,10 +119,7 @@ fun ComponentList(
                 key = { _, item -> item.name },
             ) { _, item ->
                 ComponentListItem(
-                    simpleName = item.simpleName,
-                    name = item.name,
-                    description = item.description,
-                    packageName = item.packageName,
+                    item = item,
                     enabled = item.enabled(),
                     type = item.type,
                     isServiceRunning = item.isRunning,
@@ -120,14 +129,19 @@ fun ComponentList(
                     onCopyNameClick = { onCopyNameClick(item.simpleName) },
                     onCopyFullNameClick = { onCopyFullNameClick(item.name) },
                     onSwitchClick = onSwitchClick,
+                    isSelected = selectedComponentList.contains(item.toComponentInfo()),
+                    isSelectedMode = isSelectedMode,
+                    switchSelectedMode = switchSelectedMode,
+                    onSelect = onSelect,
+                    onDeselect = onDeselect,
                 )
             }
             item {
-                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
+                Spacer(modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
         listState.FastScrollbar(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxHeight()
                 .padding(horizontal = 2.dp)
                 .align(Alignment.CenterEnd),
@@ -143,10 +157,7 @@ fun ComponentList(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ComponentListItem(
-    simpleName: String,
-    name: String,
-    packageName: String,
-    description: String? = null,
+    item: ComponentItem,
     enabled: Boolean,
     type: ComponentType,
     isServiceRunning: Boolean,
@@ -156,19 +167,47 @@ fun ComponentListItem(
     onCopyNameClick: () -> Unit = { },
     onCopyFullNameClick: () -> Unit = { },
     onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    isSelected: Boolean = false,
+    isSelectedMode: Boolean = false,
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onSelect: (ComponentInfo) -> Unit = {},
+    onDeselect: (ComponentInfo) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
+    val animatedColor = animateColorAsState(
+        targetValue = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.background,
+        animationSpec = tween(500, 0, LinearEasing),
+        label = "color",
+    )
+    val radius = if (isSelected) {
+        12.dp
+    } else {
+        0.dp
+    }
+    val cornerRadius = animateDpAsState(targetValue = radius, label = "shape")
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = {
-                    navigateToComponentDetail(name)
+                    if (!isSelectedMode) {
+                        navigateToComponentDetail(item.name)
+                    } else {
+                        if (isSelected) {
+                            onDeselect(item.toComponentInfo())
+                        } else {
+                            onSelect(item.toComponentInfo())
+                        }
+                    }
                 },
                 onLongClick = {
+                    if (!isSelectedMode) {
+                        switchSelectedMode(true)
+                        onSelect(item.toComponentInfo())
+                    }
                     expanded = true
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
@@ -179,6 +218,10 @@ fun ComponentListItem(
                 }
                 false
             }
+            .background(
+                color = animatedColor.value,
+                shape = RoundedCornerShape(cornerRadius.value),
+            )
             .padding(start = 16.dp, end = 24.dp, top = 14.dp, bottom = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -186,7 +229,7 @@ fun ComponentListItem(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 BlockerBodyLargeText(
                     modifier = Modifier.weight(1F),
-                    text = simpleName,
+                    text = item.simpleName,
                 )
                 if (isServiceRunning) {
                     Spacer(modifier = Modifier.width(8.dp))
@@ -205,8 +248,8 @@ fun ComponentListItem(
                     )
                 }
             }
-            BlockerBodyMediumText(text = name)
-            description?.let {
+            BlockerBodyMediumText(text = item.name)
+            item.description?.let {
                 Spacer(modifier = Modifier.height(4.dp))
                 BlockerBodyMediumText(
                     text = it,
@@ -218,7 +261,7 @@ fun ComponentListItem(
         Switch(
             checked = enabled,
             onCheckedChange = {
-                onSwitchClick(packageName, name, !enabled)
+                onSwitchClick(item.packageName, item.name, !enabled)
             },
         )
         val offset = with(density) {
@@ -263,13 +306,42 @@ fun ComponentItemPreview() {
     BlockerTheme {
         Surface {
             ComponentListItem(
-                simpleName = "ExampleActivity",
-                name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
-                packageName = "com.merxury.blocker",
+                item = ComponentItem(
+                    simpleName = "ExampleActivity",
+                    name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
+                    packageName = "com.merxury.blocker",
+                    description = "An example activity",
+                    type = ComponentType.ACTIVITY,
+                    pmBlocked = false,
+                ),
                 enabled = false,
-                description = "An example activity",
                 type = SERVICE,
                 isServiceRunning = true,
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+fun ComponentItemSelectedPreview() {
+    BlockerTheme {
+        Surface {
+            ComponentListItem(
+                item = ComponentItem(
+                    simpleName = "ExampleActivity",
+                    name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
+                    packageName = "com.merxury.blocker",
+                    description = "An example activity",
+                    type = ComponentType.ACTIVITY,
+                    pmBlocked = false,
+                ),
+                enabled = false,
+                type = SERVICE,
+                isServiceRunning = true,
+                isSelectedMode = true,
+                isSelected = true,
             )
         }
     }
