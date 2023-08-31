@@ -256,7 +256,7 @@ class SearchViewModel @Inject constructor(
         _searchUiState.update { it.copy(keyword = TextFieldValue()) }
     }
 
-    fun controlAllComponents(enable: Boolean) =
+    fun controlAllSelectedComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             componentRepository.batchControlComponent(
                 components = _searchUiState.value.selectedComponentList,
