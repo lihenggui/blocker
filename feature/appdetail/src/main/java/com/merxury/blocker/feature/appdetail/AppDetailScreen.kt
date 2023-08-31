@@ -167,6 +167,9 @@ fun AppDetailRoute(
         onSelectAll = viewModel::selectAll,
         onBlockAll = { viewModel.controlAllSelectedComponents(false) },
         onEnableAll = { viewModel.controlAllSelectedComponents(true) },
+        switchSelectedMode = viewModel::switchSelectedMode,
+        onSelect = viewModel::selectItem,
+        onDeselect = viewModel::deselectItem,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -240,6 +243,9 @@ fun AppDetailScreen(
     onSelectAll: () -> Unit = {},
     onBlockAll: () -> Unit = {},
     onEnableAll: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onSelect: (ComponentInfo) -> Unit = {},
+    onDeselect: (ComponentInfo) -> Unit = {},
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -277,6 +283,9 @@ fun AppDetailScreen(
                 onSelectAll = onSelectAll,
                 onBlockAll = onBlockAll,
                 onEnableAll = onEnableAll,
+                switchSelectedMode = switchSelectedMode,
+                onSelect = onSelect,
+                onDeselect = onDeselect,
             )
         }
 
@@ -316,6 +325,9 @@ fun AppDetailContent(
     onSelectAll: () -> Unit = {},
     onBlockAll: () -> Unit = {},
     onEnableAll: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onSelect: (ComponentInfo) -> Unit = {},
+    onDeselect: (ComponentInfo) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -357,11 +369,11 @@ fun AppDetailContent(
         topBar = {
             TopAppBar(
                 isSelectedMode = topAppBarUiState.isSelectedMode,
+                isSearchMode = topAppBarUiState.isSearchMode,
                 app = app,
                 topAppBarUiState = topAppBarUiState,
                 tabState = tabState,
                 toolbarState = toolbarState,
-                onBackClick = onBackClick,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
                 blockAllComponents = blockAllComponents,
@@ -371,6 +383,8 @@ fun AppDetailContent(
                 onSelectAll = onSelectAll,
                 onBlockAll = onBlockAll,
                 onEnableAll = onEnableAll,
+                switchSelectedMode = switchSelectedMode,
+                onBackClick = onBackClick,
             )
         },
         modifier = modifier.nestedScroll(nestedScrollConnection),
@@ -378,6 +392,8 @@ fun AppDetailContent(
         AppDetailTabContent(
             app = app,
             componentListUiState = componentListUiState,
+            selectedComponentList = topAppBarUiState.selectedComponentList,
+            isSelectedMode = topAppBarUiState.isSelectedMode,
             tabState = tabState,
             switchTab = switchTab,
             modifier = Modifier
@@ -399,6 +415,8 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
+            onSelect = onSelect,
+            onDeselect = onDeselect,
         )
     }
 }
@@ -410,7 +428,8 @@ fun AppDetailAppBarActions(
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
-    navigatedToComponentSortScreen: () -> Unit,
+    navigatedToComponentSortScreen: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
 ) {
     val actions = appBarUiState.actions
     if (actions.contains(SEARCH)) {
@@ -438,6 +457,7 @@ fun AppDetailAppBarActions(
             blockAllComponents = blockAllComponents,
             enableAllComponents = enableAllComponents,
             onAdvanceSortClick = navigatedToComponentSortScreen,
+            switchSelectedMode = switchSelectedMode,
         )
     }
 }
@@ -452,11 +472,11 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
 @Composable
 private fun TopAppBar(
     isSelectedMode: Boolean,
+    isSearchMode: Boolean,
     app: AppItem,
     topAppBarUiState: AppBarUiState,
     tabState: TabState<AppDetailTabs>,
     toolbarState: ToolbarState,
-    onBackClick: () -> Unit = {},
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
@@ -466,11 +486,19 @@ private fun TopAppBar(
     onSelectAll: () -> Unit = {},
     onBlockAll: () -> Unit = {},
     onEnableAll: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onBackClick: () -> Unit,
 ) {
     if (!isSelectedMode) {
         BlockerCollapsingTopAppBar(
             progress = toolbarState.progress,
-            onNavigationClick = onBackClick,
+            onNavigationClick = {
+                if (isSearchMode) {
+                    onSearchModeChanged(false)
+                } else {
+                    onBackClick()
+                }
+            },
             title = app.label,
             actions = {
                 AppDetailAppBarActions(
@@ -480,6 +508,7 @@ private fun TopAppBar(
                     blockAllComponents = blockAllComponents,
                     enableAllComponents = enableAllComponents,
                     navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+                    switchSelectedMode = switchSelectedMode,
                 )
             },
             subtitle = app.packageName,
@@ -505,7 +534,7 @@ private fun TopAppBar(
             },
             selectedItemCount = topAppBarUiState.selectedComponentList.size,
             selectedComponentCount = topAppBarUiState.selectedComponentList.size,
-            onNavigationClick = onBackClick,
+            onNavigationClick = { switchSelectedMode(false) },
             onSelectAll = onSelectAll,
             onBlockAll = onBlockAll,
             onEnableAll = onEnableAll,
@@ -534,7 +563,6 @@ fun AppDetailTabContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
-    switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
 ) {
@@ -603,7 +631,6 @@ fun AppDetailTabContent(
                         onLaunchActivityClick = onLaunchActivityClick,
                         onCopyNameClick = onCopyNameClick,
                         onCopyFullNameClick = onCopyFullNameClick,
-                        switchSelectedMode = switchSelectedMode,
                         onSelect = onSelect,
                         onDeselect = onDeselect,
                     )

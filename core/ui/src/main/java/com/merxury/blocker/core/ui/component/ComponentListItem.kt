@@ -96,7 +96,6 @@ fun ComponentList(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
     isSelectedMode: Boolean = false,
-    switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
 ) {
@@ -131,7 +130,6 @@ fun ComponentList(
                     onSwitchClick = onSwitchClick,
                     isSelected = selectedComponentList.contains(item.toComponentInfo()),
                     isSelectedMode = isSelectedMode,
-                    switchSelectedMode = switchSelectedMode,
                     onSelect = onSelect,
                     onDeselect = onDeselect,
                 )
@@ -169,7 +167,6 @@ fun ComponentListItem(
     onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
     isSelected: Boolean = false,
     isSelectedMode: Boolean = false,
-    switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
 ) {
@@ -204,10 +201,6 @@ fun ComponentListItem(
                     }
                 },
                 onLongClick = {
-                    if (!isSelectedMode) {
-                        switchSelectedMode(true)
-                        onSelect(item.toComponentInfo())
-                    }
                     expanded = true
                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 },
