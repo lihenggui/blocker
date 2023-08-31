@@ -73,7 +73,7 @@ fun FilteredComponentItem(
 ) {
     val animatedColor = animateColorAsState(
         targetValue = if (isSelected) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.background,
-        animationSpec = tween(500, 0, LinearEasing),
+        animationSpec = tween(300, 0, LinearEasing),
         label = "color",
     )
     val radius = if (isSelected) {
