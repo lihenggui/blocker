@@ -158,7 +158,7 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
-    private var selectedAllTag = false
+    private var selectedAllComponent = false
 
     init {
         loadTabInfo()
@@ -571,7 +571,7 @@ class AppDetailViewModel @Inject constructor(
 
     fun selectAll() {
         // if selectedAllTag == true, deselect all
-        if (selectedAllTag) {
+        if (selectedAllComponent) {
             _appBarUiState.update {
                 it.copy(selectedComponentList = listOf())
             }
@@ -580,7 +580,7 @@ class AppDetailViewModel @Inject constructor(
                 it.copy(selectedComponentList = getCurrentTabFilterComponentList())
             }
         }
-        selectedAllTag = !selectedAllTag
+        selectedAllComponent = !selectedAllComponent
     }
 
     private fun getCurrentTabFilterComponentList(): MutableList<ComponentInfo> {
