@@ -14,7 +14,7 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
     <string name="feature_appdetail_cannot_launch_this_app">Не удалось запустить это приложение</string>
     <string name="feature_appdetail_blocker_rules">правилBlocker</string>
     <string name="feature_appdetail_export_rules">Экспорт правил</string>
@@ -42,8 +42,8 @@
     <string name="feature_appdetail_reverse_selection">Обратный выбор</string>
     <string name="feature_appdetail_select_all">Выбрать все</string>
     <plurals name="feature_appdetail_selected_service_count">
-        <item quantity="one">%1$d Выбрана услуга</item>
-        <item quantity="other">%1$d Выбрано услуг</item>
+        <item quantity="one">Выбрана %1$d услуга</item>
+        <item quantity="other">Выбрано %1$d услуг</item>
     </plurals>
     <plurals name="feature_appdetail_selected_activity_count">
         <item quantity="one">Выбрано %1$d действие</item>
