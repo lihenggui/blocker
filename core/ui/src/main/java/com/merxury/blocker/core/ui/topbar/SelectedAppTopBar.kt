@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.topBar
+package com.merxury.blocker.core.ui.topbar
 
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
