@@ -441,6 +441,9 @@ class AppDetailViewModel @Inject constructor(
 
     fun changeSearchMode(isSearchMode: Boolean) {
         Timber.v("Change search mode: $isSearchMode")
+        if (!isSearchMode) {
+            loadComponentList()
+        }
         _appBarUiState.update {
             val originalSearchState = it.isSearchMode
             if (!originalSearchState && isSearchMode) {
