@@ -48,37 +48,24 @@ fun MoreActionMenu(
     selectAll: () -> Unit = {},
     isSelectMode: Boolean = false,
 ) {
-    val items = if (!isSelectMode) {
-        listOf(
-            DropDownMenuItem(
-                string.feature_appdetail_block_all_of_this_page,
-                blockAllComponents,
-            ),
-            DropDownMenuItem(
-                string.feature_appdetail_enable_all_of_this_page,
-                enableAllComponents,
-            ),
-            DropDownMenuItem(
-                UiR.string.core_ui_sort_options,
-                onAdvanceSortClick,
-            ),
-        )
-    } else {
-        listOf(
-            DropDownMenuItem(
-                string.feature_appdetail_cancel_current_selection,
-                cancelSelection,
-            ),
-            DropDownMenuItem(
-                string.feature_appdetail_reverse_selection,
-                reverseSelection,
-            ),
-            DropDownMenuItem(
-                string.feature_appdetail_select_all,
-                selectAll,
-            ),
-        )
-    }
+    val items = listOf(
+        DropDownMenuItem(
+            string.feature_appdetail_select_mutiple,
+            blockAllComponents,
+        ),
+        DropDownMenuItem(
+            string.feature_appdetail_block_all_of_this_page,
+            blockAllComponents,
+        ),
+        DropDownMenuItem(
+            string.feature_appdetail_enable_all_of_this_page,
+            enableAllComponents,
+        ),
+        DropDownMenuItem(
+            UiR.string.core_ui_sort_options,
+            onAdvanceSortClick,
+        ),
+    )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
         menuIconDesc = UiR.string.core_ui_more_menu,
