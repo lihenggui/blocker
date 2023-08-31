@@ -158,6 +158,7 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
+    private var selectedAllTag = false
 
     init {
         loadTabInfo()
@@ -521,6 +522,72 @@ class AppDetailViewModel @Inject constructor(
     ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         controlComponentInternal(packageName, componentName, enabled)
         analyticsHelper.logSwitchComponentClicked(newState = enabled)
+    }
+
+    fun controlAllSelectedComponents(enable: Boolean) =
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            componentRepository.batchControlComponent(
+                components = _appBarUiState.value.selectedComponentList,
+                newState = enable,
+            )
+                .catch { exception ->
+                    _errorState.emit(exception.toErrorMessage())
+                }
+                .collect()
+        }
+
+    fun switchSelectedMode(value: Boolean) {
+        // Clear list when exit from selectedMode
+        if (!value) {
+            _appBarUiState.update {
+                it.copy(selectedComponentList = listOf())
+            }
+        }
+        _appBarUiState.update {
+            it.copy(isSelectedMode = value)
+        }
+    }
+
+    fun selectItem(item: ComponentInfo) {
+        val selectedList: MutableList<ComponentInfo> = mutableListOf()
+        selectedList.addAll(_appBarUiState.value.selectedComponentList)
+        selectedList.add(item)
+        _appBarUiState.update {
+            it.copy(selectedComponentList = selectedList)
+        }
+    }
+
+    fun deselectItem(item: ComponentInfo) {
+        val selectedList: MutableList<ComponentInfo> = mutableListOf()
+        selectedList.addAll(_appBarUiState.value.selectedComponentList)
+        selectedList.remove(item)
+        _appBarUiState.update {
+            it.copy(selectedComponentList = selectedList)
+        }
+    }
+
+    fun selectAll() {
+        // if selectedAllTag == true, deselect all
+        if (selectedAllTag) {
+            _appBarUiState.update {
+                it.copy(selectedComponentList = listOf())
+            }
+        } else {
+            _appBarUiState.update {
+                it.copy(selectedComponentList = getCurrentTabFilterComponentList())
+            }
+        }
+        selectedAllTag = !selectedAllTag
+    }
+
+    private fun getCurrentTabFilterComponentList(): MutableList<ComponentInfo> {
+        return when (tabState.value.selectedItem) {
+            Receiver -> _componentListUiState.value.receiver.map { it.toComponentInfo() }
+            Service -> _componentListUiState.value.service.map { it.toComponentInfo() }
+            Activity -> _componentListUiState.value.activity.map { it.toComponentInfo() }
+            Provider -> _componentListUiState.value.provider.map { it.toComponentInfo() }
+            else -> listOf()
+        }.toMutableList()
     }
 
     private suspend fun controlComponentInternal(
