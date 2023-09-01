@@ -81,7 +81,7 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
         }
         val controllerOrdinal =
             inputData.getInt(PARAM_CONTROLLER_TYPE, IFW.ordinal)
-        val controllerType = ControllerType.values()[controllerOrdinal]
+        val controllerType = ControllerType.entries[controllerOrdinal]
         val packageManager = context.packageManager
         val backupPackageName = inputData.getString(PARAM_BACKUP_PACKAGE_NAME)
         val shouldRestoreSystemApp = inputData.getBoolean(PARAM_RESTORE_SYS_APPS, false)

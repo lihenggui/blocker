@@ -16,7 +16,7 @@
 plugins {
     id("blocker.android.library")
     id("blocker.android.library.jacoco")
-    kotlin("kapt")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -35,5 +35,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.hilt.android)
     implementation(libs.timber)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
+
+    testImplementation(projects.core.testing)
 }
