@@ -20,7 +20,6 @@ import android.content.res.Configuration
 import android.view.MotionEvent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -43,7 +42,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -180,12 +178,6 @@ fun ComponentListItem(
         animationSpec = tween(300, 0, LinearEasing),
         label = "color",
     )
-    val radius = if (isSelected) {
-        12.dp
-    } else {
-        0.dp
-    }
-    val cornerRadius = animateDpAsState(targetValue = radius, label = "shape")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -214,7 +206,6 @@ fun ComponentListItem(
             }
             .background(
                 color = animatedColor.value,
-                shape = RoundedCornerShape(cornerRadius.value),
             )
             .padding(start = 16.dp, end = 24.dp, top = 14.dp, bottom = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
