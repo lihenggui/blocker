@@ -21,19 +21,26 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.GeneralRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import java.io.File
 import javax.inject.Inject
 
 class SearchGeneralRuleUseCase @Inject constructor(
     private val generalRuleRepository: GeneralRuleRepository,
     private val userDataRepository: UserDataRepository,
+    private val filesDir: File,
 ) {
     operator fun invoke(keyword: String = ""): Flow<List<GeneralRule>> {
         val searchFlow = generalRuleRepository.searchGeneralRule(keyword)
         val userDataFlow = userDataRepository.userData
-        return combine(searchFlow, userDataFlow) { list, userData ->
-            val serverUrl = userData.ruleServerProvider.baseUrl
+        val filesDir = filesDir.resolve("blocker-general-rules")
+        return combine(searchFlow, userDataFlow) { list, _ ->
             list.map { rule ->
-                rule.copy(iconUrl = serverUrl + rule.iconUrl)
+                val iconPath = rule.iconUrl
+                if (iconPath.isNullOrEmpty()) {
+                    rule
+                } else {
+                    rule.copy(iconUrl = filesDir.resolve(iconPath).absolutePath)
+                }
             }.sortedByDescending { it.matchedAppCount }
         }
     }
