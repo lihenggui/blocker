@@ -48,9 +48,6 @@ import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.feature.sort.viewmodel.AppSortInfo
-import com.merxury.blocker.feature.sort.viewmodel.AppSortInfoUiState
-import com.merxury.blocker.feature.sort.viewmodel.AppSortViewModel
 import java.lang.Boolean.FALSE
 import java.lang.Boolean.TRUE
 

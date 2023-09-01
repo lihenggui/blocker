@@ -46,11 +46,9 @@ import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.generalrule.R
-import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState
-import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
-import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
-import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Success
-import com.merxury.blocker.feature.generalrules.model.GeneralRulesViewModel
+import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Error
+import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
+import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 
 @Composable
 fun GeneralRulesRoute(

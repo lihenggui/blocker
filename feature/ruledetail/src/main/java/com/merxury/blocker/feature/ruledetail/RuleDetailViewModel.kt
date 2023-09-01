@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.ruledetail.model
+package com.merxury.blocker.feature.ruledetail
 
 import android.app.Application
 import android.content.Context
@@ -56,11 +56,7 @@ import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.feature.ruledetail.logControlAllComponentsClicked
-import com.merxury.blocker.feature.ruledetail.logControlAllInPageClicked
-import com.merxury.blocker.feature.ruledetail.logLaunchActivityClicked
-import com.merxury.blocker.feature.ruledetail.logStopServiceClicked
-import com.merxury.blocker.feature.ruledetail.logSwitchComponentStateClicked
+import com.merxury.blocker.feature.ruledetail.RuleInfoUiState.Success
 import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -154,7 +150,7 @@ class RuleDetailViewModel @Inject constructor(
             .first()
         val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
         _ruleInfoUiState.update {
-            RuleInfoUiState.Success(
+            Success(
                 ruleInfo = ruleWithIcon,
                 ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
             )
