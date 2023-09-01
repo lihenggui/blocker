@@ -44,6 +44,7 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.screen.LoadingScreen
 
 @Composable
 fun RuleMatchedAppList(
@@ -59,7 +60,7 @@ fun RuleMatchedAppList(
     onSwitch: (String, String, Boolean) -> Unit,
 ) {
     when (ruleMatchedAppListUiState) {
-        RuleMatchedAppListUiState.Loading -> {}
+        RuleMatchedAppListUiState.Loading -> LoadingScreen()
         is RuleMatchedAppListUiState.Success -> {
             if (ruleMatchedAppListUiState.list.isEmpty()) {
                 NoApplicableAppScreen()

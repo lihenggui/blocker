@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui
 
+import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.ui.R.string
 
 sealed class AppDetailTabs(val name: String, val title: Int = 0) {
@@ -45,6 +46,14 @@ sealed class AppDetailTabs(val name: String, val title: Int = 0) {
             SERVICE -> Service
             ACTIVITY -> Activity
             PROVIDER -> Provider
+            else -> throw IllegalArgumentException("Invalid screen name in detail page")
+        }
+
+        fun toComponentType(name: String?): ComponentType = when (name) {
+            RECEIVER -> ComponentType.RECEIVER
+            SERVICE -> ComponentType.SERVICE
+            ACTIVITY -> ComponentType.ACTIVITY
+            PROVIDER -> ComponentType.PROVIDER
             else -> throw IllegalArgumentException("Invalid screen name in detail page")
         }
     }
