@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network.model
+package com.merxury.blocker.core.data.respository.generalrule
 
-import javax.inject.Qualifier
+import com.merxury.blocker.core.model.data.GeneralRule
+import kotlinx.coroutines.flow.Flow
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class GitHub
+interface GeneralRuleDataSource {
 
-@Qualifier
-@Retention(AnnotationRetention.BINARY)
-annotation class GitLab
+    fun getGeneralRules(): Flow<List<GeneralRule>>
+}

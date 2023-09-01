@@ -20,7 +20,7 @@ import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.changeListSync
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.NetworkComponentDetailDataSource
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.ChangeListVersions
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -43,8 +43,8 @@ private const val RULE_FOLDER_NAME = "rules"
 private const val RULE_ZIP_FILENAME = "rules.zip"
 private const val COMMIT_INFO_FILE = "commit_info.txt"
 class OfflineFirstComponentDetailRepository @Inject constructor(
+    private val userDataRepository: UserDataRepository,
     private val dbDataSource: DbComponentDetailDataSource,
-    private val networkDataSource: NetworkComponentDetailDataSource,
     private val userGeneratedDataSource: LocalComponentDetailDataSource,
     private val network: BlockerNetworkDataSource,
     private val filesDir: File,
@@ -56,16 +56,6 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
 
     override fun getDbComponentDetail(name: String): Flow<ComponentDetail?> =
         dbDataSource.getComponentDetail(name)
-
-    override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        val networkData = networkDataSource.getComponentDetail(name).first()
-        if (networkData != null) {
-            saveComponentDetail(networkData, userGenerated = false)
-            emit(networkData)
-            return@flow
-        }
-        emit(null)
-    }
 
     override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> = flow {
         // Priority: user generated > db
@@ -97,10 +87,12 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean {
         Timber.d("Syncing component detail")
+        val provider = userDataRepository.userData.first().ruleServerProvider
         return synchronizer.changeListSync(
             versionReader = ChangeListVersions::ruleCommitId,
             changeFetcher = {
-                val commitId = network.getRuleLatestCommitId().ruleCommitId
+                val commitId = network.getRuleLatestCommitId(provider)
+                    .ruleCommitId
                 NetworkChangeList(commitId)
             },
             versionUpdater = { latestVersion ->
@@ -114,7 +106,7 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
                     }
                     val file = File(ruleFolder, RULE_ZIP_FILENAME)
                     file.outputStream().use { outputStream ->
-                        network.downloadRules(BinaryFileWriter(outputStream))
+                        network.downloadRules(provider, BinaryFileWriter(outputStream))
                     }
                     // unzip the folder to rule folder
                     FileUtils.unzip(file, ruleFolder.absolutePath)

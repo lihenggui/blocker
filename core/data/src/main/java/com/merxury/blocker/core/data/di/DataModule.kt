@@ -22,7 +22,9 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.OfflineFirstComponentDetailRepository
+import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSource
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.generalrule.LocalGeneralRuleDataSource
 import com.merxury.blocker.core.data.respository.generalrule.OfflineFirstGeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalAppPropertiesRepository
@@ -72,4 +74,9 @@ interface DataModule {
     fun bindsLocalAppRepository(
         localAppRepository: LocalAppRepository,
     ): AppRepository
+
+    @Binds
+    fun bindLocalGeneralRuleDataSource(
+        localGeneralRuleDataSource: LocalGeneralRuleDataSource,
+    ): GeneralRuleDataSource
 }

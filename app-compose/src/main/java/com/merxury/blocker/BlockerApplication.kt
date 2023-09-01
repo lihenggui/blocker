@@ -30,9 +30,7 @@ import com.merxury.blocker.sync.initializers.Sync
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
@@ -88,20 +86,12 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
                     // Set default server provider to GitLab for Chinese users
                     Timber.i("Set default server provider to GitLab")
                     userDataRepository.setRuleServerProvider(GITLAB)
-                    blockerNetworkDataSource.changeServerProvider(GITLAB)
                 } else {
                     Timber.i("Set default server provider to GitHub")
                     userDataRepository.setRuleServerProvider(GITHUB)
-                    blockerNetworkDataSource.changeServerProvider(GITHUB)
                 }
                 userDataRepository.setIsFirstTimeInitializationCompleted(true)
             }
-            userDataRepository.userData
-                .map { it.ruleServerProvider }
-                .distinctUntilChanged()
-                .collect { newProvider ->
-                    blockerNetworkDataSource.changeServerProvider(newProvider)
-                }
         }
     }
 }

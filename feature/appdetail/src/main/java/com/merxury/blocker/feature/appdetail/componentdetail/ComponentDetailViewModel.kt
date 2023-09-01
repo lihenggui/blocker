@@ -88,17 +88,6 @@ class ComponentDetailViewModel @Inject constructor(
             isFetchingData = true,
             detail = ComponentDetail(name = component.name),
         )
-        // Fetch the data from network
-        val networkDetail = componentDetailRepository
-            .getNetworkComponentDetail(componentDetailArg.name)
-            .first()
-        if (networkDetail != null) {
-            _uiState.value = Success(
-                isFetchingData = false,
-                detail = networkDetail,
-            )
-            return@launch
-        }
         // No matching found in the network, emit the default value
         // Dismiss the loading progress bar
         _uiState.value = Success(

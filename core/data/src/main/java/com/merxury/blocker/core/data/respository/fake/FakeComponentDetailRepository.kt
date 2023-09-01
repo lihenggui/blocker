@@ -35,8 +35,6 @@ class FakeComponentDetailRepository @Inject constructor(
     override fun getDbComponentDetail(name: String): Flow<ComponentDetail?> =
         dbDataSource.getComponentDetail(name)
 
-    override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
-
     override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> = flowOf(null)
 
     override suspend fun saveComponentDetail(
