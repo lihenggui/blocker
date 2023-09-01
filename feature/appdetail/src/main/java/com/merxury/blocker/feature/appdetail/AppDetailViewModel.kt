@@ -440,6 +440,9 @@ class AppDetailViewModel @Inject constructor(
 
     fun changeSearchMode(isSearchMode: Boolean) {
         Timber.v("Change search mode: $isSearchMode")
+        if (!isSearchMode) {
+            loadComponentList()
+        }
         _appBarUiState.update {
             val originalSearchState = it.isSearchMode
             if (!originalSearchState && isSearchMode) {
@@ -521,6 +524,85 @@ class AppDetailViewModel @Inject constructor(
     ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         controlComponentInternal(packageName, componentName, enabled)
         analyticsHelper.logSwitchComponentClicked(newState = enabled)
+    }
+
+    fun controlAllSelectedComponents(enable: Boolean) =
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            componentRepository.batchControlComponent(
+                components = _appBarUiState.value.selectedComponentList,
+                newState = enable,
+            )
+                .catch { exception ->
+                    _errorState.emit(exception.toErrorMessage())
+                }
+                .collect()
+            _appBarUiState.update {
+                it.copy(selectedComponentList = listOf())
+            }
+        }
+
+    fun switchSelectedMode(value: Boolean) {
+        // Clear list when exit from selectedMode
+        if (!value) {
+            _appBarUiState.update {
+                it.copy(selectedComponentList = listOf())
+            }
+        }
+        _appBarUiState.update {
+            it.copy(isSelectedMode = value)
+        }
+    }
+
+    fun selectItem(item: ComponentInfo) {
+        val selectedList: MutableList<ComponentInfo> =
+            _appBarUiState.value.selectedComponentList.toMutableList()
+        selectedList.add(item)
+        _appBarUiState.update {
+            it.copy(selectedComponentList = selectedList)
+        }
+    }
+
+    fun deselectItem(item: ComponentInfo) {
+        val selectedList: MutableList<ComponentInfo> =
+            _appBarUiState.value.selectedComponentList.toMutableList()
+        selectedList.remove(item)
+        _appBarUiState.update {
+            it.copy(selectedComponentList = selectedList)
+        }
+    }
+
+    fun selectAll() {
+        val selectedAll = _appBarUiState.value.selectedComponentList
+            .filter { it.type == AppDetailTabs.toComponentType(_tabState.value.selectedItem.name) }
+            .size == getCurrentTabFilterComponentList().size
+        // if selectedAll == true, deselect all
+        if (selectedAll) {
+            // un-select all components in the current tab
+            val selectedList: MutableList<ComponentInfo> =
+                _appBarUiState.value.selectedComponentList.toMutableList()
+            selectedList.removeAll(getCurrentTabFilterComponentList())
+            _appBarUiState.update {
+                it.copy(selectedComponentList = selectedList)
+            }
+        } else {
+            // select all components in the current tab
+            val selectedList: MutableList<ComponentInfo> =
+                _appBarUiState.value.selectedComponentList.toMutableList()
+            selectedList.addAll(getCurrentTabFilterComponentList())
+            _appBarUiState.update {
+                it.copy(selectedComponentList = selectedList)
+            }
+        }
+    }
+
+    private fun getCurrentTabFilterComponentList(): MutableList<ComponentInfo> {
+        return when (tabState.value.selectedItem) {
+            Receiver -> _componentListUiState.value.receiver.map { it.toComponentInfo() }
+            Service -> _componentListUiState.value.service.map { it.toComponentInfo() }
+            Activity -> _componentListUiState.value.activity.map { it.toComponentInfo() }
+            Provider -> _componentListUiState.value.provider.map { it.toComponentInfo() }
+            else -> listOf()
+        }.toMutableList()
     }
 
     private suspend fun controlComponentInternal(

@@ -1,6 +1,6 @@
 /*
  * Copyright 2023 Blocker
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,32 @@
 
 plugins {
     id("blocker.android.library")
-    id("blocker.android.library.jacoco")
-    id("blocker.android.hilt")
+    alias(libs.plugins.protobuf)
 }
 
 android {
-    defaultConfig {
-        consumerProguardFiles("consumer-proguard-rules.pro")
+    namespace = "com.mercury.blocker.core.datastore.proto"
+}
+
+// Setup protobuf configuration, generating lite Java and Kotlin classes
+protobuf {
+    protoc {
+        artifact = libs.protobuf.protoc.get().toString()
     }
-    namespace = "com.merxury.blocker.core.datastore"
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                register("java") {
+                    option("lite")
+                }
+                register("kotlin") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }
 
 dependencies {
-    api(projects.core.datastoreProto)
-    implementation(projects.core.common)
-    implementation(projects.core.model)
-
-    testImplementation(projects.core.testing)
-    testImplementation(projects.core.datastoreTest)
-
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.androidx.dataStore.core)
     implementation(libs.protobuf.kotlin.lite)
 }

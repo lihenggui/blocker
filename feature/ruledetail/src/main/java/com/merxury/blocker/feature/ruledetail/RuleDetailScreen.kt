@@ -483,6 +483,54 @@ fun RuleDetailScreenPreView() {
 
 @Composable
 @Preview
+fun RuleDetailScreenWithApplicableLoadingPreView() {
+    val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Loading
+    val item = GeneralRule(
+        id = 2,
+        name = "Android WorkerManager",
+        iconUrl = null,
+        company = "Google",
+        description = "WorkManager is the recommended solution for persistent work. " +
+            "Work is persistent when it remains scheduled through app restarts and " +
+            "system reboots. Because most background processing is best accomplished " +
+            "through persistent work, WorkManager is the primary recommended API for " +
+            "background processing.",
+        sideEffect = "Background works won't be able to execute",
+        safeToBlock = false,
+        contributors = listOf("Google"),
+        searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
+    )
+    val ruleInfoUiState = RuleInfoUiState.Success(
+        ruleInfo = item,
+        ruleIcon = null,
+    )
+    val tabState = TabState(
+        items = listOf(
+            Applicable,
+            Description,
+        ),
+        selectedItem = Applicable,
+    )
+    BlockerTheme {
+        Surface {
+            RuleDetailScreen(
+                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
+                ruleInfoUiState = ruleInfoUiState,
+                onBackClick = {},
+                tabState = tabState,
+                switchTab = {},
+                onStopServiceClick = { _, _ -> },
+                onLaunchActivityClick = { _, _ -> },
+                onCopyNameClick = { _ -> },
+                onCopyFullNameClick = { _ -> },
+                onSwitch = { _, _, _ -> },
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
 fun RuleDetailScreenLoadingPreView() {
     val componentInfo = ComponentItem(
         name = "component",

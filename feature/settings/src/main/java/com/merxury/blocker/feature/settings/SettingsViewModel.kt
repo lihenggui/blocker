@@ -20,6 +20,9 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.system.Os
+import androidx.core.net.toFile
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.viewModelScope
@@ -28,6 +31,8 @@ import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
@@ -48,6 +53,7 @@ import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -56,14 +62,16 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     appContext: Application,
     private val userDataRepository: UserDataRepository,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : AndroidViewModel(appContext) {
     val settingsUiState: StateFlow<SettingsUiState> =
         userDataRepository.userData
@@ -92,18 +100,21 @@ class SettingsViewModel @Inject constructor(
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
 
-    private fun getPathFromUriString(path: String): String {
-        if (path.isEmpty()) return path
-        return try {
+    private suspend fun getPathFromUriString(path: String): String = withContext(ioDispatcher) {
+        if (path.isEmpty()) return@withContext path
+        return@withContext try {
+            val context: Context = getApplication()
             val uri = Uri.parse(path)
-            val file = uri.path?.let { File(it) } ?: return ""
-            val realPath = file.path.split(":")
-            if (realPath.size < 2) {
-                Timber.v("Illegal path: $path")
-                ""
-            } else {
-                "/" + realPath[1]
+            val cr = context.contentResolver
+            if (uri.scheme == "file") {
+                return@withContext uri.toFile().absolutePath
             }
+            require(uri.scheme == "content") { "Uri lacks 'content' scheme: $uri" }
+            val df = DocumentFile.fromTreeUri(context, uri)
+                ?: throw IOException("Can't get DocumentFile from uri: $uri")
+            cr.openFileDescriptor(df.uri, "r")?.use {
+                Os.readlink("/proc/self/fd/${it.fd}")
+            } ?: throw IOException("Can't open file descriptor for uri: $uri")
         } catch (e: Exception) {
             Timber.e("Can't get path from uri string: $path", e)
             ""
