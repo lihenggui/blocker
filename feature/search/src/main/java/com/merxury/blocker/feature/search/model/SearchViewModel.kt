@@ -87,7 +87,7 @@ class SearchViewModel @Inject constructor(
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
     private var filterComponentList: MutableList<FilteredComponent> = mutableListOf()
-    private var selectedAllTag = false
+    private var selectedAllApp = false
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -259,7 +259,7 @@ class SearchViewModel @Inject constructor(
         _searchUiState.update { it.copy(keyword = TextFieldValue()) }
     }
 
-    fun controlAllComponents(enable: Boolean) =
+    fun controlAllSelectedComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             componentRepository.batchControlComponent(
                 components = _searchUiState.value.selectedComponentList,
@@ -309,7 +309,7 @@ class SearchViewModel @Inject constructor(
 
     fun selectAll() {
         // if selectedAllTag == true, deselect all
-        if (selectedAllTag) {
+        if (selectedAllApp) {
             _searchUiState.update {
                 it.copy(selectedAppList = listOf())
             }
@@ -318,7 +318,7 @@ class SearchViewModel @Inject constructor(
                 it.copy(selectedAppList = filterComponentList)
             }
         }
-        selectedAllTag = !selectedAllTag
+        selectedAllApp = !selectedAllApp
         transferToComponentInoList()
     }
 

@@ -36,4 +36,17 @@
     <string name="feature_appdetail_add_description_hint">目前沒有可用的組件信息。成為第一個貢獻者吧！</string>
     <string name="feature_appdetail_how_to_contribute">如何貢獻？</string>
     <string name="feature_appdetail_unknown">未知</string>
+    <string name="feature_appdetail_select_mutiple">選擇多項</string>
+    <plurals name="feature_appdetail_selected_service_count">
+        <item quantity="other">已選擇%1$d個服務</item>
+    </plurals>
+    <plurals name="feature_appdetail_selected_activity_count">
+        <item quantity="other">已選擇%1$d項活動</item>
+    </plurals>
+    <plurals name="feature_appdetail_selected_receiver_count">
+        <item quantity="other">已選擇%1$d個接收器</item>
+    </plurals>
+    <plurals name="feature_appdetail_selected_provider_count">
+        <item quantity="other">已選擇%1$d個內容提供者</item>
+    </plurals>
 </resources>
