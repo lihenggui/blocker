@@ -30,6 +30,10 @@
     <string name="core_ui_launch_activity">Запуск активности</string>
     <string name="core_ui_stop_service">Остановить службу</string>
     <string name="core_ui_no_components">Нет компонентов</string>
+    <string name="core_ui_close">Закрыть</string>
+    <string name="core_ui_block_selected">Заблокировать выбранное</string>
+    <string name="core_ui_select_all">Выбрать все</string>
+    <string name="core_ui_enable_selected">Включить выбранное</string>
     <plurals name="core_ui_matched_component" tools:ignore="MissingQuantity">
         <item quantity="one">Соответствует %1$d компоненту</item>
         <item quantity="other">Соответствует %1$d компонентам</item>
