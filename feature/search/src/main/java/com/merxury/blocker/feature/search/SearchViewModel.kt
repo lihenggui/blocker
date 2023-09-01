@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.search.model
+package com.merxury.blocker.feature.search
 
 import android.content.pm.PackageManager
 import androidx.compose.ui.text.input.TextFieldValue
@@ -48,8 +48,10 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.feature.search.SearchScreenTabs
-import com.merxury.blocker.feature.search.model.LocalSearchUiState.Loading
+import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
+import com.merxury.blocker.feature.search.LocalSearchUiState.Initializing
+import com.merxury.blocker.feature.search.LocalSearchUiState.Loading
+import com.merxury.blocker.feature.search.LocalSearchUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -84,7 +86,7 @@ class SearchViewModel @Inject constructor(
     private val _searchUiState = MutableStateFlow(SearchUiState())
     val searchUiState: StateFlow<SearchUiState> = _searchUiState.asStateFlow()
     private val _localSearchUiState =
-        MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
+        MutableStateFlow<LocalSearchUiState>(Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
     private var filterComponentList: MutableList<FilteredComponent> = mutableListOf()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
@@ -114,9 +116,9 @@ class SearchViewModel @Inject constructor(
     private fun load() = viewModelScope.launch {
         initializeDatabase().collect {
             if (it is InitializeState.Initializing) {
-                _localSearchUiState.emit(LocalSearchUiState.Initializing(it.processingName))
+                _localSearchUiState.emit(Initializing(it.processingName))
             } else {
-                _localSearchUiState.emit(LocalSearchUiState.Idle)
+                _localSearchUiState.emit(Idle)
             }
         }
     }
@@ -202,7 +204,7 @@ class SearchViewModel @Inject constructor(
             filterComponentList.clear()
             filterComponentList.addAll(components)
             Timber.v("Find ${apps.size} apps, ${components.size} components, ${rules.size} rules")
-            LocalSearchUiState.Success(
+            Success(
                 searchKeyword = keyword.split(","),
                 appTabUiState = AppTabUiState(list = apps),
                 componentTabUiState = ComponentTabUiState(list = components),
