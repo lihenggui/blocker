@@ -20,7 +20,6 @@ import android.content.res.Configuration
 import android.view.MotionEvent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -43,7 +42,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -78,6 +76,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
@@ -179,12 +178,6 @@ fun ComponentListItem(
         animationSpec = tween(300, 0, LinearEasing),
         label = "color",
     )
-    val radius = if (isSelected) {
-        12.dp
-    } else {
-        0.dp
-    }
-    val cornerRadius = animateDpAsState(targetValue = radius, label = "shape")
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -213,7 +206,6 @@ fun ComponentListItem(
             }
             .background(
                 color = animatedColor.value,
-                shape = RoundedCornerShape(cornerRadius.value),
             )
             .padding(start = 16.dp, end = 24.dp, top = 14.dp, bottom = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -304,12 +296,12 @@ fun ComponentItemPreview() {
                     name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
                     packageName = "com.merxury.blocker",
                     description = "An example activity",
-                    type = ComponentType.ACTIVITY,
+                    type = ACTIVITY,
                     pmBlocked = false,
                 ),
                 enabled = false,
-                type = SERVICE,
-                isServiceRunning = true,
+                type = ACTIVITY,
+                isServiceRunning = false,
             )
         }
     }
@@ -327,7 +319,7 @@ fun ComponentItemSelectedPreview() {
                     name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
                     packageName = "com.merxury.blocker",
                     description = "An example activity",
-                    type = ComponentType.ACTIVITY,
+                    type = ACTIVITY,
                     pmBlocked = false,
                 ),
                 enabled = false,
