@@ -52,11 +52,8 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.ui.screen.LoadingScreen
-import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfo
-import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState
-import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Loading
-import com.merxury.blocker.feature.sort.viewmodel.ComponentSortInfoUiState.Success
-import com.merxury.blocker.feature.sort.viewmodel.SortViewModel
+import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Loading
+import com.merxury.blocker.feature.sort.ComponentSortInfoUiState.Success
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.generalrules.model
+package com.merxury.blocker.feature.generalrules
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -27,9 +27,9 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Error
-import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Loading
-import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState.Success
+import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Error
+import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
+import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -87,8 +87,6 @@ import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.ruledetail.R.string
 import com.merxury.blocker.feature.ruledetail.component.RuleDescription
-import com.merxury.blocker.feature.ruledetail.model.RuleDetailViewModel
-import com.merxury.blocker.feature.ruledetail.model.RuleInfoUiState
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 
