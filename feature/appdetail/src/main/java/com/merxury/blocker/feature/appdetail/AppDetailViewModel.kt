@@ -577,7 +577,7 @@ class AppDetailViewModel @Inject constructor(
             .size == getCurrentTabFilterComponentList().size
         // if selectedAll == true, deselect all
         if (selectedAll) {
-            //un-select all components in the current tab
+            // un-select all components in the current tab
             val selectedList: MutableList<ComponentInfo> =
                 _appBarUiState.value.selectedComponentList.toMutableList()
             selectedList.removeAll(getCurrentTabFilterComponentList())
@@ -585,7 +585,7 @@ class AppDetailViewModel @Inject constructor(
                 it.copy(selectedComponentList = selectedList)
             }
         } else {
-            //select all components in the current tab
+            // select all components in the current tab
             val selectedList: MutableList<ComponentInfo> =
                 _appBarUiState.value.selectedComponentList.toMutableList()
             selectedList.addAll(getCurrentTabFilterComponentList())
