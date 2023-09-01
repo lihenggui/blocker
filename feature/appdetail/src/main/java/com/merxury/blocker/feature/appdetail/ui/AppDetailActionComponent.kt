@@ -43,8 +43,12 @@ fun MoreActionMenu(
     blockAllComponents: () -> Unit,
     enableAllComponents: () -> Unit,
     onAdvanceSortClick: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
 ) {
     val items = listOf(
+        DropDownMenuItem(
+            string.feature_appdetail_select_mutiple,
+        ) { switchSelectedMode(true) },
         DropDownMenuItem(
             string.feature_appdetail_block_all_of_this_page,
             blockAllComponents,
