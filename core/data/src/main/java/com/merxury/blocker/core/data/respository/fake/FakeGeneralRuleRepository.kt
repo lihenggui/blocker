@@ -17,15 +17,10 @@
 package com.merxury.blocker.core.data.respository.fake
 
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.network.fake.FakeBlockerNetworkDataSource
 import com.merxury.blocker.core.result.Result
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -38,27 +33,9 @@ import javax.inject.Inject
  */
 
 class FakeGeneralRuleRepository @Inject constructor(
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-    private val datasource: FakeBlockerNetworkDataSource,
+    private val datasource: FakeGeneralRuleDataSource,
 ) : GeneralRuleRepository {
-    override fun getGeneralRules(): Flow<List<GeneralRule>> = flow {
-        emit(
-            datasource.getGeneralRules().map {
-                GeneralRule(
-                    id = it.id,
-                    name = it.name,
-                    iconUrl = it.iconUrl,
-                    company = it.company,
-                    description = it.description,
-                    searchKeyword = it.searchKeyword,
-                    useRegexSearch = it.useRegexSearch,
-                    safeToBlock = it.safeToBlock,
-                    sideEffect = it.sideEffect,
-                    contributors = it.contributors,
-                )
-            },
-        )
-    }.flowOn(ioDispatcher)
+    override fun getGeneralRules(): Flow<List<GeneralRule>> = datasource.getGeneralRules()
 
     override fun getGeneralRule(id: Int): Flow<GeneralRule> {
         return getGeneralRules().map { it.first { rule -> rule.id == id } }
