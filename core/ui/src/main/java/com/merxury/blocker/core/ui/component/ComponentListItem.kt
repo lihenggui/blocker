@@ -78,6 +78,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
@@ -308,8 +309,8 @@ fun ComponentItemPreview() {
                     pmBlocked = false,
                 ),
                 enabled = false,
-                type = SERVICE,
-                isServiceRunning = true,
+                type = ACTIVITY,
+                isServiceRunning = false,
             )
         }
     }
