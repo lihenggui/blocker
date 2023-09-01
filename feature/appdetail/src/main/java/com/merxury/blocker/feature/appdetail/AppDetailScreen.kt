@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -73,6 +72,7 @@ import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FINISHED
@@ -97,6 +97,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
+import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
@@ -163,6 +164,12 @@ fun AppDetailRoute(
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         navigatedToComponentSortScreen = navigatedToComponentSortScreen,
         updateIconBasedThemingState = updateIconBasedThemingState,
+        onSelectAll = viewModel::selectAll,
+        onBlockAll = { viewModel.controlAllSelectedComponents(false) },
+        onEnableAll = { viewModel.controlAllSelectedComponents(true) },
+        switchSelectedMode = viewModel::switchSelectedMode,
+        onSelect = viewModel::selectItem,
+        onDeselect = viewModel::deselectItem,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -233,6 +240,12 @@ fun AppDetailScreen(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigatedToComponentSortScreen: () -> Unit = {},
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
+    onSelectAll: () -> Unit = {},
+    onBlockAll: () -> Unit = {},
+    onEnableAll: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onSelect: (ComponentInfo) -> Unit = {},
+    onDeselect: (ComponentInfo) -> Unit = {},
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -267,6 +280,12 @@ fun AppDetailScreen(
                 onCopyFullNameClick = onCopyFullNameClick,
                 navigatedToComponentSortScreen = navigatedToComponentSortScreen,
                 updateIconBasedThemingState = updateIconBasedThemingState,
+                onSelectAll = onSelectAll,
+                onBlockAll = onBlockAll,
+                onEnableAll = onEnableAll,
+                switchSelectedMode = switchSelectedMode,
+                onSelect = onSelect,
+                onDeselect = onDeselect,
             )
         }
 
@@ -275,7 +294,6 @@ fun AppDetailScreen(
     TrackScreenViewEvent(screenName = "AppDetailScreen")
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppDetailContent(
     app: AppItem,
@@ -304,6 +322,12 @@ fun AppDetailContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigatedToComponentSortScreen: () -> Unit,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
+    onSelectAll: () -> Unit = {},
+    onBlockAll: () -> Unit = {},
+    onEnableAll: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onSelect: (ComponentInfo) -> Unit = {},
+    onDeselect: (ComponentInfo) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -343,31 +367,24 @@ fun AppDetailContent(
     updateIconBasedThemingState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
     Scaffold(
         topBar = {
-            BlockerCollapsingTopAppBar(
-                progress = toolbarState.progress,
-                onNavigationClick = onBackClick,
-                title = app.label,
-                actions = {
-                    AppDetailAppBarActions(
-                        appBarUiState = topAppBarUiState,
-                        onSearchTextChanged = onSearchTextChanged,
-                        onSearchModeChange = onSearchModeChanged,
-                        blockAllComponents = blockAllComponents,
-                        enableAllComponents = enableAllComponents,
-                        navigatedToComponentSortScreen = navigatedToComponentSortScreen,
-                    )
-                },
-                subtitle = app.packageName,
-                summary = stringResource(
-                    id = string.feature_appdetail_data_with_explanation,
-                    app.versionName,
-                    app.versionCode,
-                ),
-                iconSource = app.packageInfo,
-                onIconClick = { onLaunchAppClick(app.packageName) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
+            TopAppBar(
+                isSelectedMode = topAppBarUiState.isSelectedMode,
+                isSearchMode = topAppBarUiState.isSearchMode,
+                app = app,
+                topAppBarUiState = topAppBarUiState,
+                tabState = tabState,
+                toolbarState = toolbarState,
+                onSearchTextChanged = onSearchTextChanged,
+                onSearchModeChanged = onSearchModeChanged,
+                blockAllComponents = blockAllComponents,
+                enableAllComponents = enableAllComponents,
+                navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+                onLaunchAppClick = onLaunchAppClick,
+                onSelectAll = onSelectAll,
+                onBlockAll = onBlockAll,
+                onEnableAll = onEnableAll,
+                switchSelectedMode = switchSelectedMode,
+                onBackClick = onBackClick,
             )
         },
         modifier = modifier.nestedScroll(nestedScrollConnection),
@@ -375,6 +392,8 @@ fun AppDetailContent(
         AppDetailTabContent(
             app = app,
             componentListUiState = componentListUiState,
+            selectedComponentList = topAppBarUiState.selectedComponentList,
+            isSelectedMode = topAppBarUiState.isSelectedMode,
             tabState = tabState,
             switchTab = switchTab,
             modifier = Modifier
@@ -396,6 +415,8 @@ fun AppDetailContent(
             onLaunchActivityClick = onLaunchActivityClick,
             onCopyNameClick = onCopyNameClick,
             onCopyFullNameClick = onCopyFullNameClick,
+            onSelect = onSelect,
+            onDeselect = onDeselect,
         )
     }
 }
@@ -407,7 +428,8 @@ fun AppDetailAppBarActions(
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
-    navigatedToComponentSortScreen: () -> Unit,
+    navigatedToComponentSortScreen: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
 ) {
     val actions = appBarUiState.actions
     if (actions.contains(SEARCH)) {
@@ -435,6 +457,7 @@ fun AppDetailAppBarActions(
             blockAllComponents = blockAllComponents,
             enableAllComponents = enableAllComponents,
             onAdvanceSortClick = navigatedToComponentSortScreen,
+            switchSelectedMode = switchSelectedMode,
         )
     }
 }
@@ -446,6 +469,79 @@ private fun rememberToolbarState(toolbarHeightRange: IntRange): ToolbarState {
     }
 }
 
+@Composable
+private fun TopAppBar(
+    isSelectedMode: Boolean,
+    isSearchMode: Boolean,
+    app: AppItem,
+    topAppBarUiState: AppBarUiState,
+    tabState: TabState<AppDetailTabs>,
+    toolbarState: ToolbarState,
+    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchModeChanged: (Boolean) -> Unit = {},
+    blockAllComponents: () -> Unit = {},
+    enableAllComponents: () -> Unit = {},
+    navigatedToComponentSortScreen: () -> Unit = {},
+    onLaunchAppClick: (String) -> Unit = {},
+    onSelectAll: () -> Unit = {},
+    onBlockAll: () -> Unit = {},
+    onEnableAll: () -> Unit = {},
+    switchSelectedMode: (Boolean) -> Unit = {},
+    onBackClick: () -> Unit,
+) {
+    if (!isSelectedMode) {
+        BlockerCollapsingTopAppBar(
+            progress = toolbarState.progress,
+            onNavigationClick = {
+                if (isSearchMode) {
+                    onSearchModeChanged(false)
+                } else {
+                    onBackClick()
+                }
+            },
+            title = app.label,
+            actions = {
+                AppDetailAppBarActions(
+                    appBarUiState = topAppBarUiState,
+                    onSearchTextChanged = onSearchTextChanged,
+                    onSearchModeChange = onSearchModeChanged,
+                    blockAllComponents = blockAllComponents,
+                    enableAllComponents = enableAllComponents,
+                    navigatedToComponentSortScreen = navigatedToComponentSortScreen,
+                    switchSelectedMode = switchSelectedMode,
+                )
+            },
+            subtitle = app.packageName,
+            summary = stringResource(
+                id = string.feature_appdetail_data_with_explanation,
+                app.versionName,
+                app.versionCode,
+            ),
+            iconSource = app.packageInfo,
+            onIconClick = { onLaunchAppClick(app.packageName) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(with(LocalDensity.current) { toolbarState.height.toDp() }),
+        )
+    } else {
+        SelectedAppTopBar(
+            title = when (tabState.selectedItem) {
+                Receiver -> R.plurals.feature_appdetail_selected_receiver_count
+                Service -> R.plurals.feature_appdetail_selected_service_count
+                Activity -> R.plurals.feature_appdetail_selected_activity_count
+                Provider -> R.plurals.feature_appdetail_selected_provider_count
+                else -> R.plurals.feature_appdetail_selected_receiver_count
+            },
+            selectedItemCount = topAppBarUiState.selectedComponentList.size,
+            selectedComponentCount = topAppBarUiState.selectedComponentList.size,
+            onNavigationClick = { switchSelectedMode(false) },
+            onSelectAll = onSelectAll,
+            onBlockAll = onBlockAll,
+            onEnableAll = onEnableAll,
+        )
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppDetailTabContent(
@@ -454,6 +550,8 @@ fun AppDetailTabContent(
     componentListUiState: ComponentListUiState,
     tabState: TabState<AppDetailTabs>,
     switchTab: (AppDetailTabs) -> Unit,
+    selectedComponentList: List<ComponentInfo> = emptyList(),
+    isSelectedMode: Boolean = false,
     navigateToComponentDetail: (String) -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
@@ -465,6 +563,8 @@ fun AppDetailTabContent(
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
+    onSelect: (ComponentInfo) -> Unit = {},
+    onDeselect: (ComponentInfo) -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -513,47 +613,28 @@ fun AppDetailTabContent(
                     onResetIfw = onResetIfw,
                 )
 
-                Receiver -> {
+                else -> {
+                    val components = when (tabState.items[it]) {
+                        Receiver -> componentListUiState.receiver
+                        Service -> componentListUiState.service
+                        Activity -> componentListUiState.activity
+                        Provider -> componentListUiState.provider
+                        else -> emptyList()
+                    }
                     ComponentList(
-                        components = componentListUiState.receiver,
+                        components = components,
+                        selectedComponentList = selectedComponentList,
+                        isSelectedMode = isSelectedMode,
                         navigateToComponentDetail = navigateToComponentDetail,
                         onSwitchClick = onSwitchClick,
                         onStopServiceClick = onStopServiceClick,
                         onLaunchActivityClick = onLaunchActivityClick,
                         onCopyNameClick = onCopyNameClick,
                         onCopyFullNameClick = onCopyFullNameClick,
+                        onSelect = onSelect,
+                        onDeselect = onDeselect,
                     )
                 }
-
-                Service -> ComponentList(
-                    components = componentListUiState.service,
-                    navigateToComponentDetail = navigateToComponentDetail,
-                    onSwitchClick = onSwitchClick,
-                    onStopServiceClick = onStopServiceClick,
-                    onLaunchActivityClick = onLaunchActivityClick,
-                    onCopyNameClick = onCopyNameClick,
-                    onCopyFullNameClick = onCopyFullNameClick,
-                )
-
-                Activity -> ComponentList(
-                    components = componentListUiState.activity,
-                    navigateToComponentDetail = navigateToComponentDetail,
-                    onSwitchClick = onSwitchClick,
-                    onStopServiceClick = onStopServiceClick,
-                    onLaunchActivityClick = onLaunchActivityClick,
-                    onCopyNameClick = onCopyNameClick,
-                    onCopyFullNameClick = onCopyFullNameClick,
-                )
-
-                Provider -> ComponentList(
-                    components = componentListUiState.provider,
-                    navigateToComponentDetail = navigateToComponentDetail,
-                    onSwitchClick = onSwitchClick,
-                    onStopServiceClick = onStopServiceClick,
-                    onLaunchActivityClick = onLaunchActivityClick,
-                    onCopyNameClick = onCopyNameClick,
-                    onCopyFullNameClick = onCopyFullNameClick,
-                )
             }
         }
     }
