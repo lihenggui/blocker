@@ -40,12 +40,6 @@ class TestComponentDetailRepository : ComponentDetailRepository {
         }
     }
 
-    override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> {
-        return componentDetail.map {
-            it.takeIf { componentDetail -> componentDetail.name == name }
-        }
-    }
-
     override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> {
         return componentDetail.map {
             it.takeIf { componentDetail -> componentDetail.name == name }
