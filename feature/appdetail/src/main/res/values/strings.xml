@@ -39,20 +39,8 @@
     <string name="feature_appdetail_how_to_contribute">How to contribute?</string>
     <string name="feature_appdetail_unknown">Unknown</string>
     <string name="feature_appdetail_select_mutiple">Select multiple</string>
-    <plurals name="feature_appdetail_selected_service_count">
-        <item quantity="one">%1$d service selected</item>
-        <item quantity="other">%1$d services selected</item>
-    </plurals>
-    <plurals name="feature_appdetail_selected_activity_count">
-        <item quantity="one">%1$d activity selected</item>
-        <item quantity="other">%1$d activities selected</item>
-    </plurals>
-    <plurals name="feature_appdetail_selected_receiver_count">
-        <item quantity="one">%1$d receiver selected</item>
-        <item quantity="other">%1$d receivers selected</item>
-    </plurals>
-    <plurals name="feature_appdetail_selected_provider_count">
-        <item quantity="one">%1$d component provider selected</item>
-        <item quantity="other">%1$d component providers selected</item>
+    <plurals name="feature_appdetail_selected_component_count">
+        <item quantity="one">%1$d component selected</item>
+        <item quantity="other">%1$d components selected</item>
     </plurals>
 </resources>
