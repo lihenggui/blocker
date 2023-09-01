@@ -536,6 +536,9 @@ class AppDetailViewModel @Inject constructor(
                     _errorState.emit(exception.toErrorMessage())
                 }
                 .collect()
+            _appBarUiState.update {
+                it.copy(selectedComponentList = listOf())
+            }
         }
 
     fun switchSelectedMode(value: Boolean) {
