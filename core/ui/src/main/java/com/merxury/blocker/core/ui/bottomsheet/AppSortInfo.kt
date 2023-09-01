@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.ui.bottomsheet
 
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
+
+sealed interface AppSortInfoUiState {
+    data object Loading : AppSortInfoUiState
+    data class Success(val appSortInfo: AppSortInfo) : AppSortInfoUiState
+}
 
 data class AppSortInfo(
     val sorting: AppSorting = NAME,

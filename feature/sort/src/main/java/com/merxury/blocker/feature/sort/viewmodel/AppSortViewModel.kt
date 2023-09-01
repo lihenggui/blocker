@@ -19,9 +19,10 @@ package com.merxury.blocker.feature.sort.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
-import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.preference.AppSorting
+import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.feature.sort.viewmodel.AppSortInfoUiState.Loading
 import com.merxury.blocker.feature.sort.viewmodel.AppSortInfoUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -73,3 +74,9 @@ sealed interface AppSortInfoUiState {
     data object Loading : AppSortInfoUiState
     data class Success(val appSortInfo: AppSortInfo) : AppSortInfoUiState
 }
+
+data class AppSortInfo(
+    val sorting: AppSorting = NAME,
+    val order: SortingOrder = ASCENDING,
+    val showRunningAppsOnTop: Boolean = false,
+)
