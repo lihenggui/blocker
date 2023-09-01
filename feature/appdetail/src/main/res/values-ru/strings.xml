@@ -38,20 +38,8 @@
     <string name="feature_appdetail_how_to_contribute">Как внести свой вклад?</string>
     <string name="feature_appdetail_unknown">Неизвестно</string>
     <string name="feature_appdetail_select_mutiple">Выбрать несколько</string>
-    <plurals name="feature_appdetail_selected_service_count">
-        <item quantity="one">Выбрана %1$d услуга</item>
-        <item quantity="other">Выбрано %1$d услуг</item>
-    </plurals>
-    <plurals name="feature_appdetail_selected_activity_count">
-        <item quantity="one">Выбрано %1$d действие</item>
-        <item quantity="other">Выбрано %1$d действий</item>
-    </plurals>
-    <plurals name="feature_appdetail_selected_receiver_count">
-        <item quantity="one">Выбран %1$d получатель</item>
-        <item quantity="other">Выбрано %1$d получателей</item>
-    </plurals>
-    <plurals name="feature_appdetail_selected_provider_count">
-        <item quantity="one">Выбран %1$d поставщик компонентов</item>
-        <item quantity="other">Выбрано %1$d поставщиков компонентов</item>
+    <plurals name="feature_appdetail_selected_component_count">
+        <item quantity="one">Выбран %1$d компонент</item>
+        <item quantity="other">Выбрано %1$d компонентов</item>
     </plurals>
 </resources>
