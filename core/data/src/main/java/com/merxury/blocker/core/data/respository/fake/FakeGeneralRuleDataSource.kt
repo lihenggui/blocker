@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.respository.fake
 
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleDataSource
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.network.model.NetworkGeneralRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.json.Json
@@ -27,7 +28,10 @@ class FakeGeneralRuleDataSource @Inject constructor(
     private val json: Json,
 ) : GeneralRuleDataSource {
     override fun getGeneralRules(): Flow<List<GeneralRule>> = flow {
-        emit(json.decodeFromString<List<GeneralRule>>(generalRuleJson))
+        emit(
+            json.decodeFromString<List<NetworkGeneralRule>>(generalRuleJson)
+                .map { it.asExternalModel() },
+        )
     }
 }
 
