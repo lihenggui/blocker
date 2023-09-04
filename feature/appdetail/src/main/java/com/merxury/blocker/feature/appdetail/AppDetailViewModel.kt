@@ -158,7 +158,6 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
-    private var selectedAllComponent = false
 
     init {
         loadTabInfo()
@@ -537,6 +536,9 @@ class AppDetailViewModel @Inject constructor(
                     _errorState.emit(exception.toErrorMessage())
                 }
                 .collect()
+            _appBarUiState.update {
+                it.copy(selectedComponentList = listOf())
+            }
         }
 
     fun switchSelectedMode(value: Boolean) {
@@ -552,8 +554,8 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun selectItem(item: ComponentInfo) {
-        val selectedList: MutableList<ComponentInfo> = mutableListOf()
-        selectedList.addAll(_appBarUiState.value.selectedComponentList)
+        val selectedList: MutableList<ComponentInfo> =
+            _appBarUiState.value.selectedComponentList.toMutableList()
         selectedList.add(item)
         _appBarUiState.update {
             it.copy(selectedComponentList = selectedList)
@@ -561,8 +563,8 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun deselectItem(item: ComponentInfo) {
-        val selectedList: MutableList<ComponentInfo> = mutableListOf()
-        selectedList.addAll(_appBarUiState.value.selectedComponentList)
+        val selectedList: MutableList<ComponentInfo> =
+            _appBarUiState.value.selectedComponentList.toMutableList()
         selectedList.remove(item)
         _appBarUiState.update {
             it.copy(selectedComponentList = selectedList)
@@ -570,17 +572,27 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun selectAll() {
-        // if selectedAllTag == true, deselect all
-        if (selectedAllComponent) {
+        val selectedAll = _appBarUiState.value.selectedComponentList
+            .filter { it.type == AppDetailTabs.toComponentType(_tabState.value.selectedItem.name) }
+            .size == getCurrentTabFilterComponentList().size
+        // if selectedAll == true, deselect all
+        if (selectedAll) {
+            // un-select all components in the current tab
+            val selectedList: MutableList<ComponentInfo> =
+                _appBarUiState.value.selectedComponentList.toMutableList()
+            selectedList.removeAll(getCurrentTabFilterComponentList())
             _appBarUiState.update {
-                it.copy(selectedComponentList = listOf())
+                it.copy(selectedComponentList = selectedList)
             }
         } else {
+            // select all components in the current tab
+            val selectedList: MutableList<ComponentInfo> =
+                _appBarUiState.value.selectedComponentList.toMutableList()
+            selectedList.addAll(getCurrentTabFilterComponentList())
             _appBarUiState.update {
-                it.copy(selectedComponentList = getCurrentTabFilterComponentList())
+                it.copy(selectedComponentList = selectedList)
             }
         }
-        selectedAllComponent = !selectedAllComponent
     }
 
     private fun getCurrentTabFilterComponentList(): MutableList<ComponentInfo> {
