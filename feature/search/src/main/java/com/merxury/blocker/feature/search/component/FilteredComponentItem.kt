@@ -139,7 +139,7 @@ private fun SelectableAppIcon(
             Icon(
                 imageVector = BlockerIcons.Check,
                 modifier = modifier.size(48.dp),
-                contentDescription = null,
+                contentDescription = stringResource(id = string.feature_search_check_icon),
             )
         } else {
             AsyncImage(

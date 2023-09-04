@@ -66,7 +66,6 @@ class AppDetailScreenTest {
     private lateinit var selectAll: String
     private lateinit var blockSelected: String
     private lateinit var enableSelected: String
-    private lateinit var selectedComponentCount: String
 
     @Before
     fun setup() {
@@ -82,8 +81,6 @@ class AppDetailScreenTest {
             selectAll = getString(uiR.string.core_ui_select_all)
             blockSelected = getString(uiR.string.core_ui_block_selected)
             enableSelected = getString(uiR.string.core_ui_enable_selected)
-            selectedComponentCount =
-                getString(R.plurals.feature_appdetail_selected_component_count, 2)
         }
     }
 

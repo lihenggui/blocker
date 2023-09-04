@@ -41,4 +41,5 @@
     </plurals>
     <string name="feature_search_search_hint">應用程式、元件和規則</string>
     <string name="feature_search_no_search_result">尚未有搜尋結果</string>
+    <string name="feature_search_check_icon">選中</string>
 </resources>
