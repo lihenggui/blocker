@@ -66,6 +66,7 @@ class AppDetailScreenTest {
     private lateinit var selectAll: String
     private lateinit var blockSelected: String
     private lateinit var enableSelected: String
+    private lateinit var selectedComponentCount: String
 
     @Before
     fun setup() {
@@ -81,6 +82,8 @@ class AppDetailScreenTest {
             selectAll = getString(uiR.string.core_ui_select_all)
             blockSelected = getString(uiR.string.core_ui_block_selected)
             enableSelected = getString(uiR.string.core_ui_enable_selected)
+            selectedComponentCount =
+                getString(R.plurals.feature_appdetail_selected_component_count, 2)
         }
     }
 
@@ -272,5 +275,50 @@ class AppDetailScreenTest {
             .onNodeWithContentDescription(searchIconDescription).assertDoesNotExist()
         composeTestRule
             .onNodeWithContentDescription(moreMenuDescription).assertDoesNotExist()
+    }
+
+    @Test
+    fun showIcons_whenInSearchModeThenSelectMode() {
+        val itemCountMap = mapOf(
+            Info to 1,
+            Receiver to 1,
+        )
+        val tabState =
+            TabState(
+                items = listOf(
+                    Info,
+                    Receiver,
+                ),
+                selectedItem = Receiver,
+                itemCount = itemCountMap,
+            )
+        composeTestRule.setContent {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Success(
+                    appInfo = appInfoTestData,
+                    iconBasedTheming = null,
+                ),
+                topAppBarUiState = AppBarUiState(
+                    isSearchMode = true,
+                    isSelectedMode = true,
+                    actions = listOf(
+                        SEARCH,
+                        MORE,
+                    ),
+                ),
+                componentListUiState = ComponentListUiState(receiver = receiverTestData),
+                tabState = tabState,
+            )
+        }
+        composeTestRule.onNodeWithContentDescription(close).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(selectAll).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(blockSelected).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(enableSelected).assertExists()
+            .assertHasClickAction()
+        composeTestRule
+            .onNodeWithTag("BlockerSearchTextField")
+            .assertDoesNotExist()
     }
 }
