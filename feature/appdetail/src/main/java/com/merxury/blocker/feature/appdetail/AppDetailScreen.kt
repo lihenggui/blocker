@@ -372,7 +372,6 @@ fun AppDetailContent(
                 isSearchMode = topAppBarUiState.isSearchMode,
                 app = app,
                 topAppBarUiState = topAppBarUiState,
-                tabState = tabState,
                 toolbarState = toolbarState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
@@ -475,7 +474,6 @@ private fun TopAppBar(
     isSearchMode: Boolean,
     app: AppItem,
     topAppBarUiState: AppBarUiState,
-    tabState: TabState<AppDetailTabs>,
     toolbarState: ToolbarState,
     onSearchTextChanged: (TextFieldValue) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
@@ -525,13 +523,7 @@ private fun TopAppBar(
         )
     } else {
         SelectedAppTopBar(
-            title = when (tabState.selectedItem) {
-                Receiver -> R.plurals.feature_appdetail_selected_receiver_count
-                Service -> R.plurals.feature_appdetail_selected_service_count
-                Activity -> R.plurals.feature_appdetail_selected_activity_count
-                Provider -> R.plurals.feature_appdetail_selected_provider_count
-                else -> R.plurals.feature_appdetail_selected_receiver_count
-            },
+            title = R.plurals.feature_appdetail_selected_component_count,
             selectedItemCount = topAppBarUiState.selectedComponentList.size,
             selectedComponentCount = topAppBarUiState.selectedComponentList.size,
             onNavigationClick = { switchSelectedMode(false) },
