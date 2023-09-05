@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.respository.generalrule
 
+import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -37,7 +38,7 @@ private const val RULE_NAME = "general.json"
 
 class LocalGeneralRuleDataSource @Inject constructor(
     private val json: Json,
-    private val filesDir: File,
+    @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : GeneralRuleDataSource {
     @OptIn(ExperimentalSerializationApi::class)

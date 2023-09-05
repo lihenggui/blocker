@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.respository.componentdetail
 
 import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.changeListSync
+import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -47,7 +48,7 @@ class OfflineFirstComponentDetailRepository @Inject constructor(
     private val dbDataSource: DbComponentDetailDataSource,
     private val userGeneratedDataSource: LocalComponentDetailDataSource,
     private val network: BlockerNetworkDataSource,
-    private val filesDir: File,
+    @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailRepository {
 
