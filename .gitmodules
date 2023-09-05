@@ -1,3 +1,3 @@
-[submodule "core/data/src/main/assets/blocker-general-rules"]
-	path = core/data/src/main/assets/blocker-general-rules
+[submodule "core/rule/src/main/assets/blocker-general-rules"]
+	path = core/rule/src/main/assets/blocker-general-rules
 	url = https://github.com/lihenggui/blocker-general-rules.git
