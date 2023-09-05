@@ -16,9 +16,9 @@
 
 package com.merxury.blocker.core.testing.testing.data
 
+import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
-import com.merxury.blocker.core.ui.bottomsheet.AppSortInfo
 
 val AppSortInfoTestData = AppSortInfo(
     sorting = LAST_UPDATE_TIME,

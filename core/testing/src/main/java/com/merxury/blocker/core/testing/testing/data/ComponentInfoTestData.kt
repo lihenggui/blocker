@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 
 val receiverTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
@@ -32,7 +33,7 @@ val receiverTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
     ),
 )
 
-val activityTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
+val activityItemsTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
     ComponentItem(
         name = "ComponentActivity",
         simpleName = "ComponentActivity",
@@ -45,6 +46,25 @@ val activityTestData: SnapshotStateList<ComponentItem> = mutableStateListOf(
         simpleName = "PreviewActivity",
         packageName = "com.merxury.blocker",
         pmBlocked = false,
+        type = ACTIVITY,
+    ),
+)
+
+val activityInfoTestData: SnapshotStateList<ComponentInfo> = mutableStateListOf(
+    ComponentInfo(
+        name = "ComponentActivity",
+        simpleName = "ComponentActivity",
+        packageName = "com.merxury.blocker",
+        pmBlocked = false,
+        exported = false,
+        type = ACTIVITY,
+    ),
+    ComponentInfo(
+        name = "PreviewActivity",
+        simpleName = "PreviewActivity",
+        packageName = "com.merxury.blocker",
+        pmBlocked = false,
+        exported = false,
         type = ACTIVITY,
     ),
 )
