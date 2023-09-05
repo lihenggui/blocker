@@ -29,7 +29,9 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.componentController)
+    implementation(projects.core.data)
     implementation(projects.core.ifwApi)
+
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.android)
