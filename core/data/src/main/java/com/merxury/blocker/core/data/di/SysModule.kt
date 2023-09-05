@@ -46,10 +46,19 @@ object SysModule {
     }
 
     @Provides
+    @FilesDir
     fun provideFilesDir(
         app: Application,
     ): File {
         return app.filesDir
+    }
+
+    @Provides
+    @CacheDir
+    fun provideCacheDir(
+        app: Application,
+    ): File {
+        return app.cacheDir
     }
 
     @Provides

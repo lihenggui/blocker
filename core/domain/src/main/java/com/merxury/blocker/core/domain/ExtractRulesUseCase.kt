@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.domain
 
 import android.content.res.AssetManager
+import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.InitializeState
@@ -33,7 +34,7 @@ private const val FOLDER_NAME = "blocker_general_rules"
 
 class ExtractRulesUseCase @Inject constructor(
     private val asserManager: AssetManager,
-    private val filesDir: File,
+    @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
     operator fun invoke(): Flow<InitializeState> = flow {

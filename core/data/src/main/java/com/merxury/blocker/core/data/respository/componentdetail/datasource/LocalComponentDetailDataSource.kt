@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
+import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -36,7 +37,7 @@ private const val EXTENSION = "json"
 private const val BASE_FOLDER = "componentdetail"
 
 class LocalComponentDetailDataSource @Inject constructor(
-    filesDir: File,
+    @FilesDir filesDir: File,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
