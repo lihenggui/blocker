@@ -24,6 +24,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerConfirmAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerMediumTopAppBar
@@ -31,6 +32,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R
+import com.merxury.blocker.core.ui.R.string
 
 @Composable
 fun SelectedAppTopBar(
@@ -58,7 +60,7 @@ fun SelectedAppTopBar(
             IconButton(onClick = onNavigationClick) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.Close,
-                    contentDescription = null,
+                    contentDescription = stringResource(id = string.core_ui_close),
                 )
             }
         },
@@ -66,19 +68,19 @@ fun SelectedAppTopBar(
             IconButton(onClick = onSelectAll) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.SelectAll,
-                    contentDescription = null,
+                    contentDescription = stringResource(id = string.core_ui_select_all),
                 )
             }
             IconButton(onClick = { showBlockAllDialog = true }) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.Block,
-                    contentDescription = null,
+                    contentDescription = stringResource(id = string.core_ui_block_selected),
                 )
             }
             IconButton(onClick = { showEnableAllDialog = true }) {
                 BlockerActionIcon(
                     imageVector = BlockerIcons.CheckCircle,
-                    contentDescription = null,
+                    contentDescription = stringResource(id = string.core_ui_enable_selected),
                 )
             }
         },

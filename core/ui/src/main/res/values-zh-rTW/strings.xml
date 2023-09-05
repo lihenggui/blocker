@@ -30,6 +30,10 @@
     <string name="core_ui_launch_activity">複製包名</string>
     <string name="core_ui_stop_service">停止服務</string>
     <string name="core_ui_no_components">無組件</string>
+    <string name="core_ui_close">關閉</string>
+    <string name="core_ui_block_selected">禁用選中</string>
+    <string name="core_ui_select_all">全選</string>
+    <string name="core_ui_enable_selected">啟用選中</string>
     <plurals name="core_ui_matched_component">
         <item quantity="other">%1$d個組件</item>
     </plurals>
