@@ -22,5 +22,4 @@ import org.junit.Rule
 class ExtractRulesUseCaseTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
-
 }
