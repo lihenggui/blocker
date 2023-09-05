@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.domain
+package com.merxury.blocker.core.rule.work
 
+import android.content.Context
 import android.content.res.AssetManager
+import androidx.work.WorkerParameters
 import com.merxury.blocker.core.data.di.FilesDir
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.domain.model.InitializeState
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import com.merxury.blocker.core.rule.R
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import timber.log.Timber
 import java.io.File
-import javax.inject.Inject
 
 private const val FOLDER_NAME = "blocker_general_rules"
-
-class ExtractRulesUseCase @Inject constructor(
+class CopyRulesToStorageWorker @AssistedInject constructor(
+    @Assisted private val context: Context,
+    @Assisted params: WorkerParameters,
     private val asserManager: AssetManager,
     @FilesDir private val filesDir: File,
-    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-) {
-    operator fun invoke(): Flow<InitializeState> = flow {
+) : RuleNotificationWorker(context, params) {
+    override suspend fun doWork(): Result {
         val files = asserManager.list(FOLDER_NAME)
         if (files.isNullOrEmpty()) {
             throw IllegalArgumentException("No files found in $FOLDER_NAME")
@@ -49,14 +45,10 @@ class ExtractRulesUseCase @Inject constructor(
             file.outputStream().use { outputStream ->
                 inputStream.copyTo(outputStream)
             }
-            emit(InitializeState.Initializing(it))
         }
         Timber.v("Done extracting rules from assets")
-        emit(InitializeState.Done)
+        return Result.success()
     }
-        .catch {
-            Timber.e(it, "Failed to extract rules from assets")
-            emit(InitializeState.Done)
-        }
-        .flowOn(ioDispatcher)
+
+    override fun getNotificationTitle(): Int = R.string.core_rule_copying_rules_to_internal_storage
 }
