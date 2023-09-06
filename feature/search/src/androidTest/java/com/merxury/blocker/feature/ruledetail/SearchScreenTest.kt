@@ -25,7 +25,6 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.requestFocus
 import androidx.compose.ui.text.input.TextFieldValue
-import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.testing.testing.data.appInfoTestData
 import com.merxury.blocker.core.testing.testing.data.filteredComponentTestData
 import com.merxury.blocker.core.testing.testing.data.generalRuleListTestData
@@ -45,6 +44,8 @@ import com.merxury.blocker.feature.search.SearchUiState
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import com.merxury.blocker.core.designsystem.R as designSystemR
+import com.merxury.blocker.core.ui.R as uiR
 
 class SearchScreenTest {
     @get:Rule(order = 0)
@@ -61,14 +62,26 @@ class SearchScreenTest {
     private var searchKeyword: String = "blocker"
     private lateinit var noSearchResult: String
     private lateinit var searching: String
+    private lateinit var searchIconDescription: String
     private lateinit var clearIconDescription: String
+    private lateinit var close: String
+    private lateinit var selectAll: String
+    private lateinit var blockSelected: String
+    private lateinit var enableSelected: String
+    private lateinit var checkIconDescription: String
 
     @Before
     fun setup() {
         composeTestRule.activity.apply {
             noSearchResult = getString(string.feature_search_no_search_result)
             searching = getString(string.feature_search_searching)
-            clearIconDescription = getString(R.string.core_designsystem_clear_icon)
+            searchIconDescription = getString(designSystemR.string.core_designsystem_search_icon)
+            clearIconDescription = getString(designSystemR.string.core_designsystem_clear_icon)
+            close = getString(uiR.string.core_ui_close)
+            selectAll = getString(uiR.string.core_ui_select_all)
+            blockSelected = getString(uiR.string.core_ui_block_selected)
+            enableSelected = getString(uiR.string.core_ui_enable_selected)
+            checkIconDescription = getString(string.feature_search_check_icon)
         }
     }
 
@@ -223,5 +236,45 @@ class SearchScreenTest {
         composeTestRule.onNodeWithText(generalRuleListTestData.first().name)
             .assertExists()
             .assertHasClickAction()
+    }
+
+    @Test
+    fun showIcons_whenInSelectMode() {
+        tabState = TabState(
+            items = listOf(
+                App(1),
+                Component(1),
+                SearchScreenTabs.Rule(5),
+            ),
+            selectedItem = Component(1),
+        )
+
+        composeTestRule.setContent {
+            SearchScreen(
+                tabState = tabState,
+                localSearchUiState = Success(
+                    searchKeyword = listOf(searchKeyword),
+                    appTabUiState = AppTabUiState(listOf(appInfoTestData)),
+                    componentTabUiState = ComponentTabUiState(filteredComponentTestData),
+                    ruleTabUiState = RuleTabUiState(generalRuleListTestData),
+                ),
+                searchUiState = SearchUiState(
+                    isSelectedMode = true,
+                    selectedAppList = filteredComponentTestData,
+                ),
+                appList = listOf(appInfoTestData),
+            )
+        }
+
+        composeTestRule.onNodeWithContentDescription(close).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(selectAll).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(blockSelected).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(enableSelected).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(checkIconDescription).assertExists()
+        composeTestRule.onNodeWithContentDescription(searchIconDescription).assertDoesNotExist()
+        composeTestRule.onNodeWithContentDescription(clearIconDescription).assertDoesNotExist()
     }
 }
