@@ -74,7 +74,7 @@ fun BlockerSearchTextField(
         leadingIcon = {
             Icon(
                 imageVector = BlockerIcons.Search,
-                contentDescription = null,
+                contentDescription = stringResource(id = R.string.core_designsystem_search_icon),
             )
         },
         trailingIcon = {

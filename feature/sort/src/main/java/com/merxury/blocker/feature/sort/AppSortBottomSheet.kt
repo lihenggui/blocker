@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AppSortInfo
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
@@ -83,9 +84,9 @@ fun AppSortBottomSheetRoute(
 fun AppSortBottomSheet(
     uiState: AppSortInfoUiState,
     modifier: Modifier = Modifier,
-    onSortByClick: (AppSorting) -> Unit,
-    onSortOrderClick: (SortingOrder) -> Unit,
-    onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
+    onSortByClick: (AppSorting) -> Unit = {},
+    onSortOrderClick: (SortingOrder) -> Unit = {},
+    onChangeShowRunningAppsOnTop: (Boolean) -> Unit = {},
 ) {
     when (uiState) {
         AppSortInfoUiState.Loading -> {
