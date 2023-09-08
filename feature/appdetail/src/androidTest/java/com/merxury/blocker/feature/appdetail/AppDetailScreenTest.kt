@@ -62,6 +62,10 @@ class AppDetailScreenTest {
     private lateinit var moreMenuDescription: String
     private lateinit var error: String
     private lateinit var loadingDescription: String
+    private lateinit var close: String
+    private lateinit var selectAll: String
+    private lateinit var blockSelected: String
+    private lateinit var enableSelected: String
 
     @Before
     fun setup() {
@@ -73,6 +77,10 @@ class AppDetailScreenTest {
             searchIconDescription = getString(uiR.string.core_ui_search_icon)
             moreMenuDescription = getString(uiR.string.core_ui_more_menu)
             loadingDescription = getString(uiR.string.core_ui_loading)
+            close = getString(uiR.string.core_ui_close)
+            selectAll = getString(uiR.string.core_ui_select_all)
+            blockSelected = getString(uiR.string.core_ui_block_selected)
+            enableSelected = getString(uiR.string.core_ui_enable_selected)
         }
     }
 
@@ -223,5 +231,91 @@ class AppDetailScreenTest {
             .assertExists()
         composeTestRule.onNodeWithText(receiverTestData[0].name).assertExists()
             .assertHasClickAction()
+    }
+
+    @Test
+    fun showIcons_whenInSelectMode() {
+        val itemCountMap = mapOf(
+            Info to 1,
+            Receiver to 1,
+        )
+        val tabState =
+            TabState(
+                items = listOf(
+                    Info,
+                    Receiver,
+                ),
+                selectedItem = Receiver,
+                itemCount = itemCountMap,
+            )
+        composeTestRule.setContent {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Success(
+                    appInfo = appInfoTestData,
+                    iconBasedTheming = null,
+                ),
+                topAppBarUiState = AppBarUiState(
+                    isSelectedMode = true,
+                ),
+                componentListUiState = ComponentListUiState(receiver = receiverTestData),
+                tabState = tabState,
+            )
+        }
+        composeTestRule.onNodeWithContentDescription(close).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(selectAll).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(blockSelected).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(enableSelected).assertExists()
+            .assertHasClickAction()
+        composeTestRule
+            .onNodeWithContentDescription(searchIconDescription).assertDoesNotExist()
+        composeTestRule
+            .onNodeWithContentDescription(moreMenuDescription).assertDoesNotExist()
+    }
+
+    @Test
+    fun showIcons_whenInSearchModeThenSelectMode() {
+        val itemCountMap = mapOf(
+            Info to 1,
+            Receiver to 1,
+        )
+        val tabState =
+            TabState(
+                items = listOf(
+                    Info,
+                    Receiver,
+                ),
+                selectedItem = Receiver,
+                itemCount = itemCountMap,
+            )
+        composeTestRule.setContent {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Success(
+                    appInfo = appInfoTestData,
+                    iconBasedTheming = null,
+                ),
+                topAppBarUiState = AppBarUiState(
+                    isSearchMode = true,
+                    isSelectedMode = true,
+                    actions = listOf(
+                        SEARCH,
+                        MORE,
+                    ),
+                ),
+                componentListUiState = ComponentListUiState(receiver = receiverTestData),
+                tabState = tabState,
+            )
+        }
+        composeTestRule.onNodeWithContentDescription(close).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(selectAll).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(blockSelected).assertExists()
+            .assertHasClickAction()
+        composeTestRule.onNodeWithContentDescription(enableSelected).assertExists()
+            .assertHasClickAction()
+        composeTestRule
+            .onNodeWithTag("BlockerSearchTextField")
+            .assertDoesNotExist()
     }
 }

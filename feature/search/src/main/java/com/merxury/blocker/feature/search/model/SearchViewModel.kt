@@ -87,7 +87,6 @@ class SearchViewModel @Inject constructor(
         MutableStateFlow<LocalSearchUiState>(LocalSearchUiState.Idle)
     val localSearchUiState: StateFlow<LocalSearchUiState> = _localSearchUiState.asStateFlow()
     private var filterComponentList: MutableList<FilteredComponent> = mutableListOf()
-    private var selectedAllTag = false
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -256,7 +255,7 @@ class SearchViewModel @Inject constructor(
         _searchUiState.update { it.copy(keyword = TextFieldValue()) }
     }
 
-    fun controlAllComponents(enable: Boolean) =
+    fun controlAllSelectedComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             componentRepository.batchControlComponent(
                 components = _searchUiState.value.selectedComponentList,
@@ -285,8 +284,8 @@ class SearchViewModel @Inject constructor(
     }
 
     fun selectItem(item: FilteredComponent) {
-        val selectedList: MutableList<FilteredComponent> = mutableListOf()
-        selectedList.addAll(_searchUiState.value.selectedAppList)
+        val selectedList: MutableList<FilteredComponent> =
+            _searchUiState.value.selectedAppList.toMutableList()
         selectedList.add(item)
         _searchUiState.update {
             it.copy(selectedAppList = selectedList)
@@ -295,8 +294,8 @@ class SearchViewModel @Inject constructor(
     }
 
     fun deselectItem(item: FilteredComponent) {
-        val selectedList: MutableList<FilteredComponent> = mutableListOf()
-        selectedList.addAll(_searchUiState.value.selectedAppList)
+        val selectedList: MutableList<FilteredComponent> =
+            _searchUiState.value.selectedAppList.toMutableList()
         selectedList.remove(item)
         _searchUiState.update {
             it.copy(selectedAppList = selectedList)
@@ -305,8 +304,9 @@ class SearchViewModel @Inject constructor(
     }
 
     fun selectAll() {
-        // if selectedAllTag == true, deselect all
-        if (selectedAllTag) {
+        val selectedAll = _searchUiState.value.selectedAppList.size == filterComponentList.size
+        // if selectedAll == true, deselect all
+        if (selectedAll) {
             _searchUiState.update {
                 it.copy(selectedAppList = listOf())
             }
@@ -315,7 +315,6 @@ class SearchViewModel @Inject constructor(
                 it.copy(selectedAppList = filterComponentList)
             }
         }
-        selectedAllTag = !selectedAllTag
         transferToComponentInoList()
     }
 

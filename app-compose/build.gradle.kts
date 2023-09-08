@@ -147,4 +147,15 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.libsu.core)
     implementation(libs.timber)
+
+    // Core functions
+    testImplementation(projects.core.testing)
+    testImplementation(projects.core.datastoreTest)
+    testImplementation(projects.core.dataTest)
+    testImplementation(projects.core.network)
+    testImplementation(libs.androidx.navigation.testing)
+    testImplementation(libs.accompanist.testharness)
+    testImplementation(kotlin("test"))
+    implementation(libs.androidx.work.testing)
+    kspTest(libs.hilt.compiler)
 }
