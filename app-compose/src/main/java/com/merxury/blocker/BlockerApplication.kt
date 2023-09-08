@@ -20,12 +20,15 @@ package com.merxury.blocker
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
+import androidx.work.ExistingWorkPolicy.REPLACE
+import androidx.work.WorkManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
+import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.sync.initializers.Sync
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
@@ -80,18 +83,32 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
         applicationScope.launch {
             val userData = userDataRepository.userData.first()
             if (!userData.isFirstTimeInitializationCompleted) {
-                // Set default server provider for first time run
-                val locale = Locale.getDefault().toString()
-                if (locale == "zh_CN") {
-                    // Set default server provider to GitLab for Chinese users
-                    Timber.i("Set default server provider to GitLab")
-                    userDataRepository.setRuleServerProvider(GITLAB)
-                } else {
-                    Timber.i("Set default server provider to GitHub")
-                    userDataRepository.setRuleServerProvider(GITHUB)
-                }
+                setDefaultRuleProvider()
+                copyRulesToInternalStorage()
                 userDataRepository.setIsFirstTimeInitializationCompleted(true)
             }
+        }
+    }
+
+    private fun copyRulesToInternalStorage() {
+        WorkManager.getInstance(this@BlockerApplication)
+            .enqueueUniqueWork(
+                "CopyRuleToInternalStorage",
+                REPLACE,
+                CopyRulesToStorageWorker.copyWork()
+            )
+    }
+
+    private suspend fun setDefaultRuleProvider() {
+        // Set default server provider for first time run
+        val locale = Locale.getDefault().toString()
+        if (locale == "zh_CN") {
+            // Set default server provider to GitLab for Chinese users
+            Timber.i("Set default server provider to GitLab")
+            userDataRepository.setRuleServerProvider(GITLAB)
+        } else {
+            Timber.i("Set default server provider to GitHub")
+            userDataRepository.setRuleServerProvider(GITHUB)
         }
     }
 }
