@@ -18,37 +18,103 @@ package com.merxury.blocker.core.rule.work
 
 import android.content.Context
 import android.content.res.AssetManager
+import androidx.hilt.work.HiltWorker
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.io.File.separator
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import kotlin.time.measureTime
 
-private const val FOLDER_NAME = "blocker_general_rules"
+private const val FOLDER_NAME = "blocker-general-rules"
+
+@HiltWorker
 class CopyRulesToStorageWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
-    private val asserManager: AssetManager,
+    private val assetManager: AssetManager,
     @FilesDir private val filesDir: File,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
-    override suspend fun doWork(): Result {
-        val files = asserManager.list(FOLDER_NAME)
+    override suspend fun doWork(): Result = withContext(ioDispatcher) {
+        val files = assetManager.list(FOLDER_NAME)
         if (files.isNullOrEmpty()) {
             throw IllegalArgumentException("No files found in $FOLDER_NAME")
         }
-        files.forEach {
-            Timber.v("Extracting $it to ${filesDir.absolutePath}")
-            val inputStream = asserManager.open("$FOLDER_NAME/$it")
-            val file = File(filesDir, it)
-            file.outputStream().use { outputStream ->
-                inputStream.copyTo(outputStream)
+        val workingFolder = File(filesDir, FOLDER_NAME)
+        if (!workingFolder.exists()) {
+            Timber.i("Create ${workingFolder.absolutePath}")
+            if (!workingFolder.mkdirs()) {
+                Timber.e("Cannot create folder: ${workingFolder.absolutePath}")
+                return@withContext Result.failure()
             }
         }
-        Timber.v("Done extracting rules from assets")
-        return Result.success()
+        val copyTimeCost = measureTime {
+            assetManager.copyAssetFolder(FOLDER_NAME, workingFolder.absolutePath)
+        }
+        Timber.i("Used $copyTimeCost to copy rules from assets")
+        return@withContext Result.success()
     }
 
     override fun getNotificationTitle(): Int = R.string.core_rule_copying_rules_to_internal_storage
+
+    companion object {
+        fun copyWork() = OneTimeWorkRequestBuilder<CopyRulesToStorageWorker>()
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .build()
+    }
+}
+
+private fun AssetManager.copyAssetFolder(srcName: String, dstName: String): Boolean {
+    return try {
+        var result: Boolean
+        val fileList = this.list(srcName) ?: return false
+        if (fileList.isEmpty()) {
+            result = copyAssetFile(srcName, dstName)
+        } else {
+            val file = File(dstName)
+            result = file.mkdirs()
+            for (filename in fileList) {
+                result = result and copyAssetFolder(
+                    srcName + separator.toString() + filename,
+                    dstName + separator.toString() + filename
+                )
+            }
+        }
+        result
+    } catch (e: IOException) {
+        Timber.e(e, "Cannot copy folder from $srcName to $dstName")
+        false
+    }
+}
+
+private fun AssetManager.copyAssetFile(srcName: String, dstName: String): Boolean {
+    return try {
+        val inStream = this.open(srcName)
+        val outFile = File(dstName)
+        val out: OutputStream = FileOutputStream(outFile)
+        val buffer = ByteArray(1024)
+        var read: Int
+        while (inStream.read(buffer).also { read = it } != -1) {
+            out.write(buffer, 0, read)
+        }
+        inStream.close()
+        out.close()
+        true
+    } catch (e: IOException) {
+        Timber.e(e, "Cannot copy files from $srcName to $dstName")
+        false
+    }
 }
