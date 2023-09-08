@@ -27,7 +27,6 @@ import coil.ImageLoaderFactory
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
-import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.sync.initializers.Sync
 import com.topjohnwu.superuser.Shell
@@ -47,9 +46,6 @@ import javax.inject.Provider
 class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Provider {
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
-
-    @Inject
-    lateinit var blockerNetworkDataSource: BlockerNetworkDataSource
 
     @Inject
     lateinit var userDataRepository: UserDataRepository
@@ -95,7 +91,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
             .enqueueUniqueWork(
                 "CopyRuleToInternalStorage",
                 REPLACE,
-                CopyRulesToStorageWorker.copyWork()
+                CopyRulesToStorageWorker.copyWork(),
             )
     }
 

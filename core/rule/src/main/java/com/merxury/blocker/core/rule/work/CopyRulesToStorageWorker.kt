@@ -89,7 +89,7 @@ private fun AssetManager.copyAssetFolder(srcName: String, dstName: String): Bool
             for (filename in fileList) {
                 result = result and copyAssetFolder(
                     srcName + separator.toString() + filename,
-                    dstName + separator.toString() + filename
+                    dstName + separator.toString() + filename,
                 )
             }
         }
