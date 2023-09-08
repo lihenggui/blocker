@@ -58,4 +58,20 @@
     <string name="core_ui_sort_options">Sort options</string>
     <string name="core_ui_collapse_list">Collapse list</string>
     <string name="core_ui_expand_list">Expand more</string>
+    <string name="core_ui_close">Close</string>
+    <string name="core_ui_block_selected">Block selected</string>
+    <string name="core_ui_select_all">Select all</string>
+    <string name="core_ui_enable_selected">Enable selected</string>
+    <plurals name="core_ui_block_all">
+        <item quantity="one">This operation will disable %1$d component, do you want to continue?</item>
+        <item quantity="other">This operation will disable %1$d components, do you want to continue?</item>
+    </plurals>
+    <plurals name="core_ui_enable_all">
+        <item quantity="one">This operation will enable %1$d component, do you want to continue?</item>
+        <item quantity="other">This operation will enable %1$d components, do you want to continue?</item>
+    </plurals>
+    <plurals name="core_ui_selected_app_count">
+        <item quantity="one">%1$d app selected</item>
+        <item quantity="other">%1$d apps selected</item>
+    </plurals>
 </resources>

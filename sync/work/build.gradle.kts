@@ -38,10 +38,10 @@ dependencies {
     implementation(libs.hilt.ext.work)
     implementation(libs.kotlinx.coroutines.android)
 
-    kapt(libs.hilt.ext.compiler)
+    ksp(libs.hilt.ext.compiler)
 
-    testImplementation(project(":core:testing"))
+    testImplementation(projects.core.testing)
 
-    androidTestImplementation(project(":core:testing"))
+    androidTestImplementation(projects.core.testing)
     androidTestImplementation(libs.androidx.work.testing)
 }

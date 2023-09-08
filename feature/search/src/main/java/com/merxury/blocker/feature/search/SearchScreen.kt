@@ -63,10 +63,10 @@ import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
+import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.applist.AppListViewModel
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
-import com.merxury.blocker.feature.search.component.SelectedAppTopBar
 import com.merxury.blocker.feature.search.model.ComponentTabUiState
 import com.merxury.blocker.feature.search.model.LocalSearchUiState
 import com.merxury.blocker.feature.search.model.SearchUiState
@@ -99,8 +99,8 @@ fun SearchRoute(
         onClearClick = viewModel::resetSearchState,
         onSelectAll = viewModel::selectAll,
         onDeselect = viewModel::deselectItem,
-        onBlockAll = { viewModel.controlAllComponents(false) },
-        onEnableAll = { viewModel.controlAllComponents(true) },
+        onBlockAll = { viewModel.controlAllSelectedComponents(false) },
+        onEnableAll = { viewModel.controlAllSelectedComponents(true) },
         searchUiState = selectUiState,
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
@@ -228,7 +228,8 @@ fun TopBar(
     ) { targetState ->
         if (targetState) {
             SelectedAppTopBar(
-                selectedAppCount = searchUiState.selectedAppList.size,
+                title = R.plurals.feature_search_selected_app_count,
+                selectedItemCount = searchUiState.selectedAppList.size,
                 selectedComponentCount = searchUiState.selectedComponentList.size,
                 onNavigationClick = onNavigationClick,
                 onSelectAll = onSelectAll,
