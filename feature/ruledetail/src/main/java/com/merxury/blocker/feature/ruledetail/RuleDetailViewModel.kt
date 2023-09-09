@@ -57,7 +57,6 @@ import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Success
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.feature.ruledetail.RuleInfoUiState.Success
 import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -151,7 +150,7 @@ class RuleDetailViewModel @Inject constructor(
             .first()
         val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
         _ruleInfoUiState.update {
-            Success(
+            RuleInfoUiState.Success(
                 ruleInfo = ruleWithIcon,
                 ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
             )

@@ -66,10 +66,8 @@ class ComponentDetailRepository @Inject constructor(
     }
         .flowOn(ioDispatcher)
 
-    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flow {
-        emit(userGeneratedDataSource.saveComponentData(componentDetail))
-    }
-        .flowOn(ioDispatcher)
+    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> =
+        userGeneratedDataSource.saveComponentData(componentDetail)
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean {
         Timber.d("Syncing component detail")

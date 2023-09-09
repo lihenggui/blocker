@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -37,15 +36,13 @@ private const val EXTENSION = "json"
 private const val BASE_FOLDER = "user-generated-rules"
 
 class UserGeneratedComponentDetailDataSource @Inject constructor(
-    @FilesDir filesDir: File,
+    @FilesDir private val filesDir: File,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
 
-    private val workingDir = filesDir.resolve(BASE_FOLDER)
-        .resolve("user_generated")
-
     override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
+        val workingDir = filesDir.resolve(BASE_FOLDER)
         val path = name.replace(".", "/")
             .plus(".$EXTENSION")
         if (!workingDir.exists()) {
@@ -69,27 +66,28 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
     }.flowOn(ioDispatcher)
 
     // It actually uses Dispatcher.IO
-    @Suppress("BlockingMethodInNonBlockingContext")
-    override suspend fun saveComponentData(component: ComponentDetail): Boolean =
-        withContext(ioDispatcher) {
-            val name = component.name
-            val path = name.replace(".", "/")
-                .plus(".$EXTENSION")
-            try {
-                if (!workingDir.exists()) {
-                    workingDir.mkdirs()
-                }
-                val file = workingDir.resolve(path)
-                if (!file.exists()) {
-                    file.parentFile?.mkdirs()
-                    file.createNewFile()
-                }
-                val content = json.encodeToString(component)
-                file.writeText(content)
-                true
-            } catch (e: IOException) {
-                Timber.e(e, "Failed to save component detail: $name")
-                false
+
+    override fun saveComponentData(component: ComponentDetail): Flow<Boolean> = flow {
+        val workingDir = filesDir.resolve(BASE_FOLDER)
+        val name = component.name
+        val path = name.replace(".", "/")
+            .plus(".$EXTENSION")
+        try {
+            if (!workingDir.exists()) {
+                workingDir.mkdirs()
             }
+            val file = workingDir.resolve(path)
+            if (!file.exists()) {
+                file.parentFile?.mkdirs()
+                file.createNewFile()
+            }
+            val content = json.encodeToString(component)
+            file.writeText(content)
+            emit(true)
+        } catch (e: IOException) {
+            Timber.e(e, "Failed to save component detail: $name")
+            emit(false)
         }
+    }
+        .flowOn(ioDispatcher)
 }
