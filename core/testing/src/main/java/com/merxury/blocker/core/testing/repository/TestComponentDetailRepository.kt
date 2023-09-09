@@ -17,14 +17,14 @@
 package com.merxury.blocker.core.testing.repository
 
 import com.merxury.blocker.core.data.Synchronizer
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.map
 
-class TestComponentDetailRepository : ComponentDetailRepository {
+class TestComponentDetailRepository : IComponentDetailRepository {
     private val componentDetail: MutableSharedFlow<ComponentDetail> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 

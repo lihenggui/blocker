@@ -24,27 +24,21 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.io.File
-import java.io.IOException
 import javax.inject.Inject
 
 private const val EXTENSION = "json"
-private const val BASE_FOLDER = "user-generated-rules"
-
-class UserGeneratedComponentDetailDataSource @Inject constructor(
-    @FilesDir filesDir: File,
+private const val BASE_FOLDER = "blocker-general-rules"
+class LocalComponentDetailDataSource @Inject constructor(
     private val json: Json,
+    @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
 
     private val workingDir = filesDir.resolve(BASE_FOLDER)
-        .resolve("user_generated")
-
     override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         val path = name.replace(".", "/")
             .plus(".$EXTENSION")
@@ -67,29 +61,8 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
             emit(null)
         }
     }.flowOn(ioDispatcher)
-
-    // It actually uses Dispatcher.IO
-    @Suppress("BlockingMethodInNonBlockingContext")
-    override suspend fun saveComponentData(component: ComponentDetail): Boolean =
-        withContext(ioDispatcher) {
-            val name = component.name
-            val path = name.replace(".", "/")
-                .plus(".$EXTENSION")
-            try {
-                if (!workingDir.exists()) {
-                    workingDir.mkdirs()
-                }
-                val file = workingDir.resolve(path)
-                if (!file.exists()) {
-                    file.parentFile?.mkdirs()
-                    file.createNewFile()
-                }
-                val content = json.encodeToString(component)
-                file.writeText(content)
-                true
-            } catch (e: IOException) {
-                Timber.e(e, "Failed to save component detail: $name")
-                false
-            }
-        }
+    override suspend fun saveComponentData(component: ComponentDetail): Boolean {
+        Timber.e("Not support saving component detail in LocalComponentDetailDataSource")
+        return false
+    }
 }
