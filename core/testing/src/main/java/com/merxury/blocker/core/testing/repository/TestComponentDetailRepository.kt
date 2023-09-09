@@ -22,6 +22,7 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class TestComponentDetailRepository : IComponentDetailRepository {
@@ -34,16 +35,13 @@ class TestComponentDetailRepository : IComponentDetailRepository {
         }
     }
 
-    override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> {
+    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> {
         return componentDetail.map {
             it.takeIf { componentDetail -> componentDetail.name == name }
         }
     }
 
-    override suspend fun saveComponentDetail(
-        componentDetail: ComponentDetail,
-        userGenerated: Boolean,
-    ): Boolean = true
+    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
 
