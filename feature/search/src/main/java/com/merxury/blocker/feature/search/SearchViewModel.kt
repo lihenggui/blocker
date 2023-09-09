@@ -132,10 +132,10 @@ class SearchViewModel @Inject constructor(
     }
 
     fun search(changedSearchText: TextFieldValue) {
+        Timber.d("Search components: $changedSearchText")
         if (changedSearchText.text == _searchUiState.value.keyword.text) {
             return
         }
-        Timber.d("Search components: $changedSearchText")
         _searchUiState.update { it.copy(keyword = changedSearchText) }
         val keyword = changedSearchText.text
         val searchAppFlow = appRepository.searchInstalledApplications(keyword)
