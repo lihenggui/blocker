@@ -20,6 +20,7 @@ import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.network.model.NetworkGeneralRule
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -53,8 +54,9 @@ class LocalGeneralRuleDataSource @Inject constructor(
             return@flow
         }
         try {
-            ruleFile.inputStream().use {
-                val serializedRule = json.decodeFromStream<List<GeneralRule>>(it)
+            ruleFile.inputStream().use { inputStream ->
+                val serializedRule = json.decodeFromStream<List<NetworkGeneralRule>>(inputStream)
+                    .map { it.asExternalModel() }
                 emit(serializedRule)
             }
         } catch (e: Exception) {
