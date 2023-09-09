@@ -54,7 +54,7 @@ class ComponentDetailRepository @Inject constructor(
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
         userGeneratedDataSource.getComponentDetail(name)
 
-    override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> = flow {
+    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         // Priority: user generated > db
         val userGeneratedData = userGeneratedDataSource.getComponentDetail(name)
             .first()
@@ -66,12 +66,10 @@ class ComponentDetailRepository @Inject constructor(
     }
         .flowOn(ioDispatcher)
 
-    override suspend fun saveComponentDetail(
-        componentDetail: ComponentDetail,
-        userGenerated: Boolean,
-    ): Boolean {
-        return userGeneratedDataSource.saveComponentData(componentDetail)
+    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flow {
+        emit(userGeneratedDataSource.saveComponentData(componentDetail))
     }
+        .flowOn(ioDispatcher)
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean {
         Timber.d("Syncing component detail")

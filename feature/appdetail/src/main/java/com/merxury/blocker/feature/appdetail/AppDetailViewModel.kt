@@ -273,7 +273,7 @@ class AppDetailViewModel @Inject constructor(
                 updateTabContent(origList, packageName)
                 // Load the data with description and update again
                 val list = origList.map { component ->
-                    val detail = componentDetailRepository.getComponentDetailCache(component.name)
+                    val detail = componentDetailRepository.getLocalComponentDetail(component.name)
                         .first()
                     if (detail != null) {
                         component.copy(description = detail.description)
