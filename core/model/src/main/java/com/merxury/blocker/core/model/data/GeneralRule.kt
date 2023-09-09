@@ -16,9 +16,6 @@
 
 package com.merxury.blocker.core.model.data
 
-import kotlinx.serialization.Serializable
-
-@Serializable
 data class GeneralRule(
     val id: Int,
     val name: String,
