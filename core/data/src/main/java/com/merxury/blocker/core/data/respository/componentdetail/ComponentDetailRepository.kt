@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.respository.componentdetail
 import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.changeListSync
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.ChangeListVersions
@@ -45,6 +46,7 @@ private const val COMMIT_INFO_FILE = "commit_info.txt"
 
 class ComponentDetailRepository @Inject constructor(
     private val userDataRepository: UserDataRepository,
+    private val localComponentDetailRepository: LocalComponentDetailDataSource,
     private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
     private val network: BlockerNetworkDataSource,
     @FilesDir private val filesDir: File,
@@ -60,6 +62,12 @@ class ComponentDetailRepository @Inject constructor(
             .first()
         if (userGeneratedData != null) {
             emit(userGeneratedData)
+            return@flow
+        }
+        val localData = localComponentDetailRepository.getComponentDetail(name)
+            .first()
+        if (localData != null) {
+            emit(localData)
             return@flow
         }
         emit(null)
