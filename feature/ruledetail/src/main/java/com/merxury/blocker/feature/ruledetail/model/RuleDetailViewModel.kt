@@ -53,6 +53,7 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
+import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Success
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
@@ -164,7 +165,7 @@ class RuleDetailViewModel @Inject constructor(
     }
 
     fun controlAllComponentsInPage(enable: Boolean) = viewModelScope.launch {
-        val uiState = _ruleMatchedAppListUiState.value as? RuleMatchedAppListUiState.Success
+        val uiState = _ruleMatchedAppListUiState.value as? Success
             ?: return@launch
         val list = uiState.list
             .flatMap { it.componentList }
@@ -198,7 +199,7 @@ class RuleDetailViewModel @Inject constructor(
                 val searchedComponentItem = components.map { it.toComponentItem() }
                 RuleMatchedApp(appItem, searchedComponentItem)
             }
-        _ruleMatchedAppListUiState.emit(RuleMatchedAppListUiState.Success(searchResult))
+        _ruleMatchedAppListUiState.emit(Success(searchResult))
     }
 
     fun switchTab(newTab: RuleDetailTabs) {
