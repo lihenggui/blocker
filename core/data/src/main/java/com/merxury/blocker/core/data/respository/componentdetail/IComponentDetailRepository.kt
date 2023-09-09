@@ -24,10 +24,7 @@ interface IComponentDetailRepository : Syncable {
 
     fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
 
-    fun getComponentDetailCache(name: String): Flow<ComponentDetail?>
+    fun getLocalComponentDetail(name: String): Flow<ComponentDetail?>
 
-    suspend fun saveComponentDetail(
-        componentDetail: ComponentDetail,
-        userGenerated: Boolean,
-    ): Boolean
+    fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean>
 }

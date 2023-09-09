@@ -30,12 +30,9 @@ class FakeComponentDetailRepository @Inject constructor(
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
         userGeneratedDataSource.getComponentDetail(name)
 
-    override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> = flowOf(null)
+    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 
-    override suspend fun saveComponentDetail(
-        componentDetail: ComponentDetail,
-        userGenerated: Boolean,
-    ): Boolean = true
+    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
 }
