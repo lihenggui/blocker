@@ -20,7 +20,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -43,7 +43,7 @@ import javax.inject.Inject
 class ComponentDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val componentRepository: LocalComponentRepository,
-    private val componentDetailRepository: ComponentDetailRepository,
+    private val componentDetailRepository: IComponentDetailRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val componentDetailArg = ComponentDetailArgs(savedStateHandle)
