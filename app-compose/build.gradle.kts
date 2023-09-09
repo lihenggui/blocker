@@ -31,8 +31,8 @@ android {
     namespace = "com.merxury.blocker"
     defaultConfig {
         applicationId = "com.merxury.blocker"
-        versionCode = 2390
-        versionName = "2.0.2390" // X.Y.Z; X = Major, Y = minor, Z = version code
+        versionCode = 2485
+        versionName = "2.0.2485" // X.Y.Z; X = Major, Y = minor, Z = version code
 
         // Custom test runner to set up Hilt dependency graph
         testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
@@ -142,4 +142,15 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.libsu.core)
     implementation(libs.timber)
+
+    // Core functions
+    testImplementation(projects.core.testing)
+    testImplementation(projects.core.datastoreTest)
+    testImplementation(projects.core.dataTest)
+    testImplementation(projects.core.network)
+    testImplementation(libs.androidx.navigation.testing)
+    testImplementation(libs.accompanist.testharness)
+    testImplementation(kotlin("test"))
+    implementation(libs.androidx.work.testing)
+    kspTest(libs.hilt.compiler)
 }

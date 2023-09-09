@@ -30,6 +30,10 @@
     <string name="core_ui_launch_activity">Запуск активности</string>
     <string name="core_ui_stop_service">Остановить службу</string>
     <string name="core_ui_no_components">Нет компонентов</string>
+    <string name="core_ui_close">Закрыть</string>
+    <string name="core_ui_block_selected">Заблокировать выбранное</string>
+    <string name="core_ui_select_all">Выбрать все</string>
+    <string name="core_ui_enable_selected">Включить выбранное</string>
     <plurals name="core_ui_matched_component" tools:ignore="MissingQuantity">
         <item quantity="one">Соответствует %1$d компоненту</item>
         <item quantity="other">Соответствует %1$d компонентам</item>
@@ -57,4 +61,16 @@
     <string name="core_ui_sort_options">Параметры сортировки</string>
     <string name="core_ui_collapse_list">Свернуть список</string>
     <string name="core_ui_expand_list">расширить список</string>
+    <plurals name="core_ui_block_all">
+        <item quantity="one">Эта операция отключит компонент %1$d. Продолжить?</item>
+        <item quantity="other">Эта операция отключит %1$d компонентов. Продолжить?</item>
+    </plurals>
+    <plurals name="core_ui_enable_all">
+        <item quantity="one">Эта операция активирует компонент %1$d. Продолжить?</item>
+        <item quantity="other">Эта операция активирует компоненты: %1$d. Продолжить?</item>
+    </plurals>
+    <plurals name="core_ui_selected_app_count">
+        <item quantity="one">%1$d приложение выбрано</item>
+        <item quantity="other">%1$d приложений выбрано</item>
+    </plurals>
 </resources>

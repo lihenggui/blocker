@@ -55,4 +55,17 @@
     <string name="core_ui_sort_options">排序选项</string>
     <string name="core_ui_collapse_list">折叠列表</string>
     <string name="core_ui_expand_list">展开列表</string>
+    <string name="core_ui_close">关闭</string>
+    <string name="core_ui_block_selected">禁用选中</string>
+    <string name="core_ui_select_all">全选</string>
+    <string name="core_ui_enable_selected">启用选中</string>
+    <plurals name="core_ui_block_all">
+        <item quantity="other">此操作将禁用%1$d组件，是否要继续？</item>
+    </plurals>
+    <plurals name="core_ui_enable_all">
+        <item quantity="other">此操作将启用%1$d个组件，是否要继续？</item>
+    </plurals>
+    <plurals name="core_ui_selected_app_count">
+        <item quantity="other">%1$d个应用已选中</item>
+    </plurals>
 </resources>

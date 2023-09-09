@@ -24,11 +24,15 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateMap
+import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -44,6 +48,7 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.screen.LoadingScreen
 
 @Composable
 fun RuleMatchedAppList(
@@ -59,7 +64,7 @@ fun RuleMatchedAppList(
     onSwitch: (String, String, Boolean) -> Unit,
 ) {
     when (ruleMatchedAppListUiState) {
-        RuleMatchedAppListUiState.Loading -> {}
+        RuleMatchedAppListUiState.Loading -> LoadingScreen()
         is RuleMatchedAppListUiState.Success -> {
             if (ruleMatchedAppListUiState.list.isEmpty()) {
                 NoApplicableAppScreen()
@@ -69,16 +74,18 @@ fun RuleMatchedAppList(
             val scrollbarState = listState.scrollbarState(
                 itemsAvailable = ruleMatchedAppListUiState.list.size,
             )
+            val isExpandedMap = rememberSavableSnapshotStateMap {
+                List(ruleMatchedAppListUiState.list.size) { index: Int -> index to false }
+                    .toMutableStateMap()
+            }
+
             Box(modifier = Modifier.fillMaxSize()) {
                 LazyColumn(
                     modifier = modifier.testTag("rule:matchedAppList"),
                     state = listState,
                 ) {
-                    items(
-                        ruleMatchedAppListUiState.list,
-                        key = { it.app.packageName },
-                    ) { ruleMatchedApp ->
-                        MatchedComponentItem(
+                    ruleMatchedAppListUiState.list.forEachIndexed { index, ruleMatchedApp ->
+                        matchedComponentItem(
                             ruleMatchedApp = ruleMatchedApp,
                             onStopServiceClick = onStopServiceClick,
                             onLaunchActivityClick = onLaunchActivityClick,
@@ -88,6 +95,10 @@ fun RuleMatchedAppList(
                             onBlockAllClick = onBlockAllClick,
                             onEnableAllClick = onEnableAllClick,
                             onSwitch = onSwitch,
+                            expanded = isExpandedMap[index] ?: false,
+                            onCardArrowClicked = {
+                                isExpandedMap[index] = !(isExpandedMap[index] ?: false)
+                            },
                         )
                     }
                 }
@@ -127,6 +138,18 @@ sealed interface RuleMatchedAppListUiState {
         val list: List<RuleMatchedApp>,
     ) : RuleMatchedAppListUiState
 }
+
+fun <K, V> snapshotStateMapSaver() = Saver<SnapshotStateMap<K, V>, Any>(
+    save = { state -> state.toList() },
+    restore = { value ->
+        @Suppress("UNCHECKED_CAST")
+        (value as? List<Pair<K, V>>)?.toMutableStateMap() ?: mutableStateMapOf()
+    },
+)
+
+@Composable
+fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): SnapshotStateMap<K, V> =
+    rememberSaveable(saver = snapshotStateMapSaver(), init = init)
 
 @Composable
 @Preview

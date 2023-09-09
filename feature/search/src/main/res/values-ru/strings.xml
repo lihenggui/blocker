@@ -48,4 +48,5 @@
     </plurals>
     <string name="feature_search_search_hint">Приложения, компоненты и правила</string>
     <string name="feature_search_no_search_result">Пока нет результатов поиска</string>
+    <string name="feature_search_check_icon">Проверять</string>
 </resources>
