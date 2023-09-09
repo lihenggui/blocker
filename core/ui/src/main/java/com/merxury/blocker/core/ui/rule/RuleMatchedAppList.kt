@@ -144,7 +144,7 @@ fun <K, V> snapshotStateMapSaver() = Saver<SnapshotStateMap<K, V>, Any>(
     restore = { value ->
         @Suppress("UNCHECKED_CAST")
         (value as? List<Pair<K, V>>)?.toMutableStateMap() ?: mutableStateMapOf()
-    }
+    },
 )
 
 @Composable
