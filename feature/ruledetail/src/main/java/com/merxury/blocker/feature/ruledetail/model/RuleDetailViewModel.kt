@@ -282,22 +282,6 @@ class RuleDetailViewModel @Inject constructor(
             }
             return@withContext bitmap
         }
-
-    fun switchExpand(appPackageName: String) {
-        if (_ruleMatchedAppListUiState.value is Success) {
-            val expandedList =
-                (_ruleMatchedAppListUiState.value as Success).expandAppIdList.toMutableList()
-            if (expandedList.contains(appPackageName)) {
-                expandedList.remove(appPackageName)
-            } else {
-                expandedList.add(appPackageName)
-            }
-            _ruleMatchedAppListUiState.value = Success(
-                (_ruleMatchedAppListUiState.value as Success).list,
-                expandedList,
-            )
-        }
-    }
 }
 
 sealed interface RuleInfoUiState {
