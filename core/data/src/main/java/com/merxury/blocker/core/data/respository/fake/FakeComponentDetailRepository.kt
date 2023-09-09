@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.data.respository.fake
 
 import com.merxury.blocker.core.data.Synchronizer
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -28,7 +28,7 @@ import javax.inject.Inject
 class FakeComponentDetailRepository @Inject constructor(
     private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
     private val dbDataSource: DbComponentDetailDataSource,
-) : ComponentDetailRepository {
+) : IComponentDetailRepository {
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
         userGeneratedDataSource.getComponentDetail(name)
 
