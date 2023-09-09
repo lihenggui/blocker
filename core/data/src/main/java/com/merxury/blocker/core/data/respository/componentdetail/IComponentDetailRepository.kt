@@ -24,8 +24,6 @@ interface IComponentDetailRepository : Syncable {
 
     fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
 
-    fun getDbComponentDetail(name: String): Flow<ComponentDetail?>
-
     fun getComponentDetailCache(name: String): Flow<ComponentDetail?>
 
     suspend fun saveComponentDetail(
