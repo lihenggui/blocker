@@ -96,8 +96,9 @@ class ComponentDetailViewModel @Inject constructor(
         }
     }
 
-    fun save(detail: ComponentDetail) = viewModelScope.launch(ioDispatcher) {
-        componentDetailRepository.saveComponentDetail(detail, userGenerated = true)
+    fun save(detail: ComponentDetail) = viewModelScope.launch {
+        componentDetailRepository.saveComponentDetail(detail)
+            .collect {}
     }
 }
 
