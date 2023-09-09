@@ -36,7 +36,7 @@ import javax.inject.Inject
 private const val EXTENSION = "json"
 private const val BASE_FOLDER = "componentdetail"
 
-class LocalComponentDetailDataSource @Inject constructor(
+class UserGeneratedComponentDetailDataSource @Inject constructor(
     @FilesDir filesDir: File,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,

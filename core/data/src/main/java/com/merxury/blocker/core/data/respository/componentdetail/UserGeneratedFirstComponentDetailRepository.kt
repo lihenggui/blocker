@@ -20,7 +20,7 @@ import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.changeListSync
 import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
+import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.ChangeListVersions
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -43,10 +43,10 @@ import javax.inject.Inject
 private const val RULE_FOLDER_NAME = "rules"
 private const val RULE_ZIP_FILENAME = "rules.zip"
 private const val COMMIT_INFO_FILE = "commit_info.txt"
-class OfflineFirstComponentDetailRepository @Inject constructor(
+class UserGeneratedFirstComponentDetailRepository @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val dbDataSource: DbComponentDetailDataSource,
-    private val userGeneratedDataSource: LocalComponentDetailDataSource,
+    private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
     private val network: BlockerNetworkDataSource,
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
