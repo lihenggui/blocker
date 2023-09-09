@@ -23,6 +23,7 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
@@ -32,19 +33,23 @@ import javax.inject.Inject
 
 private const val EXTENSION = "json"
 private const val BASE_FOLDER = "blocker-general-rules"
+private const val COMPONENT_FOLDER = "components"
 class LocalComponentDetailDataSource @Inject constructor(
     private val json: Json,
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
 
-    private val workingDir = filesDir.resolve(BASE_FOLDER)
     override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
+        val workingDir = filesDir.resolve(BASE_FOLDER)
+            .resolve(COMPONENT_FOLDER)
+        if (!workingDir.exists()) {
+            Timber.w("Component folder not exist")
+            emit(null)
+            return@flow
+        }
         val path = name.replace(".", "/")
             .plus(".$EXTENSION")
-        if (!workingDir.exists()) {
-            workingDir.mkdirs()
-        }
         val file = workingDir.resolve(path)
         if (file.exists()) {
             try {
@@ -61,8 +66,9 @@ class LocalComponentDetailDataSource @Inject constructor(
             emit(null)
         }
     }.flowOn(ioDispatcher)
-    override suspend fun saveComponentData(component: ComponentDetail): Boolean {
+
+    override fun saveComponentData(component: ComponentDetail): Flow<Boolean> {
         Timber.e("Not support saving component detail in LocalComponentDetailDataSource")
-        return false
+        return flowOf(false)
     }
 }
