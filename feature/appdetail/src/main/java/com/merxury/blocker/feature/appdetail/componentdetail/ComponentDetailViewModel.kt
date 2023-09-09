@@ -66,16 +66,6 @@ class ComponentDetailViewModel @Inject constructor(
             )
             // Do NOT update the dialog if user saved the data previously
             return@launch
-        } else {
-            val dbDetail = componentDetailRepository
-                .getDbComponentDetail(componentDetailArg.name)
-                .first()
-            if (dbDetail != null) {
-                _uiState.value = Success(
-                    isFetchingData = true,
-                    detail = dbDetail,
-                )
-            }
         }
         // No match found in the cache, emit the default value
         val component = componentRepository.getComponent(componentDetailArg.name).first()

@@ -19,7 +19,6 @@ package com.merxury.blocker.core.data.respository.componentdetail
 import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.changeListSync
 import com.merxury.blocker.core.data.di.FilesDir
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.ChangeListVersions
@@ -46,7 +45,6 @@ private const val COMMIT_INFO_FILE = "commit_info.txt"
 
 class ComponentDetailRepository @Inject constructor(
     private val userDataRepository: UserDataRepository,
-    private val dbDataSource: DbComponentDetailDataSource,
     private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
     private val network: BlockerNetworkDataSource,
     @FilesDir private val filesDir: File,
@@ -56,20 +54,12 @@ class ComponentDetailRepository @Inject constructor(
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
         userGeneratedDataSource.getComponentDetail(name)
 
-    override fun getDbComponentDetail(name: String): Flow<ComponentDetail?> =
-        dbDataSource.getComponentDetail(name)
-
     override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> = flow {
         // Priority: user generated > db
         val userGeneratedData = userGeneratedDataSource.getComponentDetail(name)
             .first()
         if (userGeneratedData != null) {
             emit(userGeneratedData)
-            return@flow
-        }
-        val dbData = dbDataSource.getComponentDetail(name).first()
-        if (dbData != null) {
-            emit(dbData)
             return@flow
         }
         emit(null)
@@ -80,11 +70,7 @@ class ComponentDetailRepository @Inject constructor(
         componentDetail: ComponentDetail,
         userGenerated: Boolean,
     ): Boolean {
-        return if (userGenerated) {
-            userGeneratedDataSource.saveComponentData(componentDetail)
-        } else {
-            dbDataSource.saveComponentData(componentDetail)
-        }
+        return userGeneratedDataSource.saveComponentData(componentDetail)
     }
 
     override suspend fun syncWith(synchronizer: Synchronizer): Boolean {
