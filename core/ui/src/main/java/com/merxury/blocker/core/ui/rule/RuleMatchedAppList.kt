@@ -58,6 +58,7 @@ fun RuleMatchedAppList(
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit,
+    onCardArrowClicked: (String) -> Unit = { _ -> },
 ) {
     when (ruleMatchedAppListUiState) {
         RuleMatchedAppListUiState.Loading -> LoadingScreen()
@@ -89,6 +90,10 @@ fun RuleMatchedAppList(
                             onBlockAllClick = onBlockAllClick,
                             onEnableAllClick = onEnableAllClick,
                             onSwitch = onSwitch,
+                            expanded = ruleMatchedAppListUiState.expandAppIdList.contains(
+                                ruleMatchedApp.app.packageName
+                            ),
+                            onCardArrowClicked = onCardArrowClicked,
                         )
                     }
                 }
@@ -126,6 +131,7 @@ sealed interface RuleMatchedAppListUiState {
     data object Loading : RuleMatchedAppListUiState
     data class Success(
         val list: List<RuleMatchedApp>,
+        val expandAppIdList: List<String> = listOf(),
     ) : RuleMatchedAppListUiState
 }
 
