@@ -123,6 +123,7 @@ fun RuleDetailRoute(
         onSwitch = viewModel::controlComponent,
         navigateToAppDetail = navigateToAppDetail,
         updateIconBasedThemingState = updateIconBasedThemingState,
+        onCardArrowClicked = viewModel::switchExpand,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -161,6 +162,7 @@ fun RuleDetailScreen(
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
+    onCardArrowClicked: (String) -> Unit = {},
 ) {
     when (ruleInfoUiState) {
         RuleInfoUiState.Loading -> {
@@ -187,6 +189,7 @@ fun RuleDetailScreen(
                 onSwitch = onSwitch,
                 navigateToAppDetail = navigateToAppDetail,
                 updateIconBasedThemingState = updateIconBasedThemingState,
+                onCardArrowClicked = onCardArrowClicked,
             )
         }
 
@@ -217,6 +220,7 @@ fun RuleDetailContent(
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = { _ -> },
+    onCardArrowClicked: (String) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -299,6 +303,7 @@ fun RuleDetailContent(
             onEnableAllClick = onEnableAllClick,
             onSwitch = onSwitch,
             navigateToAppDetail = navigateToAppDetail,
+            onCardArrowClicked = onCardArrowClicked,
         )
     }
 }
@@ -364,6 +369,7 @@ fun RuleDetailTabContent(
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onCardArrowClicked: (String) -> Unit = {},
 ) {
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
     val coroutineScope = rememberCoroutineScope()
@@ -407,6 +413,7 @@ fun RuleDetailTabContent(
                     onBlockAllClick = onBlockAllClick,
                     onEnableAllClick = onEnableAllClick,
                     onSwitch = onSwitch,
+                    onCardArrowClicked = onCardArrowClicked,
                 )
 
                 1 -> RuleDescription(rule = ruleInfoUiState.ruleInfo)
