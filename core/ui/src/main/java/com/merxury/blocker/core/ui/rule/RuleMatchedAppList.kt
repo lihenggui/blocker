@@ -91,7 +91,7 @@ fun RuleMatchedAppList(
                             onEnableAllClick = onEnableAllClick,
                             onSwitch = onSwitch,
                             expanded = ruleMatchedAppListUiState.expandAppIdList.contains(
-                                ruleMatchedApp.app.packageName
+                                ruleMatchedApp.app.packageName,
                             ),
                             onCardArrowClicked = onCardArrowClicked,
                         )
