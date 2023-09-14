@@ -60,7 +60,7 @@ roborazzi = "1.5.0-alpha-2"
 room = "2.5.2"
 secrets = "2.0.1"
 shizuku = "13.1.4"
-xmlutil = "0.86.1"
+xmlutil = "0.86.2"
 turbine = "1.0.0"
 material = "1.9.0"
 
