@@ -54,7 +54,7 @@ Tutorial for modifying APKs (Chinese Only) [[实验性功能] [开发者向]如�
 
 ## Screenshot tests
 
-**Now In Android** uses [Roborazzi](https://github.com/takahirom/roborazzi) to do screenshot tests
+**Blocker** uses [Roborazzi](https://github.com/takahirom/roborazzi) to do screenshot tests
 of certain screens and components. To run these tests, run the `verifyRoborazziDemoDebug` or
 `recordRoborazziDemoDebug` tasks. Note that screenshots are recorded on CI, using Linux, and other
 platforms might generate slightly different images, making the tests fail.

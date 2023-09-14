@@ -116,7 +116,7 @@ jobs:
           apk-path: ${{ steps.apk-path.outputs.foss_path }}
 
   test:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     permissions:
       contents: write
@@ -145,7 +145,7 @@ jobs:
       - name: Run all local screenshot tests (Roborazzi)
         id: screenshotsverify
         continue-on-error: true
-        run: ./gradlew verifyRoborazziDemoDebug
+        run: ./gradlew verifyRoborazziFossDebug
 
       - name: Prevent pushing new screenshots if this is a fork
         id: checkfork
@@ -159,7 +159,7 @@ jobs:
         id: screenshotsrecord
         if: steps.screenshotsverify.outcome == 'failure' && github.event_name == 'pull_request'
         run: |
-          ./gradlew recordRoborazziDemoDebug
+          ./gradlew recordRoborazziFossDebug
 
       - name: Push new screenshots if available
         uses: stefanzweifel/git-auto-commit-action@v4
@@ -172,7 +172,7 @@ jobs:
       # Run local tests after screenshot tests to avoid wrong UP-TO-DATE. TODO: Ignore screenshots.
       - name: Run local tests
         if: always()
-        run: ./gradlew testDemoDebug testProdDebug
+        run: ./gradlew testFossDebug testMarketDebug
 
       - name: Upload test results (XML)
         if: always()
