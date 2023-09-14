@@ -59,6 +59,7 @@
     <string name="core_ui_sort_options">排序選項</string>
     <string name="core_ui_collapse_list">折疊列表</string>
     <string name="core_ui_expand_list">展開列表</string>
+    <string name="core_ui_not_found_app">未找到應用</string>
     <plurals name="core_ui_block_all">
         <item quantity="other">此操作將禁用%1$d個組件，是否要繼續？</item>
     </plurals>
