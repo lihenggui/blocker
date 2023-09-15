@@ -69,7 +69,7 @@ AOSP中关于此限制的实现：[frameworks/base/services/core/java/com/androi
 要运行这些测试，请运行“verifyRoborazziFossDebug”或`recordRoborazziFossDebug`任务。
 请注意，屏幕截图是在CI上记录的，使用Linux等平台可能会生成略有不同的图像，从而导致测试失败。
 
-### UI
+## UI
 
 本应用遵循[Material 3 界面规范](https://m3.material.io/)开发，并完全使用Jetpack
 Compose构建UI元素。你可以从 [Figma](https://www.figma.com/file/T903MNmXtahDVf1yoOgXoI/Blocker)
@@ -81,7 +81,7 @@ Compose构建UI元素。你可以从 [Figma](https://www.figma.com/file/T903MNmX
 动态颜色 - 根据用户当前的颜色主题使用颜色；默认主题 - 在不支持动态颜色时使用预定义的颜色。
 同时每个主题还支持暗模式。
 
-### 常见问题
+## 常见问题
 
 1. 在Shizuku模式下点击按钮，组件状态无法控制，弹出SecurityException: Shell cannot change component
    state for 'xx' to state 'xx'。
