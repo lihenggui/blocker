@@ -45,9 +45,9 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
-import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
+import com.merxury.blocker.core.ui.screen.NoSearchResultScreen
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
 
@@ -152,7 +152,7 @@ fun AppListScreen(
 
                 is AppListUiState.Success -> {
                     if (appList.isEmpty()) {
-                        EmptyScreen()
+                        NoSearchResultScreen()
                     } else {
                         AppList(
                             appList = appList,
