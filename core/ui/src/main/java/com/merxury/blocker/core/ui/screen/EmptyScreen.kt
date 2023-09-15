@@ -19,7 +19,6 @@ package com.merxury.blocker.core.ui.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -27,8 +26,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
+import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R
 
@@ -39,11 +39,20 @@ fun EmptyScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        BlockerBodyLargeText(
-            modifier = Modifier.padding(16.dp),
-            text = stringResource(id = R.string.core_ui_not_found_app),
-            color = MaterialTheme.colorScheme.outline,
-        )
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            BlockerDisplayIcon(
+                imageVector = BlockerIcons.Inbox,
+                contentDescription = null,
+            )
+            BlockerBodyLargeText(
+                text = stringResource(id = R.string.core_ui_no_applications_to_display),
+                color = MaterialTheme.colorScheme.outline,
+            )
+        }
     }
 }
 
