@@ -32,6 +32,7 @@ dependencies {
     implementation(projects.core.common)
     implementation(projects.core.ifwApi)
 
+    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.core.ktx)
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.compose)
