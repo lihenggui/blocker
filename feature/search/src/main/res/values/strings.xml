@@ -48,5 +48,6 @@
     </plurals>
     <string name="feature_search_delimiter" translatable="false">&#160;/&#160;</string>
     <string name="feature_search_search_hint">Apps, components and rules</string>
+    <string name="feature_search_no_search_result">No search result yet</string>
     <string name="feature_search_check_icon">Check</string>
 </resources>
