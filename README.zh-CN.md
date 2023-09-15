@@ -66,7 +66,7 @@ AOSP中关于此限制的实现：[frameworks/base/services/core/java/com/androi
 ## 截图测试
 
 **Blocker** 使用 [Roborazzi](https://github.com/takahirom/roborazzi) 进行截图测试某些屏幕和组件。
-要运行这些测试，请运行“verifyRoborazziDemoDebug”或`recordRoborazziDemoDebug`任务。
+要运行这些测试，请运行“verifyRoborazziFossDebug”或`recordRoborazziFossDebug`任务。
 请注意，屏幕截图是在CI上记录的，使用Linux等平台可能会生成略有不同的图像，从而导致测试失败。
 
 ### UI
