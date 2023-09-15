@@ -74,11 +74,11 @@ AOSP: [frameworks/base/services/core/java/com/android/server/pm/PackageManagerSe
 ## Screenshot tests
 
 **Blocker** uses [Roborazzi](https://github.com/takahirom/roborazzi) to do screenshot tests
-of certain screens and components. To run these tests, run the `verifyRoborazziDemoDebug` or
-`recordRoborazziDemoDebug` tasks. Note that screenshots are recorded on CI, using Linux, and other
+of certain screens and components. To run these tests, run the `verifyRoborazziFossDebug` or
+`recordRoborazziFossDebug` tasks. Note that screenshots are recorded on CI, using Linux, and other
 platforms might generate slightly different images, making the tests fail.
 
-### UI
+## UI
 The app was designed using [Material 3 guidelines](https://m3.material.io/). Learn more about the design process and obtain the [design files in Figma](https://www.figma.com/file/T903MNmXtahDVf1yoOgXoI/Blocker).
 Huge thanks to our UI designer: [@COPtimer](https://github.com/COPtimer)  
 The Screens and UI elements are built entirely using Jetpack Compose.
@@ -90,7 +90,7 @@ The app has two themes:
 
 Each theme also supports dark mode.
 
-### Frequently Asked Questions
+## Frequently Asked Questions
 
 1. When clicking the button in Shizuku mode, the component state cannot be controlled, and an error
    pops up: SecurityException: Shell cannot change component state for 'xx' to state 'xx'.
