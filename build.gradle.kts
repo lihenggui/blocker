@@ -35,5 +35,6 @@ plugins {
     alias(libs.plugins.firebase.perf) apply false
     alias(libs.plugins.gms) apply false
     alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.roborazzi) apply false
     alias(libs.plugins.secrets) apply false
 }
