@@ -153,7 +153,9 @@ class AppListViewModel @Inject constructor(
                     } else {
                         sortedList
                     }
-                }.toMutableStateList()
+                }
+                    .toSet()
+                    .toMutableStateList()
                 _appListFlow.value = _appList
                 _uiState.emit(Success)
             }
