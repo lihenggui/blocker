@@ -19,7 +19,6 @@ package com.merxury.blocker.core.ui.screen
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -27,32 +26,37 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
+import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R
 
 @Composable
-fun EmptyScreen() {
+fun NoSearchResultScreen() {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
+        BlockerDisplayIcon(
+            imageVector = BlockerIcons.Inbox,
+            contentDescription = null,
+        )
         BlockerBodyLargeText(
-            modifier = Modifier.padding(16.dp),
-            text = stringResource(id = R.string.core_ui_not_found_app),
+            text = stringResource(id = R.string.core_ui_no_search_result),
             color = MaterialTheme.colorScheme.outline,
         )
     }
 }
 
-@Preview
 @Composable
-fun EmptyScreenPreview() {
+@Preview
+@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+private fun NoSearchResultScreenPreview() {
     BlockerTheme {
         Surface {
-            EmptyScreen()
+            NoSearchResultScreen()
         }
     }
 }
