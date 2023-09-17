@@ -62,11 +62,16 @@ class RetrofitBlockerNetwork @Inject constructor(
         provider: RuleServerProvider,
         writer: BinaryFileWriter,
     ): Long {
+        Timber.d("Downloading rules from ${provider.downloadLink}")
         val request = Request.Builder()
             .url(provider.downloadLink)
             .build()
         val response = okhttpCallFactory.newCall(request)
-            .await()
+            .execute()
+        if (!response.isSuccessful) {
+            Timber.e("Failed to download rules from ${provider.downloadLink}")
+            return 0
+        }
         val responseBody = response.body
         if (responseBody == null) {
             Timber.e("Response body is null.")

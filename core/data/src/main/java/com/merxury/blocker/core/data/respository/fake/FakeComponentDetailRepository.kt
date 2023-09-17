@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.data.respository.fake
 
-import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -33,6 +32,4 @@ class FakeComponentDetailRepository @Inject constructor(
     override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
-
-    override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
 }
