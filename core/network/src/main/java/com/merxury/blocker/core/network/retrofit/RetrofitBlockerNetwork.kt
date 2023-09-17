@@ -77,8 +77,13 @@ class RetrofitBlockerNetwork @Inject constructor(
             Timber.e("Response body is null.")
             return 0
         }
-        val length = response.header("content-length", "0")?.toLong() ?: 0L
-        return writer.write(responseBody.byteStream(), length)
+        val contentLength = responseBody.contentLength()
+        if (contentLength == 0L) {
+            Timber.e("Response body is empty.")
+            return 0
+        }
+        Timber.v("Zip length: $contentLength")
+        return writer.write(responseBody.byteStream(), contentLength)
     }
 
     private fun getLatestCommitId(provider: RuleServerProvider, json: String): String {
