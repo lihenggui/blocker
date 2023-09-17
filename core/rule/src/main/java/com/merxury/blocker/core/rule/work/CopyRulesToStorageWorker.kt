@@ -38,6 +38,7 @@ import java.io.IOException
 import java.io.OutputStream
 import kotlin.time.measureTime
 
+private const val FOLDER_ROOT_NAME = "rules"
 private const val FOLDER_NAME = "blocker-general-rules"
 
 @HiltWorker
@@ -53,7 +54,8 @@ class CopyRulesToStorageWorker @AssistedInject constructor(
         if (files.isNullOrEmpty()) {
             throw IllegalArgumentException("No files found in $FOLDER_NAME")
         }
-        val workingFolder = File(filesDir, FOLDER_NAME)
+        val workingFolder = File(filesDir, FOLDER_ROOT_NAME)
+            .resolve(FOLDER_NAME)
         if (!workingFolder.exists()) {
             Timber.i("Create ${workingFolder.absolutePath}")
             if (!workingFolder.mkdirs()) {
