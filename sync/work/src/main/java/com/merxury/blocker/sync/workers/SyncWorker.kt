@@ -148,6 +148,7 @@ class SyncWorker @AssistedInject constructor(
                 targetFolder.deleteRecursively()
             }
             unzippedFolder.copyRecursively(targetFolder, overwrite = true)
+            unzippedFolder.deleteRecursively()
         } catch (e: IOException) {
             Timber.e(e, "Failed to sync rule")
             return false
