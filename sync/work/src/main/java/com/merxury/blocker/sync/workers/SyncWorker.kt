@@ -27,6 +27,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.Synchronizer
+import com.merxury.blocker.core.data.di.CacheDir
 import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
@@ -53,7 +54,8 @@ import java.util.zip.ZipException
 
 private const val PREF_SYNC_RULE = "sync_rule"
 private const val PREF_LAST_SYNCED_TIME = "last_synced_time"
-private const val RULE_FOLDER_NAME = "rules"
+private const val RULE_ROOT_FOLDER_NAME = "rules"
+private const val RULE_FOLDER_NAME = "blocker-general-rules"
 private const val RULE_ZIP_FILENAME = "rules.zip"
 
 /**
@@ -66,6 +68,7 @@ class SyncWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val userDataRepository: UserDataRepository,
+    @CacheDir private val cacheDir: File,
     @FilesDir private val filesDir: File,
     private val network: BlockerNetworkDataSource,
     private val blockerPreferences: BlockerPreferencesDataSource,
@@ -121,7 +124,7 @@ class SyncWorker @AssistedInject constructor(
             "Last synced commit id: $localCommitId, latest commit id: $latestCommitId" +
                 ", start pulling rule...",
         )
-        val ruleFolder = filesDir.resolve(RULE_FOLDER_NAME)
+        val ruleFolder = cacheDir.resolve(RULE_ROOT_FOLDER_NAME)
         if (!ruleFolder.exists()) {
             ruleFolder.mkdirs()
         }
@@ -132,6 +135,19 @@ class SyncWorker @AssistedInject constructor(
             }
             // unzip the folder to rule folder
             FileUtils.unzip(file, ruleFolder.absolutePath)
+            // Assume the name of the unzipped folder is 'blocker-general-rules-main
+            // Rename to 'blocker-general-rules', and copy to filesDir
+            val unzippedFolder = ruleFolder.resolve("blocker-general-rules-main")
+            if (!unzippedFolder.exists()) {
+                Timber.e("Unzipped folder $unzippedFolder does not exist")
+                return false
+            }
+            val targetFolder = filesDir.resolve(RULE_ROOT_FOLDER_NAME)
+                .resolve(RULE_FOLDER_NAME)
+            if (targetFolder.exists()) {
+                targetFolder.deleteRecursively()
+            }
+            unzippedFolder.copyRecursively(targetFolder, overwrite = true)
         } catch (e: IOException) {
             Timber.e(e, "Failed to sync rule")
             return false
@@ -139,7 +155,7 @@ class SyncWorker @AssistedInject constructor(
             Timber.e(e, "Cannot unzip the file")
             return false
         } finally {
-            file.delete()
+            file.deleteRecursively()
         }
         // write latest commit id to preference
         updateChangeListVersions {
@@ -165,12 +181,14 @@ class SyncWorker @AssistedInject constructor(
     }
 
     private fun getLastRunTime(): Long {
-        val sharedPreferences = appContext.getSharedPreferences(PREF_SYNC_RULE, Context.MODE_PRIVATE)
+        val sharedPreferences =
+            appContext.getSharedPreferences(PREF_SYNC_RULE, Context.MODE_PRIVATE)
         return sharedPreferences.getLong(PREF_LAST_SYNCED_TIME, System.currentTimeMillis())
     }
 
     private fun markLastRunTime() {
-        val sharedPreferences = appContext.getSharedPreferences(PREF_SYNC_RULE, Context.MODE_PRIVATE)
+        val sharedPreferences =
+            appContext.getSharedPreferences(PREF_SYNC_RULE, Context.MODE_PRIVATE)
         val currentTime = System.currentTimeMillis()
         sharedPreferences.edit().putLong(PREF_LAST_SYNCED_TIME, currentTime).apply()
         Timber.d("Mark rule sync time: ${Instant.fromEpochMilliseconds(currentTime)}")
