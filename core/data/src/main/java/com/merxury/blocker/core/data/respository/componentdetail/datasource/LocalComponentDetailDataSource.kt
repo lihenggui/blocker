@@ -43,6 +43,7 @@ class LocalComponentDetailDataSource @Inject constructor(
     override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         val workingDir = filesDir.resolve(BASE_FOLDER)
             .resolve(COMPONENT_FOLDER)
+            .resolve("zh-cn")
         if (!workingDir.exists()) {
             Timber.w("Component folder not exist")
             emit(null)
