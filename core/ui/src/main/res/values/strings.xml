@@ -62,7 +62,7 @@
     <string name="core_ui_block_selected">Block selected</string>
     <string name="core_ui_select_all">Select all</string>
     <string name="core_ui_enable_selected">Enable selected</string>
-    <string name="core_ui_inbox_icon">Inbox icon</string>
+    <string name="core_ui_not_found_icon">Not found icon</string>
     <plurals name="core_ui_block_all">
         <item quantity="one">This operation will disable %1$d component, do you want to continue?</item>
         <item quantity="other">This operation will disable %1$d components, do you want to continue?</item>
