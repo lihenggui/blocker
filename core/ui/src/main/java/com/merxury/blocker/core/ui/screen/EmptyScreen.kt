@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.search.screen
+package com.merxury.blocker.core.ui.screen
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,33 +31,40 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.feature.search.R.string
+import com.merxury.blocker.core.ui.R
 
 @Composable
-fun NoSearchResultScreen() {
+fun EmptyScreen(
+    @StringRes textRes: Int,
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        BlockerDisplayIcon(
-            imageVector = BlockerIcons.Inbox,
-            contentDescription = null,
-        )
-        BlockerBodyLargeText(
-            text = stringResource(id = string.feature_search_no_search_result),
-            color = MaterialTheme.colorScheme.outline,
-        )
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            BlockerDisplayIcon(
+                imageVector = BlockerIcons.Inbox,
+                contentDescription = stringResource(id = R.string.core_ui_not_found_icon),
+            )
+            BlockerBodyLargeText(
+                text = stringResource(id = textRes),
+                color = MaterialTheme.colorScheme.outline,
+            )
+        }
     }
 }
 
-@Composable
 @Preview
-@Preview(uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
-private fun NoSearchResultScreenPreview() {
+@Composable
+fun EmptyScreenPreview() {
     BlockerTheme {
         Surface {
-            NoSearchResultScreen()
+            EmptyScreen(textRes = R.string.core_ui_not_found_icon)
         }
     }
 }
