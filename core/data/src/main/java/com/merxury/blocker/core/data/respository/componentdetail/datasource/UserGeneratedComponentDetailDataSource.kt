@@ -65,8 +65,6 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         }
     }.flowOn(ioDispatcher)
 
-    // It actually uses Dispatcher.IO
-
     override fun saveComponentData(component: ComponentDetail): Flow<Boolean> = flow {
         val workingDir = filesDir.resolve(BASE_FOLDER)
         val name = component.name
