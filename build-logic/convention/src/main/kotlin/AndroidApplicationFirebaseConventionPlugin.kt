@@ -48,7 +48,7 @@ class AndroidApplicationFirebaseConventionPlugin : Plugin<Project> {
                     if (isFossTask) {
                         val disableKeywords = listOf("google", "crashlytics", "upload", "gms")
                         if (disableKeywords.any { name.contains(it, ignoreCase = true) }) {
-                            println("Disabling task: $name")
+                            logger.debug("Disabling task: $name")
                             enabled = false
                         }
                     }

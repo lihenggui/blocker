@@ -16,15 +16,15 @@
 
 package com.merxury.blocker.core.testing.repository
 
-import com.merxury.blocker.core.data.Synchronizer
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
-class TestComponentDetailRepository : ComponentDetailRepository {
+class TestComponentDetailRepository : IComponentDetailRepository {
     private val componentDetail: MutableSharedFlow<ComponentDetail> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 
@@ -34,30 +34,13 @@ class TestComponentDetailRepository : ComponentDetailRepository {
         }
     }
 
-    override fun getDbComponentDetail(name: String): Flow<ComponentDetail?> {
+    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> {
         return componentDetail.map {
             it.takeIf { componentDetail -> componentDetail.name == name }
         }
     }
 
-    override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> {
-        return componentDetail.map {
-            it.takeIf { componentDetail -> componentDetail.name == name }
-        }
-    }
-
-    override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> {
-        return componentDetail.map {
-            it.takeIf { componentDetail -> componentDetail.name == name }
-        }
-    }
-
-    override suspend fun saveComponentDetail(
-        componentDetail: ComponentDetail,
-        userGenerated: Boolean,
-    ): Boolean = true
-
-    override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
+    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
 
     fun sendComponentDetail(componentDetail: ComponentDetail) {
         this.componentDetail.tryEmit(componentDetail)

@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.database.cmpdetail
+package com.merxury.blocker.core.network.io
 
-import androidx.room.Database
-import androidx.room.RoomDatabase
+import org.junit.Test
+import java.io.PipedOutputStream
 
-@Database(entities = [ComponentDetailEntity::class], version = 2)
-abstract class ComponentDetailDatabase : RoomDatabase() {
-    abstract fun componentDetailDao(): ComponentDetailDao
+class BinaryFileWriterUnitTest {
+    private val outputStream = PipedOutputStream()
+
+    @Test
+    fun givenInputStream_whenWrite_thenExpectWritten() {
+    }
+
+    @Test
+    fun givenInputStreamEmpty_whenWrite_thenExpectNotWritten() {
+    }
 }

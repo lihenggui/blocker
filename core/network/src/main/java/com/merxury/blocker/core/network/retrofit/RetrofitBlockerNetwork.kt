@@ -20,11 +20,8 @@ package com.merxury.blocker.core.network.retrofit
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
-import com.merxury.blocker.core.network.model.GitHub
-import com.merxury.blocker.core.network.model.GitLab
+import com.merxury.blocker.core.network.io.BinaryFileWriter
 import com.merxury.blocker.core.network.model.NetworkChangeList
-import com.merxury.blocker.core.network.model.NetworkComponentDetail
-import com.merxury.blocker.core.network.model.NetworkGeneralRule
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -33,22 +30,9 @@ import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Call
 import okhttp3.Request
 import retrofit2.Retrofit
-import retrofit2.http.GET
-import retrofit2.http.Path
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-
-/**
- * Retrofit API declaration for Blocker Network API
- */
-interface BlockerNetworkApi {
-    @GET("components/zh-cn/{path}")
-    suspend fun getOnlineComponentData(@Path("path") relativePath: String): NetworkComponentDetail?
-
-    @GET("zh-cn/general.json")
-    suspend fun getGeneralRules(): List<NetworkGeneralRule>
-}
 
 /**
  * [Retrofit] backed [BlockerNetworkDataSource]
@@ -56,20 +40,8 @@ interface BlockerNetworkApi {
 @Singleton
 class RetrofitBlockerNetwork @Inject constructor(
     private val okhttpCallFactory: Call.Factory,
-    @GitHub private val gitHubNetworkApi: BlockerNetworkApi,
-    @GitLab private val gitLabNetworkApi: BlockerNetworkApi,
 ) : BlockerNetworkDataSource {
-
-    private var networkApi: BlockerNetworkApi = gitHubNetworkApi
-    private var provider: RuleServerProvider = GITHUB
-
-    override suspend fun getComponentData(path: String): NetworkComponentDetail? =
-        networkApi.getOnlineComponentData(path)
-
-    override suspend fun getGeneralRules(): List<NetworkGeneralRule> =
-        networkApi.getGeneralRules()
-
-    override suspend fun getRuleLatestCommitId(): NetworkChangeList {
+    override suspend fun getRuleLatestCommitId(provider: RuleServerProvider): NetworkChangeList {
         val request = Request.Builder()
             .url(provider.commitApiUrl)
             .build()
@@ -78,15 +50,43 @@ class RetrofitBlockerNetwork @Inject constructor(
                 .await()
                 .body
                 ?.string() ?: ""
-            val commitId = getLatestCommitId(json)
+            val commitId = getLatestCommitId(provider, json)
             NetworkChangeList(commitId)
         } catch (e: Exception) {
-            Timber.e("Failed to get latest commit id from $provider", e)
+            Timber.e(e, "Failed to get latest commit id from $provider")
             NetworkChangeList("")
         }
     }
 
-    private fun getLatestCommitId(json: String): String {
+    override suspend fun downloadRules(
+        provider: RuleServerProvider,
+        writer: BinaryFileWriter,
+    ): Long {
+        Timber.d("Downloading rules from ${provider.downloadLink}")
+        val request = Request.Builder()
+            .url(provider.downloadLink)
+            .build()
+        val response = okhttpCallFactory.newCall(request)
+            .execute()
+        if (!response.isSuccessful) {
+            Timber.e("Failed to download rules from ${provider.downloadLink}")
+            return 0
+        }
+        val responseBody = response.body
+        if (responseBody == null) {
+            Timber.e("Response body is null.")
+            return 0
+        }
+        val contentLength = responseBody.contentLength()
+        if (contentLength == 0L) {
+            Timber.e("Response body is empty.")
+            return 0
+        }
+        Timber.v("Zip length: $contentLength")
+        return writer.write(responseBody.byteStream(), contentLength)
+    }
+
+    private fun getLatestCommitId(provider: RuleServerProvider, json: String): String {
         if (json.isBlank()) {
             Timber.e("Json is blank, cannot get latest commit id.")
             return ""
@@ -114,16 +114,6 @@ class RetrofitBlockerNetwork @Inject constructor(
         } catch (e: IllegalArgumentException) {
             Timber.e("Malformed JSON string", e)
             return ""
-        }
-    }
-
-    override fun changeServerProvider(provider: RuleServerProvider) {
-        Timber.d("Switch backend API to $provider")
-        this.provider = provider
-        networkApi = if (provider == GITHUB) {
-            gitHubNetworkApi
-        } else {
-            gitLabNetworkApi
         }
     }
 }

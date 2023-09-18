@@ -42,10 +42,10 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
+import com.merxury.blocker.feature.search.LocalSearchUiState.Success
 import com.merxury.blocker.feature.search.RuleSearchResultContent
 import com.merxury.blocker.feature.search.SearchScreenTabs
-import com.merxury.blocker.feature.search.model.LocalSearchUiState.Success
-import com.merxury.blocker.feature.search.model.SearchUiState
+import com.merxury.blocker.feature.search.SearchUiState
 import kotlinx.coroutines.launch
 
 @Composable

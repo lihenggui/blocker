@@ -22,5 +22,5 @@ import kotlinx.coroutines.flow.Flow
 interface ComponentDetailDataSource {
     fun getComponentDetail(name: String): Flow<ComponentDetail?>
 
-    suspend fun saveComponentData(component: ComponentDetail): Boolean
+    fun saveComponentData(component: ComponentDetail): Flow<Boolean>
 }

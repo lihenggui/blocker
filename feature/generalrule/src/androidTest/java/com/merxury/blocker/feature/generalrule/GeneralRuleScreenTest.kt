@@ -28,8 +28,8 @@ import androidx.compose.ui.test.performScrollToNode
 import com.merxury.blocker.core.testing.testing.data.generalRuleListTestData
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.feature.generalrules.GeneralRuleUiState
 import com.merxury.blocker.feature.generalrules.GeneralRulesScreen
-import com.merxury.blocker.feature.generalrules.model.GeneralRuleUiState
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

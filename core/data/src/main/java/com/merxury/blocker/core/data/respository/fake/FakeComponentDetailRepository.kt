@@ -16,33 +16,20 @@
 
 package com.merxury.blocker.core.data.respository.fake
 
-import com.merxury.blocker.core.data.Synchronizer
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.DbComponentDetailDataSource
-import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
+import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
 
 class FakeComponentDetailRepository @Inject constructor(
-    private val userGeneratedDataSource: LocalComponentDetailDataSource,
-    private val dbDataSource: DbComponentDetailDataSource,
-) : ComponentDetailRepository {
+    private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
+) : IComponentDetailRepository {
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
         userGeneratedDataSource.getComponentDetail(name)
 
-    override fun getDbComponentDetail(name: String): Flow<ComponentDetail?> =
-        dbDataSource.getComponentDetail(name)
+    override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 
-    override fun getNetworkComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
-
-    override fun getComponentDetailCache(name: String): Flow<ComponentDetail?> = flowOf(null)
-
-    override suspend fun saveComponentDetail(
-        componentDetail: ComponentDetail,
-        userGenerated: Boolean,
-    ): Boolean = true
-
-    override suspend fun syncWith(synchronizer: Synchronizer): Boolean = true
+    override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
 }

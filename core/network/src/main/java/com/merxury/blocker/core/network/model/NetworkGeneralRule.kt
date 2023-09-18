@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.network.model
 
+import com.merxury.blocker.core.model.data.GeneralRule
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -30,4 +31,17 @@ data class NetworkGeneralRule(
     val safeToBlock: Boolean? = null,
     val sideEffect: String? = null,
     val contributors: List<String> = listOf(),
-)
+) {
+    fun asExternalModel() = GeneralRule(
+        id = id,
+        name = name,
+        iconUrl = iconUrl,
+        company = company,
+        searchKeyword = searchKeyword,
+        useRegexSearch = useRegexSearch,
+        description = description,
+        safeToBlock = safeToBlock,
+        sideEffect = sideEffect,
+        contributors = contributors,
+    )
+}
