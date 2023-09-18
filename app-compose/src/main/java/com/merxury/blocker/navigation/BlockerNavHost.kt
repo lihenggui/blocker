@@ -32,6 +32,7 @@ import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
 import com.merxury.blocker.feature.appdetail.navigation.navigateToAppDetail
+import com.merxury.blocker.feature.appdetail.navigation.navigateToComponentDetail
 import com.merxury.blocker.feature.applist.navigation.appListRoute
 import com.merxury.blocker.feature.applist.navigation.appListScreen
 import com.merxury.blocker.feature.generalrules.navigation.generalRuleScreen
@@ -83,8 +84,7 @@ fun BlockerNavHost(
             detailScreen(
                 onBackClick = onBackClick,
                 snackbarHostState = snackbarHostState,
-                navigateToComponentDetail = { /** TODO remove entry temporary for release */ },
-//                navigateToComponentDetail = navController::navigateToComponentDetail,
+                navigateToComponentDetail = navController::navigateToComponentDetail,
                 navigatedToComponentSortScreen = navController::navigateToComponentSortScreen,
                 updateIconBasedThemingState = updateIconBasedThemingState,
             )

@@ -19,13 +19,11 @@ package com.merxury.blocker.feature.appdetail.componentdetail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Error
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Loading
 import com.merxury.blocker.feature.appdetail.componentdetail.ComponentDetailUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.ComponentDetailArgs
@@ -36,14 +34,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class ComponentDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val componentRepository: LocalComponentRepository,
-    private val componentDetailRepository: ComponentDetailRepository,
+    private val componentDetailRepository: IComponentDetailRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val componentDetailArg = ComponentDetailArgs(savedStateHandle)
@@ -61,71 +57,46 @@ class ComponentDetailViewModel @Inject constructor(
             .first()
         if (userGeneratedDetail != null) {
             _uiState.value = Success(
-                isFetchingData = true,
                 detail = userGeneratedDetail,
             )
             // Do NOT update the dialog if user saved the data previously
             return@launch
-        } else {
-            val dbDetail = componentDetailRepository
-                .getDbComponentDetail(componentDetailArg.name)
-                .first()
-            if (dbDetail != null) {
-                _uiState.value = Success(
-                    isFetchingData = true,
-                    detail = dbDetail,
-                )
-            }
         }
-        // No match found in the cache, emit the default value
-        val component = componentRepository.getComponent(componentDetailArg.name).first()
-        if (component == null) {
-            Timber.e("Component ${componentDetailArg.name} not found")
-            _uiState.value = Error(UiMessage("Component not found"))
-            return@launch
-        }
-        _uiState.value = Success(
-            isFetchingData = true,
-            detail = ComponentDetail(name = component.name),
-        )
-        // Fetch the data from network
-        val networkDetail = componentDetailRepository
-            .getNetworkComponentDetail(componentDetailArg.name)
+        val localDetail = componentDetailRepository
+            .getLocalComponentDetail(componentDetailArg.name)
             .first()
-        if (networkDetail != null) {
+        if (localDetail != null) {
             _uiState.value = Success(
-                isFetchingData = false,
-                detail = networkDetail,
+                detail = localDetail,
             )
             return@launch
         }
         // No matching found in the network, emit the default value
         // Dismiss the loading progress bar
         _uiState.value = Success(
-            isFetchingData = false,
-            detail = ComponentDetail(name = component.name),
+            detail = ComponentDetail(name = componentDetailArg.name),
         )
     }
 
     fun onInfoChanged(detail: ComponentDetail) {
         _uiState.update {
             when (it) {
-                is Loading -> Success(isFetchingData = false, detail = detail)
-                is Success -> it.copy(isFetchingData = false, detail = detail)
-                else -> Success(isFetchingData = false, detail = detail)
+                is Loading -> Success(detail = detail)
+                is Success -> it.copy(detail = detail)
+                else -> Success(detail = detail)
             }
         }
     }
 
-    fun save(detail: ComponentDetail) = viewModelScope.launch(ioDispatcher) {
-        componentDetailRepository.saveComponentDetail(detail, userGenerated = true)
+    fun save(detail: ComponentDetail) = viewModelScope.launch {
+        componentDetailRepository.saveComponentDetail(detail)
+            .collect {}
     }
 }
 
 sealed interface ComponentDetailUiState {
     data object Loading : ComponentDetailUiState
     data class Success(
-        val isFetchingData: Boolean,
         val detail: ComponentDetail,
     ) : ComponentDetailUiState
 

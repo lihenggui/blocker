@@ -38,7 +38,7 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -118,7 +118,7 @@ class AppDetailViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
-    private val componentDetailRepository: ComponentDetailRepository,
+    private val componentDetailRepository: IComponentDetailRepository,
     private val shizukuInitializer: IShizukuInitializer,
     private val workerManager: WorkManager,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -273,7 +273,7 @@ class AppDetailViewModel @Inject constructor(
                 updateTabContent(origList, packageName)
                 // Load the data with description and update again
                 val list = origList.map { component ->
-                    val detail = componentDetailRepository.getComponentDetailCache(component.name)
+                    val detail = componentDetailRepository.getLocalComponentDetail(component.name)
                         .first()
                     if (detail != null) {
                         component.copy(description = detail.description)

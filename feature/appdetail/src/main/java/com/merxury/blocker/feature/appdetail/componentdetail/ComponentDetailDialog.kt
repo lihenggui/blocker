@@ -205,7 +205,6 @@ fun EditComponentDetailDialogPreview() {
         sdkName = "com.merxury.blocker.feature.appdetail.componentdetail",
     )
     val uiState = Success(
-        isFetchingData = false,
         detail = detail,
     )
     ComponentDetailDialog(uiState = uiState)

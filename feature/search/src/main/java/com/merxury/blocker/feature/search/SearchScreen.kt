@@ -69,10 +69,6 @@ import com.merxury.blocker.feature.applist.AppListViewModel
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
-import com.merxury.blocker.feature.search.model.ComponentTabUiState
-import com.merxury.blocker.feature.search.model.LocalSearchUiState
-import com.merxury.blocker.feature.search.model.SearchUiState
-import com.merxury.blocker.feature.search.model.SearchViewModel
 import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen
 
