@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui.screen
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,7 +35,7 @@ import com.merxury.blocker.core.ui.R
 
 @Composable
 fun EmptyScreen(
-    textRes: Int,
+    @StringRes textRes: Int,
 ) {
     Column(
         modifier = Modifier.fillMaxSize(),
@@ -48,7 +49,7 @@ fun EmptyScreen(
         ) {
             BlockerDisplayIcon(
                 imageVector = BlockerIcons.Inbox,
-                contentDescription = stringResource(id = R.string.core_ui_inbox_icon),
+                contentDescription = stringResource(id = R.string.core_ui_not_found_icon),
             )
             BlockerBodyLargeText(
                 text = stringResource(id = textRes),
@@ -63,7 +64,7 @@ fun EmptyScreen(
 fun EmptyScreenPreview() {
     BlockerTheme {
         Surface {
-            EmptyScreen(textRes = R.string.core_ui_inbox_icon)
+            EmptyScreen(textRes = R.string.core_ui_not_found_icon)
         }
     }
 }
