@@ -54,7 +54,6 @@ import java.util.zip.ZipException
 
 private const val PREF_SYNC_RULE = "sync_rule"
 private const val PREF_LAST_SYNCED_TIME = "last_synced_time"
-private const val RULE_ROOT_FOLDER_NAME = "rules"
 private const val RULE_FOLDER_NAME = "blocker-general-rules"
 private const val RULE_ZIP_FILENAME = "rules.zip"
 
@@ -124,7 +123,7 @@ class SyncWorker @AssistedInject constructor(
             "Last synced commit id: $localCommitId, latest commit id: $latestCommitId" +
                 ", start pulling rule...",
         )
-        val ruleFolder = cacheDir.resolve(RULE_ROOT_FOLDER_NAME)
+        val ruleFolder = cacheDir.resolve(RULE_FOLDER_NAME)
         if (!ruleFolder.exists()) {
             ruleFolder.mkdirs()
         }
@@ -142,8 +141,7 @@ class SyncWorker @AssistedInject constructor(
                 Timber.e("Unzipped folder $unzippedFolder does not exist")
                 return false
             }
-            val targetFolder = filesDir.resolve(RULE_ROOT_FOLDER_NAME)
-                .resolve(RULE_FOLDER_NAME)
+            val targetFolder = filesDir.resolve(RULE_FOLDER_NAME)
             if (targetFolder.exists()) {
                 targetFolder.deleteRecursively()
             }
