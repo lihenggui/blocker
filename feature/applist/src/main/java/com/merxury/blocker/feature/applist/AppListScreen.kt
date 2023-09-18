@@ -45,6 +45,7 @@ import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
+import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.feature.applist.R.string
@@ -149,18 +150,24 @@ fun AppListScreen(
             when (uiState) {
                 is AppListUiState.Initializing -> InitializingScreen(processingName = uiState.processingName)
 
-                is AppListUiState.Success -> AppList(
-                    appList = appList,
-                    onAppItemClick = onAppItemClick,
-                    onClearCacheClick = onClearCacheClick,
-                    onClearDataClick = onClearDataClick,
-                    onForceStopClick = onForceStopClick,
-                    onUninstallClick = onUninstallClick,
-                    onEnableClick = onEnableClick,
-                    onDisableClick = onDisableClick,
-                    onServiceStateUpdate = onServiceStateUpdate,
-                    modifier = modifier.testTag(appListTestTag),
-                )
+                is AppListUiState.Success -> {
+                    if (appList.isEmpty()) {
+                        EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
+                    } else {
+                        AppList(
+                            appList = appList,
+                            onAppItemClick = onAppItemClick,
+                            onClearCacheClick = onClearCacheClick,
+                            onClearDataClick = onClearDataClick,
+                            onForceStopClick = onForceStopClick,
+                            onUninstallClick = onUninstallClick,
+                            onEnableClick = onEnableClick,
+                            onDisableClick = onDisableClick,
+                            onServiceStateUpdate = onServiceStateUpdate,
+                            modifier = modifier.testTag(appListTestTag),
+                        )
+                    }
+                }
 
                 is AppListUiState.Error -> ErrorScreen(uiState.error)
             }
