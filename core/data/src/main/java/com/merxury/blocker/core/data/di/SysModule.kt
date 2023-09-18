@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.di
 
 import android.app.Application
 import android.content.pm.PackageManager
+import android.content.res.AssetManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,9 +46,25 @@ object SysModule {
     }
 
     @Provides
+    @FilesDir
     fun provideFilesDir(
         app: Application,
     ): File {
         return app.filesDir
+    }
+
+    @Provides
+    @CacheDir
+    fun provideCacheDir(
+        app: Application,
+    ): File {
+        return app.cacheDir
+    }
+
+    @Provides
+    fun provideAssetManager(
+        app: Application,
+    ): AssetManager {
+        return app.assets
     }
 }

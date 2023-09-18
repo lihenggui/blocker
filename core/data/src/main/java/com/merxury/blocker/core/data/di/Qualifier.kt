@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.network.model
+package com.merxury.blocker.core.data.di
 
 import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class GitHub
+annotation class FilesDir
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class GitLab
+annotation class CacheDir

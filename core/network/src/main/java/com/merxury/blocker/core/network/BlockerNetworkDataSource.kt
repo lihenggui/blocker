@@ -17,16 +17,12 @@
 package com.merxury.blocker.core.network
 
 import com.merxury.blocker.core.model.preference.RuleServerProvider
+import com.merxury.blocker.core.network.io.BinaryFileWriter
 import com.merxury.blocker.core.network.model.NetworkChangeList
-import com.merxury.blocker.core.network.model.NetworkComponentDetail
-import com.merxury.blocker.core.network.model.NetworkGeneralRule
 
 interface BlockerNetworkDataSource {
-    suspend fun getComponentData(path: String): NetworkComponentDetail?
 
-    suspend fun getGeneralRules(): List<NetworkGeneralRule>
+    suspend fun getRuleLatestCommitId(provider: RuleServerProvider): NetworkChangeList
 
-    suspend fun getRuleLatestCommitId(): NetworkChangeList
-
-    fun changeServerProvider(provider: RuleServerProvider)
+    suspend fun downloadRules(provider: RuleServerProvider, writer: BinaryFileWriter): Long
 }

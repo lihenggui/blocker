@@ -36,6 +36,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          submodules: 'true'
           fetch-depth: 0
 
       - name: Validate Gradle Wrapper
@@ -202,6 +203,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          submodules: 'true'
           fetch-depth: 0
 
       - name: Copy CI gradle.properties
@@ -242,6 +244,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          submodules: 'true'
           fetch-depth: 0
 
       - name: Copy CI gradle.properties

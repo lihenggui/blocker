@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.data.respository.generalrule
 
-import com.merxury.blocker.core.data.model.asEntity
 import com.merxury.blocker.core.database.generalrule.GeneralRuleDao
 import com.merxury.blocker.core.database.generalrule.GeneralRuleEntity
 import com.merxury.blocker.core.database.generalrule.asExternalModel
@@ -24,23 +23,23 @@ import com.merxury.blocker.core.database.generalrule.fromExternalModel
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.network.BlockerNetworkDataSource
 import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
 class OfflineFirstGeneralRuleRepository @Inject constructor(
     private val generalRuleDao: GeneralRuleDao,
-    private val network: BlockerNetworkDataSource,
+    private val dataSource: GeneralRuleDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : GeneralRuleRepository {
 
@@ -54,27 +53,24 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
             .mapNotNull { it?.asExternalModel() }
     }
 
-    override fun updateGeneralRule(): Flow<Result<Unit>> = flow {
-        try {
-            val networkRule = network.getGeneralRules()
-                .map { it.asEntity() }
-            compareAndUpdateCache(networkRule)
-            emit(Result.Success(Unit))
-        } catch (e: ClassCastException) {
-            // Catch the error when the server returns a wrong format
-            Timber.e(e, "Can't cast the response to GeneralRuleEntity.")
-            emit(Result.Error(e))
-        } catch (e: Exception) {
-            // Catch general errors here
-            Timber.w(e, "Failed to get the general rules from server.")
-            emit(Result.Error(e))
-        }
+    override fun updateGeneralRule(): Flow<Result<Unit>> {
+        return dataSource.getGeneralRules()
+            .map { list ->
+                list.map { it.fromExternalModel() }
+            }
+            .flatMapConcat { list ->
+                compareAndUpdateCache(list)
+            }
+            .catch { e ->
+                Timber.e(e, "Failed to get the general rules from server.")
+                emit(Result.Error(e))
+            }
+            .onStart {
+                Timber.v("Start fetching general online rules.")
+                emit(Result.Loading)
+            }
+            .flowOn(ioDispatcher)
     }
-        .onStart {
-            Timber.v("Start fetching general online rules.")
-            emit(Result.Loading)
-        }
-        .flowOn(ioDispatcher)
 
     override suspend fun saveGeneralRule(rule: GeneralRule) {
         generalRuleDao.upsertGeneralRule(rule.fromExternalModel())
@@ -85,35 +81,37 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
             .map { it.map(GeneralRuleEntity::asExternalModel) }
     }
 
-    private suspend fun compareAndUpdateCache(networkRules: List<GeneralRuleEntity>) {
-        withContext(ioDispatcher) {
-            val currentCache = generalRuleDao.getGeneralRuleEntities().first()
-            Timber.v(
-                "Compare online rules with local rules.\n" +
-                    " Online rule size: ${networkRules.size}. Local DB size: ${currentCache.size}",
+    private fun compareAndUpdateCache(
+        latestRules: List<GeneralRuleEntity>,
+    ): Flow<Result<Unit>> = flow {
+        val currentCache = generalRuleDao.getGeneralRuleEntities().first()
+        Timber.v(
+            "Compare online rules with local rules.\n" +
+                " Online rule size: ${latestRules.size}. Local DB size: ${currentCache.size}",
+        )
+        // Insert or update rules from the network
+        latestRules.forEach { networkEntity ->
+            val cachedEntity = currentCache.find { it.id == networkEntity.id }
+            if (cachedEntity == networkEntity) {
+                Timber.v("Skip saving entity id: ${cachedEntity.id}")
+                return@forEach
+            }
+            Timber.v("Saving new rules $networkEntity to local db.")
+            // Update the rule but keep the matched app count as a cache
+            val cachedMatchedAppCount = cachedEntity?.matchedAppCount ?: 0
+            generalRuleDao.upsertGeneralRule(
+                networkEntity.copy(matchedAppCount = cachedMatchedAppCount),
             )
-            // Insert or update rules from the network
-            networkRules.forEach { networkEntity ->
-                val cachedEntity = currentCache.find { it.id == networkEntity.id }
-                if (cachedEntity == networkEntity) {
-                    Timber.v("Skip saving entity id: ${cachedEntity.id}")
-                    return@forEach
-                }
-                Timber.v("Saving new rules $networkEntity to local db.")
-                // Update the rule but keep the matched app count as a cache
-                val cachedMatchedAppCount = cachedEntity?.matchedAppCount ?: 0
-                generalRuleDao.upsertGeneralRule(
-                    networkEntity.copy(matchedAppCount = cachedMatchedAppCount),
-                )
-            }
-            // Delete outdated rules in the local cache
-            // Find the rules that's not existed
-            currentCache.filter { localEntity ->
-                networkRules.find { it.id == localEntity.id } == null
-            }.forEach { localEntity ->
-                Timber.i("Rule outdated, delete it. $localEntity")
-                generalRuleDao.delete(localEntity)
-            }
         }
+        // Delete outdated rules in the local cache
+        // Find the rules that's not existed
+        currentCache.filter { localEntity ->
+            latestRules.find { it.id == localEntity.id } == null
+        }.forEach { localEntity ->
+            Timber.i("Rule outdated, delete it. $localEntity")
+            generalRuleDao.delete(localEntity)
+        }
+        emit(Result.Success(Unit))
     }
+        .flowOn(ioDispatcher)
 }

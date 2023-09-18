@@ -70,7 +70,7 @@ class BlockerAppStateTest {
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             val navController = rememberTestNavController()
             state = remember(navController) {
-                BlockerAppState(
+                return@remember BlockerAppState(
                     windowSizeClass = getCompactWindowClass(),
                     bottomSheetNavigator = bottomSheetNavigator,
                     navController = navController,

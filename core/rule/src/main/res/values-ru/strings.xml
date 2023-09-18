@@ -30,4 +30,5 @@
     <string name="core_rule_error_msg_missing_root_permission">Ошибка: отсутствуют root права</string>
     <string name="core_rule_error_msg_unexpected_exception">Ошибка: неожиданное исключение</string>
     <string name="core_rule_task_cancelled">Задача отменена</string>
+    <string name="core_rule_copying_rules_to_internal_storage">Копирование правил во внутреннее хранилище…</string>
 </resources>

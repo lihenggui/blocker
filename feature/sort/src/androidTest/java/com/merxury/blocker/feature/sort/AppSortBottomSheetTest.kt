@@ -23,7 +23,6 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import com.merxury.blocker.core.testing.testing.data.AppSortInfoTestData
-import com.merxury.blocker.feature.sort.viewmodel.AppSortInfoUiState
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

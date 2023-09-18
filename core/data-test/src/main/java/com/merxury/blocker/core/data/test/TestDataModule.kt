@@ -19,7 +19,7 @@ package com.merxury.blocker.core.data.test
 import com.merxury.blocker.core.data.di.DataModule
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
-import com.merxury.blocker.core.data.respository.componentdetail.ComponentDetailRepository
+import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.data.respository.fake.FakeAppPropertiesRepository
 import com.merxury.blocker.core.data.respository.fake.FakeAppRepository
 import com.merxury.blocker.core.data.respository.fake.FakeComponentDetailRepository
@@ -59,7 +59,7 @@ interface TestDataModule {
     @Binds
     fun bindsComponentDetailRepository(
         componentDetailRepository: FakeComponentDetailRepository,
-    ): ComponentDetailRepository
+    ): IComponentDetailRepository
 
     @Binds
     fun bindsComponentRepository(

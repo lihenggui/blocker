@@ -34,7 +34,6 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.feature.ruledetail.model.RuleInfoUiState
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test

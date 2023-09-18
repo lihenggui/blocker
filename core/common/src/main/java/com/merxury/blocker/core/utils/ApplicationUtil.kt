@@ -425,4 +425,9 @@ object ApplicationUtil {
     ): Boolean {
         return getActivityList(pm, packageName).any { it.name == componentName }
     }
+
+    fun isDebugMode(context: Context): Boolean {
+        val appInfo = context.packageManager.getApplicationInfo(context.packageName, 0)
+        return 0 != appInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE
+    }
 }
