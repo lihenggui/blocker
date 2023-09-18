@@ -61,13 +61,14 @@ import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
+import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.applist.AppListViewModel
+import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
-import com.merxury.blocker.feature.search.screen.NoSearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen
 
@@ -171,7 +172,7 @@ fun SearchScreen(
                 ),
         ) {
             when (localSearchUiState) {
-                LocalSearchUiState.Idle -> NoSearchResultScreen()
+                LocalSearchUiState.Idle -> EmptyScreen(textRes = string.feature_search_no_search_result)
                 LocalSearchUiState.Loading -> SearchingScreen()
                 is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.uiMessage)
                 is LocalSearchUiState.Initializing ->
@@ -254,7 +255,7 @@ fun ComponentSearchResultContent(
     onComponentClick: (FilteredComponent) -> Unit,
 ) {
     if (componentTabUiState.list.isEmpty()) {
-        NoSearchResultScreen()
+        EmptyScreen(textRes = string.feature_search_no_search_result)
         return
     }
     val listState = rememberLazyListState()
@@ -313,7 +314,7 @@ fun AppSearchResultContent(
     onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     if (appList.isEmpty()) {
-        NoSearchResultScreen()
+        EmptyScreen(textRes = string.feature_search_no_search_result)
         return
     }
     val analyticsHelper = LocalAnalyticsHelper.current
@@ -341,7 +342,7 @@ fun RuleSearchResultContent(
     onClick: (Int) -> Unit,
 ) {
     if (list.isEmpty()) {
-        NoSearchResultScreen()
+        EmptyScreen(textRes = string.feature_search_no_search_result)
         return
     }
     val analyticsHelper = LocalAnalyticsHelper.current
