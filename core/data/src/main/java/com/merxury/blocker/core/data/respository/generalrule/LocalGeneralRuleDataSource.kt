@@ -44,11 +44,8 @@ class LocalGeneralRuleDataSource @Inject constructor(
 ) : GeneralRuleDataSource {
     @OptIn(ExperimentalSerializationApi::class)
     override fun getGeneralRules(): Flow<List<GeneralRule>> = flow {
-        val ruleFile = filesDir.resolve(ROOT_FOLDER)
-            .resolve(RULES_FOLDER)
-            .resolve(LANGUAGE)
-            .resolve(RULE_NAME)
-        if (!ruleFile.exists()) {
+        val ruleFile = getRuleFile()
+        if (ruleFile == null || !ruleFile.exists()) {
             Timber.e("Cannot find general rule in files folder.")
             emit(emptyList())
             return@flow
@@ -65,4 +62,24 @@ class LocalGeneralRuleDataSource @Inject constructor(
         }
     }
         .flowOn(ioDispatcher)
+
+    private fun getRuleFile(): File? {
+        val ruleFile = filesDir.resolve(ROOT_FOLDER)
+            .resolve(RULES_FOLDER)
+            .resolve(LANGUAGE)
+            .resolve(RULE_NAME)
+        if (ruleFile.exists()) {
+            return ruleFile
+        }
+        Timber.i("Fallback to old version of rules")
+        // TODO should be removed in future
+        val oldRuleFile = filesDir.resolve(ROOT_FOLDER)
+            .resolve(LANGUAGE)
+            .resolve(RULE_NAME)
+        if (oldRuleFile.exists()) {
+            return oldRuleFile
+        }
+        Timber.e("Cannot find general rule in files folder.")
+        return null
+    }
 }
