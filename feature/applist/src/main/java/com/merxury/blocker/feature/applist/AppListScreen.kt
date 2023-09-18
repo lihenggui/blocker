@@ -152,7 +152,7 @@ fun AppListScreen(
 
                 is AppListUiState.Success -> {
                     if (appList.isEmpty()) {
-                        EmptyScreen()
+                        EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
                     } else {
                         AppList(
                             appList = appList,
