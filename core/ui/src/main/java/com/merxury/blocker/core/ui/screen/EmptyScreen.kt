@@ -33,7 +33,9 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.R
 
 @Composable
-fun EmptyScreen() {
+fun EmptyScreen(
+    textRes: Int,
+) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -46,10 +48,10 @@ fun EmptyScreen() {
         ) {
             BlockerDisplayIcon(
                 imageVector = BlockerIcons.Inbox,
-                contentDescription = null,
+                contentDescription = stringResource(id = R.string.core_ui_inbox_icon),
             )
             BlockerBodyLargeText(
-                text = stringResource(id = R.string.core_ui_no_applications_to_display),
+                text = stringResource(id = textRes),
                 color = MaterialTheme.colorScheme.outline,
             )
         }
@@ -61,7 +63,7 @@ fun EmptyScreen() {
 fun EmptyScreenPreview() {
     BlockerTheme {
         Surface {
-            EmptyScreen()
+            EmptyScreen(textRes = R.string.core_ui_inbox_icon)
         }
     }
 }
