@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
      Copyright 2023 Blocker
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +24,7 @@
     <string name="core_ui_running">Running</string>
     <string name="core_ui_disabled">Disabled</string>
     <string name="core_ui_version_code_template" translatable="false">%1$s (%2$s)</string>
-    <string name="core_ui_service_status_template">Service: %1$d running, %2$d blocked, %3$d in total.</string>
-    <string name="core_ui_service">Service</string>
-    <string name="core_ui_receiver">Receiver</string>
-    <string name="core_ui_activity">Activity</string>
-    <string name="core_ui_content_provider">Content Provider</string>
+    <string name="core_ui_service_status_template" tools:ignore="PluralsCandidate">Service: %1$d running, %2$d blocked, %3$d in total.</string>
     <string name="core_ui_rule_icon_description">Rule icon</string>
     <string name="core_ui_copy_name">Copy name</string>
     <string name="core_ui_copy_full_name">Copy full name</string>
@@ -59,22 +56,23 @@
     <string name="core_ui_enable_all_components">Enable all components</string>
     <string name="core_ui_open_app_detail">Open app detail</string>
     <string name="core_ui_sort_options">Sort options</string>
-    <string name="core_ui_sort_by">Sort by</string>
-    <string name="core_ui_package_name">Package name</string>
-    <string name="core_ui_component_name">Component name</string>
-    <string name="core_ui_order">Order</string>
-    <string name="core_ui_ascending">Ascending</string>
-    <string name="core_ui_descending">Descending</string>
-    <string name="core_ui_priority">Priority</string>
-    <string name="core_ui_disabled_first">Disabled first</string>
-    <string name="core_ui_enabled_first">Enabled first</string>
-    <string name="core_ui_none">None</string>
-    <string name="core_ui_name">Name</string>
-    <string name="core_ui_install_date">Install Date</string>
-    <string name="core_ui_last_updated">Last Updated</string>
-    <string name="core_ui_show_running_apps_on_top">Show running apps on top</string>
-    <string name="core_ui_on" tools:override="true">On</string>
-    <string name="core_ui_off" tools:override="true">Off</string>
     <string name="core_ui_collapse_list">Collapse list</string>
     <string name="core_ui_expand_list">Expand more</string>
+    <string name="core_ui_close">Close</string>
+    <string name="core_ui_block_selected">Block selected</string>
+    <string name="core_ui_select_all">Select all</string>
+    <string name="core_ui_enable_selected">Enable selected</string>
+    <string name="core_ui_not_found_icon">Not found icon</string>
+    <plurals name="core_ui_block_all">
+        <item quantity="one">This operation will disable %1$d component, do you want to continue?</item>
+        <item quantity="other">This operation will disable %1$d components, do you want to continue?</item>
+    </plurals>
+    <plurals name="core_ui_enable_all">
+        <item quantity="one">This operation will enable %1$d component, do you want to continue?</item>
+        <item quantity="other">This operation will enable %1$d components, do you want to continue?</item>
+    </plurals>
+    <plurals name="core_ui_selected_app_count">
+        <item quantity="one">%1$d app selected</item>
+        <item quantity="other">%1$d apps selected</item>
+    </plurals>
 </resources>

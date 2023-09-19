@@ -13,8 +13,9 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
+          submodules: 'true'
           fetch-depth: 0
 
       - name: Validate Gradle Wrapper
@@ -40,7 +41,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2.7.1
+        uses: gradle/gradle-build-action@v2.8.0
 
       - name: Accept Android licenses
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
@@ -95,7 +96,7 @@ jobs:
           path: "app-compose/build/outputs/mapping/marketRelease"
 
       - name: Publish to Play Store open beta track
-        uses: r0adkll/upload-google-play@v1.1.1
+        uses: r0adkll/upload-google-play@v1.1.2
         with:
           serviceAccountJsonPlainText: ${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}
           packageName: com.merxury.blocker

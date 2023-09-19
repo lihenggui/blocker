@@ -41,4 +41,5 @@
     </plurals>
     <string name="feature_search_search_hint">应用、组件和规则</string>
     <string name="feature_search_no_search_result">暂无搜索结果</string>
+    <string name="feature_search_check_icon">选中</string>
 </resources>

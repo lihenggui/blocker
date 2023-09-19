@@ -15,7 +15,6 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_appdetail_launch_app">啟動應用</string>
     <string name="feature_appdetail_cannot_launch_this_app">無法啟動這個應用</string>
     <string name="feature_appdetail_blocker_rules">Blocker規則</string>
     <string name="feature_appdetail_export_rules">導出規則</string>
@@ -23,17 +22,12 @@
     <string name="feature_appdetail_export_ifw_rules">匯出IFW規則</string>
     <string name="feature_appdetail_import_ifw_rules">匯入IFW規則</string>
     <string name="feature_appdetail_reset_ifw">重置IFW</string>
-    <string name="feature_appdetail_more_info">更多信息</string>
     <string name="feature_appdetail_target_sdk_version">目標SDK版本</string>
     <string name="feature_appdetail_minimum_sdk_version">最低SDK版本</string>
     <string name="feature_appdetail_last_update_time">最後更新時間</string>
     <string name="feature_appdetail_data_dir">數據目錄</string>
-    <string name="feature_appdetail_enable_application">啟用應用</string>
-    <string name="feature_appdetail_refresh">刷新</string>
     <string name="feature_appdetail_block_all_of_this_page">阻止本頁所有組件</string>
     <string name="feature_appdetail_enable_all_of_this_page">啟用本頁所有組件</string>
-    <string name="feature_appdetail_disabling_hint">禁用組件中…</string>
-    <string name="feature_appdetail_enabling_hint">啟用組件中…</string>
     <string name="feature_appdetail_blocking_effect">阻止效果</string>
     <string name="feature_appdetail_recommended_blocking">推薦阻止</string>
     <string name="feature_appdetail_belonging_sdk">歸屬SDK</string>
@@ -42,4 +36,8 @@
     <string name="feature_appdetail_add_description_hint">目前沒有可用的組件信息。成為第一個貢獻者吧！</string>
     <string name="feature_appdetail_how_to_contribute">如何貢獻？</string>
     <string name="feature_appdetail_unknown">未知</string>
+    <string name="feature_appdetail_select_mutiple">選擇多項</string>
+    <plurals name="feature_appdetail_selected_component_count">
+        <item quantity="other">已選擇%1$d個組件</item>
+    </plurals>
 </resources>

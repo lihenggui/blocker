@@ -19,7 +19,7 @@ plugins {
     id("blocker.android.library.jacoco")
     id("blocker.android.hilt")
     id("kotlinx-serialization")
-    kotlin("kapt")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -29,7 +29,9 @@ android {
 dependencies {
     implementation(projects.core.common)
     implementation(projects.core.componentController)
+    implementation(projects.core.data)
     implementation(projects.core.ifwApi)
+
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.android)
@@ -38,8 +40,8 @@ dependencies {
     implementation(libs.xmlutil.core.android)
     implementation(libs.xmlutil.serialization.android)
 
-    kapt(libs.hilt.compiler)
-    kapt(libs.hilt.ext.compiler)
+    ksp(libs.hilt.compiler)
+    ksp(libs.hilt.ext.compiler)
 
     testImplementation(projects.core.testing)
 

@@ -32,16 +32,18 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.datastore)
     implementation(projects.core.model)
+    implementation(projects.core.network)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.tracing.ktx)
     implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.ext.work)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.datetime)
 
-    kapt(libs.hilt.ext.compiler)
+    ksp(libs.hilt.ext.compiler)
 
-    testImplementation(project(":core:testing"))
+    testImplementation(projects.core.testing)
 
-    androidTestImplementation(project(":core:testing"))
+    androidTestImplementation(projects.core.testing)
     androidTestImplementation(libs.androidx.work.testing)
 }

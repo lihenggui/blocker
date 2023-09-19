@@ -15,7 +15,6 @@
      limitations under the License.
 -->
 <resources>
-    <string name="feature_appdetail_launch_app">Launch app</string>
     <string name="feature_appdetail_cannot_launch_this_app">Cannot launch this app</string>
     <string name="feature_appdetail_blocker_rules">Blocker rules</string>
     <string name="feature_appdetail_export_rules">Export Rules</string>
@@ -24,17 +23,12 @@
     <string name="feature_appdetail_export_ifw_rules">Export IFW Rules</string>
     <string name="feature_appdetail_import_ifw_rules">Import IFW Rules</string>
     <string name="feature_appdetail_reset_ifw">Reset IFW</string>
-    <string name="feature_appdetail_more_info">More info</string>
     <string name="feature_appdetail_target_sdk_version">Target SDK version</string>
     <string name="feature_appdetail_minimum_sdk_version">Minimum SDK version</string>
     <string name="feature_appdetail_last_update_time">Last update time</string>
     <string name="feature_appdetail_data_dir">Data dir</string>
-    <string name="feature_appdetail_enable_application">Enable application</string>
-    <string name="feature_appdetail_refresh">Refresh</string>
     <string name="feature_appdetail_block_all_of_this_page">Block all of this page</string>
     <string name="feature_appdetail_enable_all_of_this_page">Enable all of this page</string>
-    <string name="feature_appdetail_disabling_hint">Disabling hint…</string>
-    <string name="feature_appdetail_enabling_hint">Enabling hint…</string>
     <string name="feature_appdetail_blocking_effect">Blocking effect</string>
     <string name="feature_appdetail_recommended_blocking">Recommended blocking</string>
     <string name="feature_appdetail_belonging_sdk">Belonging SDK</string>
@@ -44,4 +38,9 @@
     <string name="feature_appdetail_add_description_hint">At present, there is no information available for this component. Be the first to contribute!</string>
     <string name="feature_appdetail_how_to_contribute">How to contribute?</string>
     <string name="feature_appdetail_unknown">Unknown</string>
+    <string name="feature_appdetail_select_mutiple">Select multiple</string>
+    <plurals name="feature_appdetail_selected_component_count">
+        <item quantity="one">%1$d component selected</item>
+        <item quantity="other">%1$d components selected</item>
+    </plurals>
 </resources>

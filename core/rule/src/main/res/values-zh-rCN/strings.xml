@@ -22,14 +22,6 @@
     <string name="core_rule_import_ifw_please_wait">正在导入IFW应用规则，请稍等…</string>
     <string name="core_rule_reset_ifw_please_wait">重置IFW中，请稍等…</string>
     <string name="core_rule_import_mat_rule_please_wait">正在导入MAT应用规则，请稍等…</string>
-    <string name="core_rule_import_failed_message">导入Blocker规则失败，请检查超级用户权限是否授予</string>
-    <string name="core_rule_no_rules_imported">没有规则被导入，请检查目录是否正确设置或者权限是否被正确授予</string>
-    <string name="core_rule_export_ifw_failed_message">导出IFW规则失败，请检查权限是否被正确授予。</string>
-    <string name="core_rule_import_ifw_failed_message">导入IFW规则失败，请检查超级用户权限是否被正确授予。</string>
-    <string name="core_rule_export_ifw_successful_message">成功导出%1$d个IFW规则</string>
-    <string name="core_rule_import_successfully">导入规则成功</string>
-    <string name="core_rule_clear_ifw_message">清除了%1$d个IFW规则</string>
-    <string name="core_rule_import_mat_failed_message">导入MAT规则失败，请检查超级用户权限是否被正确授予。</string>
     <string name="core_rule_import_app_rules_please_wait">正在导入应用规则，请稍等…</string>
     <string name="core_rule_cancel">取消</string>
     <string name="core_rule_processing_please_wait">正在处理，请稍等…</string>
@@ -38,4 +30,5 @@
     <string name="core_rule_error_msg_missing_root_permission">操作失败，缺少超级用户权限。</string>
     <string name="core_rule_error_msg_unexpected_exception">未知错误，请向开发者反馈。</string>
     <string name="core_rule_task_cancelled">任务已取消</string>
+    <string name="core_rule_copying_rules_to_internal_storage">复制规则到内部存储中…</string>
 </resources>

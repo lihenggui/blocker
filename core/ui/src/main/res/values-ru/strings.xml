@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,16 +24,16 @@
     <string name="core_ui_service_status_template">Службы: %1$d запущено, %2$d заблокировано, всего %3$d.</string>
     <string name="core_ui_running">Бег</string>
     <string name="core_ui_disabled">Неполноценный</string>
-    <string name="core_ui_service">Службы</string>
-    <string name="core_ui_receiver">Приемники</string>
-    <string name="core_ui_activity">Активити</string>
-    <string name="core_ui_content_provider">Поставщики</string>
     <string name="core_ui_rule_icon_description">Значок правила</string>
     <string name="core_ui_copy_name">Скопировать полное имя</string>
     <string name="core_ui_copy_full_name">Копировать имя пакета</string>
     <string name="core_ui_launch_activity">Запуск активности</string>
     <string name="core_ui_stop_service">Остановить службу</string>
     <string name="core_ui_no_components">Нет компонентов</string>
+    <string name="core_ui_close">Закрыть</string>
+    <string name="core_ui_block_selected">Заблокировать выбранное</string>
+    <string name="core_ui_select_all">Выбрать все</string>
+    <string name="core_ui_enable_selected">Включить выбранное</string>
     <plurals name="core_ui_matched_component" tools:ignore="MissingQuantity">
         <item quantity="one">Соответствует %1$d компоненту</item>
         <item quantity="other">Соответствует %1$d компонентам</item>
@@ -46,7 +45,7 @@
     <string name="core_ui_description">Описание</string>
     <string name="core_ui_applicable_application">Применимое приложение</string>
     <string name="core_ui_loading">Загрузка</string>
-    <string name="core_ui_error">Ошибка</string>
+    <string name="core_ui_error">ошибка</string>
     <string name="core_ui_no_applicable_app">Нет применимого приложения</string>
     <string name="core_ui_app_info">приложение</string>
     <string name="core_ui_activity_with_count">Активити(%1$d)</string>
@@ -60,22 +59,19 @@
     <string name="core_ui_enable_all_components">Включить все компоненты</string>
     <string name="core_ui_open_app_detail">Открыть детали приложения</string>
     <string name="core_ui_sort_options">Параметры сортировки</string>
-    <string name="core_ui_sort_by">Сортировать по</string>
-    <string name="core_ui_package_name">Имя пакета</string>
-    <string name="core_ui_component_name">Имя компонента</string>
-    <string name="core_ui_order">порядок</string>
-    <string name="core_ui_ascending">Восходящий</string>
-    <string name="core_ui_descending">Нисходящий</string>
-    <string name="core_ui_priority">Приоритет</string>
-    <string name="core_ui_disabled_first">Отключенный первый</string>
-    <string name="core_ui_enabled_first">Включенный первый</string>
-    <string name="core_ui_none">Нет</string>
-    <string name="core_ui_name">Имя</string>
-    <string name="core_ui_install_date">Дата установки</string>
-    <string name="core_ui_last_updated">Последнее обновление</string>
-    <string name="core_ui_show_running_apps_on_top">Показывать запущенные приложения сверху</string>
-    <string name="core_ui_on" tools:override="true">включать</string>
-    <string name="core_ui_off" tools:override="true">закрытие</string>
     <string name="core_ui_collapse_list">Свернуть список</string>
     <string name="core_ui_expand_list">расширить список</string>
+    <string name="core_ui_not_found_icon">Значок не найден</string>
+    <plurals name="core_ui_block_all">
+        <item quantity="one">Эта операция отключит компонент %1$d. Продолжить?</item>
+        <item quantity="other">Эта операция отключит %1$d компонентов. Продолжить?</item>
+    </plurals>
+    <plurals name="core_ui_enable_all">
+        <item quantity="one">Эта операция активирует компонент %1$d. Продолжить?</item>
+        <item quantity="other">Эта операция активирует компоненты: %1$d. Продолжить?</item>
+    </plurals>
+    <plurals name="core_ui_selected_app_count">
+        <item quantity="one">%1$d приложение выбрано</item>
+        <item quantity="other">%1$d приложений выбрано</item>
+    </plurals>
 </resources>

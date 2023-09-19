@@ -104,14 +104,16 @@ dependencies {
     implementation(projects.feature.search)
     implementation(projects.feature.settings)
     implementation(projects.feature.ruledetail)
+    implementation(projects.feature.sort)
 
     implementation(projects.core.analytics)
-    implementation(projects.core.ui)
-    implementation(projects.core.designsystem)
     implementation(projects.core.data)
-    implementation(projects.core.network)
+    implementation(projects.core.designsystem)
     implementation(projects.core.model)
+    implementation(projects.core.network)
     implementation(projects.core.provider)
+    implementation(projects.core.rule)
+    implementation(projects.core.ui)
 
     implementation(projects.sync.work)
 
@@ -146,4 +148,15 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.libsu.core)
     implementation(libs.timber)
+
+    // Core functions
+    testImplementation(projects.core.testing)
+    testImplementation(projects.core.datastoreTest)
+    testImplementation(projects.core.dataTest)
+    testImplementation(projects.core.network)
+    testImplementation(libs.androidx.navigation.testing)
+    testImplementation(libs.accompanist.testharness)
+    testImplementation(kotlin("test"))
+    implementation(libs.androidx.work.testing)
+    kspTest(libs.hilt.compiler)
 }

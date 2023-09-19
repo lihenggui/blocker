@@ -22,14 +22,6 @@
     <string name="core_rule_import_ifw_please_wait">Импорт правил IFW, пожалуйста, подождите…</string>
     <string name="core_rule_reset_ifw_please_wait">Сброс IFW, подождите…</string>
     <string name="core_rule_import_mat_rule_please_wait">Импорт правил MAT, подождите…</string>
-    <string name="core_rule_import_failed_message">Сбой импортирования правил Blocker. Проверьте, есть ли у вас root права.</string>
-    <string name="core_rule_no_rules_imported">Правила не импортированы, проверьте папку или разрешения.</string>
-    <string name="core_rule_export_ifw_failed_message">Не удалось экспортировать правила IFW. Вы предоставили Blocker-у разрешения?</string>
-    <string name="core_rule_export_ifw_successful_message">Успешно экспортировано %1$d правил IFW.</string>
-    <string name="core_rule_import_ifw_failed_message">Сбой импортирования правил IFW. Вы предоставили Blocker-у разрешения?</string>
-    <string name="core_rule_import_successfully">Правила успешно импортированы</string>
-    <string name="core_rule_clear_ifw_message">Удалено %1$d правил IFW.</string>
-    <string name="core_rule_import_mat_failed_message">Сбой импортирта правил MAT. Вы предоставили Blocker-у разрешения?</string>
     <string name="core_rule_import_app_rules_please_wait">Импорт правил приложения, подождите…</string>
     <string name="core_rule_cancel">Отмена</string>
     <string name="core_rule_processing_please_wait">Обработка, подождите…</string>
@@ -38,4 +30,5 @@
     <string name="core_rule_error_msg_missing_root_permission">Ошибка: отсутствуют root права</string>
     <string name="core_rule_error_msg_unexpected_exception">Ошибка: неожиданное исключение</string>
     <string name="core_rule_task_cancelled">Задача отменена</string>
+    <string name="core_rule_copying_rules_to_internal_storage">Копирование правил во внутреннее хранилище…</string>
 </resources>
