@@ -102,12 +102,13 @@ dependencies {
     implementation(projects.feature.sort)
 
     implementation(projects.core.analytics)
-    implementation(projects.core.ui)
-    implementation(projects.core.designsystem)
     implementation(projects.core.data)
-    implementation(projects.core.network)
+    implementation(projects.core.designsystem)
     implementation(projects.core.model)
+    implementation(projects.core.network)
     implementation(projects.core.provider)
+    implementation(projects.core.rule)
+    implementation(projects.core.ui)
 
     implementation(projects.sync.work)
 

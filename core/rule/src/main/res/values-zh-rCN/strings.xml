@@ -30,4 +30,5 @@
     <string name="core_rule_error_msg_missing_root_permission">操作失败，缺少超级用户权限。</string>
     <string name="core_rule_error_msg_unexpected_exception">未知错误，请向开发者反馈。</string>
     <string name="core_rule_task_cancelled">任务已取消</string>
+    <string name="core_rule_copying_rules_to_internal_storage">复制规则到内部存储中…</string>
 </resources>
