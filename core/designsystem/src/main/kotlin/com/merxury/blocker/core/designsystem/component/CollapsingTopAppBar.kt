@@ -258,7 +258,7 @@ fun CollapsingToolbarCollapsedPreview() {
                     }
                     BlockerAppTopBarMenu(
                         menuIcon = BlockerIcons.MoreVert,
-                        menuIconDesc = R.string.core_designsystem_clear_icon,
+                        menuIconDesc = R.string.core_designsystem_more_icon,
                         menuList = listOf(),
                     )
                 }
@@ -296,7 +296,7 @@ fun CollapsingToolbarHalfwayPreview() {
                     }
                     BlockerAppTopBarMenu(
                         menuIcon = BlockerIcons.MoreVert,
-                        menuIconDesc = R.string.core_designsystem_clear_icon,
+                        menuIconDesc = R.string.core_designsystem_more_icon,
                         menuList = listOf(),
                     )
                 }
@@ -328,7 +328,7 @@ fun CollapsingToolbarExpandedPreview() {
                 )
                 BlockerAppTopBarMenu(
                     menuIcon = BlockerIcons.MoreVert,
-                    menuIconDesc = R.string.core_designsystem_clear_icon,
+                    menuIconDesc = R.string.core_designsystem_more_icon,
                     menuList = listOf(),
                 )
             },
