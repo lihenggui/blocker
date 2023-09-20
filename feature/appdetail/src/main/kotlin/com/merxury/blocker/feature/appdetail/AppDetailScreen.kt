@@ -22,7 +22,9 @@ import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,6 +49,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -61,13 +64,16 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.AutoResizeText
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
+import com.merxury.blocker.core.designsystem.component.FontSizeRange
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -431,33 +437,43 @@ fun AppDetailAppBarActions(
     switchSelectedMode: (Boolean) -> Unit = {},
 ) {
     val actions = appBarUiState.actions
-    if (actions.contains(SEARCH)) {
-        if (appBarUiState.isSearchMode) {
-            BlockerSearchTextField(
-                keyword = appBarUiState.keyword,
-                onValueChange = onSearchTextChanged,
-                placeholder = {
-                    Text(text = stringResource(id = string.feature_appdetail_search_components))
-                },
-                onClearClick = {
-                    if (appBarUiState.keyword.text.isEmpty()) {
-                        onSearchModeChange(false)
-                        return@BlockerSearchTextField
-                    }
-                    onSearchTextChanged(TextFieldValue())
-                },
-            )
-        } else {
-            SearchActionMenu(onSearchModeChange = onSearchModeChange)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (actions.contains(SEARCH)) {
+            if (appBarUiState.isSearchMode) {
+                BlockerSearchTextField(
+                    modifier = Modifier.weight(1f),
+                    keyword = appBarUiState.keyword,
+                    onValueChange = onSearchTextChanged,
+                    placeholder = {
+                        AutoResizeText(
+                            text = stringResource(id = string.feature_appdetail_search_components),
+                            fontSizeRange = FontSizeRange(1.sp, 16.sp),
+                        )
+                    },
+                    onClearClick = {
+                        if (appBarUiState.keyword.text.isEmpty()) {
+                            onSearchModeChange(false)
+                            return@BlockerSearchTextField
+                        }
+                        onSearchTextChanged(TextFieldValue())
+                    },
+                )
+            } else {
+                SearchActionMenu(onSearchModeChange = onSearchModeChange)
+            }
         }
-    }
-    if (actions.contains(MORE)) {
-        MoreActionMenu(
-            blockAllComponents = blockAllComponents,
-            enableAllComponents = enableAllComponents,
-            onAdvanceSortClick = navigatedToComponentSortScreen,
-            switchSelectedMode = switchSelectedMode,
-        )
+        if (actions.contains(MORE)) {
+            MoreActionMenu(
+                blockAllComponents = blockAllComponents,
+                enableAllComponents = enableAllComponents,
+                onAdvanceSortClick = navigatedToComponentSortScreen,
+                switchSelectedMode = switchSelectedMode,
+            )
+        }
     }
 }
 

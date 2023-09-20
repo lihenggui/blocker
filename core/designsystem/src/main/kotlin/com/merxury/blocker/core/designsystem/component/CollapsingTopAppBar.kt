@@ -22,14 +22,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,7 +43,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,6 +50,7 @@ import androidx.compose.ui.util.lerp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.merxury.blocker.core.designsystem.R
+import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import kotlin.math.roundToInt
@@ -107,16 +105,9 @@ fun BlockerCollapsingTopAppBar(
                     text = title,
                     maxLines = 1,
                     fontSize = titleSize,
-                    modifier = Modifier
-                        .fillMaxWidth(0.7f),
+                    modifier = Modifier.fillMaxWidth(0.7f),
                 )
-                Row(
-                    modifier = modifier
-                        .fillMaxWidth()
-                        .padding(end = contentPadding),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
+                Row {
                     if (actions != null) {
                         actions()
                     }
@@ -146,10 +137,8 @@ fun BlockerCollapsingTopAppBar(
                             onClick = { onIconClick() },
                         )
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(iconSource)
-                        .crossfade(true)
-                        .build(),
+                    model = ImageRequest.Builder(LocalContext.current).data(iconSource)
+                        .crossfade(true).build(),
                     contentDescription = null,
                 )
             }
@@ -246,32 +235,31 @@ private fun CollapsingToolbarLayout(
 }
 
 @Preview
+@Preview(widthDp = 300, heightDp = 500)
 @Composable
 fun CollapsingToolbarCollapsedPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0f,
-            title = "Title with long name 0123456789",
+            title = "Title",
             actions = {
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.then(Modifier.size(24.dp)),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = BlockerIcons.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-                Spacer(modifier = Modifier.width(contentPadding))
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.then(Modifier.size(24.dp)),
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.More,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
+                    IconButton(
+                        onClick = { },
+                    ) {
+                        BlockerActionIcon(
+                            imageVector = BlockerIcons.Search,
+                            contentDescription = stringResource(id = R.string.core_designsystem_search_icon),
+                        )
+                    }
+                    BlockerAppTopBarMenu(
+                        menuIcon = BlockerIcons.MoreVert,
+                        menuIconDesc = R.string.core_designsystem_clear_icon,
+                        menuList = listOf(),
                     )
                 }
             },
@@ -293,25 +281,23 @@ fun CollapsingToolbarHalfwayPreview() {
             progress = 0.5f,
             title = "Title with long name 0123456789",
             actions = {
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.then(Modifier.size(24.dp)),
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Icon(
-                        imageVector = BlockerIcons.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-                Spacer(modifier = Modifier.width(contentPadding))
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.then(Modifier.size(24.dp)),
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.More,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
+                    IconButton(
+                        onClick = { },
+                    ) {
+                        BlockerActionIcon(
+                            imageVector = BlockerIcons.Search,
+                            contentDescription = stringResource(id = R.string.core_designsystem_search_icon),
+                        )
+                    }
+                    BlockerAppTopBarMenu(
+                        menuIcon = BlockerIcons.MoreVert,
+                        menuIconDesc = R.string.core_designsystem_clear_icon,
+                        menuList = listOf(),
                     )
                 }
             },
@@ -326,7 +312,7 @@ fun CollapsingToolbarHalfwayPreview() {
 }
 
 @Preview
-@Preview(device = Devices.TABLET)
+@Preview(widthDp = 300, heightDp = 500)
 @Composable
 fun CollapsingToolbarExpandedPreview() {
     BlockerTheme {
@@ -340,16 +326,11 @@ fun CollapsingToolbarExpandedPreview() {
                     onClearClick = {},
                     modifier = Modifier.weight(1f),
                 )
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier.then(Modifier.size(24.dp)),
-                ) {
-                    Icon(
-                        imageVector = BlockerIcons.More,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
+                BlockerAppTopBarMenu(
+                    menuIcon = BlockerIcons.MoreVert,
+                    menuIconDesc = R.string.core_designsystem_clear_icon,
+                    menuList = listOf(),
+                )
             },
             subtitle = "packageName with long long long name 0123456789",
             summary = "versionCode with long long long name 0123456789",
