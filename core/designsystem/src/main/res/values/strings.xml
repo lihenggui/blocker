@@ -18,4 +18,5 @@
     <string name="core_designsystem_back">Back button</string>
     <string name="core_designsystem_clear_icon">Clear icon</string>
     <string name="core_designsystem_search_icon">Search icon</string>
+    <string name="core_designsystem_more_icon">More icon</string>
 </resources>
