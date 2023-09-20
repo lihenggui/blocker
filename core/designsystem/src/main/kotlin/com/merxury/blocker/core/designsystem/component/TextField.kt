@@ -26,7 +26,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
@@ -45,6 +44,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -91,7 +91,6 @@ fun BlockerSearchTextField(
                 }
             }
         },
-        maxLines = 1,
         singleLine = true,
         keyboardOptions = keyboardOptions,
         keyboardActions = KeyboardActions(
@@ -118,7 +117,7 @@ fun BlockerTextFieldPreview() {
                 onValueChange = {},
                 onClearClick = {},
                 placeholder = {
-                    Text(text = "Search")
+                    AutoResizeText(text = "test", fontSizeRange = FontSizeRange(5.sp, 16.sp))
                 },
                 colors = colors,
             )
