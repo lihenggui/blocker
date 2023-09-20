@@ -412,6 +412,9 @@ class AppDetailViewModel @Inject constructor(
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
+        _appBarUiState.update {
+            it.copy(actions = getAppBarAction())
+        }
     }
 
     fun switchTab(newTab: AppDetailTabs) {
