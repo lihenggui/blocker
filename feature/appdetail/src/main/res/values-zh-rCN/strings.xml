@@ -41,4 +41,5 @@
     <plurals name="feature_appdetail_selected_component_count">
         <item quantity="other">已选择%1$d个组件</item>
     </plurals>
+    <string name="feature_appdetail_share_your_rules">分享你的规则</string>
 </resources>
