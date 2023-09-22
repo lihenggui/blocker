@@ -77,6 +77,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.FontSizeRange
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -101,6 +103,7 @@ import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
@@ -468,6 +471,12 @@ fun AppDetailAppBarActions(
             } else {
                 SearchActionMenu(onSearchModeChange = onSearchModeChange)
             }
+        }
+        if (actions.contains(SHARE_RULE)) {
+            BlockerActionIcon(
+                imageVector = BlockerIcons.Share,
+                contentDescription = stringResource(id = string.feature_appdetail_share_your_rules),
+            )
         }
         if (actions.contains(MORE)) {
             MoreActionMenu(

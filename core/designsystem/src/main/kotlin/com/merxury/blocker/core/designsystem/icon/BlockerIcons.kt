@@ -43,6 +43,7 @@ import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
+import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.MoreVert
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
@@ -88,6 +89,7 @@ object BlockerIcons {
     val Error = Icons.Outlined.Error
     val DesignService = Icons.Outlined.DesignServices
     val DocumentScanner = Icons.Outlined.DocumentScanner
+    val Share = Icons.Outlined.IosShare
 
     val Rectangle = R.drawable.core_designsystem_ic_rectangle
     val Android = R.drawable.core_designsystem_ic_android
