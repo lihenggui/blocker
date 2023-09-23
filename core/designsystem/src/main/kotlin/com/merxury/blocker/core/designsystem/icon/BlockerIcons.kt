@@ -31,7 +31,9 @@ import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CollectionsBookmark
@@ -90,6 +92,8 @@ object BlockerIcons {
     val DesignService = Icons.Outlined.DesignServices
     val DocumentScanner = Icons.Outlined.DocumentScanner
     val Share = Icons.Outlined.IosShare
+    val CheckList = Icons.Outlined.Checklist
+    val CheckSmall = Icons.Outlined.Check
 
     val Rectangle = R.drawable.core_designsystem_ic_rectangle
     val Android = R.drawable.core_designsystem_ic_android
