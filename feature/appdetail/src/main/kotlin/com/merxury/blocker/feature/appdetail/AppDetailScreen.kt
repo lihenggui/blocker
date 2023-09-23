@@ -77,8 +77,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.FontSizeRange
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
-import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -113,6 +111,7 @@ import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
+import com.merxury.blocker.feature.appdetail.ui.ShareAction
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock.System
@@ -180,6 +179,8 @@ fun AppDetailRoute(
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         onDeselect = viewModel::deselectItem,
+        shareSingleRule = viewModel::sharesingleRule,
+        shareAllRules = viewModel::shareAllRule,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -256,6 +257,8 @@ fun AppDetailScreen(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    shareSingleRule: () -> Unit = {},
+    shareAllRules: () -> Unit = {},
 ) {
     when (appInfoUiState) {
         is AppInfoUiState.Loading -> {
@@ -296,6 +299,8 @@ fun AppDetailScreen(
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
                 onDeselect = onDeselect,
+                shareSingleRule = shareSingleRule,
+                shareAllRules = shareAllRules,
             )
         }
 
@@ -338,6 +343,8 @@ fun AppDetailContent(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    shareSingleRule: () -> Unit = {},
+    shareAllRules: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -394,6 +401,8 @@ fun AppDetailContent(
                 onEnableAll = onEnableAll,
                 switchSelectedMode = switchSelectedMode,
                 onBackClick = onBackClick,
+                shareSingleRule = shareSingleRule,
+                shareAllRules = shareAllRules,
             )
         },
         modifier = modifier.nestedScroll(nestedScrollConnection),
@@ -439,6 +448,8 @@ fun AppDetailAppBarActions(
     enableAllComponents: () -> Unit = {},
     navigatedToComponentSortScreen: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
+    shareSingleRule: () -> Unit = {},
+    shareAllRules: () -> Unit = {},
 ) {
     val actions = appBarUiState.actions
     Row(
@@ -473,9 +484,9 @@ fun AppDetailAppBarActions(
             }
         }
         if (actions.contains(SHARE_RULE)) {
-            BlockerActionIcon(
-                imageVector = BlockerIcons.Share,
-                contentDescription = stringResource(id = string.feature_appdetail_share_your_rules),
+            ShareAction(
+                shareSingleRule = shareSingleRule,
+                shareAllRules = shareAllRules,
             )
         }
         if (actions.contains(MORE)) {
@@ -514,6 +525,8 @@ private fun TopAppBar(
     onEnableAll: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onBackClick: () -> Unit,
+    shareSingleRule: () -> Unit = {},
+    shareAllRules: () -> Unit = {},
 ) {
     if (!isSelectedMode) {
         BlockerCollapsingTopAppBar(
@@ -535,6 +548,8 @@ private fun TopAppBar(
                     enableAllComponents = enableAllComponents,
                     navigatedToComponentSortScreen = navigatedToComponentSortScreen,
                     switchSelectedMode = switchSelectedMode,
+                    shareSingleRule = shareSingleRule,
+                    shareAllRules = shareAllRules,
                 )
             },
             subtitle = app.packageName,
