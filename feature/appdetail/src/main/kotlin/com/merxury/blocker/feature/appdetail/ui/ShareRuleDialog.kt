@@ -62,7 +62,6 @@ fun ShareRuleDialog(
     shareAllRules: () -> Unit = {},
     onDismissRequest: () -> Unit = {},
 ) {
-
     if (isDialogVisible) {
         BlockerButtonAlertDialog(
             title = stringResource(id = string.feature_appdetail_share_your_rules),
