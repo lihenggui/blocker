@@ -783,6 +783,14 @@ class AppDetailViewModel @Inject constructor(
             val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
             return@withContext icon?.toBitmap()
         }
+
+    fun shareAllRule() {
+        // TODO
+    }
+
+    fun sharesingleRule() {
+        // TODO
+    }
 }
 
 sealed interface AppInfoUiState {
