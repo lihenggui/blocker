@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.designsystem.component
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -137,6 +138,52 @@ fun BlockerConfirmAlertDialog(
             }
         },
     )
+}
+
+@Composable
+fun BlockerButtonAlertDialog(
+    title: String,
+    buttons: @Composable () -> Unit,
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    AlertDialog(
+        modifier = modifier,
+        title = {
+            Text(text = title)
+        },
+        text = {
+            buttons()
+        },
+        onDismissRequest = onDismissRequest,
+        confirmButton = {},
+        dismissButton = {},
+    )
+}
+
+@Preview
+@Composable
+fun BlockerButtonAlertDialogPreView() {
+    BlockerTheme {
+        BlockerButtonAlertDialog(
+            title = "Dialog title",
+            onDismissRequest = {},
+            buttons = {
+                Column {
+                    BlockerTextButton(onClick = {}) {
+                        Text(
+                            text = "button 1",
+                        )
+                    }
+                    BlockerTextButton(onClick = {}) {
+                        Text(
+                            text = "button 2",
+                        )
+                    }
+                }
+            },
+        )
+    }
 }
 
 @Preview
