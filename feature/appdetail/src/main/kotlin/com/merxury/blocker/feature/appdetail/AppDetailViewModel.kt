@@ -788,7 +788,7 @@ class AppDetailViewModel @Inject constructor(
         // TODO
     }
 
-    fun sharesingleRule() {
+    fun shareSingleRule() {
         // TODO
     }
 }
