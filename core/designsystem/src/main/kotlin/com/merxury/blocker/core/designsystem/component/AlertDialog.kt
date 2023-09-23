@@ -17,14 +17,18 @@
 package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
@@ -149,11 +153,15 @@ fun BlockerButtonAlertDialog(
 ) {
     AlertDialog(
         modifier = modifier,
-        title = {
-            Text(text = title)
-        },
         text = {
-            buttons()
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                )
+                buttons()
+            }
         },
         onDismissRequest = onDismissRequest,
         confirmButton = {},
@@ -166,20 +174,18 @@ fun BlockerButtonAlertDialog(
 fun BlockerButtonAlertDialogPreView() {
     BlockerTheme {
         BlockerButtonAlertDialog(
-            title = "Dialog title",
             onDismissRequest = {},
+            title = "title",
             buttons = {
-                Column {
-                    BlockerTextButton(onClick = {}) {
-                        Text(
-                            text = "button 1",
-                        )
-                    }
-                    BlockerTextButton(onClick = {}) {
-                        Text(
-                            text = "button 2",
-                        )
-                    }
+                BlockerTextButton(onClick = {}) {
+                    Text(
+                        text = "button 1",
+                    )
+                }
+                BlockerTextButton(onClick = {}) {
+                    Text(
+                        text = "button 2",
+                    )
                 }
             },
         )
