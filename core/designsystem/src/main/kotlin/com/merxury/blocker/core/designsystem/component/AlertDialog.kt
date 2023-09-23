@@ -22,7 +22,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -144,17 +147,25 @@ fun BlockerConfirmAlertDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BlockerButtonAlertDialog(
     title: String,
     buttons: @Composable () -> Unit,
     onDismissRequest: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     AlertDialog(
-        modifier = modifier,
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
+        onDismissRequest = onDismissRequest,
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            tonalElevation = AlertDialogDefaults.TonalElevation,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
@@ -162,11 +173,8 @@ fun BlockerButtonAlertDialog(
                 )
                 buttons()
             }
-        },
-        onDismissRequest = onDismissRequest,
-        confirmButton = {},
-        dismissButton = {},
-    )
+        }
+    }
 }
 
 @Preview
