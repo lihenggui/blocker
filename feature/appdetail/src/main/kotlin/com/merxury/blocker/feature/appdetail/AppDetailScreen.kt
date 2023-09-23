@@ -179,7 +179,7 @@ fun AppDetailRoute(
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         onDeselect = viewModel::deselectItem,
-        shareSingleRule = viewModel::sharesingleRule,
+        shareSingleRule = viewModel::shareSingleRule,
         shareAllRules = viewModel::shareAllRule,
     )
     if (errorState != null) {
