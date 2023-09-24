@@ -18,12 +18,16 @@
 package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.material3.FilledIconToggleButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 /**
  * Blocker toggle button with icon and checked icon content slots. Wraps Material 3
@@ -68,6 +72,55 @@ fun BlockerIconToggleButton(
         if (checked) checkedIcon() else icon()
     }
 }
+
+@ThemePreviews
+@Composable
+fun IconButtonPreview() {
+    BlockerTheme {
+        BlockerIconToggleButton(
+            checked = true,
+            onCheckedChange = { },
+            icon = {
+                Icon(
+                    imageVector = BlockerIcons.Check,
+                    contentDescription = null,
+                )
+            },
+            checkedIcon = {
+                Icon(
+                    imageVector = BlockerIcons.Check,
+                    contentDescription = null,
+                )
+            },
+        )
+    }
+}
+
+@ThemePreviews
+@Composable
+fun IconButtonPreviewUnchecked() {
+    BlockerTheme {
+        Surface {
+            BlockerIconToggleButton(
+                checked = false,
+                onCheckedChange = { },
+                icon = {
+                    Icon(
+                        imageVector = BlockerIcons.Check,
+                        contentDescription = null,
+                    )
+                },
+                checkedIcon = {
+                    Icon(
+                        imageVector = BlockerIcons.Check,
+                        contentDescription = null,
+                    )
+                },
+            )
+        }
+    }
+}
+
 
 /**
  * Blocker icon button default values.
