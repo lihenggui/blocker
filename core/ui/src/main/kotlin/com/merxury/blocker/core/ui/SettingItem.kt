@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.designsystem.component
+package com.merxury.blocker.core.ui
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
