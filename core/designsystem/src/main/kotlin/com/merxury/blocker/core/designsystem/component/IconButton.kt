@@ -121,7 +121,6 @@ fun IconButtonPreviewUnchecked() {
     }
 }
 
-
 /**
  * Blocker icon button default values.
  */

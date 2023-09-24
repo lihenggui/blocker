@@ -151,7 +151,7 @@ class TopAppBarScreenshotTests {
     @Composable
     private fun BlockerTopAppBarWithNavActionsExample() {
         BlockerTopAppBar(
-            title = stringResource(id = android.R.string.untitled),
+            title = stringResource(id = string.untitled),
             hasNavigationIcon = true,
             actions = {
                 IconButton(onClick = {}) {
