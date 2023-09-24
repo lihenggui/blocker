@@ -43,6 +43,7 @@ import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
@@ -136,7 +137,7 @@ class AppDetailViewModelTest {
         assertEquals(0, viewModel.componentListUiState.value.provider.size)
         assertEquals(0, viewModel.componentListUiState.value.receiver.size)
         assertEquals(0, viewModel.componentListUiState.value.service.size)
-        assertEquals(AppBarUiState(), viewModel.appBarUiState.value)
+        assertEquals(AppBarUiState(actions = listOf(SHARE_RULE)), viewModel.appBarUiState.value)
         assertEquals(AppDetailTabs.Info, viewModel.tabState.value.selectedItem)
 
         collectJob1.cancel()
