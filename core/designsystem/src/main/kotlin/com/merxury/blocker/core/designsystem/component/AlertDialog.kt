@@ -19,11 +19,11 @@ package com.merxury.blocker.core.designsystem.component
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
@@ -139,14 +139,45 @@ fun BlockerConfirmAlertDialog(
     )
 }
 
-@Preview
+@ThemePreviews
+@Composable
+fun BlockerErrorAlertDialogPreView() {
+    BlockerTheme {
+        Surface {
+            BlockerErrorAlertDialog(
+                title = "Error",
+                text = "Error message",
+                onDismissRequest = {},
+            )
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun BlockerWarningAlertDialogPreView() {
+    BlockerTheme {
+        Surface {
+            BlockerWarningAlertDialog(
+                title = "Warning",
+                text = "Warning message",
+                onDismissRequest = {},
+                onConfirmRequest = {},
+            )
+        }
+    }
+}
+
+@ThemePreviews
 @Composable
 fun BlockerConfirmAlertDialogPreView() {
     BlockerTheme {
-        BlockerConfirmAlertDialog(
-            text = "This operation will block 4 components, do you want to continue?",
-            onDismissRequest = {},
-            onConfirmRequest = {},
-        )
+        Surface {
+            BlockerConfirmAlertDialog(
+                text = "This operation will block 4 components, do you want to continue?",
+                onDismissRequest = {},
+                onConfirmRequest = {},
+            )
+        }
     }
 }
