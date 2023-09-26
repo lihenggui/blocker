@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,7 @@ import coil.compose.AsyncImagePainter.State.Error
 import coil.compose.AsyncImagePainter.State.Loading
 import coil.compose.rememberAsyncImagePainter
 import com.merxury.blocker.core.designsystem.R
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.LocalTintTheme
 
 /**
@@ -83,5 +85,19 @@ fun DynamicAsyncImage(
             colorFilter = if (iconTint != null) ColorFilter.tint(iconTint) else null,
             modifier = modifier,
         )
+    }
+}
+
+@ThemePreviews
+@Composable
+fun DynamicAsyncImagePreview() {
+    BlockerTheme {
+        Surface {
+            DynamicAsyncImage(
+                imageUrl = "https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_92x30dp.png",
+                contentDescription = "Google",
+                modifier = Modifier.size(80.dp),
+            )
+        }
     }
 }
