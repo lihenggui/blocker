@@ -179,7 +179,7 @@ fun BlockerButtonAlertDialog(
 
 @Preview
 @Composable
-fun BlockerButtonAlertDialogPreView() {
+fun BlockerButtonAlertDialogPreview() {
     BlockerTheme {
         BlockerButtonAlertDialog(
             onDismissRequest = {},
@@ -203,7 +203,7 @@ fun BlockerButtonAlertDialogPreView() {
 @Preview
 @ThemePreviews
 @Composable
-fun BlockerErrorAlertDialogPreView() {
+fun BlockerErrorAlertDialogPreview() {
     BlockerTheme {
         Surface {
             BlockerErrorAlertDialog(
@@ -217,7 +217,7 @@ fun BlockerErrorAlertDialogPreView() {
 
 @ThemePreviews
 @Composable
-fun BlockerWarningAlertDialogPreView() {
+fun BlockerWarningAlertDialogPreview() {
     BlockerTheme {
         Surface {
             BlockerWarningAlertDialog(
@@ -232,7 +232,7 @@ fun BlockerWarningAlertDialogPreView() {
 
 @ThemePreviews
 @Composable
-fun BlockerConfirmAlertDialogPreView() {
+fun BlockerConfirmAlertDialogPreview() {
     BlockerTheme {
         Surface {
             BlockerConfirmAlertDialog(
