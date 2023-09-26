@@ -24,6 +24,7 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.SerializationException
@@ -48,7 +49,7 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
     }
 
     override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
-        val userGeneratedRules = workingDir.listFilesRecursively()
+        val customizedComponents = workingDir.listFilesRecursively()
             .map { file ->
                 val relativePath = file.relativeTo(workingDir)
                 val componentName = relativePath.path
@@ -56,40 +57,35 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
                     .removeSuffix(".$EXTENSION")
                 componentName
             }
-            .map {
-                val component = componentDataSource.getComponent(packageName, it)
+            .mapNotNull { componentName ->
+                componentDataSource.getComponent(packageName, componentName).first()
             }
-        val path = packageName.replace(".", File.separator)
-            .plus(File.separator)
-        if (!workingDir.exists()) {
-            Timber.v("Customized rules folder not exists")
-            emit(emptyList())
-        }
-        val folder = workingDir.resolve(path)
-        if (!folder.exists()) {
-            Timber.v("Customized rules folder not exists")
-            emit(emptyList())
-        }
-        val componentDetails = folder.listFilesRecursively()
-            .filter { it.extension == EXTENSION }
-            .mapNotNull {
-                try {
-                    json.decodeFromString<ComponentDetail>(it.readText())
+            .mapNotNull { componentInfo ->
+                val path = componentInfo.name.replace(".", File.separator)
+                    .plus(".$EXTENSION")
+                val file = workingDir.resolve(path)
+                if (!file.exists()) {
+                    return@mapNotNull null
+                }
+                return@mapNotNull try {
+                    json.decodeFromString<ComponentDetail>(file.readText())
                 } catch (e: SerializationException) {
                     Timber.e(
                         e,
-                        "Error in decoding contents in ${folder.absolutePath} for the ComponentDetail",
+                        "Error in decoding contents in ${file.absolutePath} " +
+                            "for the ComponentDetail",
                     )
                     null
                 } catch (e: IllegalArgumentException) {
                     Timber.e(
                         e,
-                        "File ${folder.absolutePath} is not valid for a ComponentDetail class",
+                        "File ${file.absolutePath} " +
+                            "is not valid for a ComponentDetail class",
                     )
                     null
                 }
             }
-        emit(componentDetails)
+        emit(customizedComponents)
     }
         .flowOn(ioDispatcher)
 
