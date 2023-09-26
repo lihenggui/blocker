@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,7 +40,12 @@ import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.PROVIDER
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.plurals
@@ -177,5 +183,76 @@ private fun MatchedAppInfo(
                 matchedComponentCount,
             ),
         )
+    }
+}
+
+@Composable
+@ThemePreviews
+fun MatchedAppItemHeaderPreview() {
+    val ruleMatchedApp = RuleMatchedApp(
+        app = AppItem(
+            packageName = "com.merxury.example",
+            label = "Example label",
+            packageInfo = null,
+        ),
+        componentList = listOf(
+            ComponentItem(
+                packageName = "com.merxury.example",
+                name = "com.merxury.example.MainActivity",
+                simpleName = "MainActivity",
+                pmBlocked = true,
+                type = ACTIVITY,
+            ),
+            ComponentItem(
+                packageName = "com.merxury.example",
+                name = "com.merxury.example.provider",
+                simpleName = "example",
+                type = PROVIDER,
+                pmBlocked = false,
+            ),
+        ),
+    )
+    BlockerTheme {
+        Surface {
+            MatchedAppItemHeader(
+                ruleMatchedApp = ruleMatchedApp,
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun MatchedAppItemHeaderLongNamePreview() {
+    val ruleMatchedApp = RuleMatchedApp(
+        app = AppItem(
+            packageName = "com.merxury.example",
+            label = "Example long long long longlong name",
+            packageInfo = null,
+        ),
+        componentList = listOf(
+            ComponentItem(
+                packageName = "com.merxury.example",
+                name = "com.merxury.example.MainActivity",
+                simpleName = "MainActivity",
+                pmBlocked = true,
+                type = ACTIVITY,
+            ),
+            ComponentItem(
+                packageName = "com.merxury.example",
+                name = "com.merxury.example.provider",
+                simpleName = "example",
+                type = PROVIDER,
+                pmBlocked = false,
+            ),
+        ),
+    )
+    BlockerTheme {
+        Surface {
+            MatchedAppItemHeader(
+                ruleMatchedApp = ruleMatchedApp,
+                expanded = true,
+            )
+        }
     }
 }

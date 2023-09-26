@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.ui.applist
 
 import android.content.pm.PackageInfo
-import android.content.res.Configuration
 import android.view.MotionEvent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -56,6 +55,7 @@ import coil.request.ImageRequest
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.ui.R.string
@@ -69,17 +69,17 @@ fun AppListItem(
     versionCode: Long,
     isAppEnabled: Boolean,
     isAppRunning: Boolean,
-    packageInfo: PackageInfo?,
-    appServiceStatus: AppServiceStatus?,
-    onClick: (String) -> Unit,
-    onClearCacheClick: (String) -> Unit,
-    onClearDataClick: (String) -> Unit,
-    onForceStopClick: (String) -> Unit,
-    onUninstallClick: (String) -> Unit,
-    onEnableClick: (String) -> Unit,
-    onDisableClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
+    packageInfo: PackageInfo? = null,
+    appServiceStatus: AppServiceStatus? = null,
+    onClick: (String) -> Unit = {},
+    onClearCacheClick: (String) -> Unit = {},
+    onClearDataClick: (String) -> Unit = {},
+    onForceStopClick: (String) -> Unit = {},
+    onUninstallClick: (String) -> Unit = {},
+    onEnableClick: (String) -> Unit = {},
+    onDisableClick: (String) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
@@ -212,8 +212,7 @@ private fun AppContent(
 }
 
 @Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@ThemePreviews
 fun AppListItemPreview() {
     val appServiceStatus = AppServiceStatus(
         running = 1,
@@ -232,13 +231,6 @@ fun AppListItemPreview() {
                 isAppRunning = true,
                 packageInfo = PackageInfo(),
                 appServiceStatus = appServiceStatus,
-                onClick = { },
-                onClearCacheClick = { },
-                onClearDataClick = { },
-                onForceStopClick = { },
-                onUninstallClick = { },
-                onEnableClick = { },
-                onDisableClick = { },
             )
         }
     }
@@ -255,16 +247,7 @@ fun AppListItemWithoutServiceInfoPreview() {
                 versionName = "1.0.12",
                 versionCode = 1206,
                 isAppEnabled = true,
-                isAppRunning = true,
-                packageInfo = PackageInfo(),
-                appServiceStatus = null,
-                onClick = { },
-                onClearCacheClick = { },
-                onClearDataClick = { },
-                onForceStopClick = { },
-                onUninstallClick = { },
-                onEnableClick = { },
-                onDisableClick = { },
+                isAppRunning = false,
             )
         }
     }
@@ -273,6 +256,12 @@ fun AppListItemWithoutServiceInfoPreview() {
 @Composable
 @Preview
 fun AppListItemWithLongAppName() {
+    val appServiceStatus = AppServiceStatus(
+        running = 0,
+        blocked = 2,
+        total = 10,
+        packageName = "com.merxury.blocker",
+    )
     BlockerTheme {
         Surface {
             AppListItem(
@@ -283,14 +272,7 @@ fun AppListItemWithLongAppName() {
                 isAppEnabled = true,
                 isAppRunning = true,
                 packageInfo = PackageInfo(),
-                appServiceStatus = null,
-                onClick = { },
-                onClearCacheClick = { },
-                onClearDataClick = { },
-                onForceStopClick = { },
-                onUninstallClick = { },
-                onEnableClick = { },
-                onDisableClick = { },
+                appServiceStatus = appServiceStatus,
             )
         }
     }
