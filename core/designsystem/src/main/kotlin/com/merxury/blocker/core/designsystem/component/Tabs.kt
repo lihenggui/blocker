@@ -23,16 +23,19 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 /**
  * Blocker tab. Wraps Material 3 [Tab] and shifts text label down.
@@ -126,6 +129,25 @@ fun BlockerTabRow(
         },
         tabs = tabs,
     )
+}
+
+@ThemePreviews
+@Composable
+fun TabsPreview() {
+    BlockerTheme {
+        Surface {
+            val titles = listOf("App info", "Activity")
+            BlockerTabRow(selectedTabIndex = 0) {
+                titles.forEachIndexed { index, title ->
+                    BlockerTab(
+                        selected = index == 0,
+                        onClick = { },
+                        text = { Text(text = title) },
+                    )
+                }
+            }
+        }
+    }
 }
 
 object BlockerTabDefaults {
