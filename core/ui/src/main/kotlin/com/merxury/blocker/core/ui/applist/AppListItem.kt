@@ -247,9 +247,7 @@ fun AppListItemWithoutServiceInfoPreview() {
                 versionName = "1.0.12",
                 versionCode = 1206,
                 isAppEnabled = true,
-                isAppRunning = true,
-                packageInfo = PackageInfo(),
-                appServiceStatus = null,
+                isAppRunning = false,
             )
         }
     }
@@ -258,6 +256,12 @@ fun AppListItemWithoutServiceInfoPreview() {
 @Composable
 @Preview
 fun AppListItemWithLongAppName() {
+    val appServiceStatus = AppServiceStatus(
+        running = 0,
+        blocked = 2,
+        total = 10,
+        packageName = "com.merxury.blocker",
+    )
     BlockerTheme {
         Surface {
             AppListItem(
@@ -265,10 +269,10 @@ fun AppListItemWithLongAppName() {
                 packageName = "com.merxury.blocker",
                 versionName = "1.0.12",
                 versionCode = 1206,
-                isAppEnabled = false,
+                isAppEnabled = true,
                 isAppRunning = true,
                 packageInfo = PackageInfo(),
-                appServiceStatus = null,
+                appServiceStatus = appServiceStatus,
             )
         }
     }
