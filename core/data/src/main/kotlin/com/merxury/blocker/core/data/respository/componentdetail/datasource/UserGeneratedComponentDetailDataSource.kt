@@ -17,9 +17,11 @@
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.respository.component.CacheComponentDataSource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
+import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -36,14 +38,63 @@ private const val EXTENSION = "json"
 private const val BASE_FOLDER = "user-generated-rules"
 
 class UserGeneratedComponentDetailDataSource @Inject constructor(
+    private val componentDataSource: CacheComponentDataSource,
     @FilesDir private val filesDir: File,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
+    private val workingDir: File by lazy {
+        filesDir.resolve(BASE_FOLDER)
+    }
 
-    override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        val workingDir = filesDir.resolve(BASE_FOLDER)
-        val path = name.replace(".", "/")
+    override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
+        val userGeneratedRules = workingDir.listFilesRecursively()
+            .map { file ->
+                val relativePath = file.relativeTo(workingDir)
+                val componentName = relativePath.path
+                    .replace(File.separator, ".")
+                    .removeSuffix(".$EXTENSION")
+                componentName
+            }
+            .map {
+                val component = componentDataSource.getComponent(packageName, it)
+            }
+        val path = packageName.replace(".", File.separator)
+            .plus(File.separator)
+        if (!workingDir.exists()) {
+            Timber.v("Customized rules folder not exists")
+            emit(emptyList())
+        }
+        val folder = workingDir.resolve(path)
+        if (!folder.exists()) {
+            Timber.v("Customized rules folder not exists")
+            emit(emptyList())
+        }
+        val componentDetails = folder.listFilesRecursively()
+            .filter { it.extension == EXTENSION }
+            .mapNotNull {
+                try {
+                    json.decodeFromString<ComponentDetail>(it.readText())
+                } catch (e: SerializationException) {
+                    Timber.e(
+                        e,
+                        "Error in decoding contents in ${folder.absolutePath} for the ComponentDetail",
+                    )
+                    null
+                } catch (e: IllegalArgumentException) {
+                    Timber.e(
+                        e,
+                        "File ${folder.absolutePath} is not valid for a ComponentDetail class",
+                    )
+                    null
+                }
+            }
+        emit(componentDetails)
+    }
+        .flowOn(ioDispatcher)
+
+    override fun getByComponentName(name: String): Flow<ComponentDetail?> = flow {
+        val path = name.replace(".", File.separator)
             .plus(".$EXTENSION")
         if (!workingDir.exists()) {
             workingDir.mkdirs()
@@ -63,12 +114,13 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         } else {
             emit(null)
         }
-    }.flowOn(ioDispatcher)
+    }
+        .flowOn(ioDispatcher)
 
     override fun saveComponentData(component: ComponentDetail): Flow<Boolean> = flow {
         val workingDir = filesDir.resolve(BASE_FOLDER)
         val name = component.name
-        val path = name.replace(".", "/")
+        val path = name.replace(".", File.separator)
             .plus(".$EXTENSION")
         try {
             if (!workingDir.exists()) {

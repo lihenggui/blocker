@@ -54,10 +54,10 @@ interface AppComponentDao {
         "SELECT * FROM app_component WHERE package_name LIKE :packageName " +
             "AND component_name LIKE :componentName",
     )
-    suspend fun getByPackageNameAndComponentName(
+    fun getByPackageNameAndComponentName(
         packageName: String,
         componentName: String,
-    ): AppComponentEntity?
+    ): Flow<AppComponentEntity?>
 
     @Query("SELECT * FROM app_component WHERE package_name LIKE :packageName AND type = :type")
     fun getByPackageNameAndType(
