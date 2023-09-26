@@ -20,7 +20,10 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.flow.Flow
 
 interface ComponentDetailDataSource {
-    fun getComponentDetail(name: String): Flow<ComponentDetail?>
+
+    fun getByPackageName(packageName: String): Flow<List<ComponentDetail>>
+
+    fun getByComponentName(name: String): Flow<ComponentDetail?>
 
     fun saveComponentData(component: ComponentDetail): Flow<Boolean>
 }

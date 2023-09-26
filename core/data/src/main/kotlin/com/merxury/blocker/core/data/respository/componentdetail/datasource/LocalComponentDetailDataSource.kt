@@ -20,6 +20,7 @@ import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
+import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -34,22 +35,56 @@ import javax.inject.Inject
 private const val EXTENSION = "json"
 private const val BASE_FOLDER = "blocker-general-rules"
 private const val COMPONENT_FOLDER = "components"
+
 class LocalComponentDetailDataSource @Inject constructor(
     private val json: Json,
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
-
-    override fun getComponentDetail(name: String): Flow<ComponentDetail?> = flow {
-        val workingDir = filesDir.resolve(BASE_FOLDER)
+    private val workingDir: File by lazy {
+        filesDir.resolve(BASE_FOLDER)
             .resolve(COMPONENT_FOLDER)
             .resolve("zh-cn")
+    }
+
+    override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
+        val path = packageName.replace(".", File.separator)
+            .plus(File.separator)
+        val folder = workingDir.resolve(path)
+        if (!folder.exists()) {
+            Timber.v("Component folder for $packageName does not exist")
+            emit(emptyList())
+            return@flow
+        }
+        // Check if folder contains any json file
+        val files = folder.listFilesRecursively()
+            .filter { it.extension == EXTENSION }
+        if (files.isEmpty()) {
+            Timber.v("No component info for $packageName found")
+            emit(emptyList())
+            return@flow
+        }
+        val componentDetails = mutableListOf<ComponentDetail>()
+        files.forEach { file ->
+            try {
+                val componentDetail = json.decodeFromString<ComponentDetail>(file.readText())
+                componentDetails.add(componentDetail)
+            } catch (e: SerializationException) {
+                Timber.e(e, "given JSON string is not a valid JSON input for the type")
+            } catch (e: IllegalArgumentException) {
+                Timber.e(e, "decoded input cannot be represented as a valid instance of type")
+            }
+        }
+        emit(componentDetails)
+    }.flowOn(ioDispatcher)
+
+    override fun getByComponentName(name: String): Flow<ComponentDetail?> = flow {
         if (!workingDir.exists()) {
             Timber.w("Component folder not exist")
             emit(null)
             return@flow
         }
-        val path = name.replace(".", "/")
+        val path = name.replace(".", File.separator)
             .plus(".$EXTENSION")
         val file = workingDir.resolve(path)
         if (file.exists()) {

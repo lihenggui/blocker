@@ -21,6 +21,12 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import kotlinx.coroutines.flow.Flow
 
 interface ComponentDataSource {
+
+    fun getComponent(
+        packageName: String,
+        componentName: String,
+    ): Flow<ComponentInfo?>
+
     fun getComponentList(
         packageName: String,
         type: ComponentType,

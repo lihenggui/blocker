@@ -392,11 +392,11 @@ class AppDetailViewModel @Inject constructor(
             .toMutableStateList()
     }
 
-    private fun updateSearchKeyword() {
+    private fun updateSearchKeyword() = viewModelScope.launch {
         val keyword = appDetailArgs.searchKeyword
             .map { it.trim() }
             .filterNot { it.isEmpty() }
-        if (keyword.isEmpty()) return
+        if (keyword.isEmpty()) return@launch
         val keywordString = keyword.joinToString(",")
         Timber.v("Search keyword: $keyword")
         _appBarUiState.update {
@@ -408,7 +408,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadTabInfo() {
+    private fun loadTabInfo() = viewModelScope.launch {
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
@@ -417,7 +417,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun switchTab(newTab: AppDetailTabs) {
+    fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch {
         if (newTab != tabState.value.selectedItem) {
             _tabState.update {
                 it.copy(selectedItem = newTab)
@@ -428,9 +428,19 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun getAppBarAction(): List<AppBarAction> = when (tabState.value.selectedItem) {
-        Info -> listOf(SHARE_RULE)
+    private suspend fun getAppBarAction(): List<AppBarAction> = when (tabState.value.selectedItem) {
+        Info -> if (hasCustomizedRule()) {
+            listOf(SHARE_RULE)
+        } else {
+            emptyList()
+        }
         else -> listOf(SEARCH, MORE)
+    }
+
+    private suspend fun hasCustomizedRule(): Boolean {
+        val packageName = appDetailArgs.packageName
+        return componentDetailRepository.hasUserGeneratedDetail(packageName)
+            .first()
     }
 
     fun launchApp(context: Context, packageName: String): Boolean {
