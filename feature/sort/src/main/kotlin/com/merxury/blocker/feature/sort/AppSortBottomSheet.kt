@@ -38,7 +38,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppSortInfo
@@ -47,8 +46,10 @@ import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
+import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.feature.sort.R.string
 import java.lang.Boolean.FALSE
 import java.lang.Boolean.TRUE
 
@@ -114,39 +115,39 @@ fun AppSortOptionsContent(
     onChangeShowRunningAppsOnTop: (Boolean) -> Unit,
 ) {
     val sortModeList = listOf(
-        NAME to R.string.feature_sort_name,
-        AppSorting.FIRST_INSTALL_TIME to R.string.feature_sort_install_date,
-        AppSorting.LAST_UPDATE_TIME to R.string.feature_sort_last_updated,
+        NAME to string.feature_sort_name,
+        AppSorting.FIRST_INSTALL_TIME to string.feature_sort_install_date,
+        AppSorting.LAST_UPDATE_TIME to string.feature_sort_last_updated,
     )
     val sortByRuleList = listOf(
-        ASCENDING to R.string.feature_sort_ascending,
-        DESCENDING to R.string.feature_sort_descending,
+        ASCENDING to string.feature_sort_ascending,
+        DESCENDING to string.feature_sort_descending,
     )
     val showRunningAppsOnTopList = listOf(
-        TRUE to R.string.feature_sort_on,
-        FALSE to R.string.feature_sort_off,
+        TRUE to string.feature_sort_on,
+        FALSE to string.feature_sort_off,
     )
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = stringResource(id = R.string.feature_sort_sort_options),
+            text = stringResource(id = string.feature_sort_sort_options),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
             modifier = modifier.fillMaxWidth(),
         )
-        ItemHeader(title = stringResource(id = R.string.feature_sort_sort_by))
+        ItemHeader(title = stringResource(id = string.feature_sort_sort_by))
         SegmentedButtons(
             items = sortModeList,
             selectedValue = uiState.appSortInfo.sorting,
             onItemSelection = onSortByClick,
         )
-        ItemHeader(title = stringResource(id = R.string.feature_sort_order))
+        ItemHeader(title = stringResource(id = string.feature_sort_order))
         SegmentedButtons(
             items = sortByRuleList,
             selectedValue = uiState.appSortInfo.order,
             onItemSelection = onSortOrderClick,
         )
-        ItemHeader(title = stringResource(id = R.string.feature_sort_show_running_apps_on_top))
+        ItemHeader(title = stringResource(id = string.feature_sort_show_running_apps_on_top))
         SegmentedButtons(
             items = showRunningAppsOnTopList,
             selectedValue = uiState.appSortInfo.showRunningAppsOnTop,
