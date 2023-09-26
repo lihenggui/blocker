@@ -85,7 +85,7 @@ class AppListItemScreenshotTests {
     }
 
     @Test
-    fun navigation_hugeFont() {
+    fun appListItem_hugeFont() {
         composeTestRule.setContent {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
