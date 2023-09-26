@@ -39,6 +39,8 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.timber)
 
+    androidTestImplementation(projects.core.testing)
+
     api(libs.androidx.compose.foundation)
     api(libs.androidx.compose.foundation.layout)
     api(libs.androidx.compose.material.iconsExtended)

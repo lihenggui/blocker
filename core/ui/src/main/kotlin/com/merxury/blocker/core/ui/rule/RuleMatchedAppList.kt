@@ -54,14 +54,14 @@ import com.merxury.blocker.core.ui.screen.LoadingScreen
 fun RuleMatchedAppList(
     modifier: Modifier = Modifier,
     ruleMatchedAppListUiState: RuleMatchedAppListUiState,
-    onStopServiceClick: (String, String) -> Unit,
-    onLaunchActivityClick: (String, String) -> Unit,
-    onCopyNameClick: (String) -> Unit,
-    onCopyFullNameClick: (String) -> Unit,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onSwitch: (String, String, Boolean) -> Unit,
+    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (ruleMatchedAppListUiState) {
         RuleMatchedAppListUiState.Loading -> LoadingScreen()
@@ -169,18 +169,21 @@ fun RuleMatchedAppListPreview() {
         ),
         componentList = listOf(componentInfo),
     )
+    val ruleMatchedApp2 = RuleMatchedApp(
+        app = AppItem(
+            packageName = "com.merxury.blocker",
+            label = "Test long long long long long name",
+            isSystem = false,
+        ),
+        componentList = listOf(),
+    )
     val uiState = RuleMatchedAppListUiState.Success(
-        list = listOf(ruleMatchedApp),
+        list = listOf(ruleMatchedApp, ruleMatchedApp2),
     )
     BlockerTheme {
         Surface {
             RuleMatchedAppList(
                 ruleMatchedAppListUiState = uiState,
-                onStopServiceClick = { _, _ -> },
-                onLaunchActivityClick = { _, _ -> },
-                onCopyNameClick = {},
-                onCopyFullNameClick = {},
-                onSwitch = { _, _, _ -> },
             )
         }
     }

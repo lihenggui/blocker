@@ -39,10 +39,10 @@ fun SelectedAppTopBar(
     title: Int,
     selectedItemCount: Int,
     selectedComponentCount: Int,
-    onNavigationClick: () -> Unit,
-    onSelectAll: () -> Unit,
-    onBlockAll: () -> Unit,
-    onEnableAll: () -> Unit,
+    onNavigationClick: () -> Unit = {},
+    onSelectAll: () -> Unit = {},
+    onBlockAll: () -> Unit = {},
+    onEnableAll: () -> Unit = {},
 ) {
     var showBlockAllDialog by remember {
         mutableStateOf(false)
@@ -118,10 +118,6 @@ fun SelectedAppTopBarPreview() {
                 title = R.plurals.core_ui_selected_app_count,
                 selectedItemCount = 3,
                 selectedComponentCount = 6,
-                onNavigationClick = {},
-                onSelectAll = {},
-                onBlockAll = {},
-                onEnableAll = {},
             )
         }
     }
