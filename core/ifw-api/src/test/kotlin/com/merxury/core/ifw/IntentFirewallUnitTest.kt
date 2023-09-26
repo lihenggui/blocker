@@ -20,15 +20,12 @@ import com.merxury.core.ifw.Component.Broadcast
 import com.merxury.core.ifw.Component.Service
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
-import nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy
 import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.Test
+
 class IntentFirewallUnitTest {
 
-    @OptIn(ExperimentalXmlUtilApi::class)
     private val xml = XML {
-        policy = DefaultXmlSerializationPolicy(pedantic = false)
         indentString = "   "
     }
 
