@@ -24,7 +24,6 @@ import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.data.ComponentInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -33,6 +32,12 @@ class CacheComponentDataSource @Inject constructor(
     private val componentDao: AppComponentDao,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDataSource {
+    override fun getComponent(packageName: String, componentName: String): Flow<ComponentInfo?> {
+        return componentDao.getByPackageNameAndComponentName(packageName, componentName)
+            .map { it?.toComponentInfo() }
+            .flowOn(ioDispatcher)
+    }
+
     override fun getComponentList(
         packageName: String,
         type: ComponentType,
@@ -57,9 +62,7 @@ class CacheComponentDataSource @Inject constructor(
     override fun getComponentType(
         packageName: String,
         componentName: String,
-    ): Flow<ComponentType?> = flow {
-        val comp = componentDao.getByPackageNameAndComponentName(packageName, componentName)
-        emit(comp?.type)
-    }
-        .flowOn(ioDispatcher)
+    ): Flow<ComponentType?> =
+        componentDao.getByPackageNameAndComponentName(packageName, componentName)
+            .map { it?.type }
 }
