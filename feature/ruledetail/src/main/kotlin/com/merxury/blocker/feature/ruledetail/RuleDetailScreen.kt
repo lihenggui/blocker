@@ -416,7 +416,7 @@ fun RuleDetailTabContent(
 @Composable
 @Preview
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun RuleDetailScreenPreView() {
+fun RuleDetailScreenPreview() {
     val componentInfo = ComponentItem(
         name = "component",
         simpleName = "com",
@@ -481,7 +481,7 @@ fun RuleDetailScreenPreView() {
 
 @Composable
 @Preview
-fun RuleDetailScreenWithApplicableLoadingPreView() {
+fun RuleDetailScreenWithApplicableLoadingPreview() {
     val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Loading
     val item = GeneralRule(
         id = 2,
@@ -529,7 +529,7 @@ fun RuleDetailScreenWithApplicableLoadingPreView() {
 
 @Composable
 @Preview
-fun RuleDetailScreenLoadingPreView() {
+fun RuleDetailScreenLoadingPreview() {
     val componentInfo = ComponentItem(
         name = "component",
         simpleName = "com",
@@ -576,7 +576,7 @@ fun RuleDetailScreenLoadingPreView() {
 
 @Composable
 @Preview
-fun RuleDetailScreenErrorPreView() {
+fun RuleDetailScreenErrorPreview() {
     val componentInfo = ComponentItem(
         name = "component",
         simpleName = "com",
