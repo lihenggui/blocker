@@ -235,7 +235,6 @@ private fun CollapsingToolbarLayout(
 }
 
 @Preview
-@Preview(widthDp = 300, heightDp = 500)
 @Composable
 fun CollapsingToolbarCollapsedPreview() {
     BlockerTheme {

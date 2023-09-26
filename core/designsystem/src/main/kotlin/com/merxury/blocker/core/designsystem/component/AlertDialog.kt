@@ -26,6 +26,7 @@ import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -201,13 +202,45 @@ fun BlockerButtonAlertDialogPreView() {
 }
 
 @Preview
+@ThemePreviews
+@Composable
+fun BlockerErrorAlertDialogPreView() {
+    BlockerTheme {
+        Surface {
+            BlockerErrorAlertDialog(
+                title = "Error",
+                text = "Error message",
+                onDismissRequest = {},
+            )
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun BlockerWarningAlertDialogPreView() {
+    BlockerTheme {
+        Surface {
+            BlockerWarningAlertDialog(
+                title = "Warning",
+                text = "Warning message",
+                onDismissRequest = {},
+                onConfirmRequest = {},
+            )
+        }
+    }
+}
+
+@ThemePreviews
 @Composable
 fun BlockerConfirmAlertDialogPreView() {
     BlockerTheme {
-        BlockerConfirmAlertDialog(
-            text = "This operation will block 4 components, do you want to continue?",
-            onDismissRequest = {},
-            onConfirmRequest = {},
-        )
+        Surface {
+            BlockerConfirmAlertDialog(
+                text = "This operation will block 4 components, do you want to continue?",
+                onDismissRequest = {},
+                onConfirmRequest = {},
+            )
+        }
     }
 }

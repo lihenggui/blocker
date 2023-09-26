@@ -30,7 +30,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
@@ -38,6 +37,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.component.BlockerOutlinedCard
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -131,7 +131,7 @@ private fun CardContent(searchKeyword: List<String>) {
 }
 
 @Composable
-@Preview
+@ThemePreviews
 fun RuleBasicInfoPreview() {
     val item = GeneralRule(
         id = 2,
@@ -143,6 +143,19 @@ fun RuleBasicInfoPreview() {
         safeToBlock = false,
         contributors = listOf("Google"),
         searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
+        matchedAppCount = 10,
+    )
+    BlockerTheme {
+        RuleCard(item = item)
+    }
+}
+
+@Composable
+@ThemePreviews
+fun RuleSimpleInfoPreview() {
+    val item = GeneralRule(
+        id = 3,
+        name = "Android WorkerManager Test",
     )
     BlockerTheme {
         RuleCard(item = item)
