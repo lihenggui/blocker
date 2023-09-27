@@ -28,6 +28,7 @@ import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.automirrored.rounded.ShortText
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Block
@@ -94,6 +95,7 @@ object BlockerIcons {
     val CheckList = Icons.Outlined.Checklist
     val CheckSmall = Icons.Outlined.Check
     val Language = Icons.Default.Language
+    val Translate = Icons.Default.Translate
 
     val Rectangle = R.drawable.core_designsystem_ic_rectangle
     val Android = R.drawable.core_designsystem_ic_android
