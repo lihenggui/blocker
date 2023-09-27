@@ -36,5 +36,5 @@ data class UserPreferenceData(
     val showRunningAppsOnTop: Boolean,
     val isFirstTimeInitializationCompleted: Boolean,
     val appDisplayLanguage: String,
-    val ruleDisplayLanguage: String,
+    val libDisplayLanguage: String,
 )

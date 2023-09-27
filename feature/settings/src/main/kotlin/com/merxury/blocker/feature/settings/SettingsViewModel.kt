@@ -81,7 +81,7 @@ class SettingsViewModel @Inject constructor(
                         controllerType = userData.controllerType,
                         ruleServerProvider = userData.ruleServerProvider,
                         appDisplayLanguage = userData.appDisplayLanguage,
-                        ruleDisplayLanguage = userData.ruleDisplayLanguage,
+                        libDisplayLanguage = userData.libDisplayLanguage,
                         ruleBackupFolder = getPathFromUriString(userData.ruleBackupFolder),
                         backupSystemApp = userData.backupSystemApp,
                         restoreSystemApp = userData.restoreSystemApp,
@@ -153,9 +153,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun updateRuleDisplayLanguage(language: String) {
+    fun updateLibDisplayLanguage(language: String) {
         viewModelScope.launch {
-            userDataRepository.setRuleDisplayLanguage(language)
+            userDataRepository.setLibDisplayLanguage(language)
         }
     }
 
