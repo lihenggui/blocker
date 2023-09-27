@@ -48,7 +48,7 @@ val emptyUserData = UserPreferenceData(
     isFirstTimeInitializationCompleted = false,
     showRunningAppsOnTop = false,
     appDisplayLanguage = "en-US",
-    ruleDisplayLanguage = "en-US",
+    libDisplayLanguage = "en-US",
 )
 class TestUserDataRepository : UserDataRepository {
 
@@ -128,8 +128,8 @@ class TestUserDataRepository : UserDataRepository {
         _userData.tryEmit(currentUserData.copy(appDisplayLanguage = language))
     }
 
-    override suspend fun setRuleDisplayLanguage(language: String) {
-        _userData.tryEmit(currentUserData.copy(ruleDisplayLanguage = language))
+    override suspend fun setLibDisplayLanguage(language: String) {
+        _userData.tryEmit(currentUserData.copy(libDisplayLanguage = language))
     }
 
     fun sendUserData(userData: UserPreferenceData) {

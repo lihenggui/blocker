@@ -210,7 +210,7 @@ private val sampleUserData = UserPreferenceData(
     isFirstTimeInitializationCompleted = true,
     showRunningAppsOnTop = true,
     appDisplayLanguage = "",
-    ruleDisplayLanguage = "",
+    libDisplayLanguage = "",
 )
 
 private val sampleAppList = listOf(

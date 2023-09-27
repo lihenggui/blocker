@@ -42,7 +42,7 @@ fun BlockerSettings(
     onChangeControllerType: (ControllerType) -> Unit = {},
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit = {},
     onChangeAppDisplayLanguage: (String) -> Unit = {},
-    onChangeRuleDisplayLanguage: (String) -> Unit = {},
+    onChangeLibDisplayLanguage: (String) -> Unit = {},
 ) {
     Column {
         DialogSettingsItems(
@@ -82,13 +82,13 @@ fun BlockerSettings(
         DialogSettingsItems(
             icon = ImageVectorIcon(BlockerIcons.Translate),
             titleRes = string.feature_settings_library_language,
-            selectedItem = settings.appDisplayLanguage,
+            selectedItem = settings.libDisplayLanguage,
             itemList = listOf(
                 "" to string.feature_settings_follow_system,
                 Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
                 Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
             ),
-            onValueChange = onChangeRuleDisplayLanguage,
+            onValueChange = onChangeLibDisplayLanguage,
         )
     }
 }

@@ -180,12 +180,12 @@ fun AnalyticsHelper.logAppDisplayLanguageChanged(language: String) =
         ),
     )
 
-fun AnalyticsHelper.logRuleDisplayLanguageChanged(language: String) =
+fun AnalyticsHelper.logLibDisplayLanguageChanged(language: String) =
     logEvent(
         AnalyticsEvent(
-            type = "rule_display_language_changed",
+            type = "lib_display_language_changed",
             extras = listOf(
-                Param(key = "rule_display_language", value = language),
+                Param(key = "lib_display_language", value = language),
             ),
         ),
     )
