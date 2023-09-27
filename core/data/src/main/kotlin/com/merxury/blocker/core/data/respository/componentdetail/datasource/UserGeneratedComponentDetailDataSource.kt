@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
 import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.respository.component.CacheComponentDataSource
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
@@ -39,16 +40,15 @@ private const val EXTENSION = "json"
 private const val BASE_FOLDER = "user-generated-rules"
 
 class UserGeneratedComponentDetailDataSource @Inject constructor(
+    private val userDataRepository: UserDataRepository,
     private val componentDataSource: CacheComponentDataSource,
     @FilesDir private val filesDir: File,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
-    private val workingDir: File by lazy {
-        filesDir.resolve(BASE_FOLDER)
-    }
 
     override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
+        val workingDir = getWorkingDirWithLang()
         val customizedComponents = workingDir.listFilesRecursively()
             .map { file ->
                 val relativePath = file.relativeTo(workingDir)
@@ -90,6 +90,7 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         .flowOn(ioDispatcher)
 
     override fun getByComponentName(name: String): Flow<ComponentDetail?> = flow {
+        val workingDir = getWorkingDirWithLang()
         val path = name.replace(".", File.separator)
             .plus(".$EXTENSION")
         if (!workingDir.exists()) {
@@ -114,7 +115,7 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         .flowOn(ioDispatcher)
 
     override fun saveComponentData(component: ComponentDetail): Flow<Boolean> = flow {
-        val workingDir = filesDir.resolve(BASE_FOLDER)
+        val workingDir = getWorkingDirWithLang()
         val name = component.name
         val path = name.replace(".", File.separator)
             .plus(".$EXTENSION")
@@ -136,4 +137,10 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         }
     }
         .flowOn(ioDispatcher)
+
+    private suspend fun getWorkingDirWithLang(): File {
+        val libDisplayLanguage = userDataRepository.userData.first().libDisplayLanguage
+        return filesDir.resolve(BASE_FOLDER)
+            .resolve(getLibDisplayLanguage(libDisplayLanguage))
+    }
 }
