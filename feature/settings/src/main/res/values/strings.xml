@@ -57,7 +57,7 @@
     <string name="feature_settings_designers_homepage">Designer\'s homepage</string>
     <string name="feature_settings_open_source_licenses">Open source licenses</string>
     <string name="feature_settings_display_language">Display language</string>
-    <string name="feature_settings_rule_language">Rule language</string>
+    <string name="feature_settings_library_language">Library language</string>
     <string name="feature_settings_follow_system">Follow system</string>
     <string name="feature_settings_english">English</string>
     <string name="feature_settings_simplifed_chinese">Simplified Chinese</string>

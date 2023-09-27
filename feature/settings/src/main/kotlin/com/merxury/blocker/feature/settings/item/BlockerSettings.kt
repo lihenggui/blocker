@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.settings.item
 
 import android.content.res.Configuration
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,51 +44,53 @@ fun BlockerSettings(
     onChangeAppDisplayLanguage: (String) -> Unit = {},
     onChangeRuleDisplayLanguage: (String) -> Unit = {},
 ) {
-    DialogSettingsItems(
-        icon = ImageVectorIcon(BlockerIcons.AutoFix),
-        titleRes = string.feature_settings_controller_type,
-        selectedItem = settings.controllerType,
-        itemList = listOf(
-            IFW to string.feature_settings_intent_firewall,
-            PM to string.feature_settings_package_manager,
-            SHIZUKU to string.feature_settings_shizuku,
-        ),
-        onValueChange = onChangeControllerType,
-    )
-    DialogSettingsItems(
-        icon = ImageVectorIcon(BlockerIcons.Block),
-        titleRes = string.feature_settings_online_rule_source,
-        selectedItem = settings.ruleServerProvider,
-        itemList = listOf(
-            GITHUB to string.feature_settings_options_github,
-            GITLAB to string.feature_settings_options_gitlab,
-        ),
-        onValueChange = onChangeRuleServerProvider,
-    )
-    DialogSettingsItems(
-        icon = ImageVectorIcon(BlockerIcons.Language),
-        titleRes = string.feature_settings_display_language,
-        selectedItem = settings.appDisplayLanguage,
-        itemList = listOf(
-            "" to string.feature_settings_follow_system,
-            Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
-            Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
-            Locale.TRADITIONAL_CHINESE.toLanguageTag() to string.feature_settings_traditional_chinese,
-            Locale("ru").toLanguageTag() to string.feature_settings_russian,
-        ),
-        onValueChange = onChangeAppDisplayLanguage,
-    )
-    DialogSettingsItems(
-        icon = ImageVectorIcon(BlockerIcons.Language),
-        titleRes = string.feature_settings_rule_language,
-        selectedItem = settings.appDisplayLanguage,
-        itemList = listOf(
-            "" to string.feature_settings_follow_system,
-            Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
-            Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
-        ),
-        onValueChange = onChangeRuleDisplayLanguage,
-    )
+    Column {
+        DialogSettingsItems(
+            icon = ImageVectorIcon(BlockerIcons.AutoFix),
+            titleRes = string.feature_settings_controller_type,
+            selectedItem = settings.controllerType,
+            itemList = listOf(
+                IFW to string.feature_settings_intent_firewall,
+                PM to string.feature_settings_package_manager,
+                SHIZUKU to string.feature_settings_shizuku,
+            ),
+            onValueChange = onChangeControllerType,
+        )
+        DialogSettingsItems(
+            icon = ImageVectorIcon(BlockerIcons.Block),
+            titleRes = string.feature_settings_online_rule_source,
+            selectedItem = settings.ruleServerProvider,
+            itemList = listOf(
+                GITHUB to string.feature_settings_options_github,
+                GITLAB to string.feature_settings_options_gitlab,
+            ),
+            onValueChange = onChangeRuleServerProvider,
+        )
+        DialogSettingsItems(
+            icon = ImageVectorIcon(BlockerIcons.Language),
+            titleRes = string.feature_settings_display_language,
+            selectedItem = settings.appDisplayLanguage,
+            itemList = listOf(
+                "" to string.feature_settings_follow_system,
+                Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
+                Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
+                Locale.TRADITIONAL_CHINESE.toLanguageTag() to string.feature_settings_traditional_chinese,
+                Locale("ru").toLanguageTag() to string.feature_settings_russian,
+            ),
+            onValueChange = onChangeAppDisplayLanguage,
+        )
+        DialogSettingsItems(
+            icon = ImageVectorIcon(BlockerIcons.Translate),
+            titleRes = string.feature_settings_library_language,
+            selectedItem = settings.appDisplayLanguage,
+            itemList = listOf(
+                "" to string.feature_settings_follow_system,
+                Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
+                Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
+            ),
+            onValueChange = onChangeRuleDisplayLanguage,
+        )
+    }
 }
 
 @Preview
