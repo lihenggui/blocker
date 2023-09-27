@@ -17,12 +17,14 @@
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -37,6 +39,7 @@ private const val BASE_FOLDER = "blocker-general-rules"
 private const val COMPONENT_FOLDER = "components"
 
 class LocalComponentDetailDataSource @Inject constructor(
+    private val userDataRepository: UserDataRepository,
     private val json: Json,
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -44,13 +47,15 @@ class LocalComponentDetailDataSource @Inject constructor(
     private val workingDir: File by lazy {
         filesDir.resolve(BASE_FOLDER)
             .resolve(COMPONENT_FOLDER)
-            .resolve("zh-cn")
     }
 
     override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
+        val libDisplayLanguage = userDataRepository.userData.first().libDisplayLanguage
         val path = packageName.replace(".", File.separator)
             .plus(File.separator)
-        val folder = workingDir.resolve(path)
+        val folder = workingDir
+            .resolve(getLibDisplayLanguage(libDisplayLanguage))
+            .resolve(path)
         if (!folder.exists()) {
             Timber.v("Component folder for $packageName does not exist")
             emit(emptyList())
@@ -76,7 +81,8 @@ class LocalComponentDetailDataSource @Inject constructor(
             }
         }
         emit(componentDetails)
-    }.flowOn(ioDispatcher)
+    }
+        .flowOn(ioDispatcher)
 
     override fun getByComponentName(name: String): Flow<ComponentDetail?> = flow {
         if (!workingDir.exists()) {
@@ -84,9 +90,12 @@ class LocalComponentDetailDataSource @Inject constructor(
             emit(null)
             return@flow
         }
+        val libDisplayLanguage = userDataRepository.userData.first().libDisplayLanguage
         val path = name.replace(".", File.separator)
             .plus(".$EXTENSION")
-        val file = workingDir.resolve(path)
+        val file = workingDir
+            .resolve(getLibDisplayLanguage(libDisplayLanguage))
+            .resolve(path)
         if (file.exists()) {
             try {
                 val componentDetail = json.decodeFromString<ComponentDetail>(file.readText())
@@ -101,7 +110,8 @@ class LocalComponentDetailDataSource @Inject constructor(
         } else {
             emit(null)
         }
-    }.flowOn(ioDispatcher)
+    }
+        .flowOn(ioDispatcher)
 
     override fun saveComponentData(component: ComponentDetail): Flow<Boolean> {
         Timber.e("Not support saving component detail in LocalComponentDetailDataSource")
