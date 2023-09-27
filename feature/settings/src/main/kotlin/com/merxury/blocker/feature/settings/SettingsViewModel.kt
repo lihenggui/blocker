@@ -80,6 +80,8 @@ class SettingsViewModel @Inject constructor(
                     settings = UserEditableSettings(
                         controllerType = userData.controllerType,
                         ruleServerProvider = userData.ruleServerProvider,
+                        appDisplayLanguage = userData.appDisplayLanguage,
+                        ruleDisplayLanguage = userData.ruleDisplayLanguage,
                         ruleBackupFolder = getPathFromUriString(userData.ruleBackupFolder),
                         backupSystemApp = userData.backupSystemApp,
                         restoreSystemApp = userData.restoreSystemApp,
@@ -142,6 +144,18 @@ class SettingsViewModel @Inject constructor(
     fun updateRuleServerProvider(provider: RuleServerProvider) {
         viewModelScope.launch {
             userDataRepository.setRuleServerProvider(provider)
+        }
+    }
+
+    fun updateAppDisplayLanguage(language: String) {
+        viewModelScope.launch {
+            userDataRepository.setAppDisplayLanguage(language)
+        }
+    }
+
+    fun updateRuleDisplayLanguage(language: String) {
+        viewModelScope.launch {
+            userDataRepository.setRuleDisplayLanguage(language)
         }
     }
 

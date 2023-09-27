@@ -24,6 +24,8 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 data class UserEditableSettings(
     val controllerType: ControllerType = IFW,
     val ruleServerProvider: RuleServerProvider = GITHUB,
+    val appDisplayLanguage: String = "",
+    val ruleDisplayLanguage: String = "",
     val ruleBackupFolder: String = "",
     val backupSystemApp: Boolean = false,
     val restoreSystemApp: Boolean = false,
