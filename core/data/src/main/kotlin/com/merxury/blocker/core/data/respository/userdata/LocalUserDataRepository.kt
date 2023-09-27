@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.respository.userdata
 
 import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.data.respository.logAppDisplayLanguageChanged
 import com.merxury.blocker.core.data.respository.logAppSortingChanged
 import com.merxury.blocker.core.data.respository.logAppSortingOrderChanged
 import com.merxury.blocker.core.data.respository.logBackupSystemAppPreferenceChanged
@@ -26,7 +27,9 @@ import com.merxury.blocker.core.data.respository.logComponentSortingPreferenceCh
 import com.merxury.blocker.core.data.respository.logControllerTypeChanged
 import com.merxury.blocker.core.data.respository.logDarkThemeConfigChanged
 import com.merxury.blocker.core.data.respository.logDynamicColorPreferenceChanged
+import com.merxury.blocker.core.data.respository.logFirstTimeInitializationCompleted
 import com.merxury.blocker.core.data.respository.logRestoreSystemAppPreferenceChanged
+import com.merxury.blocker.core.data.respository.logRuleDisplayLanguageChanged
 import com.merxury.blocker.core.data.respository.logRuleServerProviderChanged
 import com.merxury.blocker.core.data.respository.logShowRunningAppsOnTopPreferenceChanged
 import com.merxury.blocker.core.data.respository.logShowServiceInfoPreferenceChanged
@@ -125,5 +128,18 @@ class LocalUserDataRepository @Inject constructor(
 
     override suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {
         blockerPreferenceDataSource.setIsFirstTimeInitializationCompleted(completed)
+        if (completed) {
+            analyticsHelper.logFirstTimeInitializationCompleted()
+        }
+    }
+
+    override suspend fun setAppDisplayLanguage(language: String) {
+        blockerPreferenceDataSource.setAppDisplayLanguage(language)
+        analyticsHelper.logAppDisplayLanguageChanged(language)
+    }
+
+    override suspend fun setRuleDisplayLanguage(language: String) {
+        blockerPreferenceDataSource.setRuleDisplayLanguage(language)
+        analyticsHelper.logRuleDisplayLanguageChanged(language)
     }
 }

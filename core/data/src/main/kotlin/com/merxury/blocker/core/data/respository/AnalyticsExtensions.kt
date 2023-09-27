@@ -162,3 +162,30 @@ fun AnalyticsHelper.logShowRunningAppsOnTopPreferenceChanged(showRunningAppsOnTo
             ),
         ),
     )
+
+fun AnalyticsHelper.logFirstTimeInitializationCompleted() =
+    logEvent(
+        AnalyticsEvent(
+            type = "first_time_initialization_completed",
+        ),
+    )
+
+fun AnalyticsHelper.logAppDisplayLanguageChanged(language: String) =
+    logEvent(
+        AnalyticsEvent(
+            type = "app_display_language_changed",
+            extras = listOf(
+                Param(key = "app_display_language", value = language),
+            ),
+        ),
+    )
+
+fun AnalyticsHelper.logRuleDisplayLanguageChanged(language: String) =
+    logEvent(
+        AnalyticsEvent(
+            type = "rule_display_language_changed",
+            extras = listOf(
+                Param(key = "rule_display_language", value = language),
+            ),
+        ),
+    )
