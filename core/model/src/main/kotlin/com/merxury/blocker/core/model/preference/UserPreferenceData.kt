@@ -35,6 +35,6 @@ data class UserPreferenceData(
     val componentShowPriority: ComponentShowPriority,
     val showRunningAppsOnTop: Boolean,
     val isFirstTimeInitializationCompleted: Boolean,
-    val appLanguage: String,
-    val ruleLanguage: String,
+    val appDisplayLanguage: String,
+    val ruleDisplayLanguage: String,
 )

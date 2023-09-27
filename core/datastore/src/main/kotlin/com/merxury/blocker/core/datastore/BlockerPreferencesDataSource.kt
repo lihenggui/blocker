@@ -128,8 +128,8 @@ class BlockerPreferencesDataSource @Inject constructor(
             useDynamicColor = it.useDynamicColor,
             showRunningAppsOnTop = it.showRunningAppsOnTop,
             isFirstTimeInitializationCompleted = it.isFirstTimeInitializationCompleted,
-            appLanguage = it.appDisplayLanguage,
-            ruleLanguage = it.ruleDisplayLanguage,
+            appDisplayLanguage = it.appDisplayLanguage,
+            ruleDisplayLanguage = it.ruleDisplayLanguage,
         )
     }
 
