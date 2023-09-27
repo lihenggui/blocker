@@ -28,8 +28,8 @@ import com.merxury.blocker.core.data.respository.logControllerTypeChanged
 import com.merxury.blocker.core.data.respository.logDarkThemeConfigChanged
 import com.merxury.blocker.core.data.respository.logDynamicColorPreferenceChanged
 import com.merxury.blocker.core.data.respository.logFirstTimeInitializationCompleted
+import com.merxury.blocker.core.data.respository.logLibDisplayLanguageChanged
 import com.merxury.blocker.core.data.respository.logRestoreSystemAppPreferenceChanged
-import com.merxury.blocker.core.data.respository.logRuleDisplayLanguageChanged
 import com.merxury.blocker.core.data.respository.logRuleServerProviderChanged
 import com.merxury.blocker.core.data.respository.logShowRunningAppsOnTopPreferenceChanged
 import com.merxury.blocker.core.data.respository.logShowServiceInfoPreferenceChanged
@@ -138,8 +138,8 @@ class LocalUserDataRepository @Inject constructor(
         analyticsHelper.logAppDisplayLanguageChanged(language)
     }
 
-    override suspend fun setRuleDisplayLanguage(language: String) {
-        blockerPreferenceDataSource.setRuleDisplayLanguage(language)
-        analyticsHelper.logRuleDisplayLanguageChanged(language)
+    override suspend fun setLibDisplayLanguage(language: String) {
+        blockerPreferenceDataSource.setLibDisplayLanguage(language)
+        analyticsHelper.logLibDisplayLanguageChanged(language)
     }
 }

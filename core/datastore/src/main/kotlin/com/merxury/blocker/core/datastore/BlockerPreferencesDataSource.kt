@@ -129,7 +129,7 @@ class BlockerPreferencesDataSource @Inject constructor(
             showRunningAppsOnTop = it.showRunningAppsOnTop,
             isFirstTimeInitializationCompleted = it.isFirstTimeInitializationCompleted,
             appDisplayLanguage = it.appDisplayLanguage,
-            ruleDisplayLanguage = it.ruleDisplayLanguage,
+            libDisplayLanguage = it.libDisplayLanguage,
         )
     }
 
@@ -320,9 +320,9 @@ class BlockerPreferencesDataSource @Inject constructor(
         }
     }
 
-    suspend fun setRuleDisplayLanguage(language: String) {
+    suspend fun setLibDisplayLanguage(language: String) {
         userPreferences.updateData {
-            it.copy { this.ruleDisplayLanguage = language }
+            it.copy { this.libDisplayLanguage = language }
         }
     }
 }

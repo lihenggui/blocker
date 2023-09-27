@@ -25,7 +25,7 @@ data class UserEditableSettings(
     val controllerType: ControllerType = IFW,
     val ruleServerProvider: RuleServerProvider = GITHUB,
     val appDisplayLanguage: String = "",
-    val ruleDisplayLanguage: String = "",
+    val libDisplayLanguage: String = "",
     val ruleBackupFolder: String = "",
     val backupSystemApp: Boolean = false,
     val restoreSystemApp: Boolean = false,
