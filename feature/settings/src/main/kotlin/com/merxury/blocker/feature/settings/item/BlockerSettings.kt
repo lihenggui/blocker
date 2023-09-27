@@ -33,12 +33,15 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.feature.settings.R.string
+import java.util.Locale
 
 @Composable
 fun BlockerSettings(
     settings: UserEditableSettings,
-    onChangeControllerType: (ControllerType) -> Unit,
-    onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
+    onChangeControllerType: (ControllerType) -> Unit = {},
+    onChangeRuleServerProvider: (RuleServerProvider) -> Unit = {},
+    onChangeAppDisplayLanguage: (String) -> Unit = {},
+    onChangeRuleDisplayLanguage: (String) -> Unit = {},
 ) {
     DialogSettingsItems(
         icon = ImageVectorIcon(BlockerIcons.AutoFix),
@@ -61,6 +64,30 @@ fun BlockerSettings(
         ),
         onValueChange = onChangeRuleServerProvider,
     )
+    DialogSettingsItems(
+        icon = ImageVectorIcon(BlockerIcons.Language),
+        titleRes = string.feature_settings_display_language,
+        selectedItem = settings.appDisplayLanguage,
+        itemList = listOf(
+            "" to string.feature_settings_follow_system,
+            Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
+            Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
+            Locale.TRADITIONAL_CHINESE.toLanguageTag() to string.feature_settings_traditional_chinese,
+            Locale("ru").toLanguageTag() to string.feature_settings_russian,
+        ),
+        onValueChange = onChangeAppDisplayLanguage,
+    )
+    DialogSettingsItems(
+        icon = ImageVectorIcon(BlockerIcons.Language),
+        titleRes = string.feature_settings_rule_language,
+        selectedItem = settings.appDisplayLanguage,
+        itemList = listOf(
+            "" to string.feature_settings_follow_system,
+            Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
+            Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
+        ),
+        onValueChange = onChangeRuleDisplayLanguage,
+    )
 }
 
 @Preview
@@ -74,8 +101,6 @@ fun BlockerSettingsPreview() {
                     darkThemeConfig = FOLLOW_SYSTEM,
                     useDynamicColor = false,
                 ),
-                onChangeControllerType = {},
-                onChangeRuleServerProvider = {},
             )
         }
     }

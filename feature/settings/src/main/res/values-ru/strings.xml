@@ -55,4 +55,11 @@
     <string name="feature_settings_report_bugs_or_submit_ideas">Сообщайте об ошибках или предлагайте идеи</string>
     <string name="feature_settings_designers_homepage">Домашняя страница дизайнеров</string>
     <string name="feature_settings_open_source_licenses">Лицензии с открытым исходным кодом</string>
+    <string name="feature_settings_display_language">Язык отображения</string>
+    <string name="feature_settings_rule_language">Язык правил</string>
+    <string name="feature_settings_follow_system">Следовать за системой</string>
+    <string name="feature_settings_english">Английский</string>
+    <string name="feature_settings_simplifed_chinese">Упрощенный китайский</string>
+    <string name="feature_settings_traditional_chinese">Традиционный китайский</string>
+    <string name="feature_settings_russian">Русский</string>
 </resources>
