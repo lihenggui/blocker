@@ -45,6 +45,9 @@ android {
             useSupportLibrary = true
         }
     }
+    androidResources {
+        generateLocaleConfig = true
+    }
     buildTypes {
         debug {
             applicationIdSuffix = BlockerBuildType.DEBUG.applicationIdSuffix
