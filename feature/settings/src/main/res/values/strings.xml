@@ -56,4 +56,11 @@
     <string name="feature_settings_report_bugs_or_submit_ideas">Report bugs or submit ideas</string>
     <string name="feature_settings_designers_homepage">Designer\'s homepage</string>
     <string name="feature_settings_open_source_licenses">Open source licenses</string>
+    <string name="feature_settings_display_language">Display language</string>
+    <string name="feature_settings_library_language">Library language</string>
+    <string name="feature_settings_follow_system">Follow system</string>
+    <string name="feature_settings_english">English</string>
+    <string name="feature_settings_simplifed_chinese">Simplified Chinese</string>
+    <string name="feature_settings_traditional_chinese">Traditional Chinese</string>
+    <string name="feature_settings_russian">Russian</string>
 </resources>

@@ -28,6 +28,8 @@ class TestComponentDetailRepository : IComponentDetailRepository {
     private val componentDetail: MutableSharedFlow<ComponentDetail> =
         MutableSharedFlow(replay = 1, onBufferOverflow = DROP_OLDEST)
 
+    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flowOf(false)
+
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> {
         return componentDetail.map {
             it.takeIf { componentDetail -> componentDetail.name == name }

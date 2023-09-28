@@ -26,12 +26,16 @@ import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.automirrored.outlined.Rule
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.automirrored.rounded.ShortText
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.BugReport
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.CollectionsBookmark
@@ -43,7 +47,7 @@ import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
-import androidx.compose.material.icons.outlined.MoreVert
+import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.SubdirectoryArrowRight
@@ -78,7 +82,6 @@ object BlockerIcons {
     val Search = Icons.Outlined.Search
     val BugReport = Icons.Outlined.BugReport
     val List = Icons.AutoMirrored.Outlined.List
-    val More = Icons.Outlined.MoreVert
     val AutoFix = Icons.Outlined.AutoFixHigh
     val Back = Icons.AutoMirrored.Outlined.ArrowBack
     val Close = Icons.Outlined.Close
@@ -88,6 +91,11 @@ object BlockerIcons {
     val Error = Icons.Outlined.Error
     val DesignService = Icons.Outlined.DesignServices
     val DocumentScanner = Icons.Outlined.DocumentScanner
+    val Share = Icons.Outlined.IosShare
+    val CheckList = Icons.Outlined.Checklist
+    val CheckSmall = Icons.Outlined.Check
+    val Language = Icons.Default.Language
+    val Translate = Icons.Default.Translate
 
     val Rectangle = R.drawable.core_designsystem_ic_rectangle
     val Android = R.drawable.core_designsystem_ic_android

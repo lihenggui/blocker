@@ -42,7 +42,7 @@ class BackgroundScreenshotTests {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun niaBackground_multipleThemes() {
+    fun blockerBackground_multipleThemes() {
         composeTestRule.captureMultiTheme("Background") { description ->
             BlockerBackground(Modifier.size(100.dp)) {
                 Text("$description background")
@@ -51,7 +51,7 @@ class BackgroundScreenshotTests {
     }
 
     @Test
-    fun niaGradientBackground_multipleThemes() {
+    fun blockerGradientBackground_multipleThemes() {
         composeTestRule.captureMultiTheme("Background", "GradientBackground") { description ->
             BlockerBackground(Modifier.size(100.dp)) {
                 Text("$description background")
