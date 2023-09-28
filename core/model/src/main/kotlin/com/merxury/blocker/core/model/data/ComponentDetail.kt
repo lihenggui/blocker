@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.model.data
 
+import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -26,5 +27,7 @@ data class ComponentDetail(
     val disableEffect: String? = null,
     val contributor: String? = null,
     val addedVersion: String? = null,
+    val removedVersion: String? = null,
     val recommendToBlock: Boolean = false,
+    val lastUpdateTime: Instant? = null,
 )
