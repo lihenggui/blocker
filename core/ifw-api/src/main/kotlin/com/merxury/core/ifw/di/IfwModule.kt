@@ -27,19 +27,15 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineDispatcher
-import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
-import nl.adaptivity.xmlutil.serialization.DefaultXmlSerializationPolicy
 import nl.adaptivity.xmlutil.serialization.XML
 
 @Module
 @InstallIn(SingletonComponent::class)
 object IfwModule {
 
-    @OptIn(ExperimentalXmlUtilApi::class)
     @Provides
     fun providesXmlParser(): XML {
         return XML {
-            policy = DefaultXmlSerializationPolicy(pedantic = false)
             indentString = "   "
         }
     }

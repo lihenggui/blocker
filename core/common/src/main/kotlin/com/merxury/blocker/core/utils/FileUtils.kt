@@ -168,3 +168,19 @@ object FileUtils {
      */
     private const val BUFFER_SIZE = 4096
 }
+
+// Note: Might be a time-consuming operation
+fun File.listFilesRecursively(): List<File> {
+    val result = ArrayList<File>()
+    val files = listFiles()
+    if (files != null) {
+        for (file in files) {
+            if (file.isDirectory) {
+                result.addAll(file.listFilesRecursively())
+            } else {
+                result.add(file)
+            }
+        }
+    }
+    return result
+}

@@ -48,4 +48,11 @@
     <string name="feature_settings_report_bugs_or_submit_ideas">問題反饋 &amp; 我有新點子</string>
     <string name="feature_settings_designers_homepage">設計師主頁</string>
     <string name="feature_settings_open_source_licenses">開源許可證</string>
+    <string name="feature_settings_display_language">顯示語言</string>
+    <string name="feature_settings_library_language">知識庫語言</string>
+    <string name="feature_settings_follow_system">跟隨系統</string>
+    <string name="feature_settings_english">英文</string>
+    <string name="feature_settings_simplifed_chinese">簡體中文</string>
+    <string name="feature_settings_traditional_chinese">繁體中文</string>
+    <string name="feature_settings_russian">俄語</string>
 </resources>
