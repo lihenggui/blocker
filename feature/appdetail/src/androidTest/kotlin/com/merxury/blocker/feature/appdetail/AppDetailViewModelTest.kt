@@ -209,6 +209,8 @@ private val sampleUserData = UserPreferenceData(
     componentSorting = PACKAGE_NAME,
     isFirstTimeInitializationCompleted = true,
     showRunningAppsOnTop = true,
+    appDisplayLanguage = "",
+    libDisplayLanguage = "",
 )
 
 private val sampleAppList = listOf(

@@ -63,4 +63,8 @@ interface UserDataRepository {
     suspend fun setShowRunningAppsOnTop(shouldShowRunningAppsOnTop: Boolean)
 
     suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean)
+
+    suspend fun setAppDisplayLanguage(language: String)
+
+    suspend fun setLibDisplayLanguage(language: String)
 }

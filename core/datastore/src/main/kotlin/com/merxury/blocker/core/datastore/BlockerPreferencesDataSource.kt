@@ -128,6 +128,8 @@ class BlockerPreferencesDataSource @Inject constructor(
             useDynamicColor = it.useDynamicColor,
             showRunningAppsOnTop = it.showRunningAppsOnTop,
             isFirstTimeInitializationCompleted = it.isFirstTimeInitializationCompleted,
+            appDisplayLanguage = it.appDisplayLanguage,
+            libDisplayLanguage = it.libDisplayLanguage,
         )
     }
 
@@ -309,6 +311,18 @@ class BlockerPreferencesDataSource @Inject constructor(
             }
         } catch (ioException: IOException) {
             Timber.e("Failed to update user preferences", ioException)
+        }
+    }
+
+    suspend fun setAppDisplayLanguage(language: String) {
+        userPreferences.updateData {
+            it.copy { this.appDisplayLanguage = language }
+        }
+    }
+
+    suspend fun setLibDisplayLanguage(language: String) {
+        userPreferences.updateData {
+            it.copy { this.libDisplayLanguage = language }
         }
     }
 }
