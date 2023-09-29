@@ -49,9 +49,13 @@ class AppDetailTabStatePreviewParameterProvider :
             TabState(
                 items = listOf(
                     Info,
-                    Receiver,
+                    Activity,
                 ),
-                selectedItem = Receiver,
+                selectedItem = Activity,
+                itemCount = mapOf(
+                    Info to 1,
+                    Activity to 2,
+                ),
             ),
         ),
     )

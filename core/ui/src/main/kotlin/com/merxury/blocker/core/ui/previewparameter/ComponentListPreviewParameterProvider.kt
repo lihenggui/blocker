@@ -45,7 +45,7 @@ object ComponentListPreviewParameterData {
             packageName = "com.merxury.blocker",
             pmBlocked = false,
             ifwBlocked = true,
-            isRunning = true,
+            isRunning = false,
             type = ACTIVITY,
         ),
         ComponentItem(
