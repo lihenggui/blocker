@@ -20,7 +20,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.ui.previewparameter.PreviewParameterData.appList
-import kotlinx.datetime.Clock.System
+import kotlinx.datetime.Instant
 
 class AppListPreviewParameterProvider : PreviewParameterProvider<List<AppItem>> {
     override val values: Sequence<List<AppItem>> = sequenceOf(appList)
@@ -44,8 +44,8 @@ object PreviewParameterData {
             isEnabled = false,
             isRunning = true,
             appServiceStatus = appServiceStatus,
-            firstInstallTime = System.now(),
-            lastUpdateTime = System.now(),
+            firstInstallTime = Instant.fromEpochMilliseconds(0),
+            lastUpdateTime = Instant.fromEpochMilliseconds(0),
         ),
         AppItem(
             label = "Blocker Test",
@@ -54,8 +54,8 @@ object PreviewParameterData {
             versionCode = 11,
             isEnabled = false,
             isRunning = false,
-            firstInstallTime = System.now(),
-            lastUpdateTime = System.now(),
+            firstInstallTime = Instant.fromEpochMilliseconds(0),
+            lastUpdateTime = Instant.fromEpochMilliseconds(0),
         ),
         AppItem(
             label = "Blocker Test test long long long long name",
@@ -65,8 +65,8 @@ object PreviewParameterData {
             isEnabled = true,
             isRunning = true,
             appServiceStatus = appServiceStatus,
-            firstInstallTime = System.now(),
-            lastUpdateTime = System.now(),
+            firstInstallTime = Instant.fromEpochMilliseconds(0),
+            lastUpdateTime = Instant.fromEpochMilliseconds(0),
         ),
     )
 }
