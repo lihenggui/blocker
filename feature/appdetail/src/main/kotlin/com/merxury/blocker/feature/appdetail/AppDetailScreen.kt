@@ -48,6 +48,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -61,7 +62,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -79,6 +79,7 @@ import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.IconBasedThemingState
@@ -98,7 +99,10 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.component.ComponentList
+import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.previewparameter.AppDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -108,6 +112,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
@@ -677,34 +682,18 @@ fun AppDetailTabContent(
 }
 
 @Composable
-@Preview
+@ThemePreviews
 fun AppDetailScreenPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
 ) {
-    val tabState = TabState(
-        items = listOf(
-            Info,
-            Receiver,
-            Service,
-            Activity,
-            Provider,
-        ),
-        selectedItem = Info,
-        itemCount = mapOf(
-            Info to 1,
-            Receiver to 2,
-            Service to 3,
-            Activity to 4,
-            Provider to 5,
-        ),
-    )
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
             AppDetailScreen(
                 appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
                 componentListUiState = ComponentListUiState(),
-                tabState = tabState,
+                tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
             )
         }
@@ -713,34 +702,98 @@ fun AppDetailScreenPreview(
 
 @Composable
 @ThemePreviews
-fun AppDetailScreenCollapsedPreview(
+fun AppDetailScreenLoadingPreview(
     @PreviewParameter(AppListPreviewParameterProvider::class)
     appList: List<AppItem>,
 ) {
-    val tabState = TabState(
-        items = listOf(
-            Info,
-            Receiver,
-            Service,
-            Activity,
-            Provider,
-        ),
-        selectedItem = Info,
-        itemCount = mapOf(
-            Info to 1,
-            Receiver to 2,
-            Service to 3,
-            Activity to 4,
-            Provider to 5,
-        ),
-    )
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = appList[2], iconBasedTheming = null),
+                appInfoUiState = Loading,
                 componentListUiState = ComponentListUiState(),
-                tabState = tabState,
+                tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun AppDetailScreenErrorPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Error(error = UiMessage("Error")),
+                componentListUiState = ComponentListUiState(),
+                tabState = tabState[0],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun AppDetailScreenSearchModePreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                componentListUiState = ComponentListUiState(
+                    activity = components.filter { it.type == ACTIVITY }.toMutableStateList(),
+                ),
+                topAppBarUiState = AppBarUiState(
+                    actions = listOf(
+                        SEARCH,
+                        MORE,
+                    ),
+                    isSearchMode = true,
+                ),
+                tabState = tabState[1],
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun AppDetailScreenSelectedModePreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    val activityComponents = components.filter { it.type == ACTIVITY }.toMutableStateList()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                componentListUiState = ComponentListUiState(
+                    activity = activityComponents,
+                ),
+                topAppBarUiState = AppBarUiState(
+                    actions = listOf(
+                        SEARCH,
+                        MORE,
+                    ),
+                    isSearchMode = true,
+                    isSelectedMode = true,
+                    selectedComponentList = listOf(
+                        activityComponents[0].toComponentInfo(),
+                    ),
+                ),
+                tabState = tabState[1],
             )
         }
     }
