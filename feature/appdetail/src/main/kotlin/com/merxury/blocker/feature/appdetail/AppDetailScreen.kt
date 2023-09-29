@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail
 
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
@@ -63,6 +62,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -77,6 +77,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.FontSizeRange
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -97,6 +98,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.component.ComponentList
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -114,7 +116,6 @@ import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
 import com.merxury.blocker.feature.appdetail.ui.ShareAction
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock.System
 import com.merxury.blocker.core.rule.R.string as rulestring
 
 @Composable
@@ -677,16 +678,10 @@ fun AppDetailTabContent(
 
 @Composable
 @Preview
-fun AppDetailScreenPreview() {
-    val app = AppItem(
-        label = "Blocker",
-        packageName = "com.mercury.blocker",
-        versionName = "1.2.69-alpha",
-        isEnabled = false,
-        firstInstallTime = System.now(),
-        lastUpdateTime = System.now(),
-        packageInfo = null,
-    )
+fun AppDetailScreenPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
     val tabState = TabState(
         items = listOf(
             Info,
@@ -707,7 +702,7 @@ fun AppDetailScreenPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
+                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 topAppBarUiState = AppBarUiState(),
@@ -717,17 +712,11 @@ fun AppDetailScreenPreview() {
 }
 
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun AppDetailScreenCollapsedPreview() {
-    val app = AppItem(
-        label = "Blocker",
-        packageName = "com.mercury.blocker",
-        versionName = "1.2.69-alpha",
-        isEnabled = false,
-        firstInstallTime = System.now(),
-        lastUpdateTime = System.now(),
-        packageInfo = null,
-    )
+@ThemePreviews
+fun AppDetailScreenCollapsedPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
     val tabState = TabState(
         items = listOf(
             Info,
@@ -748,7 +737,7 @@ fun AppDetailScreenCollapsedPreview() {
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
+                appInfoUiState = Success(appInfo = appList[2], iconBasedTheming = null),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState,
                 topAppBarUiState = AppBarUiState(),
