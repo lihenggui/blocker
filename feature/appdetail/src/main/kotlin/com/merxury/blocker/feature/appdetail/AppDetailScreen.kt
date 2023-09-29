@@ -267,7 +267,7 @@ fun AppDetailScreen(
     shareAllRules: () -> Unit = {},
 ) {
     when (appInfoUiState) {
-        is AppInfoUiState.Loading -> {
+        is Loading -> {
             LoadingScreen()
         }
 
