@@ -26,10 +26,10 @@ import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.applist.AppListItem
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -51,7 +51,7 @@ class AppListItemScreenshotTests {
     fun appListItem_multipleThemes() {
         composeTestRule.captureMultiTheme("AppListItem") {
             Surface {
-                AppListItemExample()
+                AppListItemExample(0)
             }
         }
     }
@@ -60,12 +60,7 @@ class AppListItemScreenshotTests {
     fun appListItem_simple_multipleThemes() {
         composeTestRule.captureMultiTheme("AppListItem", "AppListItemSimple") {
             Surface {
-                AppListItemExample(
-                    isAppEnable = true,
-                    isAppRunning = false,
-                    showAppServiceStatus = false,
-                    isLongName = false,
-                )
+                AppListItemExample(1)
             }
         }
     }
@@ -74,12 +69,7 @@ class AppListItemScreenshotTests {
     fun appListItem_longName_multipleThemes() {
         composeTestRule.captureMultiTheme("AppListItem", "AppListItemLongName") {
             Surface {
-                AppListItemExample(
-                    isAppEnable = true,
-                    isAppRunning = true,
-                    showAppServiceStatus = true,
-                    isLongName = true,
-                )
+                AppListItemExample(2)
             }
         }
     }
@@ -92,7 +82,7 @@ class AppListItemScreenshotTests {
             ) {
                 TestHarness(fontScale = 2f) {
                     BlockerTheme {
-                        AppListItemExample()
+                        AppListItemExample(0)
                     }
                 }
             }
@@ -106,35 +96,21 @@ class AppListItemScreenshotTests {
     }
 
     @Composable
-    private fun AppListItemExample(
-        isAppEnable: Boolean = false,
-        isAppRunning: Boolean = true,
-        showAppServiceStatus: Boolean = true,
-        isLongName: Boolean = false,
-    ) {
-        val appServiceStatus = if (showAppServiceStatus) {
-            AppServiceStatus(
-                running = 1,
-                blocked = 2,
-                total = 10,
-                packageName = "com.merxury.blocker",
-            )
-        } else {
-            null
-        }
-        val label = if (isLongName) {
-            "App Name With Very Long Long Long Long Long Long Name"
-        } else {
-            "Blocker"
+    private fun AppListItemExample(order: Int) {
+        val appList = AppListPreviewParameterProvider().values.first()
+        val appItem = when (order) {
+            0 -> appList[0]
+            1 -> appList[1]
+            else -> appList[2]
         }
         AppListItem(
-            label = label,
-            packageName = "com.merxury.blocker",
-            versionName = "1.0.12",
-            versionCode = 1012,
-            isAppEnabled = isAppEnable,
-            isAppRunning = isAppRunning,
-            appServiceStatus = appServiceStatus,
+            label = appItem.label,
+            packageName = appItem.packageName,
+            versionName = appItem.versionName,
+            versionCode = appItem.versionCode,
+            isAppEnabled = appItem.isEnabled,
+            isAppRunning = appItem.isRunning,
+            appServiceStatus = appItem.appServiceStatus,
         )
     }
 }
