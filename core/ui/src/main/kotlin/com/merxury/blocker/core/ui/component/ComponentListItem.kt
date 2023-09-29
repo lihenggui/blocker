@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.ui.component
 
-import android.content.res.Configuration
 import android.view.MotionEvent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -24,24 +23,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.Orientation.Vertical
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -60,96 +48,23 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
-import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
-import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
-import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
-import com.merxury.blocker.core.designsystem.icon.BlockerDisplayIcon
-import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
-import com.merxury.blocker.core.ui.TrackScrollJank
-
-@Composable
-fun ComponentList(
-    components: List<ComponentItem>,
-    modifier: Modifier = Modifier,
-    selectedComponentList: List<ComponentInfo> = emptyList(),
-    navigateToComponentDetail: (String) -> Unit = { _ -> },
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
-    onSwitchClick: (String, String, Boolean) -> Unit = { _, _, _ -> },
-    isSelectedMode: Boolean = false,
-    onSelect: (ComponentInfo) -> Unit = {},
-    onDeselect: (ComponentInfo) -> Unit = {},
-) {
-    if (components.isEmpty()) {
-        NoComponentScreen()
-        return
-    }
-    val listState = rememberLazyListState()
-    val scrollbarState = listState.scrollbarState(
-        itemsAvailable = components.size,
-    )
-    TrackScrollJank(scrollableState = listState, stateName = "component:list")
-    Box(modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = modifier.testTag("component:list"),
-            state = listState,
-        ) {
-            itemsIndexed(
-                items = components,
-                key = { _, item -> item.name },
-            ) { _, item ->
-                ComponentListItem(
-                    item = item,
-                    enabled = item.enabled(),
-                    type = item.type,
-                    isServiceRunning = item.isRunning,
-                    navigateToComponentDetail = navigateToComponentDetail,
-                    onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
-                    onLaunchActivityClick = { onLaunchActivityClick(item.packageName, item.name) },
-                    onCopyNameClick = { onCopyNameClick(item.simpleName) },
-                    onCopyFullNameClick = { onCopyFullNameClick(item.name) },
-                    onSwitchClick = onSwitchClick,
-                    isSelected = selectedComponentList.contains(item.toComponentInfo()),
-                    isSelectedMode = isSelectedMode,
-                    onSelect = onSelect,
-                    onDeselect = onDeselect,
-                )
-            }
-            item {
-                Spacer(modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-            }
-        }
-        listState.FastScrollbar(
-            modifier = modifier
-                .fillMaxHeight()
-                .padding(horizontal = 2.dp)
-                .align(Alignment.CenterEnd),
-            state = scrollbarState,
-            orientation = Vertical,
-            onThumbDisplaced = listState.rememberFastScroller(
-                itemsAvailable = components.size,
-            ),
-        )
-    }
-}
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -267,78 +182,41 @@ fun ComponentListItem(
 }
 
 @Composable
-fun NoComponentScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        BlockerDisplayIcon(
-            imageVector = BlockerIcons.Deselect,
-            contentDescription = null,
-        )
-        BlockerBodyLargeText(
-            text = stringResource(id = string.core_ui_no_components),
-            color = MaterialTheme.colorScheme.outline,
-        )
-    }
-}
-
-@Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun ComponentItemPreview() {
+@ThemePreviews
+fun ComponentItemPreview(
+    @PreviewParameter(
+        ComponentListPreviewParameterProvider::class,
+    ) components: List<ComponentItem>,
+) {
     BlockerTheme {
         Surface {
             ComponentListItem(
-                item = ComponentItem(
-                    simpleName = "ExampleActivity",
-                    name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
-                    packageName = "com.merxury.blocker",
-                    description = "An example activity",
-                    type = ACTIVITY,
-                    pmBlocked = false,
-                ),
-                enabled = false,
+                item = components[0],
+                enabled = true,
                 type = ACTIVITY,
-                isServiceRunning = false,
+                isServiceRunning = true,
             )
         }
     }
 }
 
 @Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun ComponentItemSelectedPreview() {
+@ThemePreviews
+fun ComponentItemSelectedPreview(
+    @PreviewParameter(
+        ComponentListPreviewParameterProvider::class,
+    ) components: List<ComponentItem>,
+) {
     BlockerTheme {
         Surface {
             ComponentListItem(
-                item = ComponentItem(
-                    simpleName = "ExampleActivity",
-                    name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
-                    packageName = "com.merxury.blocker",
-                    description = "An example activity",
-                    type = ACTIVITY,
-                    pmBlocked = false,
-                ),
+                item = components[1],
                 enabled = false,
-                type = SERVICE,
+                type = RECEIVER,
                 isServiceRunning = true,
                 isSelectedMode = true,
                 isSelected = true,
             )
-        }
-    }
-}
-
-@Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun NoComponentScreenPreview() {
-    BlockerTheme {
-        Surface {
-            NoComponentScreen()
         }
     }
 }
