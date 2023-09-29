@@ -26,11 +26,10 @@ import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.applist.AppList
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -80,38 +79,7 @@ class AppListScreenshotTests {
 
     @Composable
     private fun AppListExample() {
-        val appList: List<AppItem> = listOf(
-            AppItem(
-                label = "Blocker",
-                packageName = "com.merxury.blocker",
-                versionName = "1.0.0",
-                versionCode = 1,
-                isEnabled = false,
-                isRunning = true,
-                appServiceStatus = AppServiceStatus(
-                    packageName = "com.merxury.blocker",
-                    running = 1,
-                    blocked = 2,
-                    total = 3,
-                ),
-            ),
-            AppItem(
-                label = "Blocker Test",
-                packageName = "com.test.blocker",
-                versionName = "11.0.0(1.1)",
-                versionCode = 11,
-                isEnabled = false,
-                isRunning = false,
-            ),
-            AppItem(
-                label = "Blocker Test test long long long long name",
-                packageName = "com.test",
-                versionName = "0.1.1",
-                versionCode = 11,
-                isEnabled = true,
-                isRunning = true,
-            ),
-        )
+        val appList = AppListPreviewParameterProvider().values.first()
         AppList(appList = appList)
     }
 }
