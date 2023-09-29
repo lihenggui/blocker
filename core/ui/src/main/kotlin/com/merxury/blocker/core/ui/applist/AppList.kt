@@ -34,6 +34,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
@@ -41,8 +42,8 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScr
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.ui.TrackScrollJank
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 
 @Composable
 fun AppList(
@@ -110,39 +111,10 @@ fun AppList(
 
 @Composable
 @ThemePreviews
-fun AppListPreview() {
-    val appList: List<AppItem> = listOf(
-        AppItem(
-            label = "Blocker",
-            packageName = "com.merxury.blocker",
-            versionName = "1.0.0",
-            versionCode = 1,
-            isEnabled = false,
-            isRunning = true,
-            appServiceStatus = AppServiceStatus(
-                packageName = "com.merxury.blocker",
-                running = 1,
-                blocked = 2,
-                total = 3,
-            ),
-        ),
-        AppItem(
-            label = "Blocker Test",
-            packageName = "com.test.blocker",
-            versionName = "11.0.0(1.1)",
-            versionCode = 11,
-            isEnabled = false,
-            isRunning = false,
-        ),
-        AppItem(
-            label = "Blocker Test test long long long long name",
-            packageName = "com.test",
-            versionName = "0.1.1",
-            versionCode = 11,
-            isEnabled = true,
-            isRunning = true,
-        ),
-    )
+fun AppListPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
     BlockerTheme {
         Surface {
             AppList(
