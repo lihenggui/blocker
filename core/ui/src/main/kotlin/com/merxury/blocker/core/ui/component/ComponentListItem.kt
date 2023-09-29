@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.ui.component
 
-import android.content.res.Configuration
 import android.view.MotionEvent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.LinearEasing
@@ -62,12 +61,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
@@ -77,11 +77,12 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.condensedRegular
 import com.merxury.blocker.core.model.ComponentType
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.SERVICE
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.TrackScrollJank
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
 @Composable
 fun ComponentList(
@@ -285,20 +286,16 @@ fun NoComponentScreen() {
 }
 
 @Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun ComponentItemPreview() {
+@ThemePreviews
+fun ComponentItemPreview(
+    @PreviewParameter(
+        ComponentListPreviewParameterProvider::class,
+    ) components: List<ComponentItem>,
+) {
     BlockerTheme {
         Surface {
             ComponentListItem(
-                item = ComponentItem(
-                    simpleName = "ExampleActivity",
-                    name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
-                    packageName = "com.merxury.blocker",
-                    description = "An example activity",
-                    type = ACTIVITY,
-                    pmBlocked = false,
-                ),
+                item = components[0],
                 enabled = false,
                 type = ACTIVITY,
                 isServiceRunning = false,
@@ -308,22 +305,18 @@ fun ComponentItemPreview() {
 }
 
 @Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun ComponentItemSelectedPreview() {
+@ThemePreviews
+fun ComponentItemSelectedPreview(
+    @PreviewParameter(
+        ComponentListPreviewParameterProvider::class,
+    ) components: List<ComponentItem>,
+) {
     BlockerTheme {
         Surface {
             ComponentListItem(
-                item = ComponentItem(
-                    simpleName = "ExampleActivity",
-                    name = "com.merxury.blocker.feature.appdetail.component.ExampleActivity",
-                    packageName = "com.merxury.blocker",
-                    description = "An example activity",
-                    type = ACTIVITY,
-                    pmBlocked = false,
-                ),
+                item = components[0],
                 enabled = false,
-                type = SERVICE,
+                type = RECEIVER,
                 isServiceRunning = true,
                 isSelectedMode = true,
                 isSelected = true,
@@ -333,8 +326,7 @@ fun ComponentItemSelectedPreview() {
 }
 
 @Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@ThemePreviews
 fun NoComponentScreenPreview() {
     BlockerTheme {
         Surface {
