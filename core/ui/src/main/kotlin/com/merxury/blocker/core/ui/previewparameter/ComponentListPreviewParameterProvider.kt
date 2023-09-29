@@ -35,13 +35,17 @@ object ComponentListPreviewParameterData {
             packageName = "com.merxury.blocker",
             description = "An example activity",
             type = ACTIVITY,
-            pmBlocked = false,
+            pmBlocked = true,
+            ifwBlocked = true,
+            isRunning = true,
         ),
         ComponentItem(
             name = "ComponentActivity",
             simpleName = "ComponentActivity",
             packageName = "com.merxury.blocker",
             pmBlocked = false,
+            ifwBlocked = true,
+            isRunning = true,
             type = ACTIVITY,
         ),
         ComponentItem(
