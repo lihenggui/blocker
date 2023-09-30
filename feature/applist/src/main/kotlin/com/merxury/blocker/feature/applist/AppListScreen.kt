@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,18 +37,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerWarningAlertDialog
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
+import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
+import com.merxury.blocker.feature.applist.AppListUiState.Error
+import com.merxury.blocker.feature.applist.AppListUiState.Initializing
+import com.merxury.blocker.feature.applist.AppListUiState.Success
 import com.merxury.blocker.feature.applist.R.string
 import com.merxury.blocker.feature.applist.component.TopAppBarMoreMenu
 
@@ -148,9 +157,9 @@ fun AppListScreen(
         ) {
             val appListTestTag = "appList:applicationList"
             when (uiState) {
-                is AppListUiState.Initializing -> InitializingScreen(processingName = uiState.processingName)
+                is Initializing -> InitializingScreen(processingName = uiState.processingName)
 
-                is AppListUiState.Success -> {
+                is Success -> {
                     if (appList.isEmpty()) {
                         EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
                     } else {
@@ -169,9 +178,51 @@ fun AppListScreen(
                     }
                 }
 
-                is AppListUiState.Error -> ErrorScreen(uiState.error)
+                is Error -> ErrorScreen(uiState.error)
             }
         }
     }
     TrackScreenViewEvent(screenName = "AppListScreen")
+}
+
+@ThemePreviews
+@Composable
+fun AppListScreenPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class) appList: List<AppItem>,
+) {
+    BlockerTheme {
+        Surface {
+            AppListScreen(uiState = Success, appList = appList)
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun AppListScreenInitialPreview() {
+    BlockerTheme {
+        Surface {
+            AppListScreen(uiState = Initializing("Blocker"), appList = listOf())
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun AppListScreenErrorPreview() {
+    BlockerTheme {
+        Surface {
+            AppListScreen(uiState = Error(UiMessage("Error")), appList = listOf())
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+fun AppListScreenEmptyPreview() {
+    BlockerTheme {
+        Surface {
+            AppListScreen(uiState = Success, appList = listOf())
+        }
+    }
 }
