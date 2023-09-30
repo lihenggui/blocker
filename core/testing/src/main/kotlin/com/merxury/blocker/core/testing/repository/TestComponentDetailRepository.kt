@@ -18,6 +18,7 @@ package com.merxury.blocker.core.testing.repository
 
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.model.data.ComponentDetail
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -44,7 +45,7 @@ class TestComponentDetailRepository : IComponentDetailRepository {
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
 
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail?> = flowOf(null)
+    override fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?> = flowOf(null)
 
     fun sendComponentDetail(componentDetail: ComponentDetail) {
         this.componentDetail.tryEmit(componentDetail)

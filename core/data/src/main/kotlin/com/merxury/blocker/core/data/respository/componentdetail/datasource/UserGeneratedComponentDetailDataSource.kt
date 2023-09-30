@@ -23,9 +23,13 @@ import com.merxury.blocker.core.data.respository.component.CacheComponentDataSou
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.KWatchEvent
+import com.merxury.blocker.core.extension.asWatchChannel
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -36,11 +40,6 @@ import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
-import java.nio.file.FileSystems
-import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
-import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
-import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
-import java.nio.file.WatchService
 import javax.inject.Inject
 
 private const val EXTENSION = "json"
@@ -146,42 +145,25 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         .flowOn(ioDispatcher)
 
     @RequiresApi(VERSION_CODES.O)
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail?> = flow<ComponentDetail?> {
-        val watchService: WatchService? =
-            try {
-                FileSystems.getDefault().newWatchService()
-            } catch (e: IOException) {
-                Timber.e(e, "Failed to create watch service")
-                null
-            } catch (e: UnsupportedOperationException) {
-                Timber.e(e, "Watch service is not available on this platform")
-                null
-            }
-        if (watchService == null) {
-            emit(null)
-            return@flow
-        }
+    override fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?> = flow {
         val workingDir = getWorkingDirWithLang()
         if (!workingDir.exists()) {
             workingDir.mkdirs()
         }
-        val pathToWatch = workingDir.toPath()
-        pathToWatch.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
-        Timber.d("Start watching file changes in path: $pathToWatch")
-        while (true) {
-            Timber.v("Waiting for file changes")
-            val watchKey = watchService.take()
-
-            for (event in watchKey.pollEvents()) {
-                // do something with the events
-                Timber.d("Event kind: ${event.kind()}. File affected: ${event.context()}.")
+        val watchChannel = workingDir.asWatchChannel(scope, ioDispatcher)
+        watchChannel.consumeEach { event ->
+            Timber.v("Received file event: $event")
+            if (event.kind == KWatchEvent.Kind.Initialized) {
+                return@consumeEach
             }
-
-            if (!watchKey.reset()) {
-                watchKey.cancel()
-                watchService.close()
-                break
-            }
+            val changedPath = event.file.absolutePath
+            val changedComponent = changedPath
+                .removePrefix(workingDir.absolutePath)
+                .removePrefix(File.separator)
+                .removeSuffix(".$EXTENSION")
+                .replace(File.separator, ".")
+            val componentDetail = getByComponentName(changedComponent).first()
+            emit(componentDetail)
         }
     }
         .flowOn(ioDispatcher)

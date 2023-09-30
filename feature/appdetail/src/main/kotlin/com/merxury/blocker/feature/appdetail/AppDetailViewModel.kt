@@ -795,7 +795,8 @@ class AppDetailViewModel @Inject constructor(
             return
         }
         viewModelScope.launch {
-            componentDetailRepository.listenToComponentDetailChanges().collect {
+            componentDetailRepository.listenToComponentDetailChanges(viewModelScope).collect {
+                Timber.v("Component detail has changed: $it")
             }
         }
     }
