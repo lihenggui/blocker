@@ -88,7 +88,7 @@ class SettingsScreenTest {
     @Test
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
-            SettingsScreen(
+            SupportAndFeedbackScreen(
                 onNavigationClick = {},
                 uiState = SettingsUiState.Loading,
             )
@@ -100,7 +100,7 @@ class SettingsScreenTest {
     @Test
     fun showSettings_afterLoading() {
         composeTestRule.setContent {
-            SettingsScreen(
+            SupportAndFeedbackScreen(
                 onNavigationClick = {},
                 uiState = SettingsUiState.Success(
                     userEditableSettingsTestData,
