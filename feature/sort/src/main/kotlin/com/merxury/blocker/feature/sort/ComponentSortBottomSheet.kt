@@ -34,10 +34,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
@@ -88,13 +88,13 @@ fun ComponentSortBottomSheetRoute(
 fun ComponentSortBottomSheet(
     uiState: ComponentSortInfoUiState,
     modifier: Modifier = Modifier,
-    onSortByClick: (ComponentSorting) -> Unit,
-    onSortOrderClick: (SortingOrder) -> Unit,
-    onShowPriorityClick: (ComponentShowPriority) -> Unit,
+    onSortByClick: (ComponentSorting) -> Unit = {},
+    onSortOrderClick: (SortingOrder) -> Unit = {},
+    onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
     when (uiState) {
         Loading -> {
-            LoadingScreen()
+            LoadingScreen(modifier = modifier.height(340.dp))
         }
 
         is Success -> {
@@ -113,9 +113,9 @@ fun ComponentSortBottomSheet(
 fun SortOptionsContent(
     uiState: Success,
     modifier: Modifier = Modifier,
-    onSortByClick: (ComponentSorting) -> Unit,
-    onSortOrderClick: (SortingOrder) -> Unit,
-    onShowPriorityClick: (ComponentShowPriority) -> Unit,
+    onSortByClick: (ComponentSorting) -> Unit = {},
+    onSortOrderClick: (SortingOrder) -> Unit = {},
+    onShowPriorityClick: (ComponentShowPriority) -> Unit = {},
 ) {
     val sortModeList = listOf(
         COMPONENT_NAME to string.feature_sort_component_name,
@@ -160,16 +160,25 @@ fun SortOptionsContent(
 }
 
 @Composable
-@Preview
+@ThemePreviews
 fun SortOptionsBottomSheetPreview() {
     val uiState = Success(ComponentSortInfo())
     BlockerTheme {
         Surface {
-            SortOptionsContent(
+            ComponentSortBottomSheet(
                 uiState = uiState,
-                onSortByClick = {},
-                onSortOrderClick = {},
-                onShowPriorityClick = {},
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun SortOptionsBottomSheetLoadingPreview() {
+    BlockerTheme {
+        Surface {
+            ComponentSortBottomSheet(
+                uiState = Loading,
             )
         }
     }
