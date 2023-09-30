@@ -19,6 +19,7 @@ package com.merxury.blocker.core.data.respository.componentdetail
 import android.os.Build.VERSION_CODES
 import androidx.annotation.RequiresApi
 import com.merxury.blocker.core.model.data.ComponentDetail
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 
 interface IComponentDetailRepository {
@@ -32,5 +33,5 @@ interface IComponentDetailRepository {
     fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean>
 
     @RequiresApi(VERSION_CODES.O)
-    fun listenToComponentDetailChanges(): Flow<ComponentDetail?>
+    fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?>
 }

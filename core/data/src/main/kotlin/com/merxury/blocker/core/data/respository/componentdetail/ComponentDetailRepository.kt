@@ -24,6 +24,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -66,6 +67,6 @@ class ComponentDetailRepository @Inject constructor(
         userGeneratedDataSource.saveComponentData(componentDetail)
 
     @RequiresApi(VERSION_CODES.O)
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail?> =
-        userGeneratedDataSource.listenToComponentDetailChanges()
+    override fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?> =
+        userGeneratedDataSource.listenToComponentDetailChanges(scope)
 }
