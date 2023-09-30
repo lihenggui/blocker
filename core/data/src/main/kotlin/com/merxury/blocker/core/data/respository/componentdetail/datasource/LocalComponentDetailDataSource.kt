@@ -23,6 +23,7 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -118,7 +119,7 @@ class LocalComponentDetailDataSource @Inject constructor(
         return flowOf(false)
     }
 
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail?> {
+    override fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?> {
         Timber.e("Not support listening to component detail changes")
         return flowOf(null)
     }
