@@ -14,9 +14,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_search_application_with_count">App (%1$d)</string>
-    <string name="feature_search_component_with_count">Component (%1$d)</string>
-    <string name="feature_search_online_rule_with_count">Online rule (%1$d)</string>
     <string name="feature_search_searching">Searching</string>
     <plurals name="feature_search_activity_count">
         <item quantity="one">%1$d Activity</item>
