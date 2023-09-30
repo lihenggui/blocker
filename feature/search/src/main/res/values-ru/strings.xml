@@ -14,9 +14,6 @@
   ~ limitations under the License.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
-    <string name="feature_search_application_with_count">Приложение (%1$d)</string>
-    <string name="feature_search_component_with_count">Компонент (%1$d)</string>
-    <string name="feature_search_online_rule_with_count">Онлайн правило (%1$d)</string>
     <string name="feature_search_searching">Поиск</string>
     <plurals name="feature_search_activity_count">
         <item quantity="one">%1$d Активность</item>
