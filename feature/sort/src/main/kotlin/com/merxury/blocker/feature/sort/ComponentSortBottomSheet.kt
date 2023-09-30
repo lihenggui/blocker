@@ -162,11 +162,10 @@ fun SortOptionsContent(
 @Composable
 @ThemePreviews
 fun SortOptionsBottomSheetPreview() {
-    val uiState = Success(ComponentSortInfo())
     BlockerTheme {
         Surface {
             ComponentSortBottomSheet(
-                uiState = uiState,
+                uiState = Success(ComponentSortInfo()),
             )
         }
     }
