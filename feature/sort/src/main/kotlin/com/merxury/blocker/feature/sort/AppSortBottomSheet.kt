@@ -49,6 +49,8 @@ import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.feature.sort.AppSortInfoUiState.Loading
+import com.merxury.blocker.feature.sort.AppSortInfoUiState.Success
 import com.merxury.blocker.feature.sort.R.string
 import java.lang.Boolean.FALSE
 import java.lang.Boolean.TRUE
@@ -71,7 +73,7 @@ fun AppSortBottomSheetRoute(
         containerColor = MaterialTheme.colorScheme.surfaceVariant,
         scrimColor = Color.Transparent,
     ) {
-        AppSortBottomSheet(
+        ComponentSortBottomSheet(
             uiState = uiState,
             modifier = modifier,
             onSortByClick = viewModel::updateAppSorting,
@@ -82,7 +84,7 @@ fun AppSortBottomSheetRoute(
 }
 
 @Composable
-fun AppSortBottomSheet(
+fun ComponentSortBottomSheet(
     uiState: AppSortInfoUiState,
     modifier: Modifier = Modifier,
     onSortByClick: (AppSorting) -> Unit = {},
@@ -90,11 +92,11 @@ fun AppSortBottomSheet(
     onChangeShowRunningAppsOnTop: (Boolean) -> Unit = {},
 ) {
     when (uiState) {
-        AppSortInfoUiState.Loading -> {
+        Loading -> {
             LoadingScreen(modifier = modifier.height(340.dp))
         }
 
-        is AppSortInfoUiState.Success -> {
+        is Success -> {
             AppSortOptionsContent(
                 uiState = uiState,
                 modifier = modifier,
@@ -108,7 +110,7 @@ fun AppSortBottomSheet(
 
 @Composable
 fun AppSortOptionsContent(
-    uiState: AppSortInfoUiState.Success,
+    uiState: Success,
     modifier: Modifier = Modifier,
     onSortByClick: (AppSorting) -> Unit,
     onSortOrderClick: (SortingOrder) -> Unit,
@@ -161,11 +163,10 @@ fun AppSortOptionsContent(
 @Composable
 @ThemePreviews
 fun AppSortOptionsBottomSheetPreview() {
-    val uiState = AppSortInfoUiState.Success(AppSortInfo())
     BlockerTheme {
         Surface {
-            AppSortBottomSheet(
-                uiState = uiState,
+            ComponentSortBottomSheet(
+                uiState = Success(AppSortInfo()),
             )
         }
     }
@@ -176,8 +177,8 @@ fun AppSortOptionsBottomSheetPreview() {
 fun AppSortOptionsBottomSheetLoadingPreview() {
     BlockerTheme {
         Surface {
-            AppSortBottomSheet(
-                uiState = AppSortInfoUiState.Loading,
+            ComponentSortBottomSheet(
+                uiState = Loading,
             )
         }
     }
