@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
 import com.merxury.blocker.core.model.data.ComponentDetail
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import java.util.Locale
 
@@ -32,6 +33,8 @@ interface ComponentDetailDataSource {
     fun getByComponentName(name: String): Flow<ComponentDetail?>
 
     fun saveComponentData(component: ComponentDetail): Flow<Boolean>
+
+    fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?>
 
     suspend fun getLibDisplayLanguage(displayLanguageInSettings: String): String {
         if (displayLanguageInSettings.isNotBlank()) {

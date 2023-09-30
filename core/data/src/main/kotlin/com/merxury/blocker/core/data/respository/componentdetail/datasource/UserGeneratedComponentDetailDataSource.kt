@@ -16,14 +16,20 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
+import android.os.Build.VERSION_CODES
+import androidx.annotation.RequiresApi
 import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.respository.component.CacheComponentDataSource
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.extension.KWatchEvent
+import com.merxury.blocker.core.extension.asWatchChannel
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -134,6 +140,30 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         } catch (e: IOException) {
             Timber.e(e, "Failed to save component detail: $name")
             emit(false)
+        }
+    }
+        .flowOn(ioDispatcher)
+
+    @RequiresApi(VERSION_CODES.O)
+    override fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?> = flow {
+        val workingDir = getWorkingDirWithLang()
+        if (!workingDir.exists()) {
+            workingDir.mkdirs()
+        }
+        val watchChannel = workingDir.asWatchChannel(scope, ioDispatcher)
+        watchChannel.consumeEach { event ->
+            Timber.v("Received file event: $event")
+            if (event.kind == KWatchEvent.Kind.Initialized) {
+                return@consumeEach
+            }
+            val changedPath = event.file.absolutePath
+            val changedComponent = changedPath
+                .removePrefix(workingDir.absolutePath)
+                .removePrefix(File.separator)
+                .removeSuffix(".$EXTENSION")
+                .replace(File.separator, ".")
+            val componentDetail = getByComponentName(changedComponent).first()
+            emit(componentDetail)
         }
     }
         .flowOn(ioDispatcher)
