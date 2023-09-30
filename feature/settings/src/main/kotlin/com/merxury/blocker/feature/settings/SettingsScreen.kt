@@ -39,6 +39,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,7 +50,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -72,6 +72,7 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
 import com.merxury.blocker.core.ui.BlockerSettingItem
+import com.merxury.blocker.core.ui.DevicePreviews
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
@@ -95,7 +96,7 @@ fun SettingsRoute(
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
     val event by viewModel.eventFlow.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    SettingsScreen(
+    SupportAndFeedbackScreen(
         onNavigationClick = onNavigationClick,
         uiState = settingsUiState,
         onChangeControllerType = viewModel::updateControllerType,
@@ -166,10 +167,10 @@ fun SettingsRoute(
 }
 
 @Composable
-fun SettingsScreen(
-    onNavigationClick: () -> Unit,
+fun SupportAndFeedbackScreen(
     uiState: SettingsUiState,
     modifier: Modifier = Modifier,
+    onNavigationClick: () -> Unit = { },
     onChangeControllerType: (ControllerType) -> Unit = { },
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit = { },
     onChangeAppDisplayLanguage: (String) -> Unit = { },
@@ -332,24 +333,25 @@ fun SettingsContent(
 }
 
 @Composable
-@Preview
+@DevicePreviews
 fun SettingsScreenPreview() {
     BlockerTheme {
-        SettingsScreen(
-            onNavigationClick = {},
-            uiState = Success(
-                UserEditableSettings(
-                    controllerType = IFW,
-                    ruleServerProvider = GITHUB,
-                    ruleBackupFolder = "/emulated/0/Blocker",
-                    backupSystemApp = true,
-                    restoreSystemApp = false,
-                    showSystemApps = false,
-                    showServiceInfo = true,
-                    darkThemeConfig = FOLLOW_SYSTEM,
-                    useDynamicColor = false,
+        Surface {
+            SupportAndFeedbackScreen(
+                uiState = Success(
+                    UserEditableSettings(
+                        controllerType = IFW,
+                        ruleServerProvider = GITHUB,
+                        ruleBackupFolder = "/emulated/0/Blocker",
+                        backupSystemApp = true,
+                        restoreSystemApp = false,
+                        showSystemApps = false,
+                        showServiceInfo = true,
+                        darkThemeConfig = FOLLOW_SYSTEM,
+                        useDynamicColor = false,
+                    ),
                 ),
-            ),
-        )
+            )
+        }
     }
 }
