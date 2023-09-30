@@ -53,10 +53,10 @@ class RuleDetailScreenScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
-    val ruleList = RuleListPreviewParameterProvider().values.first()
-    val components = ComponentListPreviewParameterProvider().values.first()
-    val appList = AppListPreviewParameterProvider().values.first()
-    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
+    private val ruleList = RuleListPreviewParameterProvider().values.first()
+    private val components = ComponentListPreviewParameterProvider().values.first()
+    private val appList = AppListPreviewParameterProvider().values.first()
+    private val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
     @Before
     fun setTimeZone() {
@@ -65,40 +65,40 @@ class RuleDetailScreenScreenshotTests {
     }
 
     @Test
-    fun generalRuleListScreen() {
-        composeTestRule.captureMultiDevice("GeneralRuleListScreen") {
-            GeneralRuleListScreen()
+    fun ruleDetailScreen() {
+        composeTestRule.captureMultiDevice("RuleDetailScreen") {
+            RuleDetailScreen()
         }
     }
 
     @Test
-    fun generalRuleListScreen_dark() {
+    fun ruleDetailScreen_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "GeneralRuleListScreen",
+            screenshotName = "RuleDetailScreen",
             darkMode = true,
         ) {
-            GeneralRuleListScreen()
+            RuleDetailScreen()
         }
     }
 
     @Test
-    fun generalRuleListScreenSelectedApplicable() {
-        composeTestRule.captureMultiDevice("GeneralRuleListScreenSelectedApplicable") {
-            GeneralRuleListScreenSelectedApplicable()
+    fun ruleDetailScreenSelectedApplicable() {
+        composeTestRule.captureMultiDevice("RuleDetailScreenSelectedApplicable") {
+            RuleDetailScreenSelectedApplicable()
         }
     }
 
     @Test
-    fun generalRuleListScreenSelectedApplicable_dark() {
+    fun ruleDetailScreenSelectedApplicable_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "GeneralRuleListScreenSelectedApplicable",
+            screenshotName = "RuleDetailScreenSelectedApplicable",
             darkMode = true,
         ) {
-            GeneralRuleListScreenSelectedApplicable()
+            RuleDetailScreenSelectedApplicable()
         }
     }
 
@@ -160,7 +160,7 @@ class RuleDetailScreenScreenshotTests {
     }
 
     @Composable
-    private fun GeneralRuleListScreen() {
+    private fun RuleDetailScreen() {
         BlockerTheme {
             Surface {
                 RuleDetailScreen(
@@ -188,7 +188,7 @@ class RuleDetailScreenScreenshotTests {
     }
 
     @Composable
-    private fun GeneralRuleListScreenSelectedApplicable() {
+    private fun RuleDetailScreenSelectedApplicable() {
         BlockerTheme(darkTheme = true) {
             Surface {
                 RuleDetailScreen(
