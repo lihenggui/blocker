@@ -15,6 +15,9 @@
      limitations under the License.
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="core_ui_application_with_count">App (%1$d)</string>
+    <string name="core_ui_component_with_count">Component (%1$d)</string>
+    <string name="core_ui_online_rule_with_count">Online rule (%1$d)</string>
     <string name="core_ui_clear_cache">Clear cache</string>
     <string name="core_ui_clear_data">Clear data</string>
     <string name="core_ui_force_stop">Force stop</string>

@@ -29,8 +29,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
-import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerTab
+import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.ui.AppDetailTabs
@@ -39,12 +39,12 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
+import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.AppSearchResultContent
 import com.merxury.blocker.feature.search.ComponentSearchResultContent
 import com.merxury.blocker.feature.search.LocalSearchUiState.Success
 import com.merxury.blocker.feature.search.RuleSearchResultContent
-import com.merxury.blocker.feature.search.SearchScreenTabs
 import com.merxury.blocker.feature.search.SearchUiState
 import kotlinx.coroutines.launch
 
@@ -78,7 +78,7 @@ fun SearchResultScreen(
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        BlockerScrollableTabRow(
+        BlockerTabRow(
             selectedTabIndex = pagerState.currentPage,
         ) {
             tabState.items.forEachIndexed { index, tabItem ->
