@@ -36,6 +36,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,23 +50,38 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.FilteredComponent
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.AppDetailTabs
+import com.merxury.blocker.core.ui.DevicePreviews
+import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.applist.AppList
+import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.SearchTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.applist.AppListViewModel
+import com.merxury.blocker.feature.search.LocalSearchUiState.Error
+import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
+import com.merxury.blocker.feature.search.LocalSearchUiState.Initializing
+import com.merxury.blocker.feature.search.LocalSearchUiState.Loading
+import com.merxury.blocker.feature.search.LocalSearchUiState.Success
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
@@ -172,13 +188,13 @@ fun SearchScreen(
                 ),
         ) {
             when (localSearchUiState) {
-                LocalSearchUiState.Idle -> EmptyScreen(textRes = string.feature_search_no_search_result)
-                LocalSearchUiState.Loading -> SearchingScreen()
-                is LocalSearchUiState.Error -> ErrorScreen(localSearchUiState.uiMessage)
-                is LocalSearchUiState.Initializing ->
+                is Idle -> EmptyScreen(textRes = string.feature_search_no_search_result)
+                is Loading -> SearchingScreen()
+                is Error -> ErrorScreen(localSearchUiState.uiMessage)
+                is Initializing ->
                     InitializingScreen(localSearchUiState.processingName)
 
-                is LocalSearchUiState.Success -> SearchResultScreen(
+                is Success -> SearchResultScreen(
                     modifier = modifier,
                     tabState = tabState,
                     switchTab = switchTab,
@@ -357,139 +373,217 @@ fun RuleSearchResultContent(
 }
 
 @Composable
+@ThemePreviews
+fun SearchScreenSelectedAppPreview() {
+    val tabState = SearchTabStatePreviewParameterProvider().values.first()
+    val appList = AppListPreviewParameterProvider().values.first()
+    val keyword = "blocker"
+
+    BlockerTheme {
+        Surface {
+            SearchScreen(
+                localSearchUiState = Success(
+                    searchKeyword = listOf(keyword),
+                    appTabUiState = AppTabUiState(
+                        list = appList,
+                    ),
+                ),
+                appList = appList,
+                tabState = tabState[0],
+                searchUiState = SearchUiState(
+                    keyword = TextFieldValue(keyword),
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+@DevicePreviews
+fun SearchScreenSelectedComponentPreview() {
+    val tabState = SearchTabStatePreviewParameterProvider().values.first()
+    val appList = AppListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    val keyword = "blocker"
+
+    BlockerTheme {
+        Surface {
+            SearchScreen(
+                localSearchUiState = Success(
+                    searchKeyword = listOf(keyword),
+                    componentTabUiState = ComponentTabUiState(
+                        list = listOf(
+                            FilteredComponent(
+                                app = appList[0],
+                                activity = components.filter { it.type == ACTIVITY },
+                                receiver = components.filter { it.type == RECEIVER },
+                            ),
+                        ),
+                    ),
+                ),
+                tabState = tabState[1],
+                searchUiState = SearchUiState(
+                    keyword = TextFieldValue(keyword),
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun SearchScreenSelectedRule() {
+    val tabState = SearchTabStatePreviewParameterProvider().values.first()
+    val ruleList = RuleListPreviewParameterProvider().values.first()
+    val keyword = "blocker"
+
+    BlockerTheme {
+        Surface {
+            SearchScreen(
+                localSearchUiState = Success(
+                    searchKeyword = listOf(keyword),
+                    ruleTabUiState = RuleTabUiState(
+                        list = ruleList,
+                    ),
+                ),
+                tabState = tabState[2],
+                searchUiState = SearchUiState(
+                    keyword = TextFieldValue(keyword),
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+@DevicePreviews
+fun SearchScreenSelectedModePreview() {
+    val tabState = SearchTabStatePreviewParameterProvider().values.first()
+    val appList = AppListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    val keyword = "blocker"
+
+    BlockerTheme {
+        Surface {
+            SearchScreen(
+                localSearchUiState = Success(
+                    searchKeyword = listOf(keyword),
+                    componentTabUiState = ComponentTabUiState(
+                        list = listOf(
+                            FilteredComponent(
+                                app = appList[0],
+                                activity = components.filter { it.type == ACTIVITY },
+                                receiver = components.filter { it.type == RECEIVER },
+                            ),
+                        ),
+                    ),
+                ),
+                tabState = tabState[1],
+                searchUiState = SearchUiState(
+                    keyword = TextFieldValue(keyword),
+                    isSelectedMode = true,
+                    selectedComponentList = listOf(
+                        components[0].toComponentInfo(),
+                        components[1].toComponentInfo(),
+                    ),
+                    selectedAppList = listOf(
+                        FilteredComponent(
+                            app = appList[0],
+                            activity = components.filter { it.type == ACTIVITY },
+                            receiver = components.filter { it.type == RECEIVER },
+                        ),
+                    ),
+                ),
+            )
+        }
+    }
+}
+
+@Composable
 @Preview
 fun SearchScreenEmptyPreview() {
-    val localSearchUiState = LocalSearchUiState.Loading
-    val tabState = TabState(
-        items = listOf(
-            SearchScreenTabs.App(),
-            SearchScreenTabs.Component(),
-            SearchScreenTabs.Rule(),
-        ),
-        selectedItem = SearchScreenTabs.App(),
-    )
+    val tabState = SearchTabStatePreviewParameterProvider().values.first()
+
     BlockerTheme {
-        SearchScreen(
-            localSearchUiState = localSearchUiState,
-            onSearchTextChanged = {},
-            onClearClick = {},
-            tabState = tabState,
-            switchTab = {},
-            onSelectAll = {},
-            onBlockAll = {},
-            onEnableAll = {},
-            switchSelectedMode = {},
-            onSelect = {},
-            onDeselect = {},
-            searchUiState = SearchUiState(),
-        )
+        Surface {
+            SearchScreen(
+                localSearchUiState = Idle,
+                tabState = tabState[0],
+                searchUiState = SearchUiState(),
+            )
+        }
     }
 }
 
 @Composable
 @Preview
 fun SearchScreenNoResultPreview() {
-    val localSearchUiState = LocalSearchUiState.Idle
-    val tabState = TabState(
-        items = listOf(
-            SearchScreenTabs.App(),
-            SearchScreenTabs.Component(),
-            SearchScreenTabs.Rule(),
-        ),
-        selectedItem = SearchScreenTabs.App(),
-    )
+    val tabState = SearchTabStatePreviewParameterProvider().values.first()
+    val keyword = "blocker"
+
     BlockerTheme {
-        SearchScreen(
-            localSearchUiState = localSearchUiState,
-            onSearchTextChanged = {},
-            onClearClick = {},
-            tabState = tabState,
-            switchTab = {},
-            onSelectAll = {},
-            onBlockAll = {},
-            onEnableAll = {},
-            switchSelectedMode = {},
-            onSelect = {},
-            onDeselect = {},
-            searchUiState = SearchUiState(),
-        )
+        Surface {
+            SearchScreen(
+                localSearchUiState = Success(
+                    searchKeyword = listOf(keyword),
+                    appTabUiState = AppTabUiState(
+                        list = emptyList(),
+                    ),
+                ),
+                tabState = tabState[3],
+                searchUiState = SearchUiState(
+                    keyword = TextFieldValue(keyword),
+                ),
+            )
+        }
     }
 }
 
 @Composable
 @Preview
-fun SearchScreenPreview() {
-    val filterAppItem = FilteredComponent(
-        app = AppItem(
-            packageName = "com.merxury.blocker",
-            label = "Blocker",
-            isSystem = false,
-        ),
-    )
-    val localSearchUiState = LocalSearchUiState.Success(
-        componentTabUiState = ComponentTabUiState(list = listOf(filterAppItem)),
-    )
-    val tabState = TabState(
-        items = listOf(
-            SearchScreenTabs.App(),
-            SearchScreenTabs.Component(),
-            SearchScreenTabs.Rule(),
-        ),
-        selectedItem = SearchScreenTabs.App(),
-    )
+fun SearchScreenInitializingPreview() {
+    val tabState = SearchTabStatePreviewParameterProvider().values.first()
+
     BlockerTheme {
-        SearchScreen(
-            localSearchUiState = localSearchUiState,
-            onSearchTextChanged = {},
-            onClearClick = {},
-            tabState = tabState,
-            switchTab = {},
-            onSelectAll = {},
-            onBlockAll = {},
-            onEnableAll = {},
-            switchSelectedMode = {},
-            onSelect = {},
-            onDeselect = {},
-            searchUiState = SearchUiState(),
-        )
+        Surface {
+            SearchScreen(
+                localSearchUiState = Initializing("Blocker"),
+                tabState = tabState[0],
+                searchUiState = SearchUiState(),
+            )
+        }
     }
 }
 
 @Composable
 @Preview
-fun SearchScreenSelectedPreview() {
-    val filterAppItem = FilteredComponent(
-        app = AppItem(
-            packageName = "com.merxury.blocker",
-            label = "Blocker",
-            isSystem = false,
-        ),
-    )
-    val localSearchUiState = LocalSearchUiState.Success(
-        componentTabUiState = ComponentTabUiState(list = listOf(filterAppItem)),
-    )
-    val tabState = TabState(
-        items = listOf(
-            SearchScreenTabs.App(1),
-            SearchScreenTabs.Component(),
-            SearchScreenTabs.Rule(),
-        ),
-        selectedItem = SearchScreenTabs.App(),
-    )
+fun SearchScreenLoadingPreview() {
+    val tabState = SearchTabStatePreviewParameterProvider().values.first()
+
     BlockerTheme {
-        SearchScreen(
-            localSearchUiState = localSearchUiState,
-            onSearchTextChanged = {},
-            onClearClick = {},
-            tabState = tabState,
-            switchTab = {},
-            onSelectAll = {},
-            onBlockAll = {},
-            onEnableAll = {},
-            switchSelectedMode = {},
-            onSelect = {},
-            searchUiState = SearchUiState(),
-            onDeselect = {},
-        )
+        Surface {
+            SearchScreen(
+                localSearchUiState = Loading,
+                tabState = tabState[0],
+                searchUiState = SearchUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun SearchScreenErrorPreview() {
+    val tabState = SearchTabStatePreviewParameterProvider().values.first()
+
+    BlockerTheme {
+        Surface {
+            SearchScreen(
+                localSearchUiState = Error(uiMessage = UiMessage("Error")),
+                tabState = tabState[0],
+                searchUiState = SearchUiState(),
+            )
+        }
     }
 }

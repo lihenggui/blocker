@@ -23,6 +23,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import com.merxury.blocker.core.testing.testing.data.AppSortInfoTestData
+import com.merxury.blocker.feature.sort.AppSortInfoUiState.Loading
+import com.merxury.blocker.feature.sort.AppSortInfoUiState.Success
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -66,8 +68,8 @@ class AppSortBottomSheetTest {
     @Test
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
-            AppSortBottomSheet(
-                uiState = AppSortInfoUiState.Loading,
+            ComponentSortBottomSheet(
+                uiState = Loading,
             )
         }
 
@@ -77,8 +79,8 @@ class AppSortBottomSheetTest {
     @Test
     fun appSortBottomSheet() {
         composeTestRule.setContent {
-            AppSortBottomSheet(
-                uiState = AppSortInfoUiState.Success(
+            ComponentSortBottomSheet(
+                uiState = Success(
                     appSortInfo = AppSortInfoTestData,
                 ),
             )
