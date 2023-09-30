@@ -96,7 +96,7 @@ fun SettingsRoute(
     val settingsUiState by viewModel.settingsUiState.collectAsStateWithLifecycle()
     val event by viewModel.eventFlow.collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    SupportAndFeedbackScreen(
+    SettingsScreen(
         onNavigationClick = onNavigationClick,
         uiState = settingsUiState,
         onChangeControllerType = viewModel::updateControllerType,
@@ -167,7 +167,7 @@ fun SettingsRoute(
 }
 
 @Composable
-fun SupportAndFeedbackScreen(
+fun SettingsScreen(
     uiState: SettingsUiState,
     modifier: Modifier = Modifier,
     onNavigationClick: () -> Unit = { },
@@ -337,7 +337,7 @@ fun SettingsContent(
 fun SettingsScreenPreview() {
     BlockerTheme {
         Surface {
-            SupportAndFeedbackScreen(
+            SettingsScreen(
                 uiState = Success(
                     UserEditableSettings(
                         controllerType = IFW,

@@ -18,17 +18,12 @@ package com.merxury.blocker.feature.settings
 
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.model.data.UserEditableSettings
-import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
-import com.merxury.blocker.feature.settings.SettingsUiState.Success
+import com.merxury.blocker.feature.helpandfeedback.SupportAndFeedbackScreen
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Before
 import org.junit.Rule
@@ -44,7 +39,7 @@ import java.util.TimeZone
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = HiltTestApplication::class, sdk = [33])
 @LooperMode(LooperMode.Mode.PAUSED)
-class SettingsScreenScreenshotTests {
+class SupportAndFeedbackScreenScreenshotTests {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
@@ -56,44 +51,25 @@ class SettingsScreenScreenshotTests {
     }
 
     @Test
-    fun settingsScreen() {
-        composeTestRule.captureMultiDevice("SettingsScreen") {
-            SettingsScreen()
+    fun supportAndFeedbackScreen() {
+        composeTestRule.captureMultiDevice("SupportAndFeedbackScreen") {
+            BlockerTheme {
+                Surface {
+                    SupportAndFeedbackScreen()
+                }
+            }
         }
     }
 
     @Test
-    fun settingsScreen_dark() {
+    fun supportAndFeedbackScreen_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "SettingsScreen",
+            screenshotName = "SupportAndFeedbackScreen",
             darkMode = true,
         ) {
-            SettingsScreen()
-        }
-    }
-
-    @Composable
-    private fun SettingsScreen() {
-        BlockerTheme {
-            Surface {
-                SettingsScreen(
-                    uiState = Success(
-                        UserEditableSettings(
-                            controllerType = IFW,
-                            ruleServerProvider = GITHUB,
-                            ruleBackupFolder = "/emulated/0/Blocker",
-                            backupSystemApp = true,
-                            restoreSystemApp = false,
-                            showSystemApps = false,
-                            showServiceInfo = true,
-                            darkThemeConfig = FOLLOW_SYSTEM,
-                            useDynamicColor = false,
-                        ),
-                    ),
-                )
-            }
+            SupportAndFeedbackScreen()
         }
     }
 }
