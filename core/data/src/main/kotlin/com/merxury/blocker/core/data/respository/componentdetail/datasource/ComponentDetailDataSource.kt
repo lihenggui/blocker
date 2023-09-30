@@ -33,6 +33,8 @@ interface ComponentDetailDataSource {
 
     fun saveComponentData(component: ComponentDetail): Flow<Boolean>
 
+    fun listenToComponentDetailChanges(): Flow<ComponentDetail?>
+
     suspend fun getLibDisplayLanguage(displayLanguageInSettings: String): String {
         if (displayLanguageInSettings.isNotBlank()) {
             return displayLanguageInSettings

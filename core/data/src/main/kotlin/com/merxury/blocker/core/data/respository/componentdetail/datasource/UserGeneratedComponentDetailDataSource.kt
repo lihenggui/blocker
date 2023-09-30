@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
+import android.os.Build.VERSION_CODES
+import androidx.annotation.RequiresApi
 import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.respository.component.CacheComponentDataSource
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -34,6 +36,11 @@ import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
+import java.nio.file.FileSystems
+import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
+import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
+import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
+import java.nio.file.WatchService
 import javax.inject.Inject
 
 private const val EXTENSION = "json"
@@ -134,6 +141,47 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         } catch (e: IOException) {
             Timber.e(e, "Failed to save component detail: $name")
             emit(false)
+        }
+    }
+        .flowOn(ioDispatcher)
+
+    @RequiresApi(VERSION_CODES.O)
+    override fun listenToComponentDetailChanges(): Flow<ComponentDetail?> = flow<ComponentDetail?> {
+        val watchService: WatchService? =
+            try {
+                FileSystems.getDefault().newWatchService()
+            } catch (e: IOException) {
+                Timber.e(e, "Failed to create watch service")
+                null
+            } catch (e: UnsupportedOperationException) {
+                Timber.e(e, "Watch service is not available on this platform")
+                null
+            }
+        if (watchService == null) {
+            emit(null)
+            return@flow
+        }
+        val workingDir = getWorkingDirWithLang()
+        if (!workingDir.exists()) {
+            workingDir.mkdirs()
+        }
+        val pathToWatch = workingDir.toPath()
+        pathToWatch.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
+        Timber.d("Start watching file changes in path: $pathToWatch")
+        while (true) {
+            Timber.v("Waiting for file changes")
+            val watchKey = watchService.take()
+
+            for (event in watchKey.pollEvents()) {
+                // do something with the events
+                Timber.d("Event kind: ${event.kind()}. File affected: ${event.context()}.")
+            }
+
+            if (!watchKey.reset()) {
+                watchKey.cancel()
+                watchService.close()
+                break
+            }
         }
     }
         .flowOn(ioDispatcher)

@@ -44,6 +44,8 @@ class TestComponentDetailRepository : IComponentDetailRepository {
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
 
+    override fun listenToComponentDetailChanges(): Flow<ComponentDetail?> = flowOf(null)
+
     fun sendComponentDetail(componentDetail: ComponentDetail) {
         this.componentDetail.tryEmit(componentDetail)
     }

@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail
 
+import android.os.Build.VERSION_CODES
+import androidx.annotation.RequiresApi
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -62,4 +64,8 @@ class ComponentDetailRepository @Inject constructor(
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> =
         userGeneratedDataSource.saveComponentData(componentDetail)
+
+    @RequiresApi(VERSION_CODES.O)
+    override fun listenToComponentDetailChanges(): Flow<ComponentDetail?> =
+        userGeneratedDataSource.listenToComponentDetailChanges()
 }
