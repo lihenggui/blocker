@@ -34,10 +34,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.segmentedbuttons.SegmentedButtons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppSortInfo
@@ -91,7 +91,7 @@ fun AppSortBottomSheet(
 ) {
     when (uiState) {
         AppSortInfoUiState.Loading -> {
-            LoadingScreen()
+            LoadingScreen(modifier = modifier.height(340.dp))
         }
 
         is AppSortInfoUiState.Success -> {
@@ -159,16 +159,25 @@ fun AppSortOptionsContent(
 }
 
 @Composable
-@Preview
+@ThemePreviews
 fun AppSortOptionsBottomSheetPreview() {
     val uiState = AppSortInfoUiState.Success(AppSortInfo())
     BlockerTheme {
         Surface {
-            AppSortOptionsContent(
+            AppSortBottomSheet(
                 uiState = uiState,
-                onSortByClick = {},
-                onSortOrderClick = {},
-                onChangeShowRunningAppsOnTop = {},
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun AppSortOptionsBottomSheetLoadingPreview() {
+    BlockerTheme {
+        Surface {
+            AppSortBottomSheet(
+                uiState = AppSortInfoUiState.Loading,
             )
         }
     }
