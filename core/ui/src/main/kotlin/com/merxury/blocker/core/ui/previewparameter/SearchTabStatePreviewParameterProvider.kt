@@ -30,7 +30,7 @@ class SearchTabStatePreviewParameterProvider :
                     SearchScreenTabs.Component(1),
                     SearchScreenTabs.Rule(2),
                 ),
-                selectedItem = SearchScreenTabs.App(),
+                selectedItem = SearchScreenTabs.App(3),
             ),
             TabState(
                 items = listOf(
@@ -38,7 +38,7 @@ class SearchTabStatePreviewParameterProvider :
                     SearchScreenTabs.Component(1),
                     SearchScreenTabs.Rule(2),
                 ),
-                selectedItem = SearchScreenTabs.Component(),
+                selectedItem = SearchScreenTabs.Component(1),
             ),
             TabState(
                 items = listOf(
@@ -46,7 +46,15 @@ class SearchTabStatePreviewParameterProvider :
                     SearchScreenTabs.Component(1),
                     SearchScreenTabs.Rule(2),
                 ),
-                selectedItem = SearchScreenTabs.Rule(),
+                selectedItem = SearchScreenTabs.Rule(2),
+            ),
+            TabState(
+                items = listOf(
+                    SearchScreenTabs.App(0),
+                    SearchScreenTabs.Component(0),
+                    SearchScreenTabs.Rule(0),
+                ),
+                selectedItem = SearchScreenTabs.App(0),
             ),
         ),
     )
