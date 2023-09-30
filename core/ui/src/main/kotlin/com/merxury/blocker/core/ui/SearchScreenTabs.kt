@@ -14,17 +14,21 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.feature.search
+package com.merxury.blocker.core.ui
 
 sealed class SearchScreenTabs(val name: String, val title: Int = 0, val itemCount: Int = 0) {
     data class App(val count: Int = 0) :
-        SearchScreenTabs(APP, title = R.string.feature_search_application_with_count, itemCount = count)
+        SearchScreenTabs(APP, title = R.string.core_ui_application_with_count, itemCount = count)
 
     data class Component(val count: Int = 0) :
-        SearchScreenTabs(COMPONENT, title = R.string.feature_search_component_with_count, itemCount = count)
+        SearchScreenTabs(
+            COMPONENT,
+            title = R.string.core_ui_component_with_count,
+            itemCount = count,
+        )
 
     data class Rule(val count: Int = 0) :
-        SearchScreenTabs(RULE, title = R.string.feature_search_online_rule_with_count, itemCount = count)
+        SearchScreenTabs(RULE, title = R.string.core_ui_online_rule_with_count, itemCount = count)
 
     override fun toString(): String {
         return "Screen name = $name"

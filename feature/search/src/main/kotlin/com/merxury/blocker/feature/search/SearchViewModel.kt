@@ -45,6 +45,7 @@ import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.NAME
 import com.merxury.blocker.core.model.preference.SortingOrder
+import com.merxury.blocker.core.ui.SearchScreenTabs
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
