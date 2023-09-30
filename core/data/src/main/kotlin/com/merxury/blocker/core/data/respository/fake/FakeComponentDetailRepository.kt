@@ -33,4 +33,6 @@ class FakeComponentDetailRepository @Inject constructor(
     override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
+
+    override fun listenToComponentDetailChanges(): Flow<ComponentDetail?> = flowOf(null)
 }
