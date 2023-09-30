@@ -28,6 +28,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import com.merxury.blocker.core.testing.testing.data.appInfoTestData
 import com.merxury.blocker.core.testing.testing.data.filteredComponentTestData
 import com.merxury.blocker.core.testing.testing.data.generalRuleListTestData
+import com.merxury.blocker.core.ui.SearchScreenTabs
+import com.merxury.blocker.core.ui.SearchScreenTabs.App
+import com.merxury.blocker.core.ui.SearchScreenTabs.Component
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.feature.search.AppTabUiState
 import com.merxury.blocker.feature.search.ComponentTabUiState
@@ -37,9 +40,6 @@ import com.merxury.blocker.feature.search.LocalSearchUiState.Success
 import com.merxury.blocker.feature.search.R.string
 import com.merxury.blocker.feature.search.RuleTabUiState
 import com.merxury.blocker.feature.search.SearchScreen
-import com.merxury.blocker.feature.search.SearchScreenTabs
-import com.merxury.blocker.feature.search.SearchScreenTabs.App
-import com.merxury.blocker.feature.search.SearchScreenTabs.Component
 import com.merxury.blocker.feature.search.SearchUiState
 import org.junit.Before
 import org.junit.Rule

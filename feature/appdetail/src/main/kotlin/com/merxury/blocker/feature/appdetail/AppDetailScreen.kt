@@ -702,10 +702,7 @@ fun AppDetailScreenPreview(
 
 @Composable
 @ThemePreviews
-fun AppDetailScreenLoadingPreview(
-    @PreviewParameter(AppListPreviewParameterProvider::class)
-    appList: List<AppItem>,
-) {
+fun AppDetailScreenLoadingPreview() {
     val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
@@ -721,10 +718,7 @@ fun AppDetailScreenLoadingPreview(
 
 @Composable
 @ThemePreviews
-fun AppDetailScreenErrorPreview(
-    @PreviewParameter(AppListPreviewParameterProvider::class)
-    appList: List<AppItem>,
-) {
+fun AppDetailScreenErrorPreview() {
     val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
