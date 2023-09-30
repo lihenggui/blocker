@@ -15,6 +15,9 @@
   -->
 
 <resources>
+    <string name="core_ui_application_with_count">应用（%1$d）</string>
+    <string name="core_ui_component_with_count">组件（%1$d）</string>
+    <string name="core_ui_online_rule_with_count">规则（%1$d）</string>
     <string name="core_ui_clear_cache">清理缓存</string>
     <string name="core_ui_clear_data">清除数据</string>
     <string name="core_ui_force_stop">强制停止</string>

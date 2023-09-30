@@ -14,9 +14,6 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_search_application_with_count">應用程式（%1$d）</string>
-    <string name="feature_search_component_with_count">元件（%1$d）</string>
-    <string name="feature_search_online_rule_with_count">線上規則（%1$d）</string>
     <string name="feature_search_searching">搜尋中</string>
     <plurals name="feature_search_activity_count">
         <item quantity="other">%1$d個活動</item>
