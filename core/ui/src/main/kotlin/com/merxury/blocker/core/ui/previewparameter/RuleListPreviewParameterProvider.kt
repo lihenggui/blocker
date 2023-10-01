@@ -56,6 +56,10 @@ class RuleListPreviewParameterProvider : PreviewParameterProvider<List<GeneralRu
                     "androidx.google.example4",
                 ),
             ),
+            GeneralRule(
+                id = 3,
+                name = "Android WorkerManager Test",
+            ),
         ),
     )
 }
