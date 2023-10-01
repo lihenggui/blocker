@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -103,7 +104,7 @@ fun BlockerCollapsingTopAppBar(
                 }
                 BlockerBodyLargeText(
                     text = title,
-                    maxLines = 1,
+                    maxLines = 2,
                     fontSize = titleSize,
                     modifier = Modifier.fillMaxWidth(0.7f),
                 )
@@ -128,19 +129,29 @@ fun BlockerCollapsingTopAppBar(
                         .fillMaxWidth(0.7f)
                         .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
                 )
-                AsyncImage(
-                    modifier = Modifier
-                        .size(appIconSize)
-                        .clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = rememberRipple(bounded = false),
-                            onClick = { onIconClick() },
-                        )
-                        .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
-                    model = ImageRequest.Builder(LocalContext.current).data(iconSource)
-                        .crossfade(true).build(),
-                    contentDescription = null,
-                )
+                Box(
+                    modifier = Modifier.wrapContentSize(),
+                    contentAlignment = Alignment.CenterEnd,
+                ) {
+                    AsyncImage(
+                        modifier = Modifier
+                            .size(appIconSize)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = rememberRipple(bounded = false),
+                                onClick = { onIconClick() },
+                            )
+                            .graphicsLayer { alpha = ((progress - 0.25f) * 4).coerceIn(0f, 1f) },
+                        model = ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(iconSource)
+                            .error(BlockerIcons.Android)
+                            .placeholder(BlockerIcons.Android)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
+                    )
+                }
             }
         }
     }
@@ -186,7 +197,7 @@ private fun CollapsingToolbarLayout(
                 ),
                 y = lerp(
                     start = MinToolbarHeight.roundToPx() / 2 - title.height / 2,
-                    stop = expandedHorizontalGuideline + title.height / 2,
+                    stop = expandedHorizontalGuideline + title.height / 4,
                     fraction = progress,
                 ),
             )
@@ -240,7 +251,7 @@ fun CollapsingToolbarCollapsedPreview() {
     BlockerTheme {
         BlockerCollapsingTopAppBar(
             progress = 0f,
-            title = "Title",
+            title = "Title name",
             actions = {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -310,8 +321,7 @@ fun CollapsingToolbarHalfwayPreview() {
     }
 }
 
-@Preview
-@Preview(widthDp = 300, heightDp = 500)
+@ThemePreviews
 @Composable
 fun CollapsingToolbarExpandedPreview() {
     BlockerTheme {
