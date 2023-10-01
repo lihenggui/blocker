@@ -16,8 +16,10 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -29,6 +31,8 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest.Builder
@@ -40,8 +44,10 @@ import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.ui.DevicePreviews
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 
 @Composable
 fun RuleCard(
@@ -90,23 +96,30 @@ private fun CardHeader(iconUrl: String?, name: String, matchedAppCount: Int, com
             }
         }
         val indicatorColor = MaterialTheme.colorScheme.tertiary
-        BlockerLabelSmallText(
+        Row(
             modifier = Modifier
-                .padding(top = 16.dp, end = 16.dp)
-                .drawBehind {
-                    drawRoundRect(
-                        color = indicatorColor,
-                        cornerRadius = CornerRadius(x = 4.dp.toPx(), y = 4.dp.toPx()),
-                    )
-                }
-                .padding(horizontal = 2.dp, vertical = 1.dp),
-            text = pluralStringResource(
-                id = plurals.core_ui_matched_apps,
-                matchedAppCount,
-                matchedAppCount,
-            ),
-            color = MaterialTheme.colorScheme.onTertiary,
-        )
+                .fillMaxWidth(0.25f),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            BlockerLabelSmallText(
+                modifier = Modifier
+                    .padding(top = 16.dp, end = 16.dp)
+                    .drawBehind {
+                        drawRoundRect(
+                            color = indicatorColor,
+                            cornerRadius = CornerRadius(x = 4.dp.toPx(), y = 4.dp.toPx()),
+                        )
+                    }
+                    .padding(horizontal = 2.dp, vertical = 1.dp),
+                text = pluralStringResource(
+                    id = plurals.core_ui_matched_apps,
+                    matchedAppCount,
+                    matchedAppCount,
+                ),
+                color = MaterialTheme.colorScheme.onTertiary,
+                textAlign = TextAlign.Center,
+            )
+        }
     }
 }
 
@@ -130,32 +143,22 @@ private fun CardContent(searchKeyword: List<String>) {
 
 @Composable
 @ThemePreviews
-fun RuleBasicInfoPreview() {
-    val item = GeneralRule(
-        id = 2,
-        name = "Android WorkerManager",
-        iconUrl = null,
-        company = "Google",
-        description = "WorkManager is the recommended solution for persistent work. " + "Work is persistent when it remains scheduled through app restarts and " + "system reboots. Because most background processing is best accomplished " + "through persistent work, WorkManager is the primary recommended API for " + "background processing.",
-        sideEffect = "Background works won't be able to execute",
-        safeToBlock = false,
-        contributors = listOf("Google"),
-        searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
-        matchedAppCount = 10,
-    )
+fun RuleBasicInfoPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
     BlockerTheme {
-        RuleCard(item = item)
+        RuleCard(item = ruleList[1])
     }
 }
 
 @Composable
-@ThemePreviews
-fun RuleSimpleInfoPreview() {
-    val item = GeneralRule(
-        id = 3,
-        name = "Android WorkerManager Test",
-    )
+@DevicePreviews
+fun RuleSimpleInfoPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
     BlockerTheme {
-        RuleCard(item = item)
+        RuleCard(item = ruleList[2])
     }
 }
