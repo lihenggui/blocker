@@ -147,7 +147,7 @@ fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
             .data(info)
             .error(BlockerIcons.Android)
             .placeholder(BlockerIcons.Android)
-            .crossfade(true)
+            .crossfade(false)
             .build(),
         contentDescription = null,
     )
