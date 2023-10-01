@@ -40,7 +40,6 @@ import com.merxury.blocker.feature.settings.R
 @Composable
 fun SwitchSettingItem(
     @StringRes itemRes: Int,
-    itemText: String? = null,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
@@ -53,7 +52,33 @@ fun SwitchSettingItem(
     ) {
         Text(
             modifier = Modifier.weight(1f),
-            text = itemText ?: stringResource(id = itemRes),
+            text = stringResource(id = itemRes),
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+        )
+    }
+}
+
+@Composable
+fun SwitchSettingItem(
+    itemText: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 12.dp)
+            .padding(start = 56.dp, end = 24.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            modifier = Modifier.weight(1f),
+            text = itemText,
             style = MaterialTheme.typography.bodyLarge,
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -85,7 +110,6 @@ fun SwitchSettingsItemLongNamePreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
-                itemRes = R.string.feature_settings_show_system_apps,
                 itemText = "This is a very long long long long name for this item",
                 checked = true,
                 onCheckedChange = {},
