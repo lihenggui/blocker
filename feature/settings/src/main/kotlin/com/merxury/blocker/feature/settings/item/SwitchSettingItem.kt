@@ -17,10 +17,12 @@
 package com.merxury.blocker.feature.settings.item
 
 import android.content.res.Configuration
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -32,11 +34,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.ui.DevicePreviews
 import com.merxury.blocker.feature.settings.R
 
 @Composable
 fun SwitchSettingItem(
-    itemRes: Int,
+    @StringRes itemRes: Int,
+    itemText: String? = null,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
@@ -48,11 +52,15 @@ fun SwitchSettingItem(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(id = itemRes),
+            modifier = Modifier.weight(1f),
+            text = itemText ?: stringResource(id = itemRes),
             style = MaterialTheme.typography.bodyLarge,
         )
-        Spacer(modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = null)
+        Spacer(modifier = Modifier.width(16.dp))
+        Switch(
+            checked = checked,
+            onCheckedChange = null,
+        )
     }
 }
 
@@ -64,6 +72,21 @@ fun SwitchSettingsItemPreview() {
         Surface {
             SwitchSettingItem(
                 itemRes = R.string.feature_settings_show_system_apps,
+                checked = true,
+                onCheckedChange = {},
+            )
+        }
+    }
+}
+
+@Composable
+@DevicePreviews
+fun SwitchSettingsItemLongNamePreview() {
+    BlockerTheme {
+        Surface {
+            SwitchSettingItem(
+                itemRes = R.string.feature_settings_show_system_apps,
+                itemText = "This is a very long long long long name for this item",
                 checked = true,
                 onCheckedChange = {},
             )
