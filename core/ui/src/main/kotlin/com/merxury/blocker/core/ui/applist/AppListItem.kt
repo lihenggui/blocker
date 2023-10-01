@@ -57,6 +57,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.AppServiceStatus
@@ -144,6 +145,8 @@ fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
         modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current)
             .data(info)
+            .error(BlockerIcons.Android)
+            .placeholder(BlockerIcons.Android)
             .crossfade(true)
             .build(),
         contentDescription = null,
