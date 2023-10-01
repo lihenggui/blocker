@@ -71,7 +71,7 @@ fun BlockerBodyLargeText(
     modifier: Modifier = Modifier,
     text: String,
     fontSize: TextUnit = TextUnit.Unspecified,
-    maxLines: Int = Int.MAX_VALUE,
+    maxLines: Int = 2,
     style: TextStyle = MaterialTheme.typography.bodyLarge,
     color: Color = MaterialTheme.colorScheme.onSurface,
 ) {
