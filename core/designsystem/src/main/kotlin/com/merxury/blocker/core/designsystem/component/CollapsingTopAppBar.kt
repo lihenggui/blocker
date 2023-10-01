@@ -147,7 +147,7 @@ fun BlockerCollapsingTopAppBar(
                             .data(iconSource)
                             .error(BlockerIcons.Android)
                             .placeholder(BlockerIcons.Android)
-                            .crossfade(true)
+                            .crossfade(false)
                             .build(),
                         contentDescription = null,
                     )
