@@ -152,7 +152,6 @@ fun BlockerCollapsingTopAppBar(
                         contentDescription = null,
                     )
                 }
-
             }
         }
     }
