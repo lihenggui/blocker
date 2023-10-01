@@ -147,6 +147,8 @@ private fun SelectableAppIcon(
                     .size(48.dp),
                 model = Builder(LocalContext.current)
                     .data(info)
+                    .error(BlockerIcons.Android)
+                    .placeholder(BlockerIcons.Android)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
