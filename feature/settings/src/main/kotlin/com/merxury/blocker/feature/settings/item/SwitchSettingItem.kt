@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.settings.item
 
-import android.content.res.Configuration
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -31,8 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.DevicePreviews
 import com.merxury.blocker.feature.settings.R
@@ -40,9 +39,8 @@ import com.merxury.blocker.feature.settings.R
 @Composable
 fun SwitchSettingItem(
     @StringRes itemRes: Int,
-    itemText: String? = null,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
+    onCheckedChange: (Boolean) -> Unit = {},
 ) {
     Row(
         modifier = Modifier
@@ -53,7 +51,7 @@ fun SwitchSettingItem(
     ) {
         Text(
             modifier = Modifier.weight(1f),
-            text = itemText ?: stringResource(id = itemRes),
+            text = stringResource(id = itemRes),
             style = MaterialTheme.typography.bodyLarge,
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -65,15 +63,13 @@ fun SwitchSettingItem(
 }
 
 @Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
+@ThemePreviews
 fun SwitchSettingsItemPreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
                 itemRes = R.string.feature_settings_show_system_apps,
                 checked = true,
-                onCheckedChange = {},
             )
         }
     }
@@ -85,10 +81,8 @@ fun SwitchSettingsItemLongNamePreview() {
     BlockerTheme {
         Surface {
             SwitchSettingItem(
-                itemRes = R.string.feature_settings_show_system_apps,
-                itemText = "This is a very long long long long name for this item",
+                itemRes = R.string.feature_settings_file_manager_required,
                 checked = true,
-                onCheckedChange = {},
             )
         }
     }
