@@ -16,6 +16,13 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,17 +32,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.FrameMetricsAggregator.ANIMATION_DURATION
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
@@ -79,17 +89,26 @@ fun LazyListScope.matchedComponentItem(
             onCardArrowClicked = onCardArrowClicked,
         )
     }
-    if (expanded) {
-        items(ruleMatchedApp.componentList) {
+    if (ruleMatchedApp.componentList.isEmpty()) {
+        return
+    }
+    itemsIndexed(ruleMatchedApp.componentList) { _, item ->
+        AnimatedVisibility(
+            visible = expanded,
+            enter = fadeIn(animationSpec = tween(ANIMATION_DURATION)) +
+                expandVertically(animationSpec = tween(ANIMATION_DURATION)),
+            exit = fadeOut(animationSpec = tween(ANIMATION_DURATION)) +
+                shrinkVertically(animationSpec = tween(ANIMATION_DURATION)),
+        ) {
             ComponentListItem(
-                item = it,
-                enabled = it.enabled(),
-                type = it.type,
-                isServiceRunning = it.isRunning,
-                onStopServiceClick = { onStopServiceClick(it.packageName, it.name) },
-                onLaunchActivityClick = { onLaunchActivityClick(it.packageName, it.name) },
-                onCopyNameClick = { onCopyNameClick(it.simpleName) },
-                onCopyFullNameClick = { onCopyFullNameClick(it.name) },
+                item = item,
+                enabled = item.enabled(),
+                type = item.type,
+                isServiceRunning = item.isRunning,
+                onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
+                onLaunchActivityClick = { onLaunchActivityClick(item.packageName, item.name) },
+                onCopyNameClick = { onCopyNameClick(item.simpleName) },
+                onCopyFullNameClick = { onCopyFullNameClick(item.name) },
                 onSwitchClick = onSwitch,
             )
         }
@@ -107,11 +126,10 @@ fun MatchedAppItemHeader(
     expanded: Boolean = false,
     onCardArrowClicked: (String) -> Unit = {},
 ) {
-    val expandIcon = if (expanded) {
-        BlockerIcons.ExpandLess
-    } else {
-        BlockerIcons.ExpandMore
-    }
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 0f else -180f,
+        animationSpec = tween(500), label = "iconRotation",
+    )
     val items = listOf(
         DropDownMenuItem(
             R.string.core_ui_open_app_detail,
@@ -138,12 +156,13 @@ fun MatchedAppItemHeader(
     ) {
         IconButton(onClick = { onCardArrowClicked(ruleMatchedApp.app.packageName) }) {
             Icon(
-                imageVector = expandIcon,
+                imageVector = BlockerIcons.ExpandMore,
                 contentDescription = if (expanded) {
                     stringResource(R.string.core_ui_collapse_list)
                 } else {
                     stringResource(R.string.core_ui_expand_list)
                 },
+                modifier = Modifier.rotate(rotation),
             )
         }
         AppIcon(
