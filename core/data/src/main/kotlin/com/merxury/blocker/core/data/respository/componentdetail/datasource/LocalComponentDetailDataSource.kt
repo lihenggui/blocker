@@ -117,8 +117,4 @@ class LocalComponentDetailDataSource @Inject constructor(
         Timber.e("Not support saving component detail in LocalComponentDetailDataSource")
         return flowOf(false)
     }
-
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> {
-        throw UnsupportedOperationException("Not support listening to component detail changes")
-    }
 }
