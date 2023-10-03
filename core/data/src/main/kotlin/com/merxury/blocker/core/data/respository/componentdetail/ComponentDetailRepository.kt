@@ -64,5 +64,5 @@ class ComponentDetailRepository @Inject constructor(
         userGeneratedDataSource.saveComponentData(componentDetail)
 
     override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
-        userGeneratedDataSource.listenToComponentDetailChanges()
+        userGeneratedDataSource.eventFlow
 }
