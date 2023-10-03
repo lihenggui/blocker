@@ -21,7 +21,6 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.os.Build
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
@@ -791,11 +790,8 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private fun listenComponentDetailChanges() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return
-        }
         viewModelScope.launch {
-            componentDetailRepository.listenToComponentDetailChanges(viewModelScope).collect {
+            componentDetailRepository.listenToComponentDetailChanges().collect {
                 Timber.v("Component detail has changed: $it")
             }
         }
