@@ -38,10 +38,12 @@ import timber.log.Timber
 import java.io.File
 import java.io.IOException
 import javax.inject.Inject
+import javax.inject.Singleton
 
 private const val EXTENSION = "json"
 private const val BASE_FOLDER = "user-generated-rules"
 
+@Singleton
 class UserGeneratedComponentDetailDataSource @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentDataSource: CacheComponentDataSource,
