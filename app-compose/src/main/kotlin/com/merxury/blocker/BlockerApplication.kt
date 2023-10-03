@@ -59,7 +59,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
 
     @Inject
     @ApplicationScope
-    lateinit var applicationScope : CoroutineScope
+    lateinit var applicationScope: CoroutineScope
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()

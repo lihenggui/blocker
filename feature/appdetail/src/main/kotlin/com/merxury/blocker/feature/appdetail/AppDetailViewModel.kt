@@ -51,6 +51,7 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
@@ -435,6 +436,7 @@ class AppDetailViewModel @Inject constructor(
         } else {
             emptyList()
         }
+
         else -> listOf(SEARCH, MORE)
     }
 
@@ -789,12 +791,74 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun listenComponentDetailChanges() {
-        viewModelScope.launch {
-            componentDetailRepository.listenToComponentDetailChanges().collect {
-                Timber.v("Component detail has changed: $it")
-            }
+    private fun listenComponentDetailChanges() = viewModelScope.launch {
+        componentDetailRepository.listenToComponentDetailChanges().collect {
+            updateComponentDetail(it)
         }
+    }
+
+    private fun updateComponentDetail(componentDetail: ComponentDetail) {
+        Timber.v("Update component detail: $componentDetail")
+        _componentListUiState.value.receiver.find { it.name == componentDetail.name }
+            ?.let { item ->
+                val index = _componentListUiState.value.receiver.indexOf(item)
+                if (index == -1) {
+                    Timber.w("Cannot find receiver ${componentDetail.name} to update")
+                    return
+                }
+                _componentListUiState.update {
+                    it.copy(
+                        receiver = it.receiver.toMutableStateList().apply {
+                            set(index, item.copy(description = componentDetail.description))
+                        },
+                    )
+                }
+            }
+        _componentListUiState.value.service.find { it.name == componentDetail.name }
+            ?.let { item ->
+                val index = _componentListUiState.value.service.indexOf(item)
+                if (index == -1) {
+                    Timber.w("Cannot find service ${componentDetail.name} to update")
+                    return
+                }
+                _componentListUiState.update {
+                    it.copy(
+                        service = it.service.toMutableStateList().apply {
+                            set(index, item.copy(description = componentDetail.description))
+                        },
+                    )
+                }
+            }
+        _componentListUiState.value.activity.find { it.name == componentDetail.name }
+            ?.let { item ->
+                val index = _componentListUiState.value.activity.indexOf(item)
+                if (index == -1) {
+                    Timber.w("Cannot find activity ${componentDetail.name} to update")
+                    return
+                }
+                _componentListUiState.update {
+                    it.copy(
+                        activity = it.activity.toMutableStateList().apply {
+                            set(index, item.copy(description = componentDetail.description))
+                        },
+                    )
+                }
+            }
+        _componentListUiState.value.provider.find { it.name == componentDetail.name }
+            ?.let { item ->
+                val index = _componentListUiState.value.provider.indexOf(item)
+                if (index == -1) {
+                    Timber.w("Cannot find provider ${componentDetail.name} to update")
+                    return
+                }
+                _componentListUiState.update {
+                    it.copy(
+                        provider = it.provider.toMutableStateList().apply {
+                            set(index, item.copy(description = componentDetail.description))
+                        },
+                    )
+                }
+            }
     }
 
     private suspend fun getAppIcon(packageInfo: PackageInfo?) =

@@ -24,12 +24,13 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -49,7 +50,9 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
 
-    private val eventChannel = Channel<ComponentDetail>(Channel.BUFFERED)
+    private val _eventFlow =
+        MutableSharedFlow<ComponentDetail>(replay = 1, onBufferOverflow = DROP_OLDEST)
+    val eventFlow = _eventFlow.asSharedFlow()
 
     override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
         val workingDir = getWorkingDirWithLang()
@@ -133,7 +136,12 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
             }
             val content = json.encodeToString(component)
             file.writeText(content)
-            eventChannel.send(component)
+            val result = _eventFlow.tryEmit(component)
+            if (result) {
+                Timber.d("Successfully emit event for component detail: $name")
+            } else {
+                Timber.d("Failed to emit event for component detail: $name")
+            }
             emit(true)
         } catch (e: IOException) {
             Timber.e(e, "Failed to save component detail: $name")
@@ -141,9 +149,6 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         }
     }
         .flowOn(ioDispatcher)
-
-    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
-        eventChannel.receiveAsFlow()
 
     private suspend fun getWorkingDirWithLang(): File {
         val libDisplayLanguage = userDataRepository.userData.first().libDisplayLanguage
