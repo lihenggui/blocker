@@ -16,24 +16,20 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
-import android.os.Build.VERSION_CODES
-import androidx.annotation.RequiresApi
 import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.respository.component.CacheComponentDataSource
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.extension.KWatchEvent
-import com.merxury.blocker.core.extension.asWatchChannel
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -52,6 +48,8 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
+
+    private val eventChannel = Channel<ComponentDetail>(Channel.BUFFERED)
 
     override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
         val workingDir = getWorkingDirWithLang()
@@ -132,10 +130,10 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
             val file = workingDir.resolve(path)
             if (!file.exists()) {
                 file.parentFile?.mkdirs()
-                file.createNewFile()
             }
             val content = json.encodeToString(component)
             file.writeText(content)
+            eventChannel.send(component)
             emit(true)
         } catch (e: IOException) {
             Timber.e(e, "Failed to save component detail: $name")
@@ -144,29 +142,8 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
     }
         .flowOn(ioDispatcher)
 
-    @RequiresApi(VERSION_CODES.O)
-    override fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?> = flow {
-        val workingDir = getWorkingDirWithLang()
-        if (!workingDir.exists()) {
-            workingDir.mkdirs()
-        }
-        val watchChannel = workingDir.asWatchChannel(scope, ioDispatcher)
-        watchChannel.consumeEach { event ->
-            Timber.v("Received file event: $event")
-            if (event.kind == KWatchEvent.Kind.Initialized) {
-                return@consumeEach
-            }
-            val changedPath = event.file.absolutePath
-            val changedComponent = changedPath
-                .removePrefix(workingDir.absolutePath)
-                .removePrefix(File.separator)
-                .removeSuffix(".$EXTENSION")
-                .replace(File.separator, ".")
-            val componentDetail = getByComponentName(changedComponent).first()
-            emit(componentDetail)
-        }
-    }
-        .flowOn(ioDispatcher)
+    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
+        eventChannel.receiveAsFlow()
 
     private suspend fun getWorkingDirWithLang(): File {
         val libDisplayLanguage = userDataRepository.userData.first().libDisplayLanguage
