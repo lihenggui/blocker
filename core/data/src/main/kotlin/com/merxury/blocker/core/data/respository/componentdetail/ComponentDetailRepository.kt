@@ -16,15 +16,12 @@
 
 package com.merxury.blocker.core.data.respository.componentdetail
 
-import android.os.Build.VERSION_CODES
-import androidx.annotation.RequiresApi
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.LocalComponentDetailDataSource
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentDetail
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
@@ -66,7 +63,6 @@ class ComponentDetailRepository @Inject constructor(
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> =
         userGeneratedDataSource.saveComponentData(componentDetail)
 
-    @RequiresApi(VERSION_CODES.O)
-    override fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?> =
-        userGeneratedDataSource.listenToComponentDetailChanges(scope)
+    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
+        userGeneratedDataSource.eventFlow
 }
