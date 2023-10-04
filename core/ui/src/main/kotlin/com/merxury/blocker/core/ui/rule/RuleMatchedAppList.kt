@@ -195,15 +195,15 @@ fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): 
 @Preview
 fun RuleMatchedAppListPreview() {
     val componentInfo = ComponentItem(
-        name = "component",
-        simpleName = "com",
-        packageName = "blocker",
+        name = ".ui.component.ComponentListActivity",
+        simpleName = "ComponentListItem",
+        packageName = "com.merxury.blocker.test1",
         type = ACTIVITY,
         pmBlocked = false,
     )
     val ruleMatchedApp = RuleMatchedApp(
         app = AppItem(
-            packageName = "com.merxury.blocker",
+            packageName = "com.merxury.blocker.test1",
             label = "Blocker",
             isSystem = false,
         ),
@@ -211,7 +211,7 @@ fun RuleMatchedAppListPreview() {
     )
     val ruleMatchedApp2 = RuleMatchedApp(
         app = AppItem(
-            packageName = "com.merxury.test",
+            packageName = "com.merxury.blocker.test2",
             label = "Test long long long long long name",
             isSystem = false,
         ),
