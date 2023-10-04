@@ -24,8 +24,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -50,51 +48,6 @@ import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.applist.AppIcon
-import com.merxury.blocker.core.ui.component.ComponentListItem
-
-fun LazyListScope.matchedComponentItem(
-    modifier: Modifier = Modifier,
-    iconModifier: Modifier = Modifier,
-    ruleMatchedApp: RuleMatchedApp,
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigateToAppDetail: (String) -> Unit = { _ -> },
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
-    expanded: Boolean = false,
-    onCardArrowClicked: (String) -> Unit = {},
-) {
-    item {
-        MatchedAppItemHeader(
-            modifier = modifier,
-            iconModifier = iconModifier,
-            ruleMatchedApp = ruleMatchedApp,
-            navigateToAppDetail = navigateToAppDetail,
-            onBlockAllClick = onBlockAllClick,
-            onEnableAllClick = onEnableAllClick,
-            expanded = expanded,
-            onCardArrowClicked = onCardArrowClicked,
-        )
-    }
-    if (expanded) {
-        items(ruleMatchedApp.componentList) {
-            ComponentListItem(
-                item = it,
-                enabled = it.enabled(),
-                type = it.type,
-                isServiceRunning = it.isRunning,
-                onStopServiceClick = { onStopServiceClick(it.packageName, it.name) },
-                onLaunchActivityClick = { onLaunchActivityClick(it.packageName, it.name) },
-                onCopyNameClick = { onCopyNameClick(it.simpleName) },
-                onCopyFullNameClick = { onCopyFullNameClick(it.name) },
-                onSwitchClick = onSwitch,
-            )
-        }
-    }
-}
 
 @Composable
 fun MatchedAppItemHeader(
@@ -129,6 +82,7 @@ fun MatchedAppItemHeader(
             onEnableAllClick(ruleMatchedApp.componentList)
         },
     )
+    HorizontalDivider(modifier = modifier)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
@@ -157,13 +111,14 @@ fun MatchedAppItemHeader(
             matchedComponentCount = ruleMatchedApp.componentList.size,
             modifier = modifier.weight(1f),
         )
+        Spacer(modifier = Modifier.weight(1.0f))
         BlockerAppTopBarMenu(
             menuIcon = BlockerIcons.MoreVert,
             menuIconDesc = R.string.core_ui_more_menu,
             menuList = items,
         )
     }
-    HorizontalDivider()
+    HorizontalDivider(modifier = modifier)
 }
 
 @Composable
