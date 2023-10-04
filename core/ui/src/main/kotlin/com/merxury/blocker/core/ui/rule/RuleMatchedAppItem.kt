@@ -82,7 +82,6 @@ fun MatchedAppItemHeader(
             onEnableAllClick(ruleMatchedApp.componentList)
         },
     )
-    HorizontalDivider(modifier = modifier)
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
