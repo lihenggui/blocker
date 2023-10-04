@@ -24,8 +24,7 @@ import com.merxury.blocker.core.datastore.AppPropertiesSerializer
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
 import com.merxury.blocker.core.datastore.di.DataStoreModule
-import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
-import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.di.ApplicationScope
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.components.SingletonComponent
@@ -44,24 +43,24 @@ object TestDataStoreModule {
     @Provides
     @Singleton
     fun providesUserPreferencesDataStore(
-        @Dispatcher(IO) ioScope: CoroutineScope,
+        @ApplicationScope scope: CoroutineScope,
         userPreferencesSerializer: UserPreferencesSerializer,
         tmpFolder: TemporaryFolder,
     ): DataStore<UserPreferences> =
         tmpFolder.testUserPreferencesDataStore(
-            coroutineScope = ioScope,
+            coroutineScope = scope,
             userPreferencesSerializer = userPreferencesSerializer,
         )
 
     @Provides
     @Singleton
     fun providesAppPropertiesDataStore(
-        @Dispatcher(IO) ioScope: CoroutineScope,
+        @ApplicationScope scope: CoroutineScope,
         appPropertiesSerializer: AppPropertiesSerializer,
         tmpFolder: TemporaryFolder,
     ): DataStore<AppProperties> =
         tmpFolder.testAppPropertiesDataStore(
-            coroutineScope = ioScope,
+            coroutineScope = scope,
             appPropertiesSerializer = appPropertiesSerializer,
         )
 }

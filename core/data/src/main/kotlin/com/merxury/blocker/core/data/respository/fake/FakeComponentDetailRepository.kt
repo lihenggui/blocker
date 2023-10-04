@@ -19,7 +19,6 @@ package com.merxury.blocker.core.data.respository.fake
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.data.respository.componentdetail.datasource.UserGeneratedComponentDetailDataSource
 import com.merxury.blocker.core.model.data.ComponentDetail
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import javax.inject.Inject
@@ -35,5 +34,6 @@ class FakeComponentDetailRepository @Inject constructor(
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
 
-    override fun listenToComponentDetailChanges(scope: CoroutineScope): Flow<ComponentDetail?> = flowOf(null)
+    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
+        flowOf(ComponentDetail(""))
 }
