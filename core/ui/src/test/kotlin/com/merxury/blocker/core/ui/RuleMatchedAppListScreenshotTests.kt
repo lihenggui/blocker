@@ -26,11 +26,10 @@ import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.AppItem
-import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppList
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
@@ -83,31 +82,23 @@ class RuleMatchedAppListScreenshotTests {
 
     @Composable
     private fun RuleMatchedAppListExample() {
-        val componentInfo = ComponentItem(
-            name = "component",
-            simpleName = "com",
-            packageName = "blocker",
-            type = ACTIVITY,
-            pmBlocked = false,
-        )
+        val appList = AppListPreviewParameterProvider().values.first()
+        val components = ComponentListPreviewParameterProvider().values.first()
+
         val ruleMatchedApp = RuleMatchedApp(
-            app = AppItem(
-                packageName = "com.merxury.blocker",
-                label = "Blocker",
-                isSystem = false,
-            ),
-            componentList = listOf(componentInfo),
+            app = appList[0],
+            componentList = components,
+        )
+        val ruleMatchedApp1 = RuleMatchedApp(
+            app = appList[1],
+            componentList = listOf(),
         )
         val ruleMatchedApp2 = RuleMatchedApp(
-            app = AppItem(
-                packageName = "com.merxury.blocker",
-                label = "Test long long long long long name",
-                isSystem = false,
-            ),
+            app = appList[2],
             componentList = listOf(),
         )
         val uiState = RuleMatchedAppListUiState.Success(
-            list = listOf(ruleMatchedApp, ruleMatchedApp2),
+            list = listOf(ruleMatchedApp, ruleMatchedApp1, ruleMatchedApp2),
         )
         RuleMatchedAppList(ruleMatchedAppListUiState = uiState)
     }

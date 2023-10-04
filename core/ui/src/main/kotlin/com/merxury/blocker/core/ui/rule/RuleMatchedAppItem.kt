@@ -41,13 +41,12 @@ import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.applist.AppIcon
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
 @Composable
 fun MatchedAppItemHeader(
@@ -108,9 +107,9 @@ fun MatchedAppItemHeader(
         MatchedAppInfo(
             label = ruleMatchedApp.app.label,
             matchedComponentCount = ruleMatchedApp.componentList.size,
-            modifier = modifier.weight(1f),
+            modifier = modifier.fillMaxWidth(0.8f),
         )
-        Spacer(modifier = Modifier.weight(1.0f))
+        Spacer(modifier = Modifier.weight(1f))
         BlockerAppTopBarMenu(
             menuIcon = BlockerIcons.MoreVert,
             menuIconDesc = R.string.core_ui_more_menu,
@@ -143,28 +142,11 @@ private fun MatchedAppInfo(
 @Composable
 @ThemePreviews
 fun MatchedAppItemHeaderPreview() {
+    val appList = AppListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
     val ruleMatchedApp = RuleMatchedApp(
-        app = AppItem(
-            packageName = "com.merxury.example",
-            label = "Example label",
-            packageInfo = null,
-        ),
-        componentList = listOf(
-            ComponentItem(
-                packageName = "com.merxury.example",
-                name = "com.merxury.example.MainActivity",
-                simpleName = "MainActivity",
-                pmBlocked = true,
-                type = ACTIVITY,
-            ),
-            ComponentItem(
-                packageName = "com.merxury.example",
-                name = "com.merxury.example.provider",
-                simpleName = "example",
-                type = PROVIDER,
-                pmBlocked = false,
-            ),
-        ),
+        app = appList[0],
+        componentList = components,
     )
     BlockerTheme {
         Surface {
@@ -178,28 +160,11 @@ fun MatchedAppItemHeaderPreview() {
 @Composable
 @ThemePreviews
 fun MatchedAppItemHeaderLongNamePreview() {
+    val appList = AppListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
     val ruleMatchedApp = RuleMatchedApp(
-        app = AppItem(
-            packageName = "com.merxury.example",
-            label = "Example long long long longlong name",
-            packageInfo = null,
-        ),
-        componentList = listOf(
-            ComponentItem(
-                packageName = "com.merxury.example",
-                name = "com.merxury.example.MainActivity",
-                simpleName = "MainActivity",
-                pmBlocked = true,
-                type = ACTIVITY,
-            ),
-            ComponentItem(
-                packageName = "com.merxury.example",
-                name = "com.merxury.example.provider",
-                simpleName = "example",
-                type = PROVIDER,
-                pmBlocked = false,
-            ),
-        ),
+        app = appList[2],
+        componentList = components,
     )
     BlockerTheme {
         Surface {
