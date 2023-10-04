@@ -73,6 +73,7 @@ fun ComponentListItem(
     enabled: Boolean,
     type: ComponentType,
     isServiceRunning: Boolean,
+    modifier: Modifier = Modifier,
     navigateToComponentDetail: (String) -> Unit = { },
     onStopServiceClick: () -> Unit = { },
     onLaunchActivityClick: () -> Unit = { },
@@ -94,7 +95,7 @@ fun ComponentListItem(
         label = "color",
     )
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = {

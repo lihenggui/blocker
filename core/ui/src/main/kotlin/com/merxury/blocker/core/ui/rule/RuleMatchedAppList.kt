@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +25,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -48,8 +51,10 @@ import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.component.ComponentListItem
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RuleMatchedAppList(
     modifier: Modifier = Modifier,
@@ -85,21 +90,56 @@ fun RuleMatchedAppList(
                     state = listState,
                 ) {
                     ruleMatchedAppListUiState.list.forEachIndexed { index, ruleMatchedApp ->
-                        matchedComponentItem(
-                            ruleMatchedApp = ruleMatchedApp,
-                            onStopServiceClick = onStopServiceClick,
-                            onLaunchActivityClick = onLaunchActivityClick,
-                            onCopyNameClick = onCopyNameClick,
-                            onCopyFullNameClick = onCopyFullNameClick,
-                            navigateToAppDetail = navigateToAppDetail,
-                            onBlockAllClick = onBlockAllClick,
-                            onEnableAllClick = onEnableAllClick,
-                            onSwitch = onSwitch,
-                            expanded = isExpandedMap[index] ?: false,
-                            onCardArrowClicked = {
-                                isExpandedMap[index] = !(isExpandedMap[index] ?: false)
-                            },
-                        )
+                        val expanded = isExpandedMap[index] ?: false
+                        item(key = ruleMatchedApp.app.packageName) {
+                            MatchedAppItemHeader(
+                                modifier = Modifier.animateItemPlacement(),
+                                iconModifier = Modifier,
+                                ruleMatchedApp = ruleMatchedApp,
+                                navigateToAppDetail = navigateToAppDetail,
+                                onBlockAllClick = onBlockAllClick,
+                                onEnableAllClick = onEnableAllClick,
+                                expanded = expanded,
+                                onCardArrowClicked = {
+                                    isExpandedMap[index] = !(isExpandedMap[index] ?: false)
+                                },
+                            )
+                        }
+                        if (expanded) {
+                            items(
+                                items = ruleMatchedApp.componentList,
+                                key = { item -> ruleMatchedApp.app.packageName + item.name },
+                            ) {
+                                ComponentListItem(
+                                    modifier = modifier.animateItemPlacement(),
+                                    item = it,
+                                    enabled = it.enabled(),
+                                    type = it.type,
+                                    isServiceRunning = it.isRunning,
+                                    onStopServiceClick = {
+                                        onStopServiceClick(
+                                            it.packageName,
+                                            it.name,
+                                        )
+                                    },
+                                    onLaunchActivityClick = {
+                                        onLaunchActivityClick(
+                                            it.packageName,
+                                            it.name,
+                                        )
+                                    },
+                                    onCopyNameClick = { onCopyNameClick(it.simpleName) },
+                                    onCopyFullNameClick = { onCopyFullNameClick(it.name) },
+                                    onSwitchClick = onSwitch,
+                                )
+                                // add horizontal divider after last item
+                                if (ruleMatchedApp.componentList.last() == it) {
+                                    HorizontalDivider(
+                                        modifier = modifier,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 listState.FastScrollbar(
@@ -155,15 +195,15 @@ fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): 
 @Preview
 fun RuleMatchedAppListPreview() {
     val componentInfo = ComponentItem(
-        name = "component",
-        simpleName = "com",
-        packageName = "blocker",
+        name = ".ui.component.ComponentListActivity",
+        simpleName = "ComponentListItem",
+        packageName = "com.merxury.blocker.test1",
         type = ACTIVITY,
         pmBlocked = false,
     )
     val ruleMatchedApp = RuleMatchedApp(
         app = AppItem(
-            packageName = "com.merxury.blocker",
+            packageName = "com.merxury.blocker.test1",
             label = "Blocker",
             isSystem = false,
         ),
@@ -171,7 +211,7 @@ fun RuleMatchedAppListPreview() {
     )
     val ruleMatchedApp2 = RuleMatchedApp(
         app = AppItem(
-            packageName = "com.merxury.blocker",
+            packageName = "com.merxury.blocker.test2",
             label = "Test long long long long long name",
             isSystem = false,
         ),
