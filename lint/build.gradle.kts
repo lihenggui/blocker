@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     `java-library`
     kotlin("jvm")
-    id("blocker.android.lint")
+    alias(libs.plugins.blocker.android.lint)
 }
 
 java {
