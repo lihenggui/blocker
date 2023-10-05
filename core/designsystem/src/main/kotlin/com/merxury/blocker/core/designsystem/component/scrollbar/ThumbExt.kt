@@ -18,6 +18,7 @@ package com.merxury.blocker.core.designsystem.component.scrollbar
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,6 +45,19 @@ fun LazyListState.rememberDraggableScroller(
  */
 @Composable
 fun LazyGridState.rememberDraggableScroller(
+    itemsAvailable: Int,
+): (Float) -> Unit = rememberDraggableScroller(
+    itemsAvailable = itemsAvailable,
+    scroll = ::scrollToItem,
+)
+
+/**
+ * Remembers a function to react to [Scrollbar] thumb position displacements for a
+ * [LazyStaggeredGridState]
+ * @param itemsAvailable the amount of items in the staggered grid.
+ */
+@Composable
+fun LazyStaggeredGridState.rememberDraggableScroller(
     itemsAvailable: Int,
 ): (Float) -> Unit = rememberDraggableScroller(
     itemsAvailable = itemsAvailable,
