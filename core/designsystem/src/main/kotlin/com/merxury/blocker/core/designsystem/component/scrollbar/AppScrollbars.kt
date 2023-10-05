@@ -58,14 +58,14 @@ private const val INACTIVE_TO_DORMANT_COOL_DOWN = 2_000L
  * @param modifier a [Modifier] for the [Scrollbar]
  * @param state the driving state for the [Scrollbar]
  * @param orientation the orientation of the scrollbar
- * @param onThumbDisplaced the fast scroll implementation
+ * @param onThumbMoved the fast scroll implementation
  */
 @Composable
 fun ScrollableState.FastScrollbar(
     modifier: Modifier = Modifier,
     state: ScrollbarState,
     orientation: Orientation,
-    onThumbDisplaced: (Float) -> Unit,
+    onThumbMoved: (Float) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     Scrollbar(
@@ -79,7 +79,7 @@ fun ScrollableState.FastScrollbar(
                 orientation = orientation,
             )
         },
-        onThumbDisplaced = onThumbDisplaced,
+        onThumbMoved = onThumbMoved,
     )
 }
 

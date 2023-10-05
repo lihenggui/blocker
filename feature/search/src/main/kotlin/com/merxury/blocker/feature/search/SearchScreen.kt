@@ -52,7 +52,7 @@ import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
-import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
@@ -309,7 +309,7 @@ fun ComponentSearchResultContent(
                 .align(Alignment.CenterEnd),
             state = scrollbarState,
             orientation = Vertical,
-            onThumbDisplaced = listState.rememberFastScroller(
+            onThumbMoved = listState.rememberDraggableScroller(
                 itemsAvailable = componentTabUiState.list.size,
             ),
         )
