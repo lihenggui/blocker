@@ -16,7 +16,7 @@
  */
 
 plugins {
-    id("blocker.android.library")
+    alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.protobuf)
 }
 

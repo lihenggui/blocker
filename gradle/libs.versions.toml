@@ -185,3 +185,19 @@ kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref =
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
+
+# Plugins defined by this project
+blocker-android-application = { id = "blocker.android.application", version = "unspecified" }
+blocker-android-application-compose = { id = "blocker.android.application.compose", version = "unspecified" }
+blocker-android-application-firebase = { id = "blocker.android.application.firebase", version = "unspecified" }
+blocker-android-application-flavors = { id = "blocker.android.application.flavors", version = "unspecified" }
+blocker-android-application-jacoco = { id = "blocker.android.application.jacoco", version = "unspecified" }
+blocker-android-feature = { id = "blocker.android.feature", version = "unspecified" }
+blocker-android-hilt = { id = "blocker.android.hilt", version = "unspecified" }
+blocker-android-library = { id = "blocker.android.library", version = "unspecified" }
+blocker-android-library-compose = { id = "blocker.android.library.compose", version = "unspecified" }
+blocker-android-library-jacoco = { id = "blocker.android.library.jacoco", version = "unspecified" }
+blocker-android-lint = { id = "blocker.android.lint", version = "unspecified" }
+blocker-android-room = { id = "blocker.android.room", version = "unspecified" }
+blocker-android-test = { id = "blocker.android.test", version = "unspecified" }
+blocker-jvm-library = { id = "blocker.jvm.library", version = "unspecified" }

@@ -17,12 +17,12 @@
 import com.merxury.blocker.BlockerBuildType
 
 plugins {
-    id("blocker.android.application")
-    id("blocker.android.application.compose")
-    id("blocker.android.application.flavors")
-    id("blocker.android.application.jacoco")
-    id("blocker.android.hilt")
-    id("blocker.android.application.firebase")
+    alias(libs.plugins.blocker.android.application)
+    alias(libs.plugins.blocker.android.application.compose)
+    alias(libs.plugins.blocker.android.application.flavors)
+    alias(libs.plugins.blocker.android.application.jacoco)
+    alias(libs.plugins.blocker.android.hilt)
+    alias(libs.plugins.blocker.android.application.firebase)
     id("jacoco")
     id("kotlin-parcelize")
     id("com.google.android.gms.oss-licenses-plugin")
