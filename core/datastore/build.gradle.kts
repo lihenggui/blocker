@@ -16,9 +16,9 @@
  */
 
 plugins {
-    id("blocker.android.library")
-    id("blocker.android.library.jacoco")
-    id("blocker.android.hilt")
+    alias(libs.plugins.blocker.android.library)
+    alias(libs.plugins.blocker.android.library.jacoco)
+    alias(libs.plugins.blocker.android.hilt)
 }
 
 android {
