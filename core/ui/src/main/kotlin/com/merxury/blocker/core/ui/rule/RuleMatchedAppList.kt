@@ -44,7 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
-import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
@@ -149,7 +149,7 @@ fun RuleMatchedAppList(
                         .align(Alignment.CenterEnd),
                     state = scrollbarState,
                     orientation = Vertical,
-                    onThumbDisplaced = listState.rememberFastScroller(
+                    onThumbMoved = listState.rememberDraggableScroller(
                         itemsAvailable = ruleMatchedAppListUiState.list.size,
                     ),
                 )
