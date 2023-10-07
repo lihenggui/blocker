@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 plugins {
-    id("blocker.android.library")
-    id("blocker.android.library.jacoco")
+    alias(libs.plugins.blocker.android.library)
+    alias(libs.plugins.blocker.android.library.jacoco)
     id("com.google.devtools.ksp")
 }
 
