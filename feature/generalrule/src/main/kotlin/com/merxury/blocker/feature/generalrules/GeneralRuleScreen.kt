@@ -102,7 +102,6 @@ fun GeneralRulesScreen(
                                 modifier = Modifier.size(36.dp),
                                 contentDesc = "",
                             )
-
                         }
                     }
                 },
