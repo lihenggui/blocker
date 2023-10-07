@@ -60,7 +60,6 @@ class GeneralRulesViewModel @Inject constructor(
     init {
         loadData()
         updateGeneralRule()
-        updateMatchedAppInfo()
     }
 
     fun dismissAlert() = viewModelScope.launch {
