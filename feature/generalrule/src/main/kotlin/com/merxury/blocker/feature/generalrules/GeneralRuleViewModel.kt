@@ -54,6 +54,8 @@ class GeneralRulesViewModel @Inject constructor(
     val uiState: StateFlow<GeneralRuleUiState> = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
+    private val ruleListSize = MutableStateFlow(0)
+    private val matchedRuleCount = MutableStateFlow(0)
 
     init {
         loadData()
@@ -73,7 +75,13 @@ class GeneralRulesViewModel @Inject constructor(
                 if (it.isEmpty()) {
                     return@collect
                 }
-                _uiState.emit(Success(it))
+                ruleListSize.emit(it.size)
+                _uiState.emit(
+                    Success(
+                        rules = it,
+                        matchProgress = matchedRuleCount.value * 100 / it.size,
+                    ),
+                )
             }
     }
 
@@ -97,9 +105,10 @@ class GeneralRulesViewModel @Inject constructor(
         generalRuleRepository.getGeneralRules()
             .flowOn(ioDispatcher)
             .first()
-            .forEach { rule ->
+            .forEachIndexed { index, rule ->
                 // No need to handle result
                 updateRule(rule).firstOrNull()
+                matchedRuleCount.emit(index + 1)
             }
     }
 }
@@ -108,6 +117,7 @@ sealed interface GeneralRuleUiState {
     data object Loading : GeneralRuleUiState
     class Success(
         val rules: List<GeneralRule>,
+        val matchProgress: Int = 0,
     ) : GeneralRuleUiState
 
     class Error(val error: UiMessage) : GeneralRuleUiState

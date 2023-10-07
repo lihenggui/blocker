@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -142,7 +143,6 @@ fun BlockerMediumTopAppBar(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview("Top App Bar with actions and navigation")
 @Composable
 fun BlockerTopAppBarNaviActionsPreview() {
@@ -163,7 +163,31 @@ fun BlockerTopAppBarNaviActionsPreview() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Preview("Top App Bar with loading icon")
+@Composable
+fun BlockerTopAppBarLoadingPreview() {
+    BlockerTheme {
+        BlockerTopAppBar(
+            title = stringResource(id = android.R.string.untitled),
+            hasNavigationIcon = false,
+            actions = {
+                Row(
+                    modifier = Modifier.padding(end = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    BlockerLoadingWheel(
+                        modifier = Modifier.size(36.dp),
+                        contentDesc = "",
+                    )
+                    Text(
+                        text = "50%",
+                    )
+                }
+            },
+        )
+    }
+}
+
 @Preview("Top App Bar without navigation and actions")
 @Composable
 fun BlockerHomeTopAppBarPreview() {
