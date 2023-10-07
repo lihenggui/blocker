@@ -96,7 +96,7 @@ gradlePlugin {
             implementationClass = "AndroidLintConventionPlugin"
         }
         register("jvmLibrary") {
-            id = "nowinandroid.jvm.library"
+            id = "blocker.jvm.library"
             implementationClass = "JvmLibraryConventionPlugin"
         }
     }

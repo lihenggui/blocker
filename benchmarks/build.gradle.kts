@@ -19,7 +19,7 @@ import com.merxury.blocker.BlockerBuildType
 import com.merxury.blocker.configureFlavors
 
 plugins {
-    id("blocker.android.test")
+    alias(libs.plugins.blocker.android.test)
 }
 
 android {
