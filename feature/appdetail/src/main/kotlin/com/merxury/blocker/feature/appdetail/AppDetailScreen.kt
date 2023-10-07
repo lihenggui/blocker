@@ -37,6 +37,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -59,6 +60,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
@@ -119,6 +121,7 @@ import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
 import com.merxury.blocker.feature.appdetail.ui.ShareAction
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.rule.R.string as rulestring
@@ -387,8 +390,18 @@ fun AppDetailContent(
             }
         }
     }
+    val snackbarHostState = remember { SnackbarHostState() }
+    // TODO use correct string resource
+    val snackbarMessage = pluralStringResource(
+        id = R.plurals.feature_appdetail_selected_component_count,
+        count = componentListUiState.operateBatchComponentProgress,
+        componentListUiState.operateBatchComponentProgress,
+    )
     updateIconBasedThemingState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
     Scaffold(
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             TopAppBar(
                 isSelectedMode = topAppBarUiState.isSelectedMode,
@@ -398,8 +411,26 @@ fun AppDetailContent(
                 toolbarState = toolbarState,
                 onSearchTextChanged = onSearchTextChanged,
                 onSearchModeChanged = onSearchModeChanged,
-                blockAllComponents = blockAllComponents,
-                enableAllComponents = enableAllComponents,
+                blockAllComponents = {
+                    blockAllComponents()
+                    showAndDismissSnackbar(
+                        scope = scope,
+                        snackbarHostState = snackbarHostState,
+                        message = snackbarMessage,
+                        progress = componentListUiState.operateBatchComponentProgress,
+                        size = componentListUiState.operateBatchComponentSize,
+                    )
+                },
+                enableAllComponents = {
+                    enableAllComponents()
+                    showAndDismissSnackbar(
+                        scope = scope,
+                        snackbarHostState = snackbarHostState,
+                        message = snackbarMessage,
+                        progress = componentListUiState.operateBatchComponentProgress,
+                        size = componentListUiState.operateBatchComponentSize,
+                    )
+                },
                 navigatedToComponentSortScreen = navigatedToComponentSortScreen,
                 onLaunchAppClick = onLaunchAppClick,
                 onSelectAll = onSelectAll,
@@ -442,6 +473,23 @@ fun AppDetailContent(
             onSelect = onSelect,
             onDeselect = onDeselect,
         )
+    }
+}
+
+private fun showAndDismissSnackbar(
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    message: String,
+    progress: Int,
+    size: Int,
+) {
+    scope.launch {
+        snackbarHostState.showSnackbar(
+            message = message,
+        )
+    }
+    if (progress == size) {
+        snackbarHostState.currentSnackbarData?.dismiss()
     }
 }
 

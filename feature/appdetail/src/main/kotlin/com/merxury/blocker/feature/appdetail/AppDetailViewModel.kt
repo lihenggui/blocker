@@ -159,6 +159,8 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
+    private val operateBatchComponentProgress = MutableStateFlow(0)
+    private val operateBatchComponentSize = MutableStateFlow(0)
 
     init {
         loadTabInfo()
@@ -343,6 +345,8 @@ class AppDetailViewModel @Inject constructor(
             packageName = packageName,
             type = PROVIDER,
         ),
+        operateBatchComponentProgress = operateBatchComponentProgress.value,
+        operateBatchComponentSize = operateBatchComponentSize.value,
     )
 
     private suspend fun sortAndConvertToComponentItem(
@@ -481,12 +485,15 @@ class AppDetailViewModel @Inject constructor(
             }.map {
                 it.toComponentInfo()
             }
-
+            operateBatchComponentSize.emit(list.size)
             componentRepository.batchControlComponent(components = list.toList(), newState = enable)
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect {}
+                .collect {
+                    operateBatchComponentProgress.emit(it)
+                }
+            operateBatchComponentProgress.emit(0)
             analyticsHelper.logBatchOperationPerformed(enable)
         }
 
@@ -544,6 +551,7 @@ class AppDetailViewModel @Inject constructor(
 
     fun controlAllSelectedComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            operateBatchComponentSize.emit(_appBarUiState.value.selectedComponentList.size)
             componentRepository.batchControlComponent(
                 components = _appBarUiState.value.selectedComponentList,
                 newState = enable,
@@ -551,7 +559,10 @@ class AppDetailViewModel @Inject constructor(
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect()
+                .collect {
+                    operateBatchComponentProgress.emit(it)
+                }
+            operateBatchComponentProgress.emit(0)
             _appBarUiState.update {
                 it.copy(selectedComponentList = listOf())
             }
@@ -890,4 +901,6 @@ data class ComponentListUiState(
     val service: SnapshotStateList<ComponentItem> = mutableStateListOf(),
     val activity: SnapshotStateList<ComponentItem> = mutableStateListOf(),
     val provider: SnapshotStateList<ComponentItem> = mutableStateListOf(),
+    val operateBatchComponentProgress: Int = 0,
+    val operateBatchComponentSize: Int = 0,
 )

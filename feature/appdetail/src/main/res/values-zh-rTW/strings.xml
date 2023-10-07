@@ -40,6 +40,12 @@
     <plurals name="feature_appdetail_selected_component_count">
         <item quantity="other">已選擇%1$d個組件</item>
     </plurals>
+    <plurals name="feature_appdetail_enable_component_count">
+        <item quantity="other">%1$d個元件已啟用</item>
+    </plurals>
+    <plurals name="feature_appdetail_disable_component_count">
+        <item quantity="other">%1$d個元件已停用</item>
+    </plurals>
     <string name="feature_appdetail_share_your_rules">分享你的規則</string>
     <string name="feature_appdetail_share_all_rules">共享所有規則</string>
     <string name="feature_appdetail_share_current_rules">分享目前規則</string>
