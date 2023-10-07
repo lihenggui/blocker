@@ -22,7 +22,7 @@
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 APP_OUT=$DIR/app/build/outputs
 
-export JAVA_HOME="$(cd $DIR/../nowinandroid-prebuilts/jdk17/linux && pwd )"
+export JAVA_HOME="$(cd $DIR/../blocker-prebuilts/jdk17/linux && pwd )"
 echo "JAVA_HOME=$JAVA_HOME"
 
 export ANDROID_HOME="$(cd $DIR/../../../prebuilts/fullsdk/linux && pwd )"
