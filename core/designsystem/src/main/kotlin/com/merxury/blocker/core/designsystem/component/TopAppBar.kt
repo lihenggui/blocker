@@ -79,7 +79,7 @@ fun BlockerTopAppBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BlockerTopAppBar(
+fun BlockerTopAppBarWithProgress(
     modifier: Modifier = Modifier,
     title: String,
     progress: Int? = null,
@@ -201,7 +201,7 @@ fun BlockerTopAppBarNaviActionsPreview() {
 @Composable
 fun BlockerTopAppBarLoadingStartPreview() {
     BlockerTheme {
-        BlockerTopAppBar(
+        BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
             progress = 0,
         )
@@ -212,7 +212,7 @@ fun BlockerTopAppBarLoadingStartPreview() {
 @Composable
 fun BlockerTopAppBarLoadingProgressPreview() {
     BlockerTheme {
-        BlockerTopAppBar(
+        BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
             progress = 50,
         )
@@ -223,7 +223,7 @@ fun BlockerTopAppBarLoadingProgressPreview() {
 @Composable
 fun BlockerTopAppBarLoadingCompeletPreview() {
     BlockerTheme {
-        BlockerTopAppBar(
+        BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
             progress = 100,
         )
@@ -234,7 +234,7 @@ fun BlockerTopAppBarLoadingCompeletPreview() {
 @Composable
 fun BlockerHomeTopAppBarPreview() {
     BlockerTheme {
-        BlockerTopAppBar(
+        BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
         )
     }
