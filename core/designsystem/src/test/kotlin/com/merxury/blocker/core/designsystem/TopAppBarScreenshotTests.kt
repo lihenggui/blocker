@@ -32,6 +32,7 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.component.BlockerMediumTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerTopAppBarWithProgress
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -190,7 +191,7 @@ class TopAppBarScreenshotTests {
 
     @Composable
     private fun BlockerTopAppBarExample() {
-        BlockerTopAppBar(
+        BlockerTopAppBarWithProgress(
             title = stringResource(id = string.untitled),
         )
     }
@@ -251,7 +252,7 @@ class TopAppBarScreenshotTests {
     private fun BlockerTopAppBarWithLoadingExample(
         progress: Int,
     ) {
-        BlockerTopAppBar(
+        BlockerTopAppBarWithProgress(
             title = stringResource(id = string.untitled),
             progress = progress,
         )
