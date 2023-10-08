@@ -79,6 +79,40 @@ fun BlockerTopAppBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun BlockerTopAppBar(
+    modifier: Modifier = Modifier,
+    title: String,
+    progress: Int? = null,
+) {
+    TopAppBar(
+        modifier = modifier,
+        title = {
+            AutoResizeText(
+                text = title,
+                FontSizeRange(5.sp, 22.sp),
+                maxLines = 2,
+            )
+        },
+        actions = {
+            if (progress != 100 && progress != null) {
+                Row(
+                    modifier = Modifier.padding(end = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = "$progress%",
+                    )
+                    BlockerLoadingWheel(
+                        modifier = Modifier.size(36.dp),
+                    )
+                }
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun BlockerLargeTopAppBar(
     modifier: Modifier = Modifier,
     title: String,
@@ -163,27 +197,35 @@ fun BlockerTopAppBarNaviActionsPreview() {
     }
 }
 
-@Preview("Top App Bar with loading icon")
+@Preview("Top App Bar with loading icon, 0%")
 @Composable
-fun BlockerTopAppBarLoadingPreview() {
+fun BlockerTopAppBarLoadingStartPreview() {
     BlockerTheme {
         BlockerTopAppBar(
             title = stringResource(id = android.R.string.untitled),
-            hasNavigationIcon = false,
-            actions = {
-                Row(
-                    modifier = Modifier.padding(end = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    BlockerLoadingWheel(
-                        modifier = Modifier.size(36.dp),
-                        contentDesc = "",
-                    )
-                    Text(
-                        text = "50%",
-                    )
-                }
-            },
+            progress = 0,
+        )
+    }
+}
+
+@Preview("Top App Bar with loading icon, 50%")
+@Composable
+fun BlockerTopAppBarLoadingProgressPreview() {
+    BlockerTheme {
+        BlockerTopAppBar(
+            title = stringResource(id = android.R.string.untitled),
+            progress = 50,
+        )
+    }
+}
+
+@Preview("Top App Bar with loading icon, 100%")
+@Composable
+fun BlockerTopAppBarLoadingCompeletPreview() {
+    BlockerTheme {
+        BlockerTopAppBar(
+            title = stringResource(id = android.R.string.untitled),
+            progress = 100,
         )
     }
 }
