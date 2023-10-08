@@ -29,6 +29,7 @@ import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.Synchronizer
 import com.merxury.blocker.core.data.di.CacheDir
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.datastore.ChangeListVersions
@@ -54,7 +55,6 @@ import java.util.zip.ZipException
 
 private const val PREF_SYNC_RULE = "sync_rule"
 private const val PREF_LAST_SYNCED_TIME = "last_synced_time"
-private const val RULE_FOLDER_NAME = "blocker-general-rules"
 private const val RULE_ZIP_FILENAME = "rules.zip"
 
 /**
@@ -69,6 +69,7 @@ class SyncWorker @AssistedInject constructor(
     private val userDataRepository: UserDataRepository,
     @CacheDir private val cacheDir: File,
     @FilesDir private val filesDir: File,
+    @RuleBaseFolder private val ruleBaseFolder: String,
     private val network: BlockerNetworkDataSource,
     private val blockerPreferences: BlockerPreferencesDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -123,7 +124,7 @@ class SyncWorker @AssistedInject constructor(
             "Last synced commit id: $localCommitId, latest commit id: $latestCommitId" +
                 ", start pulling rule...",
         )
-        val ruleFolder = cacheDir.resolve(RULE_FOLDER_NAME)
+        val ruleFolder = cacheDir.resolve(ruleBaseFolder)
         if (!ruleFolder.exists()) {
             ruleFolder.mkdirs()
         }
@@ -141,7 +142,7 @@ class SyncWorker @AssistedInject constructor(
                 Timber.e("Unzipped folder $unzippedFolder does not exist")
                 return false
             }
-            val targetFolder = filesDir.resolve(RULE_FOLDER_NAME)
+            val targetFolder = filesDir.resolve(ruleBaseFolder)
             if (targetFolder.exists()) {
                 targetFolder.deleteRecursively()
             }
