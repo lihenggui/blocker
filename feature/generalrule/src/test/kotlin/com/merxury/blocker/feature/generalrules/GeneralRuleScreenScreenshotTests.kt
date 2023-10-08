@@ -56,9 +56,23 @@ class GeneralRuleScreenScreenshotTests {
     }
 
     @Test
-    fun generalRuleListScreen() {
-        composeTestRule.captureMultiDevice("GeneralRuleListScreen") {
-            GeneralRuleListScreen()
+    fun generalRuleListScreen_matchStart() {
+        composeTestRule.captureMultiDevice("GeneralRuleListScreenMatchStart") {
+            GeneralRuleListScreen(0)
+        }
+    }
+
+    @Test
+    fun generalRuleListScreen_matchProgress() {
+        composeTestRule.captureMultiDevice("GeneralRuleListScreenMatchProgress") {
+            GeneralRuleListScreen(50)
+        }
+    }
+
+    @Test
+    fun generalRuleListScreen_matchedComplete() {
+        composeTestRule.captureMultiDevice("GeneralRuleListScreenMatchedCompleted") {
+            GeneralRuleListScreen(100)
         }
     }
 
@@ -70,7 +84,7 @@ class GeneralRuleScreenScreenshotTests {
             screenshotName = "GeneralRuleListScreen",
             darkMode = true,
         ) {
-            GeneralRuleListScreen()
+            GeneralRuleListScreen(50)
         }
     }
 
@@ -113,11 +127,13 @@ class GeneralRuleScreenScreenshotTests {
     }
 
     @Composable
-    private fun GeneralRuleListScreen() {
+    private fun GeneralRuleListScreen(
+        progress: Int,
+    ) {
         val ruleList = RuleListPreviewParameterProvider().values.first()
         BlockerTheme {
             Surface {
-                GeneralRulesScreen(uiState = Success(ruleList))
+                GeneralRulesScreen(uiState = Success(rules = ruleList, matchProgress = progress))
             }
         }
     }
