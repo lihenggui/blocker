@@ -19,5 +19,5 @@
     <string name="core_designsystem_clear_icon">Clear icon</string>
     <string name="core_designsystem_search_icon">Search icon</string>
     <string name="core_designsystem_more_icon">More icon</string>
-    <string name="core_designsystem_loading_wheel">Loading wheel</string>
+    <string name="core_designsystem_loading">Loading</string>
 </resources>
