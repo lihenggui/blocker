@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.respository.generalrule
 
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -32,7 +33,6 @@ import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
-private const val ROOT_FOLDER = "blocker-general-rules"
 private const val RULES_FOLDER = "rules"
 private const val LANGUAGE = "zh-cn"
 private const val RULE_NAME = "general.json"
@@ -40,6 +40,7 @@ private const val RULE_NAME = "general.json"
 class LocalGeneralRuleDataSource @Inject constructor(
     private val json: Json,
     @FilesDir private val filesDir: File,
+    @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : GeneralRuleDataSource {
     @OptIn(ExperimentalSerializationApi::class)
@@ -64,7 +65,7 @@ class LocalGeneralRuleDataSource @Inject constructor(
         .flowOn(ioDispatcher)
 
     private fun getRuleFile(): File? {
-        val ruleFile = filesDir.resolve(ROOT_FOLDER)
+        val ruleFile = filesDir.resolve(ruleBaseFolder)
             .resolve(RULES_FOLDER)
             .resolve(LANGUAGE)
             .resolve(RULE_NAME)
@@ -73,7 +74,7 @@ class LocalGeneralRuleDataSource @Inject constructor(
         }
         Timber.i("Fallback to old version of rules")
         // TODO should be removed in future
-        val oldRuleFile = filesDir.resolve(ROOT_FOLDER)
+        val oldRuleFile = filesDir.resolve(ruleBaseFolder)
             .resolve(LANGUAGE)
             .resolve(RULE_NAME)
         if (oldRuleFile.exists()) {
