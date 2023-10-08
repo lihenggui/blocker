@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -35,17 +36,17 @@ import java.io.File
 import javax.inject.Inject
 
 private const val EXTENSION = "json"
-private const val BASE_FOLDER = "blocker-general-rules"
 private const val COMPONENT_FOLDER = "components"
 
 class LocalComponentDetailDataSource @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val json: Json,
     @FilesDir private val filesDir: File,
+    @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
     private val workingDir: File by lazy {
-        filesDir.resolve(BASE_FOLDER)
+        filesDir.resolve(ruleBaseFolder)
             .resolve(COMPONENT_FOLDER)
     }
 

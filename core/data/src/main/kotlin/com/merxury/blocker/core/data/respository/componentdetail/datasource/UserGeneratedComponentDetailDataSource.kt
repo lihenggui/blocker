@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.respository.componentdetail.datasource
 
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
 import com.merxury.blocker.core.data.respository.component.CacheComponentDataSource
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
@@ -41,13 +42,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 private const val EXTENSION = "json"
-private const val BASE_FOLDER = "user-generated-rules"
 
 @Singleton
 class UserGeneratedComponentDetailDataSource @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentDataSource: CacheComponentDataSource,
     @FilesDir private val filesDir: File,
+    @GeneratedRuleBaseFolder private val generatedRuleBaseFolder: String,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentDetailDataSource {
@@ -154,7 +155,7 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
 
     private suspend fun getWorkingDirWithLang(): File {
         val libDisplayLanguage = userDataRepository.userData.first().libDisplayLanguage
-        return filesDir.resolve(BASE_FOLDER)
+        return filesDir.resolve(generatedRuleBaseFolder)
             .resolve(getLibDisplayLanguage(libDisplayLanguage))
     }
 }
