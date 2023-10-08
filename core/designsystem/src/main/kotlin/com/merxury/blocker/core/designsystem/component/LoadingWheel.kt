@@ -44,15 +44,17 @@ import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import kotlinx.coroutines.launch
 
 @Composable
 fun BlockerLoadingWheel(
-    contentDesc: String,
+    contentDesc: String = stringResource(id = R.string.core_designsystem_loading_wheel),
     modifier: Modifier = Modifier,
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "wheel transition")
