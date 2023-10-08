@@ -60,7 +60,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
@@ -392,10 +391,15 @@ fun AppDetailContent(
     }
     val snackbarHostState = remember { SnackbarHostState() }
     // TODO use correct string resource
-    val snackbarMessage = pluralStringResource(
-        id = R.plurals.feature_appdetail_selected_component_count,
-        count = componentListUiState.operateBatchComponentProgress,
+    val enableComponentsMessage = stringResource(
+        id = string.feature_appdetail_enable_components,
         componentListUiState.operateBatchComponentProgress,
+        componentListUiState.operateBatchComponentSize,
+    )
+    val disableComponentsMessage = stringResource(
+        id = string.feature_appdetail_disable_components,
+        componentListUiState.operateBatchComponentProgress,
+        componentListUiState.operateBatchComponentSize,
     )
     updateIconBasedThemingState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
     Scaffold(
@@ -416,7 +420,7 @@ fun AppDetailContent(
                     showAndDismissSnackbar(
                         scope = scope,
                         snackbarHostState = snackbarHostState,
-                        message = snackbarMessage,
+                        message = disableComponentsMessage,
                         progress = componentListUiState.operateBatchComponentProgress,
                         size = componentListUiState.operateBatchComponentSize,
                     )
@@ -426,7 +430,7 @@ fun AppDetailContent(
                     showAndDismissSnackbar(
                         scope = scope,
                         snackbarHostState = snackbarHostState,
-                        message = snackbarMessage,
+                        message = enableComponentsMessage,
                         progress = componentListUiState.operateBatchComponentProgress,
                         size = componentListUiState.operateBatchComponentSize,
                     )

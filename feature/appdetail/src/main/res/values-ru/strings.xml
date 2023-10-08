@@ -42,14 +42,8 @@
         <item quantity="one">Выбран %1$d компонент</item>
         <item quantity="other">Выбрано %1$d компонентов</item>
     </plurals>
-    <plurals name="feature_appdetail_enable_component_count">
-        <item quantity="one">Компонент %1$d включен</item>
-        <item quantity="other">Включено %1$d компонентов</item>
-    </plurals>
-    <plurals name="feature_appdetail_disable_component_count">
-        <item quantity="one">Компонент %1$d отключен</item>
-        <item quantity="other">%1$d компонентов отключено</item>
-    </plurals>
+    <string name="feature_appdetail_enable_components">Включить компоненты: %1$d (%2$d)</string>
+    <string name="feature_appdetail_disable_components">Отключенный компонент: %1$d (%2$d)</string>
     <string name="feature_appdetail_share_your_rules">Поделитесь своими правилами</string>
     <string name="feature_appdetail_share_all_rules">Поделиться всеми правилами</string>
     <string name="feature_appdetail_share_current_rules">Поделиться текущими правилами</string>

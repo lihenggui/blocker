@@ -41,12 +41,8 @@
     <plurals name="feature_appdetail_selected_component_count">
         <item quantity="other">已选择%1$d个组件</item>
     </plurals>
-    <plurals name="feature_appdetail_enable_component_count">
-        <item quantity="other">%1$d个组件已启用</item>
-    </plurals>
-    <plurals name="feature_appdetail_disable_component_count">
-        <item quantity="other">%1$d个组件已禁用</item>
-    </plurals>
+    <string name="feature_appdetail_enable_components">启用组件中：%1$d (%2$d)</string>
+    <string name="feature_appdetail_disable_components">禁用组件中：%1$d (%2$d)</string>
     <string name="feature_appdetail_share_your_rules">分享你的规则</string>
     <string name="feature_appdetail_share_all_rules">共享所有规则</string>
     <string name="feature_appdetail_share_current_rules">分享当前规则</string>

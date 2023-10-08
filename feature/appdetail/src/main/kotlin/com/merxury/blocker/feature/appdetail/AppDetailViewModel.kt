@@ -493,7 +493,6 @@ class AppDetailViewModel @Inject constructor(
                 .collect {
                     operateBatchComponentProgress.emit(it)
                 }
-            operateBatchComponentProgress.emit(0)
             analyticsHelper.logBatchOperationPerformed(enable)
         }
 
