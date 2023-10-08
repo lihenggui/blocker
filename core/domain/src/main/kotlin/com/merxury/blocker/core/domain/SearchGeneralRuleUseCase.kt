@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.domain
 
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -29,11 +30,12 @@ class SearchGeneralRuleUseCase @Inject constructor(
     private val generalRuleRepository: GeneralRuleRepository,
     private val userDataRepository: UserDataRepository,
     @FilesDir private val filesDir: File,
+    @RuleBaseFolder private val ruleBaseFolder: String,
 ) {
     operator fun invoke(keyword: String = ""): Flow<List<GeneralRule>> {
         val searchFlow = generalRuleRepository.searchGeneralRule(keyword)
         val userDataFlow = userDataRepository.userData
-        val filesDir = filesDir.resolve("blocker-general-rules")
+        val filesDir = filesDir.resolve(ruleBaseFolder)
         return combine(searchFlow, userDataFlow) { list, _ ->
             list.map { rule ->
                 val iconPath = rule.iconUrl
