@@ -18,31 +18,26 @@ package com.merxury.blocker.feature.generalrules
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
-import com.merxury.blocker.core.designsystem.component.BlockerLoadingWheel
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -88,22 +83,10 @@ fun GeneralRulesScreen(
         topBar = {
             BlockerTopAppBar(
                 title = stringResource(id = R.string.feature_generalrule_rules),
-                modifier = Modifier.testTag("blockerTopAppBar"),
-                actions = {
-                    if (uiState is Success && uiState.matchProgress != 100) {
-                        Row(
-                            modifier = Modifier.padding(end = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = uiState.matchProgress.toString() + "%",
-                            )
-                            BlockerLoadingWheel(
-                                modifier = Modifier.size(36.dp),
-                                contentDesc = "",
-                            )
-                        }
-                    }
+                progress = if (uiState is Success) {
+                    uiState.matchProgress
+                } else {
+                    null
                 },
             )
         },
@@ -144,7 +127,7 @@ fun GeneralRulesScreen(
 
 @Composable
 @ThemePreviews
-fun GeneralRuleScreenPreview(
+fun GeneralRuleScreenMatchProgressPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -152,6 +135,39 @@ fun GeneralRuleScreenPreview(
         GeneralRulesScreen(
             uiState = Success(
                 rules = ruleList,
+                matchProgress = 50,
+            ),
+        )
+    }
+}
+
+@Composable
+@Preview
+fun GeneralRuleScreenMatchedCompletedPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
+    BlockerTheme {
+        GeneralRulesScreen(
+            uiState = Success(
+                rules = ruleList,
+                matchProgress = 100,
+            ),
+        )
+    }
+}
+
+@Composable
+@Preview
+fun GeneralRuleScreenMatchStartPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
+    BlockerTheme {
+        GeneralRulesScreen(
+            uiState = Success(
+                rules = ruleList,
+                matchProgress = 0,
             ),
         )
     }

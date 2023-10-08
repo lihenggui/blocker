@@ -54,8 +54,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun BlockerLoadingWheel(
-    contentDesc: String = stringResource(id = R.string.core_designsystem_loading_wheel),
     modifier: Modifier = Modifier,
+    contentDesc: String = stringResource(id = R.string.core_designsystem_loading_wheel),
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "wheel transition")
 
