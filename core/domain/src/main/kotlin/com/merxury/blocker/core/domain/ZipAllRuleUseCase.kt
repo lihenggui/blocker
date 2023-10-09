@@ -56,7 +56,7 @@ class ZipAllRuleUseCase @Inject constructor(
             return@flow
         }
         try {
-            FileUtils.zipFileAtPath(baseFolder.absolutePath, zipFile.absolutePath)
+            FileUtils.zipFolder(baseFolder.absolutePath, zipFile.absolutePath)
             emit(zipFile)
         } catch (e: Exception) {
             Timber.e(e)
