@@ -32,6 +32,7 @@ import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.component.BlockerMediumTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerTopAppBarWithProgress
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -77,6 +78,33 @@ class TopAppBarScreenshotTests {
         composeTestRule.captureMultiTheme("TopAppBar", "MediumTopAppBar") {
             Surface {
                 BlockerMediumTopAppBarExample()
+            }
+        }
+    }
+
+    @Test
+    fun topAppBar_loading_start_multipleThemes() {
+        composeTestRule.captureMultiTheme("TopAppBar", "TopAppBarWithLoadingStart") {
+            Surface {
+                BlockerTopAppBarWithLoadingExample(0)
+            }
+        }
+    }
+
+    @Test
+    fun topAppBar_loading_progress_multipleThemes() {
+        composeTestRule.captureMultiTheme("TopAppBar", "TopAppBarWithLoadingProgress") {
+            Surface {
+                BlockerTopAppBarWithLoadingExample(50)
+            }
+        }
+    }
+
+    @Test
+    fun topAppBar_loading_complete_multipleThemes() {
+        composeTestRule.captureMultiTheme("TopAppBar", "TopAppBarWithLoadingComplete") {
+            Surface {
+                BlockerTopAppBarWithLoadingExample(100)
             }
         }
     }
@@ -141,9 +169,29 @@ class TopAppBarScreenshotTests {
             )
     }
 
+    @Test
+    fun topAppBar_loading_hugeFont() {
+        composeTestRule.setContent {
+            CompositionLocalProvider(
+                LocalInspectionMode provides true,
+            ) {
+                TestHarness(fontScale = 2f) {
+                    BlockerTheme {
+                        BlockerTopAppBarWithLoadingExample(50)
+                    }
+                }
+            }
+        }
+        composeTestRule.onRoot()
+            .captureRoboImage(
+                "src/test/screenshots/TopAppBar/TopAppBar_loading_fontScale2.png",
+                roborazziOptions = DefaultRoborazziOptions,
+            )
+    }
+
     @Composable
     private fun BlockerTopAppBarExample() {
-        BlockerTopAppBar(
+        BlockerTopAppBarWithProgress(
             title = stringResource(id = string.untitled),
         )
     }
@@ -197,6 +245,16 @@ class TopAppBarScreenshotTests {
                     )
                 }
             },
+        )
+    }
+
+    @Composable
+    private fun BlockerTopAppBarWithLoadingExample(
+        progress: Int,
+    ) {
+        BlockerTopAppBarWithProgress(
+            title = stringResource(id = string.untitled),
+            progress = progress,
         )
     }
 }
