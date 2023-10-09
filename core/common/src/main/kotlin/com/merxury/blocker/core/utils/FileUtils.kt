@@ -23,8 +23,10 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.BufferedInputStream
 import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -167,6 +169,81 @@ object FileUtils {
      * Size of the buffer to read/write data
      */
     private const val BUFFER_SIZE = 4096
+
+    fun zipFileAtPath(sourcePath: String, toLocation: String?): Boolean {
+        val sourceFile = File(sourcePath)
+        try {
+            val origin: BufferedInputStream?
+            val dest = FileOutputStream(toLocation)
+            val out = ZipOutputStream(
+                BufferedOutputStream(
+                    dest,
+                ),
+            )
+            if (sourceFile.isDirectory()) {
+                sourceFile.getParent()?.let {
+                    zipSubFolder(out, sourceFile, it.length)
+                }
+            } else {
+                val data = ByteArray(BUFFER_SIZE)
+                val fi = FileInputStream(sourcePath)
+                origin = BufferedInputStream(fi, BUFFER_SIZE)
+                val entry = ZipEntry(getLastPathComponent(sourcePath))
+                entry.setTime(sourceFile.lastModified())
+                out.putNextEntry(entry)
+                var count: Int
+                while (origin.read(data, 0, BUFFER_SIZE).also { count = it } != -1) {
+                    out.write(data, 0, count)
+                }
+            }
+            out.close()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to zip file at $sourcePath")
+            return false
+        }
+        return true
+    }
+
+    @Throws(IOException::class)
+    private fun zipSubFolder(
+        out: ZipOutputStream,
+        folder: File,
+        basePathLength: Int,
+    ) {
+        val fileList = folder.listFiles()
+        if (fileList == null) {
+            Timber.e("Failed to list files in folder $folder")
+            return
+        }
+        var origin: BufferedInputStream?
+        for (file in fileList) {
+            if (file.isDirectory()) {
+                zipSubFolder(out, file, basePathLength)
+            } else {
+                val data = ByteArray(BUFFER_SIZE)
+                val unmodifiedFilePath = file.path
+                val relativePath = unmodifiedFilePath
+                    .substring(basePathLength)
+                val fi = FileInputStream(unmodifiedFilePath)
+                origin = BufferedInputStream(fi, BUFFER_SIZE)
+                val entry = ZipEntry(relativePath)
+                entry.setTime(file.lastModified())
+                out.putNextEntry(entry)
+                var count: Int
+                while (origin.read(data, 0, BUFFER_SIZE).also { count = it } != -1) {
+                    out.write(data, 0, count)
+                }
+                origin.close()
+            }
+        }
+    }
+
+    private fun getLastPathComponent(filePath: String): String {
+        val segments = filePath.split("/".toRegex())
+            .dropLastWhile { it.isEmpty() }
+            .toTypedArray()
+        return if (segments.isEmpty()) "" else segments[segments.size - 1]
+    }
 }
 
 // Note: Might be a time-consuming operation
