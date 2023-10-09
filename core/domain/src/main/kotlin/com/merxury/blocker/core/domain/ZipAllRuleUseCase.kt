@@ -39,9 +39,9 @@ class ZipAllRuleUseCase @Inject constructor(
 ) {
     operator fun invoke(): Flow<File?> = flow {
         val time = Clock.System.now().toString()
-            .replace(":", "_")
-            .replace(".", "_")
-        val fileName = "rules_$time.zip"
+            .replace(":", "-")
+            .replace(".", "-")
+        val fileName = "rules-$time.zip"
         val zipFile = File(cacheDir, fileName)
         val baseFolder = filesDir.resolve(ruleBaseFolder)
         if (!baseFolder.exists()) {
