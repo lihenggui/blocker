@@ -102,28 +102,6 @@ object FileUtils {
         }
     }
 
-    suspend fun zipFile(prefix: String, input: File): File? {
-        return withContext(Dispatchers.IO) {
-            if (!input.exists()) {
-                return@withContext null
-            }
-            val output = File.createTempFile(prefix, ".zip")
-            ZipOutputStream(BufferedOutputStream(FileOutputStream(output))).use { zos ->
-                input.walkTopDown().forEach { file ->
-                    val zipFileName = file.absolutePath
-                        .removePrefix(input.absolutePath)
-                        .removePrefix("/")
-                    val entry = ZipEntry("$zipFileName${(if (file.isDirectory) "/" else "")}")
-                    zos.putNextEntry(entry)
-                    if (file.isFile) {
-                        file.inputStream().copyTo(zos)
-                    }
-                }
-            }
-            return@withContext output
-        }
-    }
-
     @Throws(IOException::class)
     fun unzip(zipFilePath: File, destDirectory: String) {
         File(destDirectory).run {
@@ -170,7 +148,7 @@ object FileUtils {
      */
     private const val BUFFER_SIZE = 4096
 
-    fun zipFileAtPath(sourcePath: String, toLocation: String?): Boolean {
+    fun zipFolder(sourcePath: String, toLocation: String?): Boolean {
         val sourceFile = File(sourcePath)
         try {
             val origin: BufferedInputStream?
