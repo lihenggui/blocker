@@ -31,14 +31,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
-import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerTopAppBarWithProgress
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -81,9 +81,13 @@ fun GeneralRulesScreen(
 ) {
     Scaffold(
         topBar = {
-            BlockerTopAppBar(
+            BlockerTopAppBarWithProgress(
                 title = stringResource(id = R.string.feature_generalrule_rules),
-                modifier = Modifier.testTag("blockerTopAppBar"),
+                progress = if (uiState is Success) {
+                    uiState.matchProgress
+                } else {
+                    null
+                },
             )
         },
     ) { padding ->
@@ -123,7 +127,7 @@ fun GeneralRulesScreen(
 
 @Composable
 @ThemePreviews
-fun GeneralRuleScreenPreview(
+fun GeneralRuleScreenMatchProgressPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
@@ -131,6 +135,39 @@ fun GeneralRuleScreenPreview(
         GeneralRulesScreen(
             uiState = Success(
                 rules = ruleList,
+                matchProgress = 50,
+            ),
+        )
+    }
+}
+
+@Composable
+@Preview
+fun GeneralRuleScreenMatchedCompletedPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
+    BlockerTheme {
+        GeneralRulesScreen(
+            uiState = Success(
+                rules = ruleList,
+                matchProgress = 100,
+            ),
+        )
+    }
+}
+
+@Composable
+@Preview
+fun GeneralRuleScreenMatchStartPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
+    BlockerTheme {
+        GeneralRulesScreen(
+            uiState = Success(
+                rules = ruleList,
+                matchProgress = 0,
             ),
         )
     }
