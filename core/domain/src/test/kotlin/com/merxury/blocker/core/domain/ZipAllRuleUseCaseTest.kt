@@ -27,6 +27,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.util.zip.ZipFile
+import kotlin.test.assertTrue
 
 class ZipAllRuleUseCaseTest {
     @get:Rule
@@ -106,11 +107,12 @@ class ZipAllRuleUseCaseTest {
         // Check file size
         assertEquals(5, zipFile.size())
         // Verify file names
-        val entries = zipFile.entries()
+        val filesInZip = zipFile.entries().toList()
         for (i in 1..5) {
-            assertEquals(
-                File.separator + ruleBaseFolder + File.separator + "test$i.txt",
-                entries.nextElement().name,
+            val fileName = File.separator + ruleBaseFolder + File.separator + "test$i.txt"
+            assertTrue(
+                filesInZip.any { it.name == fileName },
+                "File $fileName should exist in zip file",
             )
         }
         zipFile.close()
@@ -136,11 +138,12 @@ class ZipAllRuleUseCaseTest {
         // Check file size
         assertEquals(5, zipFile.size())
         // Verify file names
-        val entries = zipFile.entries()
+        val filesInZip = zipFile.entries().toList()
         for (i in 1..zipFile.size()) {
-            assertEquals(
-                File.separator + ruleBaseFolder + File.separator + "folder$i" + File.separator + "test$i.txt",
-                entries.nextElement().name,
+            val fileName = File.separator + ruleBaseFolder + File.separator + "folder$i" + File.separator + "test$i.txt"
+            assertTrue(
+                filesInZip.any { it.name == fileName },
+                "File $fileName should exist in zip file",
             )
         }
         zipFile.close()
