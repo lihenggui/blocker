@@ -163,7 +163,7 @@ jobs:
           ./gradlew recordRoborazziFossDebug
 
       - name: Push new screenshots if available
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         if: steps.screenshotsrecord.outcome == 'success'
         with:
           file_pattern: '*/*.png'
