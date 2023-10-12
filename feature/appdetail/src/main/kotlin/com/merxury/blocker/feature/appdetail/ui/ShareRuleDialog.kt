@@ -68,7 +68,7 @@ fun ShareRuleDialog(
             buttons = {
                 BlockerItem(
                     icon = ImageVectorIcon(BlockerIcons.CheckSmall),
-                    title = stringResource(id = string.feature_appdetail_share_current_rules),
+                    title = stringResource(id = string.feature_appdetail_share_rules_of_this_app),
                     onItemClick = {
                         shareAppRule()
                         onDismissRequest()
