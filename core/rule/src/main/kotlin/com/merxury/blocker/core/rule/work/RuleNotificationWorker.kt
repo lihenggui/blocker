@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.rule.work
 
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
@@ -56,6 +57,14 @@ abstract class RuleNotificationWorker(private val context: Context, params: Work
             .addAction(android.R.drawable.ic_delete, cancel, intent)
             .setOnlyAlertOnce(true)
             .build()
-        return ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(
+                NotificationUtil.PROCESSING_NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
+            )
+        } else {
+            ForegroundInfo(NotificationUtil.PROCESSING_NOTIFICATION_ID, notification)
+        }
     }
 }
