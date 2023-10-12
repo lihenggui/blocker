@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.appdetail
 
 import android.annotation.SuppressLint
+import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -276,6 +277,7 @@ private fun shareFile(
     val receiver = arrayOf("blocker@mercury.icu")
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "application/zip"
+        clipData = ClipData.newRawUri("", uri)
         putExtra(Intent.EXTRA_STREAM, uri)
         putExtra(Intent.EXTRA_SUBJECT, subject)
         putExtra(Intent.EXTRA_TEXT, text)

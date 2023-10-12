@@ -18,7 +18,8 @@ package com.merxury.blocker.core.domain
 
 import com.merxury.blocker.core.data.di.CacheDir
 import com.merxury.blocker.core.data.di.FilesDir
-import com.merxury.blocker.core.data.di.RuleBaseFolder
+import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.ZippedRule
@@ -33,9 +34,10 @@ import java.io.File
 import javax.inject.Inject
 
 class ZipAllRuleUseCase @Inject constructor(
+    private val userDataRepository: UserDataRepository,
     @CacheDir private val cacheDir: File,
     @FilesDir private val filesDir: File,
-    @RuleBaseFolder private val ruleBaseFolder: String,
+    @GeneratedRuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
     operator fun invoke(): Flow<ZippedRule> = flow {
@@ -45,6 +47,7 @@ class ZipAllRuleUseCase @Inject constructor(
         val fileName = "rules-$time.zip"
         val zipFile = File(cacheDir, fileName)
         val baseFolder = filesDir.resolve(ruleBaseFolder)
+            .resolve(userDataRepository.getLibDisplayLanguage())
         if (!baseFolder.exists()) {
             Timber.e("Rule base folder $baseFolder does not exist")
             emit(ZippedRule.EMPTY)

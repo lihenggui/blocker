@@ -18,12 +18,13 @@ package com.merxury.blocker.core.domain
 
 import com.merxury.blocker.core.data.di.CacheDir
 import com.merxury.blocker.core.data.di.FilesDir
-import com.merxury.blocker.core.data.di.RuleBaseFolder
+import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.ZippedRule
+import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -41,7 +42,7 @@ class ZipAppRuleUseCase @Inject constructor(
     private val userDataRepository: UserDataRepository,
     @CacheDir private val cacheDir: File,
     @FilesDir private val filesDir: File,
-    @RuleBaseFolder private val ruleBaseFolder: String,
+    @GeneratedRuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
     operator fun invoke(packageName: String): Flow<ZippedRule> = flow {
@@ -50,9 +51,8 @@ class ZipAppRuleUseCase @Inject constructor(
             .replace(".", "-")
         val fileName = "rules-$packageName-$time.zip"
         val zipFile = File(cacheDir, fileName)
-        val language = userDataRepository.userData.first().libDisplayLanguage
         val baseFolder = filesDir.resolve(ruleBaseFolder)
-            .resolve(language)
+            .resolve(userDataRepository.getLibDisplayLanguage())
         if (!baseFolder.exists()) {
             Timber.e("Rule base folder $baseFolder does not exist")
             emit(ZippedRule.EMPTY)
@@ -61,7 +61,7 @@ class ZipAppRuleUseCase @Inject constructor(
         val componentList = componentRepository.getComponentList(packageName)
             .first()
         val matchedFile = mutableListOf<File>()
-        baseFolder.listFiles()?.forEach { file ->
+        baseFolder.listFilesRecursively().forEach { file ->
             if (file.isDirectory) {
                 return@forEach
             }
@@ -70,6 +70,7 @@ class ZipAppRuleUseCase @Inject constructor(
             }
             val componentName = file.relativeTo(baseFolder).path
                 .replace(".json", "")
+                .replace("/", ".")
             if (componentList.find { it.name == componentName } == null) {
                 Timber.v("Component $componentName does not exist in component list")
                 return@forEach
@@ -81,6 +82,7 @@ class ZipAppRuleUseCase @Inject constructor(
             Timber.i("No matched generated rules found")
             emit(ZippedRule.EMPTY)
         } else {
+            Timber.v("Found ${matchedFile.size} matched generated rules")
             updateZipPackage(zipFile, matchedFile)
             emit(ZippedRule(packageName, zipFile))
         }
