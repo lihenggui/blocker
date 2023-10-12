@@ -21,6 +21,8 @@ import android.content.pm.PackageManager
 import androidx.lifecycle.SavedStateHandle
 import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
+import com.merxury.blocker.core.domain.ZipAllRuleUseCase
+import com.merxury.blocker.core.domain.ZipAppRuleUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
@@ -58,11 +60,17 @@ import kotlinx.datetime.Clock.System
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TemporaryFolder
 import kotlin.test.assertEquals
 
 class AppDetailViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
+
+    @get:Rule
+    val tempFolder: TemporaryFolder = TemporaryFolder.builder()
+        .assureDeletion()
+        .build()
 
     private val analyticsHelper = TestAnalyticsHelper()
     private val userDataRepository = TestUserDataRepository()
@@ -87,6 +95,21 @@ class AppDetailViewModelTest {
     fun setup() {
         context = ApplicationProvider.getApplicationContext()
         pm = context.packageManager
+        val zipAppRuleUseCase = ZipAppRuleUseCase(
+            componentRepository = componentRepository,
+            userDataRepository = userDataRepository,
+            cacheDir = tempFolder.newFolder(),
+            filesDir = tempFolder.newFolder(),
+            ruleBaseFolder = "user-generated-rule",
+            ioDispatcher = ioDispatcher,
+        )
+        val zipAllRuleUseCase = ZipAllRuleUseCase(
+            userDataRepository = userDataRepository,
+            cacheDir = tempFolder.newFolder(),
+            filesDir = tempFolder.newFolder(),
+            ruleBaseFolder = "user-generated-rule",
+            ioDispatcher = ioDispatcher,
+        )
         viewModel = AppDetailViewModel(
             savedStateHandle = savedStateHandle,
             pm = pm,
@@ -97,6 +120,8 @@ class AppDetailViewModelTest {
             shizukuInitializer = shizukuInitializer,
             analyticsHelper = analyticsHelper,
             workerManager = WorkManager.getInstance(context),
+            zipAppRuleUseCase = zipAppRuleUseCase,
+            zipAllRuleUseCase = zipAllRuleUseCase,
             ioDispatcher = ioDispatcher,
             cpuDispatcher = cpuDispatcher,
         )
