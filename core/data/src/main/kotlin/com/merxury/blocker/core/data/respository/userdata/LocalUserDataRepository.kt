@@ -44,7 +44,14 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import java.util.Locale
 import javax.inject.Inject
+
+val LIB_SUPPORTED_LANGUAGE = listOf(
+    Locale.ENGLISH.toLanguageTag(),
+    Locale.SIMPLIFIED_CHINESE.toLanguageTag(),
+)
 
 class LocalUserDataRepository @Inject constructor(
     private val blockerPreferenceDataSource: BlockerPreferencesDataSource,
@@ -141,5 +148,33 @@ class LocalUserDataRepository @Inject constructor(
     override suspend fun setLibDisplayLanguage(language: String) {
         blockerPreferenceDataSource.setLibDisplayLanguage(language)
         analyticsHelper.logLibDisplayLanguageChanged(language)
+    }
+
+    override suspend fun getLibDisplayLanguage(): String {
+        val displayLanguageInSettings = userData.first().libDisplayLanguage
+        if (displayLanguageInSettings.isNotBlank()) {
+            return displayLanguageInSettings
+        }
+        // Empty means follow the system language first
+        // If no matching found, fallback to English
+        val locale = Locale.getDefault()
+        val language = locale.language
+        val country = locale.country
+        val systemLanguage = if (country.isNotBlank()) {
+            "$language-$country"
+        } else {
+            language
+        }
+        var splittedLanguage = systemLanguage.split("-")
+        while (splittedLanguage.isNotEmpty()) {
+            val languageTag = splittedLanguage.joinToString("-")
+            val matchingLanguage = LIB_SUPPORTED_LANGUAGE.find { it == languageTag }
+            if (matchingLanguage != null) {
+                return matchingLanguage
+            } else {
+                splittedLanguage = splittedLanguage.dropLast(1)
+            }
+        }
+        return Locale.ENGLISH.toLanguageTag()
     }
 }
