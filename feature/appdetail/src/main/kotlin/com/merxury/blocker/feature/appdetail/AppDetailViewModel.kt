@@ -43,6 +43,8 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.ZipAllRuleUseCase
+import com.merxury.blocker.core.domain.ZipAppRuleUseCase
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType
@@ -122,6 +124,8 @@ class AppDetailViewModel @Inject constructor(
     private val componentDetailRepository: IComponentDetailRepository,
     private val shizukuInitializer: IShizukuInitializer,
     private val workerManager: WorkManager,
+    private val zipAllRuleUseCase: ZipAllRuleUseCase,
+    private val zipAppRuleUseCase: ZipAppRuleUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
@@ -867,13 +871,9 @@ class AppDetailViewModel @Inject constructor(
             return@withContext icon?.toBitmap()
         }
 
-    fun shareAllRule() {
-        // TODO
-    }
+    fun zipAllRule() = zipAllRuleUseCase()
 
-    fun shareSingleRule() {
-        // TODO
-    }
+    fun zipAppRule() = zipAppRuleUseCase(appDetailArgs.packageName)
 }
 
 sealed interface AppInfoUiState {
