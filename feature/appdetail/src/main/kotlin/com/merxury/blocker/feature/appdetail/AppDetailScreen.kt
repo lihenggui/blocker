@@ -274,7 +274,7 @@ private fun shareFile(
     val appPackageName = rule.packageName ?: context.getString(string.feature_appdetail_all_rules)
     val subject = context.getString(string.feature_appdetail_rules_sharing_title, appPackageName)
     val text = context.getString(string.feature_appdetail_provide_additional_details)
-    val receiver = arrayOf("blocker@mercury.icu")
+    val receiver = arrayOf("mercuryleee@gmail.com")
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "application/zip"
         clipData = ClipData.newRawUri("", uri)
