@@ -23,6 +23,7 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.model.ZippedRule
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -43,7 +44,7 @@ class ZipAppRuleUseCase @Inject constructor(
     @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(packageName: String): Flow<File?> = flow {
+    operator fun invoke(packageName: String): Flow<ZippedRule> = flow {
         val time = Clock.System.now().toString()
             .replace(":", "-")
             .replace(".", "-")
@@ -54,7 +55,7 @@ class ZipAppRuleUseCase @Inject constructor(
             .resolve(language)
         if (!baseFolder.exists()) {
             Timber.e("Rule base folder $baseFolder does not exist")
-            emit(null)
+            emit(ZippedRule.EMPTY)
             return@flow
         }
         val componentList = componentRepository.getComponentList(packageName)
@@ -78,10 +79,10 @@ class ZipAppRuleUseCase @Inject constructor(
         }
         if (matchedFile.isEmpty()) {
             Timber.i("No matched generated rules found")
-            emit(null)
+            emit(ZippedRule.EMPTY)
         } else {
             updateZipPackage(zipFile, matchedFile)
-            emit(zipFile)
+            emit(ZippedRule(packageName, zipFile))
         }
     }
         .flowOn(ioDispatcher)
