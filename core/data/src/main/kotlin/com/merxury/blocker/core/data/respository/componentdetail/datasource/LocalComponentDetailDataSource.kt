@@ -25,7 +25,6 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.utils.listFilesRecursively
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -51,11 +50,10 @@ class LocalComponentDetailDataSource @Inject constructor(
     }
 
     override fun getByPackageName(packageName: String): Flow<List<ComponentDetail>> = flow {
-        val libDisplayLanguage = userDataRepository.userData.first().libDisplayLanguage
         val path = packageName.replace(".", File.separator)
             .plus(File.separator)
         val folder = workingDir
-            .resolve(getLibDisplayLanguage(libDisplayLanguage))
+            .resolve(userDataRepository.getLibDisplayLanguage())
             .resolve(path)
         if (!folder.exists()) {
             Timber.v("Component folder for $packageName does not exist")
@@ -91,11 +89,10 @@ class LocalComponentDetailDataSource @Inject constructor(
             emit(null)
             return@flow
         }
-        val libDisplayLanguage = userDataRepository.userData.first().libDisplayLanguage
         val path = name.replace(".", File.separator)
             .plus(".$EXTENSION")
         val file = workingDir
-            .resolve(getLibDisplayLanguage(libDisplayLanguage))
+            .resolve(userDataRepository.getLibDisplayLanguage())
             .resolve(path)
         if (file.exists()) {
             try {

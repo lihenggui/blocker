@@ -16,6 +16,10 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
@@ -66,6 +70,7 @@ import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.AutoResizeText
@@ -79,6 +84,7 @@ import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.ZippedRule
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -119,6 +125,7 @@ import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
 import com.merxury.blocker.feature.appdetail.ui.ShareAction
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.rule.R.string as rulestring
@@ -185,8 +192,20 @@ fun AppDetailRoute(
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         onDeselect = viewModel::deselectItem,
-        shareSingleRule = viewModel::shareSingleRule,
-        shareAllRules = viewModel::shareAllRule,
+        shareAppRule = {
+            scope.launch {
+                viewModel.zipAppRule().collect { rule ->
+                    shareFile(context, rule, scope, snackbarHostState)
+                }
+            }
+        },
+        shareAllRules = {
+            scope.launch {
+                viewModel.zipAllRule().collect { rule ->
+                    shareFile(context, rule, scope, snackbarHostState)
+                }
+            }
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -230,6 +249,57 @@ fun AppDetailRoute(
     }
 }
 
+@SuppressLint("WrongConstant", "QueryPermissionsNeeded")
+private fun shareFile(
+    context: Context,
+    rule: ZippedRule,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+
+) {
+    val zippedFile = rule.zippedFile
+    if (zippedFile == null) {
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = context.getString(string.feature_appdetail_cannot_share_rule_report_issue),
+            )
+        }
+        return
+    }
+    val uri = FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.FileProvider",
+        zippedFile,
+    )
+    val appPackageName = rule.packageName ?: context.getString(string.feature_appdetail_all_rules)
+    val subject = context.getString(string.feature_appdetail_rules_sharing_title, appPackageName)
+    val text = context.getString(string.feature_appdetail_provide_additional_details)
+    val receiver = arrayOf("mercuryleee@gmail.com")
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "application/zip"
+        clipData = ClipData.newRawUri("", uri)
+        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, text)
+        putExtra(Intent.EXTRA_EMAIL, receiver)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    val chooserIntent = Intent.createChooser(intent, null).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    val activityInfo = chooserIntent.resolveActivityInfo(context.packageManager, intent.flags)
+    if (activityInfo == null) {
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = context.getString(string.feature_appdetail_cannot_share_rule_report_issue),
+            )
+        }
+        return
+    }
+    chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(chooserIntent)
+}
+
 @Composable
 fun AppDetailScreen(
     appInfoUiState: AppInfoUiState,
@@ -263,7 +333,7 @@ fun AppDetailScreen(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
-    shareSingleRule: () -> Unit = {},
+    shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
 ) {
     when (appInfoUiState) {
@@ -305,7 +375,7 @@ fun AppDetailScreen(
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
                 onDeselect = onDeselect,
-                shareSingleRule = shareSingleRule,
+                shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
             )
         }
@@ -349,7 +419,7 @@ fun AppDetailContent(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
-    shareSingleRule: () -> Unit = {},
+    shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
@@ -407,7 +477,7 @@ fun AppDetailContent(
                 onEnableAll = onEnableAll,
                 switchSelectedMode = switchSelectedMode,
                 onBackClick = onBackClick,
-                shareSingleRule = shareSingleRule,
+                shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
             )
         },
@@ -454,7 +524,7 @@ fun AppDetailAppBarActions(
     enableAllComponents: () -> Unit = {},
     navigatedToComponentSortScreen: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
-    shareSingleRule: () -> Unit = {},
+    shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
 ) {
     val actions = appBarUiState.actions
@@ -491,7 +561,7 @@ fun AppDetailAppBarActions(
         }
         if (actions.contains(SHARE_RULE)) {
             ShareAction(
-                shareSingleRule = shareSingleRule,
+                shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
             )
         }
@@ -531,7 +601,7 @@ private fun TopAppBar(
     onEnableAll: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onBackClick: () -> Unit,
-    shareSingleRule: () -> Unit = {},
+    shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
 ) {
     if (!isSelectedMode) {
@@ -554,7 +624,7 @@ private fun TopAppBar(
                     enableAllComponents = enableAllComponents,
                     navigatedToComponentSortScreen = navigatedToComponentSortScreen,
                     switchSelectedMode = switchSelectedMode,
-                    shareSingleRule = shareSingleRule,
+                    shareAppRule = shareAppRule,
                     shareAllRules = shareAllRules,
                 )
             },
