@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.core.domain
 
+import com.merxury.blocker.core.domain.model.ZippedRule
+import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +42,8 @@ class ZipAllRuleUseCaseTest {
 
     private lateinit var filesDir: File
     private lateinit var cacheDir: File
-    private val ruleBaseFolder = "blocker-general-rule"
+    private val ruleBaseFolder = "user-generated-rule"
+    private val userDataRepository = TestUserDataRepository()
 
     private lateinit var useCase: ZipAllRuleUseCase
 
@@ -49,6 +52,7 @@ class ZipAllRuleUseCaseTest {
         filesDir = folder.newFolder("filesDir")
         cacheDir = folder.newFolder("cacheDir")
         useCase = ZipAllRuleUseCase(
+            userDataRepository = userDataRepository,
             cacheDir = cacheDir,
             filesDir = filesDir,
             ruleBaseFolder = ruleBaseFolder,
@@ -60,16 +64,18 @@ class ZipAllRuleUseCaseTest {
     fun whenNoFilesExist_returnNull() = runTest {
         // Do not create files before running the test
         val baseFolder = filesDir.resolve(ruleBaseFolder)
+            .resolve(userDataRepository.getLibDisplayLanguage())
         if (baseFolder.exists()) {
             baseFolder.deleteRecursively()
         }
         val result = useCase().first()
-        assertEquals(null, result)
+        assertEquals(ZippedRule.EMPTY, result)
     }
 
     @Test
     fun whenOneFileInRuleFolder_returnFileWithExactlyOneFile() = runTest {
         val baseFolder = filesDir.resolve(ruleBaseFolder)
+            .resolve(userDataRepository.getLibDisplayLanguage())
         if (baseFolder.exists()) {
             baseFolder.deleteRecursively()
         }
@@ -77,13 +83,14 @@ class ZipAllRuleUseCaseTest {
 
         val file = baseFolder.resolve("test.txt")
         file.createNewFile()
-
-        val zipFile = useCase().first()?.let {
+        val rule = useCase().first()
+        val zipFile = rule.zippedFile?.let {
             ZipFile(it)
         } ?: throw AssertionError("Zip file should not be null")
         assertEquals(1, zipFile.size())
         assertEquals(
-            File.separator + ruleBaseFolder + File.separator + "test.txt",
+            File.separator + userDataRepository.getLibDisplayLanguage() + File.separator +
+                "test.txt",
             zipFile.entries().nextElement().name,
         )
         zipFile.close()
@@ -92,6 +99,7 @@ class ZipAllRuleUseCaseTest {
     @Test
     fun when5FilesInRuleFolder_returnFileWithExactly5Files() = runTest {
         val baseFolder = filesDir.resolve(ruleBaseFolder)
+            .resolve(userDataRepository.getLibDisplayLanguage())
         if (baseFolder.exists()) {
             baseFolder.deleteRecursively()
         }
@@ -100,8 +108,8 @@ class ZipAllRuleUseCaseTest {
             val file = baseFolder.resolve("test$i.txt")
             file.createNewFile()
         }
-
-        val zipFile = useCase().first()?.let {
+        val rule = useCase().first()
+        val zipFile = rule.zippedFile?.let {
             ZipFile(it)
         } ?: throw AssertionError("Zip file should not be null")
         // Check file size
@@ -109,7 +117,8 @@ class ZipAllRuleUseCaseTest {
         // Verify file names
         val filesInZip = zipFile.entries().toList()
         for (i in 1..5) {
-            val fileName = File.separator + ruleBaseFolder + File.separator + "test$i.txt"
+            val fileName = File.separator + userDataRepository.getLibDisplayLanguage() +
+                File.separator + "test$i.txt"
             assertTrue(
                 filesInZip.any { it.name == fileName },
                 "File $fileName should exist in zip file",
@@ -121,6 +130,7 @@ class ZipAllRuleUseCaseTest {
     @Test
     fun whenContainingFolders_returnFileWithExactSameStructure() = runTest {
         val baseFolder = filesDir.resolve(ruleBaseFolder)
+            .resolve(userDataRepository.getLibDisplayLanguage())
         if (baseFolder.exists()) {
             baseFolder.deleteRecursively()
         }
@@ -131,8 +141,8 @@ class ZipAllRuleUseCaseTest {
             val file = folder.resolve("test$i.txt")
             file.createNewFile()
         }
-
-        val zipFile = useCase().first()?.let {
+        val rule = useCase().first()
+        val zipFile = rule.zippedFile?.let {
             ZipFile(it)
         } ?: throw AssertionError("Zip file should not be null")
         // Check file size
@@ -140,7 +150,8 @@ class ZipAllRuleUseCaseTest {
         // Verify file names
         val filesInZip = zipFile.entries().toList()
         for (i in 1..zipFile.size()) {
-            val fileName = File.separator + ruleBaseFolder + File.separator + "folder$i" + File.separator + "test$i.txt"
+            val fileName = File.separator + userDataRepository.getLibDisplayLanguage() +
+                File.separator + "folder$i" + File.separator + "test$i.txt"
             assertTrue(
                 filesInZip.any { it.name == fileName },
                 "File $fileName should exist in zip file",
