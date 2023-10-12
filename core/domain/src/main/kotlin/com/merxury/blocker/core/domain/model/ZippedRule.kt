@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.respository.componentdetail.datasource
+package com.merxury.blocker.core.domain.model
 
-import com.merxury.blocker.core.model.data.ComponentDetail
-import kotlinx.coroutines.flow.Flow
+import java.io.File
 
-interface ComponentDetailDataSource {
-
-    fun getByPackageName(packageName: String): Flow<List<ComponentDetail>>
-
-    fun getByComponentName(name: String): Flow<ComponentDetail?>
-
-    fun saveComponentData(component: ComponentDetail): Flow<Boolean>
+data class ZippedRule(
+    val packageName: String?,
+    val zippedFile: File?,
+) {
+    companion object {
+        val EMPTY = ZippedRule(null, null)
+    }
 }

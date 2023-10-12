@@ -105,4 +105,6 @@ class FakeUserDataRepository @Inject constructor(
     override suspend fun setLibDisplayLanguage(language: String) {
         blockerPreferenceDataSource.setLibDisplayLanguage(language)
     }
+
+    override suspend fun getLibDisplayLanguage(): String = "en-US"
 }
