@@ -21,6 +21,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.Constraints
@@ -41,10 +42,19 @@ val SyncConstraints
  * Foreground information for sync on lower API levels when sync workers are being
  * run with a foreground service
  */
-fun Context.syncForegroundInfo() = ForegroundInfo(
-    SYNC_NOTIFICATION_ID,
-    syncWorkNotification(),
-)
+fun Context.syncForegroundInfo() =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        ForegroundInfo(
+            SYNC_NOTIFICATION_ID,
+            syncWorkNotification(),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
+        )
+    } else {
+        ForegroundInfo(
+            SYNC_NOTIFICATION_ID,
+            syncWorkNotification(),
+        )
+    }
 
 /**
  * Notification displayed on lower API levels when sync workers are being
