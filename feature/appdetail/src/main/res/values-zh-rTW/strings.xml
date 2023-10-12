@@ -43,4 +43,9 @@
     <string name="feature_appdetail_share_your_rules">分享你的規則</string>
     <string name="feature_appdetail_share_all_rules">共享所有規則</string>
     <string name="feature_appdetail_share_current_rules">分享目前規則</string>
+    <string name="feature_appdetail_cannot_share_rule_report_issue">無法共享規則，請向我們報告問題。</string>
+    <string name="feature_appdetail_cannot_share_rule_no_apps_found">無法共享規則，找不到可共享的應用程序。</string>
+    <string name="feature_appdetail_rules_sharing_title">規則分享：%1$s</string>
+    <string name="feature_appdetail_provide_additional_details">(請提供關於您的規則的詳細描述。)\n</string>
+    <string name="feature_appdetail_all_rules">所有規則</string>
 </resources>

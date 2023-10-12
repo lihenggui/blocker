@@ -21,6 +21,7 @@ import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.model.ZippedRule
 import com.merxury.blocker.core.utils.FileUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -37,7 +38,7 @@ class ZipAllRuleUseCase @Inject constructor(
     @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(): Flow<File?> = flow {
+    operator fun invoke(): Flow<ZippedRule> = flow {
         val time = Clock.System.now().toString()
             .replace(":", "-")
             .replace(".", "-")
@@ -46,21 +47,21 @@ class ZipAllRuleUseCase @Inject constructor(
         val baseFolder = filesDir.resolve(ruleBaseFolder)
         if (!baseFolder.exists()) {
             Timber.e("Rule base folder $baseFolder does not exist")
-            emit(null)
+            emit(ZippedRule.EMPTY)
             return@flow
         }
         val files = baseFolder.listFiles()
         if (files.isNullOrEmpty()) {
             Timber.e("Folder $files is empty")
-            emit(null)
+            emit(ZippedRule.EMPTY)
             return@flow
         }
         try {
             FileUtils.zipFolder(baseFolder.absolutePath, zipFile.absolutePath)
-            emit(zipFile)
+            emit(ZippedRule(null, zipFile))
         } catch (e: Exception) {
             Timber.e(e)
-            emit(null)
+            emit(ZippedRule.EMPTY)
         }
     }
         .flowOn(ioDispatcher)

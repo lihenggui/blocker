@@ -35,7 +35,7 @@ import com.merxury.blocker.feature.appdetail.R.string
 
 @Composable
 fun ShareAction(
-    shareSingleRule: () -> Unit = {},
+    shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
 ) {
     var isDialogVisible by remember { mutableStateOf(false) }
@@ -49,7 +49,7 @@ fun ShareAction(
     }
     ShareRuleDialog(
         isDialogVisible = isDialogVisible,
-        shareSingleRule = shareSingleRule,
+        shareAppRule = shareAppRule,
         shareAllRules = shareAllRules,
         onDismissRequest = { isDialogVisible = false },
     )
@@ -58,7 +58,7 @@ fun ShareAction(
 @Composable
 fun ShareRuleDialog(
     isDialogVisible: Boolean = false,
-    shareSingleRule: () -> Unit = {},
+    shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onDismissRequest: () -> Unit = {},
 ) {
@@ -70,7 +70,7 @@ fun ShareRuleDialog(
                     icon = ImageVectorIcon(BlockerIcons.CheckSmall),
                     title = stringResource(id = string.feature_appdetail_share_current_rules),
                     onItemClick = {
-                        shareSingleRule()
+                        shareAppRule()
                         onDismissRequest()
                     },
                 )
@@ -95,7 +95,7 @@ fun ShareRuleDialogPreview() {
         Surface {
             ShareRuleDialog(
                 isDialogVisible = true,
-                shareSingleRule = {},
+                shareAppRule = {},
                 shareAllRules = {},
                 onDismissRequest = {},
             )
