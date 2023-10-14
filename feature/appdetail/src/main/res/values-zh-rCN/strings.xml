@@ -45,5 +45,10 @@
     <string name="feature_appdetail_disable_components">禁用组件中：%1$d (%2$d)</string>
     <string name="feature_appdetail_share_your_rules">分享你的规则</string>
     <string name="feature_appdetail_share_all_rules">共享所有规则</string>
-    <string name="feature_appdetail_share_current_rules">分享当前规则</string>
+    <string name="feature_appdetail_share_rules_of_this_app">分享此应用的规则</string>
+    <string name="feature_appdetail_cannot_share_rule_report_issue">无法共享规则，请向我们报告问题。</string>
+<string name="feature_appdetail_cannot_share_rule_no_apps_found">无法共享规则，找不到可共享的应用程序。</string>
+    <string name="feature_appdetail_rules_sharing_title">规则分享：%1$s</string>
+    <string name="feature_appdetail_provide_additional_details">(请提供关于您的规则的详细描述。)\n</string>
+    <string name="feature_appdetail_all_rules">所有规则</string>
 </resources>

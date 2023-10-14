@@ -154,8 +154,7 @@ class UserGeneratedComponentDetailDataSource @Inject constructor(
         .flowOn(ioDispatcher)
 
     private suspend fun getWorkingDirWithLang(): File {
-        val libDisplayLanguage = userDataRepository.userData.first().libDisplayLanguage
         return filesDir.resolve(generatedRuleBaseFolder)
-            .resolve(getLibDisplayLanguage(libDisplayLanguage))
+            .resolve(userDataRepository.getLibDisplayLanguage())
     }
 }
