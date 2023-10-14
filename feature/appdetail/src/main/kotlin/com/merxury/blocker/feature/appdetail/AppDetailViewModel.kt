@@ -804,9 +804,10 @@ class AppDetailViewModel @Inject constructor(
 
     private fun updateComponentDetail(componentDetail: ComponentDetail) {
         Timber.v("Update component detail: $componentDetail")
-        _componentListUiState.value.receiver.find { it.name == componentDetail.name }
+        val currentState = _componentListUiState.value.copy()
+        currentState.receiver.find { it.name == componentDetail.name }
             ?.let { item ->
-                val index = _componentListUiState.value.receiver.indexOf(item)
+                val index = currentState.receiver.indexOf(item)
                 if (index == -1) {
                     Timber.w("Cannot find receiver ${componentDetail.name} to update")
                     return
@@ -819,9 +820,9 @@ class AppDetailViewModel @Inject constructor(
                     )
                 }
             }
-        _componentListUiState.value.service.find { it.name == componentDetail.name }
+        currentState.service.find { it.name == componentDetail.name }
             ?.let { item ->
-                val index = _componentListUiState.value.service.indexOf(item)
+                val index = currentState.service.indexOf(item)
                 if (index == -1) {
                     Timber.w("Cannot find service ${componentDetail.name} to update")
                     return
@@ -834,9 +835,9 @@ class AppDetailViewModel @Inject constructor(
                     )
                 }
             }
-        _componentListUiState.value.activity.find { it.name == componentDetail.name }
+        currentState.activity.find { it.name == componentDetail.name }
             ?.let { item ->
-                val index = _componentListUiState.value.activity.indexOf(item)
+                val index = currentState.activity.indexOf(item)
                 if (index == -1) {
                     Timber.w("Cannot find activity ${componentDetail.name} to update")
                     return
@@ -849,9 +850,9 @@ class AppDetailViewModel @Inject constructor(
                     )
                 }
             }
-        _componentListUiState.value.provider.find { it.name == componentDetail.name }
+        currentState.provider.find { it.name == componentDetail.name }
             ?.let { item ->
-                val index = _componentListUiState.value.provider.indexOf(item)
+                val index = currentState.provider.indexOf(item)
                 if (index == -1) {
                     Timber.w("Cannot find provider ${componentDetail.name} to update")
                     return
