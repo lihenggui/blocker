@@ -97,4 +97,14 @@ class FakeUserDataRepository @Inject constructor(
     override suspend fun setIsFirstTimeInitializationCompleted(completed: Boolean) {
         blockerPreferenceDataSource.setIsFirstTimeInitializationCompleted(completed)
     }
+
+    override suspend fun setAppDisplayLanguage(language: String) {
+        blockerPreferenceDataSource.setAppDisplayLanguage(language)
+    }
+
+    override suspend fun setLibDisplayLanguage(language: String) {
+        blockerPreferenceDataSource.setLibDisplayLanguage(language)
+    }
+
+    override suspend fun getLibDisplayLanguage(): String = "en-US"
 }

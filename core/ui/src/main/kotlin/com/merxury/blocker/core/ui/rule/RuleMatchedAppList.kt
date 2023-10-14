@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.Orientation.Vertical
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +25,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -41,27 +44,29 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
-import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.component.ComponentListItem
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun RuleMatchedAppList(
     modifier: Modifier = Modifier,
     ruleMatchedAppListUiState: RuleMatchedAppListUiState,
-    onStopServiceClick: (String, String) -> Unit,
-    onLaunchActivityClick: (String, String) -> Unit,
-    onCopyNameClick: (String) -> Unit,
-    onCopyFullNameClick: (String) -> Unit,
+    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
+    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
+    onCopyNameClick: (String) -> Unit = { _ -> },
+    onCopyFullNameClick: (String) -> Unit = { _ -> },
     navigateToAppDetail: (String) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onSwitch: (String, String, Boolean) -> Unit,
+    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
 ) {
     when (ruleMatchedAppListUiState) {
         RuleMatchedAppListUiState.Loading -> LoadingScreen()
@@ -85,21 +90,56 @@ fun RuleMatchedAppList(
                     state = listState,
                 ) {
                     ruleMatchedAppListUiState.list.forEachIndexed { index, ruleMatchedApp ->
-                        matchedComponentItem(
-                            ruleMatchedApp = ruleMatchedApp,
-                            onStopServiceClick = onStopServiceClick,
-                            onLaunchActivityClick = onLaunchActivityClick,
-                            onCopyNameClick = onCopyNameClick,
-                            onCopyFullNameClick = onCopyFullNameClick,
-                            navigateToAppDetail = navigateToAppDetail,
-                            onBlockAllClick = onBlockAllClick,
-                            onEnableAllClick = onEnableAllClick,
-                            onSwitch = onSwitch,
-                            expanded = isExpandedMap[index] ?: false,
-                            onCardArrowClicked = {
-                                isExpandedMap[index] = !(isExpandedMap[index] ?: false)
-                            },
-                        )
+                        val expanded = isExpandedMap[index] ?: false
+                        item(key = ruleMatchedApp.app.packageName) {
+                            MatchedAppItemHeader(
+                                modifier = Modifier.animateItemPlacement(),
+                                iconModifier = Modifier,
+                                ruleMatchedApp = ruleMatchedApp,
+                                navigateToAppDetail = navigateToAppDetail,
+                                onBlockAllClick = onBlockAllClick,
+                                onEnableAllClick = onEnableAllClick,
+                                expanded = expanded,
+                                onCardArrowClicked = {
+                                    isExpandedMap[index] = !(isExpandedMap[index] ?: false)
+                                },
+                            )
+                        }
+                        if (expanded) {
+                            items(
+                                items = ruleMatchedApp.componentList,
+                                key = { item -> ruleMatchedApp.app.packageName + item.name },
+                            ) {
+                                ComponentListItem(
+                                    modifier = modifier.animateItemPlacement(),
+                                    item = it,
+                                    enabled = it.enabled(),
+                                    type = it.type,
+                                    isServiceRunning = it.isRunning,
+                                    onStopServiceClick = {
+                                        onStopServiceClick(
+                                            it.packageName,
+                                            it.name,
+                                        )
+                                    },
+                                    onLaunchActivityClick = {
+                                        onLaunchActivityClick(
+                                            it.packageName,
+                                            it.name,
+                                        )
+                                    },
+                                    onCopyNameClick = { onCopyNameClick(it.simpleName) },
+                                    onCopyFullNameClick = { onCopyFullNameClick(it.name) },
+                                    onSwitchClick = onSwitch,
+                                )
+                                // add horizontal divider after last item
+                                if (ruleMatchedApp.componentList.last() == it) {
+                                    HorizontalDivider(
+                                        modifier = modifier,
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
                 listState.FastScrollbar(
@@ -109,7 +149,7 @@ fun RuleMatchedAppList(
                         .align(Alignment.CenterEnd),
                     state = scrollbarState,
                     orientation = Vertical,
-                    onThumbDisplaced = listState.rememberFastScroller(
+                    onThumbMoved = listState.rememberDraggableScroller(
                         itemsAvailable = ruleMatchedAppListUiState.list.size,
                     ),
                 )
@@ -155,32 +195,35 @@ fun <K, V> rememberSavableSnapshotStateMap(init: () -> SnapshotStateMap<K, V>): 
 @Preview
 fun RuleMatchedAppListPreview() {
     val componentInfo = ComponentItem(
-        name = "component",
-        simpleName = "com",
-        packageName = "blocker",
+        name = ".ui.component.ComponentListActivity",
+        simpleName = "ComponentListItem",
+        packageName = "com.merxury.blocker.test1",
         type = ACTIVITY,
         pmBlocked = false,
     )
     val ruleMatchedApp = RuleMatchedApp(
         app = AppItem(
-            packageName = "com.merxury.blocker",
+            packageName = "com.merxury.blocker.test1",
             label = "Blocker",
             isSystem = false,
         ),
         componentList = listOf(componentInfo),
     )
+    val ruleMatchedApp2 = RuleMatchedApp(
+        app = AppItem(
+            packageName = "com.merxury.blocker.test2",
+            label = "Test long long long long long name",
+            isSystem = false,
+        ),
+        componentList = listOf(),
+    )
     val uiState = RuleMatchedAppListUiState.Success(
-        list = listOf(ruleMatchedApp),
+        list = listOf(ruleMatchedApp, ruleMatchedApp2),
     )
     BlockerTheme {
         Surface {
             RuleMatchedAppList(
                 ruleMatchedAppListUiState = uiState,
-                onStopServiceClick = { _, _ -> },
-                onLaunchActivityClick = { _, _ -> },
-                onCopyNameClick = {},
-                onCopyFullNameClick = {},
-                onSwitch = { _, _, _ -> },
             )
         }
     }

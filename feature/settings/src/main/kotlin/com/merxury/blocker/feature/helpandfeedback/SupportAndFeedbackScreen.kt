@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.helpandfeedback
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -27,7 +26,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -35,23 +33,43 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.ui.BlockerSettingItem
+import com.merxury.blocker.core.ui.DevicePreviews
 import com.merxury.blocker.feature.settings.R.string
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SupportAndFeedbackRoute(
     onNavigationClick: () -> Unit,
     viewModel: SupportFeedbackViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    SupportAndFeedbackScreen(
+        onNavigationClick = onNavigationClick,
+        onProjectHomeClick = { viewModel.openProjectHomepage(context) },
+        onRulesRepositoryClick = { viewModel.openRulesRepository(context) },
+        onReportBugClick = { viewModel.openReportBugPage(context) },
+        onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
+        onDesignLinkClick = { viewModel.openDesignLink(context) },
+        onOpenSourceLicenseClick = { viewModel.openOpenSourceLicence(context) },
+    )
+}
+
+@Composable
+fun SupportAndFeedbackScreen(
+    onNavigationClick: () -> Unit = {},
+    onProjectHomeClick: () -> Unit = {},
+    onRulesRepositoryClick: () -> Unit = {},
+    onReportBugClick: () -> Unit = {},
+    onTelegramGroupLinkClick: () -> Unit = {},
+    onDesignLinkClick: () -> Unit = {},
+    onOpenSourceLicenseClick: () -> Unit = {},
+) {
     Scaffold(
         topBar = {
             BlockerTopAppBar(
@@ -70,70 +88,44 @@ fun SupportAndFeedbackRoute(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            SupportAndFeedbackScreen(
-                onProjectHomeClick = { viewModel.openProjectHomepage(context) },
-                onRulesRepositoryClick = { viewModel.openRulesRepository(context) },
-                onReportBugClick = { viewModel.openReportBugPage(context) },
-                onTelegramGroupLinkClick = { viewModel.openGroupLink(context) },
-                onDesignLinkClick = { viewModel.openDesignLink(context) },
-                onOpenSourceLicenseClick = { viewModel.openOpenSourceLicence(context) },
-                onExportLogClick = { viewModel.exportErrorLog() },
-            )
+            Column {
+                BlockerSettingItem(
+                    icon = DrawableResourceIcon(BlockerIcons.GitHub),
+                    title = stringResource(id = string.feature_settings_project_homepage),
+                    onItemClick = { onProjectHomeClick() },
+                )
+                BlockerSettingItem(
+                    icon = ImageVectorIcon(BlockerIcons.Rule),
+                    title = stringResource(id = string.feature_settings_rule_repository),
+                    onItemClick = { onRulesRepositoryClick() },
+                )
+                BlockerSettingItem(
+                    icon = ImageVectorIcon(BlockerIcons.BugReport),
+                    title = stringResource(id = string.feature_settings_report_bugs_or_submit_ideas),
+                    onItemClick = { onReportBugClick() },
+                )
+                BlockerSettingItem(
+                    icon = DrawableResourceIcon(BlockerIcons.Telegram),
+                    title = stringResource(id = string.feature_settings_telegram_group),
+                    onItemClick = { onTelegramGroupLinkClick() },
+                )
+                BlockerSettingItem(
+                    icon = ImageVectorIcon(BlockerIcons.DesignService),
+                    title = stringResource(id = string.feature_settings_designers_homepage),
+                    onItemClick = { onDesignLinkClick() },
+                )
+                BlockerSettingItem(
+                    icon = ImageVectorIcon(BlockerIcons.DocumentScanner),
+                    title = stringResource(id = string.feature_settings_open_source_licenses),
+                    onItemClick = { onOpenSourceLicenseClick() },
+                )
+            }
         }
     }
 }
 
 @Composable
-fun SupportAndFeedbackScreen(
-    onProjectHomeClick: () -> Unit = {},
-    onRulesRepositoryClick: () -> Unit = {},
-    onReportBugClick: () -> Unit = {},
-    onTelegramGroupLinkClick: () -> Unit = {},
-    onDesignLinkClick: () -> Unit = {},
-    onOpenSourceLicenseClick: () -> Unit = {},
-    onExportLogClick: () -> Unit = {},
-) {
-    Column {
-        BlockerSettingItem(
-            icon = DrawableResourceIcon(BlockerIcons.GitHub),
-            title = stringResource(id = string.feature_settings_project_homepage),
-            onItemClick = { onProjectHomeClick() },
-        )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.Rule),
-            title = stringResource(id = string.feature_settings_rule_repository),
-            onItemClick = { onRulesRepositoryClick() },
-        )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.BugReport),
-            title = stringResource(id = string.feature_settings_report_bugs_or_submit_ideas),
-            onItemClick = { onReportBugClick() },
-        )
-        BlockerSettingItem(
-            icon = DrawableResourceIcon(BlockerIcons.Telegram),
-            title = stringResource(id = string.feature_settings_telegram_group),
-            onItemClick = { onTelegramGroupLinkClick() },
-        )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.DesignService),
-            title = stringResource(id = string.feature_settings_designers_homepage),
-            onItemClick = { onDesignLinkClick() },
-        )
-        BlockerSettingItem(
-            icon = ImageVectorIcon(BlockerIcons.DocumentScanner),
-            title = stringResource(id = string.feature_settings_open_source_licenses),
-            onItemClick = { onOpenSourceLicenseClick() },
-        )
-//        BlockerSettingItem(
-//            icon = ImageVectorIcon(BlockerIcons.Article),
-//            title = stringResource(id = string.export_error_log),
-//            onItemClick = { onExportLogClick() },
-//        )
-    }
-}
-
-@Composable
-@Preview
+@DevicePreviews
 fun SupportAndFeedbackScreenPreview() {
     BlockerTheme {
         Surface {

@@ -32,10 +32,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
-import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -44,7 +44,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 fun GeneralRulesList(
     rules: List<GeneralRule>,
     modifier: Modifier = Modifier,
-    onClick: (Int) -> Unit,
+    onClick: (Int) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
@@ -73,7 +73,7 @@ fun GeneralRulesList(
                 .testTag("rule:scrollbar"),
             state = scrollbarState,
             orientation = Vertical,
-            onThumbDisplaced = listState.rememberFastScroller(
+            onThumbMoved = listState.rememberDraggableScroller(
                 itemsAvailable = rules.size,
             ),
         )
@@ -81,7 +81,7 @@ fun GeneralRulesList(
 }
 
 @Composable
-@Preview
+@ThemePreviews
 fun GeneralRuleScreenPreview() {
     val ruleList = listOf(
         GeneralRule(
@@ -120,6 +120,6 @@ fun GeneralRuleScreenPreview() {
         ),
     )
     BlockerTheme {
-        GeneralRulesList(rules = ruleList, onClick = {})
+        GeneralRulesList(rules = ruleList)
     }
 }

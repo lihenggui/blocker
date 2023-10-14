@@ -249,6 +249,7 @@ class LocalComponentRepository @Inject constructor(
 
     private suspend fun updateComponentStatus(packageName: String, componentName: String) {
         val component = appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
+            .first()
             ?: return
         val newState = component.copy(
             pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),

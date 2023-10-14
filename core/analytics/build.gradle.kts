@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 plugins {
-    id("blocker.android.library")
-    id("blocker.android.library.compose")
-    id("blocker.android.hilt")
+    alias(libs.plugins.blocker.android.library)
+    alias(libs.plugins.blocker.android.library.compose)
+    alias(libs.plugins.blocker.android.hilt)
 }
 
 android {

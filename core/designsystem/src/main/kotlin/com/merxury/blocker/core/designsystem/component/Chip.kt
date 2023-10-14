@@ -17,6 +17,7 @@
 
 package com.merxury.blocker.core.designsystem.component
 
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -24,11 +25,14 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 /**
  * Blocker filter chip with included leading checked icon as well as text content slot.
@@ -102,6 +106,20 @@ fun BlockerFilterChip(
             selectedLeadingIconColor = MaterialTheme.colorScheme.onBackground,
         ),
     )
+}
+
+@ThemePreviews
+@Composable
+fun ChipPreview() {
+    BlockerTheme {
+        Surface {
+            BlockerBackground(modifier = Modifier.size(80.dp, 20.dp)) {
+                BlockerFilterChip(selected = true, onSelectedChange = {}) {
+                    Text("Chip")
+                }
+            }
+        }
+    }
 }
 
 /**

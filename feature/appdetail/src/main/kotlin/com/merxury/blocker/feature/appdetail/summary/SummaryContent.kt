@@ -30,10 +30,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
-import com.merxury.blocker.core.designsystem.component.ItemHeader
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.ui.BlockerSettingItem
+import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.core.utils.AndroidCodeName
 import com.merxury.blocker.feature.appdetail.R.string
 import kotlinx.datetime.Clock.System
@@ -41,7 +41,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.toJavaInstant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
+import java.time.format.FormatStyle.LONG
 import java.util.Locale
 
 @Composable
@@ -110,7 +110,7 @@ fun AppSummary(
         )
         BlockerSettingItem(
             title = stringResource(id = string.feature_appdetail_last_update_time),
-            summary = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.LONG)
+            summary = DateTimeFormatter.ofLocalizedDateTime(LONG)
                 .withLocale(Locale.getDefault())
                 .withZone(ZoneId.systemDefault())
                 .format(lastUpdateTime?.toJavaInstant()),

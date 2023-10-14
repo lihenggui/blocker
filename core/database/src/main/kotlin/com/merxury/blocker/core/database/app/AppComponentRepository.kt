@@ -22,7 +22,7 @@ import javax.inject.Inject
 
 class AppComponentRepository @Inject constructor(private val appComponentDao: AppComponentDao) {
 
-    suspend fun getAppComponent(packageName: String, componentName: String): AppComponentEntity? {
+    fun getAppComponent(packageName: String, componentName: String): Flow<AppComponentEntity?> {
         return appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
     }
 

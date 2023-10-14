@@ -16,11 +16,12 @@
 
 package com.merxury.blocker.feature.ruledetail
 
-import android.content.res.Configuration
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -52,7 +54,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
@@ -63,22 +67,25 @@ import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
-import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
-import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppList
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
+import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
+import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Success
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -144,10 +151,10 @@ fun RuleDetailScreen(
     modifier: Modifier = Modifier,
     ruleMatchedAppListUiState: RuleMatchedAppListUiState,
     ruleInfoUiState: RuleInfoUiState,
-    onBackClick: () -> Unit,
     tabState: TabState<RuleDetailTabs>,
     appBarUiState: AppBarUiState = AppBarUiState(),
-    switchTab: (RuleDetailTabs) -> Unit,
+    onBackClick: () -> Unit = {},
+    switchTab: (RuleDetailTabs) -> Unit = { _ -> },
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
     onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
     onCopyNameClick: (String) -> Unit = { _ -> },
@@ -307,13 +314,21 @@ fun RuleDetailAppBarActions(
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
 ) {
-    val actions = appBarUiState.actions
-    if (actions.isEmpty()) return
-    if (actions.contains(MORE)) {
-        MoreActionMenu(
-            blockAllComponents = blockAllComponents,
-            enableAllComponents = enableAllComponents,
-        )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = 8.dp),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        val actions = appBarUiState.actions
+        if (actions.isEmpty()) return
+        if (actions.contains(MORE)) {
+            MoreActionMenu(
+                blockAllComponents = blockAllComponents,
+                enableAllComponents = enableAllComponents,
+            )
+        }
     }
 }
 
@@ -414,66 +429,67 @@ fun RuleDetailTabContent(
 }
 
 @Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun RuleDetailScreenPreView() {
-    val componentInfo = ComponentItem(
-        name = "component",
-        simpleName = "com",
-        packageName = "blocker",
-        type = ACTIVITY,
-        pmBlocked = false,
-    )
-    val ruleMatchedApp = RuleMatchedApp(
-        app = AppItem(
-            packageName = "com.merxury.blocker",
-            label = "Blocker",
-            isSystem = false,
-        ),
-        componentList = listOf(componentInfo),
-    )
-    val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
-        list = listOf(ruleMatchedApp),
-    )
-    val item = GeneralRule(
-        id = 2,
-        name = "Android WorkerManager",
-        iconUrl = null,
-        company = "Google",
-        description = "WorkManager is the recommended solution for persistent work. " +
-            "Work is persistent when it remains scheduled through app restarts and " +
-            "system reboots. Because most background processing is best accomplished " +
-            "through persistent work, WorkManager is the primary recommended API for " +
-            "background processing.",
-        sideEffect = "Background works won't be able to execute",
-        safeToBlock = false,
-        contributors = listOf("Google"),
-        searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
-    )
-    val ruleInfoUiState = RuleInfoUiState.Success(
-        ruleInfo = item,
-        ruleIcon = null,
-    )
-    val tabState = TabState(
-        items = listOf(
-            Applicable,
-            Description,
-        ),
-        selectedItem = Applicable,
-    )
+@ThemePreviews
+fun RuleDetailScreenPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
+    val components = ComponentListPreviewParameterProvider().values.first()
+    val appList = AppListPreviewParameterProvider().values.first()
+    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
+
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
-                ruleInfoUiState = ruleInfoUiState,
-                onBackClick = {},
-                tabState = tabState,
-                switchTab = {},
-                onStopServiceClick = { _, _ -> },
-                onLaunchActivityClick = { _, _ -> },
-                onCopyNameClick = { _ -> },
-                onCopyFullNameClick = { _ -> },
-                onSwitch = { _, _, _ -> },
+                ruleMatchedAppListUiState = Success(
+                    list = listOf(
+                        RuleMatchedApp(
+                            app = appList.first(),
+                            componentList = components,
+                        ),
+                    ),
+                ),
+                ruleInfoUiState = RuleInfoUiState.Success(
+                    ruleInfo = ruleList.first(),
+                    ruleIcon = null,
+                ),
+                tabState = tabState[0],
+                appBarUiState = AppBarUiState(
+                    actions = listOf(
+                        MORE,
+                    ),
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun RuleDetailScreenSelectedDescriptionPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
+    val components = ComponentListPreviewParameterProvider().values.first()
+    val appList = AppListPreviewParameterProvider().values.first()
+    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
+
+    BlockerTheme {
+        Surface {
+            RuleDetailScreen(
+                ruleMatchedAppListUiState = Success(
+                    list = listOf(
+                        RuleMatchedApp(
+                            app = appList.first(),
+                            componentList = components,
+                        ),
+                    ),
+                ),
+                ruleInfoUiState = RuleInfoUiState.Success(
+                    ruleInfo = ruleList.first(),
+                    ruleIcon = null,
+                ),
+                tabState = tabState[1],
             )
         }
     }
@@ -481,47 +497,21 @@ fun RuleDetailScreenPreView() {
 
 @Composable
 @Preview
-fun RuleDetailScreenWithApplicableLoadingPreView() {
-    val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Loading
-    val item = GeneralRule(
-        id = 2,
-        name = "Android WorkerManager",
-        iconUrl = null,
-        company = "Google",
-        description = "WorkManager is the recommended solution for persistent work. " +
-            "Work is persistent when it remains scheduled through app restarts and " +
-            "system reboots. Because most background processing is best accomplished " +
-            "through persistent work, WorkManager is the primary recommended API for " +
-            "background processing.",
-        sideEffect = "Background works won't be able to execute",
-        safeToBlock = false,
-        contributors = listOf("Google"),
-        searchKeyword = listOf("androidx.work.", "androidx.work.impl"),
-    )
-    val ruleInfoUiState = RuleInfoUiState.Success(
-        ruleInfo = item,
-        ruleIcon = null,
-    )
-    val tabState = TabState(
-        items = listOf(
-            Applicable,
-            Description,
-        ),
-        selectedItem = Applicable,
-    )
+fun RuleDetailScreenWithApplicableLoadingPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
+    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
+
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
-                ruleInfoUiState = ruleInfoUiState,
-                onBackClick = {},
-                tabState = tabState,
-                switchTab = {},
-                onStopServiceClick = { _, _ -> },
-                onLaunchActivityClick = { _, _ -> },
-                onCopyNameClick = { _ -> },
-                onCopyFullNameClick = { _ -> },
-                onSwitch = { _, _, _ -> },
+                ruleMatchedAppListUiState = Loading,
+                ruleInfoUiState = RuleInfoUiState.Success(
+                    ruleInfo = ruleList.first(),
+                    ruleIcon = null,
+                ),
+                tabState = tabState[0],
             )
         }
     }
@@ -529,46 +519,14 @@ fun RuleDetailScreenWithApplicableLoadingPreView() {
 
 @Composable
 @Preview
-fun RuleDetailScreenLoadingPreView() {
-    val componentInfo = ComponentItem(
-        name = "component",
-        simpleName = "com",
-        packageName = "blocker",
-        type = ACTIVITY,
-        pmBlocked = false,
-    )
-    val ruleMatchedApp = RuleMatchedApp(
-        app = AppItem(
-            packageName = "com.merxury.blocker",
-            label = "Blocker",
-            isSystem = false,
-        ),
-        componentList = listOf(componentInfo),
-    )
-    val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
-        list = listOf(ruleMatchedApp),
-    )
-    val ruleInfoUiState = RuleInfoUiState.Loading
-    val tabState = TabState(
-        items = listOf(
-            Applicable,
-            Description,
-        ),
-        selectedItem = Description,
-    )
+fun RuleDetailScreenLoadingPreview() {
+    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
-                ruleInfoUiState = ruleInfoUiState,
-                onBackClick = {},
-                tabState = tabState,
-                switchTab = {},
-                onStopServiceClick = { _, _ -> },
-                onLaunchActivityClick = { _, _ -> },
-                onCopyNameClick = { _ -> },
-                onCopyFullNameClick = { _ -> },
-                onSwitch = { _, _, _ -> },
+                ruleMatchedAppListUiState = Loading,
+                ruleInfoUiState = RuleInfoUiState.Loading,
+                tabState = tabState[0],
             )
         }
     }
@@ -576,46 +534,16 @@ fun RuleDetailScreenLoadingPreView() {
 
 @Composable
 @Preview
-fun RuleDetailScreenErrorPreView() {
-    val componentInfo = ComponentItem(
-        name = "component",
-        simpleName = "com",
-        packageName = "blocker",
-        type = ACTIVITY,
-        pmBlocked = false,
-    )
-    val ruleMatchedApp = RuleMatchedApp(
-        app = AppItem(
-            packageName = "com.merxury.blocker",
-            label = "Blocker",
-            isSystem = false,
-        ),
-        componentList = listOf(componentInfo),
-    )
-    val ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
-        list = listOf(ruleMatchedApp),
-    )
-    val ruleInfoUiState = RuleInfoUiState.Error(UiMessage("Error"))
-    val tabState = TabState(
-        items = listOf(
-            Applicable,
-            Description,
-        ),
-        selectedItem = Description,
-    )
+fun RuleDetailScreenErrorPreview() {
+    val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
-                ruleInfoUiState = ruleInfoUiState,
-                onBackClick = {},
-                tabState = tabState,
-                switchTab = {},
-                onStopServiceClick = { _, _ -> },
-                onLaunchActivityClick = { _, _ -> },
-                onCopyNameClick = { _ -> },
-                onCopyFullNameClick = { _ -> },
-                onSwitch = { _, _, _ -> },
+                ruleMatchedAppListUiState = Loading,
+                ruleInfoUiState = RuleInfoUiState.Error(
+                    error = UiMessage("Error"),
+                ),
+                tabState = tabState[0],
             )
         }
     }

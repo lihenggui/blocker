@@ -17,11 +17,11 @@
 import com.merxury.blocker.BlockerBuildType
 
 plugins {
-    id("blocker.android.application")
-    id("blocker.android.application.compose")
-    id("blocker.android.application.flavors")
-    id("blocker.android.application.jacoco")
-    id("blocker.android.hilt")
+    alias(libs.plugins.blocker.android.application)
+    alias(libs.plugins.blocker.android.application.compose)
+    alias(libs.plugins.blocker.android.application.flavors)
+    alias(libs.plugins.blocker.android.application.jacoco)
+    alias(libs.plugins.blocker.android.hilt)
     id("jacoco")
     id("kotlin-parcelize")
     alias(libs.plugins.ksp)
@@ -39,6 +39,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+    }
+    androidResources {
+        generateLocaleConfig = true
     }
     buildTypes {
         debug {
@@ -102,6 +105,7 @@ dependencies {
     implementation(projects.feature.sort)
 
     implementation(projects.core.analytics)
+    implementation(projects.core.common)
     implementation(projects.core.data)
     implementation(projects.core.designsystem)
     implementation(projects.core.model)
