@@ -263,16 +263,12 @@ class AppDetailViewModel @Inject constructor(
             activity.addAll(filteredActivity)
             provider.addAll(filteredProvider)
         }
-        Timber.tag("Progress")
-            .d("filterAndUpdateComponentList: operateBatchComponentSize: ${operateBatchComponentSize.value}, operateBatchComponentProgress: ${operateBatchComponentProgress.value}")
         _componentListUiState.emit(
             ComponentListUiState(
                 receiver = receiver,
                 service = service,
                 activity = activity,
                 provider = provider,
-                operateBatchComponentProgress = operateBatchComponentProgress.value,
-                operateBatchComponentSize = operateBatchComponentSize.value,
             ),
         )
     }
@@ -308,8 +304,6 @@ class AppDetailViewModel @Inject constructor(
         val provider = list.filter { it.type == PROVIDER }
         _unfilteredList =
             getComponentListUiState(packageName, receiver, service, activity, provider)
-        Timber.tag("Progress")
-            .d("updateTabContent: operateBatchComponentSize: ${operateBatchComponentSize.value}, operateBatchComponentProgress: ${operateBatchComponentProgress.value}")
         filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
         updateTabState(_componentListUiState.value)
     }
@@ -355,8 +349,6 @@ class AppDetailViewModel @Inject constructor(
             packageName = packageName,
             type = PROVIDER,
         ),
-        operateBatchComponentProgress = operateBatchComponentProgress.value,
-        operateBatchComponentSize = operateBatchComponentSize.value,
     )
 
     private suspend fun sortAndConvertToComponentItem(
@@ -496,17 +488,17 @@ class AppDetailViewModel @Inject constructor(
             }.map {
                 it.toComponentInfo()
             }
-            operateBatchComponentSize.emit(list.size)
-            Timber.tag("Progress")
-                .d("controlAllComponents: operateBatchComponentSize: ${operateBatchComponentSize.value}, operateBatchComponentProgress: ${operateBatchComponentProgress.value}")
+            _componentListUiState.update {
+                it.copy(operateBatchComponentSize = list.size)
+            }
             componentRepository.batchControlComponent(components = list.toList(), newState = enable)
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect {
-                    operateBatchComponentProgress.emit(it)
-                    Timber.tag("Progress")
-                        .d("controlAllComponents: operateBatchComponentSize: ${operateBatchComponentSize.value}, operateBatchComponentProgress: ${operateBatchComponentProgress.value}")
+                .collect { progress ->
+                    _componentListUiState.update {
+                        it.copy(operateBatchComponentProgress = it.operateBatchComponentProgress + 1)
+                    }
                 }
             analyticsHelper.logBatchOperationPerformed(enable)
         }

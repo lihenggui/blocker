@@ -48,8 +48,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -129,6 +131,7 @@ import com.merxury.blocker.feature.appdetail.ui.ShareAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import com.merxury.blocker.core.rule.R.string as rulestring
 
 @Composable
@@ -257,7 +260,7 @@ private fun shareFile(
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 
-) {
+    ) {
     val zippedFile = rule.zippedFile
     if (zippedFile == null) {
         scope.launch {
@@ -460,16 +463,7 @@ fun AppDetailContent(
     }
     val snackbarHostState = remember { SnackbarHostState() }
     // TODO use correct string resource
-    val enableComponentsMessage = stringResource(
-        id = string.feature_appdetail_enable_components,
-        componentListUiState.operateBatchComponentProgress,
-        componentListUiState.operateBatchComponentSize,
-    )
-    val disableComponentsMessage = stringResource(
-        id = string.feature_appdetail_disable_components,
-        componentListUiState.operateBatchComponentProgress,
-        componentListUiState.operateBatchComponentSize,
-    )
+    val controlComponentType: MutableState<Boolean> = remember { mutableStateOf(false) }
     updateIconBasedThemingState(IconBasedThemingState(icon = iconBasedTheming, isBasedIcon = true))
     Scaffold(
         snackbarHost = {
@@ -486,23 +480,11 @@ fun AppDetailContent(
                 onSearchModeChanged = onSearchModeChanged,
                 blockAllComponents = {
                     blockAllComponents()
-                    showAndDismissSnackbar(
-                        scope = scope,
-                        snackbarHostState = snackbarHostState,
-                        message = disableComponentsMessage,
-                        progress = componentListUiState.operateBatchComponentProgress,
-                        size = componentListUiState.operateBatchComponentSize,
-                    )
+                    controlComponentType.value = false
                 },
                 enableAllComponents = {
                     enableAllComponents()
-                    showAndDismissSnackbar(
-                        scope = scope,
-                        snackbarHostState = snackbarHostState,
-                        message = enableComponentsMessage,
-                        progress = componentListUiState.operateBatchComponentProgress,
-                        size = componentListUiState.operateBatchComponentSize,
-                    )
+                    controlComponentType.value = true
                 },
                 navigatedToComponentSortScreen = navigatedToComponentSortScreen,
                 onLaunchAppClick = onLaunchAppClick,
@@ -547,19 +529,32 @@ fun AppDetailContent(
             onDeselect = onDeselect,
         )
     }
+    ShowAndDismissSnackBar(
+        controlComponentType = controlComponentType.value,
+        snackbarHostState = snackbarHostState,
+        progress = componentListUiState.operateBatchComponentProgress,
+        size = componentListUiState.operateBatchComponentSize,
+    )
 }
 
-private fun showAndDismissSnackbar(
-    scope: CoroutineScope,
+@Composable
+private fun ShowAndDismissSnackBar(
+    controlComponentType: Boolean,
     snackbarHostState: SnackbarHostState,
-    message: String,
     progress: Int,
     size: Int,
 ) {
-    scope.launch {
+    val message = if (controlComponentType
+    ) {
+        stringResource(id = string.feature_appdetail_enable_components, progress, size)
+    } else {
+        stringResource(id = string.feature_appdetail_disable_components, progress, size)
+    }
+    LaunchedEffect(size) {
         snackbarHostState.showSnackbar(
             message = message,
         )
+        Timber.d("Progress: $progress, Size: $size")
     }
     if (progress == size) {
         snackbarHostState.currentSnackbarData?.dismiss()
