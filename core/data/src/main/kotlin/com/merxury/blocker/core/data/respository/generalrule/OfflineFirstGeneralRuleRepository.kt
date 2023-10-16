@@ -62,7 +62,7 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
                 compareAndUpdateCache(list)
             }
             .catch { e ->
-                Timber.e(e, "Failed to get the general rules from server.")
+                Timber.e(e, "Failed to get the general rules.")
                 emit(Result.Error(e))
             }
             .onStart {
@@ -96,7 +96,7 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
                 Timber.v("Skip saving entity id: ${cachedEntity.id}")
                 return@forEach
             }
-            Timber.v("Saving new rules $networkEntity to local db.")
+            Timber.v("Saving new rules ${networkEntity.name} to local db.")
             // Update the rule but keep the matched app count as a cache
             val cachedMatchedAppCount = cachedEntity?.matchedAppCount ?: 0
             generalRuleDao.upsertGeneralRule(
@@ -108,7 +108,7 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
         currentCache.filter { localEntity ->
             latestRules.find { it.id == localEntity.id } == null
         }.forEach { localEntity ->
-            Timber.i("Rule outdated, delete it. $localEntity")
+            Timber.v("Rule ${localEntity.name} outdated, delete it. ")
             generalRuleDao.delete(localEntity)
         }
         emit(Result.Success(Unit))
