@@ -83,8 +83,8 @@ class NavigationTest {
     // The strings used for matching in these tests
     private val appName by composeTestRule.stringResource(R.string.feature_applist_app_name)
     private val apps by composeTestRule.stringResource(R.string.apps)
-    private val rules by composeTestRule.stringResource(R.string.feature_generalrule_rules)
-    private val search by composeTestRule.stringResource(R.string.feature_generalrule_search)
+    private val rules by composeTestRule.stringResource(R.string.rules)
+    private val search by composeTestRule.stringResource(R.string.search)
     private val searchHint by composeTestRule.stringResource(FeatureSearchR.string.feature_search_search_hint)
     private val moreMenu by composeTestRule.stringResource(UiR.string.core_ui_more_menu)
     private val supportAndFeedback by composeTestRule.stringResource(FeatureApplistR.string.feature_applist_support_and_feedback)
