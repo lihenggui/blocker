@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright 2023 Blocker
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <string name="feature_appdetail_cannot_launch_this_app">No se pudo iniciar esta aplicación</string>
+    <string name="feature_appdetail_blocker_rules">Bloqueador de reglas</string>
+    <string name="feature_appdetail_export_rules">Reglas de exportación</string>
+    <string name="feature_appdetail_import_rules">Reglas de importación</string>
+    <string name="feature_appdetail_ifw_rules">ReglasIFW</string>
+    <string name="feature_appdetail_export_ifw_rules">Exportación de reglas IFW</string>
+    <string name="feature_appdetail_import_ifw_rules">Importación de reglas IFW</string>
+    <string name="feature_appdetail_reset_ifw">Restablecer IFW</string>
+    <string name="feature_appdetail_target_sdk_version">Versión de destino del SDK</string>
+    <string name="feature_appdetail_minimum_sdk_version">Versión mínima del SDK</string>
+    <string name="feature_appdetail_last_update_time">Hora de la última actualización</string>
+    <string name="feature_appdetail_data_dir">Catálogo de datos</string>
+    <string name="feature_appdetail_block_all_of_this_page">Bloquear toda esta página</string>
+    <string name="feature_appdetail_enable_all_of_this_page">Incluya esta página completa</string>
+    <string name="feature_appdetail_blocking_effect">Efecto de bloqueo</string>
+    <string name="feature_appdetail_recommended_blocking">Bloqueo recomendado</string>
+    <string name="feature_appdetail_belonging_sdk">SDK propio</string>
+    <string name="feature_appdetail_save">Salvar</string>
+    <string name="feature_appdetail_search_components">Buscador de componentes</string>
+    <string name="feature_appdetail_add_description_hint">Actualmente no hay información disponible para este componente. ¡Sé el primero en contribuir!</string>
+    <string name="feature_appdetail_how_to_contribute">¿Cómo puedo contribuir?</string>
+    <string name="feature_appdetail_unknown">Desconocido</string>
+    <string name="feature_appdetail_select_mutiple">Seleccione Múltiple</string>
+    <plurals name="feature_appdetail_selected_component_count">
+        <item quantity="one">%1$d componente seleccionado</item>
+        <item quantity="many">%1$d componentes seleccionados</item>
+        <item quantity="other">%1$d componentes seleccionados</item>
+    </plurals>
+    <string name="feature_appdetail_share_your_rules">Comparte tus reglas</string>
+    <string name="feature_appdetail_share_all_rules">Compartir todas las reglas</string>
+    <string name="feature_appdetail_share_rules_of_this_app">Comparte las reglas de esta app</string>
+    <string name="feature_appdetail_cannot_share_rule_report_issue">Si no puede compartir las reglas, háganoslo saber.</string>
+    <string name="feature_appdetail_cannot_share_rule_no_apps_found">No se pueden compartir reglas, no se encontró ninguna aplicación para compartir.</string>
+    <string name="feature_appdetail_rules_sharing_title">Reglas de intercambio: %1$s</string>
+    <string name="feature_appdetail_provide_additional_details">(Proporcione más detalles sobre sus políticas).\n</string>
+    <string name="feature_appdetail_all_rules">Todas las reglas</string>
+</resources>

@@ -42,13 +42,13 @@ enum class TopLevelDestination(
     RULE(
         selectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
         unselectedIcon = ImageVectorIcon(BlockerIcons.GeneralRule),
-        iconTextId = R.string.feature_generalrule_rules,
-        titleTextId = R.string.feature_generalrule_rules,
+        iconTextId = R.string.rules,
+        titleTextId = R.string.rules,
     ),
     SEARCH(
         selectedIcon = ImageVectorIcon(BlockerIcons.Search),
         unselectedIcon = ImageVectorIcon(BlockerIcons.Search),
-        iconTextId = R.string.feature_generalrule_search,
-        titleTextId = R.string.feature_generalrule_search,
+        iconTextId = R.string.search,
+        titleTextId = R.string.search,
     ),
 }
