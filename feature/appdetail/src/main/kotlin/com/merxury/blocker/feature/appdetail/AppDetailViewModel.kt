@@ -163,8 +163,8 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
-    private val operateBatchComponentProgress = MutableStateFlow(0)
-    private val operateBatchComponentSize = MutableStateFlow(0)
+    private val controlComponentsSize = MutableStateFlow(0)
+    private val controlComponentsProgress = MutableStateFlow(0)
 
     init {
         loadTabInfo()
@@ -174,6 +174,7 @@ class AppDetailViewModel @Inject constructor(
         updateComponentList(appDetailArgs.packageName)
         listenSortStateChange()
         listenComponentDetailChanges()
+        updateComponentSizeAndProgress()
     }
 
     override fun onCleared() {
@@ -269,6 +270,8 @@ class AppDetailViewModel @Inject constructor(
                 service = service,
                 activity = activity,
                 provider = provider,
+                controlComponentsProgress = controlComponentsProgress.value,
+                controlComponentsSize = controlComponentsSize.value,
             ),
         )
     }
@@ -291,6 +294,7 @@ class AppDetailViewModel @Inject constructor(
                 }
                 updateTabContent(list, packageName)
             }
+        Timber.d("loadComponentList : Progress = ${controlComponentsProgress.value}, Size = ${controlComponentsSize.value}")
     }
 
     private suspend fun updateTabContent(
@@ -320,6 +324,7 @@ class AppDetailViewModel @Inject constructor(
         componentRepository.updateComponentList(packageName)
             .catch { _errorState.emit(it.toErrorMessage()) }
             .collect()
+        Timber.d("updateComponentList : Progress = ${controlComponentsProgress.value}, Size = ${controlComponentsSize.value}")
     }
 
     private suspend fun getComponentListUiState(
@@ -349,6 +354,8 @@ class AppDetailViewModel @Inject constructor(
             packageName = packageName,
             type = PROVIDER,
         ),
+        controlComponentsProgress = controlComponentsProgress.value,
+        controlComponentsSize = controlComponentsSize.value,
     )
 
     private suspend fun sortAndConvertToComponentItem(
@@ -414,6 +421,7 @@ class AppDetailViewModel @Inject constructor(
                 actions = getAppBarAction(),
             )
         }
+        Timber.d("updateSearchKeyword : Progress = ${controlComponentsProgress.value}, Size = ${controlComponentsSize.value}")
     }
 
     private fun loadTabInfo() = viewModelScope.launch {
@@ -423,6 +431,7 @@ class AppDetailViewModel @Inject constructor(
         _appBarUiState.update {
             it.copy(actions = getAppBarAction())
         }
+        Timber.d("LoadTabInfo : Progress = ${controlComponentsProgress.value}, Size = ${controlComponentsSize.value}")
     }
 
     fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch {
@@ -488,17 +497,15 @@ class AppDetailViewModel @Inject constructor(
             }.map {
                 it.toComponentInfo()
             }
-            _componentListUiState.update {
-                it.copy(operateBatchComponentSize = list.size)
-            }
+            controlComponentsSize.emit(list.size)
+            updateComponentSizeAndProgress()
             componentRepository.batchControlComponent(components = list.toList(), newState = enable)
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
                 .collect { progress ->
-                    _componentListUiState.update {
-                        it.copy(operateBatchComponentProgress = it.operateBatchComponentProgress + 1)
-                    }
+                    controlComponentsProgress.emit(progress)
+                    updateComponentSizeAndProgress()
                 }
             analyticsHelper.logBatchOperationPerformed(enable)
         }
@@ -557,7 +564,8 @@ class AppDetailViewModel @Inject constructor(
 
     fun controlAllSelectedComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            operateBatchComponentSize.emit(_appBarUiState.value.selectedComponentList.size)
+            controlComponentsSize.emit(_appBarUiState.value.selectedComponentList.size)
+            updateComponentSizeAndProgress()
             componentRepository.batchControlComponent(
                 components = _appBarUiState.value.selectedComponentList,
                 newState = enable,
@@ -565,14 +573,24 @@ class AppDetailViewModel @Inject constructor(
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect {
-                    operateBatchComponentProgress.emit(it)
+                .collect { progress ->
+                    controlComponentsProgress.emit(progress)
+                    updateComponentSizeAndProgress()
                 }
-            operateBatchComponentProgress.emit(0)
             _appBarUiState.update {
                 it.copy(selectedComponentList = listOf())
             }
         }
+
+    private fun updateComponentSizeAndProgress() {
+        _componentListUiState.update {
+            it.copy(controlComponentsSize = controlComponentsSize.value)
+        }
+
+        _componentListUiState.update {
+            it.copy(controlComponentsProgress = controlComponentsProgress.value)
+        }
+    }
 
     fun switchSelectedMode(value: Boolean) {
         // Clear list when exit from selectedMode
@@ -806,12 +824,14 @@ class AppDetailViewModel @Inject constructor(
                 ),
             )
         }
+        Timber.d("loadAppInfo : Progress = ${controlComponentsProgress.value}, Size = ${controlComponentsSize.value}")
     }
 
     private fun listenComponentDetailChanges() = viewModelScope.launch {
         componentDetailRepository.listenToComponentDetailChanges().collect {
             updateComponentDetail(it)
         }
+        Timber.d("listenComponentDetailChanges : Progress = ${controlComponentsProgress.value}, Size = ${controlComponentsSize.value}")
     }
 
     private fun updateComponentDetail(componentDetail: ComponentDetail) {
@@ -903,6 +923,6 @@ data class ComponentListUiState(
     val service: SnapshotStateList<ComponentItem> = mutableStateListOf(),
     val activity: SnapshotStateList<ComponentItem> = mutableStateListOf(),
     val provider: SnapshotStateList<ComponentItem> = mutableStateListOf(),
-    val operateBatchComponentProgress: Int = 0,
-    val operateBatchComponentSize: Int = 0,
+    val controlComponentsProgress: Int = 0,
+    val controlComponentsSize: Int = 0,
 )

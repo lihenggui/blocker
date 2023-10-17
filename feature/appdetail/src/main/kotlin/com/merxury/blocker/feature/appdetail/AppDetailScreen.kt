@@ -481,6 +481,11 @@ fun AppDetailContent(
                 blockAllComponents = {
                     blockAllComponents()
                     controlComponentType.value = false
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "size: ${componentListUiState.controlComponentsSize}, progress: ${componentListUiState.controlComponentsProgress}",
+                        )
+                    }
                 },
                 enableAllComponents = {
                     enableAllComponents()
@@ -529,12 +534,6 @@ fun AppDetailContent(
             onDeselect = onDeselect,
         )
     }
-    ShowAndDismissSnackBar(
-        controlComponentType = controlComponentType.value,
-        snackbarHostState = snackbarHostState,
-        progress = componentListUiState.operateBatchComponentProgress,
-        size = componentListUiState.operateBatchComponentSize,
-    )
 }
 
 @Composable
@@ -544,21 +543,20 @@ private fun ShowAndDismissSnackBar(
     progress: Int,
     size: Int,
 ) {
-    val message = if (controlComponentType
-    ) {
+    val message = if (controlComponentType) {
         stringResource(id = string.feature_appdetail_enable_components, progress, size)
     } else {
         stringResource(id = string.feature_appdetail_disable_components, progress, size)
     }
-    LaunchedEffect(size) {
+    LaunchedEffect(message) {
         snackbarHostState.showSnackbar(
             message = message,
         )
-        Timber.d("Progress: $progress, Size: $size")
+        Timber.d("Progress - launch: $progress, Size: $size")
     }
-    if (progress == size) {
-        snackbarHostState.currentSnackbarData?.dismiss()
-    }
+//    if (progress == size) {
+//        snackbarHostState.currentSnackbarData?.dismiss()
+//    }
 }
 
 @Composable
