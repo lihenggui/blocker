@@ -15,10 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="feature_applist_sort_menu">排序菜單</string>
-    <string name="feature_applist_settings">設置</string>
-    <string name="feature_applist_support_and_feedback">幫助與反饋</string>
-    <string name="feature_applist_do_you_want_to_clear_data_of_this_app">您想要清除此應用的數據嗎？</string>
-    <string name="feature_applist_do_you_want_to_uninstall_this_app">您想要卸載此應用嗎？</string>
-    <string name="feature_applist_no_applications_to_display">沒有可顯示的應用程序</string>
+    <string name="apps">Programa</string>
+    <string name="search">Buscar</string>
+    <string name="rules">Reglas</string>
 </resources>
