@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2023 Blocker
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     https://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<resources>
+    <string name="feature_settings_settings">Configuración</string>
+    <string name="feature_settings_controller_type">Tipo de controlador</string>
+    <string name="feature_settings_online_rule_source">Fuente de las reglas en línea</string>
+    <string name="feature_settings_import_mat_rules">Importación de reglas de MyAndroidTools</string>
+    <string name="feature_settings_application_list">Lista de aplicaciones</string>
+    <string name="feature_settings_show_system_apps">Mostrar aplicaciones del sistema</string>
+    <string name="feature_settings_show_service_info">Mostrar información de servicio</string>
+    <string name="feature_settings_export_ifw_rules">Exportación de reglas IFW</string>
+    <string name="feature_settings_import_ifw_rules">Importación de reglas IFW</string>
+    <string name="feature_settings_export_rules">Reglas de exportación</string>
+    <string name="feature_settings_import_rules">Reglas de importación</string>
+    <string name="feature_settings_reset_ifw">Restablecer IFW</string>
+    <string name="feature_settings_file_manager_required">Primero debe instalar un administrador de archivos desde la tienda.</string>
+    <string name="feature_settings_backup">Copia de seguridad</string>
+    <string name="feature_settings_folder_to_save">Guardar carpeta</string>
+    <string name="feature_settings_directory_invalid_or_not_set">La carpeta no es válida o no está configurada</string>
+    <string name="feature_settings_backup_system_apps">Copia de seguridad de las aplicaciones del sistema</string>
+    <string name="feature_settings_restore_system_apps">Restaurar aplicaciones del sistema</string>
+    <string name="feature_settings_blocker_rules">Blocker de reglas</string>
+    <string name="feature_settings_ifw_rules">ReglasIFW</string>
+    <string name="feature_settings_theme">Asunto</string>
+    <string name="feature_settings_theme_default">Predeterminado</string>
+    <string name="feature_settings_android">Android</string>
+    <string name="feature_settings_dark_mode">Modo oscuro</string>
+    <string name="feature_settings_system_default">Valores predeterminados del sistema</string>
+    <string name="feature_settings_light">Luz</string>
+    <string name="feature_settings_dark">Oscuro</string>
+    <string name="feature_settings_support_and_feedback">Soporte y comentarios</string>
+    <string name="feature_settings_project_homepage">Página de inicio del proyecto</string>
+    <string name="feature_settings_rule_repository">Repositorio de reglas</string>
+    <string name="feature_settings_options_github">GitHub</string>
+    <string name="feature_settings_options_gitlab">GitLab</string>
+    <string name="feature_settings_intent_firewall">Cortafuego de Intent</string>
+    <string name="feature_settings_package_manager">Gestor de Paquetes</string>
+    <string name="feature_settings_telegram_group">Grupo de Telegram</string>
+    <string name="feature_settings_export_error_log">Exportación del registro de errores</string>
+    <string name="feature_settings_dynamic_color">Color dinámico</string>
+    <string name="feature_settings_report_bugs_or_submit_ideas">Informar de errores o sugerir ideas</string>
+    <string name="feature_settings_designers_homepage">Página de inicio de los diseñadores</string>
+    <string name="feature_settings_open_source_licenses">Licencias de código abierto</string>
+    <string name="feature_settings_display_language">Idioma de visualización</string>
+    <string name="feature_settings_library_language">Lenguaje de reglas</string>
+    <string name="feature_settings_follow_system">Siga el sistema</string>
+    <string name="feature_settings_english">Inglés</string>
+    <string name="feature_settings_simplifed_chinese">Chino simplificado</string>
+    <string name="feature_settings_traditional_chinese">Chino tradicional</string>
+    <string name="feature_settings_russian">Ruso</string>
+</resources>
