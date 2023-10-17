@@ -20,7 +20,7 @@ package com.merxury.blocker
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
-import androidx.work.ExistingWorkPolicy.REPLACE
+import androidx.work.ExistingWorkPolicy.KEEP
 import androidx.work.WorkManager
 import coil.ImageLoader
 import coil.ImageLoaderFactory
@@ -96,8 +96,8 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     private fun copyRulesToInternalStorage() {
         WorkManager.getInstance(this@BlockerApplication)
             .enqueueUniqueWork(
-                "CopyRuleToInternalStorage",
-                REPLACE,
+                CopyRulesToStorageWorker.WORK_NAME,
+                KEEP,
                 CopyRulesToStorageWorker.copyWork(),
             )
     }
