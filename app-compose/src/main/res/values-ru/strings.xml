@@ -16,6 +16,6 @@
 
 <resources>
     <string name="apps">Программы</string>
-    <string name="feature_generalrule_search">Поиск</string>
-    <string name="feature_generalrule_rules">Правила</string>
+    <string name="search">Поиск</string>
+    <string name="rules">Правила</string>
 </resources>
