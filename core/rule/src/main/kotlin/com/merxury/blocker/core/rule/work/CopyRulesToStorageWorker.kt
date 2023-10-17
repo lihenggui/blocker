@@ -71,8 +71,10 @@ class CopyRulesToStorageWorker @AssistedInject constructor(
     override fun getNotificationTitle(): Int = R.string.core_rule_copying_rules_to_internal_storage
 
     companion object {
+        const val WORK_NAME = "CopyRuleToInternalStorage"
         fun copyWork() = OneTimeWorkRequestBuilder<CopyRulesToStorageWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .addTag(WORK_NAME)
             .build()
     }
 }
