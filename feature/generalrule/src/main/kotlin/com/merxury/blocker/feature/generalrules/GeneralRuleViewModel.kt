@@ -21,8 +21,10 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.UpdateRuleMatchedAppUseCase
+import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -39,12 +41,14 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
+    private val initGeneralRuleUseCase: InitializeRuleStorageUseCase,
     private val generalRuleRepository: GeneralRuleRepository,
     private val searchRule: SearchGeneralRuleUseCase,
     private val updateRule: UpdateRuleMatchedAppUseCase,
@@ -59,7 +63,6 @@ class GeneralRulesViewModel @Inject constructor(
 
     init {
         loadData()
-        updateGeneralRule()
     }
 
     fun dismissAlert() = viewModelScope.launch {
@@ -67,8 +70,16 @@ class GeneralRulesViewModel @Inject constructor(
     }
 
     private fun loadData() = viewModelScope.launch {
+        _uiState.emit(Loading)
+        initGeneralRuleUseCase()
+            .catch { _uiState.emit(Error(it.toErrorMessage())) }
+            .takeWhile { state -> state != InitializeState.Done }
+            .collect { state ->
+                Timber.d("Initialize general rule: $state")
+            }
+        Timber.v("Get general rules from local storage")
+        updateGeneralRule()
         searchRule()
-            .onStart { _uiState.emit(Loading) }
             .catch { _uiState.emit(Error(it.toErrorMessage())) }
             .collect {
                 if (it.isEmpty()) {
