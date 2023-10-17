@@ -28,30 +28,35 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
-import com.merxury.blocker.core.designsystem.component.scrollbar.rememberFastScroller
+import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.TrackScrollJank
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 
 @Composable
 fun AppList(
     appList: List<AppItem>,
-    onAppItemClick: (String) -> Unit,
-    onClearCacheClick: (String) -> Unit,
-    onClearDataClick: (String) -> Unit,
-    onForceStopClick: (String) -> Unit,
-    onUninstallClick: (String) -> Unit,
-    onEnableClick: (String) -> Unit,
-    onDisableClick: (String) -> Unit,
-    onServiceStateUpdate: (String, Int) -> Unit,
     modifier: Modifier = Modifier,
+    onAppItemClick: (String) -> Unit = {},
+    onClearCacheClick: (String) -> Unit = {},
+    onClearDataClick: (String) -> Unit = {},
+    onForceStopClick: (String) -> Unit = {},
+    onUninstallClick: (String) -> Unit = {},
+    onEnableClick: (String) -> Unit = {},
+    onDisableClick: (String) -> Unit = {},
+    onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
@@ -97,9 +102,24 @@ fun AppList(
                 .testTag("appList:scrollbar"),
             state = scrollbarState,
             orientation = Orientation.Vertical,
-            onThumbDisplaced = listState.rememberFastScroller(
+            onThumbMoved = listState.rememberDraggableScroller(
                 itemsAvailable = appList.size,
             ),
         )
+    }
+}
+
+@Composable
+@ThemePreviews
+fun AppListPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    BlockerTheme {
+        Surface {
+            AppList(
+                appList = appList,
+            )
+        }
     }
 }

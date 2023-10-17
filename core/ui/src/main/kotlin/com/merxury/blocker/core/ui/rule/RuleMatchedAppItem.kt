@@ -24,11 +24,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,56 +38,15 @@ import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.applist.AppIcon
-import com.merxury.blocker.core.ui.component.ComponentListItem
-
-fun LazyListScope.matchedComponentItem(
-    modifier: Modifier = Modifier,
-    iconModifier: Modifier = Modifier,
-    ruleMatchedApp: RuleMatchedApp,
-    onStopServiceClick: (String, String) -> Unit = { _, _ -> },
-    onLaunchActivityClick: (String, String) -> Unit = { _, _ -> },
-    onCopyNameClick: (String) -> Unit = { _ -> },
-    onCopyFullNameClick: (String) -> Unit = { _ -> },
-    navigateToAppDetail: (String) -> Unit = { _ -> },
-    onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
-    expanded: Boolean = false,
-    onCardArrowClicked: (String) -> Unit = {},
-) {
-    item {
-        MatchedAppItemHeader(
-            modifier = modifier,
-            iconModifier = iconModifier,
-            ruleMatchedApp = ruleMatchedApp,
-            navigateToAppDetail = navigateToAppDetail,
-            onBlockAllClick = onBlockAllClick,
-            onEnableAllClick = onEnableAllClick,
-            expanded = expanded,
-            onCardArrowClicked = onCardArrowClicked,
-        )
-    }
-    if (expanded) {
-        items(ruleMatchedApp.componentList) {
-            ComponentListItem(
-                item = it,
-                enabled = it.enabled(),
-                type = it.type,
-                isServiceRunning = it.isRunning,
-                onStopServiceClick = { onStopServiceClick(it.packageName, it.name) },
-                onLaunchActivityClick = { onLaunchActivityClick(it.packageName, it.name) },
-                onCopyNameClick = { onCopyNameClick(it.simpleName) },
-                onCopyFullNameClick = { onCopyFullNameClick(it.name) },
-                onSwitchClick = onSwitch,
-            )
-        }
-    }
-}
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
 @Composable
 fun MatchedAppItemHeader(
@@ -149,15 +107,16 @@ fun MatchedAppItemHeader(
         MatchedAppInfo(
             label = ruleMatchedApp.app.label,
             matchedComponentCount = ruleMatchedApp.componentList.size,
-            modifier = modifier.weight(1f),
+            modifier = modifier.fillMaxWidth(0.8f),
         )
+        Spacer(modifier = Modifier.weight(1f))
         BlockerAppTopBarMenu(
             menuIcon = BlockerIcons.MoreVert,
             menuIconDesc = R.string.core_ui_more_menu,
             menuList = items,
         )
     }
-    HorizontalDivider()
+    HorizontalDivider(modifier = modifier)
 }
 
 @Composable
@@ -177,5 +136,42 @@ private fun MatchedAppInfo(
                 matchedComponentCount,
             ),
         )
+    }
+}
+
+@Composable
+@ThemePreviews
+fun MatchedAppItemHeaderPreview() {
+    val appList = AppListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    val ruleMatchedApp = RuleMatchedApp(
+        app = appList[0],
+        componentList = components,
+    )
+    BlockerTheme {
+        Surface {
+            MatchedAppItemHeader(
+                ruleMatchedApp = ruleMatchedApp,
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun MatchedAppItemHeaderLongNamePreview() {
+    val appList = AppListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    val ruleMatchedApp = RuleMatchedApp(
+        app = appList[2],
+        componentList = components,
+    )
+    BlockerTheme {
+        Surface {
+            MatchedAppItemHeader(
+                ruleMatchedApp = ruleMatchedApp,
+                expanded = true,
+            )
+        }
     }
 }

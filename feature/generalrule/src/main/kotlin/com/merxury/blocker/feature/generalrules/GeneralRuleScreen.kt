@@ -25,23 +25,26 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
-import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
+import com.merxury.blocker.core.designsystem.component.BlockerTopAppBarWithProgress
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
+import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.GeneralRulesList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -70,18 +73,21 @@ fun GeneralRulesRoute(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GeneralRulesScreen(
     modifier: Modifier = Modifier,
     uiState: GeneralRuleUiState,
-    navigateToRuleDetail: (Int) -> Unit,
+    navigateToRuleDetail: (Int) -> Unit = {},
 ) {
     Scaffold(
         topBar = {
-            BlockerTopAppBar(
+            BlockerTopAppBarWithProgress(
                 title = stringResource(id = R.string.feature_generalrule_rules),
-                modifier = Modifier.testTag("blockerTopAppBar"),
+                progress = if (uiState is Success) {
+                    uiState.matchProgress
+                } else {
+                    null
+                },
             )
         },
     ) { padding ->
@@ -120,47 +126,75 @@ fun GeneralRulesScreen(
 }
 
 @Composable
-@Preview
-fun GeneralRuleScreenPreview() {
-    val uiState = Success(
-        listOf(
-            GeneralRule(
-                id = 1,
-                name = "AWS SDK for Kotlin (Developer Preview)",
-                iconUrl = null,
-                company = "Amazon",
-                description = "The AWS SDK for Kotlin simplifies the use of AWS services by " +
-                    "providing a set of libraries that are consistent and familiar for " +
-                    "Kotlin developers. All AWS SDKs support API lifecycle considerations " +
-                    "such as credential management, retries, data marshaling, and serialization.",
-                sideEffect = "Unknown",
-                safeToBlock = true,
-                contributors = listOf("Online contributor"),
-                searchKeyword = listOf("androidx.google.example1"),
-            ),
-            GeneralRule(
-                id = 2,
-                name = "Android WorkerManager",
-                iconUrl = null,
-                company = "Google",
-                description = "WorkManager is the recommended solution for persistent work. " +
-                    "Work is persistent when it remains scheduled through app restarts and " +
-                    "system reboots. Because most background processing is best accomplished " +
-                    "through persistent work, WorkManager is the primary recommended API for " +
-                    "background processing.",
-                sideEffect = "Background works won't be able to execute",
-                safeToBlock = false,
-                contributors = listOf("Google"),
-                searchKeyword = listOf(
-                    "androidx.google.example1",
-                    "androidx.google.example2",
-                    "androidx.google.example3",
-                    "androidx.google.example4",
-                ),
-            ),
-        ),
-    )
+@ThemePreviews
+fun GeneralRuleScreenMatchProgressPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
     BlockerTheme {
-        GeneralRulesScreen(uiState = uiState, navigateToRuleDetail = {})
+        GeneralRulesScreen(
+            uiState = Success(
+                rules = ruleList,
+                matchProgress = 50,
+            ),
+        )
+    }
+}
+
+@Composable
+@Preview
+fun GeneralRuleScreenMatchedCompletedPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
+    BlockerTheme {
+        GeneralRulesScreen(
+            uiState = Success(
+                rules = ruleList,
+                matchProgress = 100,
+            ),
+        )
+    }
+}
+
+@Composable
+@Preview
+fun GeneralRuleScreenMatchStartPreview(
+    @PreviewParameter(RuleListPreviewParameterProvider::class)
+    ruleList: List<GeneralRule>,
+) {
+    BlockerTheme {
+        GeneralRulesScreen(
+            uiState = Success(
+                rules = ruleList,
+                matchProgress = 0,
+            ),
+        )
+    }
+}
+
+@Composable
+@ThemePreviews
+fun GeneralRuleScreenLoading() {
+    BlockerTheme {
+        Surface {
+            GeneralRulesScreen(
+                uiState = Loading,
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun GeneralRuleScreenError() {
+    BlockerTheme {
+        Surface {
+            GeneralRulesScreen(
+                uiState = Error(
+                    error = UiMessage("Error"),
+                ),
+            )
+        }
     }
 }

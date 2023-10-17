@@ -23,6 +23,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.rule.R
@@ -38,22 +39,21 @@ import java.io.IOException
 import java.io.OutputStream
 import kotlin.time.measureTime
 
-private const val FOLDER_NAME = "blocker-general-rules"
-
 @HiltWorker
 class CopyRulesToStorageWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     private val assetManager: AssetManager,
     @FilesDir private val filesDir: File,
+    @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
     override suspend fun doWork(): Result = withContext(ioDispatcher) {
-        val files = assetManager.list(FOLDER_NAME)
+        val files = assetManager.list(ruleBaseFolder)
         if (files.isNullOrEmpty()) {
-            throw IllegalArgumentException("No files found in $FOLDER_NAME")
+            throw IllegalArgumentException("No files found in $ruleBaseFolder")
         }
-        val workingFolder = File(filesDir, FOLDER_NAME)
+        val workingFolder = File(filesDir, ruleBaseFolder)
         if (!workingFolder.exists()) {
             Timber.i("Create ${workingFolder.absolutePath}")
             if (!workingFolder.mkdirs()) {
@@ -62,7 +62,7 @@ class CopyRulesToStorageWorker @AssistedInject constructor(
             }
         }
         val copyTimeCost = measureTime {
-            assetManager.copyAssetFolder(FOLDER_NAME, workingFolder.absolutePath)
+            assetManager.copyAssetFolder(ruleBaseFolder, workingFolder.absolutePath)
         }
         Timber.i("Used $copyTimeCost to copy rules from assets")
         return@withContext Result.success()
@@ -71,8 +71,10 @@ class CopyRulesToStorageWorker @AssistedInject constructor(
     override fun getNotificationTitle(): Int = R.string.core_rule_copying_rules_to_internal_storage
 
     companion object {
+        const val WORK_NAME = "CopyRuleToInternalStorage"
         fun copyWork() = OneTimeWorkRequestBuilder<CopyRulesToStorageWorker>()
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .addTag(WORK_NAME)
             .build()
     }
 }

@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class ComponentDetailRepository @Inject constructor(
@@ -34,18 +35,22 @@ class ComponentDetailRepository @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IComponentDetailRepository {
 
+    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> =
+        userGeneratedDataSource.getByPackageName(packageName)
+            .map { it.isNotEmpty() }
+
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
-        userGeneratedDataSource.getComponentDetail(name)
+        userGeneratedDataSource.getByComponentName(name)
 
     override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flow {
         // Priority: user generated > db
-        val userGeneratedData = userGeneratedDataSource.getComponentDetail(name)
+        val userGeneratedData = userGeneratedDataSource.getByComponentName(name)
             .first()
         if (userGeneratedData != null) {
             emit(userGeneratedData)
             return@flow
         }
-        val localData = localComponentDetailRepository.getComponentDetail(name)
+        val localData = localComponentDetailRepository.getByComponentName(name)
             .first()
         if (localData != null) {
             emit(localData)
@@ -57,4 +62,7 @@ class ComponentDetailRepository @Inject constructor(
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> =
         userGeneratedDataSource.saveComponentData(componentDetail)
+
+    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
+        userGeneratedDataSource.eventFlow
 }

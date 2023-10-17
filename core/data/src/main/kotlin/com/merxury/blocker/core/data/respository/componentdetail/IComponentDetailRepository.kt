@@ -21,9 +21,13 @@ import kotlinx.coroutines.flow.Flow
 
 interface IComponentDetailRepository {
 
+    fun hasUserGeneratedDetail(packageName: String): Flow<Boolean>
+
     fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?>
 
     fun getLocalComponentDetail(name: String): Flow<ComponentDetail?>
 
     fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean>
+
+    fun listenToComponentDetailChanges(): Flow<ComponentDetail>
 }

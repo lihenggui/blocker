@@ -19,6 +19,7 @@ package com.merxury.blocker.core.designsystem.component
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -26,10 +27,14 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 /**
  * Blocker navigation bar item with icon and label content slots. Wraps Material 3
@@ -161,6 +166,48 @@ fun BlockerNavigationRail(
         header = header,
         content = content,
     )
+}
+
+@ThemePreviews
+@Composable
+fun BlockerNavigationPreview() {
+    val items = listOf("For you", "Saved", "Interests")
+    val icons = listOf(
+        BlockerIcons.Apps,
+        BlockerIcons.GeneralRule,
+        BlockerIcons.Search,
+    )
+    val selectedIcons = listOf(
+        BlockerIcons.Apps,
+        BlockerIcons.GeneralRule,
+        BlockerIcons.Search,
+    )
+
+    BlockerTheme {
+        Surface {
+            BlockerNavigationBar {
+                items.forEachIndexed { index, item ->
+                    BlockerNavigationBarItem(
+                        icon = {
+                            Icon(
+                                imageVector = icons[index],
+                                contentDescription = item,
+                            )
+                        },
+                        selectedIcon = {
+                            Icon(
+                                imageVector = selectedIcons[index],
+                                contentDescription = item,
+                            )
+                        },
+                        label = { Text(item) },
+                        selected = index == 0,
+                        onClick = { },
+                    )
+                }
+            }
+        }
+    }
 }
 
 /**

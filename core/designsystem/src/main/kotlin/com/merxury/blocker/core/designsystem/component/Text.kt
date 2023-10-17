@@ -16,14 +16,18 @@
 
 package com.merxury.blocker.core.designsystem.component
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 
 @Composable
 fun BlockerBodySmallText(
@@ -90,6 +94,7 @@ fun BlockerLabelSmallText(
     maxLines: Int = Int.MAX_VALUE,
     style: TextStyle = MaterialTheme.typography.labelSmall,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -98,5 +103,20 @@ fun BlockerLabelSmallText(
         overflow = TextOverflow.Ellipsis,
         modifier = modifier,
         color = color,
+        textAlign = textAlign,
     )
+}
+
+@ThemePreviews
+@Composable
+fun BlockerBodySmallTextPreview() {
+    BlockerTheme {
+        Surface {
+            Column {
+                BlockerBodySmallText(text = "Body small")
+                BlockerBodyMediumText(text = "Body medium")
+                BlockerBodyLargeText(text = "Body large")
+            }
+        }
+    }
 }

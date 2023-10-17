@@ -37,16 +37,7 @@ data class AppItem(
     val lastUpdateTime: Instant? = null,
     val appServiceStatus: AppServiceStatus? = null,
     val packageInfo: PackageInfo? = null,
-) {
-    override fun equals(other: Any?): Boolean {
-        if (other !is AppItem) return false
-        return packageName == other.packageName
-    }
-
-    override fun hashCode(): Int {
-        return packageName.hashCode()
-    }
-}
+)
 
 fun InstalledApp.toAppItem(
     packageInfo: PackageInfo? = null,

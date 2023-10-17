@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 plugins {
-    id("blocker.android.library")
-    id("blocker.android.library.jacoco")
+    alias(libs.plugins.blocker.android.library)
+    alias(libs.plugins.blocker.android.library.jacoco)
     id("com.google.devtools.ksp")
 }
 
@@ -29,13 +29,17 @@ dependencies {
     implementation(projects.core.data)
     implementation(projects.core.ifwApi)
     implementation(projects.core.model)
+    implementation(projects.core.rule)
 
     testImplementation(projects.core.testing)
+    implementation(libs.androidx.work.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)
     implementation(libs.hilt.android)
+    implementation(libs.hilt.ext.work)
     implementation(libs.timber)
     ksp(libs.hilt.compiler)
 
     testImplementation(projects.core.testing)
+    androidTestImplementation(libs.androidx.work.testing)
 }

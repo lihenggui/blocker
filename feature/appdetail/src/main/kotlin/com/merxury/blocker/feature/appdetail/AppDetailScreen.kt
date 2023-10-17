@@ -16,13 +16,18 @@
 
 package com.merxury.blocker.feature.appdetail
 
-import android.content.res.Configuration
+import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,6 +52,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.toMutableStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -59,18 +66,26 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.merxury.blocker.core.designsystem.component.AutoResizeText
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
+import com.merxury.blocker.core.designsystem.component.FontSizeRange
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.domain.model.ZippedRule
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.IconBasedThemingState
@@ -90,22 +105,29 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
 import com.merxury.blocker.core.ui.component.ComponentList
+import com.merxury.blocker.core.ui.data.UiMessage
+import com.merxury.blocker.core.ui.previewparameter.AppDetailTabStatePreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
+import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
+import com.merxury.blocker.feature.appdetail.ui.ShareAction
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Clock.System
 import com.merxury.blocker.core.rule.R.string as rulestring
 
 @Composable
@@ -170,6 +192,20 @@ fun AppDetailRoute(
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
         onDeselect = viewModel::deselectItem,
+        shareAppRule = {
+            scope.launch {
+                viewModel.zipAppRule().collect { rule ->
+                    shareFile(context, rule, scope, snackbarHostState)
+                }
+            }
+        },
+        shareAllRules = {
+            scope.launch {
+                viewModel.zipAllRule().collect { rule ->
+                    shareFile(context, rule, scope, snackbarHostState)
+                }
+            }
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -213,6 +249,57 @@ fun AppDetailRoute(
     }
 }
 
+@SuppressLint("WrongConstant", "QueryPermissionsNeeded")
+private fun shareFile(
+    context: Context,
+    rule: ZippedRule,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+
+) {
+    val zippedFile = rule.zippedFile
+    if (zippedFile == null) {
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = context.getString(string.feature_appdetail_cannot_share_rule_report_issue),
+            )
+        }
+        return
+    }
+    val uri = FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.FileProvider",
+        zippedFile,
+    )
+    val appPackageName = rule.packageName ?: context.getString(string.feature_appdetail_all_rules)
+    val subject = context.getString(string.feature_appdetail_rules_sharing_title, appPackageName)
+    val text = context.getString(string.feature_appdetail_provide_additional_details)
+    val receiver = arrayOf("mercuryleee@gmail.com")
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "application/zip"
+        clipData = ClipData.newRawUri("", uri)
+        putExtra(Intent.EXTRA_STREAM, uri)
+        putExtra(Intent.EXTRA_SUBJECT, subject)
+        putExtra(Intent.EXTRA_TEXT, text)
+        putExtra(Intent.EXTRA_EMAIL, receiver)
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    }
+    val chooserIntent = Intent.createChooser(intent, null).apply {
+        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+    val activityInfo = chooserIntent.resolveActivityInfo(context.packageManager, intent.flags)
+    if (activityInfo == null) {
+        scope.launch {
+            snackbarHostState.showSnackbar(
+                message = context.getString(string.feature_appdetail_cannot_share_rule_report_issue),
+            )
+        }
+        return
+    }
+    chooserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    context.startActivity(chooserIntent)
+}
+
 @Composable
 fun AppDetailScreen(
     appInfoUiState: AppInfoUiState,
@@ -246,9 +333,11 @@ fun AppDetailScreen(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    shareAppRule: () -> Unit = {},
+    shareAllRules: () -> Unit = {},
 ) {
     when (appInfoUiState) {
-        is AppInfoUiState.Loading -> {
+        is Loading -> {
             LoadingScreen()
         }
 
@@ -286,6 +375,8 @@ fun AppDetailScreen(
                 switchSelectedMode = switchSelectedMode,
                 onSelect = onSelect,
                 onDeselect = onDeselect,
+                shareAppRule = shareAppRule,
+                shareAllRules = shareAllRules,
             )
         }
 
@@ -328,6 +419,8 @@ fun AppDetailContent(
     switchSelectedMode: (Boolean) -> Unit = {},
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    shareAppRule: () -> Unit = {},
+    shareAllRules: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -384,6 +477,8 @@ fun AppDetailContent(
                 onEnableAll = onEnableAll,
                 switchSelectedMode = switchSelectedMode,
                 onBackClick = onBackClick,
+                shareAppRule = shareAppRule,
+                shareAllRules = shareAllRules,
             )
         },
         modifier = modifier.nestedScroll(nestedScrollConnection),
@@ -429,35 +524,55 @@ fun AppDetailAppBarActions(
     enableAllComponents: () -> Unit = {},
     navigatedToComponentSortScreen: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
+    shareAppRule: () -> Unit = {},
+    shareAllRules: () -> Unit = {},
 ) {
     val actions = appBarUiState.actions
-    if (actions.contains(SEARCH)) {
-        if (appBarUiState.isSearchMode) {
-            BlockerSearchTextField(
-                keyword = appBarUiState.keyword,
-                onValueChange = onSearchTextChanged,
-                placeholder = {
-                    Text(text = stringResource(id = string.feature_appdetail_search_components))
-                },
-                onClearClick = {
-                    if (appBarUiState.keyword.text.isEmpty()) {
-                        onSearchModeChange(false)
-                        return@BlockerSearchTextField
-                    }
-                    onSearchTextChanged(TextFieldValue())
-                },
-            )
-        } else {
-            SearchActionMenu(onSearchModeChange = onSearchModeChange)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(end = 16.dp),
+        horizontalArrangement = Arrangement.End,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (actions.contains(SEARCH)) {
+            if (appBarUiState.isSearchMode) {
+                BlockerSearchTextField(
+                    modifier = Modifier.weight(1f),
+                    keyword = appBarUiState.keyword,
+                    onValueChange = onSearchTextChanged,
+                    placeholder = {
+                        AutoResizeText(
+                            text = stringResource(id = string.feature_appdetail_search_components),
+                            fontSizeRange = FontSizeRange(1.sp, 16.sp),
+                        )
+                    },
+                    onClearClick = {
+                        if (appBarUiState.keyword.text.isEmpty()) {
+                            onSearchModeChange(false)
+                            return@BlockerSearchTextField
+                        }
+                        onSearchTextChanged(TextFieldValue())
+                    },
+                )
+            } else {
+                SearchActionMenu(onSearchModeChange = onSearchModeChange)
+            }
         }
-    }
-    if (actions.contains(MORE)) {
-        MoreActionMenu(
-            blockAllComponents = blockAllComponents,
-            enableAllComponents = enableAllComponents,
-            onAdvanceSortClick = navigatedToComponentSortScreen,
-            switchSelectedMode = switchSelectedMode,
-        )
+        if (actions.contains(SHARE_RULE)) {
+            ShareAction(
+                shareAppRule = shareAppRule,
+                shareAllRules = shareAllRules,
+            )
+        }
+        if (actions.contains(MORE)) {
+            MoreActionMenu(
+                blockAllComponents = blockAllComponents,
+                enableAllComponents = enableAllComponents,
+                onAdvanceSortClick = navigatedToComponentSortScreen,
+                switchSelectedMode = switchSelectedMode,
+            )
+        }
     }
 }
 
@@ -486,6 +601,8 @@ private fun TopAppBar(
     onEnableAll: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
     onBackClick: () -> Unit,
+    shareAppRule: () -> Unit = {},
+    shareAllRules: () -> Unit = {},
 ) {
     if (!isSelectedMode) {
         BlockerCollapsingTopAppBar(
@@ -507,6 +624,8 @@ private fun TopAppBar(
                     enableAllComponents = enableAllComponents,
                     navigatedToComponentSortScreen = navigatedToComponentSortScreen,
                     switchSelectedMode = switchSelectedMode,
+                    shareAppRule = shareAppRule,
+                    shareAllRules = shareAllRules,
                 )
             },
             subtitle = app.packageName,
@@ -563,8 +682,8 @@ fun AppDetailTabContent(
     LaunchedEffect(tabState) {
         pagerState.animateScrollToPage(tabState.currentIndex)
     }
-    LaunchedEffect(pagerState.currentPage) {
-        switchTab(tabState.items[pagerState.currentPage])
+    LaunchedEffect(pagerState.targetPage) {
+        switchTab(tabState.items[pagerState.targetPage])
     }
 
     Column(
@@ -633,40 +752,18 @@ fun AppDetailTabContent(
 }
 
 @Composable
-@Preview
-fun AppDetailScreenPreview() {
-    val app = AppItem(
-        label = "Blocker",
-        packageName = "com.mercury.blocker",
-        versionName = "1.2.69-alpha",
-        isEnabled = false,
-        firstInstallTime = System.now(),
-        lastUpdateTime = System.now(),
-        packageInfo = null,
-    )
-    val tabState = TabState(
-        items = listOf(
-            Info,
-            Receiver,
-            Service,
-            Activity,
-            Provider,
-        ),
-        selectedItem = Info,
-        itemCount = mapOf(
-            Info to 1,
-            Receiver to 2,
-            Service to 3,
-            Activity to 4,
-            Provider to 5,
-        ),
-    )
+@ThemePreviews
+fun AppDetailScreenPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
+                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
                 componentListUiState = ComponentListUiState(),
-                tabState = tabState,
+                tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
             )
         }
@@ -674,41 +771,93 @@ fun AppDetailScreenPreview() {
 }
 
 @Composable
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun AppDetailScreenCollapsedPreview() {
-    val app = AppItem(
-        label = "Blocker",
-        packageName = "com.mercury.blocker",
-        versionName = "1.2.69-alpha",
-        isEnabled = false,
-        firstInstallTime = System.now(),
-        lastUpdateTime = System.now(),
-        packageInfo = null,
-    )
-    val tabState = TabState(
-        items = listOf(
-            Info,
-            Receiver,
-            Service,
-            Activity,
-            Provider,
-        ),
-        selectedItem = Info,
-        itemCount = mapOf(
-            Info to 1,
-            Receiver to 2,
-            Service to 3,
-            Activity to 4,
-            Provider to 5,
-        ),
-    )
+@ThemePreviews
+fun AppDetailScreenLoadingPreview() {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = app, iconBasedTheming = null),
+                appInfoUiState = Loading,
                 componentListUiState = ComponentListUiState(),
-                tabState = tabState,
+                tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun AppDetailScreenErrorPreview() {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = AppInfoUiState.Error(error = UiMessage("Error")),
+                componentListUiState = ComponentListUiState(),
+                tabState = tabState[0],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun AppDetailScreenSearchModePreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                componentListUiState = ComponentListUiState(
+                    activity = components.filter { it.type == ACTIVITY }.toMutableStateList(),
+                ),
+                topAppBarUiState = AppBarUiState(
+                    actions = listOf(
+                        SEARCH,
+                        MORE,
+                    ),
+                    isSearchMode = true,
+                ),
+                tabState = tabState[1],
+            )
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun AppDetailScreenSelectedModePreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first()
+    val activityComponents = components.filter { it.type == ACTIVITY }.toMutableStateList()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                componentListUiState = ComponentListUiState(
+                    activity = activityComponents,
+                ),
+                topAppBarUiState = AppBarUiState(
+                    actions = listOf(
+                        SEARCH,
+                        MORE,
+                    ),
+                    isSearchMode = true,
+                    isSelectedMode = true,
+                    selectedComponentList = listOf(
+                        activityComponents[0].toComponentInfo(),
+                    ),
+                ),
+                tabState = tabState[1],
             )
         }
     }

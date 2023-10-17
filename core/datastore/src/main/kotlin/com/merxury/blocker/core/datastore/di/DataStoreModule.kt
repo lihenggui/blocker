@@ -24,6 +24,7 @@ import com.merxury.blocker.core.datastore.AppProperties
 import com.merxury.blocker.core.datastore.AppPropertiesSerializer
 import com.merxury.blocker.core.datastore.UserPreferences
 import com.merxury.blocker.core.datastore.UserPreferencesSerializer
+import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import dagger.Module
@@ -31,6 +32,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import javax.inject.Singleton
 
@@ -42,12 +44,13 @@ object DataStoreModule {
     @Singleton
     fun providesUserPreferencesDataStore(
         @ApplicationContext context: Context,
-        @Dispatcher(IO) ioScope: CoroutineScope,
+        @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
+        @ApplicationScope scope: CoroutineScope,
         userPreferencesSerializer: UserPreferencesSerializer,
     ): DataStore<UserPreferences> =
         DataStoreFactory.create(
             serializer = userPreferencesSerializer,
-            scope = ioScope,
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
         ) {
             context.dataStoreFile("user_preferences.pb")
         }
@@ -56,12 +59,13 @@ object DataStoreModule {
     @Singleton
     fun providesAppPropertiesDataStore(
         @ApplicationContext context: Context,
-        @Dispatcher(IO) ioScope: CoroutineScope,
+        @Dispatcher(IO) ioDispatcher: CoroutineDispatcher,
+        @ApplicationScope scope: CoroutineScope,
         appPropertiesSerializer: AppPropertiesSerializer,
     ): DataStore<AppProperties> =
         DataStoreFactory.create(
             serializer = appPropertiesSerializer,
-            scope = ioScope,
+            scope = CoroutineScope(scope.coroutineContext + ioDispatcher),
         ) {
             context.dataStoreFile("app_properties.pb")
         }

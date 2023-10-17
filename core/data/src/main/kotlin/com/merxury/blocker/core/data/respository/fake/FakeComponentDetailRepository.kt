@@ -26,10 +26,14 @@ import javax.inject.Inject
 class FakeComponentDetailRepository @Inject constructor(
     private val userGeneratedDataSource: UserGeneratedComponentDetailDataSource,
 ) : IComponentDetailRepository {
+    override fun hasUserGeneratedDetail(packageName: String): Flow<Boolean> = flowOf(false)
     override fun getUserGeneratedDetail(name: String): Flow<ComponentDetail?> =
-        userGeneratedDataSource.getComponentDetail(name)
+        userGeneratedDataSource.getByComponentName(name)
 
     override fun getLocalComponentDetail(name: String): Flow<ComponentDetail?> = flowOf(null)
 
     override fun saveComponentDetail(componentDetail: ComponentDetail): Flow<Boolean> = flowOf(true)
+
+    override fun listenToComponentDetailChanges(): Flow<ComponentDetail> =
+        flowOf(ComponentDetail(""))
 }

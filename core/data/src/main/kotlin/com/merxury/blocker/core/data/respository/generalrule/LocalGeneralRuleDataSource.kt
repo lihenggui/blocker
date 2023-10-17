@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.respository.generalrule
 
 import com.merxury.blocker.core.data.di.FilesDir
+import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.GeneralRule
@@ -32,7 +33,6 @@ import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
-private const val ROOT_FOLDER = "blocker-general-rules"
 private const val RULES_FOLDER = "rules"
 private const val LANGUAGE = "zh-cn"
 private const val RULE_NAME = "general.json"
@@ -40,31 +40,22 @@ private const val RULE_NAME = "general.json"
 class LocalGeneralRuleDataSource @Inject constructor(
     private val json: Json,
     @FilesDir private val filesDir: File,
+    @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : GeneralRuleDataSource {
     @OptIn(ExperimentalSerializationApi::class)
     override fun getGeneralRules(): Flow<List<GeneralRule>> = flow {
         val ruleFile = getRuleFile()
-        if (ruleFile == null || !ruleFile.exists()) {
-            Timber.e("Cannot find general rule in files folder.")
-            emit(emptyList())
-            return@flow
-        }
-        try {
-            ruleFile.inputStream().use { inputStream ->
-                val serializedRule = json.decodeFromStream<List<NetworkGeneralRule>>(inputStream)
-                    .map { it.asExternalModel() }
-                emit(serializedRule)
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Cannot deserialize general rule from file.")
-            emit(emptyList())
+        ruleFile.inputStream().use { inputStream ->
+            val serializedRule = json.decodeFromStream<List<NetworkGeneralRule>>(inputStream)
+                .map { it.asExternalModel() }
+            emit(serializedRule)
         }
     }
         .flowOn(ioDispatcher)
 
-    private fun getRuleFile(): File? {
-        val ruleFile = filesDir.resolve(ROOT_FOLDER)
+    private fun getRuleFile(): File {
+        val ruleFile = filesDir.resolve(ruleBaseFolder)
             .resolve(RULES_FOLDER)
             .resolve(LANGUAGE)
             .resolve(RULE_NAME)
@@ -73,13 +64,12 @@ class LocalGeneralRuleDataSource @Inject constructor(
         }
         Timber.i("Fallback to old version of rules")
         // TODO should be removed in future
-        val oldRuleFile = filesDir.resolve(ROOT_FOLDER)
+        val oldRuleFile = filesDir.resolve(ruleBaseFolder)
             .resolve(LANGUAGE)
             .resolve(RULE_NAME)
         if (oldRuleFile.exists()) {
             return oldRuleFile
         }
-        Timber.e("Cannot find general rule in files folder.")
-        return null
+        throw IllegalStateException("Cannot find general rule in files folder.")
     }
 }

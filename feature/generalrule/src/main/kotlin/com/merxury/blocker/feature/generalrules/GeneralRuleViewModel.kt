@@ -21,8 +21,10 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
 import com.merxury.blocker.core.domain.SearchGeneralRuleUseCase
 import com.merxury.blocker.core.domain.UpdateRuleMatchedAppUseCase
+import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -39,12 +41,14 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
+    private val initGeneralRuleUseCase: InitializeRuleStorageUseCase,
     private val generalRuleRepository: GeneralRuleRepository,
     private val searchRule: SearchGeneralRuleUseCase,
     private val updateRule: UpdateRuleMatchedAppUseCase,
@@ -54,11 +58,11 @@ class GeneralRulesViewModel @Inject constructor(
     val uiState: StateFlow<GeneralRuleUiState> = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
+    private val ruleListSize = MutableStateFlow(0)
+    private val matchedRuleCount = MutableStateFlow(0)
 
     init {
         loadData()
-        updateGeneralRule()
-        updateMatchedAppInfo()
     }
 
     fun dismissAlert() = viewModelScope.launch {
@@ -66,14 +70,28 @@ class GeneralRulesViewModel @Inject constructor(
     }
 
     private fun loadData() = viewModelScope.launch {
+        _uiState.emit(Loading)
+        initGeneralRuleUseCase()
+            .catch { _uiState.emit(Error(it.toErrorMessage())) }
+            .takeWhile { state -> state != InitializeState.Done }
+            .collect { state ->
+                Timber.d("Initialize general rule: $state")
+            }
+        Timber.v("Get general rules from local storage")
+        updateGeneralRule()
         searchRule()
-            .onStart { _uiState.emit(Loading) }
             .catch { _uiState.emit(Error(it.toErrorMessage())) }
             .collect {
                 if (it.isEmpty()) {
                     return@collect
                 }
-                _uiState.emit(Success(it))
+                ruleListSize.emit(it.size)
+                _uiState.emit(
+                    Success(
+                        rules = it,
+                        matchProgress = matchedRuleCount.value * 100 / it.size,
+                    ),
+                )
             }
     }
 
@@ -97,9 +115,10 @@ class GeneralRulesViewModel @Inject constructor(
         generalRuleRepository.getGeneralRules()
             .flowOn(ioDispatcher)
             .first()
-            .forEach { rule ->
+            .forEachIndexed { index, rule ->
                 // No need to handle result
                 updateRule(rule).firstOrNull()
+                matchedRuleCount.emit(index + 1)
             }
     }
 }
@@ -108,6 +127,7 @@ sealed interface GeneralRuleUiState {
     data object Loading : GeneralRuleUiState
     class Success(
         val rules: List<GeneralRule>,
+        val matchProgress: Int = 0,
     ) : GeneralRuleUiState
 
     class Error(val error: UiMessage) : GeneralRuleUiState

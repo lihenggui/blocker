@@ -39,6 +39,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,13 +50,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
-import com.merxury.blocker.core.designsystem.component.BlockerSettingItem
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.designsystem.theme.supportsDynamicTheming
@@ -72,6 +71,8 @@ import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_BLOCKER_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.IMPORT_IFW_RULES
 import com.merxury.blocker.core.rule.entity.RuleWorkType.RESET_IFW
+import com.merxury.blocker.core.ui.BlockerSettingItem
+import com.merxury.blocker.core.ui.DevicePreviews
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.feature.settings.R.string
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
@@ -98,6 +99,12 @@ fun SettingsRoute(
     SettingsScreen(
         onNavigationClick = onNavigationClick,
         uiState = settingsUiState,
+        onChangeControllerType = viewModel::updateControllerType,
+        onChangeRuleServerProvider = viewModel::updateRuleServerProvider,
+        onChangeAppDisplayLanguage = viewModel::updateAppDisplayLanguage,
+        onChangeLibDisplayLanguage = viewModel::updateLibDisplayLanguage,
+        onChangeDynamicColorPreference = viewModel::updateDynamicColorPreference,
+        onChangeDarkThemeConfig = viewModel::updateDarkThemeConfig,
         onChangeShowSystemApps = viewModel::updateShowSystemApp,
         onChangeShowServiceInfo = viewModel::updateShowServiceInfo,
         onChangeBackupSystemApp = viewModel::updateBackupSystemApp,
@@ -108,10 +115,6 @@ fun SettingsRoute(
         importIfwRules = viewModel::importIfwRules,
         exportIfwRules = viewModel::exportIfwRules,
         resetIfwRules = viewModel::resetIfwRules,
-        onChangeControllerType = viewModel::updateControllerType,
-        onChangeRuleServerProvider = viewModel::updateRuleServerProvider,
-        onChangeDynamicColorPreference = viewModel::updateDynamicColorPreference,
-        onChangeDarkThemeConfig = viewModel::updateDarkThemeConfig,
         importMatRules = viewModel::importMyAndroidToolsRules,
     )
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -165,18 +168,20 @@ fun SettingsRoute(
 
 @Composable
 fun SettingsScreen(
-    onNavigationClick: () -> Unit,
     uiState: SettingsUiState,
     modifier: Modifier = Modifier,
+    onNavigationClick: () -> Unit = { },
+    onChangeControllerType: (ControllerType) -> Unit = { },
+    onChangeRuleServerProvider: (RuleServerProvider) -> Unit = { },
+    onChangeAppDisplayLanguage: (String) -> Unit = { },
+    onChangeLibDisplayLanguage: (String) -> Unit = { },
+    onChangeDynamicColorPreference: (Boolean) -> Unit = { },
+    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit = { },
     onChangeShowSystemApps: (Boolean) -> Unit = { },
     onChangeShowServiceInfo: (Boolean) -> Unit = { },
     onChangeBackupSystemApp: (Boolean) -> Unit = { },
     onChangeRestoreSystemApp: (Boolean) -> Unit = { },
     onChangeRuleBackupFolder: (Uri?) -> Unit = { },
-    onChangeControllerType: (ControllerType) -> Unit = { },
-    onChangeRuleServerProvider: (RuleServerProvider) -> Unit = { },
-    onChangeDynamicColorPreference: (Boolean) -> Unit = { },
-    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit = { },
     exportRules: () -> Unit = { },
     importRules: () -> Unit = { },
     exportIfwRules: () -> Unit = { },
@@ -214,15 +219,17 @@ fun SettingsScreen(
                     SettingsContent(
                         settings = uiState.settings,
                         supportDynamicColor = supportsDynamicTheming(),
+                        onChangeControllerType = onChangeControllerType,
+                        onChangeRuleServerProvider = onChangeRuleServerProvider,
+                        onChangeAppDisplayLanguage = onChangeAppDisplayLanguage,
+                        onChangeLibDisplayLanguage = onChangeLibDisplayLanguage,
+                        onChangeDynamicColorPreference = onChangeDynamicColorPreference,
+                        onChangeDarkThemeConfig = onChangeDarkThemeConfig,
                         onChangeShowSystemApps = onChangeShowSystemApps,
                         onChangeShowServiceInfo = onChangeShowServiceInfo,
                         onChangeBackupSystemApp = onChangeBackupSystemApp,
                         onChangeRestoreSystemApp = onChangeRestoreSystemApp,
                         onChangeRuleBackupFolder = onChangeRuleBackupFolder,
-                        onChangeControllerType = onChangeControllerType,
-                        onChangeRuleServerProvider = onChangeRuleServerProvider,
-                        onChangeDynamicColorPreference = onChangeDynamicColorPreference,
-                        onChangeDarkThemeConfig = onChangeDarkThemeConfig,
                         exportRules = exportRules,
                         importRules = importRules,
                         exportIfwRules = exportIfwRules,
@@ -240,22 +247,24 @@ fun SettingsScreen(
 fun SettingsContent(
     settings: UserEditableSettings,
     supportDynamicColor: Boolean,
-    onChangeShowSystemApps: (Boolean) -> Unit,
-    onChangeShowServiceInfo: (Boolean) -> Unit,
-    onChangeBackupSystemApp: (Boolean) -> Unit,
-    onChangeRestoreSystemApp: (Boolean) -> Unit,
-    onChangeRuleBackupFolder: (Uri?) -> Unit,
-    onChangeControllerType: (ControllerType) -> Unit,
-    onChangeRuleServerProvider: (RuleServerProvider) -> Unit,
-    onChangeDynamicColorPreference: (Boolean) -> Unit,
-    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit,
-    exportRules: () -> Unit,
-    importRules: () -> Unit,
-    exportIfwRules: () -> Unit,
-    importIfwRules: () -> Unit,
-    resetIfwRules: () -> Unit,
-    importMatRules: (Uri?) -> Unit,
     modifier: Modifier = Modifier,
+    onChangeControllerType: (ControllerType) -> Unit = { },
+    onChangeRuleServerProvider: (RuleServerProvider) -> Unit = { },
+    onChangeAppDisplayLanguage: (String) -> Unit = { },
+    onChangeLibDisplayLanguage: (String) -> Unit = { },
+    onChangeDynamicColorPreference: (Boolean) -> Unit = { },
+    onChangeDarkThemeConfig: (DarkThemeConfig) -> Unit = { },
+    onChangeShowSystemApps: (Boolean) -> Unit = { },
+    onChangeShowServiceInfo: (Boolean) -> Unit = { },
+    onChangeBackupSystemApp: (Boolean) -> Unit = { },
+    onChangeRestoreSystemApp: (Boolean) -> Unit = { },
+    onChangeRuleBackupFolder: (Uri?) -> Unit = { },
+    exportRules: () -> Unit = { },
+    importRules: () -> Unit = { },
+    exportIfwRules: () -> Unit = { },
+    importIfwRules: () -> Unit = { },
+    resetIfwRules: () -> Unit = { },
+    importMatRules: (Uri?) -> Unit = { },
 ) {
     val context = LocalContext.current
     val getMatFileResult = rememberLauncherForActivityResult(
@@ -271,6 +280,8 @@ fun SettingsContent(
             settings = settings,
             onChangeControllerType = onChangeControllerType,
             onChangeRuleServerProvider = onChangeRuleServerProvider,
+            onChangeAppDisplayLanguage = onChangeAppDisplayLanguage,
+            onChangeLibDisplayLanguage = onChangeLibDisplayLanguage,
         )
         HorizontalDivider()
         ThemeSettings(
@@ -322,24 +333,25 @@ fun SettingsContent(
 }
 
 @Composable
-@Preview
+@DevicePreviews
 fun SettingsScreenPreview() {
     BlockerTheme {
-        SettingsScreen(
-            onNavigationClick = {},
-            uiState = Success(
-                UserEditableSettings(
-                    controllerType = IFW,
-                    ruleServerProvider = GITHUB,
-                    ruleBackupFolder = "/emulated/0/Blocker",
-                    backupSystemApp = true,
-                    restoreSystemApp = false,
-                    showSystemApps = false,
-                    showServiceInfo = true,
-                    darkThemeConfig = FOLLOW_SYSTEM,
-                    useDynamicColor = false,
+        Surface {
+            SettingsScreen(
+                uiState = Success(
+                    UserEditableSettings(
+                        controllerType = IFW,
+                        ruleServerProvider = GITHUB,
+                        ruleBackupFolder = "/emulated/0/Blocker",
+                        backupSystemApp = true,
+                        restoreSystemApp = false,
+                        showSystemApps = false,
+                        showServiceInfo = true,
+                        darkThemeConfig = FOLLOW_SYSTEM,
+                        useDynamicColor = false,
+                    ),
                 ),
-            ),
-        )
+            )
+        }
     }
 }

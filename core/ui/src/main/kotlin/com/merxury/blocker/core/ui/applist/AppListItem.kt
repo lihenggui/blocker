@@ -17,7 +17,6 @@
 package com.merxury.blocker.core.ui.applist
 
 import android.content.pm.PackageInfo
-import android.content.res.Configuration
 import android.view.MotionEvent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -49,6 +48,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -56,9 +56,13 @@ import coil.request.ImageRequest
 import com.merxury.blocker.core.designsystem.component.BlockerBodyLargeText
 import com.merxury.blocker.core.designsystem.component.BlockerBodyMediumText
 import com.merxury.blocker.core.designsystem.component.BlockerLabelSmallText
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.ui.R.string
+import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -69,17 +73,17 @@ fun AppListItem(
     versionCode: Long,
     isAppEnabled: Boolean,
     isAppRunning: Boolean,
-    packageInfo: PackageInfo?,
-    appServiceStatus: AppServiceStatus?,
-    onClick: (String) -> Unit,
-    onClearCacheClick: (String) -> Unit,
-    onClearDataClick: (String) -> Unit,
-    onForceStopClick: (String) -> Unit,
-    onUninstallClick: (String) -> Unit,
-    onEnableClick: (String) -> Unit,
-    onDisableClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
+    packageInfo: PackageInfo? = null,
+    appServiceStatus: AppServiceStatus? = null,
+    onClick: (String) -> Unit = {},
+    onClearCacheClick: (String) -> Unit = {},
+    onClearDataClick: (String) -> Unit = {},
+    onForceStopClick: (String) -> Unit = {},
+    onUninstallClick: (String) -> Unit = {},
+    onEnableClick: (String) -> Unit = {},
+    onDisableClick: (String) -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
@@ -141,7 +145,9 @@ fun AppIcon(info: PackageInfo?, modifier: Modifier = Modifier) {
         modifier = modifier,
         model = ImageRequest.Builder(LocalContext.current)
             .data(info)
-            .crossfade(true)
+            .error(BlockerIcons.Android)
+            .placeholder(BlockerIcons.Android)
+            .crossfade(false)
             .build(),
         contentDescription = null,
     )
@@ -212,33 +218,22 @@ private fun AppContent(
 }
 
 @Composable
-@Preview
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
-fun AppListItemPreview() {
-    val appServiceStatus = AppServiceStatus(
-        running = 1,
-        blocked = 2,
-        total = 10,
-        packageName = "com.merxury.blocker",
-    )
+@ThemePreviews
+fun AppListItemPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
     BlockerTheme {
         Surface {
             AppListItem(
-                label = "Blocker",
-                packageName = "com.merxury.blocker",
-                versionName = "1.0.12",
-                versionCode = 1206,
-                isAppEnabled = false,
-                isAppRunning = true,
-                packageInfo = PackageInfo(),
-                appServiceStatus = appServiceStatus,
-                onClick = { },
-                onClearCacheClick = { },
-                onClearDataClick = { },
-                onForceStopClick = { },
-                onUninstallClick = { },
-                onEnableClick = { },
-                onDisableClick = { },
+                label = appList[0].label,
+                packageName = appList[0].packageName,
+                versionName = appList[0].versionName,
+                versionCode = appList[0].versionCode,
+                isAppEnabled = appList[0].isEnabled,
+                isAppRunning = appList[0].isRunning,
+                packageInfo = appList[0].packageInfo,
+                appServiceStatus = appList[0].appServiceStatus,
             )
         }
     }
@@ -246,25 +241,21 @@ fun AppListItemPreview() {
 
 @Composable
 @Preview
-fun AppListItemWithoutServiceInfoPreview() {
+fun AppListItemWithoutServiceInfoPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
     BlockerTheme {
         Surface {
             AppListItem(
-                label = "Blocker",
-                packageName = "com.merxury.blocker",
-                versionName = "1.0.12",
-                versionCode = 1206,
-                isAppEnabled = true,
-                isAppRunning = true,
-                packageInfo = PackageInfo(),
-                appServiceStatus = null,
-                onClick = { },
-                onClearCacheClick = { },
-                onClearDataClick = { },
-                onForceStopClick = { },
-                onUninstallClick = { },
-                onEnableClick = { },
-                onDisableClick = { },
+                label = appList[1].label,
+                packageName = appList[1].packageName,
+                versionName = appList[1].versionName,
+                versionCode = appList[1].versionCode,
+                isAppEnabled = appList[1].isEnabled,
+                isAppRunning = appList[1].isRunning,
+                packageInfo = appList[1].packageInfo,
+                appServiceStatus = appList[1].appServiceStatus,
             )
         }
     }
@@ -272,25 +263,21 @@ fun AppListItemWithoutServiceInfoPreview() {
 
 @Composable
 @Preview
-fun AppListItemWithLongAppName() {
+fun AppListItemWithLongAppName(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
     BlockerTheme {
         Surface {
             AppListItem(
-                label = "AppNameWithVeryLongLongLongLongLongLongName",
-                packageName = "com.merxury.blocker",
-                versionName = "1.0.12",
-                versionCode = 1206,
-                isAppEnabled = true,
-                isAppRunning = true,
-                packageInfo = PackageInfo(),
-                appServiceStatus = null,
-                onClick = { },
-                onClearCacheClick = { },
-                onClearDataClick = { },
-                onForceStopClick = { },
-                onUninstallClick = { },
-                onEnableClick = { },
-                onDisableClick = { },
+                label = appList[2].label,
+                packageName = appList[2].packageName,
+                versionName = appList[2].versionName,
+                versionCode = appList[2].versionCode,
+                isAppEnabled = appList[2].isEnabled,
+                isAppRunning = appList[2].isRunning,
+                packageInfo = appList[2].packageInfo,
+                appServiceStatus = appList[2].appServiceStatus,
             )
         }
     }

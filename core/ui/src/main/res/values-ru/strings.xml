@@ -15,6 +15,9 @@
   -->
 
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
+    <string name="core_ui_application_with_count">Приложение (%1$d)</string>
+    <string name="core_ui_component_with_count">Компонент (%1$d)</string>
+    <string name="core_ui_online_rule_with_count">Онлайн правило (%1$d)</string>
     <string name="core_ui_clear_cache">Очистить кэш</string>
     <string name="core_ui_clear_data">Очистить данные</string>
     <string name="core_ui_force_stop">Принудительная остановка</string>
