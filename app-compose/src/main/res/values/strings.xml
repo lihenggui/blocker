@@ -17,6 +17,6 @@
 <resources>
     <string name="feature_applist_app_name" translatable="false">Blocker</string>
     <string name="apps">Apps</string>
-    <string name="feature_generalrule_search">Search</string>
-    <string name="feature_generalrule_rules">Rules</string>
+    <string name="search">Search</string>
+    <string name="rules">Rules</string>
 </resources>
