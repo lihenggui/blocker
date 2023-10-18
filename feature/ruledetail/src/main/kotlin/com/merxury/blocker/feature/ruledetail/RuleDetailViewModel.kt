@@ -61,6 +61,7 @@ import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -114,6 +115,8 @@ class RuleDetailViewModel @Inject constructor(
     private val _appBarUiState = MutableStateFlow(AppBarUiState(actions = getAppBarAction()))
     val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
     private var currentSearchKeyword: List<String> = emptyList()
+    private var loadRuleDetailJob: Job? = null
+    private var controlComponentJob: Job? = null
 
     init {
         loadTabInfo()
@@ -139,41 +142,50 @@ class RuleDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadData() = viewModelScope.launch {
-        val context: Context = appContext
-        val ruleId = ruleIdArgs.ruleId
-        val baseUrl = userDataRepository.userData
-            .first()
-            .ruleServerProvider
-            .baseUrl
-        val rule = ruleRepository.getGeneralRule(ruleId)
-            .first()
-        val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
-        _ruleInfoUiState.update {
-            RuleInfoUiState.Success(
-                ruleInfo = ruleWithIcon,
-                ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
-            )
+    private fun loadData() {
+        loadRuleDetailJob?.cancel()
+        loadRuleDetailJob = viewModelScope.launch {
+            val context: Context = appContext
+            val ruleId = ruleIdArgs.ruleId
+            val baseUrl = userDataRepository.userData
+                .first()
+                .ruleServerProvider
+                .baseUrl
+            val rule = ruleRepository.getGeneralRule(ruleId)
+                .first()
+            val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
+            _ruleInfoUiState.update {
+                RuleInfoUiState.Success(
+                    ruleInfo = ruleWithIcon,
+                    ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
+                )
+            }
+            currentSearchKeyword = rule.searchKeyword
+            loadMatchedApps(rule.searchKeyword)
         }
-        currentSearchKeyword = rule.searchKeyword
-        loadMatchedApps(rule.searchKeyword)
     }
 
-    fun controlAllComponentsInPage(enable: Boolean) = viewModelScope.launch {
-        val uiState = _ruleMatchedAppListUiState.value as? Success
-            ?: return@launch
-        val list = uiState.list
-            .flatMap { it.componentList }
-        controlAllComponents(list, enable)
-        analyticsHelper.logControlAllInPageClicked(newState = enable)
+    fun controlAllComponentsInPage(enable: Boolean) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch {
+            val uiState = _ruleMatchedAppListUiState.value as? Success
+                ?: return@launch
+            val list = uiState.list
+                .flatMap { it.componentList }
+            controlAllComponents(list, enable)
+            analyticsHelper.logControlAllInPageClicked(newState = enable)
+        }
     }
 
-    fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) = viewModelScope.launch {
-        list.forEach {
-            controlComponentInternal(it.packageName, it.name, enable)
+    fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch {
+            list.forEach {
+                controlComponentInternal(it.packageName, it.name, enable)
+            }
+            loadMatchedApps(currentSearchKeyword)
+            analyticsHelper.logControlAllComponentsClicked(newState = enable)
         }
-        loadMatchedApps(currentSearchKeyword)
-        analyticsHelper.logControlAllComponentsClicked(newState = enable)
     }
 
     private suspend fun loadMatchedApps(keywords: List<String>) {
@@ -235,10 +247,13 @@ class RuleDetailViewModel @Inject constructor(
         packageName: String,
         componentName: String,
         enabled: Boolean,
-    ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        controlComponentInternal(packageName, componentName, enabled)
-        loadMatchedApps(currentSearchKeyword)
-        analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
+    ) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            controlComponentInternal(packageName, componentName, enabled)
+            loadMatchedApps(currentSearchKeyword)
+            analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
+        }
     }
 
     private suspend fun controlComponentInternal(
