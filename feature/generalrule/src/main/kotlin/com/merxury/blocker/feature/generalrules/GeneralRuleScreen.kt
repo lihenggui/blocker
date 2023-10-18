@@ -135,7 +135,7 @@ fun GeneralRuleScreenMatchProgressPreview(
         GeneralRulesScreen(
             uiState = Success(
                 rules = ruleList,
-                matchProgress = 50,
+                matchProgress = 0.5F,
             ),
         )
     }
@@ -151,7 +151,7 @@ fun GeneralRuleScreenMatchedCompletedPreview(
         GeneralRulesScreen(
             uiState = Success(
                 rules = ruleList,
-                matchProgress = 100,
+                matchProgress = 1F,
             ),
         )
     }
@@ -167,7 +167,7 @@ fun GeneralRuleScreenMatchStartPreview(
         GeneralRulesScreen(
             uiState = Success(
                 rules = ruleList,
-                matchProgress = 0,
+                matchProgress = 0F,
             ),
         )
     }
