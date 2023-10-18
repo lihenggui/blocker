@@ -19,6 +19,7 @@ package com.merxury.blocker.feature.generalrules
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
@@ -35,6 +36,8 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,6 +58,7 @@ class GeneralRulesViewModel @Inject constructor(
     private val generalRuleRepository: GeneralRuleRepository,
     private val searchRule: SearchGeneralRuleUseCase,
     private val updateRule: UpdateRuleMatchedAppUseCase,
+    @Dispatcher(DEFAULT) private val defaultDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow<GeneralRuleUiState>(Loading)
@@ -122,18 +126,21 @@ class GeneralRulesViewModel @Inject constructor(
             return@launch
         }
         var matchedApps = 0F
-        ruleList.forEach { rule ->
-            // No need to handle result
-            updateRule(rule).firstOrNull()
-            matchedApps += 1
-            _uiState.update {
-                if (it is Success) {
-                    it.copy(matchProgress = matchedApps / ruleList.size)
-                } else {
-                    it
+        val updateTasks = ruleList.map { rule ->
+            async(defaultDispatcher) {
+                // No need to handle result
+                updateRule(rule).firstOrNull()
+                matchedApps += 1
+                _uiState.update {
+                    if (it is Success) {
+                        it.copy(matchProgress = matchedApps / ruleList.size)
+                    } else {
+                        it
+                    }
                 }
             }
         }
+        updateTasks.awaitAll()
     }
 }
 
