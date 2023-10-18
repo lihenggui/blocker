@@ -108,7 +108,7 @@ fun RuleMatchedAppList(
                         if (expanded) {
                             items(
                                 items = ruleMatchedApp.componentList,
-                                key = { item -> ruleMatchedApp.app.packageName + item.name },
+                                key = { item -> ruleMatchedApp.app.packageName + "/" + item.name },
                             ) {
                                 ComponentListItem(
                                     modifier = modifier.animateItemPlacement(),
