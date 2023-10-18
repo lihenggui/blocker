@@ -52,6 +52,7 @@ import com.merxury.core.ifw.IIntentFirewall
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -87,6 +88,7 @@ class AppListViewModel @Inject constructor(
     private var _appList = mutableStateListOf<AppItem>()
     private val _appListFlow = MutableStateFlow(_appList)
     private var currentSearchKeyword = ""
+    private var loadAppListJob: Job? = null
     val appListFlow: StateFlow<List<AppItem>>
         get() = _appListFlow
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -102,63 +104,67 @@ class AppListViewModel @Inject constructor(
         listenShowSystemAppsChanges()
     }
 
-    private fun loadData() = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
-        // Init DB first to get correct data
-        initializeDatabase()
-            .takeWhile { it is InitializeState.Initializing }
-            .collect {
-                if (it is InitializeState.Initializing) {
-                    _uiState.emit(Initializing(it.processingName))
-                }
-            }
-        appRepository.getApplicationList()
-            .onStart {
-                _uiState.emit(Initializing())
-            }
-            .distinctUntilChanged()
-            .collect { list ->
-                Timber.v("App list changed, size ${list.size}")
-                val preference = userDataRepository.userData.first()
-                val sortType = preference.appSorting
-                val sortOrder = preference.appSortingOrder
-                RunningAppCache.refresh(ioDispatcher)
-                _appList = if (preference.showSystemApps) {
-                    list
-                } else {
-                    list.filterNot { it.isSystem }
-                }.filter {
-                    it.label.contains(currentSearchKeyword, true) ||
-                        it.packageName.contains(currentSearchKeyword, true)
-                }.map { installedApp ->
-                    val packageName = installedApp.packageName
-                    AppItem(
-                        label = installedApp.label,
-                        packageName = packageName,
-                        versionName = installedApp.versionName,
-                        versionCode = installedApp.versionCode,
-                        isSystem = ApplicationUtil.isSystemApp(pm, packageName),
-                        isRunning = RunningAppCache.isRunning(packageName),
-                        isEnabled = installedApp.isEnabled,
-                        firstInstallTime = installedApp.firstInstallTime,
-                        lastUpdateTime = installedApp.lastUpdateTime,
-                        appServiceStatus = AppStateCache.getOrNull(packageName)
-                            ?.toAppServiceStatus(),
-                        packageInfo = pm.getPackageInfoCompat(packageName, 0),
-                    )
-                }.sortedWith(
-                    appComparator(sortType, sortOrder),
-                ).let { sortedList ->
-                    if (preference.showRunningAppsOnTop) {
-                        sortedList.sortedByDescending { it.isRunning }
-                    } else {
-                        sortedList
+    private fun loadData() {
+        loadAppListJob?.cancel()
+        loadAppListJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+            // Init DB first to get correct data
+            initializeDatabase()
+                .takeWhile { it is InitializeState.Initializing }
+                .collect {
+                    if (it is InitializeState.Initializing) {
+                        _uiState.emit(Initializing(it.processingName))
                     }
                 }
-                    .toSet()
-                    .toMutableStateList()
-                _appListFlow.value = _appList
-                _uiState.emit(Success)
-            }
+            appRepository.getApplicationList()
+                .onStart {
+                    Timber.v("Start loading app list")
+                    _uiState.emit(Initializing())
+                }
+                .distinctUntilChanged()
+                .collect { list ->
+                    Timber.v("App list changed, size ${list.size}")
+                    val preference = userDataRepository.userData.first()
+                    val sortType = preference.appSorting
+                    val sortOrder = preference.appSortingOrder
+                    RunningAppCache.refresh(ioDispatcher)
+                    _appList = if (preference.showSystemApps) {
+                        list
+                    } else {
+                        list.filterNot { it.isSystem }
+                    }.filter {
+                        it.label.contains(currentSearchKeyword, true) ||
+                            it.packageName.contains(currentSearchKeyword, true)
+                    }.map { installedApp ->
+                        val packageName = installedApp.packageName
+                        AppItem(
+                            label = installedApp.label,
+                            packageName = packageName,
+                            versionName = installedApp.versionName,
+                            versionCode = installedApp.versionCode,
+                            isSystem = ApplicationUtil.isSystemApp(pm, packageName),
+                            isRunning = RunningAppCache.isRunning(packageName),
+                            isEnabled = installedApp.isEnabled,
+                            firstInstallTime = installedApp.firstInstallTime,
+                            lastUpdateTime = installedApp.lastUpdateTime,
+                            appServiceStatus = AppStateCache.getOrNull(packageName)
+                                ?.toAppServiceStatus(),
+                            packageInfo = pm.getPackageInfoCompat(packageName, 0),
+                        )
+                    }.sortedWith(
+                        appComparator(sortType, sortOrder),
+                    ).let { sortedList ->
+                        if (preference.showRunningAppsOnTop) {
+                            sortedList.sortedByDescending { it.isRunning }
+                        } else {
+                            sortedList
+                        }
+                    }
+                        .toSet()
+                        .toMutableStateList()
+                    _appListFlow.value = _appList
+                    _uiState.emit(Success)
+                }
+        }
     }
 
     fun filter(keyword: String) {
