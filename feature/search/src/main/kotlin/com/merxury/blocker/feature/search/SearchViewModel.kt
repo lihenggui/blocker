@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.search
 
 import android.content.pm.PackageManager
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.app.AppRepository
@@ -132,14 +131,13 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun search(changedSearchText: TextFieldValue) {
+    fun search(changedSearchText: String) {
         Timber.d("Search components: $changedSearchText")
-        if (changedSearchText.text == _searchUiState.value.keyword.text) {
+        if (changedSearchText == _searchUiState.value.keyword) {
             return
         }
         _searchUiState.update { it.copy(keyword = changedSearchText) }
-        val keyword = changedSearchText.text
-        val searchAppFlow = appRepository.searchInstalledApplications(keyword)
+        val searchAppFlow = appRepository.searchInstalledApplications(changedSearchText)
             .combineTransform(userDataRepository.userData) { list, userSetting ->
                 val showSystemApps = userSetting.showSystemApps
                 val sorting = userSetting.appSorting
@@ -160,7 +158,7 @@ class SearchViewModel @Inject constructor(
             }
 
         val searchComponentFlow: Flow<List<FilteredComponent>> =
-            componentRepository.searchComponent(keyword)
+            componentRepository.searchComponent(changedSearchText)
                 .map { list ->
                     list.groupBy { it.packageName }
                         .toSortedMap()
@@ -196,7 +194,7 @@ class SearchViewModel @Inject constructor(
                         .filterNotNull()
                 }
 
-        val searchGeneralRuleFlow = searchRule(keyword)
+        val searchGeneralRuleFlow = searchRule(changedSearchText)
         val searchFlow = combine(
             searchAppFlow,
             searchComponentFlow,
@@ -206,7 +204,7 @@ class SearchViewModel @Inject constructor(
             filterComponentList.addAll(components)
             Timber.v("Find ${apps.size} apps, ${components.size} components, ${rules.size} rules")
             Success(
-                searchKeyword = keyword.split(","),
+                searchKeyword = changedSearchText.split(","),
                 appTabUiState = AppTabUiState(list = apps),
                 componentTabUiState = ComponentTabUiState(list = components),
                 ruleTabUiState = RuleTabUiState(list = rules),
@@ -258,7 +256,7 @@ class SearchViewModel @Inject constructor(
         }
 
     fun resetSearchState() {
-        _searchUiState.update { it.copy(keyword = TextFieldValue()) }
+        _searchUiState.update { it.copy(keyword = "") }
     }
 
     fun controlAllSelectedComponents(enable: Boolean) =
@@ -368,7 +366,7 @@ data class RuleTabUiState(
 )
 
 data class SearchUiState(
-    val keyword: TextFieldValue = TextFieldValue(),
+    val keyword: String = "",
     val isSelectedMode: Boolean = false,
     val selectedAppList: List<FilteredComponent> = listOf(),
     val selectedComponentList: List<ComponentInfo> = listOf(),

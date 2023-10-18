@@ -65,21 +65,17 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.AutoResizeText
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
-import com.merxury.blocker.core.designsystem.component.FontSizeRange
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
@@ -256,7 +252,7 @@ private fun shareFile(
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 
-) {
+    ) {
     val zippedFile = rule.zippedFile
     if (zippedFile == null) {
         scope.launch {
@@ -311,7 +307,7 @@ fun AppDetailScreen(
     onLaunchAppClick: (String) -> Unit = {},
     switchTab: (AppDetailTabs) -> Unit = {},
     navigateToComponentDetail: (String) -> Unit = {},
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
@@ -397,7 +393,7 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     navigateToComponentDetail: (String) -> Unit = {},
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
@@ -518,7 +514,7 @@ fun AppDetailContent(
 @Composable
 fun AppDetailAppBarActions(
     appBarUiState: AppBarUiState,
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
@@ -541,18 +537,13 @@ fun AppDetailAppBarActions(
                     modifier = Modifier.weight(1f),
                     keyword = appBarUiState.keyword,
                     onValueChange = onSearchTextChanged,
-                    placeholder = {
-                        AutoResizeText(
-                            text = stringResource(id = string.feature_appdetail_search_components),
-                            fontSizeRange = FontSizeRange(1.sp, 16.sp),
-                        )
-                    },
+                    hintTextRes = string.feature_appdetail_search_components,
                     onClearClick = {
-                        if (appBarUiState.keyword.text.isEmpty()) {
+                        if (appBarUiState.keyword.isEmpty()) {
                             onSearchModeChange(false)
                             return@BlockerSearchTextField
                         }
-                        onSearchTextChanged(TextFieldValue())
+                        onSearchTextChanged("")
                     },
                 )
             } else {
@@ -590,7 +581,7 @@ private fun TopAppBar(
     app: AppItem,
     topAppBarUiState: AppBarUiState,
     toolbarState: ToolbarState,
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
