@@ -30,13 +30,19 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -56,9 +62,9 @@ fun BlockerSearchTextField(
     onValueChange: (TextFieldValue) -> Unit,
     placeholder: @Composable (() -> Unit)? = null,
     onClearClick: (() -> Unit)? = null,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
     colors: TextFieldColors = TextFieldDefaults.colors(),
 ) {
+    val focusRequester = remember { FocusRequester() }
     var showClearButton by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     TextField(
@@ -66,6 +72,15 @@ fun BlockerSearchTextField(
             .padding(horizontal = 16.dp, vertical = 2.dp)
             .onFocusChanged { focusState ->
                 showClearButton = (focusState.isFocused)
+            }
+            .focusRequester(focusRequester)
+            .onKeyEvent {
+                if (it.key == Key.Enter) {
+                    keyboardController?.hide()
+                    true
+                } else {
+                    false
+                }
             }
             .testTag("BlockerSearchTextField"),
         value = keyword,
@@ -92,15 +107,23 @@ fun BlockerSearchTextField(
             }
         },
         singleLine = true,
-        keyboardOptions = keyboardOptions,
+        keyboardOptions = KeyboardOptions(
+            imeAction = ImeAction.Search,
+        ),
         keyboardActions = KeyboardActions(
             onDone = {
+                keyboardController?.hide()
+            },
+            onSearch = {
                 keyboardController?.hide()
             },
         ),
         colors = colors,
         shape = RoundedCornerShape(56.dp),
     )
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
+    }
 }
 
 @Composable

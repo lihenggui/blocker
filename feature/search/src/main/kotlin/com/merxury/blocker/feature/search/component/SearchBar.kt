@@ -17,14 +17,12 @@
 package com.merxury.blocker.feature.search.component
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
@@ -56,7 +54,6 @@ fun SearchBar(
                 },
                 onValueChange = onSearchTextChanged,
                 onClearClick = onClearClick,
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 modifier = modifier.fillMaxWidth(),
                 colors = colors,
             )
