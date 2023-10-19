@@ -17,7 +17,6 @@
 package com.merxury.blocker.feature.search
 
 import android.content.pm.PackageManager
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.data.respository.app.AppRepository
@@ -136,13 +135,12 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun search(changedSearchText: TextFieldValue) {
-        Timber.d("Search components: $changedSearchText")
-        if (changedSearchText.text == _searchUiState.value.keyword.text) {
+    fun search(keyword: String) {
+        Timber.d("Search components: $keyword")
+        if (keyword == _searchUiState.value.keyword) {
             return
         }
-        _searchUiState.update { it.copy(keyword = changedSearchText) }
-        val keyword = changedSearchText.text
+        _searchUiState.update { it.copy(keyword = keyword) }
         val searchAppFlow = appRepository.searchInstalledApplications(keyword)
             .combineTransform(userDataRepository.userData) { list, userSetting ->
                 val showSystemApps = userSetting.showSystemApps
@@ -261,10 +259,6 @@ class SearchViewModel @Inject constructor(
             }
         }
 
-    fun resetSearchState() {
-        _searchUiState.update { it.copy(keyword = TextFieldValue()) }
-    }
-
     fun controlAllSelectedComponents(enable: Boolean) =
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             componentRepository.batchControlComponent(
@@ -372,7 +366,7 @@ data class RuleTabUiState(
 )
 
 data class SearchUiState(
-    val keyword: TextFieldValue = TextFieldValue(),
+    val keyword: String = "",
     val isSelectedMode: Boolean = false,
     val selectedAppList: List<FilteredComponent> = listOf(),
     val selectedComponentList: List<ComponentInfo> = listOf(),
