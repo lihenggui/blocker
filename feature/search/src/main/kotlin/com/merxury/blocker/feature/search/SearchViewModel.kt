@@ -96,6 +96,7 @@ class SearchViewModel @Inject constructor(
         _errorState.tryEmit(throwable.toErrorMessage())
     }
     private var searchJob: Job? = null
+    private var loadAppJob: Job? = null
 
     private val _tabState = MutableStateFlow(
         TabState(
@@ -113,12 +114,15 @@ class SearchViewModel @Inject constructor(
         load()
     }
 
-    private fun load() = viewModelScope.launch {
-        initializeDatabase().collect {
-            if (it is InitializeState.Initializing) {
-                _localSearchUiState.emit(Initializing(it.processingName))
-            } else {
-                _localSearchUiState.emit(Idle)
+    private fun load() {
+        loadAppJob?.cancel()
+        loadAppJob = viewModelScope.launch {
+            initializeDatabase().collect {
+                if (it is InitializeState.Initializing) {
+                    _localSearchUiState.emit(Initializing(it.processingName))
+                } else {
+                    _localSearchUiState.emit(Idle)
+                }
             }
         }
     }

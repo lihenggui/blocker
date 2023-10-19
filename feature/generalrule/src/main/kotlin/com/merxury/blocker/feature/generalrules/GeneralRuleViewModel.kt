@@ -34,6 +34,7 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,6 +61,7 @@ class GeneralRulesViewModel @Inject constructor(
     val errorState = _errorState.asStateFlow()
     private val ruleListSize = MutableStateFlow(0)
     private val matchedRuleCount = MutableStateFlow(0)
+    private var loadRuleJob: Job? = null
 
     init {
         loadData()
@@ -69,30 +71,33 @@ class GeneralRulesViewModel @Inject constructor(
         _errorState.emit(null)
     }
 
-    private fun loadData() = viewModelScope.launch {
-        _uiState.emit(Loading)
-        initGeneralRuleUseCase()
-            .catch { _uiState.emit(Error(it.toErrorMessage())) }
-            .takeWhile { state -> state != InitializeState.Done }
-            .collect { state ->
-                Timber.d("Initialize general rule: $state")
-            }
-        Timber.v("Get general rules from local storage")
-        updateGeneralRule()
-        searchRule()
-            .catch { _uiState.emit(Error(it.toErrorMessage())) }
-            .collect {
-                if (it.isEmpty()) {
-                    return@collect
+    private fun loadData() {
+        loadRuleJob?.cancel()
+        loadRuleJob = viewModelScope.launch {
+            _uiState.emit(Loading)
+            initGeneralRuleUseCase()
+                .catch { _uiState.emit(Error(it.toErrorMessage())) }
+                .takeWhile { state -> state != InitializeState.Done }
+                .collect { state ->
+                    Timber.d("Initialize general rule: $state")
                 }
-                ruleListSize.emit(it.size)
-                _uiState.emit(
-                    Success(
-                        rules = it,
-                        matchProgress = matchedRuleCount.value * 100 / it.size,
-                    ),
-                )
-            }
+            Timber.v("Get general rules from local storage")
+            updateGeneralRule()
+            searchRule()
+                .catch { _uiState.emit(Error(it.toErrorMessage())) }
+                .collect {
+                    if (it.isEmpty()) {
+                        return@collect
+                    }
+                    ruleListSize.emit(it.size)
+                    _uiState.emit(
+                        Success(
+                            rules = it,
+                            matchProgress = matchedRuleCount.value * 100 / it.size,
+                        ),
+                    )
+                }
+        }
     }
 
     private fun updateGeneralRule() = viewModelScope.launch {
