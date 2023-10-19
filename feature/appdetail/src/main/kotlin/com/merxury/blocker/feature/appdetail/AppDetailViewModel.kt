@@ -24,7 +24,6 @@ import android.graphics.drawable.Drawable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -197,10 +196,10 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun search(newText: TextFieldValue) {
+    fun search(newText: String) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
-            val keyword = newText.text
+            val keyword = newText
             Timber.i("Filtering component list with keyword: $keyword")
             // Update search bar text first
             _appBarUiState.update { it.copy(keyword = newText) }
@@ -418,7 +417,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.v("Search keyword: $keyword")
         _appBarUiState.update {
             it.copy(
-                keyword = TextFieldValue(keywordString),
+                keyword = keywordString,
                 isSearchMode = true,
                 actions = getAppBarAction(),
             )
