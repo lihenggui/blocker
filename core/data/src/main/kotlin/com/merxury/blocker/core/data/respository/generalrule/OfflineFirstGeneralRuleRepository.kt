@@ -92,7 +92,7 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
         // Insert or update rules from the network
         latestRules.forEach { networkEntity ->
             val cachedEntity = currentCache.find { it.id == networkEntity.id }
-            if (cachedEntity == networkEntity) {
+            if (cachedEntity?.equalsInData(networkEntity) == true) {
                 Timber.v("Skip saving entity id: ${cachedEntity.id}")
                 return@forEach
             }
@@ -114,4 +114,15 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
         emit(Result.Success(Unit))
     }
         .flowOn(ioDispatcher)
+}
+private fun GeneralRuleEntity.equalsInData(other: GeneralRuleEntity): Boolean {
+    return this.name == other.name &&
+        this.iconUrl == other.iconUrl &&
+        this.company == other.company &&
+        this.searchKeyword == other.searchKeyword &&
+        this.useRegexSearch == other.useRegexSearch &&
+        this.description == other.description &&
+        this.safeToBlock == other.safeToBlock &&
+        this.sideEffect == other.sideEffect &&
+        this.contributors == other.contributors
 }

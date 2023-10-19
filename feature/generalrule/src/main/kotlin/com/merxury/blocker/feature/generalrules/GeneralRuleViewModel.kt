@@ -34,14 +34,17 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Loading
 import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -58,8 +61,7 @@ class GeneralRulesViewModel @Inject constructor(
     val uiState: StateFlow<GeneralRuleUiState> = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
     val errorState = _errorState.asStateFlow()
-    private val ruleListSize = MutableStateFlow(0)
-    private val matchedRuleCount = MutableStateFlow(0)
+    private var loadRuleJob: Job? = null
 
     init {
         loadData()
@@ -69,30 +71,31 @@ class GeneralRulesViewModel @Inject constructor(
         _errorState.emit(null)
     }
 
-    private fun loadData() = viewModelScope.launch {
-        _uiState.emit(Loading)
-        initGeneralRuleUseCase()
-            .catch { _uiState.emit(Error(it.toErrorMessage())) }
-            .takeWhile { state -> state != InitializeState.Done }
-            .collect { state ->
-                Timber.d("Initialize general rule: $state")
-            }
-        Timber.v("Get general rules from local storage")
-        updateGeneralRule()
-        searchRule()
-            .catch { _uiState.emit(Error(it.toErrorMessage())) }
-            .collect {
-                if (it.isEmpty()) {
-                    return@collect
+    private fun loadData() {
+        loadRuleJob?.cancel()
+        loadRuleJob = viewModelScope.launch {
+            _uiState.emit(Loading)
+            initGeneralRuleUseCase()
+                .catch { _uiState.emit(Error(it.toErrorMessage())) }
+                .takeWhile { state -> state != InitializeState.Done }
+                .collect { state ->
+                    Timber.d("Initialize general rule: $state")
                 }
-                ruleListSize.emit(it.size)
-                _uiState.emit(
-                    Success(
-                        rules = it,
-                        matchProgress = matchedRuleCount.value * 100 / it.size,
-                    ),
-                )
-            }
+            Timber.v("Get general rules from local storage")
+            updateGeneralRule()
+            searchRule()
+                .catch { _uiState.emit(Error(it.toErrorMessage())) }
+                .distinctUntilChanged()
+                .collect { rules ->
+                    _uiState.update { state ->
+                        if (state is Success) {
+                            state.copy(rules = rules)
+                        } else {
+                            Success(rules = rules)
+                        }
+                    }
+                }
+        }
     }
 
     private fun updateGeneralRule() = viewModelScope.launch {
@@ -112,23 +115,33 @@ class GeneralRulesViewModel @Inject constructor(
 
     private fun updateMatchedAppInfo() = viewModelScope.launch {
         // Get matched app info from local
-        generalRuleRepository.getGeneralRules()
-            .flowOn(ioDispatcher)
+        val ruleList = generalRuleRepository.getGeneralRules()
             .first()
-            .forEachIndexed { index, rule ->
-                // No need to handle result
-                updateRule(rule).firstOrNull()
-                matchedRuleCount.emit(index + 1)
+        if (ruleList.isEmpty()) {
+            return@launch
+        }
+        var matchedApps = 0F
+        ruleList.forEach { rule ->
+            // No need to handle result
+            updateRule(rule).firstOrNull()
+            matchedApps += 1
+            _uiState.update {
+                if (it is Success) {
+                    it.copy(matchProgress = matchedApps / ruleList.size)
+                } else {
+                    it
+                }
             }
+        }
     }
 }
 
 sealed interface GeneralRuleUiState {
     data object Loading : GeneralRuleUiState
-    class Success(
+    data class Success(
         val rules: List<GeneralRule>,
-        val matchProgress: Int = 0,
+        val matchProgress: Float = 0F,
     ) : GeneralRuleUiState
 
-    class Error(val error: UiMessage) : GeneralRuleUiState
+    data class Error(val error: UiMessage) : GeneralRuleUiState
 }

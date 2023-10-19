@@ -24,7 +24,6 @@ import android.graphics.drawable.Drawable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -98,6 +97,7 @@ import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -163,6 +163,9 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
+    private var loadComponentListJob: Job? = null
+    private var searchJob: Job? = null
+    private var controlComponentJob: Job? = null
 
     init {
         loadTabInfo()
@@ -193,13 +196,16 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun search(newText: TextFieldValue) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
-        val keyword = newText.text
-        Timber.i("Filtering component list with keyword: $keyword")
-        // Update search bar text first
-        _appBarUiState.update { it.copy(keyword = newText) }
-        filterAndUpdateComponentList(keyword)
-        updateTabState(_componentListUiState.value)
+    fun search(newText: String) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+            val keyword = newText
+            Timber.i("Filtering component list with keyword: $keyword")
+            // Update search bar text first
+            _appBarUiState.update { it.copy(keyword = newText) }
+            filterAndUpdateComponentList(keyword)
+            updateTabState(_componentListUiState.value)
+        }
     }
 
     private suspend fun updateTabState(listUiState: ComponentListUiState) {
@@ -271,24 +277,28 @@ class AppDetailViewModel @Inject constructor(
         )
     }
 
-    private fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        val packageName = appDetailArgs.packageName
-        componentRepository.getComponentList(packageName)
-            .collect { origList ->
-                // Show the cache data first
-                updateTabContent(origList, packageName)
-                // Load the data with description and update again
-                val list = origList.map { component ->
-                    val detail = componentDetailRepository.getLocalComponentDetail(component.name)
-                        .first()
-                    if (detail != null) {
-                        component.copy(description = detail.description)
-                    } else {
-                        component
+    private fun loadComponentList() {
+        loadComponentListJob?.cancel()
+        loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val packageName = appDetailArgs.packageName
+            componentRepository.getComponentList(packageName)
+                .collect { origList ->
+                    // Show the cache data first
+                    updateTabContent(origList, packageName)
+                    // Load the data with description and update again
+                    val list = origList.map { component ->
+                        val detail =
+                            componentDetailRepository.getLocalComponentDetail(component.name)
+                                .first()
+                        if (detail != null) {
+                            component.copy(description = detail.description)
+                        } else {
+                            component
+                        }
                     }
+                    updateTabContent(list, packageName)
                 }
-                updateTabContent(list, packageName)
-            }
+        }
     }
 
     private suspend fun updateTabContent(
@@ -407,7 +417,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.v("Search keyword: $keyword")
         _appBarUiState.update {
             it.copy(
-                keyword = TextFieldValue(keywordString),
+                keyword = keywordString,
                 isSearchMode = true,
                 actions = getAppBarAction(),
             )
@@ -475,8 +485,9 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun controlAllComponents(enable: Boolean) =
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+    fun controlAllComponents(enable: Boolean) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val list = when (tabState.value.selectedItem) {
                 Receiver -> _componentListUiState.value.receiver
                 Service -> _componentListUiState.value.service
@@ -487,13 +498,17 @@ class AppDetailViewModel @Inject constructor(
                 it.toComponentInfo()
             }
 
-            componentRepository.batchControlComponent(components = list.toList(), newState = enable)
+            componentRepository.batchControlComponent(
+                components = list.toList(),
+                newState = enable,
+            )
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
                 .collect {}
             analyticsHelper.logBatchOperationPerformed(enable)
         }
+    }
 
     fun dismissAlert() = viewModelScope.launch {
         _errorState.emit(null)
@@ -542,13 +557,17 @@ class AppDetailViewModel @Inject constructor(
         packageName: String,
         componentName: String,
         enabled: Boolean,
-    ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        controlComponentInternal(packageName, componentName, enabled)
-        analyticsHelper.logSwitchComponentClicked(newState = enabled)
+    ) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            controlComponentInternal(packageName, componentName, enabled)
+            analyticsHelper.logSwitchComponentClicked(newState = enabled)
+        }
     }
 
-    fun controlAllSelectedComponents(enable: Boolean) =
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+    fun controlAllSelectedComponents(enable: Boolean) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             componentRepository.batchControlComponent(
                 components = _appBarUiState.value.selectedComponentList,
                 newState = enable,
@@ -561,6 +580,7 @@ class AppDetailViewModel @Inject constructor(
                 it.copy(selectedComponentList = listOf())
             }
         }
+    }
 
     fun switchSelectedMode(value: Boolean) {
         // Clear list when exit from selectedMode

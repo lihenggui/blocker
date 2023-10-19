@@ -65,7 +65,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -311,7 +310,7 @@ fun AppDetailScreen(
     onLaunchAppClick: (String) -> Unit = {},
     switchTab: (AppDetailTabs) -> Unit = {},
     navigateToComponentDetail: (String) -> Unit = {},
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
@@ -397,7 +396,7 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     navigateToComponentDetail: (String) -> Unit = {},
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
@@ -518,7 +517,7 @@ fun AppDetailContent(
 @Composable
 fun AppDetailAppBarActions(
     appBarUiState: AppBarUiState,
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
@@ -539,20 +538,14 @@ fun AppDetailAppBarActions(
             if (appBarUiState.isSearchMode) {
                 BlockerSearchTextField(
                     modifier = Modifier.weight(1f),
-                    keyword = appBarUiState.keyword,
-                    onValueChange = onSearchTextChanged,
+                    searchQuery = appBarUiState.keyword,
+                    onSearchQueryChanged = onSearchTextChanged,
+                    onSearchTriggered = onSearchTextChanged,
                     placeholder = {
                         AutoResizeText(
                             text = stringResource(id = string.feature_appdetail_search_components),
                             fontSizeRange = FontSizeRange(1.sp, 16.sp),
                         )
-                    },
-                    onClearClick = {
-                        if (appBarUiState.keyword.text.isEmpty()) {
-                            onSearchModeChange(false)
-                            return@BlockerSearchTextField
-                        }
-                        onSearchTextChanged(TextFieldValue())
                     },
                 )
             } else {
@@ -590,7 +583,7 @@ private fun TopAppBar(
     app: AppItem,
     topAppBarUiState: AppBarUiState,
     toolbarState: ToolbarState,
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},

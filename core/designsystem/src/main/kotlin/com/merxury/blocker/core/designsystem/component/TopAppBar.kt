@@ -82,7 +82,7 @@ fun BlockerTopAppBar(
 fun BlockerTopAppBarWithProgress(
     modifier: Modifier = Modifier,
     title: String,
-    progress: Int? = null,
+    progress: Float? = null,
 ) {
     TopAppBar(
         modifier = modifier,
@@ -94,13 +94,13 @@ fun BlockerTopAppBarWithProgress(
             )
         },
         actions = {
-            if (progress != 100 && progress != null) {
+            if (progress != null && progress != 1F) {
                 Row(
                     modifier = Modifier.padding(end = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "$progress%",
+                        text = String.format("%.0f%%", progress * 100),
                     )
                     BlockerLoadingWheel(
                         modifier = Modifier.size(36.dp),
@@ -203,7 +203,7 @@ fun BlockerTopAppBarLoadingStartPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
-            progress = 0,
+            progress = 0F,
         )
     }
 }
@@ -214,7 +214,7 @@ fun BlockerTopAppBarLoadingProgressPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
-            progress = 50,
+            progress = 0.5F,
         )
     }
 }
@@ -225,7 +225,7 @@ fun BlockerTopAppBarLoadingCompeletPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
-            progress = 100,
+            progress = 1F,
         )
     }
 }
