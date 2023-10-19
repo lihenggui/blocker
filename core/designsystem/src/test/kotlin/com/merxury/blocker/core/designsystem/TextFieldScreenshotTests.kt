@@ -23,7 +23,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.text.input.TextFieldValue
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
@@ -79,8 +78,9 @@ class TextFieldScreenshotTests {
     @Composable
     private fun BlockerTextFieldExample(keyword: String) {
         BlockerSearchTextField(
-            keyword = TextFieldValue(keyword),
-            onValueChange = {},
+            searchQuery = keyword,
+            onSearchTriggered = {},
+            onSearchQueryChanged = {},
         )
     }
 }
