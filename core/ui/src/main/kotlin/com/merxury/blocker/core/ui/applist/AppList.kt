@@ -28,9 +28,16 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -45,6 +52,7 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppList(
     appList: List<AppItem>,
@@ -57,43 +65,59 @@ fun AppList(
     onEnableClick: (String) -> Unit = {},
     onDisableClick: (String) -> Unit = {},
     onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
         itemsAvailable = appList.size,
     )
+    val refreshing by remember { mutableStateOf(isRefreshing) }
+    val refreshingState = rememberPullRefreshState(refreshing, onRefresh)
     TrackScrollJank(scrollableState = listState, stateName = "app:list")
-    Box(modifier.fillMaxSize()) {
+    Box(
+        modifier
+            .fillMaxSize()
+            .pullRefresh(refreshingState),
+    ) {
         LazyColumn(
             modifier = modifier,
             state = listState,
         ) {
-            itemsIndexed(appList, key = { _, item -> item.packageName }) { index, item ->
-                AppListItem(
-                    label = item.label,
-                    packageName = item.packageName,
-                    versionName = item.versionName,
-                    versionCode = item.versionCode,
-                    packageInfo = item.packageInfo,
-                    isAppEnabled = item.isEnabled,
-                    isAppRunning = item.isRunning,
-                    appServiceStatus = item.appServiceStatus,
-                    onClick = onAppItemClick,
-                    onClearCacheClick = onClearCacheClick,
-                    onClearDataClick = onClearDataClick,
-                    onForceStopClick = onForceStopClick,
-                    onUninstallClick = onUninstallClick,
-                    onEnableClick = onEnableClick,
-                    onDisableClick = onDisableClick,
-                )
-                LaunchedEffect(true) {
-                    onServiceStateUpdate(item.packageName, index)
+            if (!isRefreshing) {
+                itemsIndexed(appList, key = { _, item -> item.packageName }) { index, item ->
+                    AppListItem(
+                        label = item.label,
+                        packageName = item.packageName,
+                        versionName = item.versionName,
+                        versionCode = item.versionCode,
+                        packageInfo = item.packageInfo,
+                        isAppEnabled = item.isEnabled,
+                        isAppRunning = item.isRunning,
+                        appServiceStatus = item.appServiceStatus,
+                        onClick = onAppItemClick,
+                        onClearCacheClick = onClearCacheClick,
+                        onClearDataClick = onClearDataClick,
+                        onForceStopClick = onForceStopClick,
+                        onUninstallClick = onUninstallClick,
+                        onEnableClick = onEnableClick,
+                        onDisableClick = onDisableClick,
+                    )
+                    LaunchedEffect(true) {
+                        onServiceStateUpdate(item.packageName, index)
+                    }
+                }
+                item {
+                    Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
                 }
             }
-            item {
-                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-            }
         }
+        PullRefreshIndicator(
+            refreshing = refreshing,
+            state = refreshingState,
+            modifier = Modifier.align(Alignment.TopCenter),
+            scale = true,
+        )
         listState.FastScrollbar(
             modifier = Modifier
                 .fillMaxHeight()

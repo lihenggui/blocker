@@ -352,6 +352,10 @@ class AppListViewModel @Inject constructor(
         analyticsHelper.logDisableAppClicked()
     }
 
+    fun refresh() {
+        loadData()
+    }
+
     private suspend fun notifyAppUpdated(packageName: String) {
         appRepository.updateApplication(packageName).collect {
             if (it is Result.Error) {
