@@ -31,7 +31,6 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
@@ -225,9 +224,9 @@ class CollapsingTopAppBarScreenshotTests {
             title = "Title with long name 0123456789",
             actions = {
                 BlockerSearchTextField(
-                    keyword = TextFieldValue("blocker"),
-                    onValueChange = {},
-                    onClearClick = {},
+                    searchQuery = "blocker",
+                    onSearchQueryChanged = { },
+                    onSearchTriggered = { },
                     modifier = Modifier.weight(1f),
                 )
                 BlockerAppTopBarMenu(

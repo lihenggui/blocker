@@ -24,7 +24,6 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.requestFocus
-import androidx.compose.ui.text.input.TextFieldValue
 import com.merxury.blocker.core.testing.testing.data.appInfoTestData
 import com.merxury.blocker.core.testing.testing.data.filteredComponentTestData
 import com.merxury.blocker.core.testing.testing.data.generalRuleListTestData
@@ -76,7 +75,7 @@ class SearchScreenTest {
             noSearchResult = getString(string.feature_search_no_search_result)
             searching = getString(string.feature_search_searching)
             searchIconDescription = getString(designSystemR.string.core_designsystem_search_icon)
-            clearIconDescription = getString(designSystemR.string.core_designsystem_clear_icon)
+            clearIconDescription = getString(designSystemR.string.core_designsystem_clear_search_text_content_desc)
             close = getString(uiR.string.core_ui_close)
             selectAll = getString(uiR.string.core_ui_select_all)
             blockSelected = getString(uiR.string.core_ui_block_selected)
@@ -120,7 +119,7 @@ class SearchScreenTest {
                 tabState = tabState,
                 localSearchUiState = Idle,
                 searchUiState = SearchUiState(
-                    keyword = TextFieldValue(searchKeyword),
+                    keyword = searchKeyword,
                 ),
             )
         }
@@ -151,7 +150,7 @@ class SearchScreenTest {
                     ruleTabUiState = RuleTabUiState(generalRuleListTestData),
                 ),
                 searchUiState = SearchUiState(
-                    keyword = TextFieldValue(searchKeyword),
+                    keyword = searchKeyword,
                 ),
                 appList = listOf(appInfoTestData),
             )
@@ -187,7 +186,7 @@ class SearchScreenTest {
                     ruleTabUiState = RuleTabUiState(generalRuleListTestData),
                 ),
                 searchUiState = SearchUiState(
-                    keyword = TextFieldValue(searchKeyword),
+                    keyword = searchKeyword,
                 ),
                 appList = listOf(appInfoTestData),
             )
@@ -223,7 +222,7 @@ class SearchScreenTest {
                     ruleTabUiState = RuleTabUiState(generalRuleListTestData),
                 ),
                 searchUiState = SearchUiState(
-                    keyword = TextFieldValue(searchKeyword),
+                    keyword = searchKeyword,
                 ),
                 appList = listOf(appInfoTestData),
             )
