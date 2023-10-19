@@ -177,6 +177,12 @@ class AppDetailViewModel @Inject constructor(
         listenComponentDetailChanges()
     }
 
+    fun refresh() {
+        Timber.d("Refresh app detail screen")
+        loadComponentList()
+        updateComponentList(appDetailArgs.packageName)
+    }
+
     override fun onCleared() {
         super.onCleared()
         deinitShizuku()
@@ -905,6 +911,11 @@ sealed interface AppInfoUiState {
         val appInfo: AppItem,
         val iconBasedTheming: Bitmap?,
     ) : AppInfoUiState
+}
+
+sealed interface ComponentUiState {
+    data class Success(val componentList: ComponentListUiState) : ComponentUiState
+    data object Loading : ComponentUiState
 }
 
 data class ComponentListUiState(
