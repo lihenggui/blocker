@@ -43,7 +43,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -105,11 +104,14 @@ fun SearchRoute(
         tabState = tabState,
         localSearchUiState = localSearchUiState,
         switchTab = viewModel::switchTab,
-        onSearchTextChanged = { keyword ->
+        onSearchTriggered = { keyword ->
             viewModel.search(keyword)
-            appListViewModel.filter(keyword.text)
+            appListViewModel.filter(keyword)
         },
-        onClearClick = viewModel::resetSearchState,
+        onSearchQueryChanged = { keyword ->
+            viewModel.search(keyword)
+            appListViewModel.filter(keyword)
+        },
         onSelectAll = viewModel::selectAll,
         onDeselect = viewModel::deselectItem,
         onBlockAll = { viewModel.controlAllSelectedComponents(false) },
@@ -144,8 +146,8 @@ fun SearchScreen(
     localSearchUiState: LocalSearchUiState,
     searchUiState: SearchUiState,
     switchTab: (SearchScreenTabs) -> Unit = {},
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
-    onClearClick: () -> Unit = {},
+    onSearchQueryChanged: (String) -> Unit = {},
+    onSearchTriggered: (String) -> Unit = {},
     onSelectAll: () -> Unit = {},
     onBlockAll: () -> Unit = {},
     onEnableAll: () -> Unit = {},
@@ -167,8 +169,8 @@ fun SearchScreen(
         topBar = {
             TopBar(
                 searchUiState = searchUiState,
-                onSearchTextChanged = onSearchTextChanged,
-                onClearClick = onClearClick,
+                onSearchQueryChanged = onSearchQueryChanged,
+                onSearchTriggered = onSearchTriggered,
                 onNavigationClick = { switchSelectedMode(false) },
                 onSelectAll = onSelectAll,
                 onBlockAll = onBlockAll,
@@ -227,8 +229,8 @@ fun SearchScreen(
 fun TopBar(
     modifier: Modifier = Modifier,
     searchUiState: SearchUiState,
-    onSearchTextChanged: (TextFieldValue) -> Unit,
-    onClearClick: () -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
+    onSearchTriggered: (String) -> Unit,
     onNavigationClick: () -> Unit,
     onSelectAll: () -> Unit,
     onBlockAll: () -> Unit,
@@ -252,9 +254,9 @@ fun TopBar(
         } else {
             SearchBar(
                 modifier = modifier,
-                keyword = searchUiState.keyword,
-                onSearchTextChanged = onSearchTextChanged,
-                onClearClick = onClearClick,
+                searchQuery = searchUiState.keyword,
+                onSearchQueryChanged = onSearchQueryChanged,
+                onSearchTriggered = onSearchTriggered,
             )
         }
     }
@@ -391,7 +393,7 @@ fun SearchScreenSelectedAppPreview() {
                 appList = appList,
                 tabState = tabState[0],
                 searchUiState = SearchUiState(
-                    keyword = TextFieldValue(keyword),
+                    keyword = keyword,
                 ),
             )
         }
@@ -423,7 +425,7 @@ fun SearchScreenSelectedComponentPreview() {
                 ),
                 tabState = tabState[1],
                 searchUiState = SearchUiState(
-                    keyword = TextFieldValue(keyword),
+                    keyword = keyword,
                 ),
             )
         }
@@ -448,7 +450,7 @@ fun SearchScreenSelectedRule() {
                 ),
                 tabState = tabState[2],
                 searchUiState = SearchUiState(
-                    keyword = TextFieldValue(keyword),
+                    keyword = keyword,
                 ),
             )
         }
@@ -481,7 +483,7 @@ fun SearchScreenSelectedModePreview() {
                 ),
                 tabState = tabState[1],
                 searchUiState = SearchUiState(
-                    keyword = TextFieldValue(keyword),
+                    keyword = keyword,
                     isSelectedMode = true,
                     selectedComponentList = listOf(
                         components[0].toComponentInfo(),
@@ -533,7 +535,7 @@ fun SearchScreenNoResultPreview() {
                 ),
                 tabState = tabState[3],
                 searchUiState = SearchUiState(
-                    keyword = TextFieldValue(keyword),
+                    keyword = keyword,
                 ),
             )
         }
