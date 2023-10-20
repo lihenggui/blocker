@@ -38,6 +38,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -51,6 +53,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -65,15 +68,24 @@ fun AppList(
     onEnableClick: (String) -> Unit = {},
     onDisableClick: (String) -> Unit = {},
     onServiceStateUpdate: (String, Int) -> Unit = { _, _ -> },
-    isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
         itemsAvailable = appList.size,
     )
-    val refreshing by remember { mutableStateOf(isRefreshing) }
-    val refreshingState = rememberPullRefreshState(refreshing, onRefresh)
+    var refreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val refreshingState = rememberPullRefreshState(
+        refreshing = refreshing,
+        onRefresh = {
+            scope.launch {
+                refreshing = true
+                onRefresh()
+                refreshing = false
+            }
+        },
+    )
     TrackScrollJank(scrollableState = listState, stateName = "app:list")
     Box(
         modifier
@@ -84,32 +96,30 @@ fun AppList(
             modifier = modifier,
             state = listState,
         ) {
-            if (!isRefreshing) {
-                itemsIndexed(appList, key = { _, item -> item.packageName }) { index, item ->
-                    AppListItem(
-                        label = item.label,
-                        packageName = item.packageName,
-                        versionName = item.versionName,
-                        versionCode = item.versionCode,
-                        packageInfo = item.packageInfo,
-                        isAppEnabled = item.isEnabled,
-                        isAppRunning = item.isRunning,
-                        appServiceStatus = item.appServiceStatus,
-                        onClick = onAppItemClick,
-                        onClearCacheClick = onClearCacheClick,
-                        onClearDataClick = onClearDataClick,
-                        onForceStopClick = onForceStopClick,
-                        onUninstallClick = onUninstallClick,
-                        onEnableClick = onEnableClick,
-                        onDisableClick = onDisableClick,
-                    )
-                    LaunchedEffect(true) {
-                        onServiceStateUpdate(item.packageName, index)
-                    }
+            itemsIndexed(appList, key = { _, item -> item.packageName }) { index, item ->
+                AppListItem(
+                    label = item.label,
+                    packageName = item.packageName,
+                    versionName = item.versionName,
+                    versionCode = item.versionCode,
+                    packageInfo = item.packageInfo,
+                    isAppEnabled = item.isEnabled,
+                    isAppRunning = item.isRunning,
+                    appServiceStatus = item.appServiceStatus,
+                    onClick = onAppItemClick,
+                    onClearCacheClick = onClearCacheClick,
+                    onClearDataClick = onClearDataClick,
+                    onForceStopClick = onForceStopClick,
+                    onUninstallClick = onUninstallClick,
+                    onEnableClick = onEnableClick,
+                    onDisableClick = onDisableClick,
+                )
+                LaunchedEffect(true) {
+                    onServiceStateUpdate(item.packageName, index)
                 }
-                item {
-                    Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-                }
+            }
+            item {
+                Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
         PullRefreshIndicator(

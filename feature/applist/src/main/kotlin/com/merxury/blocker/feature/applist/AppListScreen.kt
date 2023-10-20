@@ -88,7 +88,6 @@ fun AppListRoute(
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         navigateTooAppSortScreen = navigateTooAppSortScreen,
         modifier = modifier,
-        isRefreshing = uiState is Initializing,
         onRefresh = viewModel::refresh,
     )
     if (errorState != null) {
@@ -124,7 +123,6 @@ fun AppListScreen(
     navigateTooAppSortScreen: () -> Unit = {},
     navigateToSettings: () -> Unit = {},
     navigateToSupportAndFeedback: () -> Unit = {},
-    isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
 ) {
     Scaffold(
@@ -178,7 +176,6 @@ fun AppListScreen(
                             onDisableClick = onDisableClick,
                             onServiceStateUpdate = onServiceStateUpdate,
                             modifier = modifier.testTag(appListTestTag),
-                            isRefreshing = isRefreshing,
                             onRefresh = onRefresh,
                         )
                     }
