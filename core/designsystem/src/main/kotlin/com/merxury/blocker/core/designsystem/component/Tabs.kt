@@ -27,7 +27,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -90,7 +89,7 @@ fun BlockerScrollableTabRow(
         containerColor = containerColor,
         contentColor = contentColor,
         indicator = { tabPositions ->
-            SecondaryIndicator(
+            TabRowDefaults.Indicator(
                 modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
                 height = 2.dp,
                 color = contentColor,
@@ -121,7 +120,7 @@ fun BlockerTabRow(
         containerColor = containerColor,
         contentColor = contentColor,
         indicator = { tabPositions ->
-            SecondaryIndicator(
+            TabRowDefaults.Indicator(
                 modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
                 height = 2.dp,
                 color = contentColor,

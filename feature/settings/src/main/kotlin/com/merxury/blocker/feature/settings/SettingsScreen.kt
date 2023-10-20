@@ -35,7 +35,7 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -283,7 +283,7 @@ fun SettingsContent(
             onChangeAppDisplayLanguage = onChangeAppDisplayLanguage,
             onChangeLibDisplayLanguage = onChangeLibDisplayLanguage,
         )
-        HorizontalDivider()
+        Divider()
         ThemeSettings(
             modifier = modifier,
             settings = settings,
@@ -291,14 +291,14 @@ fun SettingsContent(
             onChangeDynamicColorPreference = onChangeDynamicColorPreference,
             onChangeDarkThemeConfig = onChangeDarkThemeConfig,
         )
-        HorizontalDivider()
+        Divider()
         AppListSettings(
             showSystemApps = settings.showSystemApps,
             showServiceInfo = settings.showServiceInfo,
             onChangeShowSystemApps = onChangeShowSystemApps,
             onChangeShowServiceInfo = onChangeShowServiceInfo,
         )
-        HorizontalDivider()
+        Divider()
         BackupSettings(
             backupSystemApps = settings.backupSystemApp,
             restoreSystemApp = settings.restoreSystemApp,
@@ -307,15 +307,15 @@ fun SettingsContent(
             onChangeRestoreSystemApp = onChangeRestoreSystemApp,
             onChangeRuleBackupFolder = onChangeRuleBackupFolder,
         )
-        HorizontalDivider()
+        Divider()
         BlockerRulesSettings(exportRules = exportRules, importRules = importRules)
-        HorizontalDivider()
+        Divider()
         IfwRulesSettings(
             exportIfwRules = exportIfwRules,
             importIfwRules = importIfwRules,
             resetIfwRules = resetIfwRules,
         )
-        HorizontalDivider()
+        Divider()
         BlockerSettingItem(
             title = stringResource(id = string.feature_settings_import_mat_rules),
             onItemClick = {
