@@ -910,12 +910,8 @@ sealed interface AppInfoUiState {
     data class Success(
         val appInfo: AppItem,
         val iconBasedTheming: Bitmap?,
+        val isRefreshing: Boolean = false,
     ) : AppInfoUiState
-}
-
-sealed interface ComponentUiState {
-    data class Success(val componentList: ComponentListUiState) : ComponentUiState
-    data object Loading : ComponentUiState
 }
 
 data class ComponentListUiState(

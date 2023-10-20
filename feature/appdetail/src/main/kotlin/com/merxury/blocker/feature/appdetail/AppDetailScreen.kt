@@ -205,7 +205,6 @@ fun AppDetailRoute(
                 }
             }
         },
-        isRefreshing = appInfoUiState is Loading,
         onRefresh = viewModel::refresh,
     )
     if (errorState != null) {
@@ -336,7 +335,6 @@ fun AppDetailScreen(
     onDeselect: (ComponentInfo) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
-    isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
 ) {
     when (appInfoUiState) {
@@ -380,7 +378,6 @@ fun AppDetailScreen(
                 onDeselect = onDeselect,
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
-                isRefreshing = isRefreshing,
                 onRefresh = onRefresh,
             )
         }
@@ -426,7 +423,6 @@ fun AppDetailContent(
     onDeselect: (ComponentInfo) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
-    isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
@@ -518,7 +514,6 @@ fun AppDetailContent(
             onCopyFullNameClick = onCopyFullNameClick,
             onSelect = onSelect,
             onDeselect = onDeselect,
-            isRefreshing = isRefreshing,
             onRefresh = onRefresh,
         )
     }
@@ -679,7 +674,6 @@ fun AppDetailTabContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
-    isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -749,7 +743,6 @@ fun AppDetailTabContent(
                         onCopyFullNameClick = onCopyFullNameClick,
                         onSelect = onSelect,
                         onDeselect = onDeselect,
-                        isRefreshing = isRefreshing,
                         onRefresh = onRefresh,
                     )
                 }

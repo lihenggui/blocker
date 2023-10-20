@@ -37,6 +37,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -51,6 +53,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -67,7 +70,6 @@ fun ComponentList(
     isSelectedMode: Boolean = false,
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
-    isRefreshing: Boolean = false,
     onRefresh: () -> Unit = {},
 ) {
     if (components.isEmpty()) {
@@ -78,8 +80,19 @@ fun ComponentList(
     val scrollbarState = listState.scrollbarState(
         itemsAvailable = components.size,
     )
-    val refreshing by remember { mutableStateOf(isRefreshing) }
-    val refreshingState = rememberPullRefreshState(refreshing, onRefresh)
+    var refreshing by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val refreshingState = rememberPullRefreshState(
+        refreshing = refreshing,
+        onRefresh = {
+            scope.launch {
+                refreshing = true
+                onRefresh()
+                refreshing = false
+            }
+        },
+    )
+
     TrackScrollJank(scrollableState = listState, stateName = "component:list")
     Box(
         modifier
@@ -90,36 +103,34 @@ fun ComponentList(
             modifier = modifier.testTag("component:list"),
             state = listState,
         ) {
-            if (!isRefreshing) {
-                itemsIndexed(
-                    items = components,
-                    key = { _, item -> item.name },
-                ) { _, item ->
-                    ComponentListItem(
-                        item = item,
-                        enabled = item.enabled(),
-                        type = item.type,
-                        isServiceRunning = item.isRunning,
-                        navigateToComponentDetail = navigateToComponentDetail,
-                        onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
-                        onLaunchActivityClick = {
-                            onLaunchActivityClick(
-                                item.packageName,
-                                item.name,
-                            )
-                        },
-                        onCopyNameClick = { onCopyNameClick(item.simpleName) },
-                        onCopyFullNameClick = { onCopyFullNameClick(item.name) },
-                        onSwitchClick = onSwitchClick,
-                        isSelected = selectedComponentList.contains(item.toComponentInfo()),
-                        isSelectedMode = isSelectedMode,
-                        onSelect = onSelect,
-                        onDeselect = onDeselect,
-                    )
-                }
-                item {
-                    Spacer(modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-                }
+            itemsIndexed(
+                items = components,
+                key = { _, item -> item.name },
+            ) { _, item ->
+                ComponentListItem(
+                    item = item,
+                    enabled = item.enabled(),
+                    type = item.type,
+                    isServiceRunning = item.isRunning,
+                    navigateToComponentDetail = navigateToComponentDetail,
+                    onStopServiceClick = { onStopServiceClick(item.packageName, item.name) },
+                    onLaunchActivityClick = {
+                        onLaunchActivityClick(
+                            item.packageName,
+                            item.name,
+                        )
+                    },
+                    onCopyNameClick = { onCopyNameClick(item.simpleName) },
+                    onCopyFullNameClick = { onCopyFullNameClick(item.name) },
+                    onSwitchClick = onSwitchClick,
+                    isSelected = selectedComponentList.contains(item.toComponentInfo()),
+                    isSelectedMode = isSelectedMode,
+                    onSelect = onSelect,
+                    onDeselect = onDeselect,
+                )
+            }
+            item {
+                Spacer(modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
             }
         }
         PullRefreshIndicator(
