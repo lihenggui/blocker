@@ -21,15 +21,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults.SecondaryIndicator
-import androidx.compose.material3.TabRowDefaults.primaryContainerColor
-import androidx.compose.material3.TabRowDefaults.primaryContentColor
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -80,11 +77,11 @@ fun BlockerTab(
 fun BlockerScrollableTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
-    containerColor: Color = primaryContainerColor,
-    contentColor: Color = primaryContentColor,
+    containerColor: Color = TabRowDefaults.containerColor,
+    contentColor: Color = TabRowDefaults.contentColor,
     tabs: @Composable () -> Unit,
 ) {
-    PrimaryScrollableTabRow(
+    ScrollableTabRow(
         selectedTabIndex = selectedTabIndex,
         edgePadding = 16.dp,
         modifier = modifier.wrapContentWidth(),
@@ -92,7 +89,7 @@ fun BlockerScrollableTabRow(
         containerColor = containerColor,
         contentColor = contentColor,
         indicator = { tabPositions ->
-            SecondaryIndicator(
+            TabRowDefaults.Indicator(
                 modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
                 height = 2.dp,
                 color = contentColor,
@@ -113,17 +110,17 @@ fun BlockerScrollableTabRow(
 fun BlockerTabRow(
     selectedTabIndex: Int,
     modifier: Modifier = Modifier,
-    containerColor: Color = primaryContainerColor,
-    contentColor: Color = primaryContentColor,
+    containerColor: Color = TabRowDefaults.containerColor,
+    contentColor: Color = TabRowDefaults.contentColor,
     tabs: @Composable () -> Unit,
 ) {
-    PrimaryTabRow(
+    TabRow(
         selectedTabIndex = selectedTabIndex,
         modifier = modifier,
         containerColor = containerColor,
         contentColor = contentColor,
         indicator = { tabPositions ->
-            SecondaryIndicator(
+            TabRowDefaults.Indicator(
                 modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
                 height = 2.dp,
                 color = contentColor,
