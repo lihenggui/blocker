@@ -16,8 +16,9 @@
 
 package com.merxury.blocker.core.analytics
 
+import android.os.Bundle
 import com.google.firebase.analytics.FirebaseAnalytics
-import com.google.firebase.analytics.ktx.logEvent
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -28,14 +29,16 @@ class FirebaseAnalyticsHelper @Inject constructor(
 ) : AnalyticsHelper {
 
     override fun logEvent(event: AnalyticsEvent) {
-        firebaseAnalytics.logEvent(event.type) {
-            for (extra in event.extras) {
-                // Truncate parameter keys and values according to firebase maximum length values.
-                param(
-                    key = extra.key.take(40),
-                    value = extra.value.take(100),
-                )
-            }
+        Timber.v("Received analytics event: $event")
+        firebaseAnalytics.logEvent(event.type, event.extras.toBundle())
+    }
+
+    private fun List<AnalyticsEvent.Param>.toBundle(): Bundle {
+        val bundle = Bundle()
+        for (extra in this) {
+            // Truncate parameter keys and values according to firebase maximum length values.
+            bundle.putString(extra.key.take(40), extra.value.take(100))
         }
+        return bundle
     }
 }
