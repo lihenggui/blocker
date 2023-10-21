@@ -90,7 +90,6 @@ class AppDetailScreenTest {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState.Loading,
                 topAppBarUiState = AppBarUiState(),
-                componentListUiState = ComponentListUiState(),
                 tabState = tabState,
             )
         }
@@ -106,7 +105,6 @@ class AppDetailScreenTest {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState.Error(errorMessage),
                 topAppBarUiState = AppBarUiState(),
-                componentListUiState = ComponentListUiState(),
                 tabState = tabState,
             )
         }
@@ -130,6 +128,7 @@ class AppDetailScreenTest {
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
                     iconBasedTheming = null,
+                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 ),
                 topAppBarUiState = AppBarUiState(
                     actions = listOf(
@@ -137,7 +136,6 @@ class AppDetailScreenTest {
                         MORE,
                     ),
                 ),
-                componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 tabState = tabState,
             )
         }
@@ -162,6 +160,7 @@ class AppDetailScreenTest {
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
                     iconBasedTheming = null,
+                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 ),
                 topAppBarUiState = AppBarUiState(
                     actions = listOf(
@@ -170,7 +169,6 @@ class AppDetailScreenTest {
                     ),
                     isSearchMode = true,
                 ),
-                componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 tabState = tabState,
             )
         }
@@ -188,7 +186,6 @@ class AppDetailScreenTest {
                     iconBasedTheming = null,
                 ),
                 topAppBarUiState = AppBarUiState(),
-                componentListUiState = ComponentListUiState(),
                 tabState = tabState,
             )
         }
@@ -219,9 +216,9 @@ class AppDetailScreenTest {
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
                     iconBasedTheming = null,
+                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 ),
                 topAppBarUiState = AppBarUiState(),
-                componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 tabState = tabState,
             )
         }
@@ -253,11 +250,11 @@ class AppDetailScreenTest {
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
                     iconBasedTheming = null,
+                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 ),
                 topAppBarUiState = AppBarUiState(
                     isSelectedMode = true,
                 ),
-                componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 tabState = tabState,
             )
         }
@@ -294,6 +291,7 @@ class AppDetailScreenTest {
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
                     iconBasedTheming = null,
+                    componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 ),
                 topAppBarUiState = AppBarUiState(
                     isSearchMode = true,
@@ -303,7 +301,6 @@ class AppDetailScreenTest {
                         MORE,
                     ),
                 ),
-                componentListUiState = ComponentListUiState(receiver = receiverTestData),
                 tabState = tabState,
             )
         }

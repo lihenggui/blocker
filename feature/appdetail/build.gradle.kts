@@ -25,9 +25,11 @@ android {
     namespace = "com.merxury.blocker.feature.appdetail"
 }
 dependencies {
-    implementation(projects.core.componentController)
-    implementation(projects.core.rule)
-    implementation(libs.kotlinx.datetime)
+    implementation(libs.androidx.compose.material)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
+    implementation(libs.kotlinx.datetime)
+    implementation(projects.core.componentController)
+    implementation(projects.core.rule)
+
 }
