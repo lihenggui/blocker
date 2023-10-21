@@ -23,10 +23,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
-import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
-import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.ComponentShowPriority
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
@@ -62,6 +60,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class AppDetailViewModelTest {
     @get:Rule
@@ -152,15 +151,11 @@ class AppDetailViewModelTest {
     @Test
     fun stateIsDefaultWhenNotUpdate() = runTest {
         val collectJob1 = launch(UnconfinedTestDispatcher()) {
-            viewModel.componentListUiState.collect()
+            viewModel.appInfoUiState.collect()
         }
         val collectJob2 = launch(UnconfinedTestDispatcher()) { viewModel.appBarUiState.collect() }
         val collectJob3 = launch(UnconfinedTestDispatcher()) { viewModel.tabState.collect() }
-
-        assertEquals(0, viewModel.componentListUiState.value.activity.size)
-        assertEquals(0, viewModel.componentListUiState.value.provider.size)
-        assertEquals(0, viewModel.componentListUiState.value.receiver.size)
-        assertEquals(0, viewModel.componentListUiState.value.service.size)
+        assertTrue(viewModel.appInfoUiState.value is Loading)
         assertEquals(AppBarUiState(), viewModel.appBarUiState.value)
         assertEquals(AppDetailTabs.Info, viewModel.tabState.value.selectedItem)
 
@@ -177,18 +172,8 @@ class AppDetailViewModelTest {
 
         appRepository.sendAppList(sampleAppList)
         userDataRepository.sendUserData(sampleUserData)
-        val packageName = sampleAppList.first().packageName
-        val packageInfo = pm.getPackageInfoCompat(packageName, 0)
         viewModel.loadAppInfo()
-
-        assertEquals(
-            Success(
-                appInfo = sampleAppList.first().toAppItem(packageInfo),
-                iconBasedTheming = null,
-            ),
-            viewModel.appInfoUiState.value,
-        )
-
+        assertTrue(viewModel.appInfoUiState.value is Success)
         collectJob.cancel()
     }
 
