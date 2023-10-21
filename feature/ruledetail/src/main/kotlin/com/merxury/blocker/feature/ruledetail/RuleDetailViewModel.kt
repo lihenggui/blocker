@@ -217,7 +217,7 @@ class RuleDetailViewModel @Inject constructor(
             } else {
                 // Unreachable code
                 Timber.e("Updating matched apps when rule info is not ready")
-                RuleInfoUiState.Error(UiMessage("Wrong UI state"),)
+                RuleInfoUiState.Error(UiMessage("Wrong UI state"))
             }
         }
     }
