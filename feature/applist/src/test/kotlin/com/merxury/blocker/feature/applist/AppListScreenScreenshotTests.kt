@@ -30,6 +30,7 @@ import com.merxury.blocker.feature.applist.AppListUiState.Error
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
 import dagger.hilt.android.testing.HiltTestApplication
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -135,7 +136,12 @@ class AppListScreenScreenshotTests {
         val appList = AppListPreviewParameterProvider().values.first()
         BlockerTheme {
             Surface {
-                AppListScreen(uiState = Success, appList = appList)
+                AppListScreen(
+                    uiState = Success(
+                        appList = MutableStateFlow(appList),
+                        isRefreshing = false,
+                    ),
+                )
             }
         }
     }
@@ -144,7 +150,7 @@ class AppListScreenScreenshotTests {
     private fun AppListInitialScreen() {
         BlockerTheme {
             Surface {
-                AppListScreen(uiState = Initializing("Blocker"), appList = listOf())
+                AppListScreen(uiState = Initializing("Blocker"))
             }
         }
     }
@@ -153,7 +159,7 @@ class AppListScreenScreenshotTests {
     private fun AppListErrorScreen() {
         BlockerTheme {
             Surface {
-                AppListScreen(uiState = Error(UiMessage("Error")), appList = listOf())
+                AppListScreen(uiState = Error(UiMessage("Error")))
             }
         }
     }
@@ -162,7 +168,12 @@ class AppListScreenScreenshotTests {
     private fun AppListEmptyScreen() {
         BlockerTheme {
             Surface {
-                AppListScreen(uiState = Success, appList = listOf())
+                AppListScreen(
+                    uiState = Success(
+                        appList = MutableStateFlow(mutableListOf()),
+                        isRefreshing = false,
+                    ),
+                )
             }
         }
     }

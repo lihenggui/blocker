@@ -32,11 +32,13 @@ import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvi
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.SearchTabStatePreviewParameterProvider
+import com.merxury.blocker.feature.applist.AppListUiState
 import com.merxury.blocker.feature.search.LocalSearchUiState.Error
 import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
 import com.merxury.blocker.feature.search.LocalSearchUiState.Initializing
 import com.merxury.blocker.feature.search.LocalSearchUiState.Success
 import dagger.hilt.android.testing.HiltTestApplication
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -253,6 +255,10 @@ class SearchScreenScreenshotTests {
                     searchUiState = SearchUiState(
                         keyword = keyword,
                     ),
+                    appListUiState = AppListUiState.Success(
+                        appList = MutableStateFlow(appList),
+                        isRefreshing = false,
+                    ),
                 )
             }
         }
@@ -279,6 +285,10 @@ class SearchScreenScreenshotTests {
                     searchUiState = SearchUiState(
                         keyword = keyword,
                     ),
+                    appListUiState = AppListUiState.Success(
+                        appList = MutableStateFlow(appList),
+                        isRefreshing = false,
+                    ),
                 )
             }
         }
@@ -298,6 +308,10 @@ class SearchScreenScreenshotTests {
                     tabState = tabState[2],
                     searchUiState = SearchUiState(
                         keyword = keyword,
+                    ),
+                    appListUiState = AppListUiState.Success(
+                        appList = MutableStateFlow(appList),
+                        isRefreshing = false,
                     ),
                 )
             }
@@ -337,6 +351,10 @@ class SearchScreenScreenshotTests {
                             ),
                         ),
                     ),
+                    appListUiState = AppListUiState.Success(
+                        appList = MutableStateFlow(appList),
+                        isRefreshing = false,
+                    ),
                 )
             }
         }
@@ -350,6 +368,7 @@ class SearchScreenScreenshotTests {
                     localSearchUiState = Idle,
                     tabState = tabState[0],
                     searchUiState = SearchUiState(),
+                    appListUiState = AppListUiState.Initializing(),
                 )
             }
         }
@@ -363,6 +382,7 @@ class SearchScreenScreenshotTests {
                     localSearchUiState = Idle,
                     tabState = tabState[0],
                     searchUiState = SearchUiState(),
+                    appListUiState = AppListUiState.Initializing(),
                 )
             }
         }
@@ -383,6 +403,10 @@ class SearchScreenScreenshotTests {
                     searchUiState = SearchUiState(
                         keyword = keyword,
                     ),
+                    appListUiState = AppListUiState.Success(
+                        appList = MutableStateFlow(appList),
+                        isRefreshing = false,
+                    ),
                 )
             }
         }
@@ -396,6 +420,7 @@ class SearchScreenScreenshotTests {
                     localSearchUiState = Initializing("Blocker"),
                     tabState = tabState[0],
                     searchUiState = SearchUiState(),
+                    appListUiState = AppListUiState.Initializing(),
                 )
             }
         }
@@ -409,6 +434,7 @@ class SearchScreenScreenshotTests {
                     localSearchUiState = Error(uiMessage = UiMessage("Error")),
                     tabState = tabState[0],
                     searchUiState = SearchUiState(),
+                    appListUiState = AppListUiState.Initializing(),
                 )
             }
         }

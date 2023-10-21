@@ -18,7 +18,6 @@ package com.merxury.blocker.feature.applist
 
 import android.content.Context
 import android.content.pm.PackageManager
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -63,6 +62,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -85,12 +85,8 @@ class AppListViewModel @Inject constructor(
     val errorState = _errorState.asStateFlow()
     private val _warningState = MutableStateFlow<WarningDialogData?>(null)
     val warningState = _warningState.asStateFlow()
-    private var _appList = mutableStateListOf<AppItem>()
-    private val _appListFlow = MutableStateFlow(_appList)
     private var currentSearchKeyword = ""
     private var loadAppListJob: Job? = null
-    val appListFlow: StateFlow<List<AppItem>>
-        get() = _appListFlow
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable)
         _errorState.tryEmit(throwable.toErrorMessage())
@@ -104,7 +100,14 @@ class AppListViewModel @Inject constructor(
         listenShowSystemAppsChanges()
     }
 
-    private fun loadData() {
+    fun loadData() {
+        _uiState.update {
+            if (it is Success) {
+                it.copy(isRefreshing = true)
+            } else {
+                it
+            }
+        }
         loadAppListJob?.cancel()
         loadAppListJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             // Init DB first to get correct data
@@ -127,7 +130,7 @@ class AppListViewModel @Inject constructor(
                     val sortType = preference.appSorting
                     val sortOrder = preference.appSortingOrder
                     RunningAppCache.refresh(ioDispatcher)
-                    _appList = if (preference.showSystemApps) {
+                    val appList = if (preference.showSystemApps) {
                         list
                     } else {
                         list.filterNot { it.isSystem }
@@ -161,8 +164,12 @@ class AppListViewModel @Inject constructor(
                     }
                         .toSet()
                         .toMutableStateList()
-                    _appListFlow.value = _appList
-                    _uiState.emit(Success)
+                    _uiState.emit(
+                        Success(
+                            appList = MutableStateFlow(appList),
+                            isRefreshing = false,
+                        ),
+                    )
                 }
         }
     }
@@ -200,13 +207,20 @@ class AppListViewModel @Inject constructor(
             .distinctUntilChanged()
             .drop(1)
             .collect {
-                val newList = _appList.toMutableList()
-                newList.sortWith(appComparator(it.appSorting, it.appSortingOrder))
-                if (userDataRepository.userData.first().showRunningAppsOnTop) {
-                    newList.sortByDescending { it.isRunning }
+                _uiState.update { state ->
+                    if (state is Success) {
+                        val newList = state.appList.value.toMutableList()
+                        newList.sortWith(appComparator(it.appSorting, it.appSortingOrder))
+                        if (userDataRepository.userData.first().showRunningAppsOnTop) {
+                            newList.sortByDescending { it.isRunning }
+                        }
+                        state.copy(
+                            appList = MutableStateFlow(newList),
+                        )
+                    } else {
+                        state
+                    }
                 }
-                _appList = newList.toMutableStateList()
-                _appListFlow.value = _appList
             }
     }
 
@@ -216,18 +230,25 @@ class AppListViewModel @Inject constructor(
             .distinctUntilChanged()
             .drop(1)
             .collect { showRunningAppsOnTop ->
-                val newList = _appList.toMutableList()
-                if (showRunningAppsOnTop) {
-                    newList.sortByDescending { it.isRunning }
-                } else {
-                    val sorting = userDataRepository.userData.first()
-                        .appSorting
-                    val order = userDataRepository.userData.first()
-                        .appSortingOrder
-                    newList.sortWith(appComparator(sorting, order))
+                _uiState.update { state ->
+                    if (state is Success) {
+                        val newList = state.appList.value.toMutableList()
+                        if (showRunningAppsOnTop) {
+                            newList.sortByDescending { it.isRunning }
+                        } else {
+                            val sorting = userDataRepository.userData.first()
+                                .appSorting
+                            val order = userDataRepository.userData.first()
+                                .appSortingOrder
+                            newList.sortWith(appComparator(sorting, order))
+                        }
+                        state.copy(
+                            appList = MutableStateFlow(newList),
+                        )
+                    } else {
+                        state
+                    }
                 }
-                _appList = newList.toMutableStateList()
-                _appListFlow.value = _appList
             }
     }
 
@@ -246,19 +267,29 @@ class AppListViewModel @Inject constructor(
         if (!userData.showServiceInfo) {
             return@launch
         }
-        val oldItem = _appList.getOrNull(index) ?: return@launch
-        if (oldItem.appServiceStatus != null) {
-            // Don't get service info again
-            return@launch
+        _uiState.update { state ->
+            if (state is Success) {
+                val newList = state.appList.value.toMutableList()
+                val oldItem = newList.getOrNull(index) ?: return@launch
+                if (oldItem.appServiceStatus != null) {
+                    // Don't get service info again
+                    return@launch
+                }
+                Timber.d("Get service status for $packageName")
+                val status = AppStateCache.get(
+                    getApplication(),
+                    intentFirewall,
+                    packageName,
+                )
+                val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
+                newList[index] = newItem
+                state.copy(
+                    appList = MutableStateFlow(newList),
+                )
+            } else {
+                state
+            }
         }
-        Timber.d("Get service status for $packageName")
-        val status = AppStateCache.get(
-            getApplication(),
-            intentFirewall,
-            packageName,
-        )
-        val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
-        _appList[index] = newItem
     }
 
     fun dismissErrorDialog() = viewModelScope.launch {
@@ -327,11 +358,18 @@ class AppListViewModel @Inject constructor(
     fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
         "am force-stop $packageName".exec(ioDispatcher)
         RunningAppCache.update(packageName, ioDispatcher)
-        val item = _appList.find { it.packageName == packageName }
-        if (item != null) {
-            val index = _appList.indexOf(item)
-            val newItem = item.copy(isRunning = RunningAppCache.isRunning(packageName))
-            _appList[index] = newItem
+        _uiState.update { state ->
+            if (state is Success) {
+                val newList = state.appList.value.toMutableList()
+                val oldItem = newList.find { it.packageName == packageName } ?: return@launch
+                val newItem = oldItem.copy(isRunning = RunningAppCache.isRunning(packageName))
+                newList[newList.indexOf(oldItem)] = newItem
+                state.copy(
+                    appList = MutableStateFlow(newList),
+                )
+            } else {
+                state
+            }
         }
         analyticsHelper.logForceStopClicked()
     }
@@ -352,10 +390,6 @@ class AppListViewModel @Inject constructor(
         analyticsHelper.logDisableAppClicked()
     }
 
-    fun refresh() {
-        loadData()
-    }
-
     private suspend fun notifyAppUpdated(packageName: String) {
         appRepository.updateApplication(packageName).collect {
             if (it is Result.Error) {
@@ -368,7 +402,10 @@ class AppListViewModel @Inject constructor(
 sealed interface AppListUiState {
     class Initializing(val processingName: String = "") : AppListUiState
     class Error(val error: UiMessage) : AppListUiState
-    data object Success : AppListUiState
+    data class Success(
+        val appList: StateFlow<List<AppItem>>,
+        val isRefreshing: Boolean,
+    ) : AppListUiState
 }
 
 data class WarningDialogData(

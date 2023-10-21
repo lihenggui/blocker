@@ -75,6 +75,7 @@ import com.merxury.blocker.core.ui.screen.EmptyScreen
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.InitializingScreen
 import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
+import com.merxury.blocker.feature.applist.AppListUiState
 import com.merxury.blocker.feature.applist.AppListViewModel
 import com.merxury.blocker.feature.search.LocalSearchUiState.Error
 import com.merxury.blocker.feature.search.LocalSearchUiState.Idle
@@ -86,6 +87,7 @@ import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen
+import kotlinx.coroutines.flow.MutableStateFlow
 
 @Composable
 fun SearchRoute(
@@ -96,13 +98,13 @@ fun SearchRoute(
 ) {
     val localSearchUiState by viewModel.localSearchUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
-    val appList = appListViewModel.appListFlow.collectAsState()
     val selectUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-
+    val appListUiState by appListViewModel.uiState.collectAsStateWithLifecycle()
     SearchScreen(
         tabState = tabState,
         localSearchUiState = localSearchUiState,
+        appListUiState = appListUiState,
         switchTab = viewModel::switchTab,
         onSearchTriggered = { keyword ->
             viewModel.search(keyword)
@@ -121,7 +123,6 @@ fun SearchRoute(
         onSelect = viewModel::selectItem,
         navigateToAppDetail = navigateToAppDetail,
         navigateToRuleDetail = navigateToRuleDetail,
-        appList = appList.value,
         onClearCacheClick = appListViewModel::clearCache,
         onClearDataClick = appListViewModel::clearData,
         onForceStopClick = appListViewModel::forceStop,
@@ -145,6 +146,7 @@ fun SearchScreen(
     tabState: TabState<SearchScreenTabs>,
     localSearchUiState: LocalSearchUiState,
     searchUiState: SearchUiState,
+    appListUiState: AppListUiState,
     switchTab: (SearchScreenTabs) -> Unit = {},
     onSearchQueryChanged: (String) -> Unit = {},
     onSearchTriggered: (String) -> Unit = {},
@@ -156,7 +158,6 @@ fun SearchScreen(
     onDeselect: (FilteredComponent) -> Unit = {},
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit = { },
-    appList: List<AppItem> = emptyList(),
     onClearCacheClick: (String) -> Unit = { },
     onClearDataClick: (String) -> Unit = { },
     onForceStopClick: (String) -> Unit = { },
@@ -196,26 +197,31 @@ fun SearchScreen(
                 is Initializing ->
                     InitializingScreen(localSearchUiState.processingName)
 
-                is Success -> SearchResultScreen(
-                    modifier = modifier,
-                    tabState = tabState,
-                    switchTab = switchTab,
-                    localSearchUiState = localSearchUiState,
-                    searchUiState = searchUiState,
-                    switchSelectedMode = switchSelectedMode,
-                    onSelect = onSelect,
-                    onDeselect = onDeselect,
-                    navigateToAppDetail = navigateToAppDetail,
-                    navigateToRuleDetail = navigateToRuleDetail,
-                    appList = appList,
-                    onClearCacheClick = onClearCacheClick,
-                    onClearDataClick = onClearDataClick,
-                    onForceStopClick = onForceStopClick,
-                    onUninstallClick = onUninstallClick,
-                    onEnableClick = onEnableClick,
-                    onDisableClick = onDisableClick,
-                    onServiceStateUpdate = onServiceStateUpdate,
-                )
+                is Success -> {
+                    if (appListUiState is AppListUiState.Success) {
+                        val appList by appListUiState.appList.collectAsState()
+                        SearchResultScreen(
+                            modifier = modifier,
+                            tabState = tabState,
+                            switchTab = switchTab,
+                            localSearchUiState = localSearchUiState,
+                            searchUiState = searchUiState,
+                            switchSelectedMode = switchSelectedMode,
+                            onSelect = onSelect,
+                            onDeselect = onDeselect,
+                            navigateToAppDetail = navigateToAppDetail,
+                            navigateToRuleDetail = navigateToRuleDetail,
+                            appList = appList,
+                            onClearCacheClick = onClearCacheClick,
+                            onClearDataClick = onClearDataClick,
+                            onForceStopClick = onForceStopClick,
+                            onUninstallClick = onUninstallClick,
+                            onEnableClick = onEnableClick,
+                            onDisableClick = onDisableClick,
+                            onServiceStateUpdate = onServiceStateUpdate,
+                        )
+                    }
+                }
             }
         }
     }
@@ -390,7 +396,10 @@ fun SearchScreenSelectedAppPreview() {
                         list = appList,
                     ),
                 ),
-                appList = appList,
+                appListUiState = AppListUiState.Success(
+                    appList = MutableStateFlow(appList),
+                    isRefreshing = false,
+                ),
                 tabState = tabState[0],
                 searchUiState = SearchUiState(
                     keyword = keyword,
@@ -427,6 +436,10 @@ fun SearchScreenSelectedComponentPreview() {
                 searchUiState = SearchUiState(
                     keyword = keyword,
                 ),
+                appListUiState = AppListUiState.Success(
+                    appList = MutableStateFlow(appList),
+                    isRefreshing = false,
+                ),
             )
         }
     }
@@ -437,6 +450,7 @@ fun SearchScreenSelectedComponentPreview() {
 fun SearchScreenSelectedRule() {
     val tabState = SearchTabStatePreviewParameterProvider().values.first()
     val ruleList = RuleListPreviewParameterProvider().values.first()
+    val appList = AppListPreviewParameterProvider().values.first()
     val keyword = "blocker"
 
     BlockerTheme {
@@ -451,6 +465,10 @@ fun SearchScreenSelectedRule() {
                 tabState = tabState[2],
                 searchUiState = SearchUiState(
                     keyword = keyword,
+                ),
+                appListUiState = AppListUiState.Success(
+                    appList = MutableStateFlow(appList),
+                    isRefreshing = false,
                 ),
             )
         }
@@ -482,6 +500,10 @@ fun SearchScreenSelectedModePreview() {
                     ),
                 ),
                 tabState = tabState[1],
+                appListUiState = AppListUiState.Success(
+                    appList = MutableStateFlow(appList),
+                    isRefreshing = false,
+                ),
                 searchUiState = SearchUiState(
                     keyword = keyword,
                     isSelectedMode = true,
@@ -506,6 +528,7 @@ fun SearchScreenSelectedModePreview() {
 @Preview
 fun SearchScreenEmptyPreview() {
     val tabState = SearchTabStatePreviewParameterProvider().values.first()
+    val appList = AppListPreviewParameterProvider().values.first()
 
     BlockerTheme {
         Surface {
@@ -513,6 +536,10 @@ fun SearchScreenEmptyPreview() {
                 localSearchUiState = Idle,
                 tabState = tabState[0],
                 searchUiState = SearchUiState(),
+                appListUiState = AppListUiState.Success(
+                    appList = MutableStateFlow(appList),
+                    isRefreshing = false,
+                ),
             )
         }
     }
@@ -522,6 +549,7 @@ fun SearchScreenEmptyPreview() {
 @Preview
 fun SearchScreenNoResultPreview() {
     val tabState = SearchTabStatePreviewParameterProvider().values.first()
+    val appList = AppListPreviewParameterProvider().values.first()
     val keyword = "blocker"
 
     BlockerTheme {
@@ -534,6 +562,10 @@ fun SearchScreenNoResultPreview() {
                     ),
                 ),
                 tabState = tabState[3],
+                appListUiState = AppListUiState.Success(
+                    appList = MutableStateFlow(appList),
+                    isRefreshing = false,
+                ),
                 searchUiState = SearchUiState(
                     keyword = keyword,
                 ),
@@ -552,6 +584,7 @@ fun SearchScreenInitializingPreview() {
             SearchScreen(
                 localSearchUiState = Initializing("Blocker"),
                 tabState = tabState[0],
+                appListUiState = AppListUiState.Initializing(),
                 searchUiState = SearchUiState(),
             )
         }
@@ -568,6 +601,7 @@ fun SearchScreenLoadingPreview() {
             SearchScreen(
                 localSearchUiState = Loading,
                 tabState = tabState[0],
+                appListUiState = AppListUiState.Initializing(),
                 searchUiState = SearchUiState(),
             )
         }
@@ -584,6 +618,7 @@ fun SearchScreenErrorPreview() {
             SearchScreen(
                 localSearchUiState = Error(uiMessage = UiMessage("Error")),
                 tabState = tabState[0],
+                appListUiState = AppListUiState.Initializing(),
                 searchUiState = SearchUiState(),
             )
         }
