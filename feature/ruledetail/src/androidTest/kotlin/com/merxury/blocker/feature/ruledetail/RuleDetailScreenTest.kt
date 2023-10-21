@@ -71,7 +71,6 @@ class RuleDetailScreenTest {
     fun circularProgressIndicator_whenScreenIsLoading_exists() {
         composeTestRule.setContent {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = RuleMatchedAppListUiState.Loading,
                 ruleInfoUiState = RuleInfoUiState.Loading,
                 onBackClick = {},
                 tabState = tabState,
@@ -86,9 +85,6 @@ class RuleDetailScreenTest {
     fun circularProgressIndicator_whenApplicableListIsLoading_exists() {
         composeTestRule.setContent {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
-                    ruleMatchedAppListTestData,
-                ),
                 ruleInfoUiState = RuleInfoUiState.Loading,
                 onBackClick = {},
                 tabState = tabState,
@@ -107,12 +103,12 @@ class RuleDetailScreenTest {
     fun showRuleApplicableApps_showMoreIconExpandMoreIcon() {
         composeTestRule.setContent {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = RuleMatchedAppListUiState.Success(
-                    ruleMatchedAppListTestData,
-                ),
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = generalRuleTestData,
                     ruleIcon = null,
+                    matchedAppsUiState = RuleMatchedAppListUiState.Success(
+                        ruleMatchedAppListTestData,
+                    ),
                 ),
                 onBackClick = {},
                 tabState = tabState,
@@ -151,10 +147,10 @@ class RuleDetailScreenTest {
         )
         composeTestRule.setContent {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = RuleMatchedAppListUiState.Loading,
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = generalRuleTestData,
                     ruleIcon = null,
+                    matchedAppsUiState = RuleMatchedAppListUiState.Loading,
                 ),
                 onBackClick = {},
                 tabState = tabState,
