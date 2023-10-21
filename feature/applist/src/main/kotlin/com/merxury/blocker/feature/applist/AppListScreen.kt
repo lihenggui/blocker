@@ -128,7 +128,6 @@ fun AppListScreen(
     navigateToSettings: () -> Unit = {},
     navigateToSupportAndFeedback: () -> Unit = {},
     onRefresh: () -> Unit = {},
-    isRefreshing: Boolean = false,
 ) {
     Scaffold(
         topBar = {
@@ -150,29 +149,29 @@ fun AppListScreen(
             )
         },
     ) { padding ->
-        val refreshingState = rememberPullRefreshState(
-            refreshing = isRefreshing,
-            onRefresh = onRefresh,
-        )
-        Box(modifier = modifier.pullRefresh(refreshingState)) {
-            Column(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(top = padding.calculateTopPadding())
-                    .windowInsetsPadding(
-                        WindowInsets.safeDrawing.only(
-                            WindowInsetsSides.Horizontal,
-                        ),
+        Column(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(top = padding.calculateTopPadding())
+                .windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Horizontal,
                     ),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                val appListTestTag = "appList:applicationList"
-                when (uiState) {
-                    is Initializing -> InitializingScreen(processingName = uiState.processingName)
+                ),
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            val appListTestTag = "appList:applicationList"
+            when (uiState) {
+                is Initializing -> InitializingScreen(processingName = uiState.processingName)
 
-                    is Success -> {
-                        val appList by uiState.appList.collectAsState()
+                is Success -> {
+                    val refreshingState = rememberPullRefreshState(
+                        refreshing = uiState.isRefreshing,
+                        onRefresh = onRefresh,
+                    )
+                    val appList by uiState.appList.collectAsState()
+                    Box(modifier = modifier.pullRefresh(refreshingState)) {
                         if (appList.isEmpty()) {
                             EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
                         } else {
@@ -189,17 +188,17 @@ fun AppListScreen(
                                 modifier = modifier.testTag(appListTestTag),
                             )
                         }
+                        PullRefreshIndicator(
+                            refreshing = uiState.isRefreshing,
+                            state = refreshingState,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            scale = true,
+                        )
                     }
-
-                    is Error -> ErrorScreen(uiState.error)
                 }
+
+                is Error -> ErrorScreen(uiState.error)
             }
-            PullRefreshIndicator(
-                refreshing = isRefreshing,
-                state = refreshingState,
-                modifier = Modifier.align(Alignment.TopCenter),
-                scale = true,
-            )
         }
     }
     TrackScreenViewEvent(screenName = "AppListScreen")

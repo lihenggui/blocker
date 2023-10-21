@@ -121,7 +121,9 @@ class AppListViewModel @Inject constructor(
             appRepository.getApplicationList()
                 .onStart {
                     Timber.v("Start loading app list")
-                    _uiState.emit(Initializing())
+                    if (_uiState.value !is Success) {
+                        _uiState.emit(Initializing())
+                    }
                 }
                 .distinctUntilChanged()
                 .collect { list ->
