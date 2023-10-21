@@ -52,8 +52,6 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Success
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
@@ -88,10 +86,6 @@ class RuleDetailViewModel @Inject constructor(
     private val analyticsHelper: AnalyticsHelper,
 ) : ViewModel() {
     private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
-    private val _ruleMatchedAppListUiState: MutableStateFlow<RuleMatchedAppListUiState> =
-        MutableStateFlow(Loading)
-    val ruleMatchedAppListUiState: StateFlow<RuleMatchedAppListUiState> =
-        _ruleMatchedAppListUiState
     private val _ruleInfoUiState: MutableStateFlow<RuleInfoUiState> =
         MutableStateFlow(RuleInfoUiState.Loading)
     val ruleInfoUiState: StateFlow<RuleInfoUiState> = _ruleInfoUiState
@@ -158,6 +152,7 @@ class RuleDetailViewModel @Inject constructor(
                 RuleInfoUiState.Success(
                     ruleInfo = ruleWithIcon,
                     ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
+                    matchedAppsUiState = RuleMatchedAppListUiState.Loading,
                 )
             }
             currentSearchKeyword = rule.searchKeyword
@@ -168,9 +163,18 @@ class RuleDetailViewModel @Inject constructor(
     fun controlAllComponentsInPage(enable: Boolean) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch {
-            val uiState = _ruleMatchedAppListUiState.value as? Success
-                ?: return@launch
-            val list = uiState.list
+            // Make sure that the user is in the correct state
+            val ruleUiList = _ruleInfoUiState.value
+            if (ruleUiList !is RuleInfoUiState.Success) {
+                Timber.e("Rule info is not ready")
+                return@launch
+            }
+            val matchedAppState = ruleUiList.matchedAppsUiState
+            if (matchedAppState !is RuleMatchedAppListUiState.Success) {
+                Timber.e("Matched app list is not ready")
+                return@launch
+            }
+            val list = matchedAppState.list
                 .flatMap { it.componentList }
             controlAllComponents(list, enable)
             analyticsHelper.logControlAllInPageClicked(newState = enable)
@@ -206,7 +210,16 @@ class RuleDetailViewModel @Inject constructor(
                 val searchedComponentItem = components.map { it.toComponentItem() }
                 RuleMatchedApp(appItem, searchedComponentItem)
             }
-        _ruleMatchedAppListUiState.emit(Success(searchResult))
+        _ruleInfoUiState.update {
+            val matchedApps = RuleMatchedAppListUiState.Success(searchResult)
+            if (it is RuleInfoUiState.Success) {
+                it.copy(matchedAppsUiState = matchedApps)
+            } else {
+                // Unreachable code
+                Timber.e("Updating matched apps when rule info is not ready")
+                RuleInfoUiState.Error(UiMessage("Wrong UI state"))
+            }
+        }
     }
 
     fun switchTab(newTab: RuleDetailTabs) {
@@ -300,5 +313,6 @@ sealed interface RuleInfoUiState {
     data class Success(
         val ruleInfo: GeneralRule,
         val ruleIcon: Bitmap?,
+        val matchedAppsUiState: RuleMatchedAppListUiState,
     ) : RuleInfoUiState
 }
