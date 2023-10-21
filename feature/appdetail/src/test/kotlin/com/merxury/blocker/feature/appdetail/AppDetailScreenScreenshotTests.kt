@@ -183,8 +183,10 @@ class AppDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
-                    componentListUiState = ComponentListUiState(),
+                    appInfoUiState = Success(
+                        appInfo = appList[0],
+                        iconBasedTheming = null,
+                    ),
                     tabState = tabState[0],
                     topAppBarUiState = AppBarUiState(),
                 )
@@ -198,7 +200,6 @@ class AppDetailScreenScreenshotTests {
             Surface {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState.Loading,
-                    componentListUiState = ComponentListUiState(),
                     tabState = tabState[0],
                     topAppBarUiState = AppBarUiState(),
                 )
@@ -212,7 +213,6 @@ class AppDetailScreenScreenshotTests {
             Surface {
                 AppDetailScreen(
                     appInfoUiState = AppInfoUiState.Error(error = UiMessage("Error")),
-                    componentListUiState = ComponentListUiState(),
                     tabState = tabState[0],
                     topAppBarUiState = AppBarUiState(),
                 )
@@ -225,16 +225,19 @@ class AppDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                    appInfoUiState = Success(
+                        appInfo = appList[0],
+                        iconBasedTheming = null,
+                        componentListUiState = ComponentListUiState(
+                            activity = activityComponents,
+                        ),
+                    ),
                     tabState = tabState[1],
                     topAppBarUiState = AppBarUiState(
                         actions = listOf(
                             SEARCH,
                             MORE,
                         ),
-                    ),
-                    componentListUiState = ComponentListUiState(
-                        activity = activityComponents,
                     ),
                 )
             }
@@ -246,7 +249,13 @@ class AppDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                    appInfoUiState = Success(
+                        appInfo = appList[0],
+                        iconBasedTheming = null,
+                        componentListUiState = ComponentListUiState(
+                            activity = activityComponents,
+                        ),
+                    ),
                     tabState = tabState[1],
                     topAppBarUiState = AppBarUiState(
                         actions = listOf(
@@ -254,9 +263,6 @@ class AppDetailScreenScreenshotTests {
                             MORE,
                         ),
                         isSearchMode = true,
-                    ),
-                    componentListUiState = ComponentListUiState(
-                        activity = activityComponents,
                     ),
                 )
             }
@@ -270,9 +276,12 @@ class AppDetailScreenScreenshotTests {
                 BlockerTheme {
                     Surface {
                         AppDetailScreen(
-                            appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
-                            componentListUiState = ComponentListUiState(
-                                activity = activityComponents,
+                            appInfoUiState = Success(
+                                appInfo = appList[0],
+                                iconBasedTheming = null,
+                                componentListUiState = ComponentListUiState(
+                                    activity = activityComponents,
+                                ),
                             ),
                             topAppBarUiState = AppBarUiState(
                                 actions = listOf(
