@@ -18,6 +18,7 @@ package com.merxury.blocker.feature.helpandfeedback
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -60,6 +61,7 @@ fun SupportAndFeedbackRoute(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SupportAndFeedbackScreen(
     onNavigationClick: () -> Unit = {},
