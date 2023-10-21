@@ -861,7 +861,8 @@ fun AppDetailScreenSelectedModePreview(
         Surface {
             AppDetailScreen(
                 appInfoUiState = Success(
-                    appInfo = appList[0], iconBasedTheming = null,
+                    appInfo = appList[0],
+                    iconBasedTheming = null,
                     componentListUiState = ComponentListUiState(
                         activity = activityComponents,
                     ),
