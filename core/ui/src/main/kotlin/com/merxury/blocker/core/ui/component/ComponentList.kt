@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -46,7 +45,6 @@ import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.TrackScrollJank
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ComponentList(
     components: List<ComponentItem>,
@@ -61,7 +59,6 @@ fun ComponentList(
     isSelectedMode: Boolean = false,
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
-    onRefresh: () -> Unit = {},
 ) {
     if (components.isEmpty()) {
         NoComponentScreen()
