@@ -404,7 +404,7 @@ class SearchScreenScreenshotTests {
                         keyword = keyword,
                     ),
                     appListUiState = AppListUiState.Success(
-                        appList = MutableStateFlow(appList),
+                        appList = MutableStateFlow(listOf()),
                         isRefreshing = false,
                     ),
                 )
