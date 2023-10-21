@@ -1,5 +1,5 @@
 [versions]
-accompanist = "0.33.2-alpha"
+accompanist = "0.32.0"
 androidDesugarJdkLibs = "2.0.3"
 androidGradlePlugin = "8.3.0-alpha09"
 androidxActivity = "1.8.0"
@@ -7,8 +7,7 @@ androidxAppCompat = "1.6.1"
 androidxBrowser = "1.6.0"
 androidxComposeBom = "2023.10.01"
 androidxComposeCompiler = "1.5.3"
-androidxComposeMaterial3 = "1.2.0-alpha10"
-androidxComposeRuntimeTracing = "1.0.0-alpha04"
+androidxComposeRuntimeTracing = "1.0.0-alpha03"
 androidxCore = "1.12.0"
 androidxCoreSplashscreen = "1.0.1"
 androidxDataStore = "1.0.0"
@@ -56,7 +55,7 @@ protobufPlugin = "0.9.4"
 retrofit = "2.9.0"
 retrofitKotlinxSerializationJson = "1.0.0"
 robolectric = "4.10.3"
-roborazzi = "1.8.0-alpha-2"
+roborazzi = "1.6.0"
 room = "2.6.0"
 secrets = "2.0.1"
 shizuku = "13.1.5"
@@ -81,8 +80,8 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout" }
 androidx-compose-material = { group = "androidx.compose.material", name = "material" , version.ref = "androidxComposeMaterial" }
 androidx-compose-material-iconsExtended = { group = "androidx.compose.material", name = "material-icons-extended" }
-androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "androidxComposeMaterial3" }
-androidx-compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "androidxComposeMaterial3" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material3-windowSizeClass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
 androidx-compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata" }
 androidx-compose-runtime-tracing = { group = "androidx.compose.runtime", name = "runtime-tracing", version.ref = "androidxComposeRuntimeTracing" }
