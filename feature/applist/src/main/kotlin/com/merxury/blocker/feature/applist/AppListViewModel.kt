@@ -101,13 +101,6 @@ class AppListViewModel @Inject constructor(
     }
 
     fun loadData() {
-        _uiState.update {
-            if (it is Success) {
-                it.copy(isRefreshing = true)
-            } else {
-                it
-            }
-        }
         loadAppListJob?.cancel()
         loadAppListJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             // Init DB first to get correct data
@@ -123,6 +116,14 @@ class AppListViewModel @Inject constructor(
                     Timber.v("Start loading app list")
                     if (_uiState.value !is Success) {
                         _uiState.emit(Initializing())
+                    } else {
+                        _uiState.update {
+                            if (it is Success) {
+                                it.copy(isRefreshing = true)
+                            } else {
+                                it
+                            }
+                        }
                     }
                 }
                 .distinctUntilChanged()
