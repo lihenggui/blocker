@@ -215,6 +215,7 @@ class AppDetailViewModel @Inject constructor(
     private suspend fun updateTabState() {
         val appUiState = _appInfoUiState.value
         if (appUiState !is Success) {
+            Timber.e("App info UI state is not success, return")
             return
         }
         val listUiState = appUiState.componentListUiState
@@ -511,6 +512,7 @@ class AppDetailViewModel @Inject constructor(
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val appUiState = _appInfoUiState.value
             if (appUiState !is Success) {
+                Timber.e("App info UI state is not success, return")
                 return@launch
             }
             val listUiState = appUiState.componentListUiState
@@ -668,6 +670,7 @@ class AppDetailViewModel @Inject constructor(
     private fun getCurrentTabFilterComponentList(): MutableList<ComponentInfo> {
         val appUiState = _appInfoUiState.value
         if (appUiState !is Success) {
+            Timber.e("App info UI state is not success, return")
             return mutableListOf()
         }
         val listUiState = appUiState.componentListUiState
@@ -860,6 +863,7 @@ class AppDetailViewModel @Inject constructor(
         Timber.v("Update component detail: $componentDetail")
         val appUiState = _appInfoUiState.value
         if (appUiState !is Success) {
+            Timber.e("App info UI state is not success, return")
             return
         }
         val currentState = appUiState.componentListUiState
