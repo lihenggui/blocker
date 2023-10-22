@@ -165,7 +165,6 @@ class AppListViewModel @Inject constructor(
                             sortedList
                         }
                     }
-                        .toSet()
                         .toMutableStateList()
                     _uiState.emit(
                         Success(
