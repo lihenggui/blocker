@@ -213,37 +213,39 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private suspend fun updateTabState() {
-        if (_appInfoUiState.value is Success) {
-            val listUiState = (_appInfoUiState.value as Success).componentListUiState
-            val itemCountMap = mapOf(
-                Info to 1,
-                Receiver to listUiState.receiver.size,
-                Service to listUiState.service.size,
-                Activity to listUiState.activity.size,
-                Provider to listUiState.provider.size,
-            ).filter { it.value > 0 }
-            val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
-            if (_tabState.value.selectedItem !in nonEmptyItems) {
-                Timber.d(
-                    "Selected tab ${_tabState.value.selectedItem}" +
-                        "is not in non-empty items, return to first item",
-                )
-                _tabState.emit(
-                    TabState(
-                        items = nonEmptyItems,
-                        selectedItem = nonEmptyItems.first(),
-                        itemCount = itemCountMap,
-                    ),
-                )
-            } else {
-                _tabState.emit(
-                    TabState(
-                        items = nonEmptyItems,
-                        selectedItem = _tabState.value.selectedItem,
-                        itemCount = itemCountMap,
-                    ),
-                )
-            }
+        val appUiState = _appInfoUiState.value
+        if (appUiState !is Success) {
+            return
+        }
+        val listUiState = appUiState.componentListUiState
+        val itemCountMap = mapOf(
+            Info to 1,
+            Receiver to listUiState.receiver.size,
+            Service to listUiState.service.size,
+            Activity to listUiState.activity.size,
+            Provider to listUiState.provider.size,
+        ).filter { it.value > 0 }
+        val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
+        if (_tabState.value.selectedItem !in nonEmptyItems) {
+            Timber.d(
+                "Selected tab ${_tabState.value.selectedItem}" +
+                    "is not in non-empty items, return to first item",
+            )
+            _tabState.emit(
+                TabState(
+                    items = nonEmptyItems,
+                    selectedItem = nonEmptyItems.first(),
+                    itemCount = itemCountMap,
+                ),
+            )
+        } else {
+            _tabState.emit(
+                TabState(
+                    items = nonEmptyItems,
+                    selectedItem = _tabState.value.selectedItem,
+                    itemCount = itemCountMap,
+                ),
+            )
         }
     }
 
@@ -507,28 +509,30 @@ class AppDetailViewModel @Inject constructor(
     fun controlAllComponents(enable: Boolean) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            if (_appInfoUiState.value is Success) {
-                val listUiState = (_appInfoUiState.value as Success).componentListUiState
-                val list = when (tabState.value.selectedItem) {
-                    Receiver -> listUiState.receiver
-                    Service -> listUiState.service
-                    Activity -> listUiState.activity
-                    Provider -> listUiState.provider
-                    else -> return@launch
-                }.map {
-                    it.toComponentInfo()
-                }
-                componentRepository.batchControlComponent(
-                    components = list.toList(),
-                    newState = enable,
-                )
-                    .catch { exception ->
-                        _errorState.emit(exception.toErrorMessage())
-                    }
-                    .collect {}
+            val appUiState = _appInfoUiState.value
+            if (appUiState !is Success) {
+                return@launch
             }
-            analyticsHelper.logBatchOperationPerformed(enable)
+            val listUiState = appUiState.componentListUiState
+            val list = when (tabState.value.selectedItem) {
+                Receiver -> listUiState.receiver
+                Service -> listUiState.service
+                Activity -> listUiState.activity
+                Provider -> listUiState.provider
+                else -> return@launch
+            }.map {
+                it.toComponentInfo()
+            }
+            componentRepository.batchControlComponent(
+                components = list.toList(),
+                newState = enable,
+            )
+                .catch { exception ->
+                    _errorState.emit(exception.toErrorMessage())
+                }
+                .collect {}
         }
+        analyticsHelper.logBatchOperationPerformed(enable)
     }
 
     fun dismissAlert() = viewModelScope.launch {
@@ -662,11 +666,11 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private fun getCurrentTabFilterComponentList(): MutableList<ComponentInfo> {
-        val listUiState = if (_appInfoUiState.value is Success) {
-            (_appInfoUiState.value as Success).componentListUiState
-        } else {
+        val appUiState = _appInfoUiState.value
+        if (appUiState !is Success) {
             return mutableListOf()
         }
+        val listUiState = appUiState.componentListUiState
         return when (tabState.value.selectedItem) {
             Receiver -> listUiState.receiver.map { it.toComponentInfo() }
             Service -> listUiState.service.map { it.toComponentInfo() }
@@ -854,11 +858,11 @@ class AppDetailViewModel @Inject constructor(
 
     private fun updateComponentDetail(componentDetail: ComponentDetail) {
         Timber.v("Update component detail: $componentDetail")
-        val currentState = if (_appInfoUiState.value is Success) {
-            (_appInfoUiState.value as Success).componentListUiState
-        } else {
+        val appUiState = _appInfoUiState.value
+        if (appUiState !is Success) {
             return
         }
+        val currentState = appUiState.componentListUiState
         currentState.receiver.find { it.name == componentDetail.name }
             ?.let { item ->
                 val index = currentState.receiver.indexOf(item)
