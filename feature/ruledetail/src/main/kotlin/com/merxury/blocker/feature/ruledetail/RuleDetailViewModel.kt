@@ -202,12 +202,14 @@ class RuleDetailViewModel @Inject constructor(
         val showSystemApps = userDataRepository.userData.first().showSystemApps
         val searchResult = matchedComponents.groupBy { it.packageName }
             .mapNotNull { (packageName, components) ->
-                val app =
-                    appRepository.getApplication(packageName).first() ?: return@mapNotNull null
+                val app = appRepository.getApplication(packageName).first()
+                    ?: return@mapNotNull null
                 if (!showSystemApps && app.isSystem) return@mapNotNull null
                 val packageInfo = pm.getPackageInfoCompat(packageName, 0)
                 val appItem = app.toAppItem(packageInfo = packageInfo)
-                val searchedComponentItem = components.map { it.toComponentItem() }
+                val searchedComponentItem = components
+                    .toSet() // Remove duplicate components caused by multiple keywords
+                    .map { it.toComponentItem() }
                 RuleMatchedApp(appItem, searchedComponentItem)
             }
         _ruleInfoUiState.update {
