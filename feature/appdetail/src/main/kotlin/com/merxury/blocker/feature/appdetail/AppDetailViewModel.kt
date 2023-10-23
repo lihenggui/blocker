@@ -277,12 +277,16 @@ class AppDetailViewModel @Inject constructor(
         )
     }
 
-    private fun loadComponentList() {
+    fun loadComponentList() {
         loadComponentListJob?.cancel()
         loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val packageName = appDetailArgs.packageName
             componentRepository.getComponentList(packageName)
                 .collect { origList ->
+                    Timber.v("Start loading component list")
+                    _componentListUiState.update {
+                        it.copy(isRefreshing = true)
+                    }
                     // Show the cache data first
                     updateTabContent(origList, packageName)
                     // Load the data with description and update again
@@ -297,6 +301,9 @@ class AppDetailViewModel @Inject constructor(
                         }
                     }
                     updateTabContent(list, packageName)
+                    _componentListUiState.update {
+                        it.copy(isRefreshing = false)
+                    }
                 }
         }
     }
@@ -912,4 +919,5 @@ data class ComponentListUiState(
     val service: SnapshotStateList<ComponentItem> = mutableStateListOf(),
     val activity: SnapshotStateList<ComponentItem> = mutableStateListOf(),
     val provider: SnapshotStateList<ComponentItem> = mutableStateListOf(),
+    val isRefreshing: Boolean = false,
 )
