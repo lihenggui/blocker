@@ -688,8 +688,8 @@ fun AppDetailTabContent(
     LaunchedEffect(tabState) {
         pagerState.animateScrollToPage(tabState.currentIndex)
     }
-    LaunchedEffect(pagerState.targetPage) {
-        switchTab(tabState.items[pagerState.targetPage])
+    LaunchedEffect(pagerState.settledPage) {
+        switchTab(tabState.items[pagerState.settledPage])
     }
 
     Column(
