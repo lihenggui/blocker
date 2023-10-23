@@ -118,7 +118,7 @@ class SettingsViewModel @Inject constructor(
                 Os.readlink("/proc/self/fd/${it.fd}")
             } ?: throw IOException("Can't open file descriptor for uri: $uri")
         } catch (e: Exception) {
-            Timber.e("Can't get path from uri string: $path", e)
+            Timber.e(e, "Can't get path from uri string: $path")
             ""
         }
     }
