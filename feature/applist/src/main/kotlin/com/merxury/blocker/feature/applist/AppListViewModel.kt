@@ -63,6 +63,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -104,7 +105,7 @@ class AppListViewModel @Inject constructor(
         listenShowSystemAppsChanges()
     }
 
-    private fun loadData() {
+    fun loadData() {
         loadAppListJob?.cancel()
         loadAppListJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             // Init DB first to get correct data
@@ -118,7 +119,13 @@ class AppListViewModel @Inject constructor(
             appRepository.getApplicationList()
                 .onStart {
                     Timber.v("Start loading app list")
-                    _uiState.emit(Initializing())
+                    _uiState.update {
+                        if (it is Success) {
+                            it.copy(isRefreshing = true)
+                        } else {
+                            Initializing()
+                        }
+                    }
                 }
                 .distinctUntilChanged()
                 .collect { list ->
@@ -161,7 +168,7 @@ class AppListViewModel @Inject constructor(
                     }
                         .toMutableStateList()
                     _appListFlow.value = _appList
-                    _uiState.emit(Success)
+                    _uiState.emit(Success(isRefreshing = false))
                 }
         }
     }
@@ -363,7 +370,7 @@ class AppListViewModel @Inject constructor(
 sealed interface AppListUiState {
     class Initializing(val processingName: String = "") : AppListUiState
     class Error(val error: UiMessage) : AppListUiState
-    data object Success : AppListUiState
+    data class Success(val isRefreshing: Boolean = false) : AppListUiState
 }
 
 data class WarningDialogData(
