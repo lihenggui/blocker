@@ -283,6 +283,7 @@ class AppDetailViewModel @Inject constructor(
             val packageName = appDetailArgs.packageName
             componentRepository.getComponentList(packageName)
                 .collect { origList ->
+                    Timber.v("Start loading component list")
                     _componentListUiState.update {
                         it.copy(isRefreshing = true)
                     }

@@ -85,7 +85,7 @@ class AppListScreenTest {
     fun showAppList() {
         composeTestRule.setContent {
             AppListScreen(
-                uiState = AppListUiState.Success,
+                uiState = AppListUiState.Success(),
                 appList = appListTestData,
             )
         }
@@ -99,7 +99,7 @@ class AppListScreenTest {
     fun showFastScrollbar_whenAppListMoreThanOneScreen() {
         composeTestRule.setContent {
             AppListScreen(
-                uiState = AppListUiState.Success,
+                uiState = AppListUiState.Success(),
                 appList = appListTestData,
             )
         }

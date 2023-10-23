@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.applist
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -25,6 +26,10 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -88,6 +93,7 @@ fun AppListRoute(
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         navigateTooAppSortScreen = navigateTooAppSortScreen,
         modifier = modifier,
+        onRefresh = viewModel::loadData,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -106,6 +112,7 @@ fun AppListRoute(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AppListScreen(
     uiState: AppListUiState,
@@ -122,6 +129,7 @@ fun AppListScreen(
     navigateTooAppSortScreen: () -> Unit = {},
     navigateToSettings: () -> Unit = {},
     navigateToSupportAndFeedback: () -> Unit = {},
+    onRefresh: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -143,6 +151,7 @@ fun AppListScreen(
             )
         },
     ) { padding ->
+
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -160,20 +169,32 @@ fun AppListScreen(
                 is Initializing -> InitializingScreen(processingName = uiState.processingName)
 
                 is Success -> {
-                    if (appList.isEmpty()) {
-                        EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
-                    } else {
-                        AppList(
-                            appList = appList,
-                            onAppItemClick = onAppItemClick,
-                            onClearCacheClick = onClearCacheClick,
-                            onClearDataClick = onClearDataClick,
-                            onForceStopClick = onForceStopClick,
-                            onUninstallClick = onUninstallClick,
-                            onEnableClick = onEnableClick,
-                            onDisableClick = onDisableClick,
-                            onServiceStateUpdate = onServiceStateUpdate,
-                            modifier = modifier.testTag(appListTestTag),
+                    val refreshingState = rememberPullRefreshState(
+                        refreshing = uiState.isRefreshing,
+                        onRefresh = onRefresh,
+                    )
+                    Box(modifier = modifier.pullRefresh(refreshingState)) {
+                        if (appList.isEmpty()) {
+                            EmptyScreen(textRes = string.feature_applist_no_applications_to_display)
+                        } else {
+                            AppList(
+                                appList = appList,
+                                onAppItemClick = onAppItemClick,
+                                onClearCacheClick = onClearCacheClick,
+                                onClearDataClick = onClearDataClick,
+                                onForceStopClick = onForceStopClick,
+                                onUninstallClick = onUninstallClick,
+                                onEnableClick = onEnableClick,
+                                onDisableClick = onDisableClick,
+                                onServiceStateUpdate = onServiceStateUpdate,
+                                modifier = modifier.testTag(appListTestTag),
+                            )
+                        }
+                        PullRefreshIndicator(
+                            refreshing = uiState.isRefreshing,
+                            state = refreshingState,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            scale = true,
                         )
                     }
                 }
@@ -192,7 +213,7 @@ fun AppListScreenPreview(
 ) {
     BlockerTheme {
         Surface {
-            AppListScreen(uiState = Success, appList = appList)
+            AppListScreen(uiState = Success(), appList = appList)
         }
     }
 }
@@ -222,7 +243,7 @@ fun AppListScreenErrorPreview() {
 fun AppListScreenEmptyPreview() {
     BlockerTheme {
         Surface {
-            AppListScreen(uiState = Success, appList = listOf())
+            AppListScreen(uiState = Success(), appList = listOf())
         }
     }
 }
