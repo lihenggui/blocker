@@ -78,8 +78,7 @@ class AppDetailViewModelTest {
     private val componentRepository = TestComponentRepository()
     private val componentDetailRepository = TestComponentDetailRepository()
     private val shizukuInitializer = FakeShizukuInitializer()
-    private val ioDispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
-    private val cpuDispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
+    private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val savedStateHandle = SavedStateHandle(
         mapOf(
             packageNameArg to sampleAppList.first().packageName,
@@ -101,14 +100,14 @@ class AppDetailViewModelTest {
             cacheDir = tempFolder.newFolder(),
             filesDir = tempFolder.newFolder(),
             ruleBaseFolder = "user-generated-rule",
-            ioDispatcher = ioDispatcher,
+            ioDispatcher = dispatcher,
         )
         val zipAllRuleUseCase = ZipAllRuleUseCase(
             userDataRepository = userDataRepository,
             cacheDir = tempFolder.newFolder(),
             filesDir = tempFolder.newFolder(),
             ruleBaseFolder = "user-generated-rule",
-            ioDispatcher = ioDispatcher,
+            ioDispatcher = dispatcher,
         )
         viewModel = AppDetailViewModel(
             savedStateHandle = savedStateHandle,
@@ -122,8 +121,9 @@ class AppDetailViewModelTest {
             workerManager = WorkManager.getInstance(context),
             zipAppRuleUseCase = zipAppRuleUseCase,
             zipAllRuleUseCase = zipAllRuleUseCase,
-            ioDispatcher = ioDispatcher,
-            cpuDispatcher = cpuDispatcher,
+            ioDispatcher = dispatcher,
+            cpuDispatcher = dispatcher,
+            mainDispatcher = dispatcher,
         )
     }
 
