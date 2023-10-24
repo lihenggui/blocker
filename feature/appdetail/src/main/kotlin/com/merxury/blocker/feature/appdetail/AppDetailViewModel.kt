@@ -41,6 +41,7 @@ import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetai
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
@@ -128,6 +129,7 @@ class AppDetailViewModel @Inject constructor(
     private val zipAppRuleUseCase: ZipAppRuleUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
+    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle)
     private val _appInfoUiState: MutableStateFlow<AppInfoUiState> = MutableStateFlow(Loading)
@@ -196,13 +198,14 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun search(newText: String) {
+    fun search(keyword: String) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
-            val keyword = newText
             Timber.i("Filtering component list with keyword: $keyword")
             // Update search bar text first
-            _appBarUiState.update { it.copy(keyword = newText) }
+            withContext(mainDispatcher) {
+                _appBarUiState.update { it.copy(keyword = keyword) }
+            }
             filterAndUpdateComponentList(keyword)
             updateTabState(_componentListUiState.value)
         }
@@ -284,8 +287,10 @@ class AppDetailViewModel @Inject constructor(
             componentRepository.getComponentList(packageName)
                 .collect { origList ->
                     Timber.v("Start loading component list")
-                    _componentListUiState.update {
-                        it.copy(isRefreshing = true)
+                    withContext(mainDispatcher) {
+                        _componentListUiState.update {
+                            it.copy(isRefreshing = true)
+                        }
                     }
                     // Show the cache data first
                     updateTabContent(origList, packageName)
@@ -301,8 +306,10 @@ class AppDetailViewModel @Inject constructor(
                         }
                     }
                     updateTabContent(list, packageName)
-                    _componentListUiState.update {
-                        it.copy(isRefreshing = false)
+                    withContext(mainDispatcher) {
+                        _componentListUiState.update {
+                            it.copy(isRefreshing = false)
+                        }
                     }
                 }
         }
@@ -415,7 +422,7 @@ class AppDetailViewModel @Inject constructor(
             .toMutableStateList()
     }
 
-    private fun updateSearchKeyword() = viewModelScope.launch {
+    private fun updateSearchKeyword() = viewModelScope.launch(mainDispatcher) {
         val keyword = appDetailArgs.searchKeyword
             .map { it.trim() }
             .filterNot { it.isEmpty() }
@@ -431,7 +438,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun loadTabInfo() = viewModelScope.launch {
+    private fun loadTabInfo() = viewModelScope.launch(mainDispatcher) {
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
@@ -440,7 +447,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch {
+    fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch(mainDispatcher) {
         if (newTab != tabState.value.selectedItem) {
             Timber.d("Switch tab to ${newTab.name}, screen = ${appDetailArgs.packageName}")
             _tabState.update {
@@ -464,8 +471,10 @@ class AppDetailViewModel @Inject constructor(
 
     private suspend fun hasCustomizedRule(): Boolean {
         val packageName = appDetailArgs.packageName
-        return componentDetailRepository.hasUserGeneratedDetail(packageName)
-            .first()
+        return withContext(ioDispatcher) {
+            componentDetailRepository.hasUserGeneratedDetail(packageName)
+                .first()
+        }
     }
 
     fun launchApp(context: Context, packageName: String): Boolean {
@@ -547,16 +556,18 @@ class AppDetailViewModel @Inject constructor(
         }
         val newStatus = item.copy(isRunning = isRunning)
         Timber.d("Update service $componentName running status to $newStatus")
-        _componentListUiState.update {
-            it.copy(
-                service = it.service.map { item ->
-                    if (item.name == componentName) {
-                        newStatus
-                    } else {
-                        item
-                    }
-                }.toMutableStateList(),
-            )
+        withContext(mainDispatcher) {
+            _componentListUiState.update {
+                it.copy(
+                    service = it.service.map { item ->
+                        if (item.name == componentName) {
+                            newStatus
+                        } else {
+                            item
+                        }
+                    }.toMutableStateList(),
+                )
+            }
         }
     }
 
@@ -583,8 +594,10 @@ class AppDetailViewModel @Inject constructor(
                     _errorState.emit(exception.toErrorMessage())
                 }
                 .collect()
-            _appBarUiState.update {
-                it.copy(selectedComponentList = listOf())
+            withContext(mainDispatcher) {
+                _appBarUiState.update {
+                    it.copy(selectedComponentList = listOf())
+                }
             }
         }
     }
@@ -829,7 +842,8 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun updateComponentDetail(componentDetail: ComponentDetail) {
+    // TODO Refactor this function to remove duplications
+    private suspend fun updateComponentDetail(componentDetail: ComponentDetail) {
         Timber.v("Update component detail: $componentDetail")
         val currentState = _componentListUiState.value.copy()
         currentState.receiver.find { it.name == componentDetail.name }
@@ -839,12 +853,14 @@ class AppDetailViewModel @Inject constructor(
                     Timber.w("Cannot find receiver ${componentDetail.name} to update")
                     return
                 }
-                _componentListUiState.update {
-                    it.copy(
-                        receiver = it.receiver.toMutableStateList().apply {
-                            set(index, item.copy(description = componentDetail.description))
-                        },
-                    )
+                withContext(mainDispatcher) {
+                    _componentListUiState.update {
+                        it.copy(
+                            receiver = it.receiver.toMutableStateList().apply {
+                                set(index, item.copy(description = componentDetail.description))
+                            },
+                        )
+                    }
                 }
             }
         currentState.service.find { it.name == componentDetail.name }
@@ -854,12 +870,14 @@ class AppDetailViewModel @Inject constructor(
                     Timber.w("Cannot find service ${componentDetail.name} to update")
                     return
                 }
-                _componentListUiState.update {
-                    it.copy(
-                        service = it.service.toMutableStateList().apply {
-                            set(index, item.copy(description = componentDetail.description))
-                        },
-                    )
+                withContext(mainDispatcher) {
+                    _componentListUiState.update {
+                        it.copy(
+                            service = it.service.toMutableStateList().apply {
+                                set(index, item.copy(description = componentDetail.description))
+                            },
+                        )
+                    }
                 }
             }
         currentState.activity.find { it.name == componentDetail.name }
@@ -869,12 +887,14 @@ class AppDetailViewModel @Inject constructor(
                     Timber.w("Cannot find activity ${componentDetail.name} to update")
                     return
                 }
-                _componentListUiState.update {
-                    it.copy(
-                        activity = it.activity.toMutableStateList().apply {
-                            set(index, item.copy(description = componentDetail.description))
-                        },
-                    )
+                withContext(mainDispatcher) {
+                    _componentListUiState.update {
+                        it.copy(
+                            activity = it.activity.toMutableStateList().apply {
+                                set(index, item.copy(description = componentDetail.description))
+                            },
+                        )
+                    }
                 }
             }
         currentState.provider.find { it.name == componentDetail.name }
@@ -884,21 +904,22 @@ class AppDetailViewModel @Inject constructor(
                     Timber.w("Cannot find provider ${componentDetail.name} to update")
                     return
                 }
-                _componentListUiState.update {
-                    it.copy(
-                        provider = it.provider.toMutableStateList().apply {
-                            set(index, item.copy(description = componentDetail.description))
-                        },
-                    )
+                withContext(mainDispatcher) {
+                    _componentListUiState.update {
+                        it.copy(
+                            provider = it.provider.toMutableStateList().apply {
+                                set(index, item.copy(description = componentDetail.description))
+                            },
+                        )
+                    }
                 }
             }
     }
 
-    private suspend fun getAppIcon(packageInfo: PackageInfo?) =
-        withContext(ioDispatcher) {
-            val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
-            return@withContext icon?.toBitmap()
-        }
+    private suspend fun getAppIcon(packageInfo: PackageInfo?) = withContext(ioDispatcher) {
+        val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
+        return@withContext icon?.toBitmap()
+    }
 
     fun zipAllRule() = zipAllRuleUseCase()
 

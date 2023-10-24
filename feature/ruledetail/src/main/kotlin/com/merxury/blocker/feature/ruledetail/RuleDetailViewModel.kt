@@ -35,6 +35,7 @@ import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
@@ -82,6 +83,7 @@ class RuleDetailViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val shizukuInitializer: ShizukuInitializer,
     private val analyticsHelper: AnalyticsHelper,
 ) : ViewModel() {
@@ -212,14 +214,16 @@ class RuleDetailViewModel @Inject constructor(
                     .map { it.toComponentItem() }
                 RuleMatchedApp(appItem, searchedComponentItem)
             }
-        _ruleInfoUiState.update {
-            val matchedApps = RuleMatchedAppListUiState.Success(searchResult)
-            if (it is RuleInfoUiState.Success) {
-                it.copy(matchedAppsUiState = matchedApps)
-            } else {
-                // Unreachable code
-                Timber.e("Updating matched apps when rule info is not ready")
-                RuleInfoUiState.Error(UiMessage("Wrong UI state"))
+        withContext(mainDispatcher) {
+            _ruleInfoUiState.update {
+                val matchedApps = RuleMatchedAppListUiState.Success(searchResult)
+                if (it is RuleInfoUiState.Success) {
+                    it.copy(matchedAppsUiState = matchedApps)
+                } else {
+                    // Unreachable code
+                    Timber.e("Updating matched apps when rule info is not ready")
+                    RuleInfoUiState.Error(UiMessage("Wrong UI state"))
+                }
             }
         }
     }
