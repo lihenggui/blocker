@@ -27,6 +27,7 @@ import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
@@ -65,6 +66,7 @@ import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -77,6 +79,7 @@ class AppListViewModel @Inject constructor(
     private val initializeDatabase: InitializeDatabaseUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
+    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
     private val intentFirewall: IIntentFirewall,
 ) : AndroidViewModel(app) {
@@ -167,8 +170,10 @@ class AppListViewModel @Inject constructor(
                         }
                     }
                         .toMutableStateList()
-                    _appListFlow.value = _appList
-                    _uiState.emit(Success(isRefreshing = false))
+                    withContext(mainDispatcher) {
+                        _appListFlow.value = _appList
+                        _uiState.emit(Success(isRefreshing = false))
+                    }
                 }
         }
     }
@@ -205,14 +210,16 @@ class AppListViewModel @Inject constructor(
         userDataRepository.userData
             .distinctUntilChanged()
             .drop(1)
-            .collect {
+            .collect { userData ->
                 val newList = _appList.toMutableList()
-                newList.sortWith(appComparator(it.appSorting, it.appSortingOrder))
+                newList.sortWith(appComparator(userData.appSorting, userData.appSortingOrder))
                 if (userDataRepository.userData.first().showRunningAppsOnTop) {
                     newList.sortByDescending { it.isRunning }
                 }
-                _appList = newList.toMutableStateList()
-                _appListFlow.value = _appList
+                withContext(mainDispatcher) {
+                    _appList = newList.toMutableStateList()
+                    _appListFlow.value = _appList
+                }
             }
     }
 
