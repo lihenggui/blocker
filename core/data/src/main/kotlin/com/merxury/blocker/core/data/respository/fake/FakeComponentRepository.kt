@@ -18,6 +18,7 @@ package com.merxury.blocker.core.data.respository.fake
 
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.model.ComponentType
+import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.result.Result.Success
@@ -54,7 +55,16 @@ class FakeComponentRepository @Inject constructor() : ComponentRepository {
     override fun batchControlComponent(
         components: List<ComponentInfo>,
         newState: Boolean,
-    ): Flow<Int> = flowOf(0)
+    ): Flow<ComponentInfo> = flowOf(
+        ComponentInfo(
+            name = "",
+            simpleName = "",
+            packageName = "",
+            type = ACTIVITY,
+            exported = false,
+            pmBlocked = false,
+        ),
+    )
 
     override fun searchComponent(keyword: String): Flow<List<ComponentInfo>> = flowOf(emptyList())
 
