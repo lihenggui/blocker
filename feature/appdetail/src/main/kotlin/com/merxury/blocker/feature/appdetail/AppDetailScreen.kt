@@ -257,8 +257,7 @@ private fun shareFile(
     rule: ZippedRule,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-
-    ) {
+) {
     val zippedFile = rule.zippedFile
     if (zippedFile == null) {
         scope.launch {
