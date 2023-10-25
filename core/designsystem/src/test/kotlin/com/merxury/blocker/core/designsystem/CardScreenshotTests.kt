@@ -54,7 +54,7 @@ class CardScreenshotTests {
 
     @Test
     fun card_multipleThemes() {
-        composeTestRule.captureMultiTheme("Card") { description ->
+        composeTestRule.captureMultiTheme("Card") {
             Surface {
                 BlockerCardExample()
             }
