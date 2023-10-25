@@ -319,7 +319,6 @@ class RuleDetailViewModel @Inject constructor(
         }
     }
 
-
     private suspend fun controlComponentInternal(
         packageName: String,
         componentName: String,
