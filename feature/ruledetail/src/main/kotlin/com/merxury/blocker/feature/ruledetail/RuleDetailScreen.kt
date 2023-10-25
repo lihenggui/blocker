@@ -40,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -440,12 +441,14 @@ fun RuleDetailScreenPreview(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
                     matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                        list = listOf(
-                            RuleMatchedApp(
-                                app = appList.first(),
-                                componentList = components,
-                            ),
-                        ),
+                        list = remember {
+                            mutableStateListOf(
+                                RuleMatchedApp(
+                                    app = appList.first(),
+                                    componentList = components,
+                                ),
+                            )
+                        },
                     ),
                 ),
                 tabState = tabState[0],
@@ -476,12 +479,14 @@ fun RuleDetailScreenSelectedDescriptionPreview(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
                     matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                        list = listOf(
-                            RuleMatchedApp(
-                                app = appList.first(),
-                                componentList = components,
-                            ),
-                        ),
+                        list = remember {
+                            mutableStateListOf(
+                                RuleMatchedApp(
+                                    app = appList.first(),
+                                    componentList = components,
+                                ),
+                            )
+                        },
                     ),
                 ),
                 tabState = tabState[1],
