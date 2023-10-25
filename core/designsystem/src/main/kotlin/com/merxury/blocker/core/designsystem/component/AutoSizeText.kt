@@ -177,30 +177,33 @@ fun AutoSizeText(
             // (1 / density).sp represents 1px when font scale equals 1
             val step = remember(stepGranularityTextSize) {
                 (1 / density).let {
-                    if (stepGranularityTextSize.isUnspecified)
+                    if (stepGranularityTextSize.isUnspecified) {
                         it.sp
-                    else
+                    } else {
                         stepGranularityTextSize.value.coerceAtLeast(it).sp
+                    }
                 }
             }
 
             val max = remember(maxWidth, maxHeight, maxTextSize) {
                 min(maxWidth, maxHeight).value.let {
-                    if (maxTextSize.isUnspecified)
+                    if (maxTextSize.isUnspecified) {
                         it.sp
-                    else
+                    } else {
                         maxTextSize.value.coerceAtMost(it).sp
+                    }
                 }
             }
 
             val min = remember(minTextSize, step, max) {
-                if (minTextSize.isUnspecified)
+                if (minTextSize.isUnspecified) {
                     step
-                else
+                } else {
                     minTextSize.value.coerceIn(
                         minimumValue = step.value,
                         maximumValue = max.value,
                     ).sp
+                }
             }
 
             val possibleFontSizes = remember(suggestedFontSizes, min, max, step) {
@@ -210,12 +213,13 @@ fun AutoSizeText(
                     MutableList(size = (lastIndex - firstIndex) + 1) { index ->
                         step * (lastIndex - index)
                     }
-                } else
+                } else {
                     suggestedFontSizes.value.filter {
                         it.isSp && it.value in min.value..max.value
                     }.sortedByDescending {
                         it.value
                     }
+                }
             }
 
             var combinedTextStyle = LocalTextStyle.current + style
@@ -233,8 +237,11 @@ fun AutoSizeText(
                         softWrap = softWrap,
                     )
 
-                    if (shouldShrink) low = mid + 1
-                    else high = mid - 1
+                    if (shouldShrink) {
+                        low = mid + 1
+                    } else {
+                        high = mid - 1
+                    }
                 }
                 combinedTextStyle = combinedTextStyle.copy(
                     fontSize = possibleFontSizes[low.coerceIn(possibleFontSizes.indices)],
