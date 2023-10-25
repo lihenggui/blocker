@@ -230,7 +230,8 @@ fun SegmentedButtonItem(
 
     val animationProgress: Float by animateFloatAsState(
         targetValue = if (selected) colors.indicatorColor.alpha else 0f,
-        animationSpec = tween(ITEM_ANIMATION_MILLIS), label = "SegmentedButton",
+        animationSpec = tween(ITEM_ANIMATION_MILLIS),
+        label = "SegmentedButton",
     )
 
     Box(
