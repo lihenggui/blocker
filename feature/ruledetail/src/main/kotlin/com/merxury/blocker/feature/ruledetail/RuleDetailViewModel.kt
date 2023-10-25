@@ -193,7 +193,6 @@ class RuleDetailViewModel @Inject constructor(
             list.forEach {
                 controlComponentInternal(it.packageName, it.name, enable)
             }
-            loadMatchedApps(currentSearchKeyword)
             analyticsHelper.logControlAllComponentsClicked(newState = enable)
         }
     }
