@@ -105,7 +105,7 @@ fun <T> SegmentedButtons(
                 },
             ) {
 
-            Text(
+                Text(
                     text = stringResource(id = item.second),
                     color = if (selectedItem.value == item.first) {
                         Color.White
@@ -135,7 +135,11 @@ fun SegmentedButtonsPreview() {
 @Composable
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_NO, name = "Light theme")
 fun SegmentedButtonsThreePreview() {
-    val list = listOf(0 to R.string.core_designsystem_back, 1 to R.string.core_designsystem_back, 2 to R.string.core_designsystem_back)
+    val list = listOf(
+        0 to R.string.core_designsystem_back,
+        1 to R.string.core_designsystem_back,
+        2 to R.string.core_designsystem_back,
+    )
     BlockerTheme {
         SegmentedButtons(
             items = list,
