@@ -26,8 +26,8 @@
     <string name="feature_sort_enabled_first">Enabled first</string>
     <string name="feature_sort_none">None</string>
     <string name="feature_sort_name">Name</string>
-    <string name="feature_sort_install_date">Install Date</string>
-    <string name="feature_sort_last_updated">Last Updated</string>
+    <string name="feature_sort_install_date">Installed</string>
+    <string name="feature_sort_last_updated">Updated</string>
     <string name="feature_sort_show_running_apps_on_top">Show running apps on top</string>
     <string name="feature_sort_on">On</string>
     <string name="feature_sort_off">Off</string>
