@@ -590,7 +590,10 @@ class AppDetailViewModel @Inject constructor(
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect()
+                .collect { component ->
+                    val type = findComponentType(component.name)
+                    changeComponentUiStatus(component.name, type, enable)
+                }
             withContext(mainDispatcher) {
                 _appBarUiState.update {
                     it.copy(selectedComponentList = listOf())
