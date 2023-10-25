@@ -19,6 +19,8 @@ package com.merxury.blocker.feature.ruledetail
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
@@ -167,12 +169,14 @@ class RuleDetailScreenScreenshotTests {
                         ruleInfo = ruleList.first(),
                         ruleIcon = null,
                         matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                            list = listOf(
-                                RuleMatchedApp(
-                                    app = appList.first(),
-                                    componentList = components,
-                                ),
-                            ),
+                            list = remember {
+                                mutableStateListOf(
+                                    RuleMatchedApp(
+                                        app = appList.first(),
+                                        componentList = components,
+                                    ),
+                                )
+                            },
                         ),
                     ),
                     tabState = tabState[0],
@@ -195,12 +199,14 @@ class RuleDetailScreenScreenshotTests {
                         ruleInfo = ruleList.first(),
                         ruleIcon = null,
                         matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                            list = listOf(
-                                RuleMatchedApp(
-                                    app = appList.first(),
-                                    componentList = components,
-                                ),
-                            ),
+                            list = remember {
+                                mutableStateListOf(
+                                    RuleMatchedApp(
+                                        app = appList.first(),
+                                        componentList = components,
+                                    ),
+                                )
+                            },
                         ),
                     ),
                     tabState = tabState[1],

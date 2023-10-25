@@ -20,6 +20,7 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import androidx.compose.runtime.toMutableStateList
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -214,6 +215,7 @@ class RuleDetailViewModel @Inject constructor(
                     .map { it.toComponentItem() }
                 RuleMatchedApp(appItem, searchedComponentItem)
             }
+            .toMutableStateList()
         withContext(mainDispatcher) {
             _ruleInfoUiState.update {
                 val matchedApps = RuleMatchedAppListUiState.Success(searchResult)

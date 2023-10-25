@@ -31,9 +31,12 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.toMutableStateMap
 import androidx.compose.ui.Alignment
@@ -175,7 +178,7 @@ fun NoApplicableAppScreen() {
 sealed interface RuleMatchedAppListUiState {
     data object Loading : RuleMatchedAppListUiState
     data class Success(
-        val list: List<RuleMatchedApp>,
+        val list: SnapshotStateList<RuleMatchedApp>,
     ) : RuleMatchedAppListUiState
 }
 
@@ -218,7 +221,9 @@ fun RuleMatchedAppListPreview() {
         componentList = listOf(),
     )
     val uiState = RuleMatchedAppListUiState.Success(
-        list = listOf(ruleMatchedApp, ruleMatchedApp2),
+        list = remember {
+            mutableStateListOf(ruleMatchedApp, ruleMatchedApp2)
+        },
     )
     BlockerTheme {
         Surface {
