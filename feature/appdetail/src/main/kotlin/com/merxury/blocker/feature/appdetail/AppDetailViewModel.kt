@@ -56,6 +56,7 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
@@ -108,6 +109,7 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -284,34 +286,26 @@ class AppDetailViewModel @Inject constructor(
         loadComponentListJob?.cancel()
         loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val packageName = appDetailArgs.packageName
-            componentRepository.getComponentList(packageName)
-                .collect { origList ->
-                    Timber.v("Start loading component list")
-                    withContext(mainDispatcher) {
-                        _componentListUiState.update {
-                            it.copy(isRefreshing = true)
-                        }
-                    }
-                    // Show the cache data first
-                    updateTabContent(origList, packageName)
-                    // Load the data with description and update again
-                    val list = origList.map { component ->
-                        val detail =
-                            componentDetailRepository.getLocalComponentDetail(component.name)
-                                .first()
-                        if (detail != null) {
-                            component.copy(description = detail.description)
-                        } else {
-                            component
-                        }
-                    }
-                    updateTabContent(list, packageName)
-                    withContext(mainDispatcher) {
-                        _componentListUiState.update {
-                            it.copy(isRefreshing = false)
-                        }
-                    }
+            Timber.v("Start loading component: $packageName")
+            val componentList = componentRepository.getComponentList(packageName).first()
+            // Show the cache data first
+            updateTabContent(componentList, packageName)
+            // Load the data with description and update again
+            val listWithDescription = componentList.map { component ->
+                val detail = componentDetailRepository.getLocalComponentDetail(component.name)
+                    .first()
+                if (detail != null) {
+                    component.copy(description = detail.description)
+                } else {
+                    component
                 }
+            }
+            updateTabContent(listWithDescription, packageName)
+            withContext(mainDispatcher) {
+                _componentListUiState.update {
+                    it.copy(isRefreshing = false)
+                }
+            }
         }
     }
 
@@ -666,16 +660,77 @@ class AppDetailViewModel @Inject constructor(
         }.toMutableList()
     }
 
+    private suspend fun findComponentType(componentName: String): ComponentType {
+        return withContext(cpuDispatcher) {
+            val currentList = _componentListUiState.value
+            val receiver = currentList.receiver.find { it.name == componentName }
+            if (receiver != null) {
+                return@withContext RECEIVER
+            }
+            val service = currentList.service.find { it.name == componentName }
+            if (service != null) {
+                return@withContext SERVICE
+            }
+            val activity = currentList.activity.find { it.name == componentName }
+            if (activity != null) {
+                return@withContext ACTIVITY
+            }
+            val provider = currentList.provider.find { it.name == componentName }
+            if (provider != null) {
+                return@withContext PROVIDER
+            }
+            // Should be unreachable code
+            throw IllegalStateException("Cannot find component type for $componentName")
+        }
+    }
+
+    private suspend fun changeComponentUiStatus(
+        componentName: String,
+        type: ComponentType,
+        enable: Boolean,
+    ) {
+        withContext(cpuDispatcher) {
+            val currentController = userDataRepository.userData.first().controllerType
+            val list = when (type) {
+                RECEIVER -> _componentListUiState.value.receiver
+                SERVICE -> _componentListUiState.value.service
+                ACTIVITY -> _componentListUiState.value.activity
+                PROVIDER -> _componentListUiState.value.provider
+            }
+            val position = list.indexOfFirst { it.name == componentName }
+            if (position == -1) {
+                Timber.w("Cannot find component $componentName in the list")
+                return@withContext
+            }
+            withContext(mainDispatcher) {
+                list[position] = if (currentController == IFW) {
+                    list[position].copy(ifwBlocked = !enable)
+                } else {
+                    list[position].copy(pmBlocked = !enable)
+                }
+            }
+        }
+    }
+
     private suspend fun controlComponentInternal(
         packageName: String,
         componentName: String,
         enabled: Boolean,
     ) {
+        val type = findComponentType(componentName)
         componentRepository.controlComponent(packageName, componentName, enabled)
+            .onStart {
+                changeComponentUiStatus(componentName, type, enabled)
+            }
             .catch { exception ->
+                changeComponentUiStatus(componentName, type, !enabled)
                 _errorState.emit(exception.toErrorMessage())
             }
-            .collect()
+            .collect { result ->
+                if (!result) {
+                    changeComponentUiStatus(componentName, type, !enabled)
+                }
+            }
     }
 
     fun exportBlockerRule(packageName: String) = viewModelScope.launch {
