@@ -51,7 +51,7 @@ class FilterChipScreenshotTests {
 
     @Test
     fun filterChip_multipleThemes() {
-        composeTestRule.captureMultiTheme("FilterChip") { description ->
+        composeTestRule.captureMultiTheme("FilterChip") {
             Surface {
                 BlockerFilterChip(selected = false, onSelectedChange = {}) {
                     Text("Unselected chip")
@@ -62,7 +62,7 @@ class FilterChipScreenshotTests {
 
     @Test
     fun filterChip_multipleThemes_selected() {
-        composeTestRule.captureMultiTheme("FilterChip", "FilterChipSelected") { description ->
+        composeTestRule.captureMultiTheme("FilterChip", "FilterChipSelected") {
             Surface {
                 BlockerFilterChip(selected = true, onSelectedChange = {}) {
                     Text("Selected Chip")
