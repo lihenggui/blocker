@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.testing.testing.data
 
+import androidx.compose.runtime.mutableStateListOf
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 
 val ruleMatchedAppTestData = RuleMatchedApp(
@@ -23,6 +24,6 @@ val ruleMatchedAppTestData = RuleMatchedApp(
     componentList = receiverTestData,
 )
 
-val ruleMatchedAppListTestData = listOf(
+val ruleMatchedAppListTestData = mutableStateListOf(
     ruleMatchedAppTestData,
 )
