@@ -21,6 +21,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
@@ -55,7 +56,9 @@ class RuleDetailScreenScreenshotTests {
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private val ruleList = RuleListPreviewParameterProvider().values.first()
-    private val components = ComponentListPreviewParameterProvider().values.first()
+    private val components = ComponentListPreviewParameterProvider().values
+        .first()
+        .toMutableStateList()
     private val appList = AppListPreviewParameterProvider().values.first()
     private val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 

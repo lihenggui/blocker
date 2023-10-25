@@ -210,7 +210,9 @@ fun RuleMatchedAppListPreview() {
             label = "Blocker",
             isSystem = false,
         ),
-        componentList = listOf(componentInfo),
+        componentList = remember {
+            mutableStateListOf(componentInfo)
+        },
     )
     val ruleMatchedApp2 = RuleMatchedApp(
         app = AppItem(
@@ -218,7 +220,9 @@ fun RuleMatchedAppListPreview() {
             label = "Test long long long long long name",
             isSystem = false,
         ),
-        componentList = listOf(),
+        componentList = remember {
+            mutableStateListOf()
+        },
     )
     val uiState = RuleMatchedAppListUiState.Success(
         list = remember {
