@@ -42,7 +42,7 @@ interface ComponentRepository {
     fun batchControlComponent(
         components: List<ComponentInfo>,
         newState: Boolean,
-    ): Flow<Int>
+    ): Flow<ComponentInfo>
 
     fun searchComponent(keyword: String): Flow<List<ComponentInfo>>
 
