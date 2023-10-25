@@ -35,6 +35,7 @@ import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -42,6 +43,7 @@ import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.toAppItem
@@ -66,8 +68,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -84,6 +86,7 @@ class RuleDetailViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
+    @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val shizukuInitializer: ShizukuInitializer,
     private val analyticsHelper: AnalyticsHelper,
@@ -273,10 +276,50 @@ class RuleDetailViewModel @Inject constructor(
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             controlComponentInternal(packageName, componentName, enabled)
-            loadMatchedApps(currentSearchKeyword)
             analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
         }
     }
+
+    private suspend fun changeComponentUiStatus(
+        packageName: String,
+        componentName: String,
+        enable: Boolean,
+    ) {
+        val currentUiState = _ruleInfoUiState.value
+        if (currentUiState !is RuleInfoUiState.Success) {
+            Timber.e("Cannot control component when rule info is not ready")
+            return
+        }
+        val matchedAppState = currentUiState.matchedAppsUiState
+        if (matchedAppState !is RuleMatchedAppListUiState.Success) {
+            Timber.e("Cannot control component when matched app list is not ready")
+            return
+        }
+        withContext(cpuDispatcher) {
+            val currentController = userDataRepository.userData.first().controllerType
+            val matchedApp = matchedAppState.list.firstOrNull { matchedApp ->
+                matchedApp.app.packageName == packageName
+            }
+            if (matchedApp == null) {
+                Timber.e("Cannot find matched app for package name: $packageName")
+                return@withContext
+            }
+            val list = matchedApp.componentList
+            val position = list.indexOfFirst { it.name == componentName }
+            if (position == -1) {
+                Timber.w("Cannot find component $componentName in the matched list")
+                return@withContext
+            }
+            withContext(mainDispatcher) {
+                list[position] = if (currentController == IFW) {
+                    list[position].copy(ifwBlocked = !enable)
+                } else {
+                    list[position].copy(pmBlocked = !enable)
+                }
+            }
+        }
+    }
+
 
     private suspend fun controlComponentInternal(
         packageName: String,
@@ -284,10 +327,18 @@ class RuleDetailViewModel @Inject constructor(
         enabled: Boolean,
     ) {
         componentRepository.controlComponent(packageName, componentName, enabled)
+            .onStart {
+                changeComponentUiStatus(packageName, componentName, enabled)
+            }
             .catch { exception ->
                 _errorState.emit(exception.toErrorMessage())
+                changeComponentUiStatus(packageName, componentName, !enabled)
             }
-            .collect()
+            .collect { result ->
+                if (!result) {
+                    changeComponentUiStatus(packageName, componentName, !enabled)
+                }
+            }
     }
 
     private fun loadTabInfo() {
