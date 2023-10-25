@@ -26,6 +26,7 @@ import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -38,6 +39,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -205,6 +210,7 @@ fun AppDetailRoute(
                 }
             }
         },
+        onRefresh = viewModel::loadComponentList,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -334,6 +340,7 @@ fun AppDetailScreen(
     onDeselect: (ComponentInfo) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
+    onRefresh: () -> Unit = {},
 ) {
     when (appInfoUiState) {
         is Loading -> {
@@ -376,6 +383,7 @@ fun AppDetailScreen(
                 onDeselect = onDeselect,
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
+                onRefresh = onRefresh,
             )
         }
 
@@ -420,6 +428,7 @@ fun AppDetailContent(
     onDeselect: (ComponentInfo) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
+    onRefresh: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -510,6 +519,8 @@ fun AppDetailContent(
             onCopyFullNameClick = onCopyFullNameClick,
             onSelect = onSelect,
             onDeselect = onDeselect,
+            onRefresh = onRefresh,
+            isRefreshing = componentListUiState.isRefreshing,
         )
     }
 }
@@ -646,7 +657,7 @@ private fun TopAppBar(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun AppDetailTabContent(
     modifier: Modifier = Modifier,
@@ -669,14 +680,16 @@ fun AppDetailTabContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    onRefresh: () -> Unit = {},
+    isRefreshing: Boolean = false,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
     LaunchedEffect(tabState) {
         pagerState.animateScrollToPage(tabState.currentIndex)
     }
-    LaunchedEffect(pagerState.targetPage) {
-        switchTab(tabState.items[pagerState.targetPage])
+    LaunchedEffect(pagerState.settledPage) {
+        switchTab(tabState.items[pagerState.settledPage])
     }
 
     Column(
@@ -725,19 +738,34 @@ fun AppDetailTabContent(
                         Provider -> componentListUiState.provider
                         else -> emptyList()
                     }
-                    ComponentList(
-                        components = components,
-                        selectedComponentList = selectedComponentList,
-                        isSelectedMode = isSelectedMode,
-                        navigateToComponentDetail = navigateToComponentDetail,
-                        onSwitchClick = onSwitchClick,
-                        onStopServiceClick = onStopServiceClick,
-                        onLaunchActivityClick = onLaunchActivityClick,
-                        onCopyNameClick = onCopyNameClick,
-                        onCopyFullNameClick = onCopyFullNameClick,
-                        onSelect = onSelect,
-                        onDeselect = onDeselect,
+                    val refreshingState = rememberPullRefreshState(
+                        refreshing = isRefreshing,
+                        onRefresh = onRefresh,
                     )
+                    Box(
+                        modifier = Modifier
+                            .pullRefresh(refreshingState),
+                    ) {
+                        ComponentList(
+                            components = components,
+                            selectedComponentList = selectedComponentList,
+                            isSelectedMode = isSelectedMode,
+                            navigateToComponentDetail = navigateToComponentDetail,
+                            onSwitchClick = onSwitchClick,
+                            onStopServiceClick = onStopServiceClick,
+                            onLaunchActivityClick = onLaunchActivityClick,
+                            onCopyNameClick = onCopyNameClick,
+                            onCopyFullNameClick = onCopyFullNameClick,
+                            onSelect = onSelect,
+                            onDeselect = onDeselect,
+                        )
+                        PullRefreshIndicator(
+                            refreshing = isRefreshing,
+                            state = refreshingState,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            scale = true,
+                        )
+                    }
                 }
             }
         }
