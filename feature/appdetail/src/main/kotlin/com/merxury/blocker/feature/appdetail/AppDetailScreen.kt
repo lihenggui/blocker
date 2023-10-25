@@ -73,17 +73,14 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.AutoResizeText
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
-import com.merxury.blocker.core.designsystem.component.FontSizeRange
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
@@ -261,7 +258,7 @@ private fun shareFile(
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 
-) {
+    ) {
     val zippedFile = rule.zippedFile
     if (zippedFile == null) {
         scope.launch {
@@ -553,9 +550,8 @@ fun AppDetailAppBarActions(
                     onSearchQueryChanged = onSearchTextChanged,
                     onSearchTriggered = onSearchTextChanged,
                     placeholder = {
-                        AutoResizeText(
+                        Text(
                             text = stringResource(id = string.feature_appdetail_search_components),
-                            fontSizeRange = FontSizeRange(1.sp, 16.sp),
                         )
                     },
                 )

@@ -104,7 +104,8 @@ fun <T> SegmentedButtons(
                     ButtonDefaults.outlinedButtonColors(containerColor = Color.Transparent)
                 },
             ) {
-                Text(
+
+            Text(
                     text = stringResource(id = item.second),
                     color = if (selectedItem.value == item.first) {
                         Color.White

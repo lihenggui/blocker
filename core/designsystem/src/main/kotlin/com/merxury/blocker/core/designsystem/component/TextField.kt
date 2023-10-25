@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -46,7 +47,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.merxury.blocker.core.designsystem.R
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -143,7 +143,7 @@ fun BlockerTextFieldPreview() {
                 onSearchQueryChanged = {},
                 onSearchTriggered = {},
                 placeholder = {
-                    AutoResizeText(text = "test", fontSizeRange = FontSizeRange(5.sp, 16.sp))
+                    Text(text = "test")
                 },
             )
         }
