@@ -36,4 +36,8 @@ object DispatchersModule {
     @Provides
     @Dispatcher(BlockerDispatchers.DEFAULT)
     fun providesDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+
+    @Provides
+    @Dispatcher(BlockerDispatchers.MAIN)
+    fun providesMainDispatcher(): CoroutineDispatcher = Dispatchers.Main
 }

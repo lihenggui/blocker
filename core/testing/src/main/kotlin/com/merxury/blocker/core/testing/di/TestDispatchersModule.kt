@@ -40,4 +40,8 @@ object TestDispatchersModule {
     @Dispatcher(BlockerDispatchers.DEFAULT)
     fun providesDefaultDispatcher(testDispatcher: TestDispatcher): CoroutineDispatcher =
         testDispatcher
+
+    @Provides
+    @Dispatcher(BlockerDispatchers.MAIN)
+    fun providesMainDispatcher(testDispatcher: TestDispatcher): CoroutineDispatcher = testDispatcher
 }
