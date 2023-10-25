@@ -190,7 +190,7 @@ class RuleDetailViewModel @Inject constructor(
     fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch {
-            list.forEach {
+            list.toMutableList().forEach {
                 controlComponentInternal(it.packageName, it.name, enable)
             }
             analyticsHelper.logControlAllComponentsClicked(newState = enable)
