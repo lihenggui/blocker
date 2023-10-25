@@ -84,6 +84,7 @@ class TestMethodNameDetectorTest {
                         fun when_then() = Unit
                         @Test
                         fun given_when_then() = Unit
+
                         @Test
                         fun foo() = Unit
                         @Test
