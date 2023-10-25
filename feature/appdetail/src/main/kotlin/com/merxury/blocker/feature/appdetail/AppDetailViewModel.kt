@@ -509,13 +509,16 @@ class AppDetailViewModel @Inject constructor(
             }
 
             componentRepository.batchControlComponent(
-                components = list.toList(),
+                components = list,
                 newState = enable,
             )
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect {}
+                .collect { component ->
+                    val type = findComponentType(component.name)
+                    changeComponentUiStatus(component.name, type, enable)
+                }
             analyticsHelper.logBatchOperationPerformed(enable)
         }
     }
