@@ -40,9 +40,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -429,7 +431,7 @@ fun RuleDetailScreenPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
-    val components = ComponentListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first().toMutableStateList()
     val appList = AppListPreviewParameterProvider().values.first()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
@@ -440,12 +442,14 @@ fun RuleDetailScreenPreview(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
                     matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                        list = listOf(
-                            RuleMatchedApp(
-                                app = appList.first(),
-                                componentList = components,
-                            ),
-                        ),
+                        list = remember {
+                            mutableStateListOf(
+                                RuleMatchedApp(
+                                    app = appList.first(),
+                                    componentList = components,
+                                ),
+                            )
+                        },
                     ),
                 ),
                 tabState = tabState[0],
@@ -465,7 +469,7 @@ fun RuleDetailScreenSelectedDescriptionPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
-    val components = ComponentListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first().toMutableStateList()
     val appList = AppListPreviewParameterProvider().values.first()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
@@ -476,12 +480,14 @@ fun RuleDetailScreenSelectedDescriptionPreview(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
                     matchedAppsUiState = RuleMatchedAppListUiState.Success(
-                        list = listOf(
-                            RuleMatchedApp(
-                                app = appList.first(),
-                                componentList = components,
-                            ),
-                        ),
+                        list = remember {
+                            mutableStateListOf(
+                                RuleMatchedApp(
+                                    app = appList.first(),
+                                    componentList = components,
+                                ),
+                            )
+                        },
                     ),
                 ),
                 tabState = tabState[1],
