@@ -26,8 +26,8 @@
     <string name="feature_sort_enabled_first">Включенный первый</string>
     <string name="feature_sort_none">Нет</string>
     <string name="feature_sort_name">Имя</string>
-    <string name="feature_sort_install_date">Установлен</string>
-    <string name="feature_sort_last_updated">Обновлено</string>
+    <string name="feature_sort_install_date">Дата установки</string>
+    <string name="feature_sort_last_updated">Последнее обновление</string>
     <string name="feature_sort_show_running_apps_on_top">Показывать запущенные приложения сверху</string>
     <string name="feature_sort_on">включать</string>
     <string name="feature_sort_off">закрытие</string>
