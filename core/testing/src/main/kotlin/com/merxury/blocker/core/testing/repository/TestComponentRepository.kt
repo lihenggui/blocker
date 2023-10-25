@@ -69,7 +69,7 @@ class TestComponentRepository : ComponentRepository {
     override fun batchControlComponent(
         components: List<ComponentInfo>,
         newState: Boolean,
-    ): Flow<Int> = flowOf(components.size)
+    ): Flow<ComponentInfo> = flowOf(components.first())
 
     override fun searchComponent(keyword: String): Flow<List<ComponentInfo>> {
         return componentList.map {

@@ -756,6 +756,8 @@ fun AppDetailTabContent(
                             onLaunchActivityClick = onLaunchActivityClick,
                             onCopyNameClick = onCopyNameClick,
                             onCopyFullNameClick = onCopyFullNameClick,
+                            onSelect = onSelect,
+                            onDeselect = onDeselect,
                         )
                         PullRefreshIndicator(
                             refreshing = isRefreshing,
