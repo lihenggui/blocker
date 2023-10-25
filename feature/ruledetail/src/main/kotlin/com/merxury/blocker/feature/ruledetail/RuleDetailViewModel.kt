@@ -213,6 +213,7 @@ class RuleDetailViewModel @Inject constructor(
                 val searchedComponentItem = components
                     .toSet() // Remove duplicate components caused by multiple keywords
                     .map { it.toComponentItem() }
+                    .toMutableStateList()
                 RuleMatchedApp(appItem, searchedComponentItem)
             }
             .toMutableStateList()
