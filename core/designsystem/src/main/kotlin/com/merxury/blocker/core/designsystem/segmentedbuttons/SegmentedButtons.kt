@@ -262,12 +262,12 @@ object SegmentedButtonsDefaults {
 
     @Composable
     fun colors(
-        selectedTextColor: Color = MaterialTheme.colorScheme.primary,
-        selectedIconColor: Color = MaterialTheme.colorScheme.primary,
+        selectedTextColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+        selectedIconColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
         unselectedTextColor: Color = MaterialTheme.colorScheme.onSurface,
         unselectedIconColor: Color = MaterialTheme.colorScheme.onSurface,
         indicatorColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-        outlineColor: Color = MaterialTheme.colorScheme.outlineVariant,
+        outlineColor: Color = MaterialTheme.colorScheme.outline,
     ): SegmentedButtonColors = SegmentedButtonColors(
         selectedTextColor = selectedTextColor,
         selectedIconColor = selectedIconColor,
@@ -278,7 +278,7 @@ object SegmentedButtonsDefaults {
     )
 
     internal val outlineThickness: Dp = 1.dp
-    internal val minimumHeight: Dp = 48.dp
+    internal val minimumHeight: Dp = 40.dp
     internal const val ITEM_ANIMATION_MILLIS: Int = 100
 }
 
