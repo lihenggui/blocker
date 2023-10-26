@@ -40,7 +40,7 @@ class SegmentedButtonsScreenshotTests {
 
     @Test
     fun blockerSegmentedButtons_multipleThemes() {
-        composeTestRule.captureMultiTheme("SegmentedButtons", "ThreeItems") { description ->
+        composeTestRule.captureMultiTheme("SegmentedButtons", "ThreeItems") {
             Surface {
                 val list = listOf(
                     0 to R.string.core_designsystem_back,
@@ -57,7 +57,7 @@ class SegmentedButtonsScreenshotTests {
 
     @Test
     fun blockerOutlineButton_multipleThemes() {
-        composeTestRule.captureMultiTheme("SegmentedButtons", "TwoItems") { description ->
+        composeTestRule.captureMultiTheme("SegmentedButtons", "TwoItems") {
             Surface {
                 val list = listOf(
                     0 to R.string.core_designsystem_back,
