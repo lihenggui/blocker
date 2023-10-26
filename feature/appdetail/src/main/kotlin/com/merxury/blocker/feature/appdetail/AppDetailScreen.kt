@@ -173,8 +173,37 @@ fun AppDetailRoute(
         onBackClick = onBackClick,
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
-        blockAllComponents = { viewModel.controlAllComponents(false) },
-        enableAllComponents = { viewModel.controlAllComponents(true) },
+        blockAllComponents = {
+            viewModel.controlAllComponents(false) { current, total ->
+                scope.launch {
+                    snackbarHostState.showSnackbar(
+                        message = context.getString(
+                            string.feature_appdetail_disabling_component_hint,
+                            current,
+                            total,
+                        ),
+                        duration = SnackbarDuration.Short,
+                        withDismissAction = false,
+                    )
+                }
+            }
+        },
+        enableAllComponents = {
+            viewModel.controlAllComponents(true) { current, total ->
+                scope.launch {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    snackbarHostState.showSnackbar(
+                        message = context.getString(
+                            string.feature_appdetail_enabling_component_hint,
+                            current,
+                            total,
+                        ),
+                        duration = SnackbarDuration.Short,
+                        withDismissAction = false,
+                    )
+                }
+            }
+        },
         onExportRules = viewModel::exportBlockerRule,
         onImportRules = viewModel::importBlockerRule,
         onExportIfw = viewModel::exportIfwRule,

@@ -48,4 +48,6 @@
     <string name="feature_appdetail_rules_sharing_title">規則分享：%1$s</string>
     <string name="feature_appdetail_provide_additional_details">(請提供關於您的規則的詳細描述。)\n</string>
     <string name="feature_appdetail_all_rules">所有規則</string>
+    <string name="feature_appdetail_disabling_component_hint">正在禁用組件，請稍候…（%1$d/%2$d）</string>
+    <string name="feature_appdetail_enabling_component_hint">正在啟用組件，請稍候…（%1$d/%2$d）</string>
 </resources>
