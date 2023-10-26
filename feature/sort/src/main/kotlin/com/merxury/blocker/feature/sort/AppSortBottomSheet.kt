@@ -70,7 +70,6 @@ fun AppSortBottomSheetRoute(
     ModalBottomSheet(
         onDismissRequest = { dismissHandler() },
         sheetState = bottomSheetState,
-        containerColor = MaterialTheme.colorScheme.surfaceVariant,
         scrimColor = Color.Transparent,
     ) {
         ComponentSortBottomSheet(
