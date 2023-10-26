@@ -166,7 +166,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         if: steps.screenshotsrecord.outcome == 'success'
         with:
-          file_pattern: '*/*.png'
+          file_pattern: '*.png'
           disable_globbing: true
           commit_message: "🤖 Updates screenshots"
 
