@@ -14,4 +14,4 @@
 #  limitations under the License.
 #
 
-com.merxury.blocker.lint.designsystem.DesignSystemIssueRegistry
+com.merxury.blocker.lint.BlockerIssueRegistry
