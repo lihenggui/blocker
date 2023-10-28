@@ -17,7 +17,10 @@
 package com.merxury.blocker
 
 import com.android.build.api.dsl.CommonExtension
+import io.github.takahirom.roborazzi.RoborazziExtension
+import org.codehaus.groovy.tools.shell.util.Logger.io
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -60,6 +63,9 @@ internal fun Project.configureAndroidCompose(
             kotlinOptions {
                 freeCompilerArgs = freeCompilerArgs + buildComposeMetricsParameters()
             }
+        }
+        extensions.configure<RoborazziExtension>{
+            outputDir.set(file("src/test/screenshots"))
         }
     }
 }

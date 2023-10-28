@@ -36,6 +36,7 @@ tasks.withType<KotlinCompile>().configureEach {
 dependencies {
     compileOnly(libs.android.gradlePlugin)
     compileOnly(libs.kotlin.gradlePlugin)
+    compileOnly(libs.roborazzi.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
 }
 
