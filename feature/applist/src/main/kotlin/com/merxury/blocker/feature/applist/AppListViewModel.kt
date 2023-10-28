@@ -54,6 +54,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -93,6 +95,7 @@ class AppListViewModel @Inject constructor(
     private val _appListFlow = MutableStateFlow(_appList)
     private var currentSearchKeyword = ""
     private var loadAppListJob: Job? = null
+    private val refreshServiceJobs = SupervisorJob()
     val appListFlow: StateFlow<List<AppItem>>
         get() = _appListFlow
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -171,6 +174,7 @@ class AppListViewModel @Inject constructor(
                     }
                         .toMutableStateList()
                     withContext(mainDispatcher) {
+                        refreshServiceJobs.cancelChildren()
                         _appListFlow.value = _appList
                         _uiState.emit(Success(isRefreshing = false))
                     }
@@ -217,6 +221,7 @@ class AppListViewModel @Inject constructor(
                     newList.sortByDescending { it.isRunning }
                 }
                 withContext(mainDispatcher) {
+                    refreshServiceJobs.cancelChildren()
                     _appList = newList.toMutableStateList()
                     _appListFlow.value = _appList
                 }
@@ -239,8 +244,11 @@ class AppListViewModel @Inject constructor(
                         .appSortingOrder
                     newList.sortWith(appComparator(sorting, order))
                 }
-                _appList = newList.toMutableStateList()
-                _appListFlow.value = _appList
+                withContext(mainDispatcher) {
+                    refreshServiceJobs.cancelChildren()
+                    _appList = newList.toMutableStateList()
+                    _appListFlow.value = _appList
+                }
             }
     }
 
@@ -252,26 +260,28 @@ class AppListViewModel @Inject constructor(
             .collect { loadData() }
     }
 
-    fun updateServiceStatus(packageName: String, index: Int) = viewModelScope.launch(
-        context = ioDispatcher + exceptionHandler,
-    ) {
-        val userData = userDataRepository.userData.first()
-        if (!userData.showServiceInfo) {
-            return@launch
+    fun updateServiceStatus(packageName: String, index: Int) {
+        viewModelScope.launch(context = refreshServiceJobs + ioDispatcher + exceptionHandler) {
+            val userData = userDataRepository.userData.first()
+            if (!userData.showServiceInfo) {
+                return@launch
+            }
+            val oldItem = _appList.getOrNull(index) ?: return@launch
+            if (oldItem.appServiceStatus != null) {
+                // Don't get service info again
+                return@launch
+            }
+            Timber.d("Get service status for $packageName")
+            val status = AppStateCache.get(
+                getApplication(),
+                intentFirewall,
+                packageName,
+            )
+            val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
+            withContext(mainDispatcher) {
+                _appList[index] = newItem
+            }
         }
-        val oldItem = _appList.getOrNull(index) ?: return@launch
-        if (oldItem.appServiceStatus != null) {
-            // Don't get service info again
-            return@launch
-        }
-        Timber.d("Get service status for $packageName")
-        val status = AppStateCache.get(
-            getApplication(),
-            intentFirewall,
-            packageName,
-        )
-        val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
-        _appList[index] = newItem
     }
 
     fun dismissErrorDialog() = viewModelScope.launch {
