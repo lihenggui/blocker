@@ -59,7 +59,8 @@ import kotlin.coroutines.resume
  * State of the [SnackbarHost], which controls the queue and the current [Snackbar] being shown
  * inside the [SnackbarHost].
  *
- * This state is usually [remember]ed and used to provide a [SnackbarHost] to a [Scaffold].
+ * This state is usually [remember]ed and used to provide a [SnackbarHost]
+ * to a [androidx.compose.material3.Scaffold].
  */
 @Stable
 class SnackbarHostState {
@@ -77,7 +78,8 @@ class SnackbarHostState {
         private set
 
     /**
-     * Shows or queues to be shown a [Snackbar] at the bottom of the [Scaffold] to which this state
+     * Shows or queues to be shown a [Snackbar] at the bottom of
+     * the [androidx.compose.material3.Scaffold] to which this state
      * is attached and suspends until the snackbar has disappeared.
      *
      * [SnackbarHostState] guarantees to show at most one snackbar at a time. If this function is
@@ -85,11 +87,9 @@ class SnackbarHostState {
      * shown and subsequently addressed. If the caller is cancelled, the snackbar will be removed
      * from display and/or the queue to be displayed.
      *
-     * All of this allows for granular control over the snackbar queue from within:
      *
-     * @sample androidx.compose.material3.samples.ScaffoldWithCoroutinesSnackbar
-     *
-     * To change the Snackbar appearance, change it in 'snackbarHost' on the [Scaffold].
+     * To change the Snackbar appearance, change it in 'snackbarHost'
+     * on the [androidx.compose.material3.Scaffold].
      *
      * @param message text to be shown in the Snackbar
      * @param actionLabel optional action label to show as button in the Snackbar
@@ -112,17 +112,13 @@ class SnackbarHostState {
         showSnackbar(SnackbarVisualsImpl(message, actionLabel, withDismissAction, duration))
 
     /**
-     * Shows or queues to be shown a [Snackbar] at the bottom of the [Scaffold] to which this state
+     * Shows or queues to be shown a [Snackbar] at the bottom of the [androidx.compose.material3.Scaffold] to which this state
      * is attached and suspends until the snackbar has disappeared.
      *
      * [SnackbarHostState] guarantees to show at most one snackbar at a time. If this function is
      * called while another snackbar is already visible, it will be suspended until this snackbar is
      * shown and subsequently addressed. If the caller is cancelled, the snackbar will be removed
      * from display and/or the queue to be displayed.
-     *
-     * All of this allows for granular control over the snackbar queue from within:
-     *
-     * @sample androidx.compose.material3.samples.ScaffoldWithCustomSnackbar
      *
      * @param visuals [SnackbarVisuals] that are used to create a Snackbar
      *
@@ -202,18 +198,11 @@ class SnackbarHostState {
 }
 
 /**
- * Host for [Snackbar]s to be used in [Scaffold] to properly show, hide and dismiss items based
+ * Host for [Snackbar]s to be used in [androidx.compose.material3.Scaffold] to properly show, hide and dismiss items based
  * on Material specification and the [hostState].
  *
- * This component with default parameters comes build-in with [Scaffold], if you need to show a
+ * This component with default parameters comes build-in with [androidx.compose.material3.Scaffold], if you need to show a
  * default [Snackbar], use [SnackbarHostState.showSnackbar].
- *
- * @sample androidx.compose.material3.samples.ScaffoldWithSimpleSnackbar
- *
- * If you want to customize appearance of the [Snackbar], you can pass your own version as a child
- * of the [SnackbarHost] to the [Scaffold]:
- *
- * @sample androidx.compose.material3.samples.ScaffoldWithCustomSnackbar
  *
  * @param hostState state of this component to read and show [Snackbar]s accordingly
  * @param modifier the [Modifier] to be applied to this component
