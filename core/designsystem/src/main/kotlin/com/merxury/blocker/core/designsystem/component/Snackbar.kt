@@ -112,8 +112,8 @@ class SnackbarHostState {
         showSnackbar(SnackbarVisualsImpl(message, actionLabel, withDismissAction, duration))
 
     /**
-     * Shows or queues to be shown a [Snackbar] at the bottom of the [androidx.compose.material3.Scaffold] to which this state
-     * is attached and suspends until the snackbar has disappeared.
+     * Shows or queues to be shown a [Snackbar] at the bottom of the [androidx.compose.material3.Scaffold]
+     * to which this state is attached and suspends until the snackbar has disappeared.
      *
      * [SnackbarHostState] guarantees to show at most one snackbar at a time. If this function is
      * called while another snackbar is already visible, it will be suspended until this snackbar is
@@ -133,6 +133,43 @@ class SnackbarHostState {
         } finally {
             currentSnackbarData = null
         }
+    }
+
+    suspend fun showSnackbarWithoutQueue(
+        message: String,
+        actionLabel: String? = null,
+        withDismissAction: Boolean = false,
+        duration: SnackbarDuration =
+            if (actionLabel == null) SnackbarDuration.Short else SnackbarDuration.Indefinite,
+    ): SnackbarResult =
+        showSnackbarWithoutQueue(
+            SnackbarVisualsImpl(
+                message,
+                actionLabel,
+                withDismissAction,
+                duration,
+            ),
+        )
+
+    /**
+     * Shows a [Snackbar] at the bottom of the [androidx.compose.material3.Scaffold] to which
+     * this state is attached.
+     *
+     * [SnackbarHostState] guarantees to show at most one snackbar at a time. If this function is
+     * called while another snackbar is already visible, the current snackbar will be updated.
+     * If the caller is cancelled, the snackbar will be removed from display.
+     *
+     * @param visuals [SnackbarVisuals] that are used to create a Snackbar
+     *
+     * @return [SnackbarResult.ActionPerformed] if option action has been clicked or
+     * [SnackbarResult.Dismissed] if snackbar has been dismissed via timeout or by the user
+     */
+    private suspend fun showSnackbarWithoutQueue(visuals: SnackbarVisuals): SnackbarResult = try {
+        suspendCancellableCoroutine { continuation ->
+            currentSnackbarData = SnackbarDataImpl(visuals, continuation)
+        }
+    } finally {
+        currentSnackbarData = null
     }
 
     private class SnackbarVisualsImpl(
