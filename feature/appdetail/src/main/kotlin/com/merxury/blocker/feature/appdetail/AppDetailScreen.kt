@@ -176,7 +176,7 @@ fun AppDetailRoute(
         blockAllComponents = {
             viewModel.controlAllComponents(false) { current, total ->
                 scope.launch {
-                    snackbarHostState.showSnackbar(
+                    snackbarHostState.showSnackbarWithoutQueue(
                         message = context.getString(
                             string.feature_appdetail_disabling_component_hint,
                             current,
@@ -191,8 +191,7 @@ fun AppDetailRoute(
         enableAllComponents = {
             viewModel.controlAllComponents(true) { current, total ->
                 scope.launch {
-                    snackbarHostState.currentSnackbarData?.dismiss()
-                    snackbarHostState.showSnackbar(
+                    snackbarHostState.showSnackbarWithoutQueue(
                         message = context.getString(
                             string.feature_appdetail_enabling_component_hint,
                             current,
