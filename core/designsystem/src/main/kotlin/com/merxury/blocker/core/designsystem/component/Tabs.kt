@@ -89,8 +89,9 @@ fun BlockerScrollableTabRow(
         containerColor = containerColor,
         contentColor = contentColor,
         indicator = { tabPositions ->
+            val tab = tabPositions.getOrNull(selectedTabIndex) ?: tabPositions.first()
             TabRowDefaults.Indicator(
-                modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTabIndex]),
+                modifier = Modifier.tabIndicatorOffset(tab),
                 height = 2.dp,
                 color = contentColor,
             )
