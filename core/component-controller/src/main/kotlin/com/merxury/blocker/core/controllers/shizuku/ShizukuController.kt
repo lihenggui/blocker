@@ -21,6 +21,7 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
+import android.os.Build
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -46,7 +47,11 @@ class ShizukuController @Inject constructor(
             )
         }
         // 0 means kill the application
-        pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0, context.packageName)
+        } else {
+            pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
+        }
         return true
     }
 

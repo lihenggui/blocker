@@ -18,9 +18,11 @@ package android.content.pm;
 
 import android.content.ComponentName;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.IInterface;
 import android.os.RemoteException;
+import androidx.annotation.RequiresApi;
 
 public interface IPackageManager extends IInterface {
 
@@ -30,10 +32,18 @@ public interface IPackageManager extends IInterface {
     ParceledListSlice<PackageInfo> getInstalledPackages(int flags, int userId)
             throws RemoteException;
 
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    void setComponentEnabledSetting(ComponentName componentName, int newState, int flags, int userId, String callingPackage)
+            throws RemoteException;
+
     void setComponentEnabledSetting(ComponentName componentName, int newState, int flags, int userId)
             throws RemoteException;
 
     int getComponentEnabledSetting(ComponentName componentName, int userId)
+            throws RemoteException;
+
+    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    void setApplicationEnabledSetting(String packageName, int newState, int flags, int userId, String callingPackage)
             throws RemoteException;
 
     void setApplicationEnabledSetting(String packageName, int newState, int flags, int userId)
