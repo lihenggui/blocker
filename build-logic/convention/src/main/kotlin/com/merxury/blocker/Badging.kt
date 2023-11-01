@@ -35,7 +35,7 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.process.ExecOperations
 import java.io.File
-import java.nio.file.Files
+import java.util.Scanner
 import javax.inject.Inject
 
 abstract class GenerateBadgingTask : DefaultTask() {
@@ -84,16 +84,31 @@ abstract class CheckBadgingTask : DefaultTask() {
 
     @TaskAction
     fun taskAction() {
-        if (
-            Files.mismatch(
-                goldenBadging.get().asFile.toPath(),
-                generatedBadging.get().asFile.toPath(),
-            ) != -1L
-        ) {
+        val goldenBadging = goldenBadging.get().asFile
+        val generatedBadging = generatedBadging.get().asFile
+        if (!goldenBadging.exists()) {
             throw GradleException(
-                "Generated badging is different from golden badging! " +
+                "Golden badging file does not exist! " +
                     "If this change is intended, run ./gradlew updateBadging",
             )
+        }
+        if (!generatedBadging.exists()) {
+            throw GradleException("Generated badging file does not exist!")
+        }
+        val goldenBadgingScanner = Scanner(goldenBadging)
+        val generatedBadgingScanner = Scanner(generatedBadging)
+        // Skip the first line, which contains the dynamically generated versions
+        goldenBadgingScanner.nextLine()
+        generatedBadgingScanner.nextLine()
+        while (goldenBadgingScanner.hasNextLine() && generatedBadgingScanner.hasNextLine()) {
+            val goldenLine = goldenBadgingScanner.nextLine()
+            val generatedLine = generatedBadgingScanner.nextLine()
+            if (goldenLine != generatedLine) {
+                throw GradleException(
+                    "Generated badging is different from golden badging! " +
+                        "If this change is intended, run ./gradlew updateBadging",
+                )
+            }
         }
     }
 }
