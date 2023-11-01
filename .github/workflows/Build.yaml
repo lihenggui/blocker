@@ -191,6 +191,9 @@ jobs:
           name: lint-reports
           path: '**/build/reports/lint-results-*.html'
 
+      - name: Check badging
+        run: ./gradlew :app-compose:checkMarketReleaseBadging
+
   androidTest:
     needs: build
     runs-on: self-hosted
