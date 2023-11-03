@@ -17,6 +17,7 @@
 
 package com.merxury.blocker
 
+import com.android.SdkConstants
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.BaseExtension
@@ -129,7 +130,9 @@ fun Project.configureBadgingTasks(
                 aapt2Executable.set(
                     File(
                         baseExtension.sdkDirectory,
-                        "build-tools/${baseExtension.buildToolsVersion}/aapt2",
+                        "${SdkConstants.FD_BUILD_TOOLS}/" +
+                            "${baseExtension.buildToolsVersion}/" +
+                            SdkConstants.FN_AAPT2,
                     ),
                 )
 
