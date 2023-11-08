@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,23 +13,21 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-
-<resources>
+  --><resources>
     <string name="core_rule_processing_progress_indicator">Индикатор прогресса обработки</string>
     <string name="core_rule_update_rules_notification">Уведомление об обновлении правил</string>
     <string name="core_rule_backing_up_apps_please_wait">Резервное копирование правил приложения, подождите…</string>
     <string name="core_rule_backing_up_ifw_please_wait">Резервное копирование правил IFW, подождите…</string>
-    <string name="core_rule_import_ifw_please_wait">Импорт правил IFW, пожалуйста, подождите…</string>
+    <string name="core_rule_import_ifw_please_wait">Импорт правил IFW, подождите…</string>
     <string name="core_rule_reset_ifw_please_wait">Сброс IFW, подождите…</string>
     <string name="core_rule_import_mat_rule_please_wait">Импорт правил MAT, подождите…</string>
     <string name="core_rule_import_app_rules_please_wait">Импорт правил приложения, подождите…</string>
     <string name="core_rule_cancel">Отмена</string>
     <string name="core_rule_processing_please_wait">Обработка, подождите…</string>
     <string name="core_rule_done">Готово</string>
-    <string name="core_rule_error_msg_folder_not_defined">Ошибка: папка не определена</string>
-    <string name="core_rule_error_msg_missing_root_permission">Ошибка: отсутствуют root права</string>
-    <string name="core_rule_error_msg_unexpected_exception">Ошибка: неожиданное исключение</string>
+    <string name="core_rule_error_msg_folder_not_defined">Папка резервного копирования не определена. Перейдите в настройки, чтоб ее назначить.</string>
+    <string name="core_rule_error_msg_missing_root_permission">Отсутствует root-права. Предоставьте root-права Blocker.</string>
+    <string name="core_rule_error_msg_unexpected_exception">Неожиданное исключение, сообщите об этом разработчику.</string>
     <string name="core_rule_task_cancelled">Задача отменена</string>
     <string name="core_rule_copying_rules_to_internal_storage">Копирование правил во внутреннее хранилище…</string>
 </resources>
