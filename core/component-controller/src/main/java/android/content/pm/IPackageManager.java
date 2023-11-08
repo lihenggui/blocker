@@ -17,11 +17,7 @@
 package android.content.pm;
 
 import android.content.ComponentName;
-import android.os.Binder;
-import android.os.Build;
-import android.os.IBinder;
-import android.os.IInterface;
-import android.os.RemoteException;
+import android.os.*;
 import androidx.annotation.RequiresApi;
 
 public interface IPackageManager extends IInterface {
@@ -51,6 +47,8 @@ public interface IPackageManager extends IInterface {
 
     int getApplicationEnabledSetting(String packageName, int userId)
             throws RemoteException;
+
+    void deletePackage(String packageName, IPackageDeleteObserver observer, int flags);
 
     abstract class Stub extends Binder implements IPackageManager {
 
