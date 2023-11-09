@@ -20,8 +20,8 @@ import android.content.Context
 import androidx.work.ExistingWorkPolicy.KEEP
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
-import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.di.RuleBaseFolder
+import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.InitializeState
