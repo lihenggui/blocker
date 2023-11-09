@@ -1,2 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="sync_work_notification_channel_description">Blocker的后台同步通知</string>
+    <string name="sync_work_notification_channel_name">同步</string>
+</resources>
