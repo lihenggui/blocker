@@ -26,7 +26,7 @@
     <string name="core_rule_processing_please_wait">Обработка, подождите…</string>
     <string name="core_rule_done">Готово</string>
     <string name="core_rule_error_msg_folder_not_defined">Папка резервного копирования не определена. Перейдите в настройки, чтоб ее назначить.</string>
-    <string name="core_rule_error_msg_missing_root_permission">Отсутствует root-права. Предоставьте root-права Blocker.</string>
+    <string name="core_rule_error_msg_missing_root_permission">Отсутствуют root-права. Предоставьте root-права Blocker.</string>
     <string name="core_rule_error_msg_unexpected_exception">Неожиданное исключение, сообщите об этом разработчику.</string>
     <string name="core_rule_task_cancelled">Задача отменена</string>
     <string name="core_rule_copying_rules_to_internal_storage">Копирование правил во внутреннее хранилище…</string>

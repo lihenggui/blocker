@@ -22,5 +22,5 @@
     <string name="feature_ruledetail_unknown">Неизвестно</string>
     <string name="feature_ruledetail_no_description">Нет описания</string>
     <string name="feature_ruledetail_block_all_of_this_page">Отключить все на странице</string>
-    <string name="feature_ruledetail_enable_all_of_this_page">Включить всю на странице</string>
+    <string name="feature_ruledetail_enable_all_of_this_page">Включить все на странице</string>
 </resources>
