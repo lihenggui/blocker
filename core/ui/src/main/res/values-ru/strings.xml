@@ -14,16 +14,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   --><resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
-    <string name="core_ui_application_with_count">Приложение (%1$d)</string>
-    <string name="core_ui_component_with_count">Компонент (%1$d)</string>
-    <string name="core_ui_online_rule_with_count">Онлайн правило (%1$d)</string>
+    <string name="core_ui_application_with_count">Приложения (%1$d)</string>
+    <string name="core_ui_component_with_count">Компоненты (%1$d)</string>
+    <string name="core_ui_online_rule_with_count">Онлайн правила (%1$d)</string>
     <string name="core_ui_clear_cache">Очистить кэш</string>
     <string name="core_ui_clear_data">Очистить данные</string>
     <string name="core_ui_force_stop">Принудительная остановка</string>
     <string name="core_ui_uninstall">Удалить</string>
     <string name="core_ui_enable">Разморозить</string>
     <string name="core_ui_disable">Заморозить</string>
-    <string name="core_ui_service_status_template">Службы: %1$d работает, %2$d отключено, всего %3$d.</string>
+    <string name="core_ui_service_status_template">Служб: %1$d работает, %2$d отключено, всего %3$d.</string>
     <string name="core_ui_running">Работает</string>
     <string name="core_ui_disabled">Заморожено</string>
     <string name="core_ui_rule_icon_description">Значок правила</string>
@@ -37,8 +37,10 @@
     <string name="core_ui_select_all">Выбрать все</string>
     <string name="core_ui_enable_selected">Включить выбранное</string>
     <plurals name="core_ui_matched_component" tools:ignore="MissingQuantity">
-        <item quantity="one">Соответствует %1$d компоненту</item>
-        <item quantity="other">Соответствует %1$d компонентам</item>
+        <item quantity="one">Обнаружен %1$d компонент</item>
+        <item quantity="few">Обнаружено %1$d компонента</item>
+        <item quantity="many">Обнаружено %1$d компонентов</item>
+        <item quantity="other">Обнаружено %1$d компонентов</item>
     </plurals>
     <plurals name="core_ui_matched_apps">
         <item quantity="one">Обнаружено в %1$d пр.</item>
@@ -50,21 +52,21 @@
     <string name="core_ui_applicable_application">Обнаружено в приложениях</string>
     <string name="core_ui_loading">Загрузка</string>
     <string name="core_ui_error">Ошибка</string>
-    <string name="core_ui_no_applicable_app">Нет применимого приложения</string>
+    <string name="core_ui_no_applicable_app">Не обнаружено в приложениях</string>
     <string name="core_ui_app_info">Приложение</string>
     <string name="core_ui_activity_with_count">Активити (%1$d)</string>
     <string name="core_ui_service_with_count">Службы (%1$d)</string>
     <string name="core_ui_receiver_with_count">Приемники (%1$d)</string>
     <string name="core_ui_provider_with_count">Поставщики (%1$d)</string>
     <string name="core_ui_initializing_database">Инициализация базы данных</string>
-    <string name="core_ui_more_menu">Больше</string>
+    <string name="core_ui_more_menu">Дополнительно</string>
     <string name="core_ui_search_icon">Поиск</string>
     <string name="core_ui_block_all_components">Отключить все компоненты</string>
     <string name="core_ui_enable_all_components">Включить все компоненты</string>
     <string name="core_ui_open_app_detail">Открыть детали приложения</string>
     <string name="core_ui_sort_options">Параметры сортировки</string>
     <string name="core_ui_collapse_list">Свернуть список</string>
-    <string name="core_ui_expand_list">Развернуть список</string>
+    <string name="core_ui_expand_list">Развернуть</string>
     <string name="core_ui_not_found_icon">Значок не найден</string>
     <plurals name="core_ui_block_all">
         <item quantity="one">Эта операция отключит %1$d компонент. Продолжить\?</item>
