@@ -40,6 +40,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: 'true'
+          fetch-depth: 0
 
       - name: Validate Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
@@ -170,6 +173,7 @@ jobs:
         run: ./gradlew :app-compose:checkMarketReleaseBadging
 
   androidTest:
+    needs: build
     runs-on: self-hosted
     timeout-minutes: 90
     strategy:
