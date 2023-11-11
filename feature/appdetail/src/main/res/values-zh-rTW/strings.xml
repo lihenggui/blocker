@@ -13,8 +13,7 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
-<resources>
+--><resources>
     <string name="feature_appdetail_cannot_launch_this_app">無法啟動這個應用</string>
     <string name="feature_appdetail_blocker_rules">Blocker規則</string>
     <string name="feature_appdetail_export_rules">導出規則</string>
@@ -48,4 +47,5 @@
     <string name="feature_appdetail_rules_sharing_title">規則分享：%1$s</string>
     <string name="feature_appdetail_provide_additional_details">(請提供關於您的規則的詳細描述。)\n</string>
     <string name="feature_appdetail_all_rules">所有規則</string>
+    <string name="feature_appdetail_import_rules">導入規則</string>
 </resources>
