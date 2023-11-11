@@ -42,10 +42,10 @@
     <string name="feature_settings_theme">Тема</string>
     <string name="feature_settings_theme_default">По умолчанию</string>
     <string name="feature_settings_android">Android</string>
-    <string name="feature_settings_dark_mode">Темная</string>
+    <string name="feature_settings_dark_mode">Ночной режим</string>
     <string name="feature_settings_system_default">Системные установки по умолчанию</string>
     <string name="feature_settings_light">Светлая</string>
-    <string name="feature_settings_dark">Dark</string>
+    <string name="feature_settings_dark">Темная</string>
     <string name="feature_settings_options_github">GitHub</string>
     <string name="feature_settings_options_gitlab">GitLab</string>
     <string name="feature_settings_intent_firewall">Intent Firewall</string>

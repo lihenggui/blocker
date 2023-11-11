@@ -22,8 +22,8 @@
     <string name="feature_sort_ascending">По возрастанию</string>
     <string name="feature_sort_descending">По убыванию</string>
     <string name="feature_sort_priority">Приоритет</string>
-    <string name="feature_sort_disabled_first">Сначала замороженные</string>
-    <string name="feature_sort_enabled_first">Сначала незамороженные</string>
+    <string name="feature_sort_disabled_first">Сначала отключенные</string>
+    <string name="feature_sort_enabled_first">Сначала включенные</string>
     <string name="feature_sort_none">Нет</string>
     <string name="feature_sort_name">Имя</string>
     <string name="feature_sort_install_date">Дата установки</string>
