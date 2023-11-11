@@ -173,7 +173,7 @@ jobs:
         run: ./gradlew :app-compose:checkMarketReleaseBadging
 
   androidTest:
-    needs: build
+    needs: test_and_apk
     runs-on: self-hosted
     timeout-minutes: 90
     strategy:
