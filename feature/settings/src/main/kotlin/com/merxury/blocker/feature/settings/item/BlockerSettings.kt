@@ -66,22 +66,21 @@ fun BlockerSettings(
             ),
             onValueChange = onChangeRuleServerProvider,
         )
-        if (false) {
-            // Hide per app language settings for now since Compose support is bad
-            DialogSettingsItems(
-                icon = ImageVectorIcon(BlockerIcons.Language),
-                titleRes = string.feature_settings_display_language,
-                selectedItem = settings.appDisplayLanguage,
-                itemList = listOf(
-                    "" to string.feature_settings_follow_system,
-                    Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
-                    Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
-                    Locale.TRADITIONAL_CHINESE.toLanguageTag() to string.feature_settings_traditional_chinese,
-                    Locale("ru").toLanguageTag() to string.feature_settings_russian,
-                ),
-                onValueChange = onChangeAppDisplayLanguage,
-            )
-        }
+        // Hide per app language settings for now since Compose support is bad
+        DialogSettingsItems(
+            icon = ImageVectorIcon(BlockerIcons.Language),
+            titleRes = string.feature_settings_display_language,
+            selectedItem = settings.appDisplayLanguage,
+            itemList = listOf(
+                "" to string.feature_settings_follow_system,
+                Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
+                Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
+                Locale.TRADITIONAL_CHINESE.toLanguageTag() to string.feature_settings_traditional_chinese,
+                Locale("ru").toLanguageTag() to string.feature_settings_russian,
+                Locale("es").toLanguageTag() to string.feature_settings_spanish,
+            ),
+            onValueChange = onChangeAppDisplayLanguage,
+        )
         DialogSettingsItems(
             icon = ImageVectorIcon(BlockerIcons.Translate),
             titleRes = string.feature_settings_library_language,
