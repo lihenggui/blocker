@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +13,10 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-
-<resources>
-    <string name="feature_applist_sort_menu">Сортировать меню</string>
+  --><resources>
+    <string name="feature_applist_sort_menu">Сортировка</string>
     <string name="feature_applist_settings">Настройки</string>
-    <string name="feature_applist_support_and_feedback">поддержка и обратная связь</string>
+    <string name="feature_applist_support_and_feedback">Поддержка и обратная связь</string>
     <string name="feature_applist_do_you_want_to_clear_data_of_this_app">Вы хотите очистить данные этого приложения?</string>
     <string name="feature_applist_do_you_want_to_uninstall_this_app">Вы хотите удалить это приложение?</string>
     <string name="feature_applist_no_applications_to_display">Нет приложений для отображения</string>

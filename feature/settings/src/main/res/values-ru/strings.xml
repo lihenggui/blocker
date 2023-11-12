@@ -13,8 +13,7 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-<resources>
+  --><resources>
     <string name="feature_settings_settings">Настройки</string>
     <string name="feature_settings_controller_type">Тип контроллера</string>
     <string name="feature_settings_online_rule_source">Источник онлайн-правил</string>
@@ -27,26 +26,26 @@
     <string name="feature_settings_export_rules">Экспорт правил</string>
     <string name="feature_settings_import_rules">Импорт правил</string>
     <string name="feature_settings_reset_ifw">Сброс IFW</string>
-    <string name="feature_settings_file_manager_required">You need to install a file manager from store first.</string>
-    <string name="feature_settings_backup">резервного</string>
-    <string name="feature_settings_folder_to_save">папка для сохранения</string>
-    <string name="feature_settings_directory_invalid_or_not_set">Папка недействительна или не задана</string>
+    <string name="feature_settings_file_manager_required">Вам необходимо установить файл-менеджер</string>
+    <string name="feature_settings_backup">Резервное копирование</string>
+    <string name="feature_settings_folder_to_save">Папка для сохранения</string>
+    <string name="feature_settings_directory_invalid_or_not_set">Папка не существует или не задана</string>
     <string name="feature_settings_backup_system_apps">Резервное копирование системных приложений</string>
-    <string name="feature_settings_restore_system_apps">Восстановить системные приложения</string>
-    <string name="feature_settings_blocker_rules">правилBlocker</string>
-    <string name="feature_settings_ifw_rules">правилIFW</string>
+    <string name="feature_settings_restore_system_apps">Восстановление системных приложений</string>
+    <string name="feature_settings_blocker_rules">Правила Blocker</string>
+    <string name="feature_settings_ifw_rules">Правила IFW</string>
     <string name="feature_settings_support_and_feedback">Поддержка и отзывы</string>
     <string name="feature_settings_project_homepage">Домашняя страница проекта</string>
     <string name="feature_settings_rule_repository">Репозиторий правил</string>
-    <string name="feature_settings_telegram_group">группа Telegram</string>
+    <string name="feature_settings_telegram_group">Группа Telegram</string>
     <string name="feature_settings_export_error_log">Экспорт журнала ошибок</string>
     <string name="feature_settings_theme">Тема</string>
     <string name="feature_settings_theme_default">По умолчанию</string>
     <string name="feature_settings_android">Android</string>
-    <string name="feature_settings_dark_mode">Темный режим</string>
+    <string name="feature_settings_dark_mode">Ночной режим</string>
     <string name="feature_settings_system_default">Системные установки по умолчанию</string>
-    <string name="feature_settings_light">Свет</string>
-    <string name="feature_settings_dark">Dark</string>
+    <string name="feature_settings_light">Светлая</string>
+    <string name="feature_settings_dark">Темная</string>
     <string name="feature_settings_options_github">GitHub</string>
     <string name="feature_settings_options_gitlab">GitLab</string>
     <string name="feature_settings_intent_firewall">Intent Firewall</string>
@@ -55,11 +54,12 @@
     <string name="feature_settings_report_bugs_or_submit_ideas">Сообщайте об ошибках или предлагайте идеи</string>
     <string name="feature_settings_designers_homepage">Домашняя страница дизайнеров</string>
     <string name="feature_settings_open_source_licenses">Лицензии с открытым исходным кодом</string>
-    <string name="feature_settings_display_language">Язык отображения</string>
+    <string name="feature_settings_display_language">Язык</string>
     <string name="feature_settings_library_language">Язык правил</string>
-    <string name="feature_settings_follow_system">Следовать за системой</string>
+    <string name="feature_settings_follow_system">Как в системе</string>
     <string name="feature_settings_english">Английский</string>
     <string name="feature_settings_simplifed_chinese">Упрощенный китайский</string>
     <string name="feature_settings_traditional_chinese">Традиционный китайский</string>
     <string name="feature_settings_russian">Русский</string>
+    <string name="feature_settings_spanish">Испанский</string>
 </resources>
