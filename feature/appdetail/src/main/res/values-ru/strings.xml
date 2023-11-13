@@ -13,39 +13,40 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
+--><resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
     <string name="feature_appdetail_cannot_launch_this_app">Не удалось запустить это приложение</string>
-    <string name="feature_appdetail_blocker_rules">правилBlocker</string>
+    <string name="feature_appdetail_blocker_rules">Правила Blocker</string>
     <string name="feature_appdetail_export_rules">Экспорт правил</string>
     <string name="feature_appdetail_import_rules">Импорт правил</string>
-    <string name="feature_appdetail_ifw_rules">правилIFW</string>
+    <string name="feature_appdetail_ifw_rules">Правила IFW</string>
     <string name="feature_appdetail_export_ifw_rules">Экспорт правил IFW</string>
     <string name="feature_appdetail_import_ifw_rules">Импорт правил IFW</string>
     <string name="feature_appdetail_reset_ifw">Сбросить IFW</string>
     <string name="feature_appdetail_target_sdk_version">Целевая версия SDK</string>
     <string name="feature_appdetail_minimum_sdk_version">Минимальная версия SDK</string>
     <string name="feature_appdetail_last_update_time">Время последнего обновления</string>
-    <string name="feature_appdetail_data_dir">каталог данных</string>
-    <string name="feature_appdetail_block_all_of_this_page">Заблокировать всю эту страницу</string>
-    <string name="feature_appdetail_enable_all_of_this_page">Включить всю эту страницу</string>
-    <string name="feature_appdetail_blocking_effect">Эффект блокировки</string>
+    <string name="feature_appdetail_data_dir">Каталог данных</string>
+    <string name="feature_appdetail_block_all_of_this_page">Отключить все на странице</string>
+    <string name="feature_appdetail_enable_all_of_this_page">Включить все на странице</string>
+    <string name="feature_appdetail_blocking_effect">Последствия отключения</string>
     <string name="feature_appdetail_recommended_blocking">Рекомендуемая блокировка</string>
     <string name="feature_appdetail_belonging_sdk">Принадлежащий SDK</string>
     <string name="feature_appdetail_save">Сохранить</string>
     <string name="feature_appdetail_search_components">Поиск компонентов</string>
-    <string name="feature_appdetail_add_description_hint">В настоящее время для этого компонента нет доступной информации. Будьте первым, кто внесет свой вклад!</string>
+    <string name="feature_appdetail_add_description_hint">В настоящее время по этому компоненту нет информации. Будьте первым, кто внесет свой вклад!</string>
     <string name="feature_appdetail_how_to_contribute">Как внести свой вклад?</string>
     <string name="feature_appdetail_unknown">Неизвестно</string>
     <string name="feature_appdetail_select_mutiple">Выбрать несколько</string>
     <plurals name="feature_appdetail_selected_component_count">
         <item quantity="one">Выбран %1$d компонент</item>
+        <item quantity="few">Выбрано %1$d компонента</item>
+        <item quantity="many">Выбрано %1$d компонентов</item>
         <item quantity="other">Выбрано %1$d компонентов</item>
     </plurals>
-    <string name="feature_appdetail_share_your_rules">Поделитесь своими правилами</string>
+    <string name="feature_appdetail_share_your_rules">Поделиться своими правилами</string>
     <string name="feature_appdetail_share_all_rules">Поделиться всеми правилами</string>
     <string name="feature_appdetail_share_rules_of_this_app">Поделиться правилами этого приложения</string>
-    <string name="feature_appdetail_cannot_share_rule_report_issue">Невозможно поделиться правилами, сообщите нам об этом.</string>
+    <string name="feature_appdetail_cannot_share_rule_report_issue">Невозможно поделиться правилами. Сообщите нам об этой ошибке.</string>
     <string name="feature_appdetail_cannot_share_rule_no_apps_found">Невозможно поделиться правилами, не найдено ни одного приложения для обмена.</string>
     <string name="feature_appdetail_rules_sharing_title">Обмен правилами: %1$s</string>
     <string name="feature_appdetail_provide_additional_details">(Пожалуйста, предоставьте дополнительные сведения о своих правилах.)\n</string>

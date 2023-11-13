@@ -17,11 +17,16 @@
 package com.merxury.blocker.feature.settings
 
 import android.app.Application
+import android.app.LocaleManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.LocaleList
 import android.system.Os
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.net.toFile
+import androidx.core.os.LocaleListCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.asFlow
@@ -149,6 +154,15 @@ class SettingsViewModel @Inject constructor(
 
     fun updateAppDisplayLanguage(language: String) {
         viewModelScope.launch {
+            val context = getApplication<Application>()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.getSystemService(LocaleManager::class.java).applicationLocales =
+                    LocaleList.forLanguageTags(language)
+            } else {
+                AppCompatDelegate.setApplicationLocales(
+                    LocaleListCompat.forLanguageTags(language),
+                )
+            }
             userDataRepository.setAppDisplayLanguage(language)
         }
     }

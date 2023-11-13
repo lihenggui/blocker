@@ -1,7 +1,12 @@
 [中文README](https://github.com/lihenggui/blocker/blob/main/README.zh-CN.md)
 
 ## Blocker
-[![release](https://img.shields.io/github/v/release/lihenggui/blocker?label=release&color=red)](https://github.com/lihenggui/blocker/releases) [![download](https://shields.io/github/downloads/lihenggui/blocker/total?label=download)](https://github.com/lihenggui/blocker/releases/latest) [![license](https://img.shields.io/github/license/lihenggui/blocker)](LICENSE) [![follow](https://img.shields.io/badge/follow-Telegram-blue.svg?label=follow)](https://t.me/blockerandroid) 
+[![release](https://img.shields.io/github/v/release/lihenggui/blocker?label=release&color=red)](https://github.com/lihenggui/blocker/releases)
+[![download](https://shields.io/github/downloads/lihenggui/blocker/total?label=download)](https://github.com/lihenggui/blocker/releases/latest)
+[![translation](https://weblate.sanmer.dev/widget/blocker/svg-badge.svg)](https://weblate.sanmer.dev/engage/blocker/)
+[![follow](https://img.shields.io/badge/follow-Telegram-blue.svg?label=follow)](https://t.me/blockerandroid) 
+[![license](https://img.shields.io/github/license/lihenggui/blocker)](LICENSE) 
+
 
 Blocker is a component controller for Android applications that currently supports using
 PackageManager and Intent Firewall to manage the state of components. For bloated applications, many

@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,38 +13,51 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
+  --><resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingQuantity">
     <string name="feature_search_searching">Поиск</string>
     <plurals name="feature_search_activity_count">
-        <item quantity="one">%1$d Активность</item>
-        <item quantity="other">%1$d Деятельность</item>
+        <item quantity="one">%1$d активити</item>
+        <item quantity="few">%1$d активити</item>
+        <item quantity="many">%1$d активити</item>
+        <item quantity="other">%1$d активити</item>
     </plurals>
     <plurals name="feature_search_content_provider_count">
-        <item quantity="one">%1$d Поставщик контента</item>
-        <item quantity="other">%1$d Поставщики контента</item>
+        <item quantity="one">%1$d провайдер</item>
+        <item quantity="few">%1$d провайдера</item>
+        <item quantity="many">%1$d провайдеров</item>
+        <item quantity="other">%1$d провайдеров</item>
     </plurals>
     <plurals name="feature_search_receiver_count">
-        <item quantity="one">%1$d Приемник</item>
-        <item quantity="other">%1$d Приемники</item>
+        <item quantity="one">%1$d ресивер</item>
+        <item quantity="few">%1$d ресивера</item>
+        <item quantity="many">%1$d ресиверов</item>
+        <item quantity="other">%1$d ресиверов</item>
     </plurals>
     <plurals name="feature_search_service_count">
-        <item quantity="one">%1$d Сервис</item>
-        <item quantity="other">%1$d Сервисы</item>
+        <item quantity="one">%1$d служба</item>
+        <item quantity="few">%1$d службы</item>
+        <item quantity="many">%1$d служб</item>
+        <item quantity="other">%1$d служб</item>
     </plurals>
     <plurals name="feature_search_selected_app_count">
         <item quantity="one">%1$d приложение выбрано</item>
+        <item quantity="few">%1$d приложения выбрано</item>
+        <item quantity="many">%1$d приложений выбрано</item>
         <item quantity="other">%1$d приложений выбрано</item>
     </plurals>
     <plurals name="feature_search_block_all">
-        <item quantity="one">Эта операция отключит компонент %1$d. Продолжить?</item>
-        <item quantity="other">Эта операция отключит %1$d компонентов. Продолжить?</item>
+        <item quantity="one">Эта операция отключит %1$d компонент. Продолжить\?</item>
+        <item quantity="few">Эта операция отключит %1$d компонента. Продолжить\?</item>
+        <item quantity="many">Эта операция отключит %1$d компонентов. Продолжить\?</item>
+        <item quantity="other">Эта операция отключит %1$d компонентов. Продолжить\?</item>
     </plurals>
     <plurals name="feature_search_enable_all">
-        <item quantity="one">Эта операция активирует компонент %1$d. Продолжить?</item>
-        <item quantity="other">Эта операция активирует компоненты: %1$d. Продолжить?</item>
+        <item quantity="one">Эта операция включит %1$d компонент. Продолжить\?</item>
+        <item quantity="few">Эта операция включит %1$d компонента. Продолжить\?</item>
+        <item quantity="many">Эта операция включит %1$d компонентов. Продолжить\?</item>
+        <item quantity="other">Эта операция включит %1$d компонентов. Продолжить\?</item>
     </plurals>
     <string name="feature_search_search_hint">Приложения, компоненты и правила</string>
-    <string name="feature_search_no_search_result">Пока нет результатов поиска</string>
-    <string name="feature_search_check_icon">Проверять</string>
+    <string name="feature_search_no_search_result">Ничего не найдено</string>
+    <string name="feature_search_check_icon">Проверка</string>
 </resources>
