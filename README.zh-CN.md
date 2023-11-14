@@ -85,6 +85,18 @@ Compose构建UI元素。你可以从 [Figma](https://www.figma.com/file/T903MNmX
 动态颜色 - 根据用户当前的颜色主题使用颜色；默认主题 - 在不支持动态颜色时使用预定义的颜色。
 同时每个主题还支持暗模式。
 
+## 贡献翻译
+Blocker app的默认字符串资源在工程以下几个位置：
+
+`app-compose/src/main/res/values/strings.xml`  
+`core/[module]/src/main/res/values/strings.xml`  
+`sync/[module]/src/main/res/values/strings.xml`  
+`feature/[module]/src/main/res/values/strings.xml`  
+
+对应的翻译文件需要放在对应工程的对应资源目录中 ([module]/src/main/res/values-[lang]/strings.xml)。 
+
+你也可以使用 [Weblate](https://weblate.sanmer.dev/projects/blocker/) 来翻译此项目。 (感谢 [@SanmerDev](https://github.com/SanmerDev) 提供的服务)
+
 ## 常见问题
 
 1. 在Shizuku模式下点击按钮，组件状态无法控制，弹出SecurityException: Shell cannot change component
