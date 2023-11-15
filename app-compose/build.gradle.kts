@@ -17,16 +17,17 @@
 import com.merxury.blocker.BlockerBuildType
 
 plugins {
+    alias(libs.plugins.baselineprofile)
     alias(libs.plugins.blocker.android.application)
     alias(libs.plugins.blocker.android.application.compose)
     alias(libs.plugins.blocker.android.application.flavors)
     alias(libs.plugins.blocker.android.application.jacoco)
     alias(libs.plugins.blocker.android.hilt)
     alias(libs.plugins.blocker.android.application.firebase)
+    alias(libs.plugins.ksp)
     id("jacoco")
     id("kotlin-parcelize")
     id("com.google.android.gms.oss-licenses-plugin")
-    alias(libs.plugins.ksp)
 }
 
 android {
@@ -52,7 +53,7 @@ android {
         debug {
             applicationIdSuffix = BlockerBuildType.DEBUG.applicationIdSuffix
         }
-        val release by getting {
+        val release = getByName("release") {
             isMinifyEnabled = true
             applicationIdSuffix = BlockerBuildType.RELEASE.applicationIdSuffix
             proguardFiles(
@@ -72,6 +73,8 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            // Ensure Baseline Profile is fresh for release builds.
+            baselineProfile.automaticGenerationDuringBuild = true
         }
         create("benchmark") {
             // Enable all the optimizations from release build through initWith(release).
@@ -153,6 +156,8 @@ dependencies {
     implementation(libs.libsu.core)
     implementation(libs.timber)
 
+    baselineProfile(project(":benchmarks"))
+
     // Core functions
     testImplementation(projects.core.testing)
     testImplementation(projects.core.datastoreTest)
@@ -163,4 +168,10 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation(libs.androidx.work.testing)
     kspTest(libs.hilt.compiler)
+}
+
+baselineProfile {
+    // Don't build on every iteration of a full assemble.
+    // Instead enable generation directly for the release build variant.
+    automaticGenerationDuringBuild = false
 }
