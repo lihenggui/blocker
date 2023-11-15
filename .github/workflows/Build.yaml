@@ -108,8 +108,19 @@ jobs:
         if: always()
         run: ./gradlew testFossDebug testMarketDebug :lint:test
 
+      # Replace task exclusions with `-Pandroidx.baselineprofile.skipgeneration` when
+      # https://android-review.googlesource.com/c/platform/frameworks/support/+/2602790 landed in a
+      # release build
       - name: Build all build type and flavor permutations
-        run: ./gradlew assemble
+        run: ./gradlew :app-compose:assemble :benchmarks:assemble
+          -x pixel6Api33ProdNonMinifiedReleaseAndroidTest
+          -x pixel6Api33ProdNonMinifiedBenchmarkAndroidTest
+          -x pixel6Api33DemoNonMinifiedReleaseAndroidTest
+          -x pixel6Api33DemoNonMinifiedBenchmarkAndroidTest
+          -x collectFossNonMinifiedReleaseBaselineProfile
+          -x collectFossNonMinifiedBenchmarkBaselineProfile
+          -x collectMarketNonMinifiedReleaseBaselineProfile
+          -x collectMarketNonMinifiedBenchmarkBaselineProfile
 
       - name: Upload Foss apk
         if: success() && github.event_name != 'pull_request' && github.repository == 'lihenggui/Blocker'
