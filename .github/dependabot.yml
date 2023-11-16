@@ -21,8 +21,9 @@ updates:
           - "androidx.compose.compiler:compiler"
       gradle-plugin-and-build-tools:
         patterns:
-          - "com.android.tools:common"
           - "com.android.tools.build:gradle"
+          - "com.android.tools:common"
+          - "com.android.tools.lint"
           - "com.android.application"
           - "com.android.library"
           - "com.android.test"
