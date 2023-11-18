@@ -43,11 +43,19 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2.9.0
 
+      - name: Install GMD image for baseline profile generation
+        run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager "system-images;android-33;aosp_atd;arm64-v8a"
+
       - name: Accept Android licenses
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
-      - name: Build app
-        run: ./gradlew :app-compose:assembleRelease :app-compose:bundleRelease
+      - name: Build release variant including baseline profile generation
+        run: ./gradlew :app-compose:assembleRelease
+          -Pandroid.testInstrumentationRunnerArguments.androidx.benchmark.enabledRules=BaselineProfile
+          -Pandroid.testoptions.manageddevices.emulator.gpu="swiftshader_indirect"
+          -Pandroid.experimental.testOptions.managedDevices.emulator.showKernelLogging=true
+          -Pandroid.experimental.androidTest.numManagedDeviceShards=1
+          -Pandroid.experimental.testOptions.managedDevices.maxConcurrentDevices=1
 
       - name: Set apk path
         id: apk-path

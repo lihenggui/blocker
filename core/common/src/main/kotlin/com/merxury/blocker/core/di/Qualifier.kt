@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.di
+package com.merxury.blocker.core.di
 
 import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class AppPackageName
+annotation class FilesDir
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class CacheDir
