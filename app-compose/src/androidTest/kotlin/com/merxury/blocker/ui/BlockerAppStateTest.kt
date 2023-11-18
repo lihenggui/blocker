@@ -71,7 +71,7 @@ class BlockerAppStateTest {
             val navController = rememberTestNavController()
             state = remember(navController) {
                 return@remember BlockerAppState(
-                    windowSizeClass = getCompactWindowClass(),
+                    windowSize = getCompactWindowClass(),
                     bottomSheetNavigator = bottomSheetNavigator,
                     navController = navController,
                     networkMonitor = networkMonitor,
@@ -95,7 +95,7 @@ class BlockerAppStateTest {
     fun blockerAppState_destinations() = runTest {
         composeTestRule.setContent {
             state = rememberBlockerAppState(
-                windowSizeClass = getCompactWindowClass(),
+                windowSize = getCompactWindowClass(),
                 networkMonitor = networkMonitor,
             )
         }
@@ -111,7 +111,7 @@ class BlockerAppStateTest {
         composeTestRule.setContent {
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             state = BlockerAppState(
-                windowSizeClass = getCompactWindowClass(),
+                windowSize = getCompactWindowClass(),
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
@@ -128,7 +128,7 @@ class BlockerAppStateTest {
         composeTestRule.setContent {
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             state = BlockerAppState(
-                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(800.dp, 800.dp)),
+                windowSize = WindowSizeClass.calculateFromSize(DpSize(800.dp, 800.dp)),
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
@@ -145,7 +145,7 @@ class BlockerAppStateTest {
         composeTestRule.setContent {
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             state = BlockerAppState(
-                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
+                windowSize = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
@@ -162,7 +162,7 @@ class BlockerAppStateTest {
         composeTestRule.setContent {
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             state = BlockerAppState(
-                windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
+                windowSize = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,

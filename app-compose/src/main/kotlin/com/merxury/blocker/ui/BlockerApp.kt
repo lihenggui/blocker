@@ -18,43 +18,34 @@
 package com.merxury.blocker.ui
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.adaptive.navigation.suite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
+import androidx.compose.material3.adaptive.navigation.suite.NavigationSuiteDefaults
+import androidx.compose.material3.adaptive.navigation.suite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.unit.DpSize
+import androidx.navigation.NavDestination
+import androidx.navigation.NavDestination.Companion.hierarchy
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.core.data.util.NetworkMonitor
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerGradientBackground
-import com.merxury.blocker.core.designsystem.component.BlockerNavigationBar
-import com.merxury.blocker.core.designsystem.component.BlockerNavigationBarItem
-import com.merxury.blocker.core.designsystem.component.BlockerNavigationRail
-import com.merxury.blocker.core.designsystem.component.BlockerNavigationRailItem
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.GradientColors
@@ -64,17 +55,17 @@ import com.merxury.blocker.navigation.BlockerNavHost
 import com.merxury.blocker.navigation.TopLevelDestination
 
 @OptIn(
-    ExperimentalLayoutApi::class,
     ExperimentalComposeUiApi::class,
     ExperimentalMaterialNavigationApi::class,
+    ExperimentalMaterial3AdaptiveNavigationSuiteApi::class,
 )
 @Composable
 fun BlockerApp(
-    windowSizeClass: WindowSizeClass,
+    windowSize: DpSize,
     networkMonitor: NetworkMonitor,
     appState: BlockerAppState = rememberBlockerAppState(
         networkMonitor = networkMonitor,
-        windowSizeClass = windowSizeClass,
+        windowSize = windowSize,
     ),
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
@@ -90,62 +81,67 @@ fun BlockerApp(
             },
         ) {
             val snackbarHostState = remember { SnackbarHostState() }
-            Scaffold(
+            val currentDestination = appState.currentDestination
+
+            NavigationSuiteScaffold(
+                layoutType = appState.navigationSuiteType,
                 modifier = Modifier.semantics {
                     testTagsAsResourceId = true
                 },
                 containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onBackground,
-                contentWindowInsets = WindowInsets(0, 0, 0, 0),
-                snackbarHost = {
-                    SnackbarHost(
-                        hostState = snackbarHostState,
-                    )
-                },
-                bottomBar = {
-                    if (appState.shouldShowBottomBar) {
-                        BlockerBottomBar(
-                            destinations = appState.topLevelDestinations,
-                            onNavigateToDestination = appState::navigateToTopLevelDestination,
-                            currentTopLevelDestination = appState.currentTopLevelDestination,
-                            modifier = Modifier.testTag("BlockerBottomBar"),
+                navigationSuiteColors = NavigationSuiteDefaults.colors(
+                    navigationRailContainerColor = Color.Transparent,
+                    navigationDrawerContainerColor = Color.Transparent,
+                ),
+                navigationSuiteItems = {
+                    appState.topLevelDestinations.forEach { destination ->
+                        val isSelected =
+                            currentDestination.isTopLevelDestinationInHierarchy(destination)
+                        item(
+                            selected = isSelected,
+                            icon = {
+                                val icon = if (isSelected) {
+                                    destination.selectedIcon
+                                } else {
+                                    destination.unselectedIcon
+                                }
+                                when (icon) {
+                                    is ImageVectorIcon -> Icon(
+                                        imageVector = icon.imageVector,
+                                        contentDescription = null,
+                                    )
+
+                                    is DrawableResourceIcon -> Icon(
+                                        painter = painterResource(id = icon.id),
+                                        contentDescription = null,
+                                    )
+                                }
+                            },
+                            label = { Text(stringResource(destination.iconTextId)) },
+                            onClick = { appState.navigateToTopLevelDestination(destination) },
                         )
                     }
                 },
-            ) { padding ->
-                Row(
+            ) {
+                Column(
                     Modifier
                         .fillMaxSize()
-                        .padding(padding)
-                        .consumeWindowInsets(padding)
                         .windowInsetsPadding(
                             WindowInsets.safeDrawing.only(
                                 WindowInsetsSides.Horizontal,
                             ),
                         ),
                 ) {
-                    if (appState.shouldShowNavRail) {
-                        BlockerNavRail(
-                            destinations = appState.topLevelDestinations,
-                            onNavigateToDestination = appState::navigateToTopLevelDestination,
-                            currentTopLevelDestination = appState.currentTopLevelDestination,
-                            modifier = Modifier
-                                .testTag("BlockerNavRail")
-                                .safeDrawingPadding(),
-                        )
-                    }
 
-                    Column(Modifier.fillMaxSize()) {
-                        // TODO Show the top app bar on top level destinations.
+                    // TODO Show the top app bar on top level destinations.
 
-                        BlockerNavHost(
-                            bottomSheetNavigator = appState.bottomSheetNavigator,
-                            navController = appState.navController,
-                            onBackClick = appState::onBackClick,
-                            snackbarHostState = snackbarHostState,
-                            updateIconBasedThemingState = updateIconBasedThemingState,
-                        )
-                    }
+                    BlockerNavHost(
+                        bottomSheetNavigator = appState.bottomSheetNavigator,
+                        navController = appState.navController,
+                        onBackClick = appState::onBackClick,
+                        snackbarHostState = snackbarHostState,
+                        updateIconBasedThemingState = updateIconBasedThemingState,
+                    )
 
                     // TODO: We may want to add padding or spacer when the snackbar is shown so that
                     //  content doesn't display behind it.
@@ -155,82 +151,7 @@ fun BlockerApp(
     }
 }
 
-@Composable
-private fun BlockerNavRail(
-    destinations: List<TopLevelDestination>,
-    onNavigateToDestination: (TopLevelDestination) -> Unit,
-    currentTopLevelDestination: TopLevelDestination?,
-    modifier: Modifier = Modifier,
-) {
-    BlockerNavigationRail(modifier = modifier) {
-        Spacer(Modifier.weight(1f))
-        destinations.forEach { destination ->
-            val selected = destination == currentTopLevelDestination
-            BlockerNavigationRailItem(
-                selected = selected,
-                onClick = { onNavigateToDestination(destination) },
-                icon = {
-                    val icon = if (selected) {
-                        destination.selectedIcon
-                    } else {
-                        destination.unselectedIcon
-                    }
-                    when (icon) {
-                        is ImageVectorIcon -> Icon(
-                            imageVector = icon.imageVector,
-                            contentDescription = null,
-                        )
-
-                        is DrawableResourceIcon -> Icon(
-                            painter = painterResource(id = icon.id),
-                            contentDescription = null,
-                        )
-                    }
-                },
-                label = { Text(stringResource(destination.iconTextId)) },
-                modifier = Modifier.testTag(destination.name),
-            )
-        }
-        Spacer(Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun BlockerBottomBar(
-    destinations: List<TopLevelDestination>,
-    onNavigateToDestination: (TopLevelDestination) -> Unit,
-    currentTopLevelDestination: TopLevelDestination?,
-    modifier: Modifier = Modifier,
-) {
-    BlockerNavigationBar(
-        modifier = modifier,
-    ) {
-        destinations.forEach { destination ->
-            val selected = destination == currentTopLevelDestination
-            BlockerNavigationBarItem(
-                selected = selected,
-                onClick = { onNavigateToDestination(destination) },
-                icon = {
-                    val icon = if (selected) {
-                        destination.selectedIcon
-                    } else {
-                        destination.unselectedIcon
-                    }
-                    when (icon) {
-                        is ImageVectorIcon -> Icon(
-                            imageVector = icon.imageVector,
-                            contentDescription = null,
-                        )
-
-                        is DrawableResourceIcon -> Icon(
-                            painter = painterResource(id = icon.id),
-                            contentDescription = null,
-                        )
-                    }
-                },
-                label = { Text(stringResource(destination.iconTextId)) },
-                modifier = Modifier.testTag(destination.name),
-            )
-        }
-    }
-}
+private fun NavDestination?.isTopLevelDestinationInHierarchy(destination: TopLevelDestination) =
+    this?.hierarchy?.any {
+        it.route?.contains(destination.name, true) ?: false
+    } ?: false

@@ -17,8 +17,8 @@
 
 package com.merxury.blocker.ui
 
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.adaptive.navigation.suite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
+import androidx.compose.material3.adaptive.navigation.suite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Stable
@@ -27,6 +27,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -59,15 +61,27 @@ import kotlinx.coroutines.flow.stateIn
 @OptIn(ExperimentalMaterialNavigationApi::class)
 @Composable
 fun rememberBlockerAppState(
-    windowSizeClass: WindowSizeClass,
+    windowSize: DpSize,
     networkMonitor: NetworkMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator(),
     navController: NavHostController = rememberNavController(bottomSheetNavigator),
 ): BlockerAppState {
     NavigationTrackingSideEffect(navController)
-    return remember(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor) {
-        BlockerAppState(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor)
+    return remember(
+        bottomSheetNavigator,
+        navController,
+        coroutineScope,
+        windowSize,
+        networkMonitor,
+    ) {
+        BlockerAppState(
+            bottomSheetNavigator,
+            navController,
+            coroutineScope,
+            windowSize,
+            networkMonitor,
+        )
     }
 }
 
@@ -77,7 +91,7 @@ class BlockerAppState(
     val bottomSheetNavigator: BottomSheetNavigator,
     val navController: NavHostController,
     val coroutineScope: CoroutineScope,
-    val windowSizeClass: WindowSizeClass,
+    val windowSize: DpSize,
     networkMonitor: NetworkMonitor,
 ) {
     val currentDestination: NavDestination?
@@ -117,12 +131,6 @@ class BlockerAppState(
             }
         }
 
-    val shouldShowBottomBar: Boolean
-        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
-
-    val shouldShowNavRail: Boolean
-        get() = !shouldShowBottomBar
-
     val isOffline = networkMonitor.isOnline
         .map(Boolean::not)
         .stateIn(
@@ -130,6 +138,26 @@ class BlockerAppState(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = false,
         )
+
+    /**
+     * Per <a href="https://m3.material.io/components/navigation-drawer/guidelines">Material Design 3 guidelines</a>,
+     * the selection of the appropriate navigation component should be contingent on the available
+     * window size:
+     * - Bottom Bar for compact window sizes (below 600dp)
+     * - Navigation Rail for medium and expanded window sizes up to 1240dp (between 600dp and 1240dp)
+     * - Navigation Drawer to window size above 1240dp
+     */
+    @OptIn(ExperimentalMaterial3AdaptiveNavigationSuiteApi::class)
+    val navigationSuiteType: NavigationSuiteType
+        @Composable get() {
+            return if (windowSize.width > 1240.dp) {
+                NavigationSuiteType.NavigationDrawer
+            } else if (windowSize.width >= 600.dp) {
+                NavigationSuiteType.NavigationRail
+            } else {
+                NavigationSuiteType.NavigationBar
+            }
+        }
 
     /**
      * Map of top level destinations to be used in the TopBar, BottomBar and NavRail. The key is the
