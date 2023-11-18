@@ -27,6 +27,7 @@ import androidx.test.internal.runner.junit4.AndroidJUnit4ClassRunner
 import com.merxury.blocker.PACKAGE_NAME
 import com.merxury.blocker.allowNotifications
 import com.merxury.blocker.applist.appListWaitForContent
+import com.merxury.blocker.startActivityAndAllowNotifications
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,32 +43,32 @@ class StartupBenchmark {
     val benchmarkRule = MacrobenchmarkRule()
 
     @Test
-    fun startupNoCompilation() = startup(CompilationMode.None())
+    fun startupWithoutPreCompilation() = startup(CompilationMode.None())
 
     @Test
-    fun startupBaselineProfileDisabled() = startup(
+    fun startupWithPartialCompilationAndDisabledBaselineProfile() = startup(
         CompilationMode.Partial(baselineProfileMode = Disable, warmupIterations = 1),
     )
 
     @Test
-    fun startupBaselineProfile() = startup(CompilationMode.Partial(baselineProfileMode = Require))
+    fun startupPrecompiledWithBaselineProfile() =
+        startup(CompilationMode.Partial(baselineProfileMode = Require))
 
     @Test
-    fun startupFullCompilation() = startup(CompilationMode.Full())
+    fun startupFullyPrecompiled() = startup(CompilationMode.Full())
 
     private fun startup(compilationMode: CompilationMode) = benchmarkRule.measureRepeated(
         packageName = PACKAGE_NAME,
         metrics = listOf(StartupTimingMetric()),
         compilationMode = compilationMode,
-        iterations = 10,
+        iterations = 20, // More iterations result in higher statistical significance.
         startupMode = COLD,
         setupBlock = {
             pressHome()
             allowNotifications()
         },
     ) {
-        startActivityAndWait()
-        allowNotifications()
+        startActivityAndAllowNotifications()
         // Waits until the content is ready to capture Time To Full Display
         appListWaitForContent()
     }

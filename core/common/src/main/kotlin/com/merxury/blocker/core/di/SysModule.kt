@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.di
+package com.merxury.blocker.core.di
 
 import android.app.Application
 import android.content.pm.PackageManager
