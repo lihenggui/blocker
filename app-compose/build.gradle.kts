@@ -17,7 +17,6 @@
 import com.merxury.blocker.BlockerBuildType
 
 plugins {
-    alias(libs.plugins.baselineprofile)
     alias(libs.plugins.blocker.android.application)
     alias(libs.plugins.blocker.android.application.compose)
     alias(libs.plugins.blocker.android.application.flavors)
@@ -28,6 +27,7 @@ plugins {
     id("jacoco")
     id("kotlin-parcelize")
     id("com.google.android.gms.oss-licenses-plugin")
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -156,7 +156,7 @@ dependencies {
     implementation(libs.libsu.core)
     implementation(libs.timber)
 
-    baselineProfile(project(":benchmarks"))
+    baselineProfile(projects.benchmarks)
 
     // Core functions
     testImplementation(projects.core.testing)
