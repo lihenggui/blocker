@@ -17,8 +17,6 @@
 
 package com.merxury.blocker.ui
 
-import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -41,7 +39,6 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -50,7 +47,7 @@ import kotlin.test.assertTrue
  * Note: This could become an unit test if Robolectric is added to the project and the Context
  * is faked.
  */
-@OptIn(ExperimentalMaterial3WindowSizeClassApi::class, ExperimentalMaterialNavigationApi::class)
+@OptIn(ExperimentalMaterialNavigationApi::class)
 class BlockerAppStateTest {
 
     @get:Rule
@@ -71,7 +68,7 @@ class BlockerAppStateTest {
             val navController = rememberTestNavController()
             state = remember(navController) {
                 return@remember BlockerAppState(
-                    windowSize = getCompactWindowClass(),
+                    windowSize = getCompactWindowSize(),
                     bottomSheetNavigator = bottomSheetNavigator,
                     navController = navController,
                     networkMonitor = networkMonitor,
@@ -95,7 +92,7 @@ class BlockerAppStateTest {
     fun blockerAppState_destinations() = runTest {
         composeTestRule.setContent {
             state = rememberBlockerAppState(
-                windowSize = getCompactWindowClass(),
+                windowSize = getCompactWindowSize(),
                 networkMonitor = networkMonitor,
             )
         }
@@ -107,62 +104,11 @@ class BlockerAppStateTest {
     }
 
     @Test
-    fun blockerAppState_showBottomBar_compact() = runTest {
-        composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
-            state = BlockerAppState(
-                windowSize = getCompactWindowClass(),
-                bottomSheetNavigator = bottomSheetNavigator,
-                navController = NavHostController(LocalContext.current),
-                networkMonitor = networkMonitor,
-                coroutineScope = backgroundScope,
-            )
-        }
-
-        assertTrue(state.shouldShowBottomBar)
-        assertFalse(state.shouldShowNavRail)
-    }
-
-    @Test
-    fun blockerAppState_showNavRail_medium() = runTest {
-        composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
-            state = BlockerAppState(
-                windowSize = WindowSizeClass.calculateFromSize(DpSize(800.dp, 800.dp)),
-                bottomSheetNavigator = bottomSheetNavigator,
-                navController = NavHostController(LocalContext.current),
-                networkMonitor = networkMonitor,
-                coroutineScope = backgroundScope,
-            )
-        }
-
-        assertTrue(state.shouldShowNavRail)
-        assertFalse(state.shouldShowBottomBar)
-    }
-
-    @Test
-    fun blockerAppState_showNavRail_large() = runTest {
-        composeTestRule.setContent {
-            val bottomSheetNavigator = rememberBottomSheetNavigator()
-            state = BlockerAppState(
-                windowSize = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
-                bottomSheetNavigator = bottomSheetNavigator,
-                navController = NavHostController(LocalContext.current),
-                networkMonitor = networkMonitor,
-                coroutineScope = backgroundScope,
-            )
-        }
-
-        assertTrue(state.shouldShowNavRail)
-        assertFalse(state.shouldShowBottomBar)
-    }
-
-    @Test
     fun stateIsOfflineWhenNetworkMonitorIsOffline() = runTest(UnconfinedTestDispatcher()) {
         composeTestRule.setContent {
             val bottomSheetNavigator = rememberBottomSheetNavigator()
             state = BlockerAppState(
-                windowSize = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
+                windowSize = DpSize(900.dp, 1200.dp),
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
@@ -178,7 +124,7 @@ class BlockerAppStateTest {
         )
     }
 
-    private fun getCompactWindowClass() = WindowSizeClass.calculateFromSize(DpSize(500.dp, 300.dp))
+    private fun getCompactWindowSize() = DpSize(500.dp, 300.dp)
 }
 
 @Composable

@@ -182,14 +182,6 @@ class NavigationTest {
             // Open the more menu dialog, then close it.
             onNodeWithContentDescription(sortMenu).performClick()
             onNodeWithText(appName).performClick()
-
-            // Check that the apps screen is still visible and selected.
-            onNode(
-                hasText(apps) and
-                    hasAnyAncestor(
-                        hasTestTag("BlockerBottomBar") or hasTestTag("BlockerNavRail"),
-                    ),
-            ).assertIsSelected()
         }
     }
 

@@ -20,7 +20,6 @@ package com.merxury.blocker.ui
 import android.util.Log
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
-import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -61,7 +60,7 @@ import javax.inject.Inject
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 // Configure Robolectric to use a very large screen size that can fit all of the test sizes.
 // This allows enough room to render the content under test without clipping or scaling.
-@Config(application = HiltTestApplication::class, qualifiers = "w1000dp-h1000dp-480dpi", sdk = [33])
+@Config(application = HiltTestApplication::class, qualifiers = "w1300dp-h1000dp-480dpi", sdk = [33])
 @LooperMode(LooperMode.Mode.PAUSED)
 @HiltAndroidTest
 class BlockerAppScreenSizesScreenshotTests {
@@ -116,12 +115,11 @@ class BlockerAppScreenSizesScreenshotTests {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
-                TestHarness(size = DpSize(width, height)) {
+                val windowSize = DpSize(width, height)
+                TestHarness(size = windowSize) {
                     BoxWithConstraints {
                         BlockerApp(
-                            windowSizeClass = WindowSizeClass.calculateFromSize(
-                                DpSize(maxWidth, maxHeight),
-                            ),
+                            windowSize = windowSize,
                             networkMonitor = networkMonitor,
                         )
                     }
@@ -214,6 +212,33 @@ class BlockerAppScreenSizesScreenshotTests {
             900.dp,
             1000.dp,
             "expandedWidth_expandedHeight_showsNavigationRail",
+        )
+    }
+
+    @Test
+    fun largeScreenWidth_compactHeight_showsPermanentDrawer() {
+        testBlockerAppScreenshotWithSize(
+            1300.dp,
+            400.dp,
+            "largeScreenWidth_compactHeight_showsPermanentDrawer",
+        )
+    }
+
+    @Test
+    fun largeScreenWidth_mediumHeight_showsPermanentDrawer() {
+        testBlockerAppScreenshotWithSize(
+            1300.dp,
+            500.dp,
+            "largeScreenWidth_mediumHeight_showsPermanentDrawer",
+        )
+    }
+
+    @Test
+    fun largeScreenWidth_expandedHeight_showsPermanentDrawer() {
+        testBlockerAppScreenshotWithSize(
+            1300.dp,
+            1000.dp,
+            "largeScreenWidth_expandedHeight_showsPermanentDrawer",
         )
     }
 }
