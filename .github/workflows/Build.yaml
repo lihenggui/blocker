@@ -113,8 +113,8 @@ jobs:
       # release build
       - name: Build all build type and flavor permutations
         run: ./gradlew :app-compose:assemble :benchmarks:assemble
-          -x pixel6Api33ProdNonMinifiedReleaseAndroidTest
-          -x pixel6Api33ProdNonMinifiedBenchmarkAndroidTest
+          -x pixel6Api33MarketNonMinifiedReleaseAndroidTest
+          -x pixel6Api33MarketNonMinifiedBenchmarkAndroidTest
           -x pixel6Api33DemoNonMinifiedReleaseAndroidTest
           -x pixel6Api33DemoNonMinifiedBenchmarkAndroidTest
           -x collectFossNonMinifiedReleaseBaselineProfile
