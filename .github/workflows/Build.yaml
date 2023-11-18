@@ -115,8 +115,8 @@ jobs:
         run: ./gradlew :app-compose:assemble :benchmarks:assemble
           -x pixel6Api33MarketNonMinifiedReleaseAndroidTest
           -x pixel6Api33MarketNonMinifiedBenchmarkAndroidTest
-          -x pixel6Api33DemoNonMinifiedReleaseAndroidTest
-          -x pixel6Api33DemoNonMinifiedBenchmarkAndroidTest
+          -x pixel6Api33FossNonMinifiedReleaseAndroidTest
+          -x pixel6Api33FossNonMinifiedBenchmarkAndroidTest
           -x collectFossNonMinifiedReleaseBaselineProfile
           -x collectFossNonMinifiedBenchmarkBaselineProfile
           -x collectMarketNonMinifiedReleaseBaselineProfile
