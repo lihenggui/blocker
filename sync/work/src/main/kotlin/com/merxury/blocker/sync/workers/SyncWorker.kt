@@ -27,12 +27,12 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.Synchronizer
-import com.merxury.blocker.core.data.di.CacheDir
-import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.datastore.ChangeListVersions
+import com.merxury.blocker.core.di.CacheDir
+import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.network.BlockerNetworkDataSource

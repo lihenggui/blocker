@@ -16,10 +16,10 @@
 
 package com.merxury.blocker.core.domain
 
-import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.model.data.GeneralRule
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
