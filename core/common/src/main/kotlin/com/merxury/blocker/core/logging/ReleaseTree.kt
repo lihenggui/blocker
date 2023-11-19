@@ -33,7 +33,7 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
-private const val LOG_DIR = "logs"
+const val LOG_DIR = "logs"
 
 class ReleaseTree @Inject constructor(
     @FilesDir private val filesDir: File,
