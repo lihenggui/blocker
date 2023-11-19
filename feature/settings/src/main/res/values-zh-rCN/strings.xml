@@ -63,4 +63,8 @@
     <string name="feature_settings_traditional_chinese">繁體中文</string>
     <string name="feature_settings_russian">俄语</string>
     <string name="feature_settings_spanish">西班牙语</string>
+    <string name="feature_settings_failed_to_export_logs">导出日志失败，请报告问题。</string>
+    <string name="feature_settings_export_log_title">Blocker日志导出</string>
+    <string name="feature_settings_provide_additional_details">请提供您遇到的问题的详细信息：\n</string>
+    <string name="feature_settings_no_sharable_app_found">未找到可共享的应用程序。</string>
 </resources>

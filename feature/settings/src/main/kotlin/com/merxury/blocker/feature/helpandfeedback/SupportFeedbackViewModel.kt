@@ -26,6 +26,7 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.browser.customtabs.CustomTabsService
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
+import com.merxury.blocker.core.domain.ZipLogFileUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import timber.log.Timber
 import javax.inject.Inject
@@ -37,7 +38,9 @@ private const val RULE_REPO_URL = "https://github.com/lihenggui/blocker-general-
 private const val DESIGN_LINK_URL = "https://github.com/COPtimer"
 
 @HiltViewModel
-class SupportFeedbackViewModel @Inject constructor() : ViewModel() {
+class SupportFeedbackViewModel @Inject constructor(
+    private val zipLogFileUseCase: ZipLogFileUseCase,
+) : ViewModel() {
 
     fun openProjectHomepage(context: Context) = openUrl(context, PROJECT_HOME_URL)
 
@@ -52,9 +55,7 @@ class SupportFeedbackViewModel @Inject constructor() : ViewModel() {
     fun openOpenSourceLicence(context: Context) =
         context.startActivity(Intent(context, OssLicensesMenuActivity::class.java))
 
-    fun exportErrorLog() {
-        // TODO
-    }
+    fun exportErrorLog() = zipLogFileUseCase()
 
     private fun openUrl(context: Context, url: String) {
         val chromeIntent = CustomTabsIntent.Builder()
@@ -90,7 +91,6 @@ class SupportFeedbackViewModel @Inject constructor() : ViewModel() {
         val resolvedActivityList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             pm.queryIntentActivities(activityIntent, PackageManager.ResolveInfoFlags.of(0))
         } else {
-            @Suppress("DEPRECATION")
             pm.queryIntentActivities(activityIntent, 0)
         }
         val packagesSupportingCustomTabs: ArrayList<ResolveInfo> = ArrayList()
@@ -102,7 +102,6 @@ class SupportFeedbackViewModel @Inject constructor() : ViewModel() {
             val service = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.resolveService(serviceIntent, PackageManager.ResolveInfoFlags.of(0))
             } else {
-                @Suppress("DEPRECATION")
                 pm.resolveService(serviceIntent, 0)
             }
             if (service != null) {
