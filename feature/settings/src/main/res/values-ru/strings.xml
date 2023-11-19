@@ -62,4 +62,8 @@
     <string name="feature_settings_traditional_chinese">Традиционный китайский</string>
     <string name="feature_settings_russian">Русский</string>
     <string name="feature_settings_spanish">Испанский</string>
+    <string name="feature_settings_failed_to_export_logs">Не удалось экспортировать журналы, сообщите об этом.</string>
+    <string name="feature_settings_export_log_title">Поделиться журналом Blocker</string>
+    <string name="feature_settings_provide_additional_details">Пожалуйста, предоставьте дополнительные сведения о проблеме, с которой вы столкнулись: \n</string>
+    <string name="feature_settings_no_sharable_app_found">Приложение для обмена не найдено.</string>
 </resources>
