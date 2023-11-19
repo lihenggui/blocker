@@ -26,9 +26,11 @@ import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
+import com.merxury.blocker.core.logging.ReleaseTree
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.sync.initializers.Sync
 import com.topjohnwu.superuser.Shell
 import dagger.hilt.android.HiltAndroidApp
@@ -61,6 +63,9 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
+    @Inject
+    lateinit var releaseTree: ReleaseTree
+
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)
@@ -68,7 +73,10 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
 
     override fun onCreate() {
         super.onCreate()
-        Timber.plant(Timber.DebugTree())
+        if (ApplicationUtil.isDebugMode(this)) {
+            Timber.plant(Timber.DebugTree())
+        }
+        Timber.plant(releaseTree)
         Sync.initialize(context = this)
         Shell.setDefaultBuilder(
             Shell.Builder.create()
