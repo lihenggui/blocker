@@ -41,6 +41,7 @@ import androidx.compose.material.icons.outlined.DocumentScanner
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.ExpandLess
 import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.FilePresent
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.IosShare
@@ -81,6 +82,7 @@ object BlockerIcons {
     val Folder = Icons.Outlined.Folder
     val Search = Icons.Outlined.Search
     val BugReport = Icons.Outlined.BugReport
+    val Log = Icons.Outlined.FilePresent
     val List = Icons.Outlined.List
     val AutoFix = Icons.Outlined.AutoFixHigh
     val Back = Icons.Outlined.ArrowBack

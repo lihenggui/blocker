@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Android Open Source Project
+ * Copyright 2023 Blocker
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,38 +18,23 @@ package com.merxury.blocker.baselineprofile
 
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import com.merxury.blocker.PACKAGE_NAME
-import com.merxury.blocker.allowNotifications
-import com.merxury.blocker.applist.appListScrollDownUp
-import com.merxury.blocker.applist.appListWaitForContent
-import com.merxury.blocker.rules.goToRulesScreen
-import com.merxury.blocker.rules.rulesScrollListDownUp
 import com.merxury.blocker.search.goToSearchScreen
+import com.merxury.blocker.startActivityAndAllowNotifications
 import org.junit.Rule
 import org.junit.Test
 
 /**
- * Generates a baseline profile which can be copied to `app/src/main/baseline-prof.txt`.
+ * Baseline Profile of the "Search" screen
  */
-class BaselineProfileGenerator {
+class SearchBaselineProfile {
+
     @get:Rule val baselineProfileRule = BaselineProfileRule()
 
     @Test
-    fun generate() =
+    fun generate() {
         baselineProfileRule.collect(PACKAGE_NAME) {
-            // This block defines the app's critical user journey. Here we are interested in
-            // optimizing for app startup. But you can also navigate and scroll
-            // through your most important UI.
-            allowNotifications()
-            pressHome()
-            startActivityAndWait()
-            allowNotifications()
-
-            appListWaitForContent()
-            appListScrollDownUp()
-
-            goToRulesScreen()
-            rulesScrollListDownUp()
-
+            startActivityAndAllowNotifications()
             goToSearchScreen()
         }
+    }
 }

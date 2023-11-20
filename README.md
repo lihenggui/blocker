@@ -95,6 +95,18 @@ The app has two themes:
 
 Each theme also supports dark mode.
 
+## Translation Contributions
+Default string resources for the Blocker app are located here:
+
+`app-compose/src/main/res/values/strings.xml`  
+`core/[module]/src/main/res/values/strings.xml`  
+`sync/[module]/src/main/res/values/strings.xml`  
+`feature/[module]/src/main/res/values/strings.xml`  
+
+Translate each and place them in the respective locations ([module]/src/main/res/values-[lang]/strings.xml).  
+
+Alternatively, you can use [Weblate](https://weblate.sanmer.dev/projects/blocker/) to translate this project. (Thanks [@SanmerDev](https://github.com/SanmerDev) for providing the service)
+
 ## Frequently Asked Questions
 
 1. When clicking the button in Shizuku mode, the component state cannot be controlled, and an error
