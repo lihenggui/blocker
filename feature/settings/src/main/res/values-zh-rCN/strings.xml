@@ -48,7 +48,7 @@
     <string name="feature_settings_light">日间模式</string>
     <string name="feature_settings_dark">暗黑模式</string>
     <string name="feature_settings_options_github">GitHub（海外地区推荐）</string>
-    <string name="feature_settings_options_gitlab">GitLab（大陆地区推荐）</string>
+    <string name="feature_settings_options_jihulab">极狐（大陆地区推荐）</string>
     <string name="feature_settings_intent_firewall">Intent Firewall（意图防火墙）</string>
     <string name="feature_settings_package_manager">Package Manager（系统包管理器）</string>
     <string name="feature_settings_dynamic_color">动态主题颜色</string>

@@ -28,7 +28,7 @@ import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.ApplicationScope
 import com.merxury.blocker.core.logging.ReleaseTree
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.core.model.preference.RuleServerProvider.JIHULAB
 import com.merxury.blocker.core.rule.work.CopyRulesToStorageWorker
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.sync.initializers.Sync
@@ -114,9 +114,9 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
         // Set default server provider for first time run
         val locale = Locale.getDefault().toString()
         if (locale == "zh_CN") {
-            // Set default server provider to GitLab for Chinese users
-            Timber.i("Set default server provider to GitLab")
-            userDataRepository.setRuleServerProvider(GITLAB)
+            // Set default server provider to JihuLab for Chinese users
+            Timber.i("Set default server provider to JihuLab")
+            userDataRepository.setRuleServerProvider(JIHULAB)
         } else {
             Timber.i("Set default server provider to GitHub")
             userDataRepository.setRuleServerProvider(GITHUB)
