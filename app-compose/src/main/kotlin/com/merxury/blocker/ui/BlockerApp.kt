@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigation.suite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
@@ -49,8 +48,6 @@ import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerGradientBackground
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
-import com.merxury.blocker.core.designsystem.theme.GradientColors
-import com.merxury.blocker.core.designsystem.theme.LocalGradientColors
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.navigation.BlockerNavHost
 import com.merxury.blocker.navigation.TopLevelDestination
@@ -70,17 +67,8 @@ fun BlockerApp(
     ),
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
 ) {
-    val shouldShowGradientBackground =
-        appState.currentTopLevelDestination == TopLevelDestination.APP
-
     BlockerBackground {
-        BlockerGradientBackground(
-            gradientColors = if (shouldShowGradientBackground) {
-                LocalGradientColors.current
-            } else {
-                GradientColors()
-            },
-        ) {
+        BlockerGradientBackground {
             val snackbarHostState = remember { SnackbarHostState() }
             val currentDestination = appState.currentDestination
 
@@ -89,8 +77,7 @@ fun BlockerApp(
                 modifier = Modifier.semantics {
                     testTagsAsResourceId = true
                 },
-                containerColor = Color.Transparent,
-                contentColor = MaterialTheme.colorScheme.onBackground,
+                contentColor = Color.Transparent,
                 navigationSuiteColors = NavigationSuiteDefaults.colors(
                     navigationBarContainerColor = Color.Transparent,
                     navigationRailContainerColor = Color.Transparent,
