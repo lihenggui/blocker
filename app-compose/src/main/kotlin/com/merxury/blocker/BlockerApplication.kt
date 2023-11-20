@@ -18,6 +18,7 @@
 package com.merxury.blocker
 
 import android.app.Application
+import android.os.StrictMode
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.work.Configuration
 import androidx.work.ExistingWorkPolicy.KEEP
@@ -75,6 +76,10 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
         super.onCreate()
         if (ApplicationUtil.isDebugMode(this)) {
             Timber.plant(Timber.DebugTree())
+            // Kill the app if there are main thread policy violations.
+            StrictMode.setThreadPolicy(
+                StrictMode.ThreadPolicy.Builder().detectAll().penaltyDeath().build(),
+            )
         }
         Timber.plant(releaseTree)
         Sync.initialize(context = this)
