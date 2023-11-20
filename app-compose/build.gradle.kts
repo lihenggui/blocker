@@ -32,8 +32,8 @@ android {
     namespace = "com.merxury.blocker"
     defaultConfig {
         applicationId = "com.merxury.blocker"
-        versionCode = 3058
-        versionName = "2.0.3058-fdroid" // X.Y.Z; X = Major, Y = minor, Z = version code
+        versionCode = 3111
+        versionName = "2.0.3111-fdroid" // X.Y.Z; X = Major, Y = minor, Z = version code
 
         // Custom test runner to set up Hilt dependency graph
         testInstrumentationRunner = "com.merxury.blocker.core.testing.BlockerTestRunner"
