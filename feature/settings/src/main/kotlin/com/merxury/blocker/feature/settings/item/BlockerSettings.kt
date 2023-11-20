@@ -32,7 +32,7 @@ import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.core.model.preference.RuleServerProvider.JIHULAB
 import com.merxury.blocker.feature.settings.R.string
 import java.util.Locale
 
@@ -62,7 +62,7 @@ fun BlockerSettings(
             selectedItem = settings.ruleServerProvider,
             itemList = listOf(
                 GITHUB to string.feature_settings_options_github,
-                GITLAB to string.feature_settings_options_gitlab,
+                JIHULAB to string.feature_settings_options_jihulab,
             ),
             onValueChange = onChangeRuleServerProvider,
         )
