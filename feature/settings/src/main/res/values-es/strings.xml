@@ -46,7 +46,7 @@
     <string name="feature_settings_project_homepage">Página de inicio del proyecto</string>
     <string name="feature_settings_rule_repository">Repositorio de reglas</string>
     <string name="feature_settings_options_github">GitHub</string>
-    <string name="feature_settings_options_gitlab">GitLab</string>
+    <string name="feature_settings_options_jihulab">JihuLab</string>
     <string name="feature_settings_intent_firewall">Cortafuego de Intent</string>
     <string name="feature_settings_package_manager">Gestor de Paquetes</string>
     <string name="feature_settings_telegram_group">Grupo de Telegram</string>

@@ -41,7 +41,7 @@
     <string name="feature_settings_export_error_log">導出錯誤日誌</string>
     <string name="feature_settings_dark_mode">夜間主題</string>
     <string name="feature_settings_options_github">GitHub</string>
-    <string name="feature_settings_options_gitlab">GitLab</string>
+    <string name="feature_settings_options_jihulab">JihuLab</string>
     <string name="feature_settings_intent_firewall">Intent Firewall（意圖防火牆）</string>
     <string name="feature_settings_package_manager">Package Manager（系統包管理器）</string>
     <string name="feature_settings_dynamic_color">動態主題顏色</string>
