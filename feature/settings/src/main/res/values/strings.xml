@@ -46,7 +46,7 @@
     <string name="feature_settings_project_homepage">Project homepage</string>
     <string name="feature_settings_rule_repository">Rule repository</string>
     <string name="feature_settings_options_github">GitHub</string>
-    <string name="feature_settings_options_gitlab">GitLab</string>
+    <string name="feature_settings_options_jihulab">JihuLab</string>
     <string name="feature_settings_intent_firewall">Intent Firewall</string>
     <string name="feature_settings_package_manager">Package Manager</string>
     <string name="feature_settings_shizuku" translatable="false">Shizuku/Sui</string>
