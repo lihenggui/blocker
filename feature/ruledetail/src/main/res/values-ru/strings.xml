@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
      Copyright 2023 Blocker
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,15 +13,14 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
-<resources>
-    <string name="feature_ruledetail_safe_to_block">Безопасно для блокировки</string>
+--><resources>
+    <string name="feature_ruledetail_safe_to_block">Безопасно для отключения</string>
     <string name="feature_ruledetail_side_effect">Побочный эффект</string>
     <string name="feature_ruledetail_contributors">Соавторы</string>
     <string name="feature_ruledetail_yes">Да</string>
     <string name="feature_ruledetail_no">Нет</string>
-    <string name="feature_ruledetail_unknown">неизвестно</string>
+    <string name="feature_ruledetail_unknown">Неизвестно</string>
     <string name="feature_ruledetail_no_description">Нет описания</string>
-    <string name="feature_ruledetail_block_all_of_this_page">Блокировать всю эту страницу</string>
-    <string name="feature_ruledetail_enable_all_of_this_page">Включить всю эту страницу</string>
+    <string name="feature_ruledetail_block_all_of_this_page">Отключить все на странице</string>
+    <string name="feature_ruledetail_enable_all_of_this_page">Включить все на странице</string>
 </resources>
