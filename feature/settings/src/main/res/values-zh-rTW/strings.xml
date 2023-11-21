@@ -41,7 +41,7 @@
     <string name="feature_settings_export_error_log">導出錯誤日誌</string>
     <string name="feature_settings_dark_mode">夜間主題</string>
     <string name="feature_settings_options_github">GitHub</string>
-    <string name="feature_settings_options_gitlab">GitLab</string>
+    <string name="feature_settings_options_jihulab">JihuLab</string>
     <string name="feature_settings_intent_firewall">Intent Firewall（意圖防火牆）</string>
     <string name="feature_settings_package_manager">Package Manager（系統包管理器）</string>
     <string name="feature_settings_dynamic_color">動態主題顏色</string>
@@ -55,4 +55,9 @@
     <string name="feature_settings_simplifed_chinese">簡體中文</string>
     <string name="feature_settings_traditional_chinese">繁體中文</string>
     <string name="feature_settings_russian">俄語</string>
+    <string name="feature_settings_spanish">西班牙語</string>
+    <string name="feature_settings_failed_to_export_logs">導出日誌失敗，請報告問題。</string>
+    <string name="feature_settings_export_log_title">Blocker日誌導出</string>
+    <string name="feature_settings_provide_additional_details">請提供您遇到的問題的詳細資訊：\n</string>
+    <string name="feature_settings_no_sharable_app_found">未找到可共享的應用程式。</string>
 </resources>

@@ -16,11 +16,11 @@
 
 package com.merxury.blocker.core.domain
 
-import com.merxury.blocker.core.data.di.CacheDir
-import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.di.CacheDir
+import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.model.ZippedRule

@@ -46,7 +46,7 @@
     <string name="feature_settings_project_homepage">Página de inicio del proyecto</string>
     <string name="feature_settings_rule_repository">Repositorio de reglas</string>
     <string name="feature_settings_options_github">GitHub</string>
-    <string name="feature_settings_options_gitlab">GitLab</string>
+    <string name="feature_settings_options_jihulab">JihuLab</string>
     <string name="feature_settings_intent_firewall">Cortafuego de Intent</string>
     <string name="feature_settings_package_manager">Gestor de Paquetes</string>
     <string name="feature_settings_telegram_group">Grupo de Telegram</string>
@@ -62,4 +62,9 @@
     <string name="feature_settings_simplifed_chinese">Chino simplificado</string>
     <string name="feature_settings_traditional_chinese">Chino tradicional</string>
     <string name="feature_settings_russian">Ruso</string>
+    <string name="feature_settings_spanish">Español</string>
+    <string name="feature_settings_failed_to_export_logs">Error al exportar los registros, informe de un problema.</string>
+    <string name="feature_settings_export_log_title">Compartir registro de Blocker</string>
+    <string name="feature_settings_provide_additional_details">Proporcione detalles adicionales sobre el problema que encontró: \n</string>
+    <string name="feature_settings_no_sharable_app_found">No se encontró ninguna aplicación compartible.</string>
 </resources>
