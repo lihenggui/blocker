@@ -16,13 +16,11 @@
 
 package com.merxury.blocker.core.domain
 
-import com.merxury.blocker.core.data.di.GeneratedRuleBaseFolder
-import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.CacheDir
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.domain.model.ZippedRule
+import com.merxury.blocker.core.logging.LOG_DIR
 import com.merxury.blocker.core.utils.FileUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
@@ -33,38 +31,27 @@ import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
-class ZipAllRuleUseCase @Inject constructor(
-    private val userDataRepository: UserDataRepository,
+class ZipLogFileUseCase @Inject constructor(
     @CacheDir private val cacheDir: File,
     @FilesDir private val filesDir: File,
-    @GeneratedRuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
-    operator fun invoke(): Flow<ZippedRule> = flow {
-        val time = Clock.System.now().toString()
+    operator fun invoke(): Flow<File?> = flow {
+        val logFolder = filesDir.resolve(LOG_DIR)
+        if (!logFolder.exists()) {
+            Timber.w("Log folder not exists")
+            emit(null)
+            return@flow
+        }
+        val currentTime = Clock.System.now().toString()
             .replace(":", "-")
             .replace(".", "-")
-        val fileName = "rules-$time.zip"
-        val zipFile = File(cacheDir, fileName)
-        val baseFolder = filesDir.resolve(ruleBaseFolder)
-            .resolve(userDataRepository.getLibDisplayLanguage())
-        if (!baseFolder.exists()) {
-            Timber.e("Rule base folder $baseFolder does not exist")
-            emit(ZippedRule.EMPTY)
-            return@flow
-        }
-        val files = baseFolder.listFiles()
-        if (files.isNullOrEmpty()) {
-            Timber.e("Folder $files is empty")
-            emit(ZippedRule.EMPTY)
-            return@flow
-        }
-        try {
-            FileUtils.zipFolder(baseFolder.absolutePath, zipFile.absolutePath)
-            emit(ZippedRule(null, zipFile))
-        } catch (e: Exception) {
-            Timber.e(e)
-            emit(ZippedRule.EMPTY)
+        val file = cacheDir.resolve("Blocker-log-$currentTime.zip")
+        val status = FileUtils.zipFolder(logFolder.absolutePath, file.absolutePath)
+        if (status) {
+            emit(file)
+        } else {
+            emit(null)
         }
     }
         .flowOn(ioDispatcher)

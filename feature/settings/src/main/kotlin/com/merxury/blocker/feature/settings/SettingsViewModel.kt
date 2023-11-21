@@ -17,11 +17,16 @@
 package com.merxury.blocker.feature.settings
 
 import android.app.Application
+import android.app.LocaleManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.LocaleList
 import android.system.Os
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.net.toFile
+import androidx.core.os.LocaleListCompat
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.asFlow
@@ -48,7 +53,7 @@ import com.merxury.blocker.core.rule.work.ExportBlockerRulesWorker
 import com.merxury.blocker.core.rule.work.ExportIfwRulesWorker
 import com.merxury.blocker.core.rule.work.ImportBlockerRuleWorker
 import com.merxury.blocker.core.rule.work.ImportIfwRulesWorker
-import com.merxury.blocker.core.rule.work.ImportMatRulesWorker
+import com.merxury.blocker.core.rule.work.ListAllComponentsToStorageWorker
 import com.merxury.blocker.core.rule.work.ResetIfwWorker
 import com.merxury.blocker.feature.settings.SettingsUiState.Loading
 import com.merxury.blocker.feature.settings.SettingsUiState.Success
@@ -149,6 +154,15 @@ class SettingsViewModel @Inject constructor(
 
     fun updateAppDisplayLanguage(language: String) {
         viewModelScope.launch {
+            val context = getApplication<Application>()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.getSystemService(LocaleManager::class.java).applicationLocales =
+                    LocaleList.forLanguageTags(language)
+            } else {
+                AppCompatDelegate.setApplicationLocales(
+                    LocaleListCompat.forLanguageTags(language),
+                )
+            }
             userDataRepository.setAppDisplayLanguage(language)
         }
     }
@@ -312,10 +326,8 @@ class SettingsViewModel @Inject constructor(
             enqueueUniqueWork(
                 "ImportMatRule",
                 ExistingWorkPolicy.KEEP,
-                ImportMatRulesWorker.importWork(
-                    fileUri,
-                    userData.controllerType,
-                    userData.restoreSystemApp,
+                ListAllComponentsToStorageWorker.listAppComponentsWork(
+                    folderPath = userData.ruleBackupFolder,
                 ),
             )
         }

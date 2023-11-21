@@ -1,5 +1,9 @@
 ## Blocker
-[![release](https://img.shields.io/github/v/release/lihenggui/blocker?label=release&color=red)](https://github.com/lihenggui/blocker/releases) [![download](https://shields.io/github/downloads/lihenggui/blocker/total?label=download)](https://github.com/lihenggui/blocker/releases/latest) [![license](https://img.shields.io/github/license/lihenggui/blocker)](LICENSE) [![follow](https://img.shields.io/badge/follow-Telegram-blue.svg?label=follow)](https://t.me/blockerandroid) 
+[![release](https://img.shields.io/github/v/release/lihenggui/blocker?label=release&color=red)](https://github.com/lihenggui/blocker/releases)
+[![download](https://shields.io/github/downloads/lihenggui/blocker/total?label=download)](https://github.com/lihenggui/blocker/releases/latest)
+[![translation](https://weblate.sanmer.dev/widget/blocker/svg-badge.svg)](https://weblate.sanmer.dev/engage/blocker/)
+[![follow](https://img.shields.io/badge/follow-Telegram-blue.svg?label=follow)](https://t.me/blockerandroid) 
+[![license](https://img.shields.io/github/license/lihenggui/blocker)](LICENSE) 
 
 Blocker是一款操作Android应用程序四大组件的程序。对于臃肿的应用来说，应用中的许多组件都是冗余的。Blocker提供了一个快捷的控制按钮来控制对应的组件，实现禁用无用功能，节约应用运行资源的功能。
 Blocker支持多种不同的控制器控制组件，目前支持的有使用软件包管理器方式（PackageManager）和意图防火墙模式（Intent
@@ -80,6 +84,18 @@ Compose构建UI元素。你可以从 [Figma](https://www.figma.com/file/T903MNmX
 应用程序有两个预定义主题：
 动态颜色 - 根据用户当前的颜色主题使用颜色；默认主题 - 在不支持动态颜色时使用预定义的颜色。
 同时每个主题还支持暗模式。
+
+## 贡献翻译
+Blocker app的默认字符串资源在工程以下几个位置：
+
+`app-compose/src/main/res/values/strings.xml`  
+`core/[module]/src/main/res/values/strings.xml`  
+`sync/[module]/src/main/res/values/strings.xml`  
+`feature/[module]/src/main/res/values/strings.xml`  
+
+对应的翻译文件需要放在对应工程的对应资源目录中 ([module]/src/main/res/values-[lang]/strings.xml)。 
+
+你也可以使用 [Weblate](https://weblate.sanmer.dev/projects/blocker/) 来翻译此项目。 (感谢 [@SanmerDev](https://github.com/SanmerDev) 提供的服务)
 
 ## 常见问题
 
