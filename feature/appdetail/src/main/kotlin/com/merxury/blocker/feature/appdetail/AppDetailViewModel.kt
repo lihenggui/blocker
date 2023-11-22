@@ -34,7 +34,6 @@ import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
@@ -45,6 +44,8 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
+import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
+import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType
@@ -57,7 +58,6 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
@@ -125,8 +125,9 @@ class AppDetailViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val componentDetailRepository: IComponentDetailRepository,
-    private val shizukuInitializer: IShizukuInitializer,
     private val workerManager: WorkManager,
+    private val initializeShizuku: InitializeShizukuUseCase,
+    private val deInitializeShizuku: DeInitializeShizukuUseCase,
     private val zipAllRuleUseCase: ZipAllRuleUseCase,
     private val zipAppRuleUseCase: ZipAppRuleUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -183,22 +184,10 @@ class AppDetailViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        deinitShizuku()
+        viewModelScope.launch { deInitializeShizuku() }
     }
 
-    fun initShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.registerShizuku()
-        }
-    }
-
-    private fun deinitShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.unregisterShizuku()
-        }
-    }
+    fun initShizuku() = viewModelScope.launch { initializeShizuku() }
 
     fun search(keyword: String) {
         searchJob?.cancel()

@@ -30,7 +30,6 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.size.Scale
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
@@ -39,12 +38,13 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
+import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
@@ -85,10 +85,11 @@ class RuleDetailViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
+    private val initializeShizuku: InitializeShizukuUseCase,
+    private val deInitializeShizuku: DeInitializeShizukuUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
-    private val shizukuInitializer: ShizukuInitializer,
     private val analyticsHelper: AnalyticsHelper,
 ) : ViewModel() {
     private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
@@ -125,22 +126,10 @@ class RuleDetailViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        deinitShizuku()
+        viewModelScope.launch { deInitializeShizuku() }
     }
 
-    fun initShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.registerShizuku()
-        }
-    }
-
-    private fun deinitShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.unregisterShizuku()
-        }
-    }
+    fun initShizuku() = viewModelScope.launch { initializeShizuku() }
 
     private fun loadData() {
         loadRuleDetailJob?.cancel()

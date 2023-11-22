@@ -23,7 +23,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.root.RootAppController
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.controllers.shizuku.ShizukuAppController
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -33,6 +32,8 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
+import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
+import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.AppItem
@@ -82,8 +83,9 @@ class AppListViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val rootAppController: RootAppController,
     private val shizukuAppController: ShizukuAppController,
-    private val shizukuInitializer: IShizukuInitializer,
     private val initializeDatabase: InitializeDatabaseUseCase,
+    private val initializeShizuku: InitializeShizukuUseCase,
+    private val deInitializeShizuku: DeInitializeShizukuUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
@@ -119,7 +121,7 @@ class AppListViewModel @Inject constructor(
 
     override fun onCleared() {
         super.onCleared()
-        deinitShizuku()
+        viewModelScope.launch { deInitializeShizuku() }
     }
 
     fun loadData() {
@@ -193,19 +195,7 @@ class AppListViewModel @Inject constructor(
         }
     }
 
-    fun initShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.registerShizuku()
-        }
-    }
-
-    private fun deinitShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.unregisterShizuku()
-        }
-    }
+    fun initShizuku() = viewModelScope.launch { initializeShizuku() }
 
     fun filter(keyword: String) {
         currentSearchKeyword = keyword
