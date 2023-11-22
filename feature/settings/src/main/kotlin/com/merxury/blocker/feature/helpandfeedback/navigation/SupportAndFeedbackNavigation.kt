@@ -16,11 +16,11 @@
 
 package com.merxury.blocker.feature.helpandfeedback.navigation
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.feature.helpandfeedback.SupportAndFeedbackRoute
 
 const val supportAndFeedbackRoute = "support_and_feedback_route"
