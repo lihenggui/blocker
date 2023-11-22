@@ -48,7 +48,7 @@
     <string name="feature_settings_light">日间模式</string>
     <string name="feature_settings_dark">暗黑模式</string>
     <string name="feature_settings_options_github">GitHub（海外地区推荐）</string>
-    <string name="feature_settings_options_gitlab">GitLab（大陆地区推荐）</string>
+    <string name="feature_settings_options_jihulab">极狐（大陆地区推荐）</string>
     <string name="feature_settings_intent_firewall">Intent Firewall（意图防火墙）</string>
     <string name="feature_settings_package_manager">Package Manager（系统包管理器）</string>
     <string name="feature_settings_dynamic_color">动态主题颜色</string>
@@ -62,4 +62,9 @@
     <string name="feature_settings_simplifed_chinese">简体中文</string>
     <string name="feature_settings_traditional_chinese">繁體中文</string>
     <string name="feature_settings_russian">俄语</string>
+    <string name="feature_settings_spanish">西班牙语</string>
+    <string name="feature_settings_failed_to_export_logs">导出日志失败，请报告问题。</string>
+    <string name="feature_settings_export_log_title">Blocker日志导出</string>
+    <string name="feature_settings_provide_additional_details">请提供您遇到的问题的详细信息：\n</string>
+    <string name="feature_settings_no_sharable_app_found">未找到可共享的应用程序。</string>
 </resources>

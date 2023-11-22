@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,9 +13,7 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-
-<resources>
+  --><resources>
     <string name="core_ui_application_with_count">应用（%1$d）</string>
     <string name="core_ui_component_with_count">组件（%1$d）</string>
     <string name="core_ui_online_rule_with_count">规则（%1$d）</string>
@@ -24,7 +23,7 @@
     <string name="core_ui_uninstall">卸载</string>
     <string name="core_ui_enable">启用</string>
     <string name="core_ui_disable">禁用</string>
-    <string name="core_ui_service_status_template">服务: 正在运行%1$d个, 已阻止%2$d个, 共计%3$d个.</string>
+    <string name="core_ui_service_status_template">服务：正在运行 %1$d 个，已阻止 %2$d 个，共计 %3$d 个。</string>
     <string name="core_ui_running">运行中</string>
     <string name="core_ui_disabled">已禁用</string>
     <string name="core_ui_rule_icon_description">规则图标</string>
@@ -34,10 +33,10 @@
     <string name="core_ui_stop_service">停止服务</string>
     <string name="core_ui_no_components">无组件</string>
     <plurals name="core_ui_matched_component">
-        <item quantity="other">%1$d个组件</item>
+        <item quantity="other">%1$d 个组件</item>
     </plurals>
     <plurals name="core_ui_matched_apps">
-        <item quantity="other">匹配%1$d个应用</item>
+        <item quantity="other">匹配 %1$d 个应用</item>
     </plurals>
     <string name="core_ui_description">描述</string>
     <string name="core_ui_applicable_application">适用应用程序</string>
@@ -45,10 +44,10 @@
     <string name="core_ui_error">错误</string>
     <string name="core_ui_no_applicable_app">没有适用的应用</string>
     <string name="core_ui_app_info">应用信息</string>
-    <string name="core_ui_activity_with_count">活动 (%1$d)</string>
-    <string name="core_ui_service_with_count">服务 (%1$d)</string>
-    <string name="core_ui_receiver_with_count">广播接收器 (%1$d)</string>
-    <string name="core_ui_provider_with_count">内容提供者 (%1$d)</string>
+    <string name="core_ui_activity_with_count">活动（%1$d）</string>
+    <string name="core_ui_service_with_count">服务（%1$d）</string>
+    <string name="core_ui_receiver_with_count">广播接收器（%1$d）</string>
+    <string name="core_ui_provider_with_count">内容提供者（%1$d）</string>
     <string name="core_ui_initializing_database">初始化数据</string>
     <string name="core_ui_more_menu">更多</string>
     <string name="core_ui_search_icon">搜索</string>
@@ -64,12 +63,12 @@
     <string name="core_ui_enable_selected">启用选中</string>
     <string name="core_ui_not_found_icon">未找到图标</string>
     <plurals name="core_ui_block_all">
-        <item quantity="other">此操作将禁用%1$d组件，是否要继续？</item>
+        <item quantity="other">此操作将禁用 %1$d 组件，是否要继续？</item>
     </plurals>
     <plurals name="core_ui_enable_all">
-        <item quantity="other">此操作将启用%1$d个组件，是否要继续？</item>
+        <item quantity="other">此操作将启用 %1$d 个组件，是否要继续？</item>
     </plurals>
     <plurals name="core_ui_selected_app_count">
-        <item quantity="other">%1$d个应用已选中</item>
+        <item quantity="other">%1$d 个应用已选中</item>
     </plurals>
 </resources>

@@ -18,7 +18,7 @@ package com.merxury.blocker.core.data.respository.app
 
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import com.merxury.blocker.core.data.di.AppPackageName
+import com.merxury.blocker.core.di.AppPackageName
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getInstalledPackagesCompat
