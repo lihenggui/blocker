@@ -21,5 +21,5 @@ interface IAppController {
     suspend fun enable(packageName: String)
     suspend fun clearCache(packageName: String, action: (Boolean) -> Unit = { _ -> })
     suspend fun clearData(packageName: String, action: (Boolean) -> Unit = { _ -> })
-    suspend fun uninstallApp(packageName: String, action: (Boolean) -> Unit = { _ -> })
+    suspend fun uninstallApp(packageName: String, action: (Int) -> Unit = { _ -> })
 }

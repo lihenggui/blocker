@@ -35,6 +35,7 @@ class ShizukuAppController @Inject constructor(
     private var pm: IPackageManager? = null
     override suspend fun disable(packageName: String) {
         ensureInitialization()
+        Timber.i("Disable $packageName")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             pm?.setApplicationEnabledSetting(
                 packageName,
@@ -50,6 +51,7 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun enable(packageName: String) {
         ensureInitialization()
+        Timber.i("Enable $packageName")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             pm?.setApplicationEnabledSetting(
                 packageName,
@@ -65,6 +67,7 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun clearCache(packageName: String, action: (Boolean) -> Unit) {
         ensureInitialization()
+        Timber.i("Clear cache for $packageName")
         pm?.deleteApplicationCacheFiles(packageName) { name, succeeded ->
             Timber.i("Clear cache for $name, succeeded: $succeeded")
             action(succeeded)
@@ -73,18 +76,20 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun clearData(packageName: String, action: (Boolean) -> Unit) {
         ensureInitialization()
+        Timber.i("Clear data for $packageName")
         pm?.clearApplicationUserData(packageName) { name, succeeded ->
             Timber.i("Clear data for $name, succeeded: $succeeded")
             action(succeeded)
         }
     }
 
-    override suspend fun uninstallApp(packageName: String, action: (Boolean) -> Unit) {
+    override suspend fun uninstallApp(packageName: String, action: (Int) -> Unit) {
         ensureInitialization()
         pm?.deletePackage(
             packageName,
             { name, returnCode ->
                 Timber.i("Uninstall $name, return code: $returnCode")
+                action(returnCode)
             },
             0,
         )
@@ -92,6 +97,7 @@ class ShizukuAppController @Inject constructor(
 
     private fun ensureInitialization() {
         if (pm == null) {
+            Timber.d("Initialize ShizukuAppController")
             pm = IPackageManager.Stub.asInterface(
                 ShizukuBinderWrapper(
                     SystemServiceHelper.getSystemService("package"),
