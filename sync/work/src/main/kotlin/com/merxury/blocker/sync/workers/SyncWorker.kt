@@ -27,12 +27,12 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.data.Synchronizer
-import com.merxury.blocker.core.data.di.CacheDir
-import com.merxury.blocker.core.data.di.FilesDir
 import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.datastore.BlockerPreferencesDataSource
 import com.merxury.blocker.core.datastore.ChangeListVersions
+import com.merxury.blocker.core.di.CacheDir
+import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.network.BlockerNetworkDataSource
@@ -133,6 +133,7 @@ class SyncWorker @AssistedInject constructor(
             file.outputStream().use { outputStream ->
                 network.downloadRules(provider, BinaryFileWriter(outputStream))
             }
+            Timber.d("Downloaded rule file: ${file.absolutePath}")
             // unzip the folder to rule folder
             FileUtils.unzip(file, ruleFolder.absolutePath)
             // Assume the name of the unzipped folder is 'blocker-general-rules-main
@@ -146,6 +147,7 @@ class SyncWorker @AssistedInject constructor(
             if (targetFolder.exists()) {
                 targetFolder.deleteRecursively()
             }
+            Timber.d("Copying rule to $targetFolder")
             unzippedFolder.copyRecursively(targetFolder, overwrite = true)
             unzippedFolder.deleteRecursively()
         } catch (e: IOException) {
@@ -183,7 +185,7 @@ class SyncWorker @AssistedInject constructor(
     private fun getLastRunTime(): Long {
         val sharedPreferences =
             appContext.getSharedPreferences(PREF_SYNC_RULE, Context.MODE_PRIVATE)
-        return sharedPreferences.getLong(PREF_LAST_SYNCED_TIME, System.currentTimeMillis())
+        return sharedPreferences.getLong(PREF_LAST_SYNCED_TIME, 0)
     }
 
     private fun markLastRunTime() {

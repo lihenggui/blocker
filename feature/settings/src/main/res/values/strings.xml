@@ -46,7 +46,7 @@
     <string name="feature_settings_project_homepage">Project homepage</string>
     <string name="feature_settings_rule_repository">Rule repository</string>
     <string name="feature_settings_options_github">GitHub</string>
-    <string name="feature_settings_options_gitlab">GitLab</string>
+    <string name="feature_settings_options_jihulab">JihuLab</string>
     <string name="feature_settings_intent_firewall">Intent Firewall</string>
     <string name="feature_settings_package_manager">Package Manager</string>
     <string name="feature_settings_shizuku" translatable="false">Shizuku/Sui</string>
@@ -63,4 +63,9 @@
     <string name="feature_settings_simplifed_chinese">Simplified Chinese</string>
     <string name="feature_settings_traditional_chinese">Traditional Chinese</string>
     <string name="feature_settings_russian">Russian</string>
+    <string name="feature_settings_spanish">Spanish</string>
+    <string name="feature_settings_failed_to_export_logs">Failed to export logs, please report an issue.</string>
+    <string name="feature_settings_export_log_title">Blocker log sharing</string>
+    <string name="feature_settings_provide_additional_details">Please provide additional details for the issue you encountered: \n</string>
+    <string name="feature_settings_no_sharable_app_found">No sharable app found.</string>
 </resources>

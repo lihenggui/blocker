@@ -32,7 +32,7 @@ import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.FOLLOW_SYSTEM
 import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.RuleServerProvider.GITHUB
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.core.model.preference.RuleServerProvider.JIHULAB
 import com.merxury.blocker.feature.settings.R.string
 import java.util.Locale
 
@@ -62,26 +62,25 @@ fun BlockerSettings(
             selectedItem = settings.ruleServerProvider,
             itemList = listOf(
                 GITHUB to string.feature_settings_options_github,
-                GITLAB to string.feature_settings_options_gitlab,
+                JIHULAB to string.feature_settings_options_jihulab,
             ),
             onValueChange = onChangeRuleServerProvider,
         )
-        if (false) {
-            // Hide per app language settings for now since Compose support is bad
-            DialogSettingsItems(
-                icon = ImageVectorIcon(BlockerIcons.Language),
-                titleRes = string.feature_settings_display_language,
-                selectedItem = settings.appDisplayLanguage,
-                itemList = listOf(
-                    "" to string.feature_settings_follow_system,
-                    Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
-                    Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
-                    Locale.TRADITIONAL_CHINESE.toLanguageTag() to string.feature_settings_traditional_chinese,
-                    Locale("ru").toLanguageTag() to string.feature_settings_russian,
-                ),
-                onValueChange = onChangeAppDisplayLanguage,
-            )
-        }
+        // Hide per app language settings for now since Compose support is bad
+        DialogSettingsItems(
+            icon = ImageVectorIcon(BlockerIcons.Language),
+            titleRes = string.feature_settings_display_language,
+            selectedItem = settings.appDisplayLanguage,
+            itemList = listOf(
+                "" to string.feature_settings_follow_system,
+                Locale.ENGLISH.toLanguageTag() to string.feature_settings_english,
+                Locale.SIMPLIFIED_CHINESE.toLanguageTag() to string.feature_settings_simplifed_chinese,
+                Locale.TRADITIONAL_CHINESE.toLanguageTag() to string.feature_settings_traditional_chinese,
+                Locale("ru").toLanguageTag() to string.feature_settings_russian,
+                Locale("es").toLanguageTag() to string.feature_settings_spanish,
+            ),
+            onValueChange = onChangeAppDisplayLanguage,
+        )
         DialogSettingsItems(
             icon = ImageVectorIcon(BlockerIcons.Translate),
             titleRes = string.feature_settings_library_language,
