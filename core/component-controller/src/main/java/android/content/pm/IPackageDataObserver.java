@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers
+package android.content.pm;
 
-interface IAppController {
-    suspend fun disable(packageName: String)
-    suspend fun enable(packageName: String)
-    suspend fun clearCache(packageName: String, action: (Boolean) -> Unit = { _ -> })
-    suspend fun clearData(packageName: String, action: (Boolean) -> Unit = { _ -> })
-    suspend fun uninstallApp(packageName: String, action: (Boolean) -> Unit = { _ -> })
+/**
+ * API for package data change related callbacks from the Package Manager.
+ * Some usage scenarios include deletion of cache directory, generate
+ * statistics related to code, data, cache usage (WIP)
+ */
+public interface IPackageDataObserver {
+    void onRemoveCompleted(String packageName, boolean succeeded) throws android.os.RemoteException;
 }
