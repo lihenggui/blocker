@@ -26,6 +26,7 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.componentController)
     implementation(projects.core.ifwApi)
     implementation(libs.androidx.compose.material)
     implementation(libs.kotlinx.datetime)

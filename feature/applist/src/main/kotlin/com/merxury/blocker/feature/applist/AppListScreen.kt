@@ -36,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -109,6 +110,9 @@ fun AppListRoute(
             onDismissRequest = viewModel::dismissWarningDialog,
             onConfirmRequest = it.onPositiveButtonClicked,
         )
+    }
+    LaunchedEffect(Unit) {
+        viewModel.initShizuku()
     }
 }
 
