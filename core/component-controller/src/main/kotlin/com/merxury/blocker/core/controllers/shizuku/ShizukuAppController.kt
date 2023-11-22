@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.core.controllers.shizuku
 
-import android.app.ActivityManager
 import android.content.Context
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
@@ -34,7 +33,6 @@ class ShizukuAppController @Inject constructor(
 ) : IAppController {
 
     private var pm: IPackageManager? = null
-    private var am: ActivityManager? = null
     override suspend fun disable(packageName: String) {
         ensureInitialization()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -65,18 +63,31 @@ class ShizukuAppController @Inject constructor(
         }
     }
 
-    override suspend fun clearCache(packageName: String) {
-        throw UnsupportedOperationException("Not supported")
+    override suspend fun clearCache(packageName: String, action: (Boolean) -> Unit) {
+        ensureInitialization()
+        pm?.deleteApplicationCacheFiles(packageName) { name, succeeded ->
+            Timber.i("Clear cache for $name, succeeded: $succeeded")
+            action(succeeded)
+        }
     }
 
-    override suspend fun clearData(packageName: String) {
+    override suspend fun clearData(packageName: String, action: (Boolean) -> Unit) {
         ensureInitialization()
-        am?.clearApplicationUserData(packageName, null)
+        pm?.clearApplicationUserData(packageName) { name, succeeded ->
+            Timber.i("Clear data for $name, succeeded: $succeeded")
+            action(succeeded)
+        }
     }
 
-    override suspend fun uninstallApp(packageName: String) {
+    override suspend fun uninstallApp(packageName: String, action: (Boolean) -> Unit) {
         ensureInitialization()
-        pm?.deletePackage(packageName, null, 0)
+        pm?.deletePackage(
+            packageName,
+            { name, returnCode ->
+                Timber.i("Uninstall $name, return code: $returnCode")
+            },
+            0,
+        )
     }
 
     private fun ensureInitialization() {
