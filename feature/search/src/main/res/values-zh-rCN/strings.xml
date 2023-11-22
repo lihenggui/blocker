@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,29 +13,28 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-<resources>
+  --><resources>
     <string name="feature_search_searching">搜索中</string>
     <plurals name="feature_search_activity_count">
-        <item quantity="other">%1$d个活动</item>
+        <item quantity="other">%1$d 个活动</item>
     </plurals>
     <plurals name="feature_search_content_provider_count">
-        <item quantity="other">%1$d个内容提供者</item>
+        <item quantity="other">%1$d 个内容提供者</item>
     </plurals>
     <plurals name="feature_search_receiver_count">
-        <item quantity="other">%1$d个接收器</item>
+        <item quantity="other">%1$d 个接收器</item>
     </plurals>
     <plurals name="feature_search_service_count">
-        <item quantity="other">%1$d个服务</item>
+        <item quantity="other">%1$d 个服务</item>
     </plurals>
     <plurals name="feature_search_selected_app_count">
-        <item quantity="other">%1$d个应用已选中</item>
+        <item quantity="other">%1$d 个应用已选中</item>
     </plurals>
     <plurals name="feature_search_block_all">
-        <item quantity="other">此操作将禁用%1$d组件，是否要继续？</item>
+        <item quantity="other">此操作将禁用 %1$d 组件，是否要继续？</item>
     </plurals>
     <plurals name="feature_search_enable_all">
-        <item quantity="other">此操作将启用%1$d个组件，是否要继续？</item>
+        <item quantity="other">此操作将启用 %1$d 个组件，是否要继续？</item>
     </plurals>
     <string name="feature_search_search_hint">应用、组件和规则</string>
     <string name="feature_search_no_search_result">暂无搜索结果</string>

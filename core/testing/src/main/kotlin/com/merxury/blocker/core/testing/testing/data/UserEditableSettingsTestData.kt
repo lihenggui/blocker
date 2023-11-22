@@ -19,11 +19,11 @@ package com.merxury.blocker.core.testing.testing.data
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.UserEditableSettings
 import com.merxury.blocker.core.model.preference.DarkThemeConfig.DARK
-import com.merxury.blocker.core.model.preference.RuleServerProvider.GITLAB
+import com.merxury.blocker.core.model.preference.RuleServerProvider.JIHULAB
 
 val userEditableSettingsTestData = UserEditableSettings(
     controllerType = SHIZUKU,
-    ruleServerProvider = GITLAB,
+    ruleServerProvider = JIHULAB,
     backupSystemApp = true,
     darkThemeConfig = DARK,
     useDynamicColor = true,
