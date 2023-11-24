@@ -27,12 +27,19 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
+import timber.log.Timber
 import javax.inject.Inject
 
 class ShizukuController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IController {
-    private var pm: IPackageManager? = null
+    private val pm: IPackageManager? by lazy {
+        IPackageManager.Stub.asInterface(
+            ShizukuBinderWrapper(
+                SystemServiceHelper.getSystemService("package"),
+            ),
+        )
+    }
 
     override suspend fun switchComponent(
         packageName: String,
@@ -40,11 +47,8 @@ class ShizukuController @Inject constructor(
         state: Int,
     ): Boolean {
         if (pm == null) {
-            pm = IPackageManager.Stub.asInterface(
-                ShizukuBinderWrapper(
-                    SystemServiceHelper.getSystemService("package"),
-                ),
-            )
+            Timber.e("Can't get package manager service from ShizukuBinderWrapper")
+            return false
         }
         // 0 means kill the application
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
