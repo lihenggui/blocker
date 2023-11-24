@@ -111,4 +111,8 @@ class ShizukuAppController @Inject constructor(
             0,
         )
     }
+
+    override suspend fun forceStop(packageName: String, action: (Boolean) -> Unit) {
+        Timber.i("Force stop $packageName")
+    }
 }

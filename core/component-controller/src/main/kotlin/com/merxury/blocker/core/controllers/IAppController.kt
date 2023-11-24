@@ -19,6 +19,7 @@ package com.merxury.blocker.core.controllers
 interface IAppController {
     suspend fun disable(packageName: String)
     suspend fun enable(packageName: String)
+    suspend fun forceStop(packageName: String, action: (Boolean) -> Unit = { _ -> })
     suspend fun clearCache(packageName: String, action: (Boolean) -> Unit = { _ -> })
     suspend fun clearData(packageName: String, action: (Boolean) -> Unit = { _ -> })
     suspend fun uninstallApp(packageName: String, action: (Int) -> Unit = { _ -> })

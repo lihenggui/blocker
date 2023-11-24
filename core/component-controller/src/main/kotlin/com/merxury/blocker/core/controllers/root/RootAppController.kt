@@ -70,4 +70,10 @@ class RootAppController @Inject constructor(
         "pm uninstall $packageName".exec(ioDispatcher)
         action(0)
     }
+
+    override suspend fun forceStop(packageName: String, action: (Boolean) -> Unit) {
+        Timber.i("Force stopping $packageName")
+        "am force-stop $packageName".exec(ioDispatcher)
+        action(true)
+    }
 }
