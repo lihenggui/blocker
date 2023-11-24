@@ -32,17 +32,19 @@ class RootAppController @Inject constructor(
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IAppController {
-    override suspend fun disable(packageName: String) {
+    override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disabling $packageName")
-        "pm disable $packageName".exec(ioDispatcher)
+        val result = "pm disable $packageName".exec(ioDispatcher)
+        return result.isSuccess
     }
 
-    override suspend fun enable(packageName: String) {
+    override suspend fun enable(packageName: String): Boolean {
         Timber.i("Enabling $packageName")
-        "pm enable $packageName".exec(ioDispatcher)
+        val result = "pm enable $packageName".exec(ioDispatcher)
+        return result.isSuccess
     }
 
-    override suspend fun clearCache(packageName: String, action: (Boolean) -> Unit) =
+    override suspend fun clearCache(packageName: String): Boolean =
         withContext(ioDispatcher) {
             val cacheFolder = filesDir.parentFile
                 ?.parentFile
@@ -50,30 +52,31 @@ class RootAppController @Inject constructor(
                 ?.resolve("cache")
                 ?: run {
                     Timber.e("Can't resolve cache path for $packageName")
-                    action(false)
-                    return@withContext
+                    return@withContext false
                 }
             Timber.d("Delete cache folder: $cacheFolder")
-            val result =
-                FileUtils.delete(cacheFolder.absolutePath, recursively = true, ioDispatcher)
-            action(result)
+            return@withContext FileUtils.delete(
+                cacheFolder.absolutePath,
+                recursively = true,
+                ioDispatcher,
+            )
         }
 
-    override suspend fun clearData(packageName: String, action: (Boolean) -> Unit) {
+    override suspend fun clearData(packageName: String): Boolean {
         Timber.i("Clearing data for $packageName")
-        "pm clear $packageName".exec(ioDispatcher)
-        action(true)
+        val result = "pm clear $packageName".exec(ioDispatcher)
+        return result.isSuccess
     }
 
-    override suspend fun uninstallApp(packageName: String, action: (Int) -> Unit) {
+    override suspend fun uninstallApp(packageName: String): Boolean {
         Timber.i("Uninstalling $packageName")
-        "pm uninstall $packageName".exec(ioDispatcher)
-        action(0)
+        val result = "pm uninstall $packageName".exec(ioDispatcher)
+        return result.isSuccess
     }
 
-    override suspend fun forceStop(packageName: String, action: (Boolean) -> Unit) {
+    override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stopping $packageName")
-        "am force-stop $packageName".exec(ioDispatcher)
-        action(true)
+        val result = "am force-stop $packageName".exec(ioDispatcher)
+        return result.isSuccess
     }
 }

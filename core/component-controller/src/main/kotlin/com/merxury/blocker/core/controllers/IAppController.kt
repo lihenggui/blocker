@@ -17,10 +17,10 @@
 package com.merxury.blocker.core.controllers
 
 interface IAppController {
-    suspend fun disable(packageName: String)
-    suspend fun enable(packageName: String)
-    suspend fun forceStop(packageName: String, action: (Boolean) -> Unit = { _ -> })
-    suspend fun clearCache(packageName: String, action: (Boolean) -> Unit = { _ -> })
-    suspend fun clearData(packageName: String, action: (Boolean) -> Unit = { _ -> })
-    suspend fun uninstallApp(packageName: String, action: (Int) -> Unit = { _ -> })
+    suspend fun disable(packageName: String): Boolean
+    suspend fun enable(packageName: String): Boolean
+    suspend fun forceStop(packageName: String): Boolean
+    suspend fun clearCache(packageName: String): Boolean
+    suspend fun clearData(packageName: String): Boolean
+    suspend fun uninstallApp(packageName: String): Boolean
 }
