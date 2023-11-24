@@ -80,8 +80,8 @@ class ShizukuAppController @Inject constructor(
             pm?.setApplicationEnabledSetting(
                 packageName,
                 COMPONENT_ENABLED_STATE_DISABLED,
-                userId,
                 0,
+                userId,
             )
         }
         return true
@@ -99,11 +99,11 @@ class ShizukuAppController @Inject constructor(
                 packageName,
                 COMPONENT_ENABLED_STATE_ENABLED,
                 0,
-                0,
+                userId,
                 context.packageName,
             )
         } else {
-            pm?.setApplicationEnabledSetting(packageName, COMPONENT_ENABLED_STATE_ENABLED, 0, 0)
+            pm?.setApplicationEnabledSetting(packageName, COMPONENT_ENABLED_STATE_ENABLED, 0, userId)
         }
         return true
     }
