@@ -126,7 +126,7 @@ public interface IPackageManager extends IInterface {
      * no callback is desired.
      *
      */
-    void clearApplicationUserData(String packageName, IPackageDataObserver observer);
+    void clearApplicationUserData(String packageName, IPackageDataObserver observer, int userId);
 
     /**
      * Attempts to delete the cache files associated with an application.
