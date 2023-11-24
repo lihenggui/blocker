@@ -13,25 +13,24 @@
      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
      See the License for the specific language governing permissions and
      limitations under the License.
--->
-<resources>
+--><resources>
     <string name="feature_appdetail_cannot_launch_this_app">无法启动这个应用</string>
-    <string name="feature_appdetail_blocker_rules">Blocker规则</string>
+    <string name="feature_appdetail_blocker_rules">Blocker 规则</string>
     <string name="feature_appdetail_export_rules">导出规则</string>
     <string name="feature_appdetail_import_rules">导入规则</string>
-    <string name="feature_appdetail_ifw_rules">IFW规则</string>
-    <string name="feature_appdetail_export_ifw_rules">导出IFW规则</string>
-    <string name="feature_appdetail_import_ifw_rules">导入IFW规则</string>
-    <string name="feature_appdetail_reset_ifw">重置IFW</string>
-    <string name="feature_appdetail_target_sdk_version">目标SDK版本</string>
-    <string name="feature_appdetail_minimum_sdk_version">最低SDK版本</string>
+    <string name="feature_appdetail_ifw_rules">IFW 规则</string>
+    <string name="feature_appdetail_export_ifw_rules">导出 IFW 规则</string>
+    <string name="feature_appdetail_import_ifw_rules">导入 IFW 规则</string>
+    <string name="feature_appdetail_reset_ifw">重置 IFW</string>
+    <string name="feature_appdetail_target_sdk_version">目标 SDK 版本</string>
+    <string name="feature_appdetail_minimum_sdk_version">最低 SDK 版本</string>
     <string name="feature_appdetail_last_update_time">最后更新时间</string>
     <string name="feature_appdetail_data_dir">数据目录</string>
     <string name="feature_appdetail_block_all_of_this_page">阻止本页所有组件</string>
     <string name="feature_appdetail_enable_all_of_this_page">启用本页所有组件</string>
     <string name="feature_appdetail_blocking_effect">阻止效果</string>
     <string name="feature_appdetail_recommended_blocking">推荐阻止</string>
-    <string name="feature_appdetail_belonging_sdk">归属SDK</string>
+    <string name="feature_appdetail_belonging_sdk">归属 SDK</string>
     <string name="feature_appdetail_save">保存</string>
     <string name="feature_appdetail_search_components">搜索组件</string>
     <string name="feature_appdetail_add_description_hint">目前没有可用的组件信息。成为第一个贡献者吧！</string>
@@ -39,14 +38,15 @@
     <string name="feature_appdetail_unknown">未知</string>
     <string name="feature_appdetail_select_mutiple">选择多项</string>
     <plurals name="feature_appdetail_selected_component_count">
-        <item quantity="other">已选择%1$d个组件</item>
+        <item quantity="other">已选择 %1$d 个组件</item>
     </plurals>
     <string name="feature_appdetail_share_your_rules">分享你的规则</string>
     <string name="feature_appdetail_share_all_rules">共享所有规则</string>
     <string name="feature_appdetail_share_rules_of_this_app">分享此应用的规则</string>
     <string name="feature_appdetail_cannot_share_rule_report_issue">无法共享规则，请向我们报告问题。</string>
-<string name="feature_appdetail_cannot_share_rule_no_apps_found">无法共享规则，找不到可共享的应用程序。</string>
+    <string name="feature_appdetail_cannot_share_rule_no_apps_found">无法共享规则，找不到可共享的应用程序。</string>
     <string name="feature_appdetail_rules_sharing_title">规则分享：%1$s</string>
-    <string name="feature_appdetail_provide_additional_details">(请提供关于您的规则的详细描述。)\n</string>
+    <string name="feature_appdetail_provide_additional_details">（请提供关于您的规则的详细描述。）
+\n</string>
     <string name="feature_appdetail_all_rules">所有规则</string>
 </resources>
