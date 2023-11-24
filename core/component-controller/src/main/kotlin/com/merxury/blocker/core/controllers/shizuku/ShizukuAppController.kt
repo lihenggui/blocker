@@ -17,10 +17,13 @@
 package com.merxury.blocker.core.controllers.shizuku
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import com.merxury.blocker.core.controllers.IAppController
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.lsposed.hiddenapibypass.HiddenApiBypass
@@ -29,6 +32,8 @@ import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 import timber.log.Timber
 import javax.inject.Inject
+
+private const val SHELL_UID = 2000
 
 class ShizukuAppController @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -57,6 +62,10 @@ class ShizukuAppController @Inject constructor(
     override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disable $packageName")
         val userId = Shizuku.getUid()
+        if (userId == SHELL_UID) {
+            openAppDetails(packageName)
+            return true
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             pm?.setApplicationEnabledSetting(
                 packageName,
@@ -78,6 +87,11 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun enable(packageName: String): Boolean {
         Timber.i("Enable $packageName")
+        val userId = Shizuku.getUid()
+        if (userId == SHELL_UID) {
+            openAppDetails(packageName)
+            return true
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             pm?.setApplicationEnabledSetting(
                 packageName,
@@ -94,6 +108,11 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun clearCache(packageName: String): Boolean {
         Timber.i("Clear cache for $packageName")
+        val userId = Shizuku.getUid()
+        if (userId == SHELL_UID) {
+            openAppDetails(packageName)
+            return true
+        }
         pm?.deleteApplicationCacheFiles(packageName, null)
         return true
     }
@@ -101,6 +120,10 @@ class ShizukuAppController @Inject constructor(
     override suspend fun clearData(packageName: String): Boolean {
         Timber.i("Clear data for $packageName")
         val userId = Shizuku.getUid()
+        if (userId == SHELL_UID) {
+            openAppDetails(packageName)
+            return true
+        }
         pm?.clearApplicationUserData(packageName, null, userId)
         return true
     }
@@ -117,5 +140,14 @@ class ShizukuAppController @Inject constructor(
     override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stop $packageName")
         return true
+    }
+
+    private fun openAppDetails(packageName: String) {
+        Timber.i("Open app details for $packageName")
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", packageName, null)
+        intent.setData(uri)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        context.startActivity(intent)
     }
 }
