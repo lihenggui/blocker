@@ -18,6 +18,7 @@ package com.merxury.blocker.core.controllers.shizuku
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.IPackageDataObserver
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
@@ -32,6 +33,7 @@ import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.coroutines.suspendCoroutine
 
 private const val SHELL_UID = 2000
 
@@ -124,8 +126,18 @@ class ShizukuAppController @Inject constructor(
             openAppDetails(packageName)
             return true
         }
-        pm?.clearApplicationUserData(packageName, null, userId)
-        return true
+        return suspendCoroutine { cont ->
+            pm?.clearApplicationUserData(
+                packageName,
+                object : IPackageDataObserver.Stub() {
+                    override fun onRemoveCompleted(packageName: String?, succeeded: Boolean) {
+                        Timber.i("Clear data for $packageName succeeded: $succeeded")
+                        cont.resumeWith(Result.success(succeeded))
+                    }
+                },
+                userId,
+            )
+        }
     }
 
     override suspend fun uninstallApp(packageName: String): Boolean {
