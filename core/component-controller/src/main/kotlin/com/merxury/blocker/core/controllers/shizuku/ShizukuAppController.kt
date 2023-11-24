@@ -109,18 +109,24 @@ class ShizukuAppController @Inject constructor(
     }
 
     override suspend fun clearCache(packageName: String): Boolean {
-        Timber.i("Clear cache for $packageName")
+        Timber.i("Start clear cache: $packageName")
         val userId = Shizuku.getUid()
         if (userId == SHELL_UID) {
             openAppDetails(packageName)
             return true
         }
-        pm?.deleteApplicationCacheFiles(packageName, null)
-        return true
+        return suspendCoroutine { cont ->
+            pm?.deleteApplicationCacheFiles(packageName, object: IPackageDataObserver.Stub() {
+                override fun onRemoveCompleted(packageName: String?, succeeded: Boolean) {
+                    Timber.i("Clear cache for $packageName succeeded: $succeeded")
+                    cont.resumeWith(Result.success(succeeded))
+                }
+            })
+        }
     }
 
     override suspend fun clearData(packageName: String): Boolean {
-        Timber.i("Clear data for $packageName")
+        Timber.i("Start clear data: $packageName")
         val userId = Shizuku.getUid()
         if (userId == SHELL_UID) {
             openAppDetails(packageName)
