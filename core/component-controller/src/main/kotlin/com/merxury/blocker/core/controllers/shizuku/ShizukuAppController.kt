@@ -23,6 +23,8 @@ import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
 import android.os.Build
 import com.merxury.blocker.core.controllers.IAppController
 import dagger.hilt.android.qualifiers.ApplicationContext
+import org.lsposed.hiddenapibypass.HiddenApiBypass
+import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 import timber.log.Timber
@@ -32,25 +34,48 @@ class ShizukuAppController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IAppController {
 
-    private var pm: IPackageManager? = null
+    private val pm: IPackageManager? by lazy {
+        addHiddenApiExemptions()
+        Timber.d("Get package manager service from ShizukuBinderWrapper")
+        IPackageManager.Stub.asInterface(
+            ShizukuBinderWrapper(
+                SystemServiceHelper.getSystemService("package"),
+            ),
+        )
+    }
+
+    private fun addHiddenApiExemptions() {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            return
+        }
+        Timber.i("Add hidden API exemptions")
+        HiddenApiBypass.addHiddenApiExemptions(
+            "Landroid/content/pm/IPackageManager;",
+        );
+    }
+
     override suspend fun disable(packageName: String) {
-        ensureInitialization()
         Timber.i("Disable $packageName")
+        val userId = Shizuku.getUid()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             pm?.setApplicationEnabledSetting(
                 packageName,
                 COMPONENT_ENABLED_STATE_DISABLED,
                 0,
-                0,
+                userId,
                 context.packageName,
             )
         } else {
-            pm?.setApplicationEnabledSetting(packageName, COMPONENT_ENABLED_STATE_DISABLED, 0, 0)
+            pm?.setApplicationEnabledSetting(
+                packageName,
+                COMPONENT_ENABLED_STATE_DISABLED,
+                userId,
+                0,
+            )
         }
     }
 
     override suspend fun enable(packageName: String) {
-        ensureInitialization()
         Timber.i("Enable $packageName")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             pm?.setApplicationEnabledSetting(
@@ -66,25 +91,17 @@ class ShizukuAppController @Inject constructor(
     }
 
     override suspend fun clearCache(packageName: String, action: (Boolean) -> Unit) {
-        ensureInitialization()
         Timber.i("Clear cache for $packageName")
-        pm?.deleteApplicationCacheFiles(packageName) { name, succeeded ->
-            Timber.i("Clear cache for $name, succeeded: $succeeded")
-            action(succeeded)
-        }
+        pm?.deleteApplicationCacheFiles(packageName, null)
     }
 
     override suspend fun clearData(packageName: String, action: (Boolean) -> Unit) {
-        ensureInitialization()
         Timber.i("Clear data for $packageName")
-        pm?.clearApplicationUserData(packageName) { name, succeeded ->
-            Timber.i("Clear data for $name, succeeded: $succeeded")
-            action(succeeded)
-        }
+        val userId = Shizuku.getUid()
+        pm?.clearApplicationUserData(packageName, null, userId)
     }
 
     override suspend fun uninstallApp(packageName: String, action: (Int) -> Unit) {
-        ensureInitialization()
         pm?.deletePackage(
             packageName,
             { name, returnCode ->
@@ -93,19 +110,5 @@ class ShizukuAppController @Inject constructor(
             },
             0,
         )
-    }
-
-    private fun ensureInitialization() {
-        if (pm == null) {
-            Timber.d("Initialize ShizukuAppController")
-            pm = IPackageManager.Stub.asInterface(
-                ShizukuBinderWrapper(
-                    SystemServiceHelper.getSystemService("package"),
-                ),
-            )
-        }
-        if (pm == null) {
-            Timber.e("Failed to get PackageManager from ShizukuBinderWrapper")
-        }
     }
 }
