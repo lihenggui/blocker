@@ -51,10 +51,10 @@ class ShizukuAppController @Inject constructor(
         Timber.i("Add hidden API exemptions")
         HiddenApiBypass.addHiddenApiExemptions(
             "Landroid/content/pm/IPackageManager;",
-        );
+        )
     }
 
-    override suspend fun disable(packageName: String) {
+    override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disable $packageName")
         val userId = Shizuku.getUid()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -73,9 +73,10 @@ class ShizukuAppController @Inject constructor(
                 0,
             )
         }
+        return true
     }
 
-    override suspend fun enable(packageName: String) {
+    override suspend fun enable(packageName: String): Boolean {
         Timber.i("Enable $packageName")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             pm?.setApplicationEnabledSetting(
@@ -88,31 +89,33 @@ class ShizukuAppController @Inject constructor(
         } else {
             pm?.setApplicationEnabledSetting(packageName, COMPONENT_ENABLED_STATE_ENABLED, 0, 0)
         }
+        return true
     }
 
-    override suspend fun clearCache(packageName: String, action: (Boolean) -> Unit) {
+    override suspend fun clearCache(packageName: String): Boolean {
         Timber.i("Clear cache for $packageName")
         pm?.deleteApplicationCacheFiles(packageName, null)
+        return true
     }
 
-    override suspend fun clearData(packageName: String, action: (Boolean) -> Unit) {
+    override suspend fun clearData(packageName: String): Boolean {
         Timber.i("Clear data for $packageName")
         val userId = Shizuku.getUid()
         pm?.clearApplicationUserData(packageName, null, userId)
+        return true
     }
 
-    override suspend fun uninstallApp(packageName: String, action: (Int) -> Unit) {
+    override suspend fun uninstallApp(packageName: String): Boolean {
         pm?.deletePackage(
             packageName,
-            { name, returnCode ->
-                Timber.i("Uninstall $name, return code: $returnCode")
-                action(returnCode)
-            },
+            null,
             0,
         )
+        return true
     }
 
-    override suspend fun forceStop(packageName: String, action: (Boolean) -> Unit) {
+    override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stop $packageName")
+        return true
     }
 }

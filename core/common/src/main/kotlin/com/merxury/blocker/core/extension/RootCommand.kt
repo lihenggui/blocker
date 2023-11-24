@@ -40,8 +40,29 @@ suspend fun String.exec(dispatcher: CoroutineDispatcher = Dispatchers.IO): Shell
     }
 
 data class ShellResult(
+    /**
+     * Get the output of STDOUT.
+     * @return a list of strings that stores the output of STDOUT. Empty list if no output
+     * is available.
+     */
     val out: List<String>,
+    /**
+     * Get the output of STDERR.
+     * @return a list of strings that stores the output of STDERR. Empty list if no output
+     * is available.
+     */
     val err: List<String>,
+    /**
+     * Get the return code of the job.
+     * @return the return code of the last operation in the shell. If the job is executed
+     * properly, the code should range from 0-255. If the job fails to execute, it will return
+     * {@link #JOB_NOT_EXECUTED} (-1).
+     */
     val code: Int,
+    /**
+     * Whether the job succeeded.
+     * {@code getCode() == 0}.
+     * @return {@code true} if the return code is 0.
+     */
     val isSuccess: Boolean,
 )
