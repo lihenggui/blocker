@@ -34,7 +34,6 @@ import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
 import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
-import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
@@ -365,7 +364,12 @@ class AppListViewModel @Inject constructor(
     }
 
     fun forceStop(packageName: String) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        "am force-stop $packageName".exec(ioDispatcher)
+        val controllerType = userDataRepository.userData.first().controllerType
+        if (controllerType == SHIZUKU) {
+            shizukuAppController.forceStop(packageName)
+        } else {
+            rootAppController.forceStop(packageName)
+        }
         RunningAppCache.update(packageName, ioDispatcher)
         val item = _appList.find { it.packageName == packageName }
         if (item != null) {
