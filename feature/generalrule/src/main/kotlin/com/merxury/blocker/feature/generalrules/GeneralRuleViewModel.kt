@@ -125,7 +125,6 @@ class GeneralRulesViewModel @Inject constructor(
         var matchedApps = 0F
         ruleList.map { rule ->
             async {
-                Timber.v("Start update matched app info for rule: ${rule.id}")
                 // No need to handle result
                 updateRule(rule).firstOrNull()
                 matchedApps += 1
