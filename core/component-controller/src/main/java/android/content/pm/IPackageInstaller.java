@@ -66,7 +66,8 @@ public interface IPackageInstaller extends IInterface {
 
     // removed from 26
     void uninstall(String packageName, String callerPackageName, int flags,
-            IntentSender statusReceiver, int userId);
+            IntentSender statusReceiver, int userId)
+            throws RemoteException;
 
     @RequiresApi(26)
     void uninstall(VersionedPackage versionedPackage, String callerPackageName, int flags,
