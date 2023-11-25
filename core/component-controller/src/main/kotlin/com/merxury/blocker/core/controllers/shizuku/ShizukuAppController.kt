@@ -240,7 +240,7 @@ class ShizukuAppController @Inject constructor(
     }
 
     override fun isAppRunning(packageName: String): Boolean {
-        return currentRunningProcess.any { packageName in it.pkgList }
+        return currentRunningProcess.any { it.processName == packageName }
     }
 
     private fun openAppDetails(packageName: String) {
