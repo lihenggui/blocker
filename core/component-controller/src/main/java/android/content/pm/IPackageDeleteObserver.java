@@ -26,12 +26,9 @@ import androidx.annotation.NonNull;
 public interface IPackageDeleteObserver extends IInterface {
     /** Local-side IPC implementation stub class. */
     abstract class Stub extends Binder implements IPackageDeleteObserver {
-        private static final java.lang.String DESCRIPTOR =
-                "android.content.pm.IPackageDeleteObserver";
-
         /** Construct the stub at attach it to the interface. */
         public Stub() {
-            this.attachInterface(this, DESCRIPTOR);
+            throw new UnsupportedOperationException("Stub!");
         }
 
         /**
@@ -39,77 +36,42 @@ public interface IPackageDeleteObserver extends IInterface {
          * generating a proxy if needed.
          */
         public static IPackageDeleteObserver asInterface(IBinder obj) {
-            if ((obj == null)) {
-                return null;
-            }
-            IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
-            if (((iin instanceof IPackageDeleteObserver))) {
-                return ((IPackageDeleteObserver) iin);
-            }
-            return new IPackageDeleteObserver.Stub.Proxy(obj);
+            throw new UnsupportedOperationException("Stub!");
         }
 
         @Override
         public IBinder asBinder() {
-            return this;
+            throw new UnsupportedOperationException("Stub!");
         }
 
         @Override
         public boolean onTransact(int code, @NonNull Parcel data, Parcel reply, int flags)
                 throws RemoteException {
-            switch (code) {
-                case INTERFACE_TRANSACTION: {
-                    reply.writeString(DESCRIPTOR);
-                    return true;
-                }
-                case TRANSACTION_packageDeleted: {
-                    data.enforceInterface(DESCRIPTOR);
-                    java.lang.String _arg0;
-                    _arg0 = data.readString();
-                    int _arg1;
-                    _arg1 = data.readInt();
-                    this.packageDeleted(_arg0, _arg1);
-                    return true;
-                }
-            }
-            return super.onTransact(code, data, reply, flags);
+            throw new UnsupportedOperationException("Stub!");
         }
 
         private static class Proxy implements IPackageDeleteObserver {
-            private final IBinder mRemote;
 
             Proxy(IBinder remote) {
-                mRemote = remote;
+                throw new UnsupportedOperationException("Stub!");
             }
 
             @Override
             public IBinder asBinder() {
-                return mRemote;
+                throw new UnsupportedOperationException("Stub!");
             }
 
-            public java.lang.String getInterfaceDescriptor() {
-                return DESCRIPTOR;
+            public String getInterfaceDescriptor() {
+                throw new UnsupportedOperationException("Stub!");
             }
 
             @Override
-            public void packageDeleted(java.lang.String packageName, int returnCode)
-                    throws RemoteException {
-                Parcel _data = Parcel.obtain();
-                try {
-                    _data.writeInterfaceToken(DESCRIPTOR);
-                    _data.writeString(packageName);
-                    _data.writeInt(returnCode);
-                    mRemote.transact(Stub.TRANSACTION_packageDeleted, _data, null,
-                            IBinder.FLAG_ONEWAY);
-                } finally {
-                    _data.recycle();
-                }
+            public void packageDeleted(String packageName, int returnCode) throws RemoteException {
+                throw new UnsupportedOperationException("Stub!");
             }
         }
-
-        static final int TRANSACTION_packageDeleted = IBinder.FIRST_CALL_TRANSACTION;
     }
 
-    void packageDeleted(java.lang.String packageName, int returnCode)
+    void packageDeleted(String packageName, int returnCode)
             throws RemoteException;
 }
