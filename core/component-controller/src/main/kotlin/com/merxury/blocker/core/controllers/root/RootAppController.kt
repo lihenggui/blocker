@@ -70,7 +70,7 @@ class RootAppController @Inject constructor(
         return result.isSuccess
     }
 
-    override suspend fun uninstallApp(packageName: String): Boolean {
+    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean {
         Timber.i("Uninstalling $packageName")
         val result = "pm uninstall $packageName".exec(ioDispatcher)
         return result.isSuccess

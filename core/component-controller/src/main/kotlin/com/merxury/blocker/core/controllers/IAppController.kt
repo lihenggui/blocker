@@ -22,9 +22,7 @@ interface IAppController {
     suspend fun forceStop(packageName: String): Boolean
     suspend fun clearCache(packageName: String): Boolean
     suspend fun clearData(packageName: String): Boolean
-    suspend fun uninstallApp(packageName: String): Boolean
-
+    suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean
     fun isAppRunning(packageName: String): Boolean
-
     suspend fun refreshRunningAppList()
 }

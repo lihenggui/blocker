@@ -26,6 +26,7 @@ import android.content.pm.IPackageInstaller
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+import android.content.pm.VersionedPackage
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -184,7 +185,7 @@ class ShizukuAppController @Inject constructor(
         }
     }
 
-    override suspend fun uninstallApp(packageName: String): Boolean {
+    override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean {
         val broadcastIntent = Intent("com.merxury.blocker.UNINSTALL_APP_RESULT_ACTION")
         val intent = PendingIntent.getBroadcast(
             context,
@@ -196,7 +197,24 @@ class ShizukuAppController @Inject constructor(
         // 0x00000004 = PackageManager.DELETE_SYSTEM_APP
         // 0x00000002 = PackageManager.DELETE_ALL_USERS
         val flags = if (isSystemApp) 0x00000004 else 0x00000002
-        packageInstaller?.uninstall(packageName, flags, intent.intentSender)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            packageInstaller?.uninstall(
+                VersionedPackage(packageName, versionCode),
+                context.packageName,
+                flags,
+                intent.intentSender,
+                0,
+            )
+        } else {
+            packageInstaller?.uninstall(
+                packageName,
+                context.packageName,
+                flags,
+                intent.intentSender,
+                0,
+            )
+        }
+
         return true
     }
 

@@ -22,7 +22,6 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.IInterface;
 import android.os.RemoteException;
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import java.util.List;
@@ -72,20 +71,6 @@ public interface IPackageInstaller extends IInterface {
     @RequiresApi(26)
     void uninstall(VersionedPackage versionedPackage, String callerPackageName, int flags,
             IntentSender statusReceiver, int userId)
-            throws RemoteException;
-
-    /**
-     * Uninstall the given package, removing it completely from the device. This
-     * method is only available to the current "installer of record" for the
-     * package.
-     *
-     * @param packageName    The package to uninstall.
-     * @param flags          Flags for uninstall.
-     * @param statusReceiver Where to deliver the result of the operation indicated by the extra
-     *                       #EXTRA_STATUS. Refer to the individual status codes
-     *                       on how to handle them.
-     */
-    void uninstall(@NonNull String packageName, int flags, @NonNull IntentSender statusReceiver)
             throws RemoteException;
 
     @RequiresApi(29)
