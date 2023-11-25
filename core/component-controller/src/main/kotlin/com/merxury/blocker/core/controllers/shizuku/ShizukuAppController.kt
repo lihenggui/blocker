@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.controllers.shizuku
 
 import android.app.ActivityManager
+import android.app.ActivityManagerNative
 import android.app.IActivityManager
 import android.app.PendingIntent
 import android.content.Context
@@ -71,11 +72,20 @@ class ShizukuAppController @Inject constructor(
     }
 
     private val am: IActivityManager by lazy {
-        IActivityManager.Stub.asInterface(
-            ShizukuBinderWrapper(
-                SystemServiceHelper.getSystemService("activity"),
-            ),
-        )
+        Timber.d("Get activity manager service from ShizukuBinderWrapper")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            IActivityManager.Stub.asInterface(
+                ShizukuBinderWrapper(
+                    SystemServiceHelper.getSystemService("activity"),
+                ),
+            )
+        } else {
+            ActivityManagerNative.asInterface(
+                ShizukuBinderWrapper(
+                    SystemServiceHelper.getSystemService("activity"),
+                ),
+            )
+        }
     }
 
     private val packageInstaller: IPackageInstaller by lazy {
