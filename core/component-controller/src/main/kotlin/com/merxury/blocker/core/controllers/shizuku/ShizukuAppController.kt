@@ -47,22 +47,9 @@ class ShizukuAppController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IAppController {
 
-    init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            Timber.i("Add hidden API exemptions")
-            HiddenApiBypass.addHiddenApiExemptions(
-                "Landroid/app/IActivityManager;",
-                "Landroid/app/IActivityManager\$Stub;",
-                "Landroid/content/pm/PackageManager;",
-                "Landroid/content/pm/IPackageManager;",
-                "Landroid/content/pm/IPackageInstaller;",
-                "Landroid/content/pm/IPackageInstaller\$Stub;",
-                "Landroid/os/UserHandle;",
-            )
-        }
-    }
-
-    private val pm: IPackageManager by lazy {
+    private val pm: IPackageManager? by lazy {
+        addHiddenApiExemptions()
+        Timber.d("Get package manager service from ShizukuBinderWrapper")
         IPackageManager.Stub.asInterface(
             ShizukuBinderWrapper(
                 SystemServiceHelper.getSystemService("package"),
@@ -70,7 +57,9 @@ class ShizukuAppController @Inject constructor(
         )
     }
 
-    private val am: IActivityManager by lazy {
+    private val am: IActivityManager? by lazy {
+        Timber.d("Get activity manager service from ShizukuBinderWrapper")
+        addHiddenApiExemptions()
         IActivityManager.Stub.asInterface(
             ShizukuBinderWrapper(
                 SystemServiceHelper.getSystemService("activity"),
@@ -78,15 +67,30 @@ class ShizukuAppController @Inject constructor(
         )
     }
 
-    private val packageInstaller: IPackageInstaller by lazy {
-        IPackageInstaller.Stub.asInterface(
-            ShizukuBinderWrapper(
-                pm.packageInstaller.asBinder(),
-            ),
-        )
+    private val packageInstaller: IPackageInstaller? by lazy {
+        Timber.d("Get package installer service from IPackageManager")
+        val pl = pm?.packageInstaller ?: run {
+            Timber.e("Failed to get package installer service")
+            return@lazy null
+        }
+        IPackageInstaller.Stub.asInterface(ShizukuBinderWrapper(pl.asBinder()))
     }
 
     private var currentRunningProcess = mutableListOf<ActivityManager.RunningAppProcessInfo>()
+
+    private fun addHiddenApiExemptions() {
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+            return
+        }
+        Timber.i("Add hidden API exemptions")
+        HiddenApiBypass.addHiddenApiExemptions(
+            "Landroid/app/IActivityManager;",
+            "Landroid/app/IActivityManager\$Stub;",
+            "Landroid/content/pm/IPackageManager;",
+            "Landroid/content/pm/IPackageInstaller;",
+            "Landroid/content/pm/IPackageInstaller\$Stub;",
+        )
+    }
 
     override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disable $packageName")
@@ -96,7 +100,7 @@ class ShizukuAppController @Inject constructor(
             return true
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            pm.setApplicationEnabledSetting(
+            pm?.setApplicationEnabledSetting(
                 packageName,
                 COMPONENT_ENABLED_STATE_DISABLED,
                 0,
@@ -104,7 +108,7 @@ class ShizukuAppController @Inject constructor(
                 context.packageName,
             )
         } else {
-            pm.setApplicationEnabledSetting(
+            pm?.setApplicationEnabledSetting(
                 packageName,
                 COMPONENT_ENABLED_STATE_DISABLED,
                 0,
@@ -122,7 +126,7 @@ class ShizukuAppController @Inject constructor(
             return true
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            pm.setApplicationEnabledSetting(
+            pm?.setApplicationEnabledSetting(
                 packageName,
                 COMPONENT_ENABLED_STATE_ENABLED,
                 0,
@@ -130,7 +134,7 @@ class ShizukuAppController @Inject constructor(
                 context.packageName,
             )
         } else {
-            pm.setApplicationEnabledSetting(
+            pm?.setApplicationEnabledSetting(
                 packageName,
                 COMPONENT_ENABLED_STATE_ENABLED,
                 0,
@@ -148,7 +152,7 @@ class ShizukuAppController @Inject constructor(
             return true
         }
         return suspendCoroutine { cont ->
-            pm.deleteApplicationCacheFiles(
+            pm?.deleteApplicationCacheFiles(
                 packageName,
                 object : IPackageDataObserver.Stub() {
                     override fun onRemoveCompleted(packageName: String?, succeeded: Boolean) {
@@ -168,7 +172,7 @@ class ShizukuAppController @Inject constructor(
             return true
         }
         return suspendCoroutine { cont ->
-            pm.clearApplicationUserData(
+            pm?.clearApplicationUserData(
                 packageName,
                 object : IPackageDataObserver.Stub() {
                     override fun onRemoveCompleted(packageName: String?, succeeded: Boolean) {
@@ -194,7 +198,7 @@ class ShizukuAppController @Inject constructor(
         // 0x00000002 = PackageManager.DELETE_ALL_USERS
         val flags = if (isSystemApp) 0x00000004 else 0x00000002
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            packageInstaller.uninstall(
+            packageInstaller?.uninstall(
                 VersionedPackage(packageName, versionCode),
                 context.packageName,
                 flags,
@@ -202,7 +206,7 @@ class ShizukuAppController @Inject constructor(
                 0,
             )
         } else {
-            packageInstaller.uninstall(
+            packageInstaller?.uninstall(
                 packageName,
                 context.packageName,
                 flags,
@@ -216,9 +220,9 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stop $packageName")
-        val processes = am.getRunningAppProcesses()
+        val processes = am?.getRunningAppProcesses()
         Timber.e(processes.toString())
-        am.forceStopPackage(packageName, 0)
+        am?.forceStopPackage(packageName, 0)
         return true
     }
 
@@ -227,7 +231,7 @@ class ShizukuAppController @Inject constructor(
             // Avoid calling this method when Shizuku is not connected
             return
         }
-        currentRunningProcess = am.runningAppProcesses ?: mutableListOf()
+        currentRunningProcess = am?.runningAppProcesses ?: mutableListOf()
     }
 
     override fun isAppRunning(packageName: String): Boolean {
