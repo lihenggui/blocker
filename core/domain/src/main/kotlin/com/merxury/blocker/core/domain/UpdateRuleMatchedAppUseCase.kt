@@ -20,11 +20,15 @@ import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -33,6 +37,7 @@ class UpdateRuleMatchedAppUseCase @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
     private val appRepository: AppRepository,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) {
 
     operator fun invoke(rule: GeneralRule): Flow<Unit> = flow {
@@ -58,5 +63,7 @@ class UpdateRuleMatchedAppUseCase @Inject constructor(
         val updatedRule = rule.copy(matchedAppCount = matchedGroup.keys.size)
         Timber.v("Updated rule: ${updatedRule.name}, count = ${updatedRule.matchedAppCount}")
         generalRuleRepository.saveGeneralRule(updatedRule)
+        emit(Unit)
     }
+        .flowOn(ioDispatcher)
 }

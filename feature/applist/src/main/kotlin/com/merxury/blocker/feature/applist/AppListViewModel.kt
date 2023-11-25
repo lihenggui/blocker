@@ -94,7 +94,6 @@ class AppListViewModel @Inject constructor(
     private var _appList = mutableStateListOf<AppItem>()
     private val _appListFlow = MutableStateFlow(_appList)
     private var currentSearchKeyword = ""
-    private var loadAppListJob: Job? = null
     private val refreshServiceJobs = SupervisorJob()
     val appListFlow: StateFlow<List<AppItem>>
         get() = _appListFlow
@@ -110,6 +109,8 @@ class AppListViewModel @Inject constructor(
         listenShowRunningAppsOnTopChanges()
         listenShowSystemAppsChanges()
     }
+
+    private var loadAppListJob: Job? = null
 
     fun loadData() {
         loadAppListJob?.cancel()
@@ -136,6 +137,7 @@ class AppListViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .collect { list ->
                     Timber.v("App list changed, size ${list.size}")
+                    refreshServiceJobs.cancelChildren()
                     val preference = userDataRepository.userData.first()
                     val sortType = preference.appSorting
                     val sortOrder = preference.appSortingOrder
@@ -174,7 +176,6 @@ class AppListViewModel @Inject constructor(
                     }
                         .toMutableStateList()
                     withContext(mainDispatcher) {
-                        refreshServiceJobs.cancelChildren()
                         _appListFlow.value = _appList
                         _uiState.emit(Success(isRefreshing = false))
                     }
@@ -210,54 +211,67 @@ class AppListViewModel @Inject constructor(
         }
     }
 
-    private fun listenSortingChanges() = viewModelScope.launch(cpuDispatcher) {
-        userDataRepository.userData
-            .distinctUntilChanged()
-            .drop(1)
-            .collect { userData ->
-                val newList = _appList.toMutableList()
-                newList.sortWith(appComparator(userData.appSorting, userData.appSortingOrder))
-                if (userDataRepository.userData.first().showRunningAppsOnTop) {
-                    newList.sortByDescending { it.isRunning }
+    private var listenSortChangeJob: Job? = null
+    private fun listenSortingChanges() {
+        listenSortChangeJob?.cancel()
+        listenSortChangeJob = viewModelScope.launch(cpuDispatcher) {
+            userDataRepository.userData
+                .distinctUntilChanged()
+                .drop(1)
+                .collect { userData ->
+                    val newList = _appList.toMutableList()
+                    newList.sortWith(appComparator(userData.appSorting, userData.appSortingOrder))
+                    if (userDataRepository.userData.first().showRunningAppsOnTop) {
+                        newList.sortByDescending { it.isRunning }
+                    }
+                    withContext(mainDispatcher) {
+                        refreshServiceJobs.cancelChildren()
+                        _appList = newList.toMutableStateList()
+                        _appListFlow.value = _appList
+                    }
                 }
-                withContext(mainDispatcher) {
-                    refreshServiceJobs.cancelChildren()
-                    _appList = newList.toMutableStateList()
-                    _appListFlow.value = _appList
-                }
-            }
+        }
     }
 
-    private fun listenShowRunningAppsOnTopChanges() = viewModelScope.launch {
-        userDataRepository.userData
-            .map { it.showRunningAppsOnTop }
-            .distinctUntilChanged()
-            .drop(1)
-            .collect { showRunningAppsOnTop ->
-                val newList = _appList.toMutableList()
-                if (showRunningAppsOnTop) {
-                    newList.sortByDescending { it.isRunning }
-                } else {
-                    val sorting = userDataRepository.userData.first()
-                        .appSorting
-                    val order = userDataRepository.userData.first()
-                        .appSortingOrder
-                    newList.sortWith(appComparator(sorting, order))
+    private var listenShowRunningAppsOnTopChangesJob: Job? = null
+    private fun listenShowRunningAppsOnTopChanges() {
+        listenShowRunningAppsOnTopChangesJob?.cancel()
+        listenShowRunningAppsOnTopChangesJob = viewModelScope.launch {
+            userDataRepository.userData
+                .map { it.showRunningAppsOnTop }
+                .distinctUntilChanged()
+                .drop(1)
+                .collect { showRunningAppsOnTop ->
+                    val newList = _appList.toMutableList()
+                    if (showRunningAppsOnTop) {
+                        newList.sortByDescending { it.isRunning }
+                    } else {
+                        val sorting = userDataRepository.userData.first()
+                            .appSorting
+                        val order = userDataRepository.userData.first()
+                            .appSortingOrder
+                        newList.sortWith(appComparator(sorting, order))
+                    }
+                    withContext(mainDispatcher) {
+                        refreshServiceJobs.cancelChildren()
+                        _appList = newList.toMutableStateList()
+                        _appListFlow.value = _appList
+                    }
                 }
-                withContext(mainDispatcher) {
-                    refreshServiceJobs.cancelChildren()
-                    _appList = newList.toMutableStateList()
-                    _appListFlow.value = _appList
-                }
-            }
+        }
     }
 
-    private fun listenShowSystemAppsChanges() = viewModelScope.launch {
-        userDataRepository.userData
-            .map { it.showSystemApps }
-            .distinctUntilChanged()
-            .drop(1)
-            .collect { loadData() }
+    private var listenShowSystemAppsChangesJob: Job? = null
+
+    private fun listenShowSystemAppsChanges() {
+        listenShowSystemAppsChangesJob?.cancel()
+        listenShowSystemAppsChangesJob = viewModelScope.launch {
+            userDataRepository.userData
+                .map { it.showSystemApps }
+                .distinctUntilChanged()
+                .drop(1)
+                .collect { loadData() }
+        }
     }
 
     fun updateServiceStatus(packageName: String, index: Int) {
