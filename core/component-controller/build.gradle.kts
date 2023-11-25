@@ -23,6 +23,9 @@ plugins {
 }
 
 android {
+    defaultConfig {
+        consumerProguardFiles("consumer-proguard-rules.pro")
+    }
     namespace = "com.merxury.blocker.core.controller"
     testOptions {
         unitTests {
@@ -32,13 +35,10 @@ android {
 }
 
 dependencies {
-    compileOnly(projects.core.hiddenApi)
-    
     implementation(projects.core.common)
     implementation(projects.core.model)
     implementation(projects.core.ifwApi)
 
-    implementation(libs.rikka.refine.runtime)
     implementation(libs.hiddenapibypass)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
@@ -46,6 +46,10 @@ dependencies {
     implementation(libs.libsu.io)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
+
+    implementation(libs.rikka.refine.runtime)
+    annotationProcessor(libs.rikka.refine.compiler)
+    compileOnly(libs.rikka.refine.annotation)
 
     testImplementation(projects.core.testing)
 }
