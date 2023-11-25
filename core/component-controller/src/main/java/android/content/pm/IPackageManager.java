@@ -90,7 +90,7 @@ public interface IPackageManager extends IInterface {
      * @param packageName The name of the package to delete
      * @param observer An observer callback to get notified when the package
      *            deletion is complete.
-     *            {@link IPackageDeleteObserver#packageDeleted}
+     *            {@link android.content.pm.IPackageDeleteObserver#packageDeleted}
      *            will be called when that happens. observer may be null to
      *            indicate that no callback is desired.
      */
@@ -106,7 +106,7 @@ public interface IPackageManager extends IInterface {
      * @param packageName The name of the package to delete
      * @param observer An observer callback to get notified when the package
      *            deletion is complete.
-     *            {@link IPackageDeleteObserver#packageDeleted}
+     *            {@link android.content.pm.IPackageDeleteObserver#packageDeleted}
      *            will be called when that happens. observer may be null to
      *            indicate that no callback is desired.
      * @param userId The user Id
@@ -140,7 +140,7 @@ public interface IPackageManager extends IInterface {
      * @param packageName The name of the package to delete
      * @param observer An observer callback to get notified when the cache file deletion
      * is complete.
-     * {@link IPackageDataObserver#onRemoveCompleted(String, boolean)}
+     * {@link android.content.pm.IPackageDataObserver#onRemoveCompleted(String, boolean)}
      * will be called when that happens.  observer may be null to indicate that
      * no callback is desired.
      *
@@ -161,7 +161,7 @@ public interface IPackageManager extends IInterface {
      * @param userId the user for which the cache files needs to be deleted
      * @param observer An observer callback to get notified when the cache file deletion is
      *            complete.
-     *            {@link IPackageDataObserver#onRemoveCompleted(String, boolean)}
+     *            {@link android.content.pm.IPackageDataObserver#onRemoveCompleted(String, boolean)}
      *            will be called when that happens. observer may be null to indicate that no
      *            callback is desired.
      */
