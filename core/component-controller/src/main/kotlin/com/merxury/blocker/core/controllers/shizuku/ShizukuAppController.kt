@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.controllers.shizuku
 
+import android.app.IActivityManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
@@ -54,6 +55,16 @@ class ShizukuAppController @Inject constructor(
         )
     }
 
+    private val am: IActivityManager? by lazy {
+        Timber.d("Get activity manager service from ShizukuBinderWrapper")
+        addHiddenApiExemptions()
+        IActivityManager.Stub.asInterface(
+            ShizukuBinderWrapper(
+                SystemServiceHelper.getSystemService("activity"),
+            ),
+        )
+    }
+
     private val packageInstaller: IPackageInstaller? by lazy {
         Timber.d("Get package installer service from IPackageManager")
         val pl = pm?.packageInstaller ?: run {
@@ -69,6 +80,8 @@ class ShizukuAppController @Inject constructor(
         }
         Timber.i("Add hidden API exemptions")
         HiddenApiBypass.addHiddenApiExemptions(
+            "Landroid/app/IActivityManager;",
+            "Landroid/app/IActivityManager\$Stub;",
             "Landroid/content/pm/IPackageManager;",
             "Landroid/content/pm/IPackageInstaller;",
             "Landroid/content/pm/IPackageInstaller\$Stub;",
@@ -186,6 +199,7 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stop $packageName")
+        am?.forceStopPackage(packageName, 0)
         return true
     }
 

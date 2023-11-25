@@ -52,7 +52,7 @@ object RunningAppCache {
             }
             Timber.d(
                 "Updated running status: $packageName" +
-                    "result is ${result.out.isNotEmpty()}",
+                    " result is ${result.out.isNotEmpty()}",
             )
         } catch (e: Exception) {
             Timber.w("Failed to update running app: $packageName")
