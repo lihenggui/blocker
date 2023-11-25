@@ -18,6 +18,7 @@ plugins {
     alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.blocker.android.library.jacoco)
     alias(libs.plugins.blocker.android.hilt)
+    alias(libs.plugins.rikka.refine)
     id("kotlinx-serialization")
 }
 
@@ -45,6 +46,10 @@ dependencies {
     implementation(libs.libsu.io)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
+
+    implementation(libs.rikka.refine.runtime)
+    annotationProcessor(libs.rikka.refine.compiler)
+    compileOnly(libs.rikka.refine.annotation)
 
     testImplementation(projects.core.testing)
 }
