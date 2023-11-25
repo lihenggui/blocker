@@ -94,7 +94,8 @@ public interface IPackageManager extends IInterface {
      *            will be called when that happens. observer may be null to
      *            indicate that no callback is desired.
      */
-    void deletePackage(String packageName, IPackageDeleteObserver observer, int flags);
+    void deletePackage(String packageName, IPackageDeleteObserver observer, int flags)
+            throws RemoteException;
 
     /**
      * Attempts to delete a package. Since this may take a little while, the
@@ -126,7 +127,8 @@ public interface IPackageManager extends IInterface {
      * no callback is desired.
      *
      */
-    void clearApplicationUserData(String packageName, IPackageDataObserver observer, int userId);
+    void clearApplicationUserData(String packageName, IPackageDataObserver observer, int userId)
+            throws RemoteException;
 
     /**
      * Attempts to delete the cache files associated with an application.
@@ -143,7 +145,8 @@ public interface IPackageManager extends IInterface {
      * no callback is desired.
      *
      */
-    void deleteApplicationCacheFiles(String packageName, IPackageDataObserver observer);
+    void deleteApplicationCacheFiles(String packageName, IPackageDataObserver observer)
+            throws RemoteException;
 
     /**
      * Attempts to delete the cache files associated with an application for a given user. Since
@@ -162,7 +165,8 @@ public interface IPackageManager extends IInterface {
      *            will be called when that happens. observer may be null to indicate that no
      *            callback is desired.
      */
-    void deleteApplicationCacheFilesAsUser(String packageName, int userId, IPackageDataObserver observer);
+    void deleteApplicationCacheFilesAsUser(String packageName, int userId, IPackageDataObserver observer)
+            throws RemoteException;
 
 
     abstract class Stub extends Binder implements IPackageManager {
