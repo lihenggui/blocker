@@ -16,9 +16,11 @@
 
 package com.merxury.blocker.core.controllers.shizuku
 
+import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.IPackageDataObserver
+import android.content.pm.IPackageInstaller
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
@@ -26,6 +28,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import com.merxury.blocker.core.controllers.IAppController
+import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
@@ -51,6 +54,15 @@ class ShizukuAppController @Inject constructor(
         )
     }
 
+    private val packageInstaller: IPackageInstaller? by lazy {
+        Timber.d("Get package installer service from IPackageManager")
+        val pl = pm?.packageInstaller ?: run {
+            Timber.e("Failed to get package installer service")
+            return@lazy null
+        }
+        IPackageInstaller.Stub.asInterface(ShizukuBinderWrapper(pl.asBinder()))
+    }
+
     private fun addHiddenApiExemptions() {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
             return
@@ -58,6 +70,8 @@ class ShizukuAppController @Inject constructor(
         Timber.i("Add hidden API exemptions")
         HiddenApiBypass.addHiddenApiExemptions(
             "Landroid/content/pm/IPackageManager;",
+            "Landroid/content/pm/IPackageInstaller;",
+            "Landroid/content/pm/IPackageInstaller\$Stub;",
         )
     }
 
@@ -103,7 +117,12 @@ class ShizukuAppController @Inject constructor(
                 context.packageName,
             )
         } else {
-            pm?.setApplicationEnabledSetting(packageName, COMPONENT_ENABLED_STATE_ENABLED, 0, userId)
+            pm?.setApplicationEnabledSetting(
+                packageName,
+                COMPONENT_ENABLED_STATE_ENABLED,
+                0,
+                userId,
+            )
         }
         return true
     }
@@ -116,12 +135,15 @@ class ShizukuAppController @Inject constructor(
             return true
         }
         return suspendCoroutine { cont ->
-            pm?.deleteApplicationCacheFiles(packageName, object: IPackageDataObserver.Stub() {
-                override fun onRemoveCompleted(packageName: String?, succeeded: Boolean) {
-                    Timber.i("Clear cache for $packageName succeeded: $succeeded")
-                    cont.resumeWith(Result.success(succeeded))
-                }
-            })
+            pm?.deleteApplicationCacheFiles(
+                packageName,
+                object : IPackageDataObserver.Stub() {
+                    override fun onRemoveCompleted(packageName: String?, succeeded: Boolean) {
+                        Timber.i("Clear cache for $packageName succeeded: $succeeded")
+                        cont.resumeWith(Result.success(succeeded))
+                    }
+                },
+            )
         }
     }
 
@@ -147,11 +169,18 @@ class ShizukuAppController @Inject constructor(
     }
 
     override suspend fun uninstallApp(packageName: String): Boolean {
-        pm?.deletePackage(
-            packageName,
-            null,
+        val broadcastIntent = Intent("com.merxury.blocker.UNINSTALL_APP_RESULT_ACTION")
+        val intent = PendingIntent.getBroadcast(
+            context,
             0,
+            broadcastIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
+        val isSystemApp = ApplicationUtil.isSystemApp(context.packageManager, packageName)
+        // 0x00000004 = PackageManager.DELETE_SYSTEM_APP
+        // 0x00000002 = PackageManager.DELETE_ALL_USERS
+        val flags = if (isSystemApp) 0x00000004 else 0x00000002
+        packageInstaller?.uninstall(packageName, flags, intent.intentSender)
         return true
     }
 
