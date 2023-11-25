@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.controllers.shizuku
 
+import android.app.ActivityManager
 import android.app.IActivityManager
 import android.app.PendingIntent
 import android.content.Context
@@ -73,6 +74,8 @@ class ShizukuAppController @Inject constructor(
         }
         IPackageInstaller.Stub.asInterface(ShizukuBinderWrapper(pl.asBinder()))
     }
+
+    private var currentRunningProcess = mutableListOf<ActivityManager.RunningAppProcessInfo>()
 
     private fun addHiddenApiExemptions() {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
@@ -199,8 +202,22 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stop $packageName")
+        val processes = am?.getRunningAppProcesses()
+        Timber.e(processes.toString())
         am?.forceStopPackage(packageName, 0)
         return true
+    }
+
+    override suspend fun refreshRunningAppList() {
+        if (!Shizuku.pingBinder()) {
+            // Avoid calling this method when Shizuku is not connected
+            return
+        }
+        currentRunningProcess = am?.runningAppProcesses ?: mutableListOf()
+    }
+
+    override fun isAppRunning(packageName: String): Boolean {
+        return currentRunningProcess.any { it.processName == packageName }
     }
 
     private fun openAppDetails(packageName: String) {

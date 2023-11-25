@@ -23,4 +23,8 @@ interface IAppController {
     suspend fun clearCache(packageName: String): Boolean
     suspend fun clearData(packageName: String): Boolean
     suspend fun uninstallApp(packageName: String): Boolean
+
+    fun isAppRunning(packageName: String): Boolean
+
+    suspend fun refreshRunningAppList()
 }
