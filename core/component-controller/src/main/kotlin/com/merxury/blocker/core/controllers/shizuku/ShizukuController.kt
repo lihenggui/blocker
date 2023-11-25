@@ -27,12 +27,13 @@ import com.merxury.blocker.core.utils.ApplicationUtil
 import dagger.hilt.android.qualifiers.ApplicationContext
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
+import timber.log.Timber
 import javax.inject.Inject
 
 class ShizukuController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IController {
-    private val pm: IPackageManager by lazy {
+    private val pm: IPackageManager? by lazy {
         IPackageManager.Stub.asInterface(
             ShizukuBinderWrapper(
                 SystemServiceHelper.getSystemService("package"),
@@ -45,11 +46,15 @@ class ShizukuController @Inject constructor(
         componentName: String,
         state: Int,
     ): Boolean {
+        if (pm == null) {
+            Timber.e("Can't get package manager service from ShizukuBinderWrapper")
+            return false
+        }
         // 0 means kill the application
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            pm.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0, context.packageName)
+            pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0, context.packageName)
         } else {
-            pm.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
+            pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
         }
         return true
     }
