@@ -5,6 +5,7 @@ androidDesugarJdkLibs = "2.0.4"
 androidGradlePlugin = "8.1.4"
 androidTools = "31.1.4"
 androidxActivity = "1.8.1"
+androidxAnnotation = "1.7.0"
 androidxAppCompat = "1.6.1"
 androidxBrowser = "1.7.0"
 androidxComposeBom = "2023.10.01"
@@ -74,6 +75,7 @@ accompanist-navigation-animation = { group = "com.google.accompanist", name = "a
 accompanist-navigation-material = { group = "com.google.accompanist", name = "accompanist-navigation-material", version.ref = "accompanist" }
 android-desugarJdkLibs = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "androidDesugarJdkLibs" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidxActivity" }
+androidx-annotation = { group = "androidx.annotation", name = "annotation", version.ref = "androidxAnnotation" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "androidxAppCompat" }
 androidx-benchmark-macro = { group = "androidx.benchmark", name = "benchmark-macro-junit4", version.ref = "androidxMacroBenchmark" }
 androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "androidxBrowser" }
