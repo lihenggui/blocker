@@ -85,8 +85,8 @@ class ShizukuAppController @Inject constructor(
         Timber.d("Get package installer service from IPackageManager")
         IPackageInstaller.Stub.asInterface(
             ShizukuBinderWrapper(
-                pm.packageInstaller.asBinder()
-            )
+                pm.packageInstaller.asBinder(),
+            ),
         )
     }
 
