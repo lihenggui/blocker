@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Blocker
- * Copyright 2022 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +14,15 @@
  * limitations under the License.
  */
 
-plugins {
-    alias(libs.plugins.blocker.android.feature)
-    alias(libs.plugins.blocker.android.library.compose)
-    alias(libs.plugins.blocker.android.library.jacoco)
-}
+package com.merxury.blocker.core.controllers
 
-android {
-    namespace = "com.merxury.blocker.feature.applist"
+interface IAppController {
+    suspend fun disable(packageName: String): Boolean
+    suspend fun enable(packageName: String): Boolean
+    suspend fun forceStop(packageName: String): Boolean
+    suspend fun clearCache(packageName: String): Boolean
+    suspend fun clearData(packageName: String): Boolean
+    suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean
+    fun isAppRunning(packageName: String): Boolean
+    suspend fun refreshRunningAppList()
 }
-
-dependencies {
-    implementation(projects.core.componentController)
-    implementation(projects.core.ifwApi)
-    implementation(libs.androidx.compose.material)
-    implementation(libs.kotlinx.datetime)
-}
-

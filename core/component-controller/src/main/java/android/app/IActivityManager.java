@@ -14,14 +14,26 @@
  *   limitations under the License.
  */
 
-package android.content.pm;
+package android.app;
 
-import android.os.Parcelable;
+import android.os.Binder;
+import android.os.IBinder;
+import android.os.IInterface;
+import android.os.RemoteException;
 
 import java.util.List;
 
-public class ParceledListSlice<T extends Parcelable> {
-    public List<T> getList() {
-        throw new UnsupportedOperationException();
+public interface IActivityManager extends IInterface {
+    void forceStopPackage(String packageName, int userId)
+            throws RemoteException;
+
+    List<ActivityManager.RunningAppProcessInfo> getRunningAppProcesses()
+            throws RemoteException;
+
+    abstract class Stub extends Binder implements IActivityManager {
+
+        public static IActivityManager asInterface(IBinder obj) {
+            throw new UnsupportedOperationException();
+        }
     }
 }
