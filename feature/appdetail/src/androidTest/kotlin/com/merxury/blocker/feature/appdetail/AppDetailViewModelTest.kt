@@ -23,6 +23,8 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
+import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
+import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
@@ -77,7 +79,14 @@ class AppDetailViewModelTest {
     private val appRepository = TestAppRepository()
     private val componentRepository = TestComponentRepository()
     private val componentDetailRepository = TestComponentDetailRepository()
-    private val shizukuInitializer = FakeShizukuInitializer()
+    private val initializeShizukuUseCase = InitializeShizukuUseCase(
+        userDataRepository = userDataRepository,
+        shizukuInitializer = FakeShizukuInitializer(),
+    )
+    private val deInitializeShizukuUseCase = DeInitializeShizukuUseCase(
+        userDataRepository = userDataRepository,
+        shizukuInitializer = FakeShizukuInitializer(),
+    )
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val savedStateHandle = SavedStateHandle(
         mapOf(
@@ -116,7 +125,8 @@ class AppDetailViewModelTest {
             appRepository = appRepository,
             componentRepository = componentRepository,
             componentDetailRepository = componentDetailRepository,
-            shizukuInitializer = shizukuInitializer,
+            initializeShizuku = initializeShizukuUseCase,
+            deInitializeShizuku = deInitializeShizukuUseCase,
             analyticsHelper = analyticsHelper,
             workerManager = WorkManager.getInstance(context),
             zipAppRuleUseCase = zipAppRuleUseCase,
