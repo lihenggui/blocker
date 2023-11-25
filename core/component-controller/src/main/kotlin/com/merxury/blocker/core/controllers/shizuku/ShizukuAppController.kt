@@ -26,6 +26,7 @@ import android.content.pm.IPackageInstaller
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+import android.content.pm.PackageManagerHidden
 import android.content.pm.VersionedPackage
 import android.net.Uri
 import android.os.Build
@@ -53,6 +54,7 @@ class ShizukuAppController @Inject constructor(
             HiddenApiBypass.addHiddenApiExemptions(
                 "Landroid/app/IActivityManager;",
                 "Landroid/app/IActivityManager\$Stub;",
+                "Landroid/content/pm/PackageManager;",
                 "Landroid/content/pm/IPackageManager;",
                 "Landroid/content/pm/IPackageInstaller;",
                 "Landroid/content/pm/IPackageInstaller\$Stub;",
@@ -199,9 +201,7 @@ class ShizukuAppController @Inject constructor(
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val isSystemApp = ApplicationUtil.isSystemApp(context.packageManager, packageName)
-        // 0x00000004 = PackageManager.DELETE_SYSTEM_APP
-        // 0x00000002 = PackageManager.DELETE_ALL_USERS
-        val flags = if (isSystemApp) 0x00000004 else 0x00000002
+        val flags = if (isSystemApp) PackageManagerHidden.DELETE_SYSTEM_APP else PackageManagerHidden.DELETE_ALL_USERS
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             packageInstaller.uninstall(
                 VersionedPackage(packageName, versionCode),
