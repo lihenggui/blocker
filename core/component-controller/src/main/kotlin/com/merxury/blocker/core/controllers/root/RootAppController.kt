@@ -32,6 +32,8 @@ class RootAppController @Inject constructor(
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IAppController {
+    private val runningAppList = mutableSetOf<String>()
+
     override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disabling $packageName")
         val result = "pm disable $packageName".exec(ioDispatcher)
@@ -78,5 +80,23 @@ class RootAppController @Inject constructor(
         Timber.i("Force stopping $packageName")
         val result = "am force-stop $packageName".exec(ioDispatcher)
         return result.isSuccess
+    }
+
+    override suspend fun refreshRunningAppList() {
+        try {
+            val commandResult = "ps -A -o NAME".exec(ioDispatcher)
+            if (!commandResult.isSuccess) {
+                Timber.e("Failed to get running app list: ${commandResult.err}")
+                return
+            }
+            runningAppList.clear()
+            runningAppList.addAll(commandResult.out)
+        } catch (e: Exception) {
+            Timber.w("Failed to refresh running app list")
+        }
+    }
+
+    override fun isAppRunning(packageName: String): Boolean {
+        return runningAppList.contains(packageName)
     }
 }
