@@ -36,6 +36,7 @@ import com.merxury.blocker.core.domain.model.InitializeState
 import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
 import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
+import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.toAppServiceStatus
@@ -340,7 +341,9 @@ class AppListViewModel @Inject constructor(
     fun uninstall(packageName: String) = viewModelScope.launch {
         val action: () -> Unit = {
             viewModelScope.launch(ioDispatcher + exceptionHandler) {
-                getCurrentAppController().uninstallApp(packageName)
+                val app = ApplicationUtil.getApplicationComponents(pm, packageName)
+                val versionCode = app.getVersionCode()
+                getCurrentAppController().uninstallApp(packageName, versionCode)
                 notifyAppUpdated(packageName)
                 analyticsHelper.logUninstallAppClicked()
             }
