@@ -31,12 +31,10 @@ import androidx.annotation.NonNull;
 public interface IPackageDataObserver extends IInterface {
     /** Local-side IPC implementation stub class. */
     abstract class Stub extends Binder implements IPackageDataObserver {
-        private static final String DESCRIPTOR =
-                "android.content.pm.IPackageDataObserver";
 
         /** Construct the stub at attach it to the interface. */
         public Stub() {
-            this.attachInterface(this, DESCRIPTOR);
+            throw new UnsupportedOperationException("Stub!");
         }
 
         /**
@@ -44,75 +42,32 @@ public interface IPackageDataObserver extends IInterface {
          * generating a proxy if needed.
          */
         public static IPackageDataObserver asInterface(IBinder obj) {
-            if ((obj == null)) {
-                return null;
-            }
-            IInterface iin = obj.queryLocalInterface(DESCRIPTOR);
-            if (((iin instanceof IPackageDataObserver))) {
-                return ((android.content.pm.IPackageDataObserver) iin);
-            }
-            return new android.content.pm.IPackageDataObserver.Stub.Proxy(obj);
+            throw new UnsupportedOperationException("Stub!");
         }
 
         @Override
         public IBinder asBinder() {
-            return this;
+            throw new UnsupportedOperationException("Stub!");
         }
 
         @Override
         public boolean onTransact(int code, @NonNull Parcel data, Parcel reply, int flags)
                 throws RemoteException {
-            switch (code) {
-                case INTERFACE_TRANSACTION: {
-                    reply.writeString(DESCRIPTOR);
-                    return true;
-                }
-                case TRANSACTION_onRemoveCompleted: {
-                    data.enforceInterface(DESCRIPTOR);
-                    String _arg0;
-                    _arg0 = data.readString();
-                    boolean _arg1;
-                    _arg1 = (0 != data.readInt());
-                    this.onRemoveCompleted(_arg0, _arg1);
-                    return true;
-                }
-            }
-            return super.onTransact(code, data, reply, flags);
+            throw new UnsupportedOperationException("Stub!");
         }
 
-        private static class Proxy implements android.content.pm.IPackageDataObserver {
-            private final IBinder mRemote;
-
-            Proxy(IBinder remote) {
-                mRemote = remote;
-            }
-
+        private static class Proxy implements IPackageDataObserver {
             @Override
             public IBinder asBinder() {
-                return mRemote;
-            }
-
-            public String getInterfaceDescriptor() {
-                return DESCRIPTOR;
+                throw new UnsupportedOperationException("Stub!");
             }
 
             @Override
             public void onRemoveCompleted(String packageName, boolean succeeded)
                     throws RemoteException {
-                Parcel _data = Parcel.obtain();
-                try {
-                    _data.writeInterfaceToken(DESCRIPTOR);
-                    _data.writeString(packageName);
-                    _data.writeInt(((succeeded) ? (1) : (0)));
-                    mRemote.transact(Stub.TRANSACTION_onRemoveCompleted, _data, null,
-                            IBinder.FLAG_ONEWAY);
-                } finally {
-                    _data.recycle();
-                }
+                throw new UnsupportedOperationException("Stub!");
             }
         }
-
-        static final int TRANSACTION_onRemoveCompleted = IBinder.FIRST_CALL_TRANSACTION;
     }
 
     void onRemoveCompleted(String packageName, boolean succeeded) throws RemoteException;
