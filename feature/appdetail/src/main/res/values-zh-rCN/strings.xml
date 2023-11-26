@@ -49,4 +49,6 @@
     <string name="feature_appdetail_provide_additional_details">（请提供关于您的规则的详细描述。）
 \n</string>
     <string name="feature_appdetail_all_rules">所有规则</string>
+    <string name="feature_appdetail_app_info">应用详情</string>
+    <string name="feature_appdetail_app_info_with_libchecker_summary">使用 LibChecker 查看应用程序详细信息</string>
 </resources>

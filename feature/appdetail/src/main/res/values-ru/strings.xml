@@ -51,4 +51,6 @@
     <string name="feature_appdetail_rules_sharing_title">Обмен правилами: %1$s</string>
     <string name="feature_appdetail_provide_additional_details">(Пожалуйста, предоставьте дополнительные сведения о своих правилах.)\n</string>
     <string name="feature_appdetail_all_rules">Все правила</string>
+    <string name="feature_appdetail_app_info">Информация о приложении</string>
+    <string name="feature_appdetail_app_info_with_libchecker_summary">Используйте LibChecker для просмотра сведений о приложении</string>
 </resources>
