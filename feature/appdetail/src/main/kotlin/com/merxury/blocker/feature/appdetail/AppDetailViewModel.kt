@@ -120,6 +120,8 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
+private const val LIBCHECKER_PACKAGE_NAME = "com.absinthe.libchecker"
+
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -883,7 +885,7 @@ class AppDetailViewModel @Inject constructor(
         val app = appRepository.getApplication(packageName).first()
         val isLibCheckerInstalled = ApplicationUtil.isAppInstalled(
             pm = pm,
-            packageName = "com.absinthe.libchecker",
+            packageName = LIBCHECKER_PACKAGE_NAME,
         )
         if (app == null) {
             val error = UiMessage("Can't find $packageName in this device.")
@@ -1000,7 +1002,7 @@ class AppDetailViewModel @Inject constructor(
             Timber.w("Show app info is only supported on Android N+")
             return
         }
-        val destinationPackage = "com.absinthe.libchecker"
+        val destinationPackage = LIBCHECKER_PACKAGE_NAME
         val packageName = appDetailArgs.packageName
         val intent = Intent(Intent.ACTION_SHOW_APP_INFO).apply {
             putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
