@@ -881,7 +881,7 @@ class AppDetailViewModel @Inject constructor(
     fun loadAppInfo() = viewModelScope.launch {
         val packageName = appDetailArgs.packageName
         val app = appRepository.getApplication(packageName).first()
-        val isLabCheckerInstalled = ApplicationUtil.isAppInstalled(
+        val isLibCheckerInstalled = ApplicationUtil.isAppInstalled(
             pm = pm,
             packageName = "com.absinthe.libchecker",
         )
@@ -900,7 +900,7 @@ class AppDetailViewModel @Inject constructor(
                     } else {
                         null
                     },
-                    isLabCheckerInstalled = isLabCheckerInstalled,
+                    isLibCheckerInstalled = isLibCheckerInstalled,
                 ),
             )
         }
@@ -1021,7 +1021,7 @@ sealed interface AppInfoUiState {
     data class Success(
         val appInfo: AppItem,
         val iconBasedTheming: Bitmap?,
-        val isLabCheckerInstalled: Boolean = false,
+        val isLibCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
 }
 
