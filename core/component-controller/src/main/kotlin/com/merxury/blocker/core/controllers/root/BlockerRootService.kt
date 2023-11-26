@@ -21,7 +21,7 @@ import android.os.IBinder
 import com.topjohnwu.superuser.ipc.RootService
 import timber.log.Timber
 
-class BlockerRootService: RootService() {
+class BlockerRootService : RootService() {
     override fun onBind(intent: Intent): IBinder {
         Timber.d("RootService onBind")
         throw UnsupportedOperationException("Not yet implemented")

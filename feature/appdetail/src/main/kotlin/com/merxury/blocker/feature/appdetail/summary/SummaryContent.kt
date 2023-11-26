@@ -71,7 +71,7 @@ fun SummaryContent(
                     lastUpdateTime = app.lastUpdateTime,
                     dataDir = app.packageInfo?.applicationInfo?.dataDir,
                     isLibCheckerInstalled = isLibCheckerInstalled,
-                    onShowAppInfoClick =  onShowAppInfoClick,
+                    onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = { onExportRules(app.packageName) },
                     onImportRules = { onImportRules(app.packageName) },
                     onExportIfw = { onExportIfw(app.packageName) },

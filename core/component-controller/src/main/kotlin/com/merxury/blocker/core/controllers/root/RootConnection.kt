@@ -20,7 +20,7 @@ import android.content.ComponentName
 import android.content.ServiceConnection
 import android.os.IBinder
 
-class RootConnection: ServiceConnection {
+class RootConnection : ServiceConnection {
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         TODO("Not yet implemented")
     }
