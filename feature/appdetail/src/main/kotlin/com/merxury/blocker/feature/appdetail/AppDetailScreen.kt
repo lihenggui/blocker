@@ -70,6 +70,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -383,6 +384,7 @@ fun AppDetailScreen(
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
                 onRefresh = onRefresh,
+                isLabCheckerInstalled = appInfoUiState.isLabCheckerInstalled,
             )
         }
 
@@ -429,6 +431,7 @@ fun AppDetailContent(
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
+    isLabCheckerInstalled: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -522,6 +525,7 @@ fun AppDetailContent(
             onDeselect = onDeselect,
             onRefresh = onRefresh,
             isRefreshing = componentListUiState.isRefreshing,
+            isLabCheckerInstalled = isLabCheckerInstalled,
         )
     }
 }
@@ -683,6 +687,7 @@ fun AppDetailTabContent(
     onDeselect: (ComponentInfo) -> Unit = {},
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
+    isLabCheckerInstalled: Boolean = false,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -724,6 +729,7 @@ fun AppDetailTabContent(
             when (tabState.items[it]) {
                 Info -> SummaryContent(
                     app = app,
+                    isLabCheckerInstalled = isLabCheckerInstalled,
                     onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
@@ -784,7 +790,33 @@ fun AppDetailScreenPreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                appInfoUiState = Success(
+                    appInfo = appList[0],
+                    iconBasedTheming = null,
+                ),
+                componentListUiState = ComponentListUiState(),
+                tabState = tabState[0],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun AppDetailScreenWithLibCheckerPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = Success(
+                    appInfo = appList[0],
+                    iconBasedTheming = null,
+                    isLabCheckerInstalled = true,
+                ),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
