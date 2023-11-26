@@ -207,6 +207,7 @@ fun AppDetailRoute(
                 }
             }
         },
+        onShowAppInfoClick = { viewModel.showAppInfo(context) },
         onRefresh = viewModel::loadComponentList,
     )
     if (errorState != null) {
@@ -316,6 +317,7 @@ fun AppDetailScreen(
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -359,6 +361,7 @@ fun AppDetailScreen(
                 onSearchModeChanged = onSearchModeChanged,
                 enableAllComponents = enableAllComponents,
                 blockAllComponents = blockAllComponents,
+                onShowAppInfoClick = onShowAppInfoClick,
                 onExportRules = onExportRules,
                 onImportRules = onImportRules,
                 onExportIfw = onExportIfw,
@@ -400,6 +403,7 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     navigateToComponentDetail: (String) -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
@@ -503,6 +507,7 @@ fun AppDetailContent(
                     )
                 },
             navigateToComponentDetail = navigateToComponentDetail,
+            onShowAppInfoClick = onShowAppInfoClick,
             onExportRules = onExportRules,
             onImportRules = onImportRules,
             onExportIfw = onExportIfw,
@@ -663,6 +668,7 @@ fun AppDetailTabContent(
     selectedComponentList: List<ComponentInfo> = emptyList(),
     isSelectedMode: Boolean = false,
     navigateToComponentDetail: (String) -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -718,6 +724,7 @@ fun AppDetailTabContent(
             when (tabState.items[it]) {
                 Info -> SummaryContent(
                     app = app,
+                    onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
                     onExportIfw = onExportIfw,

@@ -48,6 +48,7 @@ import java.util.Locale
 fun SummaryContent(
     app: AppItem,
     modifier: Modifier = Modifier,
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -68,6 +69,7 @@ fun SummaryContent(
                     minSdkVersion = app.minSdkVersion,
                     lastUpdateTime = app.lastUpdateTime,
                     dataDir = app.packageInfo?.applicationInfo?.dataDir,
+                    onShowAppInfoClick =  onShowAppInfoClick,
                     onExportRules = { onExportRules(app.packageName) },
                     onImportRules = { onImportRules(app.packageName) },
                     onExportIfw = { onExportIfw(app.packageName) },
@@ -85,6 +87,7 @@ fun AppSummary(
     minSdkVersion: Int,
     lastUpdateTime: Instant?,
     dataDir: String?,
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: () -> Unit,
     onImportRules: () -> Unit,
     onExportIfw: () -> Unit,
@@ -121,6 +124,11 @@ fun AppSummary(
                 summary = dataDir,
             )
         }
+        BlockerSettingItem(
+            title = stringResource(id = string.feature_appdetail_app_info),
+            summary = stringResource(id = string.feature_appdetail_app_info_with_libchecker_summary),
+            onItemClick = onShowAppInfoClick,
+        )
         Divider()
         BlockerRuleSection(onExportRules = onExportRules, onImportRules = onImportRules)
         Divider()
