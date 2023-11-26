@@ -96,6 +96,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
@@ -880,6 +881,10 @@ class AppDetailViewModel @Inject constructor(
     fun loadAppInfo() = viewModelScope.launch {
         val packageName = appDetailArgs.packageName
         val app = appRepository.getApplication(packageName).first()
+        val isLabCheckerInstalled = ApplicationUtil.isAppInstalled(
+            pm = pm,
+            packageName = "com.absinthe.libchecker",
+        )
         if (app == null) {
             val error = UiMessage("Can't find $packageName in this device.")
             Timber.e(error.title)
@@ -889,12 +894,13 @@ class AppDetailViewModel @Inject constructor(
             val userData = userDataRepository.userData.first()
             _appInfoUiState.emit(
                 AppInfoUiState.Success(
-                    app.toAppItem(packageInfo = packageInfo),
-                    if (userData.useDynamicColor) {
+                    appInfo = app.toAppItem(packageInfo = packageInfo),
+                    iconBasedTheming = if (userData.useDynamicColor) {
                         getAppIcon(packageInfo)
                     } else {
                         null
                     },
+                    isLabCheckerInstalled = isLabCheckerInstalled,
                 ),
             )
         }
@@ -1015,6 +1021,7 @@ sealed interface AppInfoUiState {
     data class Success(
         val appInfo: AppItem,
         val iconBasedTheming: Bitmap?,
+        val isLabCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
 }
 
