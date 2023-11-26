@@ -29,6 +29,8 @@ import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
 import android.content.pm.VersionedPackage
 import android.net.Uri
 import android.os.Build
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import android.provider.Settings
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -47,8 +49,10 @@ class ShizukuAppController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IAppController {
 
-    init {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+    private var apiExemptionAdded = false
+
+    private fun addApiExemptionsIfNecessary() {
+        if (!apiExemptionAdded && VERSION.SDK_INT >= VERSION_CODES.P) {
             Timber.i("Add hidden API exemptions")
             HiddenApiBypass.addHiddenApiExemptions(
                 "Landroid/app/IActivityManager;",
@@ -59,10 +63,12 @@ class ShizukuAppController @Inject constructor(
                 "Landroid/content/pm/IPackageInstaller\$Stub;",
                 "Landroid/os/UserHandle;",
             )
+            apiExemptionAdded = true
         }
     }
 
     private val pm: IPackageManager by lazy {
+        addApiExemptionsIfNecessary()
         IPackageManager.Stub.asInterface(
             ShizukuBinderWrapper(
                 SystemServiceHelper.getSystemService("package"),
@@ -71,6 +77,7 @@ class ShizukuAppController @Inject constructor(
     }
 
     private val am: IActivityManager by lazy {
+        addApiExemptionsIfNecessary()
         IActivityManager.Stub.asInterface(
             ShizukuBinderWrapper(
                 SystemServiceHelper.getSystemService("activity"),
@@ -79,6 +86,7 @@ class ShizukuAppController @Inject constructor(
     }
 
     private val packageInstaller: IPackageInstaller by lazy {
+        addApiExemptionsIfNecessary()
         IPackageInstaller.Stub.asInterface(
             ShizukuBinderWrapper(
                 pm.packageInstaller.asBinder(),
