@@ -16,11 +16,14 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.os.Build
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
@@ -985,6 +988,25 @@ class AppDetailViewModel @Inject constructor(
     fun zipAllRule() = zipAllRuleUseCase()
 
     fun zipAppRule() = zipAppRuleUseCase(appDetailArgs.packageName)
+
+    fun showAppInfo(context: Context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            Timber.w("Show app info is only supported on Android N+")
+            return
+        }
+        val destinationPackage = "com.absinthe.libchecker"
+        val packageName = appDetailArgs.packageName
+        val intent = Intent(Intent.ACTION_SHOW_APP_INFO).apply {
+            putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
+            setPackage(destinationPackage)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Timber.e(e, "LibChecker is not installed")
+        }
+    }
 }
 
 sealed interface AppInfoUiState {
