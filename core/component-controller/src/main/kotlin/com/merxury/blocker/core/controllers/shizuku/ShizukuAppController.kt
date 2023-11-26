@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.controllers.shizuku
 
 import android.app.ActivityManager
+import android.app.ActivityManagerNative
 import android.app.IActivityManager
 import android.app.PendingIntent
 import android.content.Context
@@ -29,8 +30,6 @@ import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
 import android.content.pm.VersionedPackage
 import android.net.Uri
 import android.os.Build
-import android.os.Build.VERSION
-import android.os.Build.VERSION_CODES
 import android.provider.Settings
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.utils.ApplicationUtil
@@ -52,7 +51,7 @@ class ShizukuAppController @Inject constructor(
     private var apiExemptionAdded = false
 
     private fun addApiExemptionsIfNecessary() {
-        if (!apiExemptionAdded && VERSION.SDK_INT >= VERSION_CODES.P) {
+        if (!apiExemptionAdded && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             Timber.i("Add hidden API exemptions")
             HiddenApiBypass.addHiddenApiExemptions(
                 "Landroid/app/IActivityManager;",
@@ -77,12 +76,21 @@ class ShizukuAppController @Inject constructor(
     }
 
     private val am: IActivityManager by lazy {
+        Timber.d("Get activity manager service from ShizukuBinderWrapper")
         addApiExemptionsIfNecessary()
-        IActivityManager.Stub.asInterface(
-            ShizukuBinderWrapper(
-                SystemServiceHelper.getSystemService("activity"),
-            ),
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            IActivityManager.Stub.asInterface(
+                ShizukuBinderWrapper(
+                    SystemServiceHelper.getSystemService("activity"),
+                ),
+            )
+        } else {
+            ActivityManagerNative.asInterface(
+                ShizukuBinderWrapper(
+                    SystemServiceHelper.getSystemService("activity"),
+                ),
+            )
+        }
     }
 
     private val packageInstaller: IPackageInstaller by lazy {
