@@ -384,7 +384,7 @@ fun AppDetailScreen(
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
                 onRefresh = onRefresh,
-                isLabCheckerInstalled = appInfoUiState.isLabCheckerInstalled,
+                isLibCheckerInstalled = appInfoUiState.isLibCheckerInstalled,
             )
         }
 
@@ -431,7 +431,7 @@ fun AppDetailContent(
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
-    isLabCheckerInstalled: Boolean = false,
+    isLibCheckerInstalled: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -525,7 +525,7 @@ fun AppDetailContent(
             onDeselect = onDeselect,
             onRefresh = onRefresh,
             isRefreshing = componentListUiState.isRefreshing,
-            isLabCheckerInstalled = isLabCheckerInstalled,
+            isLibCheckerInstalled = isLibCheckerInstalled,
         )
     }
 }
@@ -687,7 +687,7 @@ fun AppDetailTabContent(
     onDeselect: (ComponentInfo) -> Unit = {},
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
-    isLabCheckerInstalled: Boolean = false,
+    isLibCheckerInstalled: Boolean = false,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -729,7 +729,7 @@ fun AppDetailTabContent(
             when (tabState.items[it]) {
                 Info -> SummaryContent(
                     app = app,
-                    isLabCheckerInstalled = isLabCheckerInstalled,
+                    isLibCheckerInstalled = isLibCheckerInstalled,
                     onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
@@ -815,7 +815,7 @@ fun AppDetailScreenWithLibCheckerPreview(
                 appInfoUiState = Success(
                     appInfo = appList[0],
                     iconBasedTheming = null,
-                    isLabCheckerInstalled = true,
+                    isLibCheckerInstalled = true,
                 ),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState[0],
