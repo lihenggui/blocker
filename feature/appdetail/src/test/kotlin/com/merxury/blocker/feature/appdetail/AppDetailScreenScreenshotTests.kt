@@ -84,21 +84,21 @@ class AppDetailScreenScreenshotTests {
     }
 
     @Test
-    fun appDetailWithLabCheckerScreen() {
-        composeTestRule.captureMultiDevice("AppDetailWithLabCheckerScreen") {
-            AppDetailScreen(isLabCheckerInstalled = true)
+    fun appDetailWithLibCheckerScreen() {
+        composeTestRule.captureMultiDevice("AppDetailWithLibCheckerScreen") {
+            AppDetailScreen(isLibCheckerInstalled = true)
         }
     }
 
     @Test
-    fun appDetailWithLabCheckerScreen_dark() {
+    fun appDetailWithLibCheckerScreen_dark() {
         composeTestRule.captureForDevice(
             deviceName = "phone_dark",
             deviceSpec = DefaultTestDevices.PHONE.spec,
-            screenshotName = "AppDetailWithLabCheckerScreen",
+            screenshotName = "AppDetailWithLibCheckerScreen",
             darkMode = true,
         ) {
-            AppDetailScreen(isLabCheckerInstalled = true)
+            AppDetailScreen(isLibCheckerInstalled = true)
         }
     }
 
@@ -198,14 +198,14 @@ class AppDetailScreenScreenshotTests {
     }
 
     @Composable
-    private fun AppDetailScreen(isLabCheckerInstalled: Boolean = false) {
+    private fun AppDetailScreen(isLibCheckerInstalled: Boolean = false) {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
                     appInfoUiState = Success(
                         appInfo = appList[0],
                         iconBasedTheming = null,
-                        isLabCheckerInstalled = isLabCheckerInstalled,
+                        isLibCheckerInstalled = isLibCheckerInstalled,
                     ),
                     componentListUiState = ComponentListUiState(),
                     tabState = tabState[0],
