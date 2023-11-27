@@ -17,7 +17,11 @@
 package android.content.pm;
 
 import android.content.ComponentName;
-import android.os.*;
+import android.os.Binder;
+import android.os.Build;
+import android.os.IBinder;
+import android.os.IInterface;
+import android.os.RemoteException;
 import androidx.annotation.RequiresApi;
 
 public interface IPackageManager extends IInterface {
@@ -47,7 +51,7 @@ public interface IPackageManager extends IInterface {
     int getComponentEnabledSetting(ComponentName componentName, int userId)
             throws RemoteException;
 
-    @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     void setApplicationEnabledSetting(String packageName, int newState, int flags, int userId, String callingPackage)
             throws RemoteException;
 
