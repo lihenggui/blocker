@@ -31,6 +31,13 @@ public interface IActivityManager extends IInterface {
     List<ActivityManager.RunningAppProcessInfo> getRunningAppProcesses()
             throws RemoteException;
 
+    List<ActivityManager.RunningServiceInfo> getServices(int maxNum, int flags)
+            throws RemoteException;
+
+    void killBackgroundProcesses(String packageName) throws RemoteException;
+
+    void getMemoryInfo(ActivityManager.MemoryInfo outInfo) throws RemoteException;
+
     @RequiresApi(26)
     abstract class Stub extends Binder implements IActivityManager {
 
