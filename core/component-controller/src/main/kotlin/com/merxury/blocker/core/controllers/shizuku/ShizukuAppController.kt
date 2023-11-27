@@ -86,7 +86,7 @@ class ShizukuAppController @Inject constructor(
     override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disable $packageName")
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 pm.setApplicationEnabledSetting(
                     packageName,
                     COMPONENT_ENABLED_STATE_DISABLED,
@@ -113,7 +113,7 @@ class ShizukuAppController @Inject constructor(
     override suspend fun enable(packageName: String): Boolean {
         Timber.i("Enable $packageName")
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 pm.setApplicationEnabledSetting(
                     packageName,
                     COMPONENT_ENABLED_STATE_ENABLED,
