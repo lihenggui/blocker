@@ -85,52 +85,54 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disable $packageName")
-        val userId = Shizuku.getUid()
-        if (userId == SHELL_UID) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                pm.setApplicationEnabledSetting(
+                    packageName,
+                    COMPONENT_ENABLED_STATE_DISABLED,
+                    0,
+                    getCurrentUserId(),
+                    context.packageName,
+                )
+            } else {
+                pm.setApplicationEnabledSetting(
+                    packageName,
+                    COMPONENT_ENABLED_STATE_DISABLED,
+                    0,
+                    getCurrentUserId(),
+                )
+            }
+        } catch (e: SecurityException) {
+            Timber.e("Cannot disable $packageName, redirect to app details")
             openAppDetails(packageName)
-            return true
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            pm.setApplicationEnabledSetting(
-                packageName,
-                COMPONENT_ENABLED_STATE_DISABLED,
-                0,
-                getCurrentUserId(),
-                context.packageName,
-            )
-        } else {
-            pm.setApplicationEnabledSetting(
-                packageName,
-                COMPONENT_ENABLED_STATE_DISABLED,
-                0,
-                getCurrentUserId(),
-            )
+            return false
         }
         return true
     }
 
     override suspend fun enable(packageName: String): Boolean {
         Timber.i("Enable $packageName")
-        val userId = Shizuku.getUid()
-        if (userId == SHELL_UID) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                pm.setApplicationEnabledSetting(
+                    packageName,
+                    COMPONENT_ENABLED_STATE_ENABLED,
+                    0,
+                    getCurrentUserId(),
+                    context.packageName,
+                )
+            } else {
+                pm.setApplicationEnabledSetting(
+                    packageName,
+                    COMPONENT_ENABLED_STATE_ENABLED,
+                    0,
+                    getCurrentUserId(),
+                )
+            }
+        } catch (e: SecurityException) {
+            Timber.e("Cannot enable $packageName, redirect to app details")
             openAppDetails(packageName)
-            return true
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            pm.setApplicationEnabledSetting(
-                packageName,
-                COMPONENT_ENABLED_STATE_ENABLED,
-                0,
-                getCurrentUserId(),
-                context.packageName,
-            )
-        } else {
-            pm.setApplicationEnabledSetting(
-                packageName,
-                COMPONENT_ENABLED_STATE_ENABLED,
-                0,
-                getCurrentUserId(),
-            )
+            return false
         }
         return true
     }
