@@ -16,6 +16,8 @@
 
 package android.app;
 
+import android.content.ComponentName;
+import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.IInterface;
@@ -37,6 +39,12 @@ public interface IActivityManager extends IInterface {
     void killBackgroundProcesses(String packageName) throws RemoteException;
 
     void getMemoryInfo(ActivityManager.MemoryInfo outInfo) throws RemoteException;
+
+    ComponentName startService(IApplicationThread caller, Intent service,
+            String resolvedType, boolean requireForeground, String callingPackage,
+            String callingFeatureId, int userId);
+
+    int stopService(IApplicationThread caller, Intent service, String resolvedType, int userId);
 
     @RequiresApi(26)
     abstract class Stub extends Binder implements IActivityManager {
