@@ -182,6 +182,10 @@ class BlockerAppState(
             navController.popBackStack()
         }
     }
+
+    fun dismissBottomSheet() {
+        navController.popBackStack()
+    }
 }
 
 /**
