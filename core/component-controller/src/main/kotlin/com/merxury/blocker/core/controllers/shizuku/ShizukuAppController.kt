@@ -33,8 +33,8 @@ import android.os.Build
 import android.provider.Settings
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.Users.getCurrentUserId
 import dagger.hilt.android.qualifiers.ApplicationContext
-import org.lsposed.hiddenapibypass.HiddenApiBypass
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
@@ -48,26 +48,7 @@ class ShizukuAppController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IAppController {
 
-    private var apiExemptionAdded = false
-
-    private fun addApiExemptionsIfNecessary() {
-        if (!apiExemptionAdded && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            Timber.i("Add hidden API exemptions")
-            HiddenApiBypass.addHiddenApiExemptions(
-                "Landroid/app/IActivityManager;",
-                "Landroid/app/IActivityManager\$Stub;",
-                "Landroid/content/pm/PackageManager;",
-                "Landroid/content/pm/IPackageManager;",
-                "Landroid/content/pm/IPackageInstaller;",
-                "Landroid/content/pm/IPackageInstaller\$Stub;",
-                "Landroid/os/UserHandle;",
-            )
-            apiExemptionAdded = true
-        }
-    }
-
     private val pm: IPackageManager by lazy {
-        addApiExemptionsIfNecessary()
         IPackageManager.Stub.asInterface(
             ShizukuBinderWrapper(
                 SystemServiceHelper.getSystemService("package"),
@@ -77,7 +58,6 @@ class ShizukuAppController @Inject constructor(
 
     private val am: IActivityManager by lazy {
         Timber.d("Get activity manager service from ShizukuBinderWrapper")
-        addApiExemptionsIfNecessary()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             IActivityManager.Stub.asInterface(
                 ShizukuBinderWrapper(
@@ -94,7 +74,6 @@ class ShizukuAppController @Inject constructor(
     }
 
     private val packageInstaller: IPackageInstaller by lazy {
-        addApiExemptionsIfNecessary()
         IPackageInstaller.Stub.asInterface(
             ShizukuBinderWrapper(
                 pm.packageInstaller.asBinder(),
@@ -116,7 +95,7 @@ class ShizukuAppController @Inject constructor(
                 packageName,
                 COMPONENT_ENABLED_STATE_DISABLED,
                 0,
-                userId,
+                getCurrentUserId(),
                 context.packageName,
             )
         } else {
@@ -124,7 +103,7 @@ class ShizukuAppController @Inject constructor(
                 packageName,
                 COMPONENT_ENABLED_STATE_DISABLED,
                 0,
-                userId,
+                getCurrentUserId(),
             )
         }
         return true
@@ -142,7 +121,7 @@ class ShizukuAppController @Inject constructor(
                 packageName,
                 COMPONENT_ENABLED_STATE_ENABLED,
                 0,
-                userId,
+                getCurrentUserId(),
                 context.packageName,
             )
         } else {
@@ -150,7 +129,7 @@ class ShizukuAppController @Inject constructor(
                 packageName,
                 COMPONENT_ENABLED_STATE_ENABLED,
                 0,
-                userId,
+                getCurrentUserId(),
             )
         }
         return true
@@ -192,7 +171,7 @@ class ShizukuAppController @Inject constructor(
                         cont.resumeWith(Result.success(succeeded))
                     }
                 },
-                userId,
+                getCurrentUserId(),
             )
         }
     }
@@ -215,7 +194,7 @@ class ShizukuAppController @Inject constructor(
                 context.packageName,
                 flags,
                 intent.intentSender,
-                0,
+                getCurrentUserId(),
             )
         } else {
             packageInstaller.uninstall(
@@ -223,7 +202,7 @@ class ShizukuAppController @Inject constructor(
                 context.packageName,
                 flags,
                 intent.intentSender,
-                0,
+                getCurrentUserId(),
             )
         }
 
@@ -234,7 +213,7 @@ class ShizukuAppController @Inject constructor(
         Timber.i("Force stop $packageName")
         val processes = am.getRunningAppProcesses()
         Timber.e(processes.toString())
-        am.forceStopPackage(packageName, 0)
+        am.forceStopPackage(packageName, getCurrentUserId())
         return true
     }
 

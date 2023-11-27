@@ -28,6 +28,7 @@ dependencies {
     api(projects.core.model)
     api(libs.timber)
     api(libs.kotlinx.datetime)
+    implementation(libs.hiddenapibypass)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
