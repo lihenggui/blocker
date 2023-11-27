@@ -33,7 +33,7 @@ import android.os.Build
 import android.provider.Settings
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.core.utils.Users.getCurrentUserId
+import com.merxury.blocker.core.utils.ContextUtils.userId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import rikka.shizuku.Shizuku
 import rikka.shizuku.ShizukuBinderWrapper
@@ -91,7 +91,7 @@ class ShizukuAppController @Inject constructor(
                     packageName,
                     COMPONENT_ENABLED_STATE_DISABLED,
                     0,
-                    getCurrentUserId(),
+                    context.userId,
                     context.packageName,
                 )
             } else {
@@ -99,7 +99,7 @@ class ShizukuAppController @Inject constructor(
                     packageName,
                     COMPONENT_ENABLED_STATE_DISABLED,
                     0,
-                    getCurrentUserId(),
+                    context.userId,
                 )
             }
         } catch (e: SecurityException) {
@@ -118,7 +118,7 @@ class ShizukuAppController @Inject constructor(
                     packageName,
                     COMPONENT_ENABLED_STATE_ENABLED,
                     0,
-                    getCurrentUserId(),
+                    context.userId,
                     context.packageName,
                 )
             } else {
@@ -126,7 +126,7 @@ class ShizukuAppController @Inject constructor(
                     packageName,
                     COMPONENT_ENABLED_STATE_ENABLED,
                     0,
-                    getCurrentUserId(),
+                    context.userId,
                 )
             }
         } catch (e: SecurityException) {
@@ -173,7 +173,7 @@ class ShizukuAppController @Inject constructor(
                         cont.resumeWith(Result.success(succeeded))
                     }
                 },
-                getCurrentUserId(),
+                context.userId,
             )
         }
     }
@@ -196,7 +196,7 @@ class ShizukuAppController @Inject constructor(
                 context.packageName,
                 flags,
                 intent.intentSender,
-                getCurrentUserId(),
+                context.userId,
             )
         } else {
             packageInstaller.uninstall(
@@ -204,7 +204,7 @@ class ShizukuAppController @Inject constructor(
                 context.packageName,
                 flags,
                 intent.intentSender,
-                getCurrentUserId(),
+                context.userId,
             )
         }
 
@@ -213,7 +213,7 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stop $packageName")
-        am.forceStopPackage(packageName, getCurrentUserId())
+        am.forceStopPackage(packageName, context.userId)
         return true
     }
 
