@@ -25,7 +25,7 @@ import android.content.Intent
 import android.content.pm.IPackageDataObserver
 import android.content.pm.IPackageInstaller
 import android.content.pm.IPackageManager
-import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
 import android.content.pm.VersionedPackage
 import android.net.Uri
@@ -86,22 +86,13 @@ class ShizukuAppController @Inject constructor(
     override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disable $packageName")
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                pm.setApplicationEnabledSetting(
-                    packageName,
-                    COMPONENT_ENABLED_STATE_DISABLED,
-                    0,
-                    context.userId,
-                    context.packageName,
-                )
-            } else {
-                pm.setApplicationEnabledSetting(
-                    packageName,
-                    COMPONENT_ENABLED_STATE_DISABLED,
-                    0,
-                    context.userId,
-                )
-            }
+            pm.setApplicationEnabledSetting(
+                packageName,
+                COMPONENT_ENABLED_STATE_DISABLED_USER,
+                0,
+                context.userId,
+                context.packageName,
+            )
         } catch (e: SecurityException) {
             Timber.e(e, "Cannot disable $packageName, redirect to app details")
             openAppDetails(packageName)
@@ -113,22 +104,13 @@ class ShizukuAppController @Inject constructor(
     override suspend fun enable(packageName: String): Boolean {
         Timber.i("Enable $packageName")
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                pm.setApplicationEnabledSetting(
-                    packageName,
-                    COMPONENT_ENABLED_STATE_ENABLED,
-                    0,
-                    context.userId,
-                    context.packageName,
-                )
-            } else {
-                pm.setApplicationEnabledSetting(
-                    packageName,
-                    COMPONENT_ENABLED_STATE_ENABLED,
-                    0,
-                    context.userId,
-                )
-            }
+            pm.setApplicationEnabledSetting(
+                packageName,
+                COMPONENT_ENABLED_STATE_ENABLED,
+                0,
+                context.userId,
+                context.packageName,
+            )
         } catch (e: SecurityException) {
             Timber.e(e, "Cannot enable $packageName, redirect to app details")
             openAppDetails(packageName)
