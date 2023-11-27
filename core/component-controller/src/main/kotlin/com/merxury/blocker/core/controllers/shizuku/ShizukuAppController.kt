@@ -86,7 +86,7 @@ class ShizukuAppController @Inject constructor(
     override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disable $packageName")
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.setApplicationEnabledSetting(
                     packageName,
                     COMPONENT_ENABLED_STATE_DISABLED,
@@ -103,7 +103,7 @@ class ShizukuAppController @Inject constructor(
                 )
             }
         } catch (e: SecurityException) {
-            Timber.e("Cannot disable $packageName, redirect to app details")
+            Timber.e(e, "Cannot disable $packageName, redirect to app details")
             openAppDetails(packageName)
             return false
         }
@@ -113,7 +113,7 @@ class ShizukuAppController @Inject constructor(
     override suspend fun enable(packageName: String): Boolean {
         Timber.i("Enable $packageName")
         try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.setApplicationEnabledSetting(
                     packageName,
                     COMPONENT_ENABLED_STATE_ENABLED,
@@ -130,7 +130,7 @@ class ShizukuAppController @Inject constructor(
                 )
             }
         } catch (e: SecurityException) {
-            Timber.e("Cannot enable $packageName, redirect to app details")
+            Timber.e(e, "Cannot enable $packageName, redirect to app details")
             openAppDetails(packageName)
             return false
         }
@@ -213,8 +213,6 @@ class ShizukuAppController @Inject constructor(
 
     override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stop $packageName")
-        val processes = am.getRunningAppProcesses()
-        Timber.e(processes.toString())
         am.forceStopPackage(packageName, getCurrentUserId())
         return true
     }
