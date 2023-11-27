@@ -142,6 +142,7 @@ fun BlockerApp(
                             bottomSheetNavigator = appState.bottomSheetNavigator,
                             navController = appState.navController,
                             onBackClick = appState::onBackClick,
+                            dismissBottomSheet = appState::dismissBottomSheet,
                             snackbarHostState = snackbarHostState,
                             updateIconBasedThemingState = updateIconBasedThemingState,
                         )
