@@ -39,6 +39,7 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import org.lsposed.hiddenapibypass.HiddenApiBypass
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
@@ -102,6 +103,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
                 .setTimeout(10),
         )
         initServerProvider()
+        addApiExemptions()
         profileVerifierLogger()
     }
 
@@ -137,6 +139,13 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
         } else {
             Timber.i("Set default server provider to GitHub")
             userDataRepository.setRuleServerProvider(GITHUB)
+        }
+    }
+
+    private fun addApiExemptions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            Timber.i("Add hidden API exemptions")
+            HiddenApiBypass.addHiddenApiExemptions("")
         }
     }
 }
