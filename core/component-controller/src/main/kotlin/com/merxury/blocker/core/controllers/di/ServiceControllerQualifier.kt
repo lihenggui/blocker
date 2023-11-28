@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.data.appstate.fake
+package com.merxury.blocker.core.controllers.di
 
-import com.merxury.blocker.core.data.appstate.AppState
-import com.merxury.blocker.core.data.appstate.IAppStateCache
+import javax.inject.Qualifier
 
-class FakeAppStateCache : IAppStateCache {
-    override fun getOrNull(packageName: String): AppState? {
-        return null
-    }
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RootServiceControl
 
-    override suspend fun get(packageName: String): AppState {
-        return AppState(packageName = packageName)
-    }
-}
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ShizukuServiceControl

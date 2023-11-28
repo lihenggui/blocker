@@ -16,22 +16,16 @@
 
 package com.merxury.blocker.core.controllers.di
 
-import com.merxury.blocker.core.controllers.IAppController
-import com.merxury.blocker.core.controllers.root.RootAppController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuAppController
-import dagger.Binds
-import dagger.Module
-import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import javax.inject.Qualifier
 
-@Module
-@InstallIn(SingletonComponent::class)
-interface AppControllerModule {
-    @Binds
-    @RootAppControl
-    fun bindsRootAppController(rootAppController: RootAppController): IAppController
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RootControl
 
-    @Binds
-    @ShizukuAppControl
-    fun bindsShizukuAppController(shizukuAppController: ShizukuAppController): IAppController
-}
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class IfwControl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ShizukuControl

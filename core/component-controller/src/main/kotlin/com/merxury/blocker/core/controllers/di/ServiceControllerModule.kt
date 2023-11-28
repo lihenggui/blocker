@@ -28,8 +28,10 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface ServiceControllerModule {
     @Binds
+    @RootServiceControl
     fun bindsRootServiceController(rootServiceController: RootServiceController): IServiceController
 
     @Binds
+    @ShizukuServiceControl
     fun bindsShizukuServiceController(shizukuServiceController: ShizukuServiceController): IServiceController
 }

@@ -31,12 +31,15 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface ControllerModule {
     @Binds
+    @RootControl
     fun bindsRootController(rootController: RootController): IController
 
     @Binds
+    @IfwControl
     fun bindsIfwController(ifwController: IfwController): IController
 
     @Binds
+    @ShizukuControl
     fun bindsShizukuController(shizukuController: ShizukuController): IController
 
     @Binds
