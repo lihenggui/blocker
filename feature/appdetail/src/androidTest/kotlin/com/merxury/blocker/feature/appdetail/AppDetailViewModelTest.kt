@@ -38,6 +38,7 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.UserPreferenceData
 import com.merxury.blocker.core.testing.controller.FakeShizukuInitializer
+import com.merxury.blocker.core.testing.controller.TestServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
@@ -87,6 +88,7 @@ class AppDetailViewModelTest {
         userDataRepository = userDataRepository,
         shizukuInitializer = FakeShizukuInitializer(),
     )
+    private val serviceController = TestServiceController()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val savedStateHandle = SavedStateHandle(
         mapOf(
@@ -125,6 +127,8 @@ class AppDetailViewModelTest {
             appRepository = appRepository,
             componentRepository = componentRepository,
             componentDetailRepository = componentDetailRepository,
+            shizukuServiceController = serviceController,
+            rootServiceController = serviceController,
             initializeShizuku = initializeShizukuUseCase,
             deInitializeShizuku = deInitializeShizukuUseCase,
             analyticsHelper = analyticsHelper,
