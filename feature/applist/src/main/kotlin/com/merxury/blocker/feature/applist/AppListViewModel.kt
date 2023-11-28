@@ -23,6 +23,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IAppController
+import com.merxury.blocker.core.controllers.appstate.AppState
+import com.merxury.blocker.core.controllers.appstate.AppStateCache
 import com.merxury.blocker.core.controllers.root.RootAppController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuAppController
 import com.merxury.blocker.core.data.respository.app.AppRepository
@@ -38,8 +40,8 @@ import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.data.AppItem
+import com.merxury.blocker.core.model.data.AppServiceStatus
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
-import com.merxury.blocker.core.model.data.toAppServiceStatus
 import com.merxury.blocker.core.model.preference.AppSorting
 import com.merxury.blocker.core.model.preference.AppSorting.FIRST_INSTALL_TIME
 import com.merxury.blocker.core.model.preference.AppSorting.LAST_UPDATE_TIME
@@ -48,7 +50,6 @@ import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
-import com.merxury.blocker.core.ui.state.AppStateCache
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
@@ -412,6 +413,14 @@ class AppListViewModel @Inject constructor(
         }
     }
 }
+
+private fun AppState.toAppServiceStatus() = AppServiceStatus(
+    packageName = packageName,
+    running = running,
+    blocked = blocked,
+    total = total,
+)
+
 
 sealed interface AppListUiState {
     class Initializing(val processingName: String = "") : AppListUiState

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.ui.state
+package com.merxury.blocker.core.controllers.appstate
 
 import android.content.ComponentName
 import android.content.Context
-import com.merxury.blocker.core.model.data.AppState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.core.ifw.IIntentFirewall
@@ -68,6 +67,11 @@ object AppStateCache {
                 running++
             }
         }
-        return AppState(running, blocked, services.count(), packageName)
+        return AppState(
+            running,
+            blocked,
+            services.count(),
+            packageName,
+        )
     }
 }

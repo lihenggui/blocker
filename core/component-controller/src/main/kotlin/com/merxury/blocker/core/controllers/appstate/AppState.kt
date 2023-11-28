@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.controllers.appstate
 
 data class AppState(
     var running: Int = 0,
