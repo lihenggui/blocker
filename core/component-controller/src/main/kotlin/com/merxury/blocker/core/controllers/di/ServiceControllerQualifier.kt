@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.appstate
+package com.merxury.blocker.core.controllers.di
 
-data class AppState(
-    var running: Int = 0,
-    var blocked: Int = 0,
-    var total: Int = 0,
-    var packageName: String,
-)
+import javax.inject.Qualifier
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RootServiceControl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class ShizukuServiceControl

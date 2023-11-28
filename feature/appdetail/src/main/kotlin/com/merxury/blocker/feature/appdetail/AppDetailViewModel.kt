@@ -37,6 +37,9 @@ import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.controllers.IServiceController
+import com.merxury.blocker.core.controllers.di.RootServiceControl
+import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
@@ -61,6 +64,7 @@ import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.IFW
+import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
@@ -97,7 +101,6 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.utils.ApplicationUtil
-import com.merxury.blocker.core.utils.ServiceHelper
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -127,11 +130,13 @@ class AppDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val analyticsHelper: AnalyticsHelper,
     private val pm: PackageManager,
+    private val workerManager: WorkManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val componentDetailRepository: IComponentDetailRepository,
-    private val workerManager: WorkManager,
+    @RootServiceControl private val rootServiceController: IServiceController,
+    @ShizukuServiceControl private val shizukuServiceController: IServiceController,
     private val initializeShizuku: InitializeShizukuUseCase,
     private val deInitializeShizuku: DeInitializeShizukuUseCase,
     private val zipAllRuleUseCase: ZipAllRuleUseCase,
@@ -284,7 +289,7 @@ class AppDetailViewModel @Inject constructor(
             Timber.v("Start loading component: $packageName")
             val componentList = componentRepository.getComponentList(packageName).first()
             // Show the cache data first
-            updateTabContent(componentList, packageName)
+            updateTabContent(componentList)
             // Load the data with description and update again
             val listWithDescription = componentList.map { component ->
                 val detail = componentDetailRepository.getLocalComponentDetail(component.name)
@@ -295,7 +300,7 @@ class AppDetailViewModel @Inject constructor(
                     component
                 }
             }
-            updateTabContent(listWithDescription, packageName)
+            updateTabContent(listWithDescription)
             withContext(mainDispatcher) {
                 _componentListUiState.update {
                     it.copy(isRefreshing = false)
@@ -304,17 +309,13 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateTabContent(
-        list: List<ComponentInfo>,
-        packageName: String,
-    ) {
+    private suspend fun updateTabContent(list: List<ComponentInfo>) {
         // Store the unfiltered list
         val receiver = list.filter { it.type == RECEIVER }
         val service = list.filter { it.type == SERVICE }
         val activity = list.filter { it.type == ACTIVITY }
         val provider = list.filter { it.type == PROVIDER }
-        _unfilteredList =
-            getComponentListUiState(packageName, receiver, service, activity, provider)
+        _unfilteredList = getComponentListUiState(receiver, service, activity, provider)
         filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
         updateTabState(_componentListUiState.value)
     }
@@ -334,7 +335,6 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private suspend fun getComponentListUiState(
-        packageName: String,
         receiver: List<ComponentInfo>,
         service: List<ComponentInfo>,
         activity: List<ComponentInfo>,
@@ -342,44 +342,41 @@ class AppDetailViewModel @Inject constructor(
     ) = ComponentListUiState(
         receiver = sortAndConvertToComponentItem(
             list = receiver,
-            packageName = packageName,
             type = RECEIVER,
         ),
         service = sortAndConvertToComponentItem(
             list = service,
-            packageName = packageName,
             type = SERVICE,
         ),
         activity = sortAndConvertToComponentItem(
             list = activity,
-            packageName = packageName,
             type = ACTIVITY,
         ),
         provider = sortAndConvertToComponentItem(
             list = provider,
-            packageName = packageName,
             type = PROVIDER,
         ),
     )
 
     private suspend fun sortAndConvertToComponentItem(
         list: List<ComponentInfo>,
-        packageName: String,
         type: ComponentType,
         filterKeyword: String = "",
     ): SnapshotStateList<ComponentItem> {
         val userData = userDataRepository.userData.first()
         val sorting = userData.componentSorting
         val order = userData.componentSortingOrder
-        val serviceHelper = ServiceHelper(packageName)
-        if (type == SERVICE) {
-            serviceHelper.refresh()
+        val serviceController = if (userData.controllerType == SHIZUKU) {
+            shizukuServiceController
+        } else {
+            rootServiceController
         }
+        serviceController.load()
         return list.filter { it.name.contains(filterKeyword, ignoreCase = true) }
             .map {
                 it.toComponentItem(
                     if (type == SERVICE) {
-                        serviceHelper.isServiceRunning(it.name)
+                        serviceController.isServiceRunning(it.packageName, it.name)
                     } else {
                         false
                     },
@@ -531,16 +528,21 @@ class AppDetailViewModel @Inject constructor(
 
     fun stopService(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am stopservice $packageName/$componentName".exec(ioDispatcher)
+            val controllerType = userDataRepository.userData.first().controllerType
+            val serviceController = if (controllerType == SHIZUKU) {
+                shizukuServiceController
+            } else {
+                rootServiceController
+            }
+            serviceController.stopService(packageName, componentName)
             analyticsHelper.logStopServiceClicked()
-            updateServiceStatus(packageName, componentName)
+            updateServiceStatus(serviceController, packageName, componentName)
         }
     }
 
-    private suspend fun updateServiceStatus(packageName: String, componentName: String) {
-        val helper = ServiceHelper(packageName)
-        helper.refresh()
-        val isRunning = helper.isServiceRunning(componentName)
+    private suspend fun updateServiceStatus(serviceController: IServiceController, packageName: String, componentName: String) {
+        serviceController.load()
+        val isRunning = serviceController.isServiceRunning(packageName, componentName)
         val item = _componentListUiState.value.service.find { it.name == componentName }
         if (item == null) {
             Timber.w("Cannot find service $componentName to update")
