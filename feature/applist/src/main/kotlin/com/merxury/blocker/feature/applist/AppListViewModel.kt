@@ -421,7 +421,6 @@ private fun AppState.toAppServiceStatus() = AppServiceStatus(
     total = total,
 )
 
-
 sealed interface AppListUiState {
     class Initializing(val processingName: String = "") : AppListUiState
     class Error(val error: UiMessage) : AppListUiState
