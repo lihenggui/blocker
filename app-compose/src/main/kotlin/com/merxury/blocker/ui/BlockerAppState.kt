@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -168,7 +169,21 @@ class BlockerAppState(
         }
     }
 
+    /**
+     * If the lifecycle is not resumed it means this NavBackStackEntry already processed a nav event.
+     *
+     * This is used to de-duplicate navigation events.
+     */
+    private fun NavBackStackEntry.lifecycleIsResumed() =
+        this.lifecycle.currentState == Lifecycle.State.RESUMED
+
     fun onBackClick() {
+        if (navController.currentBackStackEntry?.lifecycleIsResumed() == true) {
+            navController.popBackStack()
+        }
+    }
+
+    fun dismissBottomSheet() {
         navController.popBackStack()
     }
 }

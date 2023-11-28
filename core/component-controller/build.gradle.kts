@@ -43,6 +43,7 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
+    implementation(libs.libsu.service)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
 
