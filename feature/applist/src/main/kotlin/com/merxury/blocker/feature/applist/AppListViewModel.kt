@@ -24,12 +24,12 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.controllers.root.RootAppController
-import com.merxury.blocker.core.controllers.root.RootServiceController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuAppController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuServiceController
+import com.merxury.blocker.core.controllers.di.RootAppControl
+import com.merxury.blocker.core.controllers.di.RootServiceControl
+import com.merxury.blocker.core.controllers.di.ShizukuAppControl
+import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.appstate.AppState
-import com.merxury.blocker.core.data.appstate.AppStateCache
+import com.merxury.blocker.core.data.appstate.IAppStateCache
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -83,11 +83,11 @@ class AppListViewModel @Inject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
-    private val rootAppController: RootAppController,
-    private val shizukuAppController: ShizukuAppController,
-    private val rootServiceController: RootServiceController,
-    private val shizukuServiceController: ShizukuServiceController,
-    private val appStateCache: AppStateCache,
+    @RootAppControl private val rootAppController: IAppController,
+    @ShizukuAppControl private val shizukuAppController: IAppController,
+    @RootServiceControl private val rootServiceController: IServiceController,
+    @ShizukuServiceControl private val shizukuServiceController: IServiceController,
+    private val appStateCache: IAppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
     private val initializeShizuku: InitializeShizukuUseCase,
     private val deInitializeShizuku: DeInitializeShizukuUseCase,

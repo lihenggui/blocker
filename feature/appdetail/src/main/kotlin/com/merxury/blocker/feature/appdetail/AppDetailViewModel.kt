@@ -38,8 +38,8 @@ import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.controllers.root.RootServiceController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuServiceController
+import com.merxury.blocker.core.controllers.di.RootServiceControl
+import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
@@ -135,8 +135,8 @@ class AppDetailViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val componentDetailRepository: IComponentDetailRepository,
-    private val rootServiceController: RootServiceController,
-    private val shizukuServiceController: ShizukuServiceController,
+    @RootServiceControl private val rootServiceController: IServiceController,
+    @ShizukuServiceControl private val shizukuServiceController: IServiceController,
     private val initializeShizuku: InitializeShizukuUseCase,
     private val deInitializeShizuku: DeInitializeShizukuUseCase,
     private val zipAllRuleUseCase: ZipAllRuleUseCase,
