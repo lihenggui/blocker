@@ -19,14 +19,17 @@ package com.merxury.blocker.feature.applist
 import android.content.pm.PackageManager
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IAppController
-import com.merxury.blocker.core.controllers.appstate.AppState
-import com.merxury.blocker.core.controllers.appstate.AppStateCache
+import com.merxury.blocker.core.controllers.IServiceController
 import com.merxury.blocker.core.controllers.root.RootAppController
+import com.merxury.blocker.core.controllers.root.RootServiceController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuAppController
+import com.merxury.blocker.core.controllers.shizuku.ShizukuServiceController
+import com.merxury.blocker.core.data.appstate.AppState
+import com.merxury.blocker.core.data.appstate.AppStateCache
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -53,7 +56,6 @@ import com.merxury.blocker.core.ui.data.toErrorMessage
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.applist.AppListUiState.Initializing
 import com.merxury.blocker.feature.applist.AppListUiState.Success
-import com.merxury.core.ifw.IIntentFirewall
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -78,12 +80,14 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AppListViewModel @Inject constructor(
-    app: android.app.Application,
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
     private val rootAppController: RootAppController,
     private val shizukuAppController: ShizukuAppController,
+    private val rootServiceController: RootServiceController,
+    private val shizukuServiceController: ShizukuServiceController,
+    private val appStateCache: AppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
     private val initializeShizuku: InitializeShizukuUseCase,
     private val deInitializeShizuku: DeInitializeShizukuUseCase,
@@ -91,9 +95,7 @@ class AppListViewModel @Inject constructor(
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
-    private val intentFirewall: IIntentFirewall,
-
-) : AndroidViewModel(app) {
+) : ViewModel() {
     private val _uiState = MutableStateFlow<AppListUiState>(Initializing())
     val uiState = _uiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
@@ -157,6 +159,10 @@ class AppListViewModel @Inject constructor(
                     val sortOrder = preference.appSortingOrder
                     val appController = getCurrentAppController()
                     appController.refreshRunningAppList()
+                    if (preference.showServiceInfo) {
+                        val serviceController = getCurrentServiceController()
+                        serviceController.load()
+                    }
                     _appList = if (preference.showSystemApps) {
                         list
                     } else {
@@ -176,7 +182,7 @@ class AppListViewModel @Inject constructor(
                             isEnabled = installedApp.isEnabled,
                             firstInstallTime = installedApp.firstInstallTime,
                             lastUpdateTime = installedApp.lastUpdateTime,
-                            appServiceStatus = AppStateCache.getOrNull(packageName)
+                            appServiceStatus = appStateCache.getOrNull(packageName)
                                 ?.toAppServiceStatus(),
                             packageInfo = pm.getPackageInfoCompat(packageName, 0),
                         )
@@ -204,6 +210,15 @@ class AppListViewModel @Inject constructor(
             shizukuAppController
         } else {
             rootAppController
+        }
+    }
+
+    private suspend fun getCurrentServiceController(): IServiceController {
+        val controllerType = userDataRepository.userData.first().controllerType
+        return if (controllerType == SHIZUKU) {
+            shizukuServiceController
+        } else {
+            rootServiceController
         }
     }
 
@@ -311,12 +326,8 @@ class AppListViewModel @Inject constructor(
                 // Don't get service info again
                 return@launch
             }
-            Timber.d("Get service status for $packageName")
-            val status = AppStateCache.get(
-                getApplication(),
-                intentFirewall,
-                packageName,
-            )
+            Timber.v("Get service status for $packageName")
+            val status = appStateCache.get(packageName)
             val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
             withContext(mainDispatcher) {
                 _appList[index] = newItem
