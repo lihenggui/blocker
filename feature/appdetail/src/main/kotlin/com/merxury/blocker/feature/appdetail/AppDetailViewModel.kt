@@ -16,11 +16,14 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.os.Build
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
@@ -97,6 +100,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -118,6 +122,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+
+private const val LIBCHECKER_PACKAGE_NAME = "com.absinthe.libchecker"
 
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
@@ -868,6 +874,10 @@ class AppDetailViewModel @Inject constructor(
     fun loadAppInfo() = viewModelScope.launch {
         val packageName = appDetailArgs.packageName
         val app = appRepository.getApplication(packageName).first()
+        val isLibCheckerInstalled = ApplicationUtil.isAppInstalled(
+            pm = pm,
+            packageName = LIBCHECKER_PACKAGE_NAME,
+        )
         if (app == null) {
             val error = UiMessage("Can't find $packageName in this device.")
             Timber.e(error.title)
@@ -877,12 +887,13 @@ class AppDetailViewModel @Inject constructor(
             val userData = userDataRepository.userData.first()
             _appInfoUiState.emit(
                 AppInfoUiState.Success(
-                    app.toAppItem(packageInfo = packageInfo),
-                    if (userData.useDynamicColor) {
+                    appInfo = app.toAppItem(packageInfo = packageInfo),
+                    iconBasedTheming = if (userData.useDynamicColor) {
                         getAppIcon(packageInfo)
                     } else {
                         null
                     },
+                    isLibCheckerInstalled = isLibCheckerInstalled,
                 ),
             )
         }
@@ -976,6 +987,25 @@ class AppDetailViewModel @Inject constructor(
     fun zipAllRule() = zipAllRuleUseCase()
 
     fun zipAppRule() = zipAppRuleUseCase(appDetailArgs.packageName)
+
+    fun showAppInfo(context: Context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            Timber.w("Show app info is only supported on Android N+")
+            return
+        }
+        val destinationPackage = LIBCHECKER_PACKAGE_NAME
+        val packageName = appDetailArgs.packageName
+        val intent = Intent(Intent.ACTION_SHOW_APP_INFO).apply {
+            putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
+            setPackage(destinationPackage)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Timber.e(e, "LibChecker is not installed")
+        }
+    }
 }
 
 sealed interface AppInfoUiState {
@@ -984,6 +1014,7 @@ sealed interface AppInfoUiState {
     data class Success(
         val appInfo: AppItem,
         val iconBasedTheming: Bitmap?,
+        val isLibCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
 }
 
