@@ -28,6 +28,7 @@ import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.ContextUtils.userId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -47,6 +48,7 @@ class RootController @Inject constructor(
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> removeEscapeCharacter(
                 String.format(
                     ENABLE_COMPONENT_TEMPLATE,
+                    context.userId,
                     packageName,
                     componentName,
                 ),
@@ -55,6 +57,7 @@ class RootController @Inject constructor(
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> removeEscapeCharacter(
                 String.format(
                     DISABLE_COMPONENT_TEMPLATE,
+                    context.userId,
                     packageName,
                     componentName,
                 ),
@@ -132,7 +135,7 @@ class RootController @Inject constructor(
     }
 
     companion object {
-        private const val DISABLE_COMPONENT_TEMPLATE = "pm disable %s/%s"
-        private const val ENABLE_COMPONENT_TEMPLATE = "pm enable %s/%s"
+        private const val DISABLE_COMPONENT_TEMPLATE = "pm disable --user %s %s/%s"
+        private const val ENABLE_COMPONENT_TEMPLATE = "pm enable --user %s %s/%s"
     }
 }
