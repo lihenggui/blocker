@@ -16,12 +16,15 @@
 
 package com.merxury.blocker.core.controllers.root
 
+import android.content.Context
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
+import com.merxury.blocker.core.utils.ContextUtils.userId
 import com.merxury.blocker.core.utils.FileUtils
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -29,6 +32,7 @@ import java.io.File
 import javax.inject.Inject
 
 class RootAppController @Inject constructor(
+    @ApplicationContext private val context: Context,
     @FilesDir private val filesDir: File,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IAppController {
@@ -36,13 +40,15 @@ class RootAppController @Inject constructor(
 
     override suspend fun disable(packageName: String): Boolean {
         Timber.i("Disabling $packageName")
-        val result = "pm disable $packageName".exec(ioDispatcher)
+        val result = "pm disable --user ${context.userId} $packageName"
+            .exec(ioDispatcher)
         return result.isSuccess
     }
 
     override suspend fun enable(packageName: String): Boolean {
         Timber.i("Enabling $packageName")
-        val result = "pm enable $packageName".exec(ioDispatcher)
+        val result = "pm enable --user ${context.userId} $packageName"
+            .exec(ioDispatcher)
         return result.isSuccess
     }
 
@@ -66,25 +72,29 @@ class RootAppController @Inject constructor(
 
     override suspend fun clearData(packageName: String): Boolean {
         Timber.i("Clearing data for $packageName")
-        val result = "pm clear $packageName".exec(ioDispatcher)
+        val result = "pm clear --user ${context.userId} $packageName"
+            .exec(ioDispatcher)
         return result.isSuccess
     }
 
     override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean {
         Timber.i("Uninstalling $packageName")
-        val result = "pm uninstall $packageName".exec(ioDispatcher)
+        val result = "pm uninstall --user ${context.userId} $packageName"
+            .exec(ioDispatcher)
         return result.isSuccess
     }
 
     override suspend fun forceStop(packageName: String): Boolean {
         Timber.i("Force stopping $packageName")
-        val result = "am force-stop $packageName".exec(ioDispatcher)
+        val result = "am force-stop $packageName"
+            .exec(ioDispatcher)
         return result.isSuccess
     }
 
     override suspend fun refreshRunningAppList() {
         try {
-            val commandResult = "ps -A -o NAME".exec(ioDispatcher)
+            val commandResult = "ps -A -o NAME"
+                .exec(ioDispatcher)
             if (!commandResult.isSuccess) {
                 Timber.e("Failed to get running app list: ${commandResult.err}")
                 return
