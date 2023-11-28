@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail
 
-import com.merxury.blocker.core.rule.R.string as rulestring
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.Context
@@ -131,6 +130,7 @@ import com.merxury.blocker.feature.appdetail.ui.ShareAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
+import com.merxury.blocker.core.rule.R.string as rulestring
 
 @Composable
 fun AppDetailRoute(
