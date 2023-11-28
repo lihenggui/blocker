@@ -30,10 +30,12 @@ import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Singleton
 
-private const val MAX_SERVICE_COUNT = 1000
+private const val MAX_SERVICE_COUNT = 10000
 private const val SHELL_PACKAGE_NAME = "com.android.shell"
 
+@Singleton
 class ShizukuServiceController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IServiceController {
@@ -59,6 +61,7 @@ class ShizukuServiceController @Inject constructor(
 
     override suspend fun load(): Boolean {
         serviceList = am.getServices(MAX_SERVICE_COUNT, 0)
+        Timber.v("Loaded ${serviceList.size} running services")
         return true
     }
 
