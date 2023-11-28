@@ -16,12 +16,9 @@
 
 package com.merxury.blocker.core.controllers.di
 
-import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
-import com.merxury.blocker.core.controllers.shizuku.ShizukuController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
+import com.merxury.blocker.core.controllers.IServiceController
+import com.merxury.blocker.core.controllers.root.RootServiceController
+import com.merxury.blocker.core.controllers.shizuku.ShizukuServiceController
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -29,19 +26,12 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface ControllerModule {
+interface ServiceControllerModule {
     @Binds
-    @RootControl
-    fun bindsRootController(rootController: RootController): IController
+    @RootServiceControl
+    fun bindsRootServiceController(rootServiceController: RootServiceController): IServiceController
 
     @Binds
-    @IfwControl
-    fun bindsIfwController(ifwController: IfwController): IController
-
-    @Binds
-    @ShizukuControl
-    fun bindsShizukuController(shizukuController: ShizukuController): IController
-
-    @Binds
-    fun bindsShizukuInitializer(shizukuInitializer: ShizukuInitializer): IShizukuInitializer
+    @ShizukuServiceControl
+    fun bindsShizukuServiceController(shizukuServiceController: ShizukuServiceController): IServiceController
 }

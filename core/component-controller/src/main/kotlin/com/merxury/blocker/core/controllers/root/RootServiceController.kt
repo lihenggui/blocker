@@ -25,10 +25,13 @@ import com.merxury.blocker.core.utils.PermissionUtils
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
 
 private const val SERVICE_REGEX = """ServiceRecord\{(.*?) %s\/%s\}"""
 
-class RootServiceController(
+@Singleton
+class RootServiceController @Inject constructor(
     @Dispatcher(DEFAULT) private val defaultDispatcher: CoroutineDispatcher,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IServiceController {
