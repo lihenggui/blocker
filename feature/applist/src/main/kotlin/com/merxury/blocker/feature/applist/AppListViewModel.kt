@@ -29,7 +29,7 @@ import com.merxury.blocker.core.controllers.di.RootServiceControl
 import com.merxury.blocker.core.controllers.di.ShizukuAppControl
 import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.appstate.AppState
-import com.merxury.blocker.core.data.appstate.IAppStateCache
+import com.merxury.blocker.core.data.appstate.AppStateCache
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
@@ -87,7 +87,7 @@ class AppListViewModel @Inject constructor(
     @ShizukuAppControl private val shizukuAppController: IAppController,
     @RootServiceControl private val rootServiceController: IServiceController,
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
-    private val appStateCache: IAppStateCache,
+    private val appStateCache: AppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
     private val initializeShizuku: InitializeShizukuUseCase,
     private val deInitializeShizuku: DeInitializeShizukuUseCase,
