@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package com.merxury.blocker.core.controllers.appstate
 
-data class AppServiceStatus(
-    val packageName: String,
-    val running: Int = 0,
-    val blocked: Int = 0,
-    val total: Int = 0,
+data class AppState(
+    var running: Int = 0,
+    var blocked: Int = 0,
+    var total: Int = 0,
+    var packageName: String,
 )

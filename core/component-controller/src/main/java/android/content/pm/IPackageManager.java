@@ -62,11 +62,7 @@ public interface IPackageManager extends IInterface {
      * @param newState The new enabled state for the application.
      * @param flags Optional behavior flags.
      */
-    @RequiresApi(Build.VERSION_CODES.P)
     void setApplicationEnabledSetting(String packageName, int newState, int flags, int userId, String callingPackage)
-            throws RemoteException;
-
-    void setApplicationEnabledSetting(String packageName, int newState, int flags, int userId)
             throws RemoteException;
 
     /**
