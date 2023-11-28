@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.appstate
+package com.merxury.blocker.core.data.appstate
 
-data class AppState(
-    var running: Int = 0,
-    var blocked: Int = 0,
-    var total: Int = 0,
-    var packageName: String,
-)
+interface IAppStateCache {
+    fun getOrNull(packageName: String): AppState?
+
+    suspend fun get(packageName: String): AppState
+}
