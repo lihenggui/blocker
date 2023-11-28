@@ -16,12 +16,9 @@
 
 package com.merxury.blocker.core.controllers.di
 
-import com.merxury.blocker.core.controllers.IController
-import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
-import com.merxury.blocker.core.controllers.shizuku.ShizukuController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
+import com.merxury.blocker.core.controllers.IAppController
+import com.merxury.blocker.core.controllers.root.RootAppController
+import com.merxury.blocker.core.controllers.shizuku.ShizukuAppController
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -29,19 +26,12 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface ControllerModule {
+interface AppControllerModule {
     @Binds
-    @RootControl
-    fun bindsRootController(rootController: RootController): IController
+    @RootAppControl
+    fun bindsRootAppController(rootAppController: RootAppController): IAppController
 
     @Binds
-    @IfwControl
-    fun bindsIfwController(ifwController: IfwController): IController
-
-    @Binds
-    @ShizukuControl
-    fun bindsShizukuController(shizukuController: ShizukuController): IController
-
-    @Binds
-    fun bindsShizukuInitializer(shizukuInitializer: ShizukuInitializer): IShizukuInitializer
+    @ShizukuAppControl
+    fun bindsShizukuAppController(shizukuAppController: ShizukuAppController): IAppController
 }
