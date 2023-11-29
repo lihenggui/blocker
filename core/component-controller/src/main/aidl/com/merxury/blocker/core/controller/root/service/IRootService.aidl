@@ -1,4 +1,4 @@
-package com.merxury.blocker.core.root.service;
+package com.merxury.blocker.core.controller.root.service;
 
 interface IRootService {
     boolean switchComponent(String pkg, String cls, int state);
