@@ -50,7 +50,7 @@ class BlockerRootService : RootService() {
         Timber.d("RootService onDestroy")
     }
 
-    class Ipc: IRootService.Stub() {
+    class Ipc : IRootService.Stub() {
         override fun switchComponent(pkg: String?, cls: String?, state: Int): Boolean {
             TODO("Not yet implemented")
         }
