@@ -282,7 +282,7 @@ class SearchViewModel @Inject constructor(
         // Clear list when exit from selectedMode
         if (!value) {
             _searchUiState.update {
-                it.copy(selectedAppList = listOf())
+                it.copy(selectedAppList = listOf(), selectedComponentList = listOf())
             }
         }
         _searchUiState.update {
