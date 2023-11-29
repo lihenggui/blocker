@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.root
+package com.merxury.blocker.core.controllers.root.service
 
 import android.content.ComponentName
 import android.content.ServiceConnection
