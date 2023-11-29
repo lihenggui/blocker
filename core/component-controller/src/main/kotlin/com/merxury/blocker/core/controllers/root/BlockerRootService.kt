@@ -18,12 +18,53 @@ package com.merxury.blocker.core.controllers.root
 
 import android.content.Intent
 import android.os.IBinder
+import android.os.Process
+import com.merxury.blocker.core.controller.root.service.IRootService
 import com.topjohnwu.superuser.ipc.RootService
 import timber.log.Timber
 
 class BlockerRootService : RootService() {
+    override fun onCreate() {
+        super.onCreate()
+        Timber.d("RootService onCreate")
+    }
+
     override fun onBind(intent: Intent): IBinder {
         Timber.d("RootService onBind")
-        throw UnsupportedOperationException("Not yet implemented")
+        return Ipc()
+    }
+
+    override fun onRebind(intent: Intent) {
+        super.onRebind(intent)
+        Timber.d("AIDLService: onRebind, daemon process reused")
+    }
+
+    override fun onUnbind(intent: Intent): Boolean {
+        super.onUnbind(intent)
+        Timber.d("AIDLService: onUnbind, client process unbound")
+        return true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Timber.d("RootService onDestroy")
+    }
+
+    class Ipc: IRootService.Stub() {
+        override fun switchComponent(pkg: String?, cls: String?, state: Int): Boolean {
+            TODO("Not yet implemented")
+        }
+
+        override fun getUid(): Int {
+            val uid = Process.myUid()
+            Timber.d("uid: $uid")
+            return uid
+        }
+
+        override fun getPid(): Int {
+            val pid = Process.myPid()
+            Timber.d("pid: $pid")
+            return pid
+        }
     }
 }
