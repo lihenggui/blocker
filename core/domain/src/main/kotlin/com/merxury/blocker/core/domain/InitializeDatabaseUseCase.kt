@@ -26,6 +26,7 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
 import com.merxury.blocker.core.model.ComponentType.SERVICE
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.transform
@@ -58,16 +59,17 @@ class InitializeDatabaseUseCase @Inject constructor(
             installedAppList.forEach {
                 val packageName = it.packageName
                 emit(InitializeState.Initializing(it.label))
-                val activities = localDataSource.getComponentList(packageName, ACTIVITY).first()
-                val services = localDataSource.getComponentList(packageName, SERVICE).first()
-                val receivers = localDataSource.getComponentList(packageName, RECEIVER).first()
-                val providers = localDataSource.getComponentList(packageName, PROVIDER).first()
-                val components = activities + services + receivers + providers
-                componentRepository.saveComponents(components)
-                Timber.v(
-                    "Component database initialized for $packageName," +
-                        " count = ${components.size}",
-                )
+                combine(
+                    localDataSource.getComponentList(packageName, ACTIVITY),
+                    localDataSource.getComponentList(packageName, SERVICE),
+                    localDataSource.getComponentList(packageName, RECEIVER),
+                    localDataSource.getComponentList(packageName, PROVIDER),
+                ) { activities, services, receivers, providers ->
+                    val components = activities + services + receivers + providers
+                    componentRepository.saveComponents(components)
+                }
+                    .first()
+                Timber.v("Component database initialized for $packageName")
             }
             appPropertiesRepository.markComponentDatabaseInitialized()
             emit(InitializeState.Done)
