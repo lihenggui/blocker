@@ -18,7 +18,7 @@ package com.merxury.blocker.core.data.respository.component
 
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.controllers.root.command.RootController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.getSimpleName

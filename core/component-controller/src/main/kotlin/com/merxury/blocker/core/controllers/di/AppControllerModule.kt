@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.controllers.di
 
 import com.merxury.blocker.core.controllers.IAppController
-import com.merxury.blocker.core.controllers.root.RootAppController
+import com.merxury.blocker.core.controllers.root.command.RootAppController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuAppController
 import dagger.Binds
 import dagger.Module
