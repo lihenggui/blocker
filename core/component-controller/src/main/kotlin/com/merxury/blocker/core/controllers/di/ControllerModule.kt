@@ -18,7 +18,7 @@ package com.merxury.blocker.core.controllers.di
 
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.controllers.root.command.RootController
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer

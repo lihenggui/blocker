@@ -18,8 +18,8 @@ package com.merxury.blocker.core.data.appstate
 
 import android.content.pm.PackageManager
 import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
-import com.merxury.blocker.core.controllers.root.RootServiceController
+import com.merxury.blocker.core.controllers.root.command.RootController
+import com.merxury.blocker.core.controllers.root.command.RootServiceController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuServiceController
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU

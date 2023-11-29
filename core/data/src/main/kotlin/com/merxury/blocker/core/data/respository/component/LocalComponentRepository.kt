@@ -17,7 +17,7 @@
 package com.merxury.blocker.core.data.respository.component
 
 import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.controllers.root.command.RootController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.database.app.AppComponentDao
