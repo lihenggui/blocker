@@ -273,7 +273,6 @@ class SearchViewModel @Inject constructor(
         switchSelectedMode(false)
     }
 
-
     fun dismissAlert() = viewModelScope.launch {
         _errorState.emit(null)
     }
