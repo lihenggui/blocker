@@ -67,9 +67,9 @@ class InitializeDatabaseUseCase @Inject constructor(
                 ) { activities, services, receivers, providers ->
                     val components = activities + services + receivers + providers
                     componentRepository.saveComponents(components)
+                    Timber.v("Initialized $packageName, ${components.size} components")
                 }
                     .first()
-                Timber.v("Component database initialized for $packageName")
             }
             appPropertiesRepository.markComponentDatabaseInitialized()
             emit(InitializeState.Done)
