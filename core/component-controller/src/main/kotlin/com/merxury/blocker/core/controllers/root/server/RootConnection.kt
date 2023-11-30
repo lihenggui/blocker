@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.root.service
+package com.merxury.blocker.core.controllers.root.server
 
 import android.content.ComponentName
 import android.content.ServiceConnection
 import android.os.IBinder
+import com.merxury.blocker.core.controller.root.service.IRootService
+import timber.log.Timber
 
 class RootConnection : ServiceConnection {
+    private var isDaemon = false
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-        TODO("Not yet implemented")
+        Timber.d("onServiceConnected")
+        val ipc = IRootService.Stub.asInterface(service)
+        Timber.d("uid: ${ipc.uid}")
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
-        TODO("Not yet implemented")
+        Timber.d("onServiceDisconnected")
     }
 }
