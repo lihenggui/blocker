@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.root.server
+package com.merxury.blocker.core.controllers.root.api
 
 import android.content.Intent
 import android.os.IBinder

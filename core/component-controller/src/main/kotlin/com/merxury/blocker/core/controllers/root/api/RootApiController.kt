@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.root.server
+package com.merxury.blocker.core.controllers.root.api
 
 import android.content.ComponentName
 import android.content.Context
@@ -32,7 +32,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
-class RootServerController @Inject constructor(
+class RootApiController @Inject constructor(
     @ApplicationContext private val context: Context,
 ): IController {
     private var rootConnection: RootConnection? = null
@@ -58,7 +58,7 @@ class RootServerController @Inject constructor(
             val connection = RootConnection()
             val intent = Intent(context, RootServer::class.java)
             RootService.bind(intent, connection)
-            this@RootServerController.rootConnection = connection
+            this@RootApiController.rootConnection = connection
         }
     }
 
