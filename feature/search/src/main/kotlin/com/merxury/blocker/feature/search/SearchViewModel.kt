@@ -259,7 +259,7 @@ class SearchViewModel @Inject constructor(
             }
         }
 
-    fun controlAllSelectedComponents(enable: Boolean) =
+    fun controlAllSelectedComponents(enable: Boolean) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             componentRepository.batchControlComponent(
                 components = _searchUiState.value.selectedComponentList,
@@ -270,6 +270,8 @@ class SearchViewModel @Inject constructor(
                 }
                 .collect()
         }
+        switchSelectedMode(false)
+    }
 
     fun dismissAlert() = viewModelScope.launch {
         _errorState.emit(null)
@@ -279,7 +281,7 @@ class SearchViewModel @Inject constructor(
         // Clear list when exit from selectedMode
         if (!value) {
             _searchUiState.update {
-                it.copy(selectedAppList = listOf())
+                it.copy(selectedAppList = listOf(), selectedComponentList = listOf())
             }
         }
         _searchUiState.update {
