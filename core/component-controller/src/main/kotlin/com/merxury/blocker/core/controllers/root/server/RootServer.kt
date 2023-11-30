@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.root.service
+package com.merxury.blocker.core.controllers.root.server
 
 import android.content.Intent
 import android.os.IBinder
@@ -23,7 +23,7 @@ import com.merxury.blocker.core.controller.root.service.IRootService
 import com.topjohnwu.superuser.ipc.RootService
 import timber.log.Timber
 
-class BlockerRootService : RootService() {
+class RootServer : RootService() {
     override fun onCreate() {
         super.onCreate()
         Timber.d("RootService onCreate")
