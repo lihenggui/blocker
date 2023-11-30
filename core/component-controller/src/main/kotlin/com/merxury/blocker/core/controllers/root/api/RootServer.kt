@@ -16,10 +16,15 @@
 
 package com.merxury.blocker.core.controllers.root.api
 
+import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.pm.IPackageManager
+import android.os.Build
 import android.os.IBinder
 import android.os.Process
 import com.merxury.blocker.core.controller.root.service.IRootService
+import com.merxury.blocker.core.utils.ContextUtils.userId
 import com.topjohnwu.superuser.ipc.RootService
 import timber.log.Timber
 
@@ -31,7 +36,7 @@ class RootServer : RootService() {
 
     override fun onBind(intent: Intent): IBinder {
         Timber.d("RootService onBind")
-        return Ipc()
+        return Ipc(this)
     }
 
     override fun onRebind(intent: Intent) {
@@ -50,9 +55,34 @@ class RootServer : RootService() {
         Timber.d("RootService onDestroy")
     }
 
-    class Ipc : IRootService.Stub() {
-        override fun switchComponent(pkg: String?, cls: String?, state: Int): Boolean {
-            TODO("Not yet implemented")
+    class Ipc(private val context: Context) : IRootService.Stub() {
+        private val pm: IPackageManager by lazy {
+            IPackageManager.Stub.asInterface(
+                SystemServiceHelper.getSystemService("package")
+            )
+        }
+        override fun switchComponent(packageName: String?, componentName: String?, state: Int): Boolean {
+            if (packageName == null || componentName == null) {
+                Timber.w("Invalid component info provided")
+                return false
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                pm.setComponentEnabledSetting(
+                    ComponentName(packageName, componentName),
+                    state,
+                    0,
+                    context.userId,
+                    context.packageName,
+                )
+            } else {
+                pm.setComponentEnabledSetting(
+                    ComponentName(packageName, componentName),
+                    state,
+                    0,
+                    context.userId,
+                )
+            }
+            return true
         }
 
         override fun getUid(): Int {
