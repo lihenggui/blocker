@@ -25,6 +25,7 @@ import android.content.pm.PackageManager
 import android.os.IBinder
 import com.merxury.blocker.core.controller.root.service.IRootService
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.topjohnwu.superuser.ipc.RootService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -34,22 +35,21 @@ import javax.inject.Inject
 
 class RootApiController @Inject constructor(
     @ApplicationContext private val context: Context,
-): IController {
+) : IController {
     private var rootConnection: RootConnection? = null
     private var rootServer: IRootService? = null
+
     inner class RootConnection : ServiceConnection {
-        private var isDaemon = false
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            Timber.d("onServiceConnected")
+            Timber.d("RootConnection: onServiceConnected")
             rootConnection = this
             rootServer = IRootService.Stub.asInterface(service)
-            Timber.d("uid: ${rootServer?.uid}")
-            Timber.d("pid: ${rootServer?.pid}")
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            Timber.d("onServiceDisconnected")
+            Timber.d("RootConnection: onServiceDisconnected")
             rootServer = null
+            rootConnection = null
         }
     }
 
@@ -73,31 +73,56 @@ class RootApiController @Inject constructor(
     }
 
     override suspend fun enable(packageName: String, componentName: String): Boolean {
-        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED)
+        return switchComponent(
+            packageName,
+            componentName,
+            PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+        )
     }
 
     override suspend fun disable(packageName: String, componentName: String): Boolean {
-        return switchComponent(packageName, componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED)
+        return switchComponent(
+            packageName,
+            componentName,
+            PackageManager.COMPONENT_ENABLED_STATE_DISABLED,
+        )
     }
 
     override suspend fun batchEnable(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
-        TODO("Not yet implemented")
+        var successCount = 0
+        componentList.forEach {
+            if (enable(it.packageName, it.name)) {
+                successCount++
+            }
+            action(it)
+        }
+        return successCount
     }
 
     override suspend fun batchDisable(
         componentList: List<ComponentInfo>,
         action: suspend (info: ComponentInfo) -> Unit,
     ): Int {
-        TODO("Not yet implemented")
+        var successCount = 0
+        componentList.forEach {
+            if (disable(it.packageName, it.name)) {
+                successCount++
+            }
+            action(it)
+        }
+        return successCount
     }
 
     override suspend fun checkComponentEnableState(
         packageName: String,
         componentName: String,
     ): Boolean {
-        TODO("Not yet implemented")
+        return ApplicationUtil.checkComponentIsEnabled(
+            context.packageManager,
+            ComponentName(packageName, componentName),
+        )
     }
 }
