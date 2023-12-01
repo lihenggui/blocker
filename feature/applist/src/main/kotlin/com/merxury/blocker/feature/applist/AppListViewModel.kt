@@ -24,8 +24,8 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.controllers.di.RootCommandAppControl
-import com.merxury.blocker.core.controllers.di.RootCommandServiceControl
+import com.merxury.blocker.core.controllers.di.RootApiAppControl
+import com.merxury.blocker.core.controllers.di.RootApiServiceControl
 import com.merxury.blocker.core.controllers.di.ShizukuAppControl
 import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.appstate.AppState
@@ -83,9 +83,9 @@ class AppListViewModel @Inject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
-    @RootCommandAppControl private val rootCommandAppController: IAppController,
+    @RootApiAppControl private val rootApiAppController: IAppController,
     @ShizukuAppControl private val shizukuAppController: IAppController,
-    @RootCommandServiceControl private val rootCommandServiceController: IServiceController,
+    @RootApiServiceControl private val rootApiServiceController: IServiceController,
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
     private val appStateCache: AppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
@@ -209,7 +209,7 @@ class AppListViewModel @Inject constructor(
         return if (controllerType == SHIZUKU) {
             shizukuAppController
         } else {
-            rootCommandAppController
+            rootApiAppController
         }
     }
 
@@ -218,7 +218,7 @@ class AppListViewModel @Inject constructor(
         return if (controllerType == SHIZUKU) {
             shizukuServiceController
         } else {
-            rootCommandServiceController
+            rootApiServiceController
         }
     }
 

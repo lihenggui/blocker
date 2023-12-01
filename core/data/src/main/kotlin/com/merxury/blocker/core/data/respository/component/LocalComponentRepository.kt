@@ -16,9 +16,10 @@
 
 package com.merxury.blocker.core.data.respository.component
 
-import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.command.RootController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuController
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.di.IfwControl
+import com.merxury.blocker.core.controllers.di.RootApiControl
+import com.merxury.blocker.core.controllers.di.ShizukuControl
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.toAppComponentEntity
@@ -46,9 +47,9 @@ class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
     private val appComponentDao: AppComponentDao,
     private val userDataRepository: UserDataRepository,
-    private val pmController: RootController,
-    private val ifwController: IfwController,
-    private val shizukuController: ShizukuController,
+    @RootApiControl private val pmController: IController,
+    @IfwControl private val ifwController: IController,
+    @ShizukuControl private val shizukuController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentRepository {
 
