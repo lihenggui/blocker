@@ -5,7 +5,7 @@ interface IRootService {
     void setApplicationEnabledSetting(String packageName, int newState);
     boolean clearCache(String packageName);
     boolean clearData(String packageName);
-    boolean uninstallApp(String packageName, int versionCode);
+    boolean uninstallApp(String packageName, long versionCode);
     boolean forceStop(String packageName);
     boolean isAppRunning(String packageName);
     boolean isServiceRunning(String packageName, String serviceName);
