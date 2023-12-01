@@ -128,7 +128,7 @@ class AppDetailViewModelTest {
             componentRepository = componentRepository,
             componentDetailRepository = componentDetailRepository,
             shizukuServiceController = serviceController,
-            rootCommandServiceController = serviceController,
+            rootApiServiceController = serviceController,
             initializeShizuku = initializeShizukuUseCase,
             deInitializeShizuku = deInitializeShizukuUseCase,
             analyticsHelper = analyticsHelper,
