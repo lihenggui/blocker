@@ -13,36 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.merxury.blocker.core.controllers.root.api
 
-package com.merxury.blocker.core.controllers.root.api;
-
-import android.annotation.SuppressLint;
-import android.os.IBinder;
-import androidx.annotation.NonNull;
-import timber.log.Timber;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import android.annotation.SuppressLint
+import android.os.IBinder
+import timber.log.Timber
+import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.Method
 
 /**
  * Helper class for accessing system services.
- * Copied from <a href="https://github.com/RikkaApps/Shizuku-API/blob/01e08879d58a5cb11a333535c6ddce9f7b7c88ff/api/src/main/java/rikka/shizuku/SystemServiceHelper.java">...</a>
+ * Copied from [...](https://github.com/RikkaApps/Shizuku-API/blob/01e08879d58a5cb11a333535c6ddce9f7b7c88ff/api/src/main/java/rikka/shizuku/SystemServiceHelper.java)
  */
 @SuppressLint("PrivateApi")
-public class SystemServiceHelper {
+object SystemServiceHelper {
+    private val SYSTEM_SERVICE_CACHE: MutableMap<String, IBinder?> = HashMap()
+    private var getService: Method? = null
 
-    private static final Map<String, IBinder> SYSTEM_SERVICE_CACHE = new HashMap<>();
-
-    private static Method getService;
-
-    static {
+    init {
         try {
-            Class<?> sm = Class.forName("android.os.ServiceManager");
-            getService = sm.getMethod("getService", String.class);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            Timber.w(e);
+            val sm = Class.forName("android.os.ServiceManager")
+            getService = sm.getMethod("getService", String::class.java)
+        } catch (e: ClassNotFoundException) {
+            Timber.w(e)
+        } catch (e: NoSuchMethodException) {
+            Timber.w(e)
         }
     }
 
@@ -50,18 +45,20 @@ public class SystemServiceHelper {
      * Returns a reference to a service with the given name.
      *
      * @param name the name of the service to get such as "package" for android.content.pm.IPackageManager
-     * @return a reference to the service, or <code>null</code> if the service doesn't exist
+     * @return a reference to the service, or `null` if the service doesn't exist
      */
-    public static IBinder getSystemService(@NonNull String name) {
-        IBinder binder = SYSTEM_SERVICE_CACHE.get(name);
+    fun getSystemService(name: String): IBinder? {
+        var binder = SYSTEM_SERVICE_CACHE[name]
         if (binder == null) {
             try {
-                binder = (IBinder) getService.invoke(null, name);
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                Timber.w(e);
+                binder = getService?.invoke(null, name) as? IBinder
+            } catch (e: IllegalAccessException) {
+                Timber.w(e)
+            } catch (e: InvocationTargetException) {
+                Timber.w(e)
             }
-            SYSTEM_SERVICE_CACHE.put(name, binder);
+            SYSTEM_SERVICE_CACHE[name] = binder
         }
-        return binder;
+        return binder
     }
 }
