@@ -2,8 +2,8 @@
 accompanist = "0.32.0"
 androidDesugarJdkLibs = "2.0.4"
 # AGP and tools should be updated together
-androidGradlePlugin = "8.1.4"
-androidTools = "31.1.4"
+androidGradlePlugin = "8.2.0"
+androidTools = "31.2.0"
 androidxActivity = "1.8.1"
 androidxAppCompat = "1.6.1"
 androidxBrowser = "1.7.0"
@@ -29,11 +29,12 @@ androidxTestCore = "1.5.0"
 androidxTestExt = "1.1.5"
 androidxTestRunner = "1.5.2"
 androidxTestRules = "1.5.0"
-androidxTracing = "1.1.0"
+androidxTracing = "1.2.0"
 androidxUiAutomator = "2.2.0"
 androidxWork = "2.9.0"
 appiconloader = "1.5.0"
 coil = "2.5.0"
+dependencyGuard = "0.4.3"
 firebaseBom = "32.6.0"
 firebaseCrashlyticsPlugin = "2.9.9"
 firebasePerfPlugin = "1.4.2"
@@ -51,7 +52,7 @@ kotlinxDatetime = "0.4.1"
 kotlinxSerializationJson = "1.6.1"
 ksp = "1.9.20-1.0.14"
 libsu = "5.2.1"
-lint = "31.1.4"
+lint = "31.2.0"
 okhttp = "4.12.0"
 protobuf = "3.25.1"
 protobufPlugin = "0.9.4"
@@ -183,6 +184,7 @@ android-application = { id = "com.android.application", version.ref = "androidGr
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidxMacroBenchmark"}
+dependencyGuard = { id = "com.dropbox.dependency-guard", version.ref = "dependencyGuard" }
 firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin"}
 firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "firebasePerfPlugin"}
 gms = { id = "com.google.gms.google-services", version.ref = "gmsPlugin"}
