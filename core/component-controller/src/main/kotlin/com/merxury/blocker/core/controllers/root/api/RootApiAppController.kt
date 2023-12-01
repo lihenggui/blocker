@@ -42,13 +42,13 @@ class RootApiAppController @Inject constructor(
 
     inner class RootConnection : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            Timber.d("RootConnection: onServiceConnected")
+            Timber.d("RootApiAppController: onServiceConnected")
             rootConnection = this
             rootServer = IRootService.Stub.asInterface(service)
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            Timber.d("RootConnection: onServiceDisconnected")
+            Timber.d("RootApiAppController: onServiceDisconnected")
             rootServer = null
             rootConnection = null
         }
@@ -115,6 +115,7 @@ class RootApiAppController @Inject constructor(
 
     override suspend fun refreshRunningAppList() {
         ensureInitialization()
+        Timber.d("Refresh running app list")
         rootServer?.refreshRunningAppList()
     }
 }
