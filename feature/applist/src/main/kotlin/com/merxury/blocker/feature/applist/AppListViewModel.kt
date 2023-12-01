@@ -24,7 +24,7 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.controllers.di.RootAppControl
+import com.merxury.blocker.core.controllers.di.RootCommandAppControl
 import com.merxury.blocker.core.controllers.di.RootServiceControl
 import com.merxury.blocker.core.controllers.di.ShizukuAppControl
 import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
@@ -83,7 +83,7 @@ class AppListViewModel @Inject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
-    @RootAppControl private val rootAppController: IAppController,
+    @RootCommandAppControl private val rootCommandAppController: IAppController,
     @ShizukuAppControl private val shizukuAppController: IAppController,
     @RootServiceControl private val rootServiceController: IServiceController,
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
@@ -209,7 +209,7 @@ class AppListViewModel @Inject constructor(
         return if (controllerType == SHIZUKU) {
             shizukuAppController
         } else {
-            rootAppController
+            rootCommandAppController
         }
     }
 

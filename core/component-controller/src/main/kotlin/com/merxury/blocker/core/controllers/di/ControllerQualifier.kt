@@ -20,7 +20,7 @@ import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class RootControl
+annotation class RootCommandControl
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -29,3 +29,7 @@ annotation class IfwControl
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ShizukuControl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RootApiControl
