@@ -150,7 +150,6 @@ class RootServer : RootService() {
                 object : IPackageDataObserver.Stub() {
                     override fun onRemoveCompleted(packageName: String?, succeeded: Boolean) {
                         Timber.i("Clear data for $packageName succeeded: $succeeded")
-
                     }
                 },
                 context.userId,
