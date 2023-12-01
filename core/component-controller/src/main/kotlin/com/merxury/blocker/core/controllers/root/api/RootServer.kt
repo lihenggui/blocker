@@ -158,7 +158,7 @@ class RootServer : RootService() {
             return true
         }
 
-        override fun uninstallApp(packageName: String?, versionCode: Int): Boolean {
+        override fun uninstallApp(packageName: String?, versionCode: Long): Boolean {
             if (packageName == null) {
                 Timber.w("Invalid package name provided")
                 return false
