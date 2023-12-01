@@ -44,13 +44,13 @@ class RootApiController @Inject constructor(
 
     inner class RootConnection : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            Timber.d("RootConnection: onServiceConnected")
+            Timber.d("RootApiController: onServiceConnected")
             rootConnection = this
             rootServer = IRootService.Stub.asInterface(service)
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
-            Timber.d("RootConnection: onServiceDisconnected")
+            Timber.d("RootApiController: onServiceDisconnected")
             rootServer = null
             rootConnection = null
         }
@@ -70,9 +70,14 @@ class RootApiController @Inject constructor(
         componentName: String,
         state: Int,
     ): Boolean {
-        Timber.d("Switch component: $packageName/$componentName, state: $state")
         ensureInitialization()
-        return false
+        Timber.d("Switch component: $packageName/$componentName, state: $state")
+        rootServer?.setComponentEnabledSetting(
+            packageName,
+            componentName,
+            state,
+        )
+        return true
     }
 
     override suspend fun enable(packageName: String, componentName: String): Boolean {
