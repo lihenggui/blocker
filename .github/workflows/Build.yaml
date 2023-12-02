@@ -185,7 +185,7 @@ jobs:
 
   androidTest:
     needs: test_and_apk
-    runs-on: macos-latest
+    runs-on: self-hosted
     timeout-minutes: 90
     strategy:
       matrix:
