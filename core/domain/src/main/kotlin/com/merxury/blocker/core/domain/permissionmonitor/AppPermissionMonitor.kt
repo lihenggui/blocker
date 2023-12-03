@@ -31,12 +31,11 @@ import javax.inject.Inject
 class AppPermissionMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userDataRepository: UserDataRepository,
-): PermissionMonitor {
+) : PermissionMonitor {
     override val permissionStatus: Flow<PermissionStatus> = userDataRepository.userData
         .map { it.controllerType }
         .distinctUntilChanged()
-        .transform {  type ->
-
+        .transform { type ->
         }
 
     private fun initController(type: ControllerType) {
