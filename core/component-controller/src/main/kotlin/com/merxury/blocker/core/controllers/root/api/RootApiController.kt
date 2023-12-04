@@ -67,6 +67,11 @@ class RootApiController @Inject constructor(
         }
     }
 
+    override suspend fun init(): Boolean {
+        Timber.d("Init RootApiController")
+        return true
+    }
+
     override suspend fun switchComponent(
         packageName: String,
         componentName: String,
