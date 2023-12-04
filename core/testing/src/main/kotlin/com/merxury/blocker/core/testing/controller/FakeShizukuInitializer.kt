@@ -26,4 +26,6 @@ class FakeShizukuInitializer : IShizukuInitializer {
     override fun unregisterShizuku() {
         // Do nothing
     }
+
+    override fun hasPermission(): Boolean = true
 }
