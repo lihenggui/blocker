@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.controllers
 
 interface IAppController {
+    suspend fun init(): Boolean = true
     suspend fun disable(packageName: String): Boolean
     suspend fun enable(packageName: String): Boolean
     suspend fun forceStop(packageName: String): Boolean

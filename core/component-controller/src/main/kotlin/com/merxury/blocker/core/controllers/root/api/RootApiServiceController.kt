@@ -63,6 +63,12 @@ class RootApiServiceController @Inject constructor(
             this@RootApiServiceController.rootConnection = connection
         }
     }
+
+    override suspend fun init(): Boolean {
+        Timber.d("Init RootApiServiceController")
+        return true
+    }
+
     override suspend fun load(): Boolean {
         rootServer?.refreshRunningServiceList()
         return true

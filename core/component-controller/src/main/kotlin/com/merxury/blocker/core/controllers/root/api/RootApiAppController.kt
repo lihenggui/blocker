@@ -65,6 +65,11 @@ class RootApiAppController @Inject constructor(
         }
     }
 
+    override suspend fun init(): Boolean {
+        Timber.d("Init RootApiAppController")
+        return true
+    }
+
     override suspend fun disable(packageName: String): Boolean {
         ensureInitialization()
         rootServer?.setApplicationEnabledSetting(
