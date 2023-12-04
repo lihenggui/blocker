@@ -20,4 +20,6 @@ interface IShizukuInitializer {
     fun registerShizuku()
 
     fun unregisterShizuku()
+
+    fun hasPermission(): Boolean
 }

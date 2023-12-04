@@ -36,7 +36,7 @@ class ShizukuInitializer @Inject constructor(
             Timber.e("Shizuku pre-v11 is not supported")
         } else {
             Timber.i("Shizuku binder received")
-            checkPermission()
+            checkAndAskForPermission()
         }
     }
     private val binderDeadListener = Shizuku.OnBinderDeadListener {
@@ -65,7 +65,14 @@ class ShizukuInitializer @Inject constructor(
         Shizuku.removeRequestPermissionResultListener(requestPermissionResultListener)
     }
 
-    private fun checkPermission(): Boolean {
+    override fun hasPermission(): Boolean {
+        if (Shizuku.isPreV11()) {
+            return false
+        }
+        return Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun checkAndAskForPermission(): Boolean {
         if (Shizuku.isPreV11()) {
             return false
         }
