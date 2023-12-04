@@ -25,7 +25,7 @@ import android.content.pm.ComponentInfo
 
 interface IController {
 
-    suspend fun init(): Boolean = true
+    suspend fun init() = Unit
 
     /**
      * a method to change a component's state
