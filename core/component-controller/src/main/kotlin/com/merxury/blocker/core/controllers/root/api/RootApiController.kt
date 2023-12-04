@@ -34,7 +34,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class RootApiController @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
