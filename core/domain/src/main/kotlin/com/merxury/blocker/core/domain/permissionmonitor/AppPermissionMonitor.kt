@@ -17,6 +17,13 @@
 package com.merxury.blocker.core.domain.permissionmonitor
 
 import android.content.Context
+import com.merxury.blocker.core.controllers.IAppController
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.IServiceController
+import com.merxury.blocker.core.controllers.di.RootApiAppControl
+import com.merxury.blocker.core.controllers.di.RootApiControl
+import com.merxury.blocker.core.controllers.di.RootApiServiceControl
+import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.controllers.util.PermissionMonitor
 import com.merxury.blocker.core.controllers.util.PermissionStatus
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
@@ -31,14 +38,28 @@ import javax.inject.Inject
 class AppPermissionMonitor @Inject constructor(
     @ApplicationContext private val context: Context,
     private val userDataRepository: UserDataRepository,
+    private val shizukuInitializer: ShizukuInitializer,
+    @RootApiControl private val rootApiController: IController,
+    @RootApiAppControl private val rootApiAppController: IAppController,
+    @RootApiServiceControl private val rootApiServiceController: IServiceController,
 ) : PermissionMonitor {
+    private val controllerInitStatus = mutableMapOf<ControllerType, PermissionStatus>()
     override val permissionStatus: Flow<PermissionStatus> = userDataRepository.userData
         .map { it.controllerType }
         .distinctUntilChanged()
         .transform { type ->
         }
 
-    private fun initController(type: ControllerType) {
-        // TODO
+    private suspend fun initController(type: ControllerType) {
+        if (type == ControllerType.SHIZUKU) {
+            if (!shizukuInitializer.hasPermission()) {
+                shizukuInitializer.registerShizuku()
+            } else {
+            }
+        } else {
+            rootApiController.init()
+            rootApiAppController.init()
+            rootApiServiceController.init()
+        }
     }
 }
