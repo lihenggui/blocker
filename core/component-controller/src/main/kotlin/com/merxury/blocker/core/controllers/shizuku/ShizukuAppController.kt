@@ -25,6 +25,7 @@ import android.content.Intent
 import android.content.pm.IPackageDataObserver
 import android.content.pm.IPackageInstaller
 import android.content.pm.IPackageManager
+import android.content.pm.PackageManager
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER
 import android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_ENABLED
 import android.content.pm.VersionedPackage
@@ -200,6 +201,14 @@ class ShizukuAppController @Inject constructor(
     }
 
     override suspend fun refreshRunningAppList() {
+        try {
+            if (Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                return
+            }
+        } catch (e: Throwable) {
+            Timber.e(e, "Check Shizuku permission failed")
+            return
+        }
         if (!Shizuku.pingBinder()) {
             // Avoid calling this method when Shizuku is not connected
             return
