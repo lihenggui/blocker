@@ -58,7 +58,9 @@ class AppPermissionMonitor @Inject constructor(
         Timber.d("Initialize controller: $type")
         if (type == ControllerType.SHIZUKU) {
             if (!shizukuInitializer.hasPermission()) {
-                shizukuInitializer.registerShizuku()
+                shizukuInitializer.registerShizuku { granted ->
+
+                }
             }
         } else {
             val apiPermissionStatus = controllerStatus[PM]
