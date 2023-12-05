@@ -140,9 +140,6 @@ class RootApiAppController @Inject constructor(
     }
 
     override suspend fun refreshRunningAppList() {
-        if (rootService == null) {
-            init()
-        }
         Timber.d("Refresh running app list")
         rootService?.refreshRunningAppList()
     }
