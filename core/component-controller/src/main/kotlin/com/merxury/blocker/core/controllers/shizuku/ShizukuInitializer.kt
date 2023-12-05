@@ -89,7 +89,7 @@ class ShizukuInitializer @Inject constructor(
             Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
         } catch (e: Throwable) {
             if (e is IllegalStateException) {
-                Timber.w("Shizuku is not initialized, no permission granted")
+                Timber.i("Shizuku is not initialized, no permission granted")
                 return false
             }
             Timber.e(e, "Check Shizuku permission failed")
