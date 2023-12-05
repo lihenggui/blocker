@@ -42,7 +42,7 @@ class ShizukuInitializer @Inject constructor(
     private val binderDeadListener = Shizuku.OnBinderDeadListener {
         Timber.e("Shizuku binder dead")
     }
-    private val requestPermissionResultListener =
+    private var requestPermissionResultListener =
         Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
             if (requestCode == REQUEST_CODE_PERMISSION) {
                 if (grantResult == PackageManager.PERMISSION_GRANTED) {
@@ -52,6 +52,22 @@ class ShizukuInitializer @Inject constructor(
                 }
             }
         }
+
+    override fun registerShizuku(action: (Boolean) -> Unit) {
+        requestPermissionResultListener =
+            Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
+                if (requestCode == REQUEST_CODE_PERMISSION) {
+                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                        Timber.i("Shizuku permission granted")
+                        action(true)
+                    } else {
+                        Timber.e("Shizuku permission denied")
+                        action(false)
+                    }
+                }
+            }
+        registerShizuku()
+    }
 
     override fun registerShizuku() {
         Shizuku.addBinderReceivedListenerSticky(binderReceivedListener)
