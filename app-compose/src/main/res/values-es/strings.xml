@@ -18,4 +18,6 @@
     <string name="apps">Programa</string>
     <string name="search">Buscar</string>
     <string name="rules">Reglas</string>
+    <string name="no_permission_hint">No se puede obtener permiso, la aplicación puede no funcionar correctamente.</string>
+    <string name="shell_permission_hint">Se han otorgado permisos de shell. La función de control de componentes dentro de la aplicación puede no funcionar correctamente.</string>
 </resources>
