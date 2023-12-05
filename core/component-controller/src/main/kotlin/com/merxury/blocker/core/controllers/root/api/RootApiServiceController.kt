@@ -67,9 +67,6 @@ class RootApiServiceController @Inject constructor(
     }
 
     override suspend fun load(): Boolean {
-        if (rootService == null) {
-            init()
-        }
         rootService?.refreshRunningServiceList()
         return true
     }
