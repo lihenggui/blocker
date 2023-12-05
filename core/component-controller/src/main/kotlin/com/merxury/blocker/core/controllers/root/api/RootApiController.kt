@@ -35,6 +35,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 @Singleton
@@ -56,7 +57,7 @@ class RootApiController @Inject constructor(
                         Timber.d("RootConnection: onServiceConnected")
                         rootConnection = this
                         rootService = IRootService.Stub.asInterface(service)
-                        cont.resumeWith(Result.success(Unit))
+                        cont.resume(Unit)
                     }
 
                     override fun onServiceDisconnected(name: ComponentName?) {
