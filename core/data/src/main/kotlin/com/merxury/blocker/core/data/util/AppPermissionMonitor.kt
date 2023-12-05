@@ -56,7 +56,10 @@ class AppPermissionMonitor @Inject constructor(
         .distinctUntilChanged()
         .transform { type ->
             initController(type)
-            emit(controllerStatus[type] ?: NO_PERMISSION)
+            // In IFW mode, we will still use root apis
+            // Make sure that we initialize once
+            val controllerType = if (type == SHIZUKU) SHIZUKU else PM
+            emit(controllerStatus[controllerType] ?: NO_PERMISSION)
         }
 
     private suspend fun initController(type: ControllerType) {
