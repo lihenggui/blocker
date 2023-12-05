@@ -20,7 +20,7 @@ import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 
 class FakeShizukuInitializer : IShizukuInitializer {
 
-    override fun registerShizuku(action: (Boolean) -> Unit) {
+    override fun registerShizuku(action: (Boolean, Int) -> Unit) {
         // Do nothing
     }
 

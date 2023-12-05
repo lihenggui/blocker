@@ -53,16 +53,16 @@ class ShizukuInitializer @Inject constructor(
             }
         }
 
-    override fun registerShizuku(action: (Boolean) -> Unit) {
+    override fun registerShizuku(action: (Boolean, Int) -> Unit) {
         requestPermissionResultListener =
             Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
                 if (requestCode == REQUEST_CODE_PERMISSION) {
                     if (grantResult == PackageManager.PERMISSION_GRANTED) {
                         Timber.i("Shizuku permission granted")
-                        action(true)
+                        action(true, Shizuku.getUid())
                     } else {
                         Timber.e("Shizuku permission denied")
-                        action(false)
+                        action(false, -1)
                     }
                 }
             }
