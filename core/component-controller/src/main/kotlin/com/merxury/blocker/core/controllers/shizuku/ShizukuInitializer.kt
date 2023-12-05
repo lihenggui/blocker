@@ -31,7 +31,7 @@ private const val REQUEST_CODE_PERMISSION = 101
 class ShizukuInitializer @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IShizukuInitializer {
-    private val binderReceivedListener = Shizuku.OnBinderReceivedListener {
+    private var binderReceivedListener = Shizuku.OnBinderReceivedListener {
         if (Shizuku.isPreV11()) {
             Timber.e("Shizuku pre-v11 is not supported")
         } else {
@@ -54,11 +54,18 @@ class ShizukuInitializer @Inject constructor(
         }
 
     override fun registerShizuku(action: (Boolean, Int) -> Unit) {
+        binderReceivedListener = Shizuku.OnBinderReceivedListener {
+            Timber.d("Shizuku binder received")
+            if (hasPermission()) {
+                action(true, Shizuku.getUid())
+            } else {
+                checkAndAskForPermission()
+            }
+        }
         requestPermissionResultListener =
             Shizuku.OnRequestPermissionResultListener { requestCode, grantResult ->
                 if (requestCode == REQUEST_CODE_PERMISSION) {
                     if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                        Timber.i("Shizuku permission granted")
                         action(true, Shizuku.getUid())
                     } else {
                         Timber.e("Shizuku permission denied")
