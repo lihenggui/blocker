@@ -35,6 +35,7 @@ import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.BindValue
@@ -89,6 +90,9 @@ class BlockerAppScreenSizesScreenshotTests {
     @Inject
     lateinit var networkMonitor: NetworkMonitor
 
+    @Inject
+    lateinit var permissionMonitor: PermissionMonitor
+
     @Before
     fun setup() {
         val config = Configuration.Builder()
@@ -123,6 +127,7 @@ class BlockerAppScreenSizesScreenshotTests {
                                 DpSize(maxWidth, maxHeight),
                             ),
                             networkMonitor = networkMonitor,
+                            permissionMonitor = permissionMonitor,
                         )
                     }
                 }

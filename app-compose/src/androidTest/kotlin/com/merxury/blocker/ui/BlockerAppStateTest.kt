@@ -33,7 +33,9 @@ import androidx.navigation.createGraph
 import androidx.navigation.testing.TestNavHostController
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
+import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.testing.util.TestNetworkMonitor
+import com.merxury.blocker.core.testing.util.TestPermissionMonitor
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -59,6 +61,8 @@ class BlockerAppStateTest {
     // Create the test dependencies.
     private val networkMonitor = TestNetworkMonitor()
 
+    private val permissionMonitor = TestPermissionMonitor()
+
     // Subject under test.
     private lateinit var state: BlockerAppState
 
@@ -75,6 +79,7 @@ class BlockerAppStateTest {
                     bottomSheetNavigator = bottomSheetNavigator,
                     navController = navController,
                     networkMonitor = networkMonitor,
+                    permissionMonitor = permissionMonitor,
                     coroutineScope = backgroundScope,
                 )
             }
@@ -97,6 +102,7 @@ class BlockerAppStateTest {
             state = rememberBlockerAppState(
                 windowSizeClass = getCompactWindowClass(),
                 networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
             )
         }
 
@@ -115,6 +121,7 @@ class BlockerAppStateTest {
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
             )
         }
@@ -132,6 +139,7 @@ class BlockerAppStateTest {
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
             )
         }
@@ -149,6 +157,7 @@ class BlockerAppStateTest {
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
             )
         }
@@ -166,6 +175,7 @@ class BlockerAppStateTest {
                 bottomSheetNavigator = bottomSheetNavigator,
                 navController = NavHostController(LocalContext.current),
                 networkMonitor = networkMonitor,
+                permissionMonitor = permissionMonitor,
                 coroutineScope = backgroundScope,
             )
         }
@@ -177,6 +187,29 @@ class BlockerAppStateTest {
             state.isOffline.value,
         )
     }
+
+    @Test
+    fun stateIsNoPermissionWhenPermissionMonitorCantGetPermission() =
+        runTest(UnconfinedTestDispatcher()) {
+            composeTestRule.setContent {
+                val bottomSheetNavigator = rememberBottomSheetNavigator()
+                state = BlockerAppState(
+                    windowSizeClass = WindowSizeClass.calculateFromSize(DpSize(900.dp, 1200.dp)),
+                    bottomSheetNavigator = bottomSheetNavigator,
+                    navController = NavHostController(LocalContext.current),
+                    networkMonitor = networkMonitor,
+                    permissionMonitor = permissionMonitor,
+                    coroutineScope = backgroundScope,
+                )
+            }
+
+            backgroundScope.launch { state.isOffline.collect() }
+            permissionMonitor.setPermission(NO_PERMISSION)
+            assertEquals(
+                NO_PERMISSION,
+                state.currentPermission.value,
+            )
+        }
 
     private fun getCompactWindowClass() = WindowSizeClass.calculateFromSize(DpSize(500.dp, 300.dp))
 }
