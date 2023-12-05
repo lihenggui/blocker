@@ -35,41 +35,38 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.suspendCoroutine
 
 @Singleton
 class RootApiController @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
 ) : IController {
-    private var rootConnection: RootConnection? = null
-    private var rootServer: IRootService? = null
+    private var rootConnection: ServiceConnection? = null
+    private var rootService: IRootService? = null
 
-    inner class RootConnection : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            Timber.d("RootApiController: onServiceConnected")
-            rootConnection = this
-            rootServer = IRootService.Stub.asInterface(service)
+    override suspend fun init() = withContext(mainDispatcher) {
+        Timber.d("Initialize RootApiController")
+        val intent = Intent(context, RootServer::class.java)
+        suspendCoroutine { cont ->
+            RootService.bind(
+                intent,
+                object : ServiceConnection {
+                    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                        Timber.d("RootConnection: onServiceConnected")
+                        rootConnection = this
+                        rootService = IRootService.Stub.asInterface(service)
+                        cont.resumeWith(Result.success(Unit))
+                    }
+
+                    override fun onServiceDisconnected(name: ComponentName?) {
+                        Timber.d("RootConnection: onServiceDisconnected")
+                        rootService = null
+                        rootConnection = null
+                    }
+                },
+            )
         }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            Timber.d("RootApiController: onServiceDisconnected")
-            rootServer = null
-            rootConnection = null
-        }
-    }
-
-    private suspend fun ensureInitialization() = withContext(mainDispatcher) {
-        if (rootConnection == null) {
-            val connection = RootConnection()
-            val intent = Intent(context, RootServer::class.java)
-            RootService.bind(intent, connection)
-            this@RootApiController.rootConnection = connection
-        }
-    }
-
-    override suspend fun init(): Boolean {
-        Timber.d("Init RootApiController")
-        return true
     }
 
     override suspend fun switchComponent(
@@ -77,9 +74,13 @@ class RootApiController @Inject constructor(
         componentName: String,
         state: Int,
     ): Boolean {
-        ensureInitialization()
+        val rootService = rootService
+        if (rootService == null) {
+            Timber.w("Cannot switch component: root server is not initialized")
+            return false
+        }
         Timber.d("Switch component: $packageName/$componentName, state: $state")
-        rootServer?.setComponentEnabledSetting(
+        rootService.setComponentEnabledSetting(
             packageName,
             componentName,
             state,
