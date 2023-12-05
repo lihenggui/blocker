@@ -42,24 +42,27 @@ class RootApiServiceController @Inject constructor(
     private var rootConnection: ServiceConnection? = null
     private var rootService: IRootService? = null
 
-    override suspend fun init(): Unit = withContext(mainDispatcher) {
+    override suspend fun init() = withContext(mainDispatcher) {
         Timber.d("Start initialize RootApiServiceController")
         val intent = Intent(context, RootServer::class.java)
         suspendCoroutine { cont ->
-            RootService.bind(intent, object : ServiceConnection {
-                override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-                    Timber.d("RootConnection: onServiceConnected")
-                    rootConnection = this
-                    rootService = IRootService.Stub.asInterface(service)
-                    cont.resumeWith(Result.success(Unit))
-                }
+            RootService.bind(
+                intent,
+                object : ServiceConnection {
+                    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                        Timber.d("RootConnection: onServiceConnected")
+                        rootConnection = this
+                        rootService = IRootService.Stub.asInterface(service)
+                        cont.resumeWith(Result.success(Unit))
+                    }
 
-                override fun onServiceDisconnected(name: ComponentName?) {
-                    Timber.d("RootConnection: onServiceDisconnected")
-                    rootService = null
-                    rootConnection = null
-                }
-            })
+                    override fun onServiceDisconnected(name: ComponentName?) {
+                        Timber.d("RootConnection: onServiceDisconnected")
+                        rootService = null
+                        rootConnection = null
+                    }
+                },
+            )
         }
     }
 

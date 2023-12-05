@@ -33,46 +33,48 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.suspendCoroutine
 
 @Singleton
 class RootApiAppController @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
 ) : IAppController {
-    private var rootConnection: RootConnection? = null
-    private var rootServer: IRootService? = null
+    private var rootConnection: ServiceConnection? = null
+    private var rootService: IRootService? = null
 
-    inner class RootConnection : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            Timber.d("RootApiAppController: onServiceConnected")
-            rootConnection = this
-            rootServer = IRootService.Stub.asInterface(service)
+    override suspend fun init() = withContext(mainDispatcher) {
+        Timber.d("Initialize RootApiAppController")
+        val intent = Intent(context, RootServer::class.java)
+
+        suspendCoroutine { cont ->
+            RootService.bind(
+                intent,
+                object : ServiceConnection {
+                    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                        Timber.d("RootConnection: onServiceConnected")
+                        rootConnection = this
+                        rootService = IRootService.Stub.asInterface(service)
+                        cont.resumeWith(Result.success(Unit))
+                    }
+
+                    override fun onServiceDisconnected(name: ComponentName?) {
+                        Timber.d("RootConnection: onServiceDisconnected")
+                        rootService = null
+                        rootConnection = null
+                    }
+                },
+            )
         }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            Timber.d("RootApiAppController: onServiceDisconnected")
-            rootServer = null
-            rootConnection = null
-        }
-    }
-
-    private suspend fun ensureInitialization() = withContext(mainDispatcher) {
-        if (rootConnection == null) {
-            val connection = RootConnection()
-            val intent = Intent(context, RootServer::class.java)
-            RootService.bind(intent, connection)
-            this@RootApiAppController.rootConnection = connection
-        }
-    }
-
-    override suspend fun init(): Boolean {
-        Timber.d("Init RootApiAppController")
-        return true
     }
 
     override suspend fun disable(packageName: String): Boolean {
-        ensureInitialization()
-        rootServer?.setApplicationEnabledSetting(
+        val rootService = rootService
+        if (rootService == null) {
+            Timber.w("Cannot disable app: root server is not initialized")
+            return false
+        }
+        rootService.setApplicationEnabledSetting(
             packageName,
             PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER,
         )
@@ -80,8 +82,12 @@ class RootApiAppController @Inject constructor(
     }
 
     override suspend fun enable(packageName: String): Boolean {
-        ensureInitialization()
-        rootServer?.setApplicationEnabledSetting(
+        val rootService = rootService
+        if (rootService == null) {
+            Timber.w("Cannot enable app: root server is not initialized")
+            return false
+        }
+        rootService.setApplicationEnabledSetting(
             packageName,
             PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
         )
@@ -89,40 +95,55 @@ class RootApiAppController @Inject constructor(
     }
 
     override suspend fun forceStop(packageName: String): Boolean {
-        ensureInitialization()
-        rootServer?.forceStop(packageName)
+        val rootService = rootService
+        if (rootService == null) {
+            Timber.w("Cannot force stop app: root server is not initialized")
+            return false
+        }
+        rootService.forceStop(packageName)
         return true
     }
 
     override suspend fun clearCache(packageName: String): Boolean {
-        ensureInitialization()
-        rootServer?.clearCache(packageName)
+        val rootService = rootService
+        if (rootService == null) {
+            Timber.w("Cannot clear cache: root server is not initialized")
+            return false
+        }
+        rootService.clearCache(packageName)
         return true
     }
 
     override suspend fun clearData(packageName: String): Boolean {
-        ensureInitialization()
-        rootServer?.clearData(packageName)
+        val rootService = rootService
+        if (rootService == null) {
+            Timber.w("Cannot clear data: root server is not initialized")
+            return false
+        }
+        rootService.clearData(packageName)
         return true
     }
 
     override suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean {
-        ensureInitialization()
-        rootServer?.uninstallApp(packageName, versionCode)
+        val rootService = rootService
+        if (rootService == null) {
+            Timber.w("Cannot uninstall app: root server is not initialized")
+            return false
+        }
+        rootService.uninstallApp(packageName, versionCode)
         return true
     }
 
     override fun isAppRunning(packageName: String): Boolean {
-        if (rootServer == null) {
-            Timber.w("Root server is not initialized")
-            return false
-        }
-        return rootServer?.isAppRunning(packageName) ?: false
+        val rootService = rootService ?: return false
+        return rootService.isAppRunning(packageName)
     }
 
     override suspend fun refreshRunningAppList() {
-        ensureInitialization()
+        if (rootService == null) {
+            init()
+        }
         Timber.d("Refresh running app list")
-        rootServer?.refreshRunningAppList()
+        rootService?.refreshRunningAppList()
     }
 }
