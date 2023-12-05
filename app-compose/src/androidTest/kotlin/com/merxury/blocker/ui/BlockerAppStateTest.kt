@@ -203,7 +203,7 @@ class BlockerAppStateTest {
                 )
             }
 
-            backgroundScope.launch { state.isOffline.collect() }
+            backgroundScope.launch { state.currentPermission.collect() }
             permissionMonitor.setPermission(NO_PERMISSION)
             assertEquals(
                 NO_PERMISSION,
