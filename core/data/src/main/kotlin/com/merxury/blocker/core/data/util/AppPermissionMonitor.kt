@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.domain.permissionmonitor
+package com.merxury.blocker.core.data.util
 
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.controllers.IController
@@ -23,12 +23,10 @@ import com.merxury.blocker.core.controllers.di.RootApiAppControl
 import com.merxury.blocker.core.controllers.di.RootApiControl
 import com.merxury.blocker.core.controllers.di.RootApiServiceControl
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
-import com.merxury.blocker.core.controllers.util.PermissionMonitor
-import com.merxury.blocker.core.controllers.util.PermissionStatus
-import com.merxury.blocker.core.controllers.util.PermissionStatus.NO_PERMISSION
-import com.merxury.blocker.core.controllers.util.PermissionStatus.ROOT_USER
-import com.merxury.blocker.core.controllers.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
+import com.merxury.blocker.core.data.util.PermissionStatus.ROOT_USER
+import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.PM
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU

@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.util
+package com.merxury.blocker.core.data.util
 
-import kotlinx.coroutines.flow.Flow
-
-/**
- * Utility for reporting permission status
- */
-
-interface PermissionMonitor {
-    val permissionStatus: Flow<PermissionStatus>
+enum class PermissionStatus {
+    ROOT_USER,
+    SHELL_USER,
+    NO_PERMISSION,
 }
