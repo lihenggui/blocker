@@ -68,6 +68,7 @@ class AppPermissionMonitor @Inject constructor(
             if (!shizukuInitializer.hasPermission()) {
                 suspendCoroutine { cont ->
                     shizukuInitializer.registerShizuku { granted, uid ->
+                        Timber.d("Shizuku permission granted: $granted, uid: $uid")
                         if (granted) {
                             when (uid) {
                                 ROOT_UID -> controllerStatus[SHIZUKU] = ROOT_USER
