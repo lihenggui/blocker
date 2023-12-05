@@ -85,7 +85,16 @@ class ShizukuInitializer @Inject constructor(
         if (Shizuku.isPreV11()) {
             return false
         }
-        return Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+        return try {
+            Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+        } catch (e: Throwable) {
+            if (e is IllegalStateException) {
+                Timber.w("Shizuku is not initialized, no permission granted")
+                return false
+            }
+            Timber.e(e, "Check Shizuku permission failed")
+            false
+        }
     }
 
     private fun checkAndAskForPermission(): Boolean {
