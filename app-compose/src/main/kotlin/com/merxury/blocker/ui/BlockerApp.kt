@@ -49,6 +49,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerGradientBackground
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationBar
@@ -72,8 +73,10 @@ import com.merxury.blocker.navigation.TopLevelDestination
 fun BlockerApp(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
+    permissionMonitor: PermissionMonitor,
     appState: BlockerAppState = rememberBlockerAppState(
         networkMonitor = networkMonitor,
+        permissionMonitor = permissionMonitor,
         windowSizeClass = windowSizeClass,
     ),
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
