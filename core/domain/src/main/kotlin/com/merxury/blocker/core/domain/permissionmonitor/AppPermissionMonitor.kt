@@ -27,15 +27,22 @@ import com.merxury.blocker.core.controllers.util.PermissionMonitor
 import com.merxury.blocker.core.controllers.util.PermissionStatus
 import com.merxury.blocker.core.controllers.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.controllers.util.PermissionStatus.ROOT_USER
+import com.merxury.blocker.core.controllers.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.PM
+import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
+
+private const val SHELL_UID = 2000
+private const val ROOT_UID = 0
 
 class AppPermissionMonitor @Inject constructor(
     userDataRepository: UserDataRepository,
@@ -56,10 +63,21 @@ class AppPermissionMonitor @Inject constructor(
 
     private suspend fun initController(type: ControllerType) {
         Timber.d("Initialize controller: $type")
-        if (type == ControllerType.SHIZUKU) {
+        if (type == SHIZUKU) {
             if (!shizukuInitializer.hasPermission()) {
-                shizukuInitializer.registerShizuku { granted ->
-
+                suspendCoroutine { cont ->
+                    shizukuInitializer.registerShizuku { granted, uid ->
+                        if (granted) {
+                            when (uid) {
+                                ROOT_UID -> controllerStatus[SHIZUKU] = ROOT_USER
+                                SHELL_UID -> controllerStatus[SHIZUKU] = SHELL_USER
+                                else -> controllerStatus[SHIZUKU] = NO_PERMISSION
+                            }
+                        } else {
+                            controllerStatus[SHIZUKU] = NO_PERMISSION
+                        }
+                        cont.resume(Unit)
+                    }
                 }
             }
         } else {
@@ -75,6 +93,7 @@ class AppPermissionMonitor @Inject constructor(
                 controllerStatus[PM] = ROOT_USER
             } catch (e: Exception) {
                 Timber.e(e, "Cannot initialize root api controller")
+                controllerStatus[PM] = NO_PERMISSION
             }
         }
     }
