@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.BindValue
 import dagger.hilt.android.testing.HiltAndroidRule
@@ -66,6 +67,9 @@ class NavigationUiTest {
     @Inject
     lateinit var networkMonitor: NetworkMonitor
 
+    @Inject
+    lateinit var permissionMonitor: PermissionMonitor
+
     @Before
     fun setup() {
         hiltRule.inject()
@@ -81,6 +85,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                     )
                 }
             }
@@ -100,6 +105,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                     )
                 }
             }
@@ -119,6 +125,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                     )
                 }
             }
@@ -138,6 +145,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                     )
                 }
             }
@@ -157,6 +165,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                     )
                 }
             }
@@ -176,6 +185,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                     )
                 }
             }
@@ -195,6 +205,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                     )
                 }
             }
@@ -214,6 +225,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                     )
                 }
             }
@@ -233,6 +245,7 @@ class NavigationUiTest {
                             DpSize(maxWidth, maxHeight),
                         ),
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                     )
                 }
             }
