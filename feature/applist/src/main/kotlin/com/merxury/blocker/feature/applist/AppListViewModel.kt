@@ -32,6 +32,8 @@ import com.merxury.blocker.core.data.appstate.AppState
 import com.merxury.blocker.core.data.appstate.AppStateCache
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
@@ -91,6 +93,7 @@ class AppListViewModel @Inject constructor(
     private val initializeDatabase: InitializeDatabaseUseCase,
     private val initializeShizuku: InitializeShizukuUseCase,
     private val deInitializeShizuku: DeInitializeShizukuUseCase,
+    private val permissionMonitor: PermissionMonitor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
@@ -114,6 +117,7 @@ class AppListViewModel @Inject constructor(
     }
 
     init {
+        listenPermissionChanges()
         loadData()
         updateInstalledAppList()
         listenSortingChanges()
@@ -220,6 +224,16 @@ class AppListViewModel @Inject constructor(
         } else {
             rootApiServiceController
         }
+    }
+
+    private fun listenPermissionChanges() = viewModelScope.launch {
+        permissionMonitor.permissionStatus
+            .collect { status ->
+                if (status != NO_PERMISSION) {
+                    Timber.d("Permission status changed: $status, reload data")
+                    loadData()
+                }
+            }
     }
 
     fun initShizuku() = viewModelScope.launch { initializeShizuku() }
