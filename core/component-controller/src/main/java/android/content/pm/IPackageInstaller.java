@@ -22,14 +22,14 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.IInterface;
 import android.os.RemoteException;
-
 import androidx.annotation.RequiresApi;
 
 import java.util.List;
 
 public interface IPackageInstaller extends IInterface {
 
-    int createSession(PackageInstaller.SessionParams params, String installerPackageName, int userId)
+    int createSession(PackageInstaller.SessionParams params, String installerPackageName,
+            int userId)
             throws RemoteException;
 
     void updateSessionAppIcon(int sessionId, Bitmap appIcon)
@@ -50,7 +50,8 @@ public interface IPackageInstaller extends IInterface {
     ParceledListSlice<PackageInstaller.SessionInfo> getAllSessions(int userId)
             throws RemoteException;
 
-    ParceledListSlice<PackageInstaller.SessionInfo> getMySessions(String installerPackageName, int userId)
+    ParceledListSlice<PackageInstaller.SessionInfo> getMySessions(String installerPackageName,
+            int userId)
             throws RemoteException;
 
     @RequiresApi(29)
@@ -65,16 +66,17 @@ public interface IPackageInstaller extends IInterface {
 
     // removed from 26
     void uninstall(String packageName, String callerPackageName, int flags,
-                   IntentSender statusReceiver, int userId);
+            IntentSender statusReceiver, int userId)
+            throws RemoteException;
 
     @RequiresApi(26)
     void uninstall(VersionedPackage versionedPackage, String callerPackageName, int flags,
-                   IntentSender statusReceiver, int userId)
+            IntentSender statusReceiver, int userId)
             throws RemoteException;
 
     @RequiresApi(29)
     void installExistingPackage(String packageName, int installFlags, int installReason,
-                                IntentSender statusReceiver, int userId, List<String> whiteListedPermissions)
+            IntentSender statusReceiver, int userId, List<String> whiteListedPermissions)
             throws RemoteException;
 
     void setPermissionsResult(int sessionId, boolean accepted)

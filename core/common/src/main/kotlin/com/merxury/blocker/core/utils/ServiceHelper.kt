@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
+@Deprecated("Use IServiceController instead")
 class ServiceHelper(private val packageName: String) {
     private var serviceInfo: String = ""
     private val serviceList: MutableList<String> = mutableListOf()

@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -43,6 +44,7 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
@@ -61,13 +63,28 @@ import kotlinx.coroutines.flow.stateIn
 fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
+    permissionMonitor: PermissionMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator(),
     navController: NavHostController = rememberNavController(bottomSheetNavigator),
 ): BlockerAppState {
     NavigationTrackingSideEffect(navController)
-    return remember(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor) {
-        BlockerAppState(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor)
+    return remember(
+        bottomSheetNavigator,
+        navController,
+        coroutineScope,
+        windowSizeClass,
+        networkMonitor,
+        permissionMonitor,
+    ) {
+        BlockerAppState(
+            bottomSheetNavigator,
+            navController,
+            coroutineScope,
+            windowSizeClass,
+            networkMonitor,
+            permissionMonitor,
+        )
     }
 }
 
@@ -79,6 +96,7 @@ class BlockerAppState(
     val coroutineScope: CoroutineScope,
     val windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
+    permissionMonitor: PermissionMonitor,
 ) {
     val currentDestination: NavDestination?
         @Composable get() = navController
@@ -131,6 +149,13 @@ class BlockerAppState(
             initialValue = false,
         )
 
+    val currentPermission = permissionMonitor.permissionStatus
+        .stateIn(
+            scope = coroutineScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null,
+        )
+
     /**
      * Map of top level destinations to be used in the TopBar, BottomBar and NavRail. The key is the
      * route.
@@ -168,7 +193,21 @@ class BlockerAppState(
         }
     }
 
+    /**
+     * If the lifecycle is not resumed it means this NavBackStackEntry already processed a nav event.
+     *
+     * This is used to de-duplicate navigation events.
+     */
+    private fun NavBackStackEntry.lifecycleIsResumed() =
+        this.lifecycle.currentState == Lifecycle.State.RESUMED
+
     fun onBackClick() {
+        if (navController.currentBackStackEntry?.lifecycleIsResumed() == true) {
+            navController.popBackStack()
+        }
+    }
+
+    fun dismissBottomSheet() {
         navController.popBackStack()
     }
 }
