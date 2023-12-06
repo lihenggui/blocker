@@ -24,22 +24,22 @@ import androidx.lifecycle.viewModelScope
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IAppController
 import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.controllers.di.RootAppControl
-import com.merxury.blocker.core.controllers.di.RootServiceControl
+import com.merxury.blocker.core.controllers.di.RootApiAppControl
+import com.merxury.blocker.core.controllers.di.RootApiServiceControl
 import com.merxury.blocker.core.controllers.di.ShizukuAppControl
 import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.appstate.AppState
 import com.merxury.blocker.core.data.appstate.AppStateCache
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
-import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
-import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.data.AppItem
@@ -83,14 +83,13 @@ class AppListViewModel @Inject constructor(
     private val pm: PackageManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
-    @RootAppControl private val rootAppController: IAppController,
+    @RootApiAppControl private val rootApiAppController: IAppController,
     @ShizukuAppControl private val shizukuAppController: IAppController,
-    @RootServiceControl private val rootServiceController: IServiceController,
+    @RootApiServiceControl private val rootApiServiceController: IServiceController,
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
     private val appStateCache: AppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
-    private val initializeShizuku: InitializeShizukuUseCase,
-    private val deInitializeShizuku: DeInitializeShizukuUseCase,
+    private val permissionMonitor: PermissionMonitor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
@@ -114,16 +113,12 @@ class AppListViewModel @Inject constructor(
     }
 
     init {
+        listenPermissionChanges()
         loadData()
         updateInstalledAppList()
         listenSortingChanges()
         listenShowRunningAppsOnTopChanges()
         listenShowSystemAppsChanges()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        viewModelScope.launch { deInitializeShizuku() }
     }
 
     private var loadAppListJob: Job? = null
@@ -209,7 +204,7 @@ class AppListViewModel @Inject constructor(
         return if (controllerType == SHIZUKU) {
             shizukuAppController
         } else {
-            rootAppController
+            rootApiAppController
         }
     }
 
@@ -218,11 +213,19 @@ class AppListViewModel @Inject constructor(
         return if (controllerType == SHIZUKU) {
             shizukuServiceController
         } else {
-            rootServiceController
+            rootApiServiceController
         }
     }
 
-    fun initShizuku() = viewModelScope.launch { initializeShizuku() }
+    private fun listenPermissionChanges() = viewModelScope.launch {
+        permissionMonitor.permissionStatus
+            .collect { status ->
+                if (status != NO_PERMISSION) {
+                    Timber.d("Permission status changed: $status, reload data")
+                    loadData()
+                }
+            }
+    }
 
     fun filter(keyword: String) {
         currentSearchKeyword = keyword

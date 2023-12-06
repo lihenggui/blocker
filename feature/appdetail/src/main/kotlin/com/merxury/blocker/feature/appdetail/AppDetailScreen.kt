@@ -248,9 +248,6 @@ fun AppDetailRoute(
             }
         }
     }
-    LaunchedEffect(Unit) {
-        viewModel.initShizuku()
-    }
 }
 
 @SuppressLint("WrongConstant", "QueryPermissionsNeeded")

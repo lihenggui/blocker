@@ -18,7 +18,8 @@ package com.merxury.blocker.core.controllers.di
 
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.controllers.root.api.RootApiController
+import com.merxury.blocker.core.controllers.root.command.RootController
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
@@ -31,7 +32,7 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface ControllerModule {
     @Binds
-    @RootControl
+    @RootCommandControl
     fun bindsRootController(rootController: RootController): IController
 
     @Binds
@@ -41,6 +42,10 @@ interface ControllerModule {
     @Binds
     @ShizukuControl
     fun bindsShizukuController(shizukuController: ShizukuController): IController
+
+    @Binds
+    @RootApiControl
+    fun bindsRootApiController(rootApiController: RootApiController): IController
 
     @Binds
     fun bindsShizukuInitializer(shizukuInitializer: ShizukuInitializer): IShizukuInitializer

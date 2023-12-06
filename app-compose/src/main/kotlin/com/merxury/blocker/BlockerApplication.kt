@@ -93,6 +93,7 @@ class BlockerApplication : Application(), ImageLoaderFactory, Configuration.Prov
                     }
                     .build(),
             )
+            Shell.enableVerboseLogging = true
         }
         Timber.plant(releaseTree)
         Sync.initialize(context = this)

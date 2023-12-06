@@ -31,6 +31,9 @@ android {
             isIncludeAndroidResources = true
         }
     }
+    buildFeatures {
+        aidl = true
+    }
 }
 
 dependencies {
