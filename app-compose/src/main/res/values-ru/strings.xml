@@ -17,4 +17,7 @@
     <string name="apps">Приложения</string>
     <string name="search">Поиск</string>
     <string name="rules">Правила</string>
+    <string name="no_permission_hint">Не удалось получить разрешение, приложение может работать некорректно.</string>
+    <string name="shell_permission_hint">Предоставлено разрешение оболочки. Компоненты управления могут работать некорректно.</string>
+    <string name="close">Закрыть</string>
 </resources>

@@ -23,8 +23,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
-import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
-import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
@@ -37,7 +35,6 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import com.merxury.blocker.core.testing.controller.FakeShizukuInitializer
 import com.merxury.blocker.core.testing.controller.TestServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
@@ -80,14 +77,6 @@ class AppDetailViewModelTest {
     private val appRepository = TestAppRepository()
     private val componentRepository = TestComponentRepository()
     private val componentDetailRepository = TestComponentDetailRepository()
-    private val initializeShizukuUseCase = InitializeShizukuUseCase(
-        userDataRepository = userDataRepository,
-        shizukuInitializer = FakeShizukuInitializer(),
-    )
-    private val deInitializeShizukuUseCase = DeInitializeShizukuUseCase(
-        userDataRepository = userDataRepository,
-        shizukuInitializer = FakeShizukuInitializer(),
-    )
     private val serviceController = TestServiceController()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val savedStateHandle = SavedStateHandle(
@@ -128,9 +117,7 @@ class AppDetailViewModelTest {
             componentRepository = componentRepository,
             componentDetailRepository = componentDetailRepository,
             shizukuServiceController = serviceController,
-            rootServiceController = serviceController,
-            initializeShizuku = initializeShizukuUseCase,
-            deInitializeShizuku = deInitializeShizukuUseCase,
+            rootApiServiceController = serviceController,
             analyticsHelper = analyticsHelper,
             workerManager = WorkManager.getInstance(context),
             zipAppRuleUseCase = zipAppRuleUseCase,

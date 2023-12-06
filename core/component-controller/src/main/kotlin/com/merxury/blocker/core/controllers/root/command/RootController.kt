@@ -19,7 +19,7 @@
  * A class that controls the state of application components
  */
 
-package com.merxury.blocker.core.controllers.root
+package com.merxury.blocker.core.controllers.root.command
 
 import android.content.ComponentName
 import android.content.Context

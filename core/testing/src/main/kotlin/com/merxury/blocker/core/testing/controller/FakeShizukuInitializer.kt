@@ -19,11 +19,22 @@ package com.merxury.blocker.core.testing.controller
 import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
 
 class FakeShizukuInitializer : IShizukuInitializer {
+
+    override fun registerShizuku(action: (Boolean, Int) -> Unit) {
+        // Do nothing
+    }
+
     override fun registerShizuku() {
         // Do nothing
     }
 
     override fun unregisterShizuku() {
         // Do nothing
+    }
+
+    override fun hasPermission(): Boolean = true
+
+    override fun getUid(): Int {
+        return 0
     }
 }
