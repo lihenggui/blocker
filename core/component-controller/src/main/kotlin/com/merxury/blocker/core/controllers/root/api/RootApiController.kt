@@ -25,9 +25,12 @@ import android.content.pm.PackageManager
 import android.os.IBinder
 import com.merxury.blocker.core.controller.root.service.IRootService
 import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
+import com.merxury.blocker.core.exception.RootUnavailableException
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.PermissionUtils
 import com.topjohnwu.superuser.ipc.RootService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -42,11 +45,15 @@ import kotlin.coroutines.suspendCoroutine
 class RootApiController @Inject constructor(
     @ApplicationContext private val context: Context,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
+    @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : IController {
     private var rootConnection: ServiceConnection? = null
     private var rootService: IRootService? = null
 
     override suspend fun init() = withContext(mainDispatcher) {
+        if (!PermissionUtils.isRootAvailable(ioDispatcher)) {
+            throw RootUnavailableException()
+        }
         Timber.d("Initialize RootApiController")
         val intent = Intent(context, RootServer::class.java)
         suspendCoroutine { cont ->
