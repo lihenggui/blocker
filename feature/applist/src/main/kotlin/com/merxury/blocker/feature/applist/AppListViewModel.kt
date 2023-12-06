@@ -40,8 +40,6 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeDatabaseUseCase
 import com.merxury.blocker.core.domain.model.InitializeState
-import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
-import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.extension.getVersionCode
 import com.merxury.blocker.core.model.data.AppItem
@@ -91,8 +89,6 @@ class AppListViewModel @Inject constructor(
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
     private val appStateCache: AppStateCache,
     private val initializeDatabase: InitializeDatabaseUseCase,
-    private val initializeShizuku: InitializeShizukuUseCase,
-    private val deInitializeShizuku: DeInitializeShizukuUseCase,
     private val permissionMonitor: PermissionMonitor,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
@@ -123,11 +119,6 @@ class AppListViewModel @Inject constructor(
         listenSortingChanges()
         listenShowRunningAppsOnTopChanges()
         listenShowSystemAppsChanges()
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        viewModelScope.launch { deInitializeShizuku() }
     }
 
     private var loadAppListJob: Job? = null
@@ -235,8 +226,6 @@ class AppListViewModel @Inject constructor(
                 }
             }
     }
-
-    fun initShizuku() = viewModelScope.launch { initializeShizuku() }
 
     fun filter(keyword: String) {
         currentSearchKeyword = keyword

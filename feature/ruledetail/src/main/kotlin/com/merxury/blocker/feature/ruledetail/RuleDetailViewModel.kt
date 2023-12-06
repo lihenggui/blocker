@@ -38,8 +38,6 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
-import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
-import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
@@ -85,8 +83,6 @@ class RuleDetailViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
-    private val initializeShizuku: InitializeShizukuUseCase,
-    private val deInitializeShizuku: DeInitializeShizukuUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
@@ -123,13 +119,6 @@ class RuleDetailViewModel @Inject constructor(
         loadTabInfo()
         loadData()
     }
-
-    override fun onCleared() {
-        super.onCleared()
-        viewModelScope.launch { deInitializeShizuku() }
-    }
-
-    fun initShizuku() = viewModelScope.launch { initializeShizuku() }
 
     private fun loadData() {
         loadRuleDetailJob?.cancel()
