@@ -70,6 +70,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -207,6 +208,7 @@ fun AppDetailRoute(
                 }
             }
         },
+        onShowAppInfoClick = { viewModel.showAppInfo(context) },
         onRefresh = viewModel::loadComponentList,
     )
     if (errorState != null) {
@@ -245,9 +247,6 @@ fun AppDetailRoute(
                 )
             }
         }
-    }
-    LaunchedEffect(Unit) {
-        viewModel.initShizuku()
     }
 }
 
@@ -316,6 +315,7 @@ fun AppDetailScreen(
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -359,6 +359,7 @@ fun AppDetailScreen(
                 onSearchModeChanged = onSearchModeChanged,
                 enableAllComponents = enableAllComponents,
                 blockAllComponents = blockAllComponents,
+                onShowAppInfoClick = onShowAppInfoClick,
                 onExportRules = onExportRules,
                 onImportRules = onImportRules,
                 onExportIfw = onExportIfw,
@@ -380,6 +381,7 @@ fun AppDetailScreen(
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
                 onRefresh = onRefresh,
+                isLibCheckerInstalled = appInfoUiState.isLibCheckerInstalled,
             )
         }
 
@@ -400,6 +402,7 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     navigateToComponentDetail: (String) -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
@@ -425,6 +428,7 @@ fun AppDetailContent(
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
+    isLibCheckerInstalled: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -503,6 +507,7 @@ fun AppDetailContent(
                     )
                 },
             navigateToComponentDetail = navigateToComponentDetail,
+            onShowAppInfoClick = onShowAppInfoClick,
             onExportRules = onExportRules,
             onImportRules = onImportRules,
             onExportIfw = onExportIfw,
@@ -517,6 +522,7 @@ fun AppDetailContent(
             onDeselect = onDeselect,
             onRefresh = onRefresh,
             isRefreshing = componentListUiState.isRefreshing,
+            isLibCheckerInstalled = isLibCheckerInstalled,
         )
     }
 }
@@ -663,6 +669,7 @@ fun AppDetailTabContent(
     selectedComponentList: List<ComponentInfo> = emptyList(),
     isSelectedMode: Boolean = false,
     navigateToComponentDetail: (String) -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -677,6 +684,7 @@ fun AppDetailTabContent(
     onDeselect: (ComponentInfo) -> Unit = {},
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
+    isLibCheckerInstalled: Boolean = false,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -718,6 +726,8 @@ fun AppDetailTabContent(
             when (tabState.items[it]) {
                 Info -> SummaryContent(
                     app = app,
+                    isLibCheckerInstalled = isLibCheckerInstalled,
+                    onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
                     onExportIfw = onExportIfw,
@@ -777,7 +787,33 @@ fun AppDetailScreenPreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                appInfoUiState = Success(
+                    appInfo = appList[0],
+                    iconBasedTheming = null,
+                ),
+                componentListUiState = ComponentListUiState(),
+                tabState = tabState[0],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun AppDetailScreenWithLibCheckerPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = Success(
+                    appInfo = appList[0],
+                    iconBasedTheming = null,
+                    isLibCheckerInstalled = true,
+                ),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),

@@ -71,7 +71,7 @@ class BlockerPreferencesDataSource @Inject constructor(
                 RuleServerProviderProto.GITHUB,
                 -> RuleServerProvider.GITHUB
 
-                RuleServerProviderProto.GITLAB -> RuleServerProvider.GITLAB
+                RuleServerProviderProto.JIHULAB -> RuleServerProvider.JIHULAB
             },
             ruleBackupFolder = it.ruleBackupFolder,
             backupSystemApp = it.backupSystemApp,
@@ -172,7 +172,7 @@ class BlockerPreferencesDataSource @Inject constructor(
             it.copy {
                 this.ruleServerProvider = when (serverProvider) {
                     RuleServerProvider.GITHUB -> RuleServerProviderProto.GITHUB
-                    RuleServerProvider.GITLAB -> RuleServerProviderProto.GITLAB
+                    RuleServerProvider.JIHULAB -> RuleServerProviderProto.JIHULAB
                 }
             }
         }

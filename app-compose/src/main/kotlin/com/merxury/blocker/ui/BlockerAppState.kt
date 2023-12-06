@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
@@ -45,6 +46,7 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
@@ -63,6 +65,7 @@ import kotlinx.coroutines.flow.stateIn
 fun rememberBlockerAppState(
     windowSize: DpSize,
     networkMonitor: NetworkMonitor,
+    permissionMonitor: PermissionMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator(),
     navController: NavHostController = rememberNavController(bottomSheetNavigator),
@@ -74,6 +77,7 @@ fun rememberBlockerAppState(
         coroutineScope,
         windowSize,
         networkMonitor,
+        permissionMonitor,
     ) {
         BlockerAppState(
             bottomSheetNavigator,
@@ -81,6 +85,7 @@ fun rememberBlockerAppState(
             coroutineScope,
             windowSize,
             networkMonitor,
+            permissionMonitor,
         )
     }
 }
@@ -93,6 +98,7 @@ class BlockerAppState(
     val coroutineScope: CoroutineScope,
     val windowSize: DpSize,
     networkMonitor: NetworkMonitor,
+    permissionMonitor: PermissionMonitor,
 ) {
     val currentDestination: NavDestination?
         @Composable get() = navController
@@ -137,6 +143,13 @@ class BlockerAppState(
             scope = coroutineScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = false,
+        )
+
+    val currentPermission = permissionMonitor.permissionStatus
+        .stateIn(
+            scope = coroutineScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null,
         )
 
     /**
@@ -196,7 +209,21 @@ class BlockerAppState(
         }
     }
 
+    /**
+     * If the lifecycle is not resumed it means this NavBackStackEntry already processed a nav event.
+     *
+     * This is used to de-duplicate navigation events.
+     */
+    private fun NavBackStackEntry.lifecycleIsResumed() =
+        this.lifecycle.currentState == Lifecycle.State.RESUMED
+
     fun onBackClick() {
+        if (navController.currentBackStackEntry?.lifecycleIsResumed() == true) {
+            navController.popBackStack()
+        }
+    }
+
+    fun dismissBottomSheet() {
         navController.popBackStack()
     }
 }

@@ -30,6 +30,7 @@ import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleReposito
 import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.components.SingletonComponent
@@ -70,6 +71,11 @@ interface TestDataModule {
     fun bindsNetworkMonitor(
         networkMonitor: AlwaysOnlineNetworkMonitor,
     ): NetworkMonitor
+
+    @Binds
+    fun bindsPermissionMonitor(
+        permissionMonitor: AlwaysGrantedPermissionMonitor,
+    ): PermissionMonitor
 
     @Binds
     fun bindsAppRepository(

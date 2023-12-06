@@ -48,6 +48,8 @@ import java.util.Locale
 fun SummaryContent(
     app: AppItem,
     modifier: Modifier = Modifier,
+    isLibCheckerInstalled: Boolean = false,
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -68,6 +70,8 @@ fun SummaryContent(
                     minSdkVersion = app.minSdkVersion,
                     lastUpdateTime = app.lastUpdateTime,
                     dataDir = app.packageInfo?.applicationInfo?.dataDir,
+                    isLibCheckerInstalled = isLibCheckerInstalled,
+                    onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = { onExportRules(app.packageName) },
                     onImportRules = { onImportRules(app.packageName) },
                     onExportIfw = { onExportIfw(app.packageName) },
@@ -85,6 +89,8 @@ fun AppSummary(
     minSdkVersion: Int,
     lastUpdateTime: Instant?,
     dataDir: String?,
+    isLibCheckerInstalled: Boolean = false,
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: () -> Unit,
     onImportRules: () -> Unit,
     onExportIfw: () -> Unit,
@@ -119,6 +125,13 @@ fun AppSummary(
             BlockerSettingItem(
                 title = stringResource(id = string.feature_appdetail_data_dir),
                 summary = dataDir,
+            )
+        }
+        if (isLibCheckerInstalled) {
+            BlockerSettingItem(
+                title = stringResource(id = string.feature_appdetail_app_info),
+                summary = stringResource(id = string.feature_appdetail_app_info_with_libchecker_summary),
+                onItemClick = onShowAppInfoClick,
             )
         }
         Divider()
