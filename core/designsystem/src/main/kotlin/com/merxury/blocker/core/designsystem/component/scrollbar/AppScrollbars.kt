@@ -219,7 +219,7 @@ private fun scrollbarThumbColor(
     val pressed by interactionSource.collectIsPressedAsState()
     val hovered by interactionSource.collectIsHoveredAsState()
     val dragged by interactionSource.collectIsDraggedAsState()
-    val active = (scrollableState.canScrollForward || scrollableState.canScrollForward) &&
+    val active = (scrollableState.canScrollForward || scrollableState.canScrollBackward) &&
         (pressed || hovered || dragged || scrollableState.isScrollInProgress)
 
     val color = animateColorAsState(
