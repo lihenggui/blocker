@@ -19,4 +19,7 @@
     <string name="apps">Apps</string>
     <string name="search">Search</string>
     <string name="rules">Rules</string>
+    <string name="no_permission_hint">Unable to obtain permission, the application may not function properly.</string>
+    <string name="shell_permission_hint">Granted shell permission. Controlling components may not function properly.</string>
+    <string name="close">Close</string>
 </resources>

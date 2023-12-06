@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers
+package com.merxury.blocker.core.data.util
 
-interface IAppController {
-    suspend fun init() = Unit
-    suspend fun disable(packageName: String): Boolean
-    suspend fun enable(packageName: String): Boolean
-    suspend fun forceStop(packageName: String): Boolean
-    suspend fun clearCache(packageName: String): Boolean
-    suspend fun clearData(packageName: String): Boolean
-    suspend fun uninstallApp(packageName: String, versionCode: Long): Boolean
-    fun isAppRunning(packageName: String): Boolean
-    suspend fun refreshRunningAppList()
+import kotlinx.coroutines.flow.Flow
+
+/**
+ * Utility for reporting permission status
+ */
+
+interface PermissionMonitor {
+    val permissionStatus: Flow<PermissionStatus>
 }

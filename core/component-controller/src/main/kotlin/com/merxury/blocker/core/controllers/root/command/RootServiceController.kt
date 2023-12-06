@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.root
+package com.merxury.blocker.core.controllers.root.command
 
 import com.merxury.blocker.core.controllers.IServiceController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
