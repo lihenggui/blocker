@@ -70,17 +70,17 @@ class AppPermissionMonitor @Inject constructor(
                     shizukuInitializer.registerShizuku { granted, uid ->
                         Timber.d("Shizuku permission granted: $granted, uid: $uid")
                         if (granted) {
-                            when (uid) {
-                                ROOT_UID -> controllerStatus[SHIZUKU] = ROOT_USER
-                                SHELL_UID -> controllerStatus[SHIZUKU] = SHELL_USER
-                                else -> controllerStatus[SHIZUKU] = NO_PERMISSION
-                            }
+                            updatePermissionStatusFromUid(uid)
                         } else {
                             controllerStatus[SHIZUKU] = NO_PERMISSION
                         }
                         cont.resume(Unit)
                     }
                 }
+            } else {
+                val uid = shizukuInitializer.getUid()
+                Timber.d("Shizuku permission granted: true, uid: $uid")
+                updatePermissionStatusFromUid(uid)
             }
         } else {
             val apiPermissionStatus = controllerStatus[PM]
@@ -97,6 +97,14 @@ class AppPermissionMonitor @Inject constructor(
                 Timber.e(e, "Cannot initialize root api controller")
                 controllerStatus[PM] = NO_PERMISSION
             }
+        }
+    }
+
+    private fun updatePermissionStatusFromUid(uid: Int) {
+        when (uid) {
+            ROOT_UID -> controllerStatus[SHIZUKU] = ROOT_USER
+            SHELL_UID -> controllerStatus[SHIZUKU] = SHELL_USER
+            else -> controllerStatus[SHIZUKU] = NO_PERMISSION
         }
     }
 }
