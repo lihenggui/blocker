@@ -63,6 +63,7 @@ fun BlockerNavHost(
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
+    dismissBottomSheet: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = appListRoute,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
@@ -112,10 +113,10 @@ fun BlockerNavHost(
                 dismissHandler = onBackClick,
             )
             componentSortScreen(
-                dismissHandler = onBackClick,
+                dismissHandler = dismissBottomSheet,
             )
             appSortScreen(
-                dismissHandler = onBackClick,
+                dismissHandler = dismissBottomSheet,
             )
         }
     }

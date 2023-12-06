@@ -48,6 +48,8 @@
     <string name="feature_appdetail_provide_additional_details">(請提供關於您的規則的詳細描述。)\n</string>
     <string name="feature_appdetail_all_rules">所有規則</string>
     <string name="feature_appdetail_import_rules">導入規則</string>
+    <string name="feature_appdetail_app_info">應用詳情</string>
+    <string name="feature_appdetail_app_info_with_libchecker_summary">使用LibChecker查看應用程序詳細信息</string>
     <string name="feature_appdetail_disabling_component_hint">正在禁用組件，請稍候…（%1$d/%2$d）</string>
     <string name="feature_appdetail_enabling_component_hint">正在啟用組件，請稍候…（%1$d/%2$d）</string>
 </resources>

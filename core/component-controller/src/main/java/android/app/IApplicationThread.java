@@ -14,11 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.model.data
+package android.app;
 
-data class AppState(
-    var running: Int = 0,
-    var blocked: Int = 0,
-    var total: Int = 0,
-    var packageName: String,
-)
+public class IApplicationThread {
+}
