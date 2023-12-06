@@ -38,7 +38,7 @@ import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.controllers.IServiceController
-import com.merxury.blocker.core.controllers.di.RootServiceControl
+import com.merxury.blocker.core.controllers.di.RootApiServiceControl
 import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
@@ -50,8 +50,6 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
-import com.merxury.blocker.core.domain.shizuku.DeInitializeShizukuUseCase
-import com.merxury.blocker.core.domain.shizuku.InitializeShizukuUseCase
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType
@@ -135,10 +133,8 @@ class AppDetailViewModel @Inject constructor(
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val componentDetailRepository: IComponentDetailRepository,
-    @RootServiceControl private val rootServiceController: IServiceController,
+    @RootApiServiceControl private val rootApiServiceController: IServiceController,
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
-    private val initializeShizuku: InitializeShizukuUseCase,
-    private val deInitializeShizuku: DeInitializeShizukuUseCase,
     private val zipAllRuleUseCase: ZipAllRuleUseCase,
     private val zipAppRuleUseCase: ZipAppRuleUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -192,13 +188,6 @@ class AppDetailViewModel @Inject constructor(
         listenSortStateChange()
         listenComponentDetailChanges()
     }
-
-    override fun onCleared() {
-        super.onCleared()
-        viewModelScope.launch { deInitializeShizuku() }
-    }
-
-    fun initShizuku() = viewModelScope.launch { initializeShizuku() }
 
     fun search(keyword: String) {
         searchJob?.cancel()
@@ -369,7 +358,7 @@ class AppDetailViewModel @Inject constructor(
         val serviceController = if (userData.controllerType == SHIZUKU) {
             shizukuServiceController
         } else {
-            rootServiceController
+            rootApiServiceController
         }
         serviceController.load()
         return list.filter { it.name.contains(filterKeyword, ignoreCase = true) }
@@ -532,7 +521,7 @@ class AppDetailViewModel @Inject constructor(
             val serviceController = if (controllerType == SHIZUKU) {
                 shizukuServiceController
             } else {
-                rootServiceController
+                rootApiServiceController
             }
             serviceController.stopService(packageName, componentName)
             analyticsHelper.logStopServiceClicked()

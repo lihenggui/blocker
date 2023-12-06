@@ -42,6 +42,7 @@ import com.merxury.blocker.MainActivityUiState.Success
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.designsystem.theme.BlockerDynamicTheme
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.model.preference.DarkThemeConfig
@@ -64,6 +65,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var networkMonitor: NetworkMonitor
+
+    @Inject
+    lateinit var permissionMonitor: PermissionMonitor
 
     @Inject
     lateinit var analyticsHelper: AnalyticsHelper
@@ -147,6 +151,7 @@ class MainActivity : ComponentActivity() {
                 ) {
                     BlockerApp(
                         networkMonitor = networkMonitor,
+                        permissionMonitor = permissionMonitor,
                         windowSizeClass = calculateWindowSizeClass(this),
                         updateIconBasedThemingState = viewModel::updateIconBasedThemingState,
                     )
