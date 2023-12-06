@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration.Long
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -103,11 +104,20 @@ fun BlockerApp(
             val appPermission by appState.currentPermission.collectAsStateWithLifecycle()
             val noPermissionHint = stringResource(R.string.no_permission_hint)
             val shellPermissionHint = stringResource(R.string.shell_permission_hint)
+            val actionLabel = stringResource(R.string.close)
             LaunchedEffect(appPermission) {
                 if (appPermission == NO_PERMISSION) {
-                    snackbarHostState.showSnackbar(noPermissionHint)
+                    snackbarHostState.showSnackbar(
+                        message = noPermissionHint,
+                        actionLabel = actionLabel,
+                        duration = Long,
+                    )
                 } else if (appPermission == SHELL_USER) {
-                    snackbarHostState.showSnackbar(shellPermissionHint)
+                    snackbarHostState.showSnackbar(
+                        message = shellPermissionHint,
+                        actionLabel = actionLabel,
+                        duration = Long,
+                    )
                 }
             }
             Scaffold(
