@@ -99,6 +99,7 @@ class AppPermissionMonitor @Inject constructor(
                 rootApiAppController.init()
                 rootApiServiceController.init()
                 controllerStatus[PM] = ROOT_USER
+                Timber.d("Root api controller initialized")
             } catch (e: Exception) {
                 Timber.e(e, "Cannot initialize root api controller")
                 controllerStatus[PM] = NO_PERMISSION
