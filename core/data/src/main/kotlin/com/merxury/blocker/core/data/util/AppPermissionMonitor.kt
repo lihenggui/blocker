@@ -36,12 +36,14 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.transform
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 private const val SHELL_UID = 2000
 private const val ROOT_UID = 0
 
+@Singleton
 class AppPermissionMonitor @Inject constructor(
     userDataRepository: UserDataRepository,
     private val shizukuInitializer: ShizukuInitializer,
@@ -65,7 +67,7 @@ class AppPermissionMonitor @Inject constructor(
     private suspend fun initController(type: ControllerType) {
         Timber.d("Initialize controller: $type")
         if (type == SHIZUKU) {
-            if (controllerStatus[SHIZUKU] != NO_PERMISSION) {
+            if (controllerStatus[SHIZUKU] == ROOT_USER || controllerStatus[SHIZUKU] == SHELL_USER) {
                 Timber.i("No need to re-initialize shizuku controller")
                 return
             }
