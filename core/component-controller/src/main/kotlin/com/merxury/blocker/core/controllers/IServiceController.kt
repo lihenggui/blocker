@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.controllers
 
 interface IServiceController {
+    suspend fun init() = Unit
 
     /**
      * Loads the service list in the current system

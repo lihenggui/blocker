@@ -20,8 +20,12 @@ import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
-annotation class RootServiceControl
+annotation class RootCommandServiceControl
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class ShizukuServiceControl
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RootApiServiceControl

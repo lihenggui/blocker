@@ -44,6 +44,7 @@ import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.rememberBottomSheetNavigator
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.ui.TrackDisposableJank
 import com.merxury.blocker.feature.applist.navigation.navigateToAppList
 import com.merxury.blocker.feature.generalrules.navigation.navigateToGeneralRule
@@ -62,13 +63,28 @@ import kotlinx.coroutines.flow.stateIn
 fun rememberBlockerAppState(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
+    permissionMonitor: PermissionMonitor,
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
     bottomSheetNavigator: BottomSheetNavigator = rememberBottomSheetNavigator(),
     navController: NavHostController = rememberNavController(bottomSheetNavigator),
 ): BlockerAppState {
     NavigationTrackingSideEffect(navController)
-    return remember(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor) {
-        BlockerAppState(bottomSheetNavigator, navController, coroutineScope, windowSizeClass, networkMonitor)
+    return remember(
+        bottomSheetNavigator,
+        navController,
+        coroutineScope,
+        windowSizeClass,
+        networkMonitor,
+        permissionMonitor,
+    ) {
+        BlockerAppState(
+            bottomSheetNavigator,
+            navController,
+            coroutineScope,
+            windowSizeClass,
+            networkMonitor,
+            permissionMonitor,
+        )
     }
 }
 
@@ -80,6 +96,7 @@ class BlockerAppState(
     val coroutineScope: CoroutineScope,
     val windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
+    permissionMonitor: PermissionMonitor,
 ) {
     val currentDestination: NavDestination?
         @Composable get() = navController
@@ -130,6 +147,13 @@ class BlockerAppState(
             scope = coroutineScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = false,
+        )
+
+    val currentPermission = permissionMonitor.permissionStatus
+        .stateIn(
+            scope = coroutineScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null,
         )
 
     /**

@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.root
+package com.merxury.blocker.core.data.test
 
-import android.content.Intent
-import android.os.IBinder
-import com.topjohnwu.superuser.ipc.RootService
-import timber.log.Timber
+import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.PermissionStatus
+import com.merxury.blocker.core.data.util.PermissionStatus.ROOT_USER
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import javax.inject.Inject
 
-class BlockerRootService : RootService() {
-    override fun onBind(intent: Intent): IBinder {
-        Timber.d("RootService onBind")
-        throw UnsupportedOperationException("Not yet implemented")
-    }
+class AlwaysGrantedPermissionMonitor @Inject constructor() : PermissionMonitor {
+    override val permissionStatus: Flow<PermissionStatus> = flowOf(ROOT_USER)
 }
