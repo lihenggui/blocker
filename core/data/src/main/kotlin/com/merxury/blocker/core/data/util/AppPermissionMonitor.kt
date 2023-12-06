@@ -65,6 +65,10 @@ class AppPermissionMonitor @Inject constructor(
     private suspend fun initController(type: ControllerType) {
         Timber.d("Initialize controller: $type")
         if (type == SHIZUKU) {
+            if (controllerStatus[SHIZUKU] != NO_PERMISSION) {
+                Timber.i("No need to re-initialize shizuku controller")
+                return
+            }
             if (!shizukuInitializer.hasPermission()) {
                 suspendCoroutine { cont ->
                     shizukuInitializer.registerShizuku { granted, uid ->
