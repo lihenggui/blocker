@@ -33,4 +33,8 @@ class FakeShizukuInitializer : IShizukuInitializer {
     }
 
     override fun hasPermission(): Boolean = true
+
+    override fun getUid(): Int {
+        return 0
+    }
 }
