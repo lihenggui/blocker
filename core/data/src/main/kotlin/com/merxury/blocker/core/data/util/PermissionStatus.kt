@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.root
+package com.merxury.blocker.core.data.util
 
-import android.content.ComponentName
-import android.content.ServiceConnection
-import android.os.IBinder
-
-class RootConnection : ServiceConnection {
-    override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onServiceDisconnected(name: ComponentName?) {
-        TODO("Not yet implemented")
-    }
+enum class PermissionStatus {
+    ROOT_USER,
+    SHELL_USER,
+    NO_PERMISSION,
 }

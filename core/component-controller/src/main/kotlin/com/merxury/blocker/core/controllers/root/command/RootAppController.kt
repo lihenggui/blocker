@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.controllers.root
+package com.merxury.blocker.core.controllers.root.command
 
 import android.content.Context
 import com.merxury.blocker.core.controllers.IAppController
