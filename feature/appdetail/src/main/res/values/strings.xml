@@ -51,6 +51,8 @@
     <string name="feature_appdetail_rules_sharing_title">Rules sharing: %1$s</string>
     <string name="feature_appdetail_provide_additional_details">(Kindly provide additional details for your rules.)\n</string>
     <string name="feature_appdetail_all_rules">All rules</string>
+    <string name="feature_appdetail_app_info">App info</string>
+    <string name="feature_appdetail_app_info_with_libchecker_summary">Use LibChecker to view the app details</string>
     <string name="feature_appdetail_disabling_component_hint">Disabling components, please wait… (%1$d/%2$d)</string>
     <string name="feature_appdetail_enabling_component_hint">Enabling components, please wait… (%1$d/%2$d)</string>
 </resources>

@@ -51,6 +51,8 @@
     <string name="feature_appdetail_rules_sharing_title">Reglas de intercambio: %1$s</string>
     <string name="feature_appdetail_provide_additional_details">(Proporcione más detalles sobre sus políticas).\n</string>
     <string name="feature_appdetail_all_rules">Todas las reglas</string>
+    <string name="feature_appdetail_app_info">Información de la aplicación</string>
+    <string name="feature_appdetail_app_info_with_libchecker_summary">Use LibChecker para ver los detalles de la aplicación</string>
     <string name="feature_appdetail_disabling_component_hint">Desactivando componentes, por favor espere… (%1$d/%2$d)</string>
     <string name="feature_appdetail_enabling_component_hint">Habilitando componentes, por favor espere… (%1$d/%2$d)</string>
 </resources>

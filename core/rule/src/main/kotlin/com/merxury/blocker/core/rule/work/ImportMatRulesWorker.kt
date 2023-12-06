@@ -25,7 +25,7 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
+import com.merxury.blocker.core.controllers.root.command.RootController
 import com.merxury.blocker.core.controllers.shizuku.ShizukuController
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher

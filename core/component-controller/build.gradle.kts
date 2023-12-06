@@ -31,6 +31,9 @@ android {
             isIncludeAndroidResources = true
         }
     }
+    buildFeatures {
+        aidl = true
+    }
 }
 
 dependencies {
@@ -38,11 +41,14 @@ dependencies {
     implementation(projects.core.model)
     implementation(projects.core.ifwApi)
 
-    testImplementation(projects.core.testing)
+    implementation(libs.hiddenapibypass)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
+    implementation(libs.libsu.service)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
+
+    testImplementation(projects.core.testing)
 }

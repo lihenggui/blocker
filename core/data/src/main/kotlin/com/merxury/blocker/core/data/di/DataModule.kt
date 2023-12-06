@@ -30,8 +30,10 @@ import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepositor
 import com.merxury.blocker.core.data.respository.userdata.LocalAppPropertiesRepository
 import com.merxury.blocker.core.data.respository.userdata.LocalUserDataRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.data.util.AppPermissionMonitor
 import com.merxury.blocker.core.data.util.ConnectivityManagerNetworkMonitor
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -79,4 +81,9 @@ interface DataModule {
     fun bindLocalGeneralRuleDataSource(
         localGeneralRuleDataSource: LocalGeneralRuleDataSource,
     ): GeneralRuleDataSource
+
+    @Binds
+    fun bindPermissionMonitor(
+        permissionMonitor: AppPermissionMonitor,
+    ): PermissionMonitor
 }
