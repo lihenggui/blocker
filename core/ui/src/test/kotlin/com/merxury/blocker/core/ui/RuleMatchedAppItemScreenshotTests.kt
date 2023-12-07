@@ -20,6 +20,8 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
@@ -45,7 +47,7 @@ import kotlin.test.Test
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(application = HiltTestApplication::class, sdk = [33], qualifiers = "480dpi")
+@Config(application = HiltTestApplication::class, qualifiers = "480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
 class RuleMatchedAppItemScreenshotTests {
     @get:Rule
@@ -97,13 +99,8 @@ class RuleMatchedAppItemScreenshotTests {
         } else {
             "Blocker"
         }
-        val ruleMatchedApp = RuleMatchedApp(
-            app = AppItem(
-                packageName = "com.merxury.example",
-                label = label,
-                packageInfo = null,
-            ),
-            componentList = listOf(
+        val componentList = remember {
+            mutableStateListOf(
                 ComponentItem(
                     packageName = "com.merxury.example",
                     name = "com.merxury.example.MainActivity",
@@ -118,7 +115,15 @@ class RuleMatchedAppItemScreenshotTests {
                     type = PROVIDER,
                     pmBlocked = false,
                 ),
+            )
+        }
+        val ruleMatchedApp = RuleMatchedApp(
+            app = AppItem(
+                packageName = "com.merxury.example",
+                label = label,
+                packageInfo = null,
             ),
+            componentList = componentList,
         )
         MatchedAppItemHeader(
             ruleMatchedApp = ruleMatchedApp,

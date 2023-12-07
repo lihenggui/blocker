@@ -15,7 +15,7 @@
   ~ limitations under the License.
   -->
 <resources>
-    <string name="sync_work_notification_title">Blocker</string>
+    <string name="sync_work_notification_title" translatable="false">Blocker</string>
     <string name="sync_work_notification_channel_name">Sync</string>
     <string name="sync_work_notification_channel_description">Background sync for Blocker</string>
 </resources>

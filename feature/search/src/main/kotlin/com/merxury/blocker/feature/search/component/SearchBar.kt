@@ -19,13 +19,10 @@ package com.merxury.blocker.feature.search.component
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTopAppBar
@@ -34,19 +31,15 @@ import com.merxury.blocker.feature.search.R
 @Composable
 fun SearchBar(
     modifier: Modifier = Modifier,
-    keyword: TextFieldValue,
-    onSearchTextChanged: (TextFieldValue) -> Unit,
-    onClearClick: () -> Unit,
+    searchQuery: String = "",
+    onSearchQueryChanged: (String) -> Unit,
+    onSearchTriggered: (String) -> Unit,
 ) {
-    val colors = TextFieldDefaults.colors(
-        focusedIndicatorColor = Color.Transparent,
-        unfocusedIndicatorColor = Color.Transparent,
-    )
     BlockerTopAppBar(
         title = stringResource(id = R.string.feature_search_searching),
         actions = {
             BlockerSearchTextField(
-                keyword = keyword,
+                searchQuery = searchQuery,
                 placeholder = {
                     Text(
                         text = stringResource(id = R.string.feature_search_search_hint),
@@ -54,11 +47,10 @@ fun SearchBar(
                         overflow = TextOverflow.Ellipsis,
                     )
                 },
-                onValueChange = onSearchTextChanged,
-                onClearClick = onClearClick,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                onSearchQueryChanged = onSearchQueryChanged,
+                onSearchTriggered = onSearchTriggered,
                 modifier = modifier.fillMaxWidth(),
-                colors = colors,
             )
         },
     )

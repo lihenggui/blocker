@@ -17,7 +17,7 @@
 package com.merxury.blocker.feature.settings
 
 import android.Manifest.permission
-import android.content.Intent
+import android.content.ActivityNotFoundException
 import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -35,7 +35,7 @@ import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -84,6 +84,7 @@ import com.merxury.blocker.feature.settings.item.BlockerSettings
 import com.merxury.blocker.feature.settings.item.IfwRulesSettings
 import com.merxury.blocker.feature.settings.item.ThemeSettings
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import com.merxury.blocker.core.rule.R.string as CoreRuleR
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -99,6 +100,7 @@ fun SettingsRoute(
     SettingsScreen(
         onNavigationClick = onNavigationClick,
         uiState = settingsUiState,
+        snackbarHostState = snackbarHostState,
         onChangeControllerType = viewModel::updateControllerType,
         onChangeRuleServerProvider = viewModel::updateRuleServerProvider,
         onChangeAppDisplayLanguage = viewModel::updateAppDisplayLanguage,
@@ -170,6 +172,7 @@ fun SettingsRoute(
 fun SettingsScreen(
     uiState: SettingsUiState,
     modifier: Modifier = Modifier,
+    snackbarHostState: SnackbarHostState = SnackbarHostState(),
     onNavigationClick: () -> Unit = { },
     onChangeControllerType: (ControllerType) -> Unit = { },
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit = { },
@@ -219,6 +222,7 @@ fun SettingsScreen(
                     SettingsContent(
                         settings = uiState.settings,
                         supportDynamicColor = supportsDynamicTheming(),
+                        snackbarHostState = snackbarHostState,
                         onChangeControllerType = onChangeControllerType,
                         onChangeRuleServerProvider = onChangeRuleServerProvider,
                         onChangeAppDisplayLanguage = onChangeAppDisplayLanguage,
@@ -247,6 +251,7 @@ fun SettingsScreen(
 fun SettingsContent(
     settings: UserEditableSettings,
     supportDynamicColor: Boolean,
+    snackbarHostState: SnackbarHostState,
     modifier: Modifier = Modifier,
     onChangeControllerType: (ControllerType) -> Unit = { },
     onChangeRuleServerProvider: (RuleServerProvider) -> Unit = { },
@@ -267,6 +272,7 @@ fun SettingsContent(
     importMatRules: (Uri?) -> Unit = { },
 ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val getMatFileResult = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocument(),
         onResult = { importMatRules(it) },
@@ -283,7 +289,7 @@ fun SettingsContent(
             onChangeAppDisplayLanguage = onChangeAppDisplayLanguage,
             onChangeLibDisplayLanguage = onChangeLibDisplayLanguage,
         )
-        HorizontalDivider()
+        Divider()
         ThemeSettings(
             modifier = modifier,
             settings = settings,
@@ -291,39 +297,45 @@ fun SettingsContent(
             onChangeDynamicColorPreference = onChangeDynamicColorPreference,
             onChangeDarkThemeConfig = onChangeDarkThemeConfig,
         )
-        HorizontalDivider()
+        Divider()
         AppListSettings(
             showSystemApps = settings.showSystemApps,
             showServiceInfo = settings.showServiceInfo,
             onChangeShowSystemApps = onChangeShowSystemApps,
             onChangeShowServiceInfo = onChangeShowServiceInfo,
         )
-        HorizontalDivider()
+        Divider()
         BackupSettings(
             backupSystemApps = settings.backupSystemApp,
             restoreSystemApp = settings.restoreSystemApp,
             ruleBackupFolder = settings.ruleBackupFolder,
+            snackbarHostState = snackbarHostState,
             onChangeBackupSystemApp = onChangeBackupSystemApp,
             onChangeRestoreSystemApp = onChangeRestoreSystemApp,
             onChangeRuleBackupFolder = onChangeRuleBackupFolder,
         )
-        HorizontalDivider()
+        Divider()
         BlockerRulesSettings(exportRules = exportRules, importRules = importRules)
-        HorizontalDivider()
+        Divider()
         IfwRulesSettings(
             exportIfwRules = exportIfwRules,
             importIfwRules = importIfwRules,
             resetIfwRules = resetIfwRules,
         )
-        HorizontalDivider()
+        Divider()
         BlockerSettingItem(
             title = stringResource(id = string.feature_settings_import_mat_rules),
             onItemClick = {
-                val intent = Intent(Intent.ACTION_GET_CONTENT)
-                intent.addCategory(Intent.CATEGORY_OPENABLE)
-                intent.type = "*/*"
-                if (intent.resolveActivity(context.packageManager) != null) {
+                try {
                     getMatFileResult.launch(arrayOf("*/*"))
+                } catch (e: ActivityNotFoundException) {
+                    Timber.e(e, "No activity found to handle the OpenDocument() intent")
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(string.feature_settings_file_manager_required),
+                            duration = SnackbarDuration.Short,
+                        )
+                    }
                 }
             },
             extraIconPadding = true,

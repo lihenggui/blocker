@@ -24,11 +24,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.pluralStringResource
@@ -116,7 +117,7 @@ fun MatchedAppItemHeader(
             menuList = items,
         )
     }
-    HorizontalDivider(modifier = modifier)
+    Divider(modifier = modifier)
 }
 
 @Composable
@@ -143,7 +144,9 @@ private fun MatchedAppInfo(
 @ThemePreviews
 fun MatchedAppItemHeaderPreview() {
     val appList = AppListPreviewParameterProvider().values.first()
-    val components = ComponentListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values
+        .first()
+        .toMutableStateList()
     val ruleMatchedApp = RuleMatchedApp(
         app = appList[0],
         componentList = components,
@@ -161,7 +164,9 @@ fun MatchedAppItemHeaderPreview() {
 @ThemePreviews
 fun MatchedAppItemHeaderLongNamePreview() {
     val appList = AppListPreviewParameterProvider().values.first()
-    val components = ComponentListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values
+        .first()
+        .toMutableStateList()
     val ruleMatchedApp = RuleMatchedApp(
         app = appList[2],
         componentList = components,

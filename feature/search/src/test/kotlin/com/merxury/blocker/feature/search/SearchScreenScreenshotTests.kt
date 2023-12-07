@@ -20,7 +20,6 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.text.input.TextFieldValue
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.RECEIVER
@@ -50,7 +49,7 @@ import java.util.TimeZone
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(application = HiltTestApplication::class, sdk = [33])
+@Config(application = HiltTestApplication::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class SearchScreenScreenshotTests {
     @get:Rule
@@ -252,7 +251,7 @@ class SearchScreenScreenshotTests {
                     ),
                     tabState = tabState[0],
                     searchUiState = SearchUiState(
-                        keyword = TextFieldValue(keyword),
+                        keyword = keyword,
                     ),
                 )
             }
@@ -278,7 +277,7 @@ class SearchScreenScreenshotTests {
                     ),
                     tabState = tabState[1],
                     searchUiState = SearchUiState(
-                        keyword = TextFieldValue(keyword),
+                        keyword = keyword,
                     ),
                 )
             }
@@ -298,7 +297,7 @@ class SearchScreenScreenshotTests {
                     ),
                     tabState = tabState[2],
                     searchUiState = SearchUiState(
-                        keyword = TextFieldValue(keyword),
+                        keyword = keyword,
                     ),
                 )
             }
@@ -324,7 +323,7 @@ class SearchScreenScreenshotTests {
                     ),
                     tabState = tabState[1],
                     searchUiState = SearchUiState(
-                        keyword = TextFieldValue(keyword),
+                        keyword = keyword,
                         isSelectedMode = true,
                         selectedComponentList = listOf(
                             components[0].toComponentInfo(),
@@ -382,7 +381,7 @@ class SearchScreenScreenshotTests {
                     ),
                     tabState = tabState[3],
                     searchUiState = SearchUiState(
-                        keyword = TextFieldValue(keyword),
+                        keyword = keyword,
                     ),
                 )
             }

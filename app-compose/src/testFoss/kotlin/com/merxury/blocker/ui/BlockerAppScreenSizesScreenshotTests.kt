@@ -35,6 +35,7 @@ import androidx.work.testing.WorkManagerTestInitHelper
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.uitesthiltmanifest.HiltComponentActivity
 import dagger.hilt.android.testing.BindValue
@@ -61,7 +62,7 @@ import javax.inject.Inject
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 // Configure Robolectric to use a very large screen size that can fit all of the test sizes.
 // This allows enough room to render the content under test without clipping or scaling.
-@Config(application = HiltTestApplication::class, qualifiers = "w1000dp-h1000dp-480dpi", sdk = [33])
+@Config(application = HiltTestApplication::class, qualifiers = "w1000dp-h1000dp-480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
 @HiltAndroidTest
 class BlockerAppScreenSizesScreenshotTests {
@@ -88,6 +89,9 @@ class BlockerAppScreenSizesScreenshotTests {
 
     @Inject
     lateinit var networkMonitor: NetworkMonitor
+
+    @Inject
+    lateinit var permissionMonitor: PermissionMonitor
 
     @Before
     fun setup() {
@@ -123,6 +127,7 @@ class BlockerAppScreenSizesScreenshotTests {
                                 DpSize(maxWidth, maxHeight),
                             ),
                             networkMonitor = networkMonitor,
+                            permissionMonitor = permissionMonitor,
                         )
                     }
                 }

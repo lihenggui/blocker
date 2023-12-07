@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<?xml version="1.0" encoding="utf-8"?>
+<!--
   ~ Copyright 2023 Blocker
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,10 +13,11 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-
-<resources>
-    <string name="apps">Программы</string>
+  --><resources>
+    <string name="apps">Приложения</string>
     <string name="search">Поиск</string>
     <string name="rules">Правила</string>
+    <string name="no_permission_hint">Не удалось получить разрешение, приложение может работать некорректно.</string>
+    <string name="shell_permission_hint">Предоставлено разрешение оболочки. Компоненты управления могут работать некорректно.</string>
+    <string name="close">Закрыть</string>
 </resources>

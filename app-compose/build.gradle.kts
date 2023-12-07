@@ -23,10 +23,11 @@ plugins {
     alias(libs.plugins.blocker.android.application.jacoco)
     alias(libs.plugins.blocker.android.hilt)
     alias(libs.plugins.blocker.android.application.firebase)
+    alias(libs.plugins.ksp)
     id("jacoco")
     id("kotlin-parcelize")
     id("com.google.android.gms.oss-licenses-plugin")
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -52,7 +53,7 @@ android {
         debug {
             applicationIdSuffix = BlockerBuildType.DEBUG.applicationIdSuffix
         }
-        val release by getting {
+        val release = getByName("release") {
             isMinifyEnabled = true
             applicationIdSuffix = BlockerBuildType.RELEASE.applicationIdSuffix
             proguardFiles(
@@ -72,6 +73,8 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+            // Ensure Baseline Profile is fresh for release builds.
+            baselineProfile.automaticGenerationDuringBuild = true
         }
         create("benchmark") {
             // Enable all the optimizations from release build through initWith(release).
@@ -148,10 +151,13 @@ dependencies {
     implementation(libs.coil.kt)
     implementation(libs.coil.kt.svg)
     implementation(libs.hilt.ext.work)
+    implementation(libs.hiddenapibypass)
     implementation(libs.kotlinx.coroutines.guava)
     implementation(libs.kotlinx.datetime)
     implementation(libs.libsu.core)
     implementation(libs.timber)
+
+    baselineProfile(projects.benchmarks)
 
     // Core functions
     testImplementation(projects.core.testing)
@@ -163,4 +169,14 @@ dependencies {
     testImplementation(kotlin("test"))
     implementation(libs.androidx.work.testing)
     kspTest(libs.hilt.compiler)
+}
+
+baselineProfile {
+    // Don't build on every iteration of a full assemble.
+    // Instead enable generation directly for the release build variant.
+    automaticGenerationDuringBuild = false
+}
+
+dependencyGuard {
+    configuration("marketReleaseRuntimeClasspath")
 }

@@ -22,10 +22,3 @@ data class AppServiceStatus(
     val blocked: Int = 0,
     val total: Int = 0,
 )
-
-fun AppState.toAppServiceStatus() = AppServiceStatus(
-    packageName = packageName,
-    running = running,
-    blocked = blocked,
-    total = total,
-)

@@ -21,8 +21,10 @@ import android.content.Context
 import android.content.pm.ComponentInfo
 import android.content.pm.IPackageManager
 import android.content.pm.PackageManager
+import android.os.Build
 import com.merxury.blocker.core.controllers.IController
 import com.merxury.blocker.core.utils.ApplicationUtil
+import com.merxury.blocker.core.utils.ContextUtils.userId
 import dagger.hilt.android.qualifiers.ApplicationContext
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
@@ -31,22 +33,36 @@ import javax.inject.Inject
 class ShizukuController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IController {
-    private var pm: IPackageManager? = null
+    private val pm: IPackageManager by lazy {
+        IPackageManager.Stub.asInterface(
+            ShizukuBinderWrapper(
+                SystemServiceHelper.getSystemService("package"),
+            ),
+        )
+    }
 
     override suspend fun switchComponent(
         packageName: String,
         componentName: String,
         state: Int,
     ): Boolean {
-        if (pm == null) {
-            pm = IPackageManager.Stub.asInterface(
-                ShizukuBinderWrapper(
-                    SystemServiceHelper.getSystemService("package"),
-                ),
+        // 0 means kill the application
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            pm.setComponentEnabledSetting(
+                ComponentName(packageName, componentName),
+                state,
+                0,
+                context.userId,
+                context.packageName,
+            )
+        } else {
+            pm.setComponentEnabledSetting(
+                ComponentName(packageName, componentName),
+                state,
+                0,
+                context.userId,
             )
         }
-        // 0 means kill the application
-        pm?.setComponentEnabledSetting(ComponentName(packageName, componentName), state, 0, 0)
         return true
     }
 

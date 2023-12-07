@@ -42,7 +42,7 @@ import java.util.TimeZone
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(application = HiltTestApplication::class, sdk = [33])
+@Config(application = HiltTestApplication::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class AppListScreenScreenshotTests {
     @get:Rule
@@ -135,7 +135,7 @@ class AppListScreenScreenshotTests {
         val appList = AppListPreviewParameterProvider().values.first()
         BlockerTheme {
             Surface {
-                AppListScreen(uiState = Success, appList = appList)
+                AppListScreen(uiState = Success(), appList = appList)
             }
         }
     }
@@ -162,7 +162,7 @@ class AppListScreenScreenshotTests {
     private fun AppListEmptyScreen() {
         BlockerTheme {
             Surface {
-                AppListScreen(uiState = Success, appList = listOf())
+                AppListScreen(uiState = Success(), appList = listOf())
             }
         }
     }

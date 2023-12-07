@@ -47,7 +47,7 @@ import java.util.TimeZone
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(application = HiltTestApplication::class, sdk = [33])
+@Config(application = HiltTestApplication::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class AppDetailScreenScreenshotTests {
     @get:Rule
@@ -80,6 +80,25 @@ class AppDetailScreenScreenshotTests {
             darkMode = true,
         ) {
             AppDetailScreen()
+        }
+    }
+
+    @Test
+    fun appDetailWithLibCheckerScreen() {
+        composeTestRule.captureMultiDevice("AppDetailWithLibCheckerScreen") {
+            AppDetailScreen(isLibCheckerInstalled = true)
+        }
+    }
+
+    @Test
+    fun appDetailWithLibCheckerScreen_dark() {
+        composeTestRule.captureForDevice(
+            deviceName = "phone_dark",
+            deviceSpec = DefaultTestDevices.PHONE.spec,
+            screenshotName = "AppDetailWithLibCheckerScreen",
+            darkMode = true,
+        ) {
+            AppDetailScreen(isLibCheckerInstalled = true)
         }
     }
 
@@ -179,11 +198,15 @@ class AppDetailScreenScreenshotTests {
     }
 
     @Composable
-    private fun AppDetailScreen() {
+    private fun AppDetailScreen(isLibCheckerInstalled: Boolean = false) {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                    appInfoUiState = Success(
+                        appInfo = appList[0],
+                        iconBasedTheming = null,
+                        isLibCheckerInstalled = isLibCheckerInstalled,
+                    ),
                     componentListUiState = ComponentListUiState(),
                     tabState = tabState[0],
                     topAppBarUiState = AppBarUiState(),

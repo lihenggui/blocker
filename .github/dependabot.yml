@@ -19,6 +19,14 @@ updates:
           - "com.google.devtools.ksp"
           - "com.google.devtools.ksp.gradle.plugin"
           - "androidx.compose.compiler:compiler"
+      gradle-plugin-and-build-tools:
+        patterns:
+          - "com.android.tools.build:gradle"
+          - "com.android.tools:common"
+          - "com.android.tools.lint:*"
+          - "com.android.application"
+          - "com.android.library"
+          - "com.android.test"
 registries:
   maven-google:
     type: "maven-repository"

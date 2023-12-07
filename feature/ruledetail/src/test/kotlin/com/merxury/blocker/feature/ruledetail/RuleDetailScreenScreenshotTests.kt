@@ -19,6 +19,9 @@ package com.merxury.blocker.feature.ruledetail
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
@@ -30,8 +33,7 @@ import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParamete
 import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Success
+import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import dagger.hilt.android.testing.HiltTestApplication
@@ -47,14 +49,16 @@ import java.util.TimeZone
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(application = HiltTestApplication::class, sdk = [33])
+@Config(application = HiltTestApplication::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class RuleDetailScreenScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     private val ruleList = RuleListPreviewParameterProvider().values.first()
-    private val components = ComponentListPreviewParameterProvider().values.first()
+    private val components = ComponentListPreviewParameterProvider().values
+        .first()
+        .toMutableStateList()
     private val appList = AppListPreviewParameterProvider().values.first()
     private val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
@@ -164,17 +168,19 @@ class RuleDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 RuleDetailScreen(
-                    ruleMatchedAppListUiState = Success(
-                        list = listOf(
-                            RuleMatchedApp(
-                                app = appList.first(),
-                                componentList = components,
-                            ),
-                        ),
-                    ),
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
                         ruleIcon = null,
+                        matchedAppsUiState = RuleMatchedAppListUiState.Success(
+                            list = remember {
+                                mutableStateListOf(
+                                    RuleMatchedApp(
+                                        app = appList.first(),
+                                        componentList = components,
+                                    ),
+                                )
+                            },
+                        ),
                     ),
                     tabState = tabState[0],
                     appBarUiState = AppBarUiState(
@@ -192,17 +198,19 @@ class RuleDetailScreenScreenshotTests {
         BlockerTheme(darkTheme = true) {
             Surface {
                 RuleDetailScreen(
-                    ruleMatchedAppListUiState = Success(
-                        list = listOf(
-                            RuleMatchedApp(
-                                app = appList.first(),
-                                componentList = components,
-                            ),
-                        ),
-                    ),
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
                         ruleIcon = null,
+                        matchedAppsUiState = RuleMatchedAppListUiState.Success(
+                            list = remember {
+                                mutableStateListOf(
+                                    RuleMatchedApp(
+                                        app = appList.first(),
+                                        componentList = components,
+                                    ),
+                                )
+                            },
+                        ),
                     ),
                     tabState = tabState[1],
                 )
@@ -215,10 +223,10 @@ class RuleDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 RuleDetailScreen(
-                    ruleMatchedAppListUiState = Loading,
                     ruleInfoUiState = RuleInfoUiState.Success(
                         ruleInfo = ruleList.first(),
                         ruleIcon = null,
+                        matchedAppsUiState = RuleMatchedAppListUiState.Loading,
                     ),
                     tabState = tabState[1],
                 )
@@ -231,7 +239,6 @@ class RuleDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 RuleDetailScreen(
-                    ruleMatchedAppListUiState = Loading,
                     ruleInfoUiState = RuleInfoUiState.Loading,
                     tabState = tabState[0],
                 )
@@ -244,7 +251,6 @@ class RuleDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 RuleDetailScreen(
-                    ruleMatchedAppListUiState = Loading,
                     ruleInfoUiState = RuleInfoUiState.Error(
                         error = UiMessage("Error"),
                     ),

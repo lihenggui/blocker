@@ -26,6 +26,7 @@ import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -38,6 +39,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -65,21 +70,18 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.merxury.blocker.core.designsystem.component.AutoResizeText
 import com.merxury.blocker.core.designsystem.component.BlockerCollapsingTopAppBar
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
 import com.merxury.blocker.core.designsystem.component.BlockerScrollableTabRow
 import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
-import com.merxury.blocker.core.designsystem.component.FontSizeRange
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
@@ -206,6 +208,8 @@ fun AppDetailRoute(
                 }
             }
         },
+        onShowAppInfoClick = { viewModel.showAppInfo(context) },
+        onRefresh = viewModel::loadComponentList,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -244,9 +248,6 @@ fun AppDetailRoute(
             }
         }
     }
-    LaunchedEffect(Unit) {
-        viewModel.initShizuku()
-    }
 }
 
 @SuppressLint("WrongConstant", "QueryPermissionsNeeded")
@@ -255,7 +256,6 @@ private fun shareFile(
     rule: ZippedRule,
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
-
 ) {
     val zippedFile = rule.zippedFile
     if (zippedFile == null) {
@@ -311,10 +311,11 @@ fun AppDetailScreen(
     onLaunchAppClick: (String) -> Unit = {},
     switchTab: (AppDetailTabs) -> Unit = {},
     navigateToComponentDetail: (String) -> Unit = {},
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -335,6 +336,7 @@ fun AppDetailScreen(
     onDeselect: (ComponentInfo) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
+    onRefresh: () -> Unit = {},
 ) {
     when (appInfoUiState) {
         is Loading -> {
@@ -357,6 +359,7 @@ fun AppDetailScreen(
                 onSearchModeChanged = onSearchModeChanged,
                 enableAllComponents = enableAllComponents,
                 blockAllComponents = blockAllComponents,
+                onShowAppInfoClick = onShowAppInfoClick,
                 onExportRules = onExportRules,
                 onImportRules = onImportRules,
                 onExportIfw = onExportIfw,
@@ -377,6 +380,8 @@ fun AppDetailScreen(
                 onDeselect = onDeselect,
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
+                onRefresh = onRefresh,
+                isLibCheckerInstalled = appInfoUiState.isLibCheckerInstalled,
             )
         }
 
@@ -397,7 +402,8 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     navigateToComponentDetail: (String) -> Unit = {},
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
@@ -421,6 +427,8 @@ fun AppDetailContent(
     onDeselect: (ComponentInfo) -> Unit = {},
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
+    onRefresh: () -> Unit = {},
+    isLibCheckerInstalled: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -499,6 +507,7 @@ fun AppDetailContent(
                     )
                 },
             navigateToComponentDetail = navigateToComponentDetail,
+            onShowAppInfoClick = onShowAppInfoClick,
             onExportRules = onExportRules,
             onImportRules = onImportRules,
             onExportIfw = onExportIfw,
@@ -511,6 +520,9 @@ fun AppDetailContent(
             onCopyFullNameClick = onCopyFullNameClick,
             onSelect = onSelect,
             onDeselect = onDeselect,
+            onRefresh = onRefresh,
+            isRefreshing = componentListUiState.isRefreshing,
+            isLibCheckerInstalled = isLibCheckerInstalled,
         )
     }
 }
@@ -518,7 +530,7 @@ fun AppDetailContent(
 @Composable
 fun AppDetailAppBarActions(
     appBarUiState: AppBarUiState,
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChange: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
@@ -539,20 +551,13 @@ fun AppDetailAppBarActions(
             if (appBarUiState.isSearchMode) {
                 BlockerSearchTextField(
                     modifier = Modifier.weight(1f),
-                    keyword = appBarUiState.keyword,
-                    onValueChange = onSearchTextChanged,
+                    searchQuery = appBarUiState.keyword,
+                    onSearchQueryChanged = onSearchTextChanged,
+                    onSearchTriggered = onSearchTextChanged,
                     placeholder = {
-                        AutoResizeText(
+                        Text(
                             text = stringResource(id = string.feature_appdetail_search_components),
-                            fontSizeRange = FontSizeRange(1.sp, 16.sp),
                         )
-                    },
-                    onClearClick = {
-                        if (appBarUiState.keyword.text.isEmpty()) {
-                            onSearchModeChange(false)
-                            return@BlockerSearchTextField
-                        }
-                        onSearchTextChanged(TextFieldValue())
                     },
                 )
             } else {
@@ -590,7 +595,7 @@ private fun TopAppBar(
     app: AppItem,
     topAppBarUiState: AppBarUiState,
     toolbarState: ToolbarState,
-    onSearchTextChanged: (TextFieldValue) -> Unit = {},
+    onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
@@ -653,7 +658,7 @@ private fun TopAppBar(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun AppDetailTabContent(
     modifier: Modifier = Modifier,
@@ -664,6 +669,7 @@ fun AppDetailTabContent(
     selectedComponentList: List<ComponentInfo> = emptyList(),
     isSelectedMode: Boolean = false,
     navigateToComponentDetail: (String) -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -676,14 +682,17 @@ fun AppDetailTabContent(
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     onSelect: (ComponentInfo) -> Unit = {},
     onDeselect: (ComponentInfo) -> Unit = {},
+    onRefresh: () -> Unit = {},
+    isRefreshing: Boolean = false,
+    isLibCheckerInstalled: Boolean = false,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
     LaunchedEffect(tabState) {
         pagerState.animateScrollToPage(tabState.currentIndex)
     }
-    LaunchedEffect(pagerState.targetPage) {
-        switchTab(tabState.items[pagerState.targetPage])
+    LaunchedEffect(pagerState.settledPage) {
+        switchTab(tabState.items[pagerState.settledPage])
     }
 
     Column(
@@ -717,6 +726,8 @@ fun AppDetailTabContent(
             when (tabState.items[it]) {
                 Info -> SummaryContent(
                     app = app,
+                    isLibCheckerInstalled = isLibCheckerInstalled,
+                    onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
                     onExportIfw = onExportIfw,
@@ -732,19 +743,34 @@ fun AppDetailTabContent(
                         Provider -> componentListUiState.provider
                         else -> emptyList()
                     }
-                    ComponentList(
-                        components = components,
-                        selectedComponentList = selectedComponentList,
-                        isSelectedMode = isSelectedMode,
-                        navigateToComponentDetail = navigateToComponentDetail,
-                        onSwitchClick = onSwitchClick,
-                        onStopServiceClick = onStopServiceClick,
-                        onLaunchActivityClick = onLaunchActivityClick,
-                        onCopyNameClick = onCopyNameClick,
-                        onCopyFullNameClick = onCopyFullNameClick,
-                        onSelect = onSelect,
-                        onDeselect = onDeselect,
+                    val refreshingState = rememberPullRefreshState(
+                        refreshing = isRefreshing,
+                        onRefresh = onRefresh,
                     )
+                    Box(
+                        modifier = Modifier
+                            .pullRefresh(refreshingState),
+                    ) {
+                        ComponentList(
+                            components = components,
+                            selectedComponentList = selectedComponentList,
+                            isSelectedMode = isSelectedMode,
+                            navigateToComponentDetail = navigateToComponentDetail,
+                            onSwitchClick = onSwitchClick,
+                            onStopServiceClick = onStopServiceClick,
+                            onLaunchActivityClick = onLaunchActivityClick,
+                            onCopyNameClick = onCopyNameClick,
+                            onCopyFullNameClick = onCopyFullNameClick,
+                            onSelect = onSelect,
+                            onDeselect = onDeselect,
+                        )
+                        PullRefreshIndicator(
+                            refreshing = isRefreshing,
+                            state = refreshingState,
+                            modifier = Modifier.align(Alignment.TopCenter),
+                            scale = true,
+                        )
+                    }
                 }
             }
         }
@@ -761,7 +787,33 @@ fun AppDetailScreenPreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                appInfoUiState = Success(
+                    appInfo = appList[0],
+                    iconBasedTheming = null,
+                ),
+                componentListUiState = ComponentListUiState(),
+                tabState = tabState[0],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun AppDetailScreenWithLibCheckerPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = Success(
+                    appInfo = appList[0],
+                    iconBasedTheming = null,
+                    isLibCheckerInstalled = true,
+                ),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),

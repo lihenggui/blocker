@@ -35,7 +35,7 @@ import org.robolectric.annotation.LooperMode
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(application = HiltTestApplication::class, sdk = [33], qualifiers = "480dpi")
+@Config(application = HiltTestApplication::class, qualifiers = "480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
 class IconButtonScreenshotTests {
     @get:Rule
@@ -43,7 +43,7 @@ class IconButtonScreenshotTests {
 
     @Test
     fun iconButton_multipleThemes() {
-        composeTestRule.captureMultiTheme("IconButton") { description ->
+        composeTestRule.captureMultiTheme("IconButton") {
             Surface {
                 BlockerIconToggleExample(false)
             }
@@ -52,7 +52,7 @@ class IconButtonScreenshotTests {
 
     @Test
     fun iconButton_unchecked_multipleThemes() {
-        composeTestRule.captureMultiTheme("IconButton", "IconButtonUnchecked") { description ->
+        composeTestRule.captureMultiTheme("IconButton", "IconButtonUnchecked") {
             Surface {
                 BlockerIconToggleExample(true)
             }

@@ -20,6 +20,7 @@ import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import androidx.compose.runtime.toMutableStateList
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -29,18 +30,19 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.size.Scale
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.controllers.shizuku.ShizukuInitializer
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
-import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
@@ -52,8 +54,6 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Success
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
@@ -61,12 +61,13 @@ import com.merxury.blocker.feature.ruledetail.navigation.RuleIdArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -83,14 +84,11 @@ class RuleDetailViewModel @Inject constructor(
     private val userDataRepository: UserDataRepository,
     private val componentRepository: ComponentRepository,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
-    private val shizukuInitializer: ShizukuInitializer,
+    @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
+    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
     private val analyticsHelper: AnalyticsHelper,
 ) : ViewModel() {
     private val ruleIdArgs: RuleIdArgs = RuleIdArgs(savedStateHandle)
-    private val _ruleMatchedAppListUiState: MutableStateFlow<RuleMatchedAppListUiState> =
-        MutableStateFlow(Loading)
-    val ruleMatchedAppListUiState: StateFlow<RuleMatchedAppListUiState> =
-        _ruleMatchedAppListUiState
     private val _ruleInfoUiState: MutableStateFlow<RuleInfoUiState> =
         MutableStateFlow(RuleInfoUiState.Loading)
     val ruleInfoUiState: StateFlow<RuleInfoUiState> = _ruleInfoUiState
@@ -114,66 +112,67 @@ class RuleDetailViewModel @Inject constructor(
     private val _appBarUiState = MutableStateFlow(AppBarUiState(actions = getAppBarAction()))
     val appBarUiState: StateFlow<AppBarUiState> = _appBarUiState.asStateFlow()
     private var currentSearchKeyword: List<String> = emptyList()
+    private var loadRuleDetailJob: Job? = null
+    private var controlComponentJob: Job? = null
 
     init {
         loadTabInfo()
         loadData()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        deinitShizuku()
-    }
-
-    fun initShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.registerShizuku()
+    private fun loadData() {
+        loadRuleDetailJob?.cancel()
+        loadRuleDetailJob = viewModelScope.launch {
+            val context: Context = appContext
+            val ruleId = ruleIdArgs.ruleId
+            val baseUrl = userDataRepository.userData
+                .first()
+                .ruleServerProvider
+                .baseUrl
+            val rule = ruleRepository.getGeneralRule(ruleId)
+                .first()
+            val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
+            _ruleInfoUiState.update {
+                RuleInfoUiState.Success(
+                    ruleInfo = ruleWithIcon,
+                    ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
+                    matchedAppsUiState = RuleMatchedAppListUiState.Loading,
+                )
+            }
+            currentSearchKeyword = rule.searchKeyword
+            loadMatchedApps(rule.searchKeyword)
         }
     }
 
-    private fun deinitShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.unregisterShizuku()
+    fun controlAllComponentsInPage(enable: Boolean) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch {
+            // Make sure that the user is in the correct state
+            val ruleUiList = _ruleInfoUiState.value
+            if (ruleUiList !is RuleInfoUiState.Success) {
+                Timber.e("Rule info is not ready")
+                return@launch
+            }
+            val matchedAppState = ruleUiList.matchedAppsUiState
+            if (matchedAppState !is RuleMatchedAppListUiState.Success) {
+                Timber.e("Matched app list is not ready")
+                return@launch
+            }
+            val list = matchedAppState.list
+                .flatMap { it.componentList }
+            controlAllComponents(list, enable)
+            analyticsHelper.logControlAllInPageClicked(newState = enable)
         }
     }
 
-    private fun loadData() = viewModelScope.launch {
-        val context: Context = appContext
-        val ruleId = ruleIdArgs.ruleId
-        val baseUrl = userDataRepository.userData
-            .first()
-            .ruleServerProvider
-            .baseUrl
-        val rule = ruleRepository.getGeneralRule(ruleId)
-            .first()
-        val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
-        _ruleInfoUiState.update {
-            RuleInfoUiState.Success(
-                ruleInfo = ruleWithIcon,
-                ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
-            )
+    fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch {
+            list.toMutableList().forEach {
+                controlComponentInternal(it.packageName, it.name, enable)
+            }
+            analyticsHelper.logControlAllComponentsClicked(newState = enable)
         }
-        currentSearchKeyword = rule.searchKeyword
-        loadMatchedApps(rule.searchKeyword)
-    }
-
-    fun controlAllComponentsInPage(enable: Boolean) = viewModelScope.launch {
-        val uiState = _ruleMatchedAppListUiState.value as? Success
-            ?: return@launch
-        val list = uiState.list
-            .flatMap { it.componentList }
-        controlAllComponents(list, enable)
-        analyticsHelper.logControlAllInPageClicked(newState = enable)
-    }
-
-    fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) = viewModelScope.launch {
-        list.forEach {
-            controlComponentInternal(it.packageName, it.name, enable)
-        }
-        loadMatchedApps(currentSearchKeyword)
-        analyticsHelper.logControlAllComponentsClicked(newState = enable)
     }
 
     private suspend fun loadMatchedApps(keywords: List<String>) {
@@ -186,15 +185,30 @@ class RuleDetailViewModel @Inject constructor(
         val showSystemApps = userDataRepository.userData.first().showSystemApps
         val searchResult = matchedComponents.groupBy { it.packageName }
             .mapNotNull { (packageName, components) ->
-                val app =
-                    appRepository.getApplication(packageName).first() ?: return@mapNotNull null
+                val app = appRepository.getApplication(packageName).first()
+                    ?: return@mapNotNull null
                 if (!showSystemApps && app.isSystem) return@mapNotNull null
                 val packageInfo = pm.getPackageInfoCompat(packageName, 0)
                 val appItem = app.toAppItem(packageInfo = packageInfo)
-                val searchedComponentItem = components.map { it.toComponentItem() }
+                val searchedComponentItem = components
+                    .toSet() // Remove duplicate components caused by multiple keywords
+                    .map { it.toComponentItem() }
+                    .toMutableStateList()
                 RuleMatchedApp(appItem, searchedComponentItem)
             }
-        _ruleMatchedAppListUiState.emit(Success(searchResult))
+            .toMutableStateList()
+        withContext(mainDispatcher) {
+            _ruleInfoUiState.update {
+                val matchedApps = RuleMatchedAppListUiState.Success(searchResult)
+                if (it is RuleInfoUiState.Success) {
+                    it.copy(matchedAppsUiState = matchedApps)
+                } else {
+                    // Unreachable code
+                    Timber.e("Updating matched apps when rule info is not ready")
+                    RuleInfoUiState.Error(UiMessage("Wrong UI state"))
+                }
+            }
+        }
     }
 
     fun switchTab(newTab: RuleDetailTabs) {
@@ -235,10 +249,52 @@ class RuleDetailViewModel @Inject constructor(
         packageName: String,
         componentName: String,
         enabled: Boolean,
-    ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        controlComponentInternal(packageName, componentName, enabled)
-        loadMatchedApps(currentSearchKeyword)
-        analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
+    ) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            controlComponentInternal(packageName, componentName, enabled)
+            analyticsHelper.logSwitchComponentStateClicked(newState = enabled)
+        }
+    }
+
+    private suspend fun changeComponentUiStatus(
+        packageName: String,
+        componentName: String,
+        enable: Boolean,
+    ) {
+        val currentUiState = _ruleInfoUiState.value
+        if (currentUiState !is RuleInfoUiState.Success) {
+            Timber.e("Cannot control component when rule info is not ready")
+            return
+        }
+        val matchedAppState = currentUiState.matchedAppsUiState
+        if (matchedAppState !is RuleMatchedAppListUiState.Success) {
+            Timber.e("Cannot control component when matched app list is not ready")
+            return
+        }
+        withContext(cpuDispatcher) {
+            val currentController = userDataRepository.userData.first().controllerType
+            val matchedApp = matchedAppState.list.firstOrNull { matchedApp ->
+                matchedApp.app.packageName == packageName
+            }
+            if (matchedApp == null) {
+                Timber.e("Cannot find matched app for package name: $packageName")
+                return@withContext
+            }
+            val list = matchedApp.componentList
+            val position = list.indexOfFirst { it.name == componentName }
+            if (position == -1) {
+                Timber.w("Cannot find component $componentName in the matched list")
+                return@withContext
+            }
+            withContext(mainDispatcher) {
+                list[position] = if (currentController == IFW) {
+                    list[position].copy(ifwBlocked = !enable)
+                } else {
+                    list[position].copy(pmBlocked = !enable)
+                }
+            }
+        }
     }
 
     private suspend fun controlComponentInternal(
@@ -247,10 +303,18 @@ class RuleDetailViewModel @Inject constructor(
         enabled: Boolean,
     ) {
         componentRepository.controlComponent(packageName, componentName, enabled)
+            .onStart {
+                changeComponentUiStatus(packageName, componentName, enabled)
+            }
             .catch { exception ->
                 _errorState.emit(exception.toErrorMessage())
+                changeComponentUiStatus(packageName, componentName, !enabled)
             }
-            .collect()
+            .collect { result ->
+                if (!result) {
+                    changeComponentUiStatus(packageName, componentName, !enabled)
+                }
+            }
     }
 
     private fun loadTabInfo() {
@@ -285,5 +349,6 @@ sealed interface RuleInfoUiState {
     data class Success(
         val ruleInfo: GeneralRule,
         val ruleIcon: Bitmap?,
+        val matchedAppsUiState: RuleMatchedAppListUiState,
     ) : RuleInfoUiState
 }

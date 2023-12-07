@@ -42,7 +42,7 @@ import java.util.TimeZone
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(application = HiltTestApplication::class, sdk = [33])
+@Config(application = HiltTestApplication::class)
 @LooperMode(LooperMode.Mode.PAUSED)
 class GeneralRuleScreenScreenshotTests {
 
@@ -58,21 +58,21 @@ class GeneralRuleScreenScreenshotTests {
     @Test
     fun generalRuleListScreen_matchStart() {
         composeTestRule.captureMultiDevice("GeneralRuleListScreenMatchStart") {
-            GeneralRuleListScreen(0)
+            GeneralRuleListScreen(0F)
         }
     }
 
     @Test
     fun generalRuleListScreen_matchProgress() {
         composeTestRule.captureMultiDevice("GeneralRuleListScreenMatchProgress") {
-            GeneralRuleListScreen(50)
+            GeneralRuleListScreen(0.5F)
         }
     }
 
     @Test
     fun generalRuleListScreen_matchedComplete() {
         composeTestRule.captureMultiDevice("GeneralRuleListScreenMatchedCompleted") {
-            GeneralRuleListScreen(100)
+            GeneralRuleListScreen(1F)
         }
     }
 
@@ -84,7 +84,7 @@ class GeneralRuleScreenScreenshotTests {
             screenshotName = "GeneralRuleListScreen",
             darkMode = true,
         ) {
-            GeneralRuleListScreen(50)
+            GeneralRuleListScreen(0.5F)
         }
     }
 
@@ -128,7 +128,7 @@ class GeneralRuleScreenScreenshotTests {
 
     @Composable
     private fun GeneralRuleListScreen(
-        progress: Int,
+        progress: Float,
     ) {
         val ruleList = RuleListPreviewParameterProvider().values.first()
         BlockerTheme {

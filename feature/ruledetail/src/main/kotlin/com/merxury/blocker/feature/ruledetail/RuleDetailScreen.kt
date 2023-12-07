@@ -38,11 +38,12 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -84,8 +85,6 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppList
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Loading
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState.Success
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -105,13 +104,11 @@ fun RuleDetailRoute(
     viewModel: RuleDetailViewModel = hiltViewModel(),
 ) {
     val ruleInfoUiState by viewModel.ruleInfoUiState.collectAsStateWithLifecycle()
-    val ruleMatchedAppListUiState by viewModel.ruleMatchedAppListUiState.collectAsStateWithLifecycle()
     val tabState by viewModel.tabState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val appBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboardManager.current
     RuleDetailScreen(
-        ruleMatchedAppListUiState = ruleMatchedAppListUiState,
         ruleInfoUiState = ruleInfoUiState,
         onBackClick = onBackClick,
         tabState = tabState,
@@ -136,9 +133,6 @@ fun RuleDetailRoute(
             onDismissRequest = viewModel::dismissAlert,
         )
     }
-    LaunchedEffect(Unit) {
-        viewModel.initShizuku()
-    }
     DisposableEffect(Unit) {
         onDispose {
             updateIconBasedThemingState(IconBasedThemingState(icon = null, isBasedIcon = false))
@@ -149,7 +143,6 @@ fun RuleDetailRoute(
 @Composable
 fun RuleDetailScreen(
     modifier: Modifier = Modifier,
-    ruleMatchedAppListUiState: RuleMatchedAppListUiState,
     ruleInfoUiState: RuleInfoUiState,
     tabState: TabState<RuleDetailTabs>,
     appBarUiState: AppBarUiState = AppBarUiState(),
@@ -175,7 +168,7 @@ fun RuleDetailScreen(
         is RuleInfoUiState.Success -> {
             RuleDetailContent(
                 modifier = modifier,
-                ruleMatchedAppListUiState = ruleMatchedAppListUiState,
+                ruleMatchedAppListUiState = ruleInfoUiState.matchedAppsUiState,
                 ruleInfoUiState = ruleInfoUiState,
                 onBackClick = onBackClick,
                 appBarUiState = appBarUiState,
@@ -434,24 +427,26 @@ fun RuleDetailScreenPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
-    val components = ComponentListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first().toMutableStateList()
     val appList = AppListPreviewParameterProvider().values.first()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = Success(
-                    list = listOf(
-                        RuleMatchedApp(
-                            app = appList.first(),
-                            componentList = components,
-                        ),
-                    ),
-                ),
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
+                    matchedAppsUiState = RuleMatchedAppListUiState.Success(
+                        list = remember {
+                            mutableStateListOf(
+                                RuleMatchedApp(
+                                    app = appList.first(),
+                                    componentList = components,
+                                ),
+                            )
+                        },
+                    ),
                 ),
                 tabState = tabState[0],
                 appBarUiState = AppBarUiState(
@@ -470,24 +465,26 @@ fun RuleDetailScreenSelectedDescriptionPreview(
     @PreviewParameter(RuleListPreviewParameterProvider::class)
     ruleList: List<GeneralRule>,
 ) {
-    val components = ComponentListPreviewParameterProvider().values.first()
+    val components = ComponentListPreviewParameterProvider().values.first().toMutableStateList()
     val appList = AppListPreviewParameterProvider().values.first()
     val tabState = RuleDetailTabStatePreviewParameterProvider().values.first()
 
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = Success(
-                    list = listOf(
-                        RuleMatchedApp(
-                            app = appList.first(),
-                            componentList = components,
-                        ),
-                    ),
-                ),
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
+                    matchedAppsUiState = RuleMatchedAppListUiState.Success(
+                        list = remember {
+                            mutableStateListOf(
+                                RuleMatchedApp(
+                                    app = appList.first(),
+                                    componentList = components,
+                                ),
+                            )
+                        },
+                    ),
                 ),
                 tabState = tabState[1],
             )
@@ -506,10 +503,10 @@ fun RuleDetailScreenWithApplicableLoadingPreview(
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = Loading,
                 ruleInfoUiState = RuleInfoUiState.Success(
                     ruleInfo = ruleList.first(),
                     ruleIcon = null,
+                    matchedAppsUiState = RuleMatchedAppListUiState.Loading,
                 ),
                 tabState = tabState[0],
             )
@@ -524,7 +521,6 @@ fun RuleDetailScreenLoadingPreview() {
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = Loading,
                 ruleInfoUiState = RuleInfoUiState.Loading,
                 tabState = tabState[0],
             )
@@ -539,7 +535,6 @@ fun RuleDetailScreenErrorPreview() {
     BlockerTheme {
         Surface {
             RuleDetailScreen(
-                ruleMatchedAppListUiState = Loading,
                 ruleInfoUiState = RuleInfoUiState.Error(
                     error = UiMessage("Error"),
                 ),

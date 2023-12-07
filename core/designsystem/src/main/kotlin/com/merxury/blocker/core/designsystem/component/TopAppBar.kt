@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -54,9 +53,8 @@ fun BlockerTopAppBar(
     TopAppBar(
         modifier = modifier,
         title = {
-            AutoResizeText(
+            Text(
                 text = title,
-                FontSizeRange(5.sp, 22.sp),
                 maxLines = 2,
             )
         },
@@ -82,25 +80,24 @@ fun BlockerTopAppBar(
 fun BlockerTopAppBarWithProgress(
     modifier: Modifier = Modifier,
     title: String,
-    progress: Int? = null,
+    progress: Float? = null,
 ) {
     TopAppBar(
         modifier = modifier,
         title = {
-            AutoResizeText(
+            Text(
                 text = title,
-                FontSizeRange(5.sp, 22.sp),
                 maxLines = 2,
             )
         },
         actions = {
-            if (progress != 100 && progress != null) {
+            if (progress != null && progress != 1F) {
                 Row(
                     modifier = Modifier.padding(end = 16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
-                        text = "$progress%",
+                        text = String.format("%.0f%%", progress * 100),
                     )
                     BlockerLoadingWheel(
                         modifier = Modifier.size(36.dp),
@@ -203,7 +200,7 @@ fun BlockerTopAppBarLoadingStartPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
-            progress = 0,
+            progress = 0F,
         )
     }
 }
@@ -214,7 +211,7 @@ fun BlockerTopAppBarLoadingProgressPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
-            progress = 50,
+            progress = 0.5F,
         )
     }
 }
@@ -225,7 +222,7 @@ fun BlockerTopAppBarLoadingCompeletPreview() {
     BlockerTheme {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = android.R.string.untitled),
-            progress = 100,
+            progress = 1F,
         )
     }
 }

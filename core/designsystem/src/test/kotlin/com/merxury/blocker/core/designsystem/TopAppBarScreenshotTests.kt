@@ -49,7 +49,7 @@ import org.robolectric.annotation.LooperMode
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(application = HiltTestApplication::class, sdk = [33], qualifiers = "480dpi")
+@Config(application = HiltTestApplication::class, qualifiers = "480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
 class TopAppBarScreenshotTests {
     @get:Rule
@@ -86,7 +86,7 @@ class TopAppBarScreenshotTests {
     fun topAppBar_loading_start_multipleThemes() {
         composeTestRule.captureMultiTheme("TopAppBar", "TopAppBarWithLoadingStart") {
             Surface {
-                BlockerTopAppBarWithLoadingExample(0)
+                BlockerTopAppBarWithLoadingExample(0F)
             }
         }
     }
@@ -95,7 +95,7 @@ class TopAppBarScreenshotTests {
     fun topAppBar_loading_progress_multipleThemes() {
         composeTestRule.captureMultiTheme("TopAppBar", "TopAppBarWithLoadingProgress") {
             Surface {
-                BlockerTopAppBarWithLoadingExample(50)
+                BlockerTopAppBarWithLoadingExample(0.5F)
             }
         }
     }
@@ -104,7 +104,7 @@ class TopAppBarScreenshotTests {
     fun topAppBar_loading_complete_multipleThemes() {
         composeTestRule.captureMultiTheme("TopAppBar", "TopAppBarWithLoadingComplete") {
             Surface {
-                BlockerTopAppBarWithLoadingExample(100)
+                BlockerTopAppBarWithLoadingExample(1F)
             }
         }
     }
@@ -177,7 +177,7 @@ class TopAppBarScreenshotTests {
             ) {
                 TestHarness(fontScale = 2f) {
                     BlockerTheme {
-                        BlockerTopAppBarWithLoadingExample(50)
+                        BlockerTopAppBarWithLoadingExample(0.5F)
                     }
                 }
             }
@@ -250,7 +250,7 @@ class TopAppBarScreenshotTests {
 
     @Composable
     private fun BlockerTopAppBarWithLoadingExample(
-        progress: Int,
+        progress: Float,
     ) {
         BlockerTopAppBarWithProgress(
             title = stringResource(id = string.untitled),

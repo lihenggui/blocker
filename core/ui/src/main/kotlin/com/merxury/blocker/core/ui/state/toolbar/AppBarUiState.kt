@@ -16,11 +16,10 @@
 
 package com.merxury.blocker.core.ui.state.toolbar
 
-import androidx.compose.ui.text.input.TextFieldValue
 import com.merxury.blocker.core.model.data.ComponentInfo
 
 data class AppBarUiState(
-    val keyword: TextFieldValue = TextFieldValue(),
+    val keyword: String = "",
     val isSearchMode: Boolean = false,
     val isSelectedMode: Boolean = false,
     val actions: List<AppBarAction> = listOf(),

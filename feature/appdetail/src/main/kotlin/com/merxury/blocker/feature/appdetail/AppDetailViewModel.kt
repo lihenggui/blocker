@@ -16,15 +16,17 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.os.Build
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -35,13 +37,16 @@ import androidx.work.WorkInfo
 import androidx.work.WorkInfo.State
 import androidx.work.WorkManager
 import com.merxury.blocker.core.analytics.AnalyticsHelper
-import com.merxury.blocker.core.controllers.shizuku.IShizukuInitializer
+import com.merxury.blocker.core.controllers.IServiceController
+import com.merxury.blocker.core.controllers.di.RootApiServiceControl
+import com.merxury.blocker.core.controllers.di.ShizukuServiceControl
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.componentdetail.IComponentDetailRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
+import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
@@ -56,6 +61,7 @@ import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
@@ -92,12 +98,13 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
-import com.merxury.blocker.core.utils.ServiceHelper
+import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -107,27 +114,32 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
+private const val LIBCHECKER_PACKAGE_NAME = "com.absinthe.libchecker"
+
 @HiltViewModel
 class AppDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val analyticsHelper: AnalyticsHelper,
     private val pm: PackageManager,
+    private val workerManager: WorkManager,
     private val userDataRepository: UserDataRepository,
     private val appRepository: AppRepository,
     private val componentRepository: ComponentRepository,
     private val componentDetailRepository: IComponentDetailRepository,
-    private val shizukuInitializer: IShizukuInitializer,
-    private val workerManager: WorkManager,
+    @RootApiServiceControl private val rootApiServiceController: IServiceController,
+    @ShizukuServiceControl private val shizukuServiceController: IServiceController,
     private val zipAllRuleUseCase: ZipAllRuleUseCase,
     private val zipAppRuleUseCase: ZipAppRuleUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
+    @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
     private val appDetailArgs: AppDetailArgs = AppDetailArgs(savedStateHandle)
     private val _appInfoUiState: MutableStateFlow<AppInfoUiState> = MutableStateFlow(Loading)
@@ -163,6 +175,9 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
+    private var loadComponentListJob: Job? = null
+    private var searchJob: Job? = null
+    private var controlComponentJob: Job? = null
 
     init {
         loadTabInfo()
@@ -174,32 +189,17 @@ class AppDetailViewModel @Inject constructor(
         listenComponentDetailChanges()
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        deinitShizuku()
-    }
-
-    fun initShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.registerShizuku()
+    fun search(keyword: String) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
+            Timber.i("Filtering component list with keyword: $keyword")
+            // Update search bar text first
+            withContext(mainDispatcher) {
+                _appBarUiState.update { it.copy(keyword = keyword) }
+            }
+            filterAndUpdateComponentList(keyword)
+            updateTabState(_componentListUiState.value)
         }
-    }
-
-    private fun deinitShizuku() = viewModelScope.launch {
-        val controllerType = userDataRepository.userData.first().controllerType
-        if (controllerType == SHIZUKU) {
-            shizukuInitializer.unregisterShizuku()
-        }
-    }
-
-    fun search(newText: TextFieldValue) = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
-        val keyword = newText.text
-        Timber.i("Filtering component list with keyword: $keyword")
-        // Update search bar text first
-        _appBarUiState.update { it.copy(keyword = newText) }
-        filterAndUpdateComponentList(keyword)
-        updateTabState(_componentListUiState.value)
     }
 
     private suspend fun updateTabState(listUiState: ComponentListUiState) {
@@ -271,37 +271,40 @@ class AppDetailViewModel @Inject constructor(
         )
     }
 
-    private fun loadComponentList() = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        val packageName = appDetailArgs.packageName
-        componentRepository.getComponentList(packageName)
-            .collect { origList ->
-                // Show the cache data first
-                updateTabContent(origList, packageName)
-                // Load the data with description and update again
-                val list = origList.map { component ->
-                    val detail = componentDetailRepository.getLocalComponentDetail(component.name)
-                        .first()
-                    if (detail != null) {
-                        component.copy(description = detail.description)
-                    } else {
-                        component
-                    }
+    fun loadComponentList() {
+        loadComponentListJob?.cancel()
+        loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val packageName = appDetailArgs.packageName
+            Timber.v("Start loading component: $packageName")
+            val componentList = componentRepository.getComponentList(packageName).first()
+            // Show the cache data first
+            updateTabContent(componentList)
+            // Load the data with description and update again
+            val listWithDescription = componentList.map { component ->
+                val detail = componentDetailRepository.getLocalComponentDetail(component.name)
+                    .first()
+                if (detail != null) {
+                    component.copy(description = detail.description)
+                } else {
+                    component
                 }
-                updateTabContent(list, packageName)
             }
+            updateTabContent(listWithDescription)
+            withContext(mainDispatcher) {
+                _componentListUiState.update {
+                    it.copy(isRefreshing = false)
+                }
+            }
+        }
     }
 
-    private suspend fun updateTabContent(
-        list: List<ComponentInfo>,
-        packageName: String,
-    ) {
+    private suspend fun updateTabContent(list: List<ComponentInfo>) {
         // Store the unfiltered list
         val receiver = list.filter { it.type == RECEIVER }
         val service = list.filter { it.type == SERVICE }
         val activity = list.filter { it.type == ACTIVITY }
         val provider = list.filter { it.type == PROVIDER }
-        _unfilteredList =
-            getComponentListUiState(packageName, receiver, service, activity, provider)
+        _unfilteredList = getComponentListUiState(receiver, service, activity, provider)
         filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
         updateTabState(_componentListUiState.value)
     }
@@ -321,7 +324,6 @@ class AppDetailViewModel @Inject constructor(
     }
 
     private suspend fun getComponentListUiState(
-        packageName: String,
         receiver: List<ComponentInfo>,
         service: List<ComponentInfo>,
         activity: List<ComponentInfo>,
@@ -329,44 +331,41 @@ class AppDetailViewModel @Inject constructor(
     ) = ComponentListUiState(
         receiver = sortAndConvertToComponentItem(
             list = receiver,
-            packageName = packageName,
             type = RECEIVER,
         ),
         service = sortAndConvertToComponentItem(
             list = service,
-            packageName = packageName,
             type = SERVICE,
         ),
         activity = sortAndConvertToComponentItem(
             list = activity,
-            packageName = packageName,
             type = ACTIVITY,
         ),
         provider = sortAndConvertToComponentItem(
             list = provider,
-            packageName = packageName,
             type = PROVIDER,
         ),
     )
 
     private suspend fun sortAndConvertToComponentItem(
         list: List<ComponentInfo>,
-        packageName: String,
         type: ComponentType,
         filterKeyword: String = "",
     ): SnapshotStateList<ComponentItem> {
         val userData = userDataRepository.userData.first()
         val sorting = userData.componentSorting
         val order = userData.componentSortingOrder
-        val serviceHelper = ServiceHelper(packageName)
-        if (type == SERVICE) {
-            serviceHelper.refresh()
+        val serviceController = if (userData.controllerType == SHIZUKU) {
+            shizukuServiceController
+        } else {
+            rootApiServiceController
         }
+        serviceController.load()
         return list.filter { it.name.contains(filterKeyword, ignoreCase = true) }
             .map {
                 it.toComponentItem(
                     if (type == SERVICE) {
-                        serviceHelper.isServiceRunning(it.name)
+                        serviceController.isServiceRunning(it.packageName, it.name)
                     } else {
                         false
                     },
@@ -398,7 +397,7 @@ class AppDetailViewModel @Inject constructor(
             .toMutableStateList()
     }
 
-    private fun updateSearchKeyword() = viewModelScope.launch {
+    private fun updateSearchKeyword() = viewModelScope.launch(mainDispatcher) {
         val keyword = appDetailArgs.searchKeyword
             .map { it.trim() }
             .filterNot { it.isEmpty() }
@@ -407,14 +406,14 @@ class AppDetailViewModel @Inject constructor(
         Timber.v("Search keyword: $keyword")
         _appBarUiState.update {
             it.copy(
-                keyword = TextFieldValue(keywordString),
+                keyword = keywordString,
                 isSearchMode = true,
                 actions = getAppBarAction(),
             )
         }
     }
 
-    private fun loadTabInfo() = viewModelScope.launch {
+    private fun loadTabInfo() = viewModelScope.launch(mainDispatcher) {
         val screen = appDetailArgs.tabs
         Timber.v("Jump to tab: $screen")
         _tabState.update { it.copy(selectedItem = screen) }
@@ -423,7 +422,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch {
+    fun switchTab(newTab: AppDetailTabs) = viewModelScope.launch(mainDispatcher) {
         if (newTab != tabState.value.selectedItem) {
             Timber.d("Switch tab to ${newTab.name}, screen = ${appDetailArgs.packageName}")
             _tabState.update {
@@ -447,8 +446,10 @@ class AppDetailViewModel @Inject constructor(
 
     private suspend fun hasCustomizedRule(): Boolean {
         val packageName = appDetailArgs.packageName
-        return componentDetailRepository.hasUserGeneratedDetail(packageName)
-            .first()
+        return withContext(ioDispatcher) {
+            componentDetailRepository.hasUserGeneratedDetail(packageName)
+                .first()
+        }
     }
 
     fun launchApp(context: Context, packageName: String): Boolean {
@@ -475,8 +476,9 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun controlAllComponents(enable: Boolean) =
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+    fun controlAllComponents(enable: Boolean) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val list = when (tabState.value.selectedItem) {
                 Receiver -> _componentListUiState.value.receiver
                 Service -> _componentListUiState.value.service
@@ -487,13 +489,20 @@ class AppDetailViewModel @Inject constructor(
                 it.toComponentInfo()
             }
 
-            componentRepository.batchControlComponent(components = list.toList(), newState = enable)
+            componentRepository.batchControlComponent(
+                components = list,
+                newState = enable,
+            )
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect {}
+                .collect { component ->
+                    val type = findComponentType(component.name)
+                    changeComponentUiStatus(component.name, type, enable)
+                }
             analyticsHelper.logBatchOperationPerformed(enable)
         }
+    }
 
     fun dismissAlert() = viewModelScope.launch {
         _errorState.emit(null)
@@ -508,16 +517,21 @@ class AppDetailViewModel @Inject constructor(
 
     fun stopService(packageName: String, componentName: String) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            "am stopservice $packageName/$componentName".exec(ioDispatcher)
+            val controllerType = userDataRepository.userData.first().controllerType
+            val serviceController = if (controllerType == SHIZUKU) {
+                shizukuServiceController
+            } else {
+                rootApiServiceController
+            }
+            serviceController.stopService(packageName, componentName)
             analyticsHelper.logStopServiceClicked()
-            updateServiceStatus(packageName, componentName)
+            updateServiceStatus(serviceController, packageName, componentName)
         }
     }
 
-    private suspend fun updateServiceStatus(packageName: String, componentName: String) {
-        val helper = ServiceHelper(packageName)
-        helper.refresh()
-        val isRunning = helper.isServiceRunning(componentName)
+    private suspend fun updateServiceStatus(serviceController: IServiceController, packageName: String, componentName: String) {
+        serviceController.load()
+        val isRunning = serviceController.isServiceRunning(packageName, componentName)
         val item = _componentListUiState.value.service.find { it.name == componentName }
         if (item == null) {
             Timber.w("Cannot find service $componentName to update")
@@ -525,16 +539,18 @@ class AppDetailViewModel @Inject constructor(
         }
         val newStatus = item.copy(isRunning = isRunning)
         Timber.d("Update service $componentName running status to $newStatus")
-        _componentListUiState.update {
-            it.copy(
-                service = it.service.map { item ->
-                    if (item.name == componentName) {
-                        newStatus
-                    } else {
-                        item
-                    }
-                }.toMutableStateList(),
-            )
+        withContext(mainDispatcher) {
+            _componentListUiState.update {
+                it.copy(
+                    service = it.service.map { item ->
+                        if (item.name == componentName) {
+                            newStatus
+                        } else {
+                            item
+                        }
+                    }.toMutableStateList(),
+                )
+            }
         }
     }
 
@@ -542,13 +558,17 @@ class AppDetailViewModel @Inject constructor(
         packageName: String,
         componentName: String,
         enabled: Boolean,
-    ) = viewModelScope.launch(ioDispatcher + exceptionHandler) {
-        controlComponentInternal(packageName, componentName, enabled)
-        analyticsHelper.logSwitchComponentClicked(newState = enabled)
+    ) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            controlComponentInternal(packageName, componentName, enabled)
+            analyticsHelper.logSwitchComponentClicked(newState = enabled)
+        }
     }
 
-    fun controlAllSelectedComponents(enable: Boolean) =
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+    fun controlAllSelectedComponents(enable: Boolean) {
+        controlComponentJob?.cancel()
+        controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             componentRepository.batchControlComponent(
                 components = _appBarUiState.value.selectedComponentList,
                 newState = enable,
@@ -556,11 +576,17 @@ class AppDetailViewModel @Inject constructor(
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect()
-            _appBarUiState.update {
-                it.copy(selectedComponentList = listOf())
+                .collect { component ->
+                    val type = findComponentType(component.name)
+                    changeComponentUiStatus(component.name, type, enable)
+                }
+            withContext(mainDispatcher) {
+                _appBarUiState.update {
+                    it.copy(selectedComponentList = listOf())
+                }
             }
         }
+    }
 
     fun switchSelectedMode(value: Boolean) {
         // Clear list when exit from selectedMode
@@ -626,16 +652,77 @@ class AppDetailViewModel @Inject constructor(
         }.toMutableList()
     }
 
+    private suspend fun findComponentType(componentName: String): ComponentType {
+        return withContext(cpuDispatcher) {
+            val currentList = _componentListUiState.value
+            val receiver = currentList.receiver.find { it.name == componentName }
+            if (receiver != null) {
+                return@withContext RECEIVER
+            }
+            val service = currentList.service.find { it.name == componentName }
+            if (service != null) {
+                return@withContext SERVICE
+            }
+            val activity = currentList.activity.find { it.name == componentName }
+            if (activity != null) {
+                return@withContext ACTIVITY
+            }
+            val provider = currentList.provider.find { it.name == componentName }
+            if (provider != null) {
+                return@withContext PROVIDER
+            }
+            // Should be unreachable code
+            throw IllegalStateException("Cannot find component type for $componentName")
+        }
+    }
+
+    private suspend fun changeComponentUiStatus(
+        componentName: String,
+        type: ComponentType,
+        enable: Boolean,
+    ) {
+        withContext(cpuDispatcher) {
+            val currentController = userDataRepository.userData.first().controllerType
+            val list = when (type) {
+                RECEIVER -> _componentListUiState.value.receiver
+                SERVICE -> _componentListUiState.value.service
+                ACTIVITY -> _componentListUiState.value.activity
+                PROVIDER -> _componentListUiState.value.provider
+            }
+            val position = list.indexOfFirst { it.name == componentName }
+            if (position == -1) {
+                Timber.w("Cannot find component $componentName in the list")
+                return@withContext
+            }
+            withContext(mainDispatcher) {
+                list[position] = if (currentController == IFW) {
+                    list[position].copy(ifwBlocked = !enable)
+                } else {
+                    list[position].copy(pmBlocked = !enable)
+                }
+            }
+        }
+    }
+
     private suspend fun controlComponentInternal(
         packageName: String,
         componentName: String,
         enabled: Boolean,
     ) {
+        val type = findComponentType(componentName)
         componentRepository.controlComponent(packageName, componentName, enabled)
+            .onStart {
+                changeComponentUiStatus(componentName, type, enabled)
+            }
             .catch { exception ->
+                changeComponentUiStatus(componentName, type, !enabled)
                 _errorState.emit(exception.toErrorMessage())
             }
-            .collect()
+            .collect { result ->
+                if (!result) {
+                    changeComponentUiStatus(componentName, type, !enabled)
+                }
+            }
     }
 
     fun exportBlockerRule(packageName: String) = viewModelScope.launch {
@@ -776,6 +863,10 @@ class AppDetailViewModel @Inject constructor(
     fun loadAppInfo() = viewModelScope.launch {
         val packageName = appDetailArgs.packageName
         val app = appRepository.getApplication(packageName).first()
+        val isLibCheckerInstalled = ApplicationUtil.isAppInstalled(
+            pm = pm,
+            packageName = LIBCHECKER_PACKAGE_NAME,
+        )
         if (app == null) {
             val error = UiMessage("Can't find $packageName in this device.")
             Timber.e(error.title)
@@ -785,12 +876,13 @@ class AppDetailViewModel @Inject constructor(
             val userData = userDataRepository.userData.first()
             _appInfoUiState.emit(
                 AppInfoUiState.Success(
-                    app.toAppItem(packageInfo = packageInfo),
-                    if (userData.useDynamicColor) {
+                    appInfo = app.toAppItem(packageInfo = packageInfo),
+                    iconBasedTheming = if (userData.useDynamicColor) {
                         getAppIcon(packageInfo)
                     } else {
                         null
                     },
+                    isLibCheckerInstalled = isLibCheckerInstalled,
                 ),
             )
         }
@@ -802,7 +894,8 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private fun updateComponentDetail(componentDetail: ComponentDetail) {
+    // TODO Refactor this function to remove duplications
+    private suspend fun updateComponentDetail(componentDetail: ComponentDetail) {
         Timber.v("Update component detail: $componentDetail")
         val currentState = _componentListUiState.value.copy()
         currentState.receiver.find { it.name == componentDetail.name }
@@ -812,12 +905,14 @@ class AppDetailViewModel @Inject constructor(
                     Timber.w("Cannot find receiver ${componentDetail.name} to update")
                     return
                 }
-                _componentListUiState.update {
-                    it.copy(
-                        receiver = it.receiver.toMutableStateList().apply {
-                            set(index, item.copy(description = componentDetail.description))
-                        },
-                    )
+                withContext(mainDispatcher) {
+                    _componentListUiState.update {
+                        it.copy(
+                            receiver = it.receiver.toMutableStateList().apply {
+                                set(index, item.copy(description = componentDetail.description))
+                            },
+                        )
+                    }
                 }
             }
         currentState.service.find { it.name == componentDetail.name }
@@ -827,12 +922,14 @@ class AppDetailViewModel @Inject constructor(
                     Timber.w("Cannot find service ${componentDetail.name} to update")
                     return
                 }
-                _componentListUiState.update {
-                    it.copy(
-                        service = it.service.toMutableStateList().apply {
-                            set(index, item.copy(description = componentDetail.description))
-                        },
-                    )
+                withContext(mainDispatcher) {
+                    _componentListUiState.update {
+                        it.copy(
+                            service = it.service.toMutableStateList().apply {
+                                set(index, item.copy(description = componentDetail.description))
+                            },
+                        )
+                    }
                 }
             }
         currentState.activity.find { it.name == componentDetail.name }
@@ -842,12 +939,14 @@ class AppDetailViewModel @Inject constructor(
                     Timber.w("Cannot find activity ${componentDetail.name} to update")
                     return
                 }
-                _componentListUiState.update {
-                    it.copy(
-                        activity = it.activity.toMutableStateList().apply {
-                            set(index, item.copy(description = componentDetail.description))
-                        },
-                    )
+                withContext(mainDispatcher) {
+                    _componentListUiState.update {
+                        it.copy(
+                            activity = it.activity.toMutableStateList().apply {
+                                set(index, item.copy(description = componentDetail.description))
+                            },
+                        )
+                    }
                 }
             }
         currentState.provider.find { it.name == componentDetail.name }
@@ -857,25 +956,45 @@ class AppDetailViewModel @Inject constructor(
                     Timber.w("Cannot find provider ${componentDetail.name} to update")
                     return
                 }
-                _componentListUiState.update {
-                    it.copy(
-                        provider = it.provider.toMutableStateList().apply {
-                            set(index, item.copy(description = componentDetail.description))
-                        },
-                    )
+                withContext(mainDispatcher) {
+                    _componentListUiState.update {
+                        it.copy(
+                            provider = it.provider.toMutableStateList().apply {
+                                set(index, item.copy(description = componentDetail.description))
+                            },
+                        )
+                    }
                 }
             }
     }
 
-    private suspend fun getAppIcon(packageInfo: PackageInfo?) =
-        withContext(ioDispatcher) {
-            val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
-            return@withContext icon?.toBitmap()
-        }
+    private suspend fun getAppIcon(packageInfo: PackageInfo?) = withContext(ioDispatcher) {
+        val icon: Drawable? = packageInfo?.applicationInfo?.loadIcon(pm)
+        return@withContext icon?.toBitmap()
+    }
 
     fun zipAllRule() = zipAllRuleUseCase()
 
     fun zipAppRule() = zipAppRuleUseCase(appDetailArgs.packageName)
+
+    fun showAppInfo(context: Context) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            Timber.w("Show app info is only supported on Android N+")
+            return
+        }
+        val destinationPackage = LIBCHECKER_PACKAGE_NAME
+        val packageName = appDetailArgs.packageName
+        val intent = Intent(Intent.ACTION_SHOW_APP_INFO).apply {
+            putExtra(Intent.EXTRA_PACKAGE_NAME, packageName)
+            setPackage(destinationPackage)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        try {
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Timber.e(e, "LibChecker is not installed")
+        }
+    }
 }
 
 sealed interface AppInfoUiState {
@@ -884,6 +1003,7 @@ sealed interface AppInfoUiState {
     data class Success(
         val appInfo: AppItem,
         val iconBasedTheming: Bitmap?,
+        val isLibCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
 }
 
@@ -892,4 +1012,5 @@ data class ComponentListUiState(
     val service: SnapshotStateList<ComponentItem> = mutableStateListOf(),
     val activity: SnapshotStateList<ComponentItem> = mutableStateListOf(),
     val provider: SnapshotStateList<ComponentItem> = mutableStateListOf(),
+    val isRefreshing: Boolean = false,
 )

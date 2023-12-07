@@ -13,8 +13,7 @@
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
-  -->
-<resources>
-    <string name="feature_generalrule_rules">Правило</string>
+  --><resources>
+    <string name="feature_generalrule_rules">Правила</string>
     <string name="feature_generalrule_search">Поиск</string>
 </resources>

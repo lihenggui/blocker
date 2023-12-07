@@ -35,7 +35,7 @@ import com.merxury.blocker.core.model.preference.RuleServerProvider
 import com.merxury.blocker.core.model.preference.SortingOrder
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.UserPreferenceData
-import com.merxury.blocker.core.testing.controller.FakeShizukuInitializer
+import com.merxury.blocker.core.testing.controller.TestServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
@@ -77,9 +77,8 @@ class AppDetailViewModelTest {
     private val appRepository = TestAppRepository()
     private val componentRepository = TestComponentRepository()
     private val componentDetailRepository = TestComponentDetailRepository()
-    private val shizukuInitializer = FakeShizukuInitializer()
-    private val ioDispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
-    private val cpuDispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
+    private val serviceController = TestServiceController()
+    private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val savedStateHandle = SavedStateHandle(
         mapOf(
             packageNameArg to sampleAppList.first().packageName,
@@ -101,14 +100,14 @@ class AppDetailViewModelTest {
             cacheDir = tempFolder.newFolder(),
             filesDir = tempFolder.newFolder(),
             ruleBaseFolder = "user-generated-rule",
-            ioDispatcher = ioDispatcher,
+            ioDispatcher = dispatcher,
         )
         val zipAllRuleUseCase = ZipAllRuleUseCase(
             userDataRepository = userDataRepository,
             cacheDir = tempFolder.newFolder(),
             filesDir = tempFolder.newFolder(),
             ruleBaseFolder = "user-generated-rule",
-            ioDispatcher = ioDispatcher,
+            ioDispatcher = dispatcher,
         )
         viewModel = AppDetailViewModel(
             savedStateHandle = savedStateHandle,
@@ -117,13 +116,15 @@ class AppDetailViewModelTest {
             appRepository = appRepository,
             componentRepository = componentRepository,
             componentDetailRepository = componentDetailRepository,
-            shizukuInitializer = shizukuInitializer,
+            shizukuServiceController = serviceController,
+            rootApiServiceController = serviceController,
             analyticsHelper = analyticsHelper,
             workerManager = WorkManager.getInstance(context),
             zipAppRuleUseCase = zipAppRuleUseCase,
             zipAllRuleUseCase = zipAllRuleUseCase,
-            ioDispatcher = ioDispatcher,
-            cpuDispatcher = cpuDispatcher,
+            ioDispatcher = dispatcher,
+            cpuDispatcher = dispatcher,
+            mainDispatcher = dispatcher,
         )
     }
 
@@ -221,7 +222,7 @@ private val sampleUserData = UserPreferenceData(
     darkThemeConfig = DarkThemeConfig.DARK,
     useDynamicColor = false,
     controllerType = ControllerType.SHIZUKU,
-    ruleServerProvider = RuleServerProvider.GITLAB,
+    ruleServerProvider = RuleServerProvider.JIHULAB,
     ruleBackupFolder = "",
     backupSystemApp = true,
     restoreSystemApp = true,

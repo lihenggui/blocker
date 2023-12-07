@@ -20,12 +20,16 @@ import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import com.github.takahirom.roborazzi.captureRoboImage
 import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
+import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
@@ -44,7 +48,7 @@ import kotlin.test.Test
 
 @RunWith(RobolectricTestRunner::class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
-@Config(application = HiltTestApplication::class, sdk = [33], qualifiers = "480dpi")
+@Config(application = HiltTestApplication::class, qualifiers = "480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
 class RuleMatchedAppListScreenshotTests {
     @get:Rule
@@ -83,7 +87,12 @@ class RuleMatchedAppListScreenshotTests {
     @Composable
     private fun RuleMatchedAppListExample() {
         val appList = AppListPreviewParameterProvider().values.first()
-        val components = ComponentListPreviewParameterProvider().values.first()
+        val components = ComponentListPreviewParameterProvider().values
+            .first()
+            .toMutableStateList()
+        val emptyList = remember {
+            mutableStateListOf<ComponentItem>()
+        }
 
         val ruleMatchedApp = RuleMatchedApp(
             app = appList[0],
@@ -91,14 +100,16 @@ class RuleMatchedAppListScreenshotTests {
         )
         val ruleMatchedApp1 = RuleMatchedApp(
             app = appList[1],
-            componentList = listOf(),
+            componentList = emptyList,
         )
         val ruleMatchedApp2 = RuleMatchedApp(
             app = appList[2],
-            componentList = listOf(),
+            componentList = emptyList,
         )
         val uiState = RuleMatchedAppListUiState.Success(
-            list = listOf(ruleMatchedApp, ruleMatchedApp1, ruleMatchedApp2),
+            list = remember {
+                mutableStateListOf(ruleMatchedApp, ruleMatchedApp1, ruleMatchedApp2)
+            },
         )
         RuleMatchedAppList(ruleMatchedAppListUiState = uiState)
     }

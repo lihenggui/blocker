@@ -16,9 +16,10 @@
 
 package com.merxury.blocker.core.data.respository.component
 
-import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.RootController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuController
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.di.IfwControl
+import com.merxury.blocker.core.controllers.di.RootApiControl
+import com.merxury.blocker.core.controllers.di.ShizukuControl
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.database.app.AppComponentDao
 import com.merxury.blocker.core.database.app.toAppComponentEntity
@@ -46,9 +47,9 @@ class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
     private val appComponentDao: AppComponentDao,
     private val userDataRepository: UserDataRepository,
-    private val pmController: RootController,
-    private val ifwController: IfwController,
-    private val shizukuController: ShizukuController,
+    @RootApiControl private val pmController: IController,
+    @IfwControl private val ifwController: IController,
+    @ShizukuControl private val shizukuController: IController,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : ComponentRepository {
 
@@ -132,7 +133,7 @@ class LocalComponentRepository @Inject constructor(
     override fun batchControlComponent(
         components: List<ComponentInfo>,
         newState: Boolean,
-    ): Flow<Int> = flow {
+    ): Flow<ComponentInfo> = flow {
         Timber.i("Batch control ${components.size} components to state $newState")
         val list = components.map { it.toAndroidComponentInfo() }
         val userData = userDataRepository.userData.first()
@@ -141,7 +142,6 @@ class LocalComponentRepository @Inject constructor(
             PM -> pmController
             SHIZUKU -> shizukuController
         }
-        var count = 0
         // Filter providers first in the list if preferred controller is IFW
         if (userData.controllerType == IFW) {
             // IFW doesn't have the ability to enable/disable providers
@@ -152,7 +152,7 @@ class LocalComponentRepository @Inject constructor(
                 } else {
                     pmController.disable(it.packageName, it.name)
                 }
-                emit(++count)
+                emit(it)
             }
             // if users want to enable the component, check if it's blocked by PM controller
             if (newState) {
@@ -161,18 +161,21 @@ class LocalComponentRepository @Inject constructor(
                 }
                 blockedByPm.forEach {
                     pmController.enable(it.packageName, it.name)
+                    emit(it)
                 }
             }
         }
         if (newState) {
             controller.batchEnable(list) {
-                updateComponentStatus(it.packageName, it.name)
-                emit(++count)
+                updateComponentStatus(it.packageName, it.name)?.let { component ->
+                    emit(component)
+                }
             }
         } else {
             controller.batchDisable(list) {
-                updateComponentStatus(it.packageName, it.name)
-                emit(++count)
+                updateComponentStatus(it.packageName, it.name)?.let { component ->
+                    emit(component)
+                }
             }
         }
     }
@@ -247,14 +250,21 @@ class LocalComponentRepository @Inject constructor(
         }
     }
 
-    private suspend fun updateComponentStatus(packageName: String, componentName: String) {
+    private suspend fun updateComponentStatus(
+        packageName: String,
+        componentName: String,
+    ): ComponentInfo? {
         val component = appComponentDao.getByPackageNameAndComponentName(packageName, componentName)
             .first()
-            ?: return
+        if (component == null) {
+            Timber.e("Component $packageName/$componentName not found in database")
+            return null
+        }
         val newState = component.copy(
             pmBlocked = !pmController.checkComponentEnableState(packageName, componentName),
             ifwBlocked = !ifwController.checkComponentEnableState(packageName, componentName),
         )
         appComponentDao.update(newState)
+        return newState.toComponentInfo()
     }
 }
