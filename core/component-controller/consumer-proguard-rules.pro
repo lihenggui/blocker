@@ -1,1 +1,2 @@
 -keep class android.content.pm.** { *; }
+-keep class android.app.** { *; }
