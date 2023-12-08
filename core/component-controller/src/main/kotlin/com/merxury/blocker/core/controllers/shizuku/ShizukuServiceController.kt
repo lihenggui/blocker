@@ -60,9 +60,14 @@ class ShizukuServiceController @Inject constructor(
     }
 
     override suspend fun load(): Boolean {
-        serviceList = am.getServices(MAX_SERVICE_COUNT, 0)
-        Timber.v("Loaded ${serviceList.size} running services")
-        return true
+        return try {
+            serviceList = am.getServices(MAX_SERVICE_COUNT, 0)
+            Timber.v("Loaded ${serviceList.size} running services")
+            true
+        } catch (e: Exception) {
+            Timber.e(e, "Error loading running services")
+            false
+        }
     }
 
     override fun isServiceRunning(packageName: String, serviceName: String): Boolean {
