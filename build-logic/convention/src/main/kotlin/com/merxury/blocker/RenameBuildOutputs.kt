@@ -31,7 +31,10 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
 
 internal fun Project.configureRenameBuildOutputTask(extension: AndroidComponentsExtension<*, *, *>) {
     extension.onVariants { variant ->
@@ -58,10 +61,13 @@ internal fun Project.configureRenameBuildOutputTask(extension: AndroidComponents
     }
 }
 
+@DisableCachingByDefault(because = "Rename build output")
 internal abstract class RenameBuildOutputsTask : DefaultTask() {
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputDirectory
     abstract val apkFolder: DirectoryProperty
 
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     @get:InputFiles
     abstract val sources: ListProperty<Directory>
 
