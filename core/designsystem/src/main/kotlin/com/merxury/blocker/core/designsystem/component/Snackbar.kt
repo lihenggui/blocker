@@ -412,3 +412,89 @@ private fun animatedScale(animation: AnimationSpec<Float>, visible: Boolean): St
 private const val SnackbarFadeInMillis = 150
 private const val SnackbarFadeOutMillis = 75
 private const val SnackbarInBetweenDelayMillis = 0
+
+@Composable
+private fun SnackbarAnimationWithScale(
+    current: SnackbarData?,
+    modifier: Modifier = Modifier,
+    content: @Composable (SnackbarData) -> Unit,
+) {
+    val state = remember { SnackbarAnimationState<SnackbarData?>() }
+    if (current != state.current) {
+        state.current = current
+        val keys = state.items.map { it.key }.toMutableList()
+        if (!keys.contains(current)) {
+            keys.add(current)
+        }
+        state.items.clear()
+        keys.filterNotNull().mapTo(state.items) { key ->
+            SnackbarAnimationItem(key) { children ->
+                val isVisible = key == current
+                val duration = if (isVisible) SnackbarFadeInMillis else SnackbarFadeOutMillis
+                val delay = SnackbarFadeOutMillis + SnackbarInBetweenDelayMillis
+                val animationDelay = if (isVisible && keys.filterNotNull().size != 1) delay else 0
+                val opacity = animatedOpacity(
+                    animation = tween(
+                        easing = LinearEasing,
+                        delayMillis = animationDelay,
+                        durationMillis = duration,
+                    ),
+                    visible = isVisible,
+                    onAnimationFinish = {
+                        if (key != state.current) {
+                            // leave only the current in the list
+                            state.items.removeAll { it.key == key }
+                            state.scope?.invalidate()
+                        }
+                    },
+                )
+                val scale = animatedScale(
+                    animation = tween(
+                        easing = FastOutSlowInEasing,
+                        delayMillis = animationDelay,
+                        durationMillis = duration,
+                    ),
+                    visible = isVisible,
+                )
+                Box(
+                    Modifier
+                        .graphicsLayer(
+                            scaleX = scale.value,
+                            scaleY = scale.value,
+                            alpha = opacity.value,
+                        )
+                        .semantics {
+                            liveRegion = LiveRegionMode.Polite
+                            dismiss { key.dismiss(); true }
+                        },
+                ) {
+                    children()
+                }
+            }
+        }
+    }
+    Box(modifier) {
+        state.scope = currentRecomposeScope
+        state.items.forEach { (item, opacity) ->
+            key(item) {
+                opacity {
+                    content(item!!)
+                }
+            }
+        }
+    }
+}
+
+private class SnackbarAnimationState<T> {
+    // we use Any here as something which will not be equals to the real initial value
+    var current: Any? = Any()
+    var items = mutableListOf<SnackbarAnimationItem<T>>()
+    var scope: RecomposeScope? = null
+}
+
+private data class SnackbarAnimationItem<T>(
+    val key: T,
+    val transition: SnackbarAnimTransition,
+)
+
+private typealias SnackbarAnimTransition = @Composable (content: @Composable () -> Unit) -> Unit
