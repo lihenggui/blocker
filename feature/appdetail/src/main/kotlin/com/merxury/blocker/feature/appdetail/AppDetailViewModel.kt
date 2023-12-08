@@ -276,23 +276,22 @@ class AppDetailViewModel @Inject constructor(
         loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val packageName = appDetailArgs.packageName
             Timber.v("Start loading component: $packageName")
-            val componentList = componentRepository.getComponentList(packageName).first()
-            // Show the cache data first
-            updateTabContent(componentList)
-            // Load the data with description and update again
-            val listWithDescription = componentList.map { component ->
-                val detail = componentDetailRepository.getLocalComponentDetail(component.name)
-                    .first()
-                if (detail != null) {
-                    component.copy(description = detail.description)
-                } else {
-                    component
+            componentRepository.getComponentList(packageName).collect { componentList ->
+                // Load the data with description and then update the ui
+                val listWithDescription = componentList.map { component ->
+                    val detail = componentDetailRepository.getLocalComponentDetail(component.name)
+                        .first()
+                    if (detail != null) {
+                        component.copy(description = detail.description)
+                    } else {
+                        component
+                    }
                 }
-            }
-            updateTabContent(listWithDescription)
-            withContext(mainDispatcher) {
-                _componentListUiState.update {
-                    it.copy(isRefreshing = false)
+                updateTabContent(listWithDescription)
+                withContext(mainDispatcher) {
+                    _componentListUiState.update {
+                        it.copy(isRefreshing = false)
+                    }
                 }
             }
         }
@@ -529,7 +528,11 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateServiceStatus(serviceController: IServiceController, packageName: String, componentName: String) {
+    private suspend fun updateServiceStatus(
+        serviceController: IServiceController,
+        packageName: String,
+        componentName: String,
+    ) {
         serviceController.load()
         val isRunning = serviceController.isServiceRunning(packageName, componentName)
         val item = _componentListUiState.value.service.find { it.name == componentName }
