@@ -74,7 +74,8 @@ class RootApiServiceController @Inject constructor(
     }
 
     override suspend fun load(): Boolean {
-        rootService?.refreshRunningServiceList()
+        val rootService = rootService ?: return false
+        rootService.refreshRunningServiceList()
         return true
     }
 
