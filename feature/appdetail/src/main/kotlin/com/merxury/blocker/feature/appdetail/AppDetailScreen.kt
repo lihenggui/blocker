@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import com.merxury.blocker.core.rule.R.string as rulestring
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.Context
@@ -130,7 +131,6 @@ import com.merxury.blocker.feature.appdetail.ui.ShareAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.rule.R.string as rulestring
 
 @Composable
 fun AppDetailRoute(
@@ -175,32 +175,50 @@ fun AppDetailRoute(
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
         blockAllComponents = {
+            val doneMessage = context.getString(string.feature_appdetail_operation_completed)
             viewModel.controlAllComponents(false) { current, total ->
                 scope.launch {
-                    snackbarHostState.showSnackbarWithoutQueue(
-                        message = context.getString(
-                            string.feature_appdetail_disabling_component_hint,
-                            current,
-                            total,
-                        ),
-                        duration = SnackbarDuration.Short,
-                        withDismissAction = false,
-                    )
+                    if (current == total) {
+                        snackbarHostState.showSnackbarWithoutQueue(
+                            message = doneMessage,
+                            duration = SnackbarDuration.Short,
+                            withDismissAction = true,
+                        )
+                    } else {
+                        snackbarHostState.showSnackbarWithoutQueue(
+                            message = context.getString(
+                                string.feature_appdetail_disabling_component_hint,
+                                current,
+                                total,
+                            ),
+                            duration = SnackbarDuration.Short,
+                            withDismissAction = false,
+                        )
+                    }
                 }
             }
         },
         enableAllComponents = {
+            val doneMessage = context.getString(string.feature_appdetail_operation_completed)
             viewModel.controlAllComponents(true) { current, total ->
                 scope.launch {
-                    snackbarHostState.showSnackbarWithoutQueue(
-                        message = context.getString(
-                            string.feature_appdetail_enabling_component_hint,
-                            current,
-                            total,
-                        ),
-                        duration = SnackbarDuration.Short,
-                        withDismissAction = false,
-                    )
+                    if (current == total) {
+                        snackbarHostState.showSnackbarWithoutQueue(
+                            message = doneMessage,
+                            duration = SnackbarDuration.Short,
+                            withDismissAction = true,
+                        )
+                    } else {
+                        snackbarHostState.showSnackbarWithoutQueue(
+                            message = context.getString(
+                                string.feature_appdetail_enabling_component_hint,
+                                current,
+                                total,
+                            ),
+                            duration = SnackbarDuration.Short,
+                            withDismissAction = false,
+                        )
+                    }
                 }
             }
         },
