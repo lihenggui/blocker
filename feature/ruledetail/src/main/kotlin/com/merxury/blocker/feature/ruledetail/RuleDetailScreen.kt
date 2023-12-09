@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.ruledetail
 
+import android.content.Context
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -34,6 +35,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,6 +53,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -68,6 +71,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerTabRow
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
@@ -93,12 +97,15 @@ import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.ruledetail.R.string
 import com.merxury.blocker.feature.ruledetail.component.RuleDescription
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
+import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun RuleDetailRoute(
     onBackClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     viewModel: RuleDetailViewModel = hiltViewModel(),
@@ -108,6 +115,8 @@ fun RuleDetailRoute(
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
     val appBarUiState by viewModel.appBarUiState.collectAsStateWithLifecycle()
     val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     RuleDetailScreen(
         ruleInfoUiState = ruleInfoUiState,
         onBackClick = onBackClick,
@@ -118,10 +127,18 @@ fun RuleDetailRoute(
         onLaunchActivityClick = viewModel::launchActivity,
         onCopyNameClick = { clipboardManager.setText(AnnotatedString(it)) },
         onCopyFullNameClick = { clipboardManager.setText(AnnotatedString(it)) },
-        onBlockAllClick = { viewModel.controlAllComponents(it, false) },
-        onEnableAllClick = { viewModel.controlAllComponents(it, true) },
-        onBlockAllInPageClick = { viewModel.controlAllComponentsInPage(false) },
-        onEnableAllInPageClick = { viewModel.controlAllComponentsInPage(true) },
+        onBlockAllClick = {
+            handleBlockAllClick(context, viewModel, it, scope, snackbarHostState)
+        },
+        onEnableAllClick = {
+            handleEnableAllClick(viewModel, it, scope, snackbarHostState, context)
+        },
+        onBlockAllInPageClick = {
+            handleBlockAllInPageClick(viewModel, scope, snackbarHostState, context)
+        },
+        onEnableAllInPageClick = {
+            handleEnableAllInPageClick(viewModel, scope, snackbarHostState, context)
+        },
         onSwitch = viewModel::controlComponent,
         navigateToAppDetail = navigateToAppDetail,
         updateIconBasedThemingState = updateIconBasedThemingState,
@@ -136,6 +153,125 @@ fun RuleDetailRoute(
     DisposableEffect(Unit) {
         onDispose {
             updateIconBasedThemingState(IconBasedThemingState(icon = null, isBasedIcon = false))
+        }
+    }
+}
+
+private fun handleEnableAllInPageClick(
+    viewModel: RuleDetailViewModel,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    context: Context,
+) {
+    viewModel.controlAllComponentsInPage(true) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(uistring.core_ui_operation_completed),
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_enabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
+                )
+            }
+        }
+    }
+}
+
+private fun handleBlockAllInPageClick(
+    viewModel: RuleDetailViewModel,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    context: Context,
+) {
+    viewModel.controlAllComponentsInPage(false) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(uistring.core_ui_operation_completed),
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_enabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
+                )
+            }
+        }
+    }
+}
+
+private fun handleEnableAllClick(
+    viewModel: RuleDetailViewModel,
+    it: List<ComponentItem>,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+    context: Context,
+) {
+    viewModel.controlAllComponents(it, true) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(uistring.core_ui_operation_completed),
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_enabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
+                )
+            }
+        }
+    }
+}
+
+private fun handleBlockAllClick(
+    context: Context,
+    viewModel: RuleDetailViewModel,
+    it: List<ComponentItem>,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+) {
+    val doneMessage = context.getString(uistring.core_ui_operation_completed)
+    viewModel.controlAllComponents(it, false) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = doneMessage,
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_enabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
+                )
+            }
         }
     }
 }
