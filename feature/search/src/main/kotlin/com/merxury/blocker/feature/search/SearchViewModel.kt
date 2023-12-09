@@ -61,7 +61,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
@@ -259,16 +258,20 @@ class SearchViewModel @Inject constructor(
             }
         }
 
-    fun controlAllSelectedComponents(enable: Boolean) {
+    fun controlAllSelectedComponents(enable: Boolean, action: (Int, Int) -> Unit) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            var current = 0
+            val list = _searchUiState.value.selectedComponentList
             componentRepository.batchControlComponent(
-                components = _searchUiState.value.selectedComponentList,
+                components = list,
                 newState = enable,
             )
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
-                .collect()
+                .collect {
+                    action(++current, list.size)
+                }
         }
         switchSelectedMode(false)
     }
