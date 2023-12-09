@@ -299,7 +299,7 @@ class SearchViewModel @Inject constructor(
         _searchUiState.update {
             it.copy(selectedAppList = selectedList)
         }
-        transferToComponentInoList()
+        transferToComponentInfoList()
     }
 
     fun deselectItem(item: FilteredComponent) {
@@ -309,7 +309,7 @@ class SearchViewModel @Inject constructor(
         _searchUiState.update {
             it.copy(selectedAppList = selectedList)
         }
-        transferToComponentInoList()
+        transferToComponentInfoList()
     }
 
     fun selectAll() {
@@ -324,10 +324,10 @@ class SearchViewModel @Inject constructor(
                 it.copy(selectedAppList = filterComponentList)
             }
         }
-        transferToComponentInoList()
+        transferToComponentInfoList()
     }
 
-    private fun transferToComponentInoList(): List<ComponentInfo> {
+    private fun transferToComponentInfoList(): List<ComponentInfo> {
         val list = mutableListOf<ComponentInfo>()
         if (_searchUiState.value.selectedAppList.isNotEmpty()) {
             _searchUiState.value.selectedAppList.forEach { filteredComponent ->
