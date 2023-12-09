@@ -94,6 +94,7 @@ fun BlockerNavHost(
             )
             ruleDetailScreen(
                 onBackClick = onBackClick,
+                snackbarHostState = snackbarHostState,
                 navigateToAppDetail = navController::navigateToAppDetail,
                 updateIconBasedThemingState = updateIconBasedThemingState,
             )
