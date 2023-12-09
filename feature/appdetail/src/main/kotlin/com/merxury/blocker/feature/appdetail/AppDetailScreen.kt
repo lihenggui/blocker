@@ -17,6 +17,7 @@
 package com.merxury.blocker.feature.appdetail
 
 import com.merxury.blocker.core.rule.R.string as rulestring
+import com.merxury.blocker.core.ui.R.string as uistring
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.Context
@@ -260,7 +261,7 @@ private fun handleEnableAllComponents(
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 ) {
-    val doneMessage = context.getString(string.feature_appdetail_operation_completed)
+    val doneMessage = context.getString(uistring.core_ui_operation_completed)
     viewModel.controlAllComponents(true) { current, total ->
         scope.launch {
             if (current == total) {
@@ -272,7 +273,7 @@ private fun handleEnableAllComponents(
             } else {
                 snackbarHostState.showSnackbarWithoutQueue(
                     message = context.getString(
-                        string.feature_appdetail_enabling_component_hint,
+                        uistring.core_ui_enabling_component_hint,
                         current,
                         total,
                     ),
@@ -290,7 +291,7 @@ private fun handleBlockAllComponents(
     scope: CoroutineScope,
     snackbarHostState: SnackbarHostState,
 ) {
-    val doneMessage = context.getString(string.feature_appdetail_operation_completed)
+    val doneMessage = context.getString(uistring.core_ui_operation_completed)
     viewModel.controlAllComponents(false) { current, total ->
         scope.launch {
             if (current == total) {
@@ -302,7 +303,7 @@ private fun handleBlockAllComponents(
             } else {
                 snackbarHostState.showSnackbarWithoutQueue(
                     message = context.getString(
-                        string.feature_appdetail_disabling_component_hint,
+                        uistring.core_ui_disabling_component_hint,
                         current,
                         total,
                     ),
