@@ -264,7 +264,7 @@ fun SnackbarHost(
             currentSnackbarData.dismiss()
         }
     }
-    FadeInFadeOutWithScale(
+    SnackbarAnimationWithScale(
         current = hostState.currentSnackbarData,
         modifier = modifier,
         content = snackbar,
@@ -292,102 +292,16 @@ internal fun SnackbarDuration.toMillis(
     )
 }
 
-// TODO: to be replaced with the public customizable implementation
-// it's basically tweaked nullable version of Crossfade
-@Composable
-private fun FadeInFadeOutWithScale(
-    current: SnackbarData?,
-    modifier: Modifier = Modifier,
-    content: @Composable (SnackbarData) -> Unit,
-) {
-    val state = remember { FadeInFadeOutState<SnackbarData?>() }
-    if (current != state.current) {
-        state.current = current
-        val keys = state.items.map { it.key }.toMutableList()
-        if (!keys.contains(current)) {
-            keys.add(current)
-        }
-        state.items.clear()
-        keys.filterNotNull().mapTo(state.items) { key ->
-            FadeInFadeOutAnimationItem(key) { children ->
-                val isVisible = key == current
-                val duration = if (isVisible) SnackbarFadeInMillis else SnackbarFadeOutMillis
-                val delay = SnackbarFadeOutMillis + SnackbarInBetweenDelayMillis
-                val animationDelay = if (isVisible && keys.filterNotNull().size != 1) delay else 0
-                val opacity = animatedOpacity(
-                    animation = tween(
-                        easing = LinearEasing,
-                        delayMillis = animationDelay,
-                        durationMillis = duration,
-                    ),
-                    visible = isVisible,
-                    onAnimationFinish = {
-                        if (key != state.current) {
-                            // leave only the current in the list
-                            state.items.removeAll { it.key == key }
-                            state.scope?.invalidate()
-                        }
-                    },
-                )
-                val scale = animatedScale(
-                    animation = tween(
-                        easing = FastOutSlowInEasing,
-                        delayMillis = animationDelay,
-                        durationMillis = duration,
-                    ),
-                    visible = isVisible,
-                )
-                Box(
-                    Modifier
-                        .graphicsLayer(
-                            scaleX = scale.value,
-                            scaleY = scale.value,
-                            alpha = opacity.value,
-                        )
-                        .semantics {
-                            liveRegion = LiveRegionMode.Polite
-                            dismiss { key.dismiss(); true }
-                        },
-                ) {
-                    children()
-                }
-            }
-        }
-    }
-    Box(modifier) {
-        state.scope = currentRecomposeScope
-        state.items.forEach { (item, opacity) ->
-            key(item) {
-                opacity {
-                    content(item!!)
-                }
-            }
-        }
-    }
-}
-
-private class FadeInFadeOutState<T> {
-    // we use Any here as something which will not be equals to the real initial value
-    var current: Any? = Any()
-    var items = mutableListOf<FadeInFadeOutAnimationItem<T>>()
-    var scope: RecomposeScope? = null
-}
-
-private data class FadeInFadeOutAnimationItem<T>(
-    val key: T,
-    val transition: FadeInFadeOutTransition,
-)
-
-private typealias FadeInFadeOutTransition = @Composable (content: @Composable () -> Unit) -> Unit
-
 @Composable
 private fun animatedOpacity(
     animation: AnimationSpec<Float>,
     visible: Boolean,
+    onAnimationStart: () -> Unit = {},
     onAnimationFinish: () -> Unit = {},
 ): State<Float> {
     val alpha = remember { Animatable(if (!visible) 1f else 0f) }
     LaunchedEffect(visible) {
+        onAnimationStart()
         alpha.animateTo(
             if (visible) 1f else 0f,
             animationSpec = animation,
@@ -411,7 +325,6 @@ private fun animatedScale(animation: AnimationSpec<Float>, visible: Boolean): St
 
 private const val SnackbarFadeInMillis = 150
 private const val SnackbarFadeOutMillis = 75
-private const val SnackbarInBetweenDelayMillis = 0
 
 @Composable
 private fun SnackbarAnimationWithScale(
@@ -430,17 +343,16 @@ private fun SnackbarAnimationWithScale(
         keys.filterNotNull().mapTo(state.items) { key ->
             SnackbarAnimationItem(key) { children ->
                 val isVisible = key == current
-                val duration = if (isVisible) SnackbarFadeInMillis else SnackbarFadeOutMillis
-                val delay = SnackbarFadeOutMillis + SnackbarInBetweenDelayMillis
-                val animationDelay = if (isVisible && keys.filterNotNull().size != 1) delay else 0
+                val isFirstItem = keys.size == 1
+                val duration =
+                    if (isVisible && isFirstItem) SnackbarFadeInMillis else SnackbarFadeOutMillis
                 val opacity = animatedOpacity(
                     animation = tween(
                         easing = LinearEasing,
-                        delayMillis = animationDelay,
                         durationMillis = duration,
                     ),
                     visible = isVisible,
-                    onAnimationFinish = {
+                    onAnimationStart = {
                         if (key != state.current) {
                             // leave only the current in the list
                             state.items.removeAll { it.key == key }
@@ -451,7 +363,6 @@ private fun SnackbarAnimationWithScale(
                 val scale = animatedScale(
                     animation = tween(
                         easing = FastOutSlowInEasing,
-                        delayMillis = animationDelay,
                         durationMillis = duration,
                     ),
                     visible = isVisible,
@@ -459,9 +370,9 @@ private fun SnackbarAnimationWithScale(
                 Box(
                     Modifier
                         .graphicsLayer(
-                            scaleX = scale.value,
-                            scaleY = scale.value,
-                            alpha = opacity.value,
+                            scaleX = if (isFirstItem) scale.value else 1F,
+                            scaleY = if (isFirstItem) scale.value else 1F,
+                            alpha = if (isFirstItem) opacity.value else 1F,
                         )
                         .semantics {
                             liveRegion = LiveRegionMode.Polite
