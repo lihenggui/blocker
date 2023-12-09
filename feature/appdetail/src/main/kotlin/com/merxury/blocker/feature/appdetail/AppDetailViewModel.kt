@@ -475,7 +475,7 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    fun controlAllComponents(enable: Boolean) {
+    fun controlAllComponents(enable: Boolean, block: suspend (Int, Int) -> Unit) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val list = when (tabState.value.selectedItem) {
@@ -487,7 +487,7 @@ class AppDetailViewModel @Inject constructor(
             }.map {
                 it.toComponentInfo()
             }
-
+            var successCount = 0
             componentRepository.batchControlComponent(
                 components = list,
                 newState = enable,
@@ -498,6 +498,8 @@ class AppDetailViewModel @Inject constructor(
                 .collect { component ->
                     val type = findComponentType(component.name)
                     changeComponentUiStatus(component.name, type, enable)
+                    successCount++
+                    block(successCount, list.size)
                 }
             analyticsHelper.logBatchOperationPerformed(enable)
         }

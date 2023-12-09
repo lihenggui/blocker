@@ -144,7 +144,7 @@ class RuleDetailViewModel @Inject constructor(
         }
     }
 
-    fun controlAllComponentsInPage(enable: Boolean) {
+    fun controlAllComponentsInPage(enable: Boolean, action: (Int, Int) -> Unit) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch {
             // Make sure that the user is in the correct state
@@ -160,18 +160,25 @@ class RuleDetailViewModel @Inject constructor(
             }
             val list = matchedAppState.list
                 .flatMap { it.componentList }
-            controlAllComponents(list, enable)
+            controlAllComponents(list, enable, action)
             analyticsHelper.logControlAllInPageClicked(newState = enable)
         }
     }
 
-    fun controlAllComponents(list: List<ComponentItem>, enable: Boolean) {
+    fun controlAllComponents(
+        list: List<ComponentItem>,
+        enable: Boolean,
+        action: (Int, Int) -> Unit,
+    ) {
         controlComponentJob?.cancel()
         controlComponentJob = viewModelScope.launch {
+            analyticsHelper.logControlAllComponentsClicked(newState = enable)
+            var current = 0
+            val listSize = list.size
             list.toMutableList().forEach {
+                action(++current, listSize)
                 controlComponentInternal(it.packageName, it.name, enable)
             }
-            analyticsHelper.logControlAllComponentsClicked(newState = enable)
         }
     }
 

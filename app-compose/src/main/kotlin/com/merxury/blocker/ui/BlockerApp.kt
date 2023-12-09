@@ -34,8 +34,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration.Long
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
@@ -63,6 +61,8 @@ import com.merxury.blocker.core.designsystem.component.BlockerNavigationBar
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationBarItem
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationRail
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationRailItem
+import com.merxury.blocker.core.designsystem.component.SnackbarHost
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.GradientColors

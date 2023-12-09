@@ -17,11 +17,7 @@
 package android.content.pm;
 
 import android.content.ComponentName;
-import android.os.Binder;
-import android.os.Build;
-import android.os.IBinder;
-import android.os.IInterface;
-import android.os.RemoteException;
+import android.os.*;
 import androidx.annotation.RequiresApi;
 
 public interface IPackageManager extends IInterface {
