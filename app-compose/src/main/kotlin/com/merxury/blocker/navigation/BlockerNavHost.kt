@@ -99,6 +99,7 @@ fun BlockerNavHost(
                 updateIconBasedThemingState = updateIconBasedThemingState,
             )
             searchScreen(
+                snackbarHostState = snackbarHostState,
                 navigateToAppDetail = navController::navigateToAppDetail,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
