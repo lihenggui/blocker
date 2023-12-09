@@ -72,4 +72,7 @@
     <plurals name="core_ui_selected_app_count">
         <item quantity="other">%1$d個應用程式已選取</item>
     </plurals>
+    <string name="core_ui_disabling_component_hint">正在禁用組件，請稍候…（%1$d/%2$d）</string>
+    <string name="core_ui_enabling_component_hint">正在啟用組件，請稍候…（%1$d/%2$d）</string>
+    <string name="core_ui_operation_completed">操作已完成</string>
 </resources>

@@ -45,8 +45,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -84,6 +83,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.domain.model.ZippedRule
@@ -131,6 +131,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.rule.R.string as rulestring
+import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun AppDetailRoute(
@@ -164,7 +165,7 @@ fun AppDetailRoute(
                 scope.launch {
                     snackbarHostState.showSnackbar(
                         message = context.getString(string.feature_appdetail_cannot_launch_this_app),
-                        duration = SnackbarDuration.Short,
+                        duration = Short,
                         withDismissAction = true,
                     )
                 }
@@ -174,8 +175,12 @@ fun AppDetailRoute(
         onBackClick = onBackClick,
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
-        blockAllComponents = { viewModel.controlAllComponents(false) },
-        enableAllComponents = { viewModel.controlAllComponents(true) },
+        blockAllComponents = {
+            handleBlockAllComponents(context, viewModel, scope, snackbarHostState)
+        },
+        enableAllComponents = {
+            handleEnableAllComponents(context, viewModel, scope, snackbarHostState)
+        },
         onExportRules = viewModel::exportBlockerRule,
         onImportRules = viewModel::importBlockerRule,
         onExportIfw = viewModel::exportIfwRule,
@@ -242,8 +247,68 @@ fun AppDetailRoute(
                 snackbarHostState.currentSnackbarData?.dismiss()
                 snackbarHostState.showSnackbar(
                     message = message,
-                    duration = SnackbarDuration.Short,
+                    duration = Short,
                     withDismissAction = true,
+                )
+            }
+        }
+    }
+}
+
+private fun handleEnableAllComponents(
+    context: Context,
+    viewModel: AppDetailViewModel,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+) {
+    val doneMessage = context.getString(uistring.core_ui_operation_completed)
+    viewModel.controlAllComponents(true) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = doneMessage,
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_enabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
+                )
+            }
+        }
+    }
+}
+
+private fun handleBlockAllComponents(
+    context: Context,
+    viewModel: AppDetailViewModel,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+) {
+    val doneMessage = context.getString(uistring.core_ui_operation_completed)
+    viewModel.controlAllComponents(false) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = doneMessage,
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_disabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
                 )
             }
         }

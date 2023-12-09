@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.search
 
+import android.content.Context
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -36,12 +37,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -49,6 +53,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.merxury.blocker.core.analytics.LocalAnalyticsHelper
 import com.merxury.blocker.core.designsystem.component.BlockerErrorAlertDialog
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
 import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
@@ -86,9 +91,13 @@ import com.merxury.blocker.feature.search.component.FilteredComponentItem
 import com.merxury.blocker.feature.search.component.SearchBar
 import com.merxury.blocker.feature.search.screen.SearchResultScreen
 import com.merxury.blocker.feature.search.screen.SearchingScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun SearchRoute(
+    snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit,
     viewModel: SearchViewModel = hiltViewModel(),
@@ -99,7 +108,8 @@ fun SearchRoute(
     val appList = appListViewModel.appListFlow.collectAsState()
     val selectUiState by viewModel.searchUiState.collectAsStateWithLifecycle()
     val errorState by viewModel.errorState.collectAsStateWithLifecycle()
-
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     SearchScreen(
         tabState = tabState,
         localSearchUiState = localSearchUiState,
@@ -114,8 +124,12 @@ fun SearchRoute(
         },
         onSelectAll = viewModel::selectAll,
         onDeselect = viewModel::deselectItem,
-        onBlockAll = { viewModel.controlAllSelectedComponents(false) },
-        onEnableAll = { viewModel.controlAllSelectedComponents(true) },
+        onBlockAll = {
+            handleBlockAllClick(context, viewModel, scope, snackbarHostState)
+        },
+        onEnableAll = {
+            handleEnableAppClick(context, viewModel, scope, snackbarHostState)
+        },
         searchUiState = selectUiState,
         switchSelectedMode = viewModel::switchSelectedMode,
         onSelect = viewModel::selectItem,
@@ -136,6 +150,66 @@ fun SearchRoute(
             text = errorState?.content.orEmpty(),
             onDismissRequest = viewModel::dismissAlert,
         )
+    }
+}
+
+private fun handleEnableAppClick(
+    context: Context,
+    viewModel: SearchViewModel,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+) {
+    val doneMessage = context.getString(uistring.core_ui_operation_completed)
+    viewModel.controlAllSelectedComponents(true) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = doneMessage,
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_enabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
+                )
+            }
+        }
+    }
+}
+
+private fun handleBlockAllClick(
+    context: Context,
+    viewModel: SearchViewModel,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+) {
+    val doneMessage = context.getString(uistring.core_ui_operation_completed)
+    viewModel.controlAllSelectedComponents(false) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = doneMessage,
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_disabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
+                )
+            }
+        }
     }
 }
 
