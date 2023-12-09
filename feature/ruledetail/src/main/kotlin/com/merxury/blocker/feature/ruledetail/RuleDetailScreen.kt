@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.feature.ruledetail
 
+import com.merxury.blocker.core.ui.R.string as uistring
 import android.content.Context
 import androidx.compose.animation.core.FloatExponentialDecaySpec
 import androidx.compose.animation.core.animateDecay
@@ -100,7 +101,6 @@ import com.merxury.blocker.feature.ruledetail.component.RuleDescription
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun RuleDetailRoute(
@@ -203,7 +203,7 @@ private fun handleBlockAllInPageClick(
             } else {
                 snackbarHostState.showSnackbarWithoutQueue(
                     message = context.getString(
-                        uistring.core_ui_enabling_component_hint,
+                        uistring.core_ui_disabling_component_hint,
                         current,
                         total,
                     ),
@@ -264,7 +264,7 @@ private fun handleBlockAllClick(
             } else {
                 snackbarHostState.showSnackbarWithoutQueue(
                     message = context.getString(
-                        uistring.core_ui_enabling_component_hint,
+                        uistring.core_ui_disabling_component_hint,
                         current,
                         total,
                     ),
