@@ -198,7 +198,12 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                         fallbackController.disable(it.packageName, it.name)
                     }
                 } else {
-                    if (!it.state) {
+                    val currentState = ifwController.checkComponentEnableState(
+                        it.packageName,
+                        it.name,
+                    )
+                    if (currentState == it.state) return@forEach
+                    if (it.state) {
                         ifwController.enable(it.packageName, it.name)
                     } else {
                         ifwController.disable(it.packageName, it.name)
@@ -206,7 +211,6 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
                 }
                 count++
             } else {
-                // For PM controllers, state enabled means component is enabled
                 val currentState = ApplicationUtil.checkComponentIsEnabled(
                     pm,
                     ComponentName(it.packageName, it.name),
