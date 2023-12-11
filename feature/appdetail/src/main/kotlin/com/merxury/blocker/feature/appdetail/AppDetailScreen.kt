@@ -214,7 +214,10 @@ fun AppDetailRoute(
             }
         },
         onShowAppInfoClick = { viewModel.showAppInfo(context) },
-        onRefresh = viewModel::loadComponentList,
+        onRefresh = {
+            viewModel.loadComponentList()
+            viewModel.updateComponentList()
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
