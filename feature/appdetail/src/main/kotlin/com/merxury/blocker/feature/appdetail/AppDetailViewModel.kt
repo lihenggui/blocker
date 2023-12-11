@@ -115,6 +115,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.onStart
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -184,7 +185,7 @@ class AppDetailViewModel @Inject constructor(
         updateSearchKeyword()
         loadAppInfo()
         loadComponentList()
-        updateComponentList(appDetailArgs.packageName)
+        updateComponentList()
         listenSortStateChange()
         listenComponentDetailChanges()
     }
@@ -276,24 +277,31 @@ class AppDetailViewModel @Inject constructor(
         loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val packageName = appDetailArgs.packageName
             Timber.v("Start loading component: $packageName")
-            componentRepository.getComponentList(packageName).collect { componentList ->
-                // Load the data with description and then update the ui
-                val listWithDescription = componentList.map { component ->
-                    val detail = componentDetailRepository.getLocalComponentDetail(component.name)
-                        .first()
-                    if (detail != null) {
-                        component.copy(description = detail.description)
-                    } else {
-                        component
+            componentRepository.getComponentList(packageName)
+                // Take 2 events only
+                // The first one is the initial loading
+                // The second one is the updated data from `updateComponentList()`
+                // It will be updated separately for single component event
+                .take(2)
+                .collect { componentList ->
+                    // Load the data with description and then update the ui
+                    val listWithDescription = componentList.map { component ->
+                        val detail =
+                            componentDetailRepository.getLocalComponentDetail(component.name)
+                                .first()
+                        if (detail != null) {
+                            component.copy(description = detail.description)
+                        } else {
+                            component
+                        }
+                    }
+                    updateTabContent(listWithDescription)
+                    withContext(mainDispatcher) {
+                        _componentListUiState.update {
+                            it.copy(isRefreshing = false)
+                        }
                     }
                 }
-                updateTabContent(listWithDescription)
-                withContext(mainDispatcher) {
-                    _componentListUiState.update {
-                        it.copy(isRefreshing = false)
-                    }
-                }
-            }
         }
     }
 
@@ -316,7 +324,8 @@ class AppDetailViewModel @Inject constructor(
             }
     }
 
-    private fun updateComponentList(packageName: String) = viewModelScope.launch {
+    fun updateComponentList() = viewModelScope.launch {
+        val packageName = appDetailArgs.packageName
         componentRepository.updateComponentList(packageName)
             .catch { _errorState.emit(it.toErrorMessage()) }
             .collect()

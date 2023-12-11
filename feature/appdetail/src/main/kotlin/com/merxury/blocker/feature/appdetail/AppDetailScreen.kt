@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import com.merxury.blocker.core.rule.R.string as rulestring
+import com.merxury.blocker.core.ui.R.string as uistring
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.Context
@@ -130,8 +132,6 @@ import com.merxury.blocker.feature.appdetail.ui.ShareAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.rule.R.string as rulestring
-import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun AppDetailRoute(
@@ -214,7 +214,10 @@ fun AppDetailRoute(
             }
         },
         onShowAppInfoClick = { viewModel.showAppInfo(context) },
-        onRefresh = viewModel::loadComponentList,
+        onRefresh = {
+            viewModel.loadComponentList()
+            viewModel.updateComponentList()
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
