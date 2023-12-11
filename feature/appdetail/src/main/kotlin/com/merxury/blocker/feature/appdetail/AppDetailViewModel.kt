@@ -724,7 +724,7 @@ class AppDetailViewModel @Inject constructor(
         enabled: Boolean,
     ) {
         val type = findComponentType(componentName)
-        componentRepository.controlComponent(packageName, componentName, enabled)
+        val result = componentRepository.controlComponent(packageName, componentName, enabled)
             .onStart {
                 changeComponentUiStatus(componentName, type, enabled)
             }
@@ -732,11 +732,10 @@ class AppDetailViewModel @Inject constructor(
                 changeComponentUiStatus(componentName, type, !enabled)
                 _errorState.emit(exception.toErrorMessage())
             }
-            .collect { result ->
-                if (!result) {
-                    changeComponentUiStatus(componentName, type, !enabled)
-                }
-            }
+            .first()
+        if (!result) {
+            changeComponentUiStatus(componentName, type, !enabled)
+        }
     }
 
     fun exportBlockerRule(packageName: String) = viewModelScope.launch {
