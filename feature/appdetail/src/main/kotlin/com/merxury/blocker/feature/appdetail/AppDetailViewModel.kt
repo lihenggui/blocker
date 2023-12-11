@@ -700,7 +700,7 @@ class AppDetailViewModel @Inject constructor(
                 return@withContext
             }
             withContext(mainDispatcher) {
-                list[position] = if (currentController == IFW) {
+                list[position] = if (currentController == IFW && type != PROVIDER) {
                     list[position].copy(ifwBlocked = !enable)
                 } else {
                     list[position].copy(pmBlocked = !enable)
