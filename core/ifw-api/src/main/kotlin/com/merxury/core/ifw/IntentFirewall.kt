@@ -180,9 +180,14 @@ class IntentFirewall @Inject constructor(
         val groupedMap = list.groupBy { it.packageName }
         groupedMap.keys.forEach { packageName ->
             val rule = ruleCache[packageName] ?: load(packageName)
-            groupedMap[packageName]?.forEach { component ->
+            groupedMap[packageName]?.forEach componentLoop@{ component ->
                 val filter = ComponentFilter(component.flattenToString())
-                when (getComponentType(pm, packageName, component.className)) {
+                val type = getComponentType(pm, packageName, component.className)
+                if (type == PROVIDER) {
+                    Timber.d("Cannot add IFW rule for $component")
+                    return@componentLoop
+                }
+                when (type) {
                     RECEIVER -> rule.broadcast.componentFilter.add(filter)
                     SERVICE -> rule.service.componentFilter.add(filter)
                     ACTIVITY -> rule.activity.componentFilter.add(filter)
@@ -207,9 +212,14 @@ class IntentFirewall @Inject constructor(
         val groupedMap = list.groupBy { it.packageName }
         groupedMap.keys.forEach { packageName ->
             val rule = ruleCache[packageName] ?: load(packageName)
-            groupedMap[packageName]?.forEach { component ->
+            groupedMap[packageName]?.forEach componentLoop@{ component ->
                 val filter = ComponentFilter(component.flattenToString())
-                when (getComponentType(pm, packageName, component.className)) {
+                val type = getComponentType(pm, packageName, component.className)
+                if (type == PROVIDER) {
+                    Timber.d("Cannot remove IFW rule for $component")
+                    return@componentLoop
+                }
+                when (type) {
                     RECEIVER -> rule.broadcast.componentFilter.remove(filter)
                     SERVICE -> rule.service.componentFilter.remove(filter)
                     ACTIVITY -> rule.activity.componentFilter.remove(filter)
