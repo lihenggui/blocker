@@ -20,7 +20,6 @@ package com.merxury.blocker.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -28,6 +27,7 @@ import androidx.navigation.compose.NavHost
 import com.google.accompanist.navigation.material.BottomSheetNavigator
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
 import com.google.accompanist.navigation.material.ModalBottomSheetLayout
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.feature.appdetail.navigation.componentDetailScreen
 import com.merxury.blocker.feature.appdetail.navigation.detailScreen
@@ -63,6 +63,7 @@ fun BlockerNavHost(
     navController: NavHostController,
     snackbarHostState: SnackbarHostState,
     onBackClick: () -> Unit,
+    dismissBottomSheet: () -> Unit,
     modifier: Modifier = Modifier,
     startDestination: String = appListRoute,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
@@ -93,10 +94,12 @@ fun BlockerNavHost(
             )
             ruleDetailScreen(
                 onBackClick = onBackClick,
+                snackbarHostState = snackbarHostState,
                 navigateToAppDetail = navController::navigateToAppDetail,
                 updateIconBasedThemingState = updateIconBasedThemingState,
             )
             searchScreen(
+                snackbarHostState = snackbarHostState,
                 navigateToAppDetail = navController::navigateToAppDetail,
                 navigateToRuleDetail = navController::navigateToRuleDetail,
             )
@@ -112,10 +115,10 @@ fun BlockerNavHost(
                 dismissHandler = onBackClick,
             )
             componentSortScreen(
-                dismissHandler = onBackClick,
+                dismissHandler = dismissBottomSheet,
             )
             appSortScreen(
-                dismissHandler = onBackClick,
+                dismissHandler = dismissBottomSheet,
             )
         }
     }

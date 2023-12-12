@@ -23,6 +23,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
@@ -52,6 +53,7 @@ fun NavController.navigateToRuleDetail(ruleId: Int, tab: RuleDetailTabs = Applic
 
 fun NavGraphBuilder.ruleDetailScreen(
     onBackClick: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String) -> Unit,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
 ) {
@@ -62,6 +64,11 @@ fun NavGraphBuilder.ruleDetailScreen(
             navArgument(tabArg) { type = NavType.StringType },
         ),
     ) {
-        RuleDetailRoute(onBackClick, navigateToAppDetail, updateIconBasedThemingState)
+        RuleDetailRoute(
+            onBackClick,
+            snackbarHostState,
+            navigateToAppDetail,
+            updateIconBasedThemingState,
+        )
     }
 }

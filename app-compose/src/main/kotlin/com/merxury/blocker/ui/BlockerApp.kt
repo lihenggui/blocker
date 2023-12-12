@@ -33,11 +33,12 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration.Long
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -47,14 +48,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.navigation.material.ExperimentalMaterialNavigationApi
+import com.merxury.blocker.R
 import com.merxury.blocker.core.data.util.NetworkMonitor
+import com.merxury.blocker.core.data.util.PermissionMonitor
+import com.merxury.blocker.core.data.util.PermissionStatus.NO_PERMISSION
+import com.merxury.blocker.core.data.util.PermissionStatus.SHELL_USER
 import com.merxury.blocker.core.designsystem.component.BlockerBackground
 import com.merxury.blocker.core.designsystem.component.BlockerGradientBackground
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationBar
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationBarItem
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationRail
 import com.merxury.blocker.core.designsystem.component.BlockerNavigationRailItem
+import com.merxury.blocker.core.designsystem.component.SnackbarHost
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.Icon.DrawableResourceIcon
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.GradientColors
@@ -72,8 +80,10 @@ import com.merxury.blocker.navigation.TopLevelDestination
 fun BlockerApp(
     windowSizeClass: WindowSizeClass,
     networkMonitor: NetworkMonitor,
+    permissionMonitor: PermissionMonitor,
     appState: BlockerAppState = rememberBlockerAppState(
         networkMonitor = networkMonitor,
+        permissionMonitor = permissionMonitor,
         windowSizeClass = windowSizeClass,
     ),
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit = {},
@@ -90,6 +100,26 @@ fun BlockerApp(
             },
         ) {
             val snackbarHostState = remember { SnackbarHostState() }
+
+            val appPermission by appState.currentPermission.collectAsStateWithLifecycle()
+            val noPermissionHint = stringResource(R.string.no_permission_hint)
+            val shellPermissionHint = stringResource(R.string.shell_permission_hint)
+            val actionLabel = stringResource(R.string.close)
+            LaunchedEffect(appPermission) {
+                if (appPermission == NO_PERMISSION) {
+                    snackbarHostState.showSnackbar(
+                        message = noPermissionHint,
+                        actionLabel = actionLabel,
+                        duration = Long,
+                    )
+                } else if (appPermission == SHELL_USER) {
+                    snackbarHostState.showSnackbar(
+                        message = shellPermissionHint,
+                        actionLabel = actionLabel,
+                        duration = Long,
+                    )
+                }
+            }
             Scaffold(
                 modifier = Modifier.semantics {
                     testTagsAsResourceId = true
@@ -142,6 +172,7 @@ fun BlockerApp(
                             bottomSheetNavigator = appState.bottomSheetNavigator,
                             navController = appState.navController,
                             onBackClick = appState::onBackClick,
+                            dismissBottomSheet = appState::dismissBottomSheet,
                             snackbarHostState = snackbarHostState,
                             updateIconBasedThemingState = updateIconBasedThemingState,
                         )

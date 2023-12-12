@@ -16,38 +16,44 @@
 
 package com.merxury.blocker.feature.settings.item
 
-import android.content.Intent
+import android.content.ActivityNotFoundException
 import android.content.res.Configuration
 import android.net.Uri
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
 import com.merxury.blocker.core.designsystem.icon.Icon.ImageVectorIcon
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.ui.BlockerSettingItem
 import com.merxury.blocker.core.ui.ItemHeader
 import com.merxury.blocker.feature.settings.R.string
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @Composable
 fun BackupSettings(
     backupSystemApps: Boolean,
     restoreSystemApp: Boolean,
     ruleBackupFolder: String,
+    snackbarHostState: SnackbarHostState,
     onChangeBackupSystemApp: (Boolean) -> Unit,
     onChangeRestoreSystemApp: (Boolean) -> Unit,
     onChangeRuleBackupFolder: (Uri?) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val getFolderResult = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree(),
@@ -70,11 +76,16 @@ fun BackupSettings(
                 stringResource(id = string.feature_settings_directory_invalid_or_not_set)
             },
             onItemClick = {
-                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-                if (intent.resolveActivity(context.packageManager) != null) {
+                try {
                     getFolderResult.launch(null)
-                } else {
-                    Toast.makeText(context, string.feature_settings_file_manager_required, Toast.LENGTH_LONG).show()
+                } catch (e: ActivityNotFoundException) {
+                    Timber.e(e, "No activity found to handle picking a directory.")
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = context.getString(string.feature_settings_file_manager_required),
+                            duration = Short,
+                        )
+                    }
                 }
             },
         )
@@ -101,6 +112,7 @@ fun BackupSettingsPreview() {
                 backupSystemApps = false,
                 restoreSystemApp = true,
                 ruleBackupFolder = "/emulated/0/Blocker",
+                snackbarHostState = SnackbarHostState(),
                 onChangeBackupSystemApp = {},
                 onChangeRestoreSystemApp = {},
                 onChangeRuleBackupFolder = {},

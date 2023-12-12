@@ -38,7 +38,7 @@ class SettingsScreenTest {
     private lateinit var controllerType: String
     private lateinit var shizuku: String
     private lateinit var onlineRuleSource: String
-    private lateinit var optionsGitlab: String
+    private lateinit var optionsJihulab: String
     private lateinit var themeString: String
     private lateinit var dynamicColor: String
     private lateinit var darkMode: String
@@ -64,7 +64,7 @@ class SettingsScreenTest {
             controllerType = getString(string.feature_settings_controller_type)
             shizuku = getString(string.feature_settings_shizuku)
             onlineRuleSource = getString(string.feature_settings_online_rule_source)
-            optionsGitlab = getString(string.feature_settings_options_gitlab)
+            optionsJihulab = getString(string.feature_settings_options_jihulab)
             themeString = getString(string.feature_settings_theme)
             dynamicColor = getString(string.feature_settings_dynamic_color)
             darkMode = getString(string.feature_settings_dark_mode)
@@ -112,7 +112,7 @@ class SettingsScreenTest {
         composeTestRule.onNodeWithText(controllerType).assertExists().assertHasClickAction()
         composeTestRule.onNodeWithText(shizuku).assertExists().assertHasClickAction()
         composeTestRule.onNodeWithText(onlineRuleSource).assertExists().assertHasClickAction()
-        composeTestRule.onNodeWithText(optionsGitlab).assertExists().assertHasClickAction()
+        composeTestRule.onNodeWithText(optionsJihulab).assertExists().assertHasClickAction()
         // Theme settings
         composeTestRule.onNodeWithText(themeString).assertExists()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

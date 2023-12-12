@@ -2,14 +2,14 @@
 accompanist = "0.32.0"
 androidDesugarJdkLibs = "2.0.4"
 # AGP and tools should be updated together
-androidGradlePlugin = "8.1.4"
-androidTools = "31.1.4"
+androidGradlePlugin = "8.2.0"
+androidTools = "31.2.0"
 androidxActivity = "1.8.1"
 androidxAppCompat = "1.6.1"
 androidxBrowser = "1.7.0"
 androidxComposeBom = "2023.10.01"
-androidxComposeCompiler = "1.5.4"
-androidxComposeRuntimeTracing = "1.0.0-alpha05"
+androidxComposeCompiler = "1.5.6"
+androidxComposeRuntimeTracing = "1.0.0-beta01"
 androidxCore = "1.12.0"
 androidxCoreSplashscreen = "1.0.1"
 androidxDataStore = "1.0.0"
@@ -17,7 +17,7 @@ androidxEspresso = "3.5.1"
 androidxHiltNavigationCompose = "1.1.0"
 androidxJunit = "1.1.5"
 androidxLifecycle = "2.6.2"
-androidxMacroBenchmark = "1.2.1"
+androidxMacroBenchmark = "1.2.2"
 androidxComposeMaterial = "1.5.4"
 androidxNavigation = "2.7.5"
 androidxMetrics = "1.0.0-alpha04"
@@ -29,23 +29,24 @@ androidxTestCore = "1.5.0"
 androidxTestExt = "1.1.5"
 androidxTestRunner = "1.5.2"
 androidxTestRules = "1.5.0"
-androidxTracing = "1.1.0"
+androidxTracing = "1.2.0"
 androidxUiAutomator = "2.2.0"
-androidxWork = "2.9.0-rc01"
+androidxWork = "2.9.0"
 appiconloader = "1.5.0"
 coil = "2.5.0"
+dependencyGuard = "0.4.3"
 googleAndroidMaterial = "1.10.0"
-hilt = "2.48.1"
+hilt = "2.49"
 hiltExt = "1.1.0"
 jacoco = "0.8.7"
 junit4 = "4.13.2"
-kotlin = "1.9.20"
+kotlin = "1.9.21"
 kotlinxCoroutines = "1.7.3"
-kotlinxDatetime = "0.4.1"
-kotlinxSerializationJson = "1.6.1"
-ksp = "1.9.20-1.0.14"
+kotlinxDatetime = "0.5.0"
+kotlinxSerializationJson = "1.6.2"
+ksp = "1.9.21-1.0.15"
 libsu = "5.2.1"
-lint = "31.1.4"
+lint = "31.2.0"
 okhttp = "4.12.0"
 protobuf = "3.25.1"
 protobufPlugin = "0.9.4"
@@ -53,7 +54,7 @@ retrofit = "2.9.0"
 retrofitKotlinxSerializationJson = "1.0.0"
 robolectric = "4.11.1"
 roborazzi = "1.6.0"
-room = "2.6.0"
+room = "2.6.1"
 secrets = "2.0.1"
 shizuku = "13.1.5"
 xmlutil = "0.86.2"
@@ -131,6 +132,7 @@ kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime",
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 libsu-core = { group = "com.github.topjohnwu.libsu", name = "core", version.ref = "libsu" }
 libsu-io = { group = "com.github.topjohnwu.libsu", name = "io", version.ref = "libsu" }
+libsu-service = { group = "com.github.topjohnwu.libsu", name = "service", version.ref = "libsu" }
 lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = "lint" }
 lint-checks = { group = "com.android.tools.lint", name = "lint-checks", version.ref = "lint" }
 lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.ref = "lint" }
@@ -152,7 +154,7 @@ shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref
 xmlutil-core-android = { group = "io.github.pdvrieze.xmlutil", name = "core-android", version.ref = "xmlutil" }
 xmlutil-serialization-android = { group = "io.github.pdvrieze.xmlutil", name = "serialization-android", version.ref = "xmlutil" }
 timber = "com.jakewharton.timber:timber:5.0.1"
-freereflection = "com.github.tiann:FreeReflection:3.2.0"
+hiddenapibypass = "org.lsposed.hiddenapibypass:hiddenapibypass:4.3"
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
@@ -167,6 +169,7 @@ android-application = { id = "com.android.application", version.ref = "androidGr
 android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidxMacroBenchmark"}
+dependencyGuard = { id = "com.dropbox.dependency-guard", version.ref = "dependencyGuard" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

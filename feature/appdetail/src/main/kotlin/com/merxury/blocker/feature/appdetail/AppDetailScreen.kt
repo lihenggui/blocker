@@ -45,8 +45,7 @@ import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarDuration.Short
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,6 +69,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
@@ -83,6 +83,7 @@ import com.merxury.blocker.core.designsystem.component.BlockerSearchTextField
 import com.merxury.blocker.core.designsystem.component.BlockerTab
 import com.merxury.blocker.core.designsystem.component.MaxToolbarHeight
 import com.merxury.blocker.core.designsystem.component.MinToolbarHeight
+import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.domain.model.ZippedRule
@@ -130,6 +131,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
 import com.merxury.blocker.core.rule.R.string as rulestring
+import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun AppDetailRoute(
@@ -163,7 +165,7 @@ fun AppDetailRoute(
                 scope.launch {
                     snackbarHostState.showSnackbar(
                         message = context.getString(string.feature_appdetail_cannot_launch_this_app),
-                        duration = SnackbarDuration.Short,
+                        duration = Short,
                         withDismissAction = true,
                     )
                 }
@@ -173,8 +175,12 @@ fun AppDetailRoute(
         onBackClick = onBackClick,
         onSearchTextChanged = viewModel::search,
         onSearchModeChanged = viewModel::changeSearchMode,
-        blockAllComponents = { viewModel.controlAllComponents(false) },
-        enableAllComponents = { viewModel.controlAllComponents(true) },
+        blockAllComponents = {
+            handleBlockAllComponents(context, viewModel, scope, snackbarHostState)
+        },
+        enableAllComponents = {
+            handleEnableAllComponents(context, viewModel, scope, snackbarHostState)
+        },
         onExportRules = viewModel::exportBlockerRule,
         onImportRules = viewModel::importBlockerRule,
         onExportIfw = viewModel::exportIfwRule,
@@ -207,7 +213,11 @@ fun AppDetailRoute(
                 }
             }
         },
-        onRefresh = viewModel::loadComponentList,
+        onShowAppInfoClick = { viewModel.showAppInfo(context) },
+        onRefresh = {
+            viewModel.loadComponentList()
+            viewModel.updateComponentList()
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -240,14 +250,71 @@ fun AppDetailRoute(
                 snackbarHostState.currentSnackbarData?.dismiss()
                 snackbarHostState.showSnackbar(
                     message = message,
-                    duration = SnackbarDuration.Short,
+                    duration = Short,
                     withDismissAction = true,
                 )
             }
         }
     }
-    LaunchedEffect(Unit) {
-        viewModel.initShizuku()
+}
+
+private fun handleEnableAllComponents(
+    context: Context,
+    viewModel: AppDetailViewModel,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+) {
+    val doneMessage = context.getString(uistring.core_ui_operation_completed)
+    viewModel.controlAllComponents(true) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = doneMessage,
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_enabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
+                )
+            }
+        }
+    }
+}
+
+private fun handleBlockAllComponents(
+    context: Context,
+    viewModel: AppDetailViewModel,
+    scope: CoroutineScope,
+    snackbarHostState: SnackbarHostState,
+) {
+    val doneMessage = context.getString(uistring.core_ui_operation_completed)
+    viewModel.controlAllComponents(false) { current, total ->
+        scope.launch {
+            if (current == total) {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = doneMessage,
+                    duration = Short,
+                    withDismissAction = true,
+                )
+            } else {
+                snackbarHostState.showSnackbarWithoutQueue(
+                    message = context.getString(
+                        uistring.core_ui_disabling_component_hint,
+                        current,
+                        total,
+                    ),
+                    duration = Short,
+                    withDismissAction = false,
+                )
+            }
+        }
     }
 }
 
@@ -316,6 +383,7 @@ fun AppDetailScreen(
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
     enableAllComponents: () -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -359,6 +427,7 @@ fun AppDetailScreen(
                 onSearchModeChanged = onSearchModeChanged,
                 enableAllComponents = enableAllComponents,
                 blockAllComponents = blockAllComponents,
+                onShowAppInfoClick = onShowAppInfoClick,
                 onExportRules = onExportRules,
                 onImportRules = onImportRules,
                 onExportIfw = onExportIfw,
@@ -380,6 +449,7 @@ fun AppDetailScreen(
                 shareAppRule = shareAppRule,
                 shareAllRules = shareAllRules,
                 onRefresh = onRefresh,
+                isLibCheckerInstalled = appInfoUiState.isLibCheckerInstalled,
             )
         }
 
@@ -400,6 +470,7 @@ fun AppDetailContent(
     modifier: Modifier = Modifier,
     topAppBarUiState: AppBarUiState,
     navigateToComponentDetail: (String) -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onSearchTextChanged: (String) -> Unit = {},
     onSearchModeChanged: (Boolean) -> Unit = {},
     blockAllComponents: () -> Unit = {},
@@ -425,6 +496,7 @@ fun AppDetailContent(
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
+    isLibCheckerInstalled: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -503,6 +575,7 @@ fun AppDetailContent(
                     )
                 },
             navigateToComponentDetail = navigateToComponentDetail,
+            onShowAppInfoClick = onShowAppInfoClick,
             onExportRules = onExportRules,
             onImportRules = onImportRules,
             onExportIfw = onExportIfw,
@@ -517,6 +590,7 @@ fun AppDetailContent(
             onDeselect = onDeselect,
             onRefresh = onRefresh,
             isRefreshing = componentListUiState.isRefreshing,
+            isLibCheckerInstalled = isLibCheckerInstalled,
         )
     }
 }
@@ -663,6 +737,7 @@ fun AppDetailTabContent(
     selectedComponentList: List<ComponentInfo> = emptyList(),
     isSelectedMode: Boolean = false,
     navigateToComponentDetail: (String) -> Unit = {},
+    onShowAppInfoClick: () -> Unit = {},
     onExportRules: (String) -> Unit = {},
     onImportRules: (String) -> Unit = {},
     onExportIfw: (String) -> Unit = {},
@@ -677,6 +752,7 @@ fun AppDetailTabContent(
     onDeselect: (ComponentInfo) -> Unit = {},
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
+    isLibCheckerInstalled: Boolean = false,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -718,6 +794,8 @@ fun AppDetailTabContent(
             when (tabState.items[it]) {
                 Info -> SummaryContent(
                     app = app,
+                    isLibCheckerInstalled = isLibCheckerInstalled,
+                    onShowAppInfoClick = onShowAppInfoClick,
                     onExportRules = onExportRules,
                     onImportRules = onImportRules,
                     onExportIfw = onExportIfw,
@@ -777,7 +855,33 @@ fun AppDetailScreenPreview(
     BlockerTheme {
         Surface {
             AppDetailScreen(
-                appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                appInfoUiState = Success(
+                    appInfo = appList[0],
+                    iconBasedTheming = null,
+                ),
+                componentListUiState = ComponentListUiState(),
+                tabState = tabState[0],
+                topAppBarUiState = AppBarUiState(),
+            )
+        }
+    }
+}
+
+@Composable
+@Preview
+fun AppDetailScreenWithLibCheckerPreview(
+    @PreviewParameter(AppListPreviewParameterProvider::class)
+    appList: List<AppItem>,
+) {
+    val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
+    BlockerTheme {
+        Surface {
+            AppDetailScreen(
+                appInfoUiState = Success(
+                    appInfo = appList[0],
+                    iconBasedTheming = null,
+                    isLibCheckerInstalled = true,
+                ),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState[0],
                 topAppBarUiState = AppBarUiState(),
