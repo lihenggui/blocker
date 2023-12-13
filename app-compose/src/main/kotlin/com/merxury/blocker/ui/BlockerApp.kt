@@ -128,8 +128,18 @@ fun BlockerApp(
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 snackbarHost = {
+                    val modifier = if (appState.shouldShowNavRail) {
+                        Modifier.windowInsetsPadding(
+                            WindowInsets.safeDrawing.only(
+                                WindowInsetsSides.Vertical,
+                            ),
+                        )
+                    } else {
+                        Modifier
+                    }
                     SnackbarHost(
                         hostState = snackbarHostState,
+                        modifier = modifier,
                     )
                 },
                 bottomBar = {
