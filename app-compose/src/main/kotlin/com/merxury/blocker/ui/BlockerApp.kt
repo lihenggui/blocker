@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -129,9 +128,18 @@ fun BlockerApp(
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
                 snackbarHost = {
+                    val modifier = if (appState.shouldShowNavRail) {
+                        Modifier.windowInsetsPadding(
+                            WindowInsets.safeDrawing.only(
+                                WindowInsetsSides.Vertical,
+                            ),
+                        )
+                    } else {
+                        Modifier
+                    }
                     SnackbarHost(
                         hostState = snackbarHostState,
-                        modifier = Modifier.safeContentPadding(),
+                        modifier = modifier,
                     )
                 },
                 bottomBar = {
