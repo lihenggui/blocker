@@ -131,8 +131,9 @@ object ApplicationUtil {
             try {
                 var flags = PackageManager.GET_ACTIVITIES
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or @Suppress("DEPRECATION")
-                    PackageManager.GET_DISABLED_COMPONENTS
+                    flags or
+                        @Suppress("DEPRECATION")
+                        PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
@@ -167,8 +168,9 @@ object ApplicationUtil {
             try {
                 var flags = PackageManager.GET_RECEIVERS
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or @Suppress("DEPRECATION")
-                    PackageManager.GET_DISABLED_COMPONENTS
+                    flags or
+                        @Suppress("DEPRECATION")
+                        PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
@@ -201,8 +203,9 @@ object ApplicationUtil {
             try {
                 var flags = PackageManager.GET_SERVICES
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or @Suppress("DEPRECATION")
-                    PackageManager.GET_DISABLED_COMPONENTS
+                    flags or
+                        @Suppress("DEPRECATION")
+                        PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
@@ -237,8 +240,9 @@ object ApplicationUtil {
             try {
                 var flags = PackageManager.GET_PROVIDERS
                 flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                    flags or @Suppress("DEPRECATION")
-                    PackageManager.GET_DISABLED_COMPONENTS
+                    flags or
+                        @Suppress("DEPRECATION")
+                        PackageManager.GET_DISABLED_COMPONENTS
                 } else {
                     flags or PackageManager.MATCH_DISABLED_COMPONENTS
                 }
@@ -310,8 +314,9 @@ object ApplicationUtil {
                 @Suppress("DEPRECATION")
                 PackageManager.GET_INTENT_FILTERS
             flags = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-                flags or @Suppress("DEPRECATION")
-                PackageManager.GET_DISABLED_COMPONENTS
+                flags or
+                    @Suppress("DEPRECATION")
+                    PackageManager.GET_DISABLED_COMPONENTS
             } else {
                 flags or PackageManager.MATCH_DISABLED_COMPONENTS
             }
