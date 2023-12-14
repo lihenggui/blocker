@@ -16,6 +16,9 @@
 
 package com.merxury.blocker.ui
 
+import com.merxury.blocker.core.ui.R as UiR
+import com.merxury.blocker.feature.applist.R as FeatureApplistR
+import com.merxury.blocker.feature.search.R as FeatureSearchR
 import androidx.annotation.StringRes
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsSelected
@@ -47,9 +50,6 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import javax.inject.Inject
 import kotlin.properties.ReadOnlyProperty
-import com.merxury.blocker.core.ui.R as UiR
-import com.merxury.blocker.feature.applist.R as FeatureApplistR
-import com.merxury.blocker.feature.search.R as FeatureSearchR
 
 @HiltAndroidTest
 class NavigationTest {
@@ -121,8 +121,8 @@ class NavigationTest {
     }
 
     /*
-    * more icon and sort icon only shows on the Apps tab
-    */
+     * more icon and sort icon only shows on the Apps tab
+     */
     @Test
     fun topLevelDestinations_showMoreAndSortIcon() {
         composeTestRule.apply {
