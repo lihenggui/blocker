@@ -62,7 +62,7 @@ fun BlockerIconToggleButton(
             checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
             disabledContainerColor = if (checked) {
                 MaterialTheme.colorScheme.onBackground.copy(
-                    alpha = BlockerIconButtonDefaults.DisabledIconButtonContainerAlpha,
+                    alpha = BlockerIconButtonDefaults.DISABLED_ICON_BUTTON_CONTAINER_ALPHA,
                 )
             } else {
                 Color.Transparent
@@ -127,5 +127,5 @@ fun IconButtonPreviewUnchecked() {
 object BlockerIconButtonDefaults {
     // TODO: File bug
     // IconToggleButton disabled container alpha not exposed by IconButtonDefaults
-    const val DisabledIconButtonContainerAlpha = 0.12f
+    const val DISABLED_ICON_BUTTON_CONTAINER_ALPHA = 0.12f
 }
