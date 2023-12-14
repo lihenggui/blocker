@@ -36,7 +36,6 @@ rootProject {
             kotlin {
                 target("**/*.kt")
                 targetExclude("**/build/**/*.kt")
-                println("rootProject.projectDir: ${rootProject.projectDir}/.editorconfig")
                 ktlint(ktlintVersion).editorConfigOverride(
                     mapOf(
                         "android" to "true",
