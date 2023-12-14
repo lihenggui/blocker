@@ -41,7 +41,6 @@ rootProject {
                         "android" to "true",
                         // TODO: Enable these two rules
                         "ktlint_standard_property-naming" to "disabled",
-                        "ktlint_standard_discouraged-comment-location" to "disabled",
                     ),
                 )
 //                licenseHeaderFile(rootProject.file("spotless/copyright.kt"))
