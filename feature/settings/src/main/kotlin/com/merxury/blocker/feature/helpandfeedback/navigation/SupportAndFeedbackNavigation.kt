@@ -23,17 +23,17 @@ import androidx.navigation.compose.composable
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.feature.helpandfeedback.SupportAndFeedbackRoute
 
-const val supportAndFeedbackRoute = "support_and_feedback_route"
+const val SUPPORT_AND_FEEDBACK_ROUTE = "support_and_feedback_route"
 
 fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) {
-    this.navigate(supportAndFeedbackRoute, navOptions)
+    this.navigate(SUPPORT_AND_FEEDBACK_ROUTE, navOptions)
 }
 
 fun NavGraphBuilder.supportAndFeedbackScreen(
     onBackClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
 ) {
-    composable(route = supportAndFeedbackRoute) {
+    composable(route = SUPPORT_AND_FEEDBACK_ROUTE) {
         SupportAndFeedbackRoute(
             onNavigationClick = onBackClick,
             snackbarHostState = snackbarHostState,

@@ -39,8 +39,6 @@ rootProject {
                 ktlint(ktlintVersion).editorConfigOverride(
                     mapOf(
                         "android" to "true",
-                        // TODO: Enable these two rules
-                        "ktlint_standard_property-naming" to "disabled",
                     ),
                 )
 //                licenseHeaderFile(rootProject.file("spotless/copyright.kt"))

@@ -22,10 +22,10 @@ import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import com.merxury.blocker.feature.applist.AppListRoute
 
-const val appListRoute = "app_list_route"
+const val APP_LIST_ROUTE = "app_list_route"
 
 fun NavController.navigateToAppList(navOptions: NavOptions? = null) {
-    this.navigate(appListRoute, navOptions)
+    this.navigate(APP_LIST_ROUTE, navOptions)
 }
 
 fun NavGraphBuilder.appListScreen(
@@ -35,7 +35,7 @@ fun NavGraphBuilder.appListScreen(
     navigateTooAppSortScreen: () -> Unit,
 ) {
     composable(
-        route = appListRoute,
+        route = APP_LIST_ROUTE,
     ) {
         AppListRoute(
             navigateToAppDetail = navigateToAppDetail,

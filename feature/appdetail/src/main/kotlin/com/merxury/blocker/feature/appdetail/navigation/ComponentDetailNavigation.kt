@@ -31,7 +31,7 @@ import kotlin.text.Charsets.UTF_8
 private val URL_CHARACTER_ENCODING = UTF_8.name()
 
 @VisibleForTesting
-internal const val componentNameArg = "componentName"
+internal const val COMPONENT_ARG_NAME = "componentName"
 
 internal class ComponentDetailArgs(
     val name: String,
@@ -39,7 +39,7 @@ internal class ComponentDetailArgs(
     constructor(savedStateHandle: SavedStateHandle) :
         this(
             URLDecoder.decode(
-                checkNotNull(savedStateHandle[componentNameArg]),
+                checkNotNull(savedStateHandle[COMPONENT_ARG_NAME]),
                 URL_CHARACTER_ENCODING,
             ),
         )
@@ -56,9 +56,9 @@ fun NavGraphBuilder.componentDetailScreen(
     dismissHandler: () -> Unit,
 ) {
     dialog(
-        route = "app_component_detail_route/{$componentNameArg}",
+        route = "app_component_detail_route/{$COMPONENT_ARG_NAME}",
         arguments = listOf(
-            navArgument(componentNameArg) { type = NavType.StringType },
+            navArgument(COMPONENT_ARG_NAME) { type = NavType.StringType },
         ),
     ) {
         ComponentDetailDialogRoute(
