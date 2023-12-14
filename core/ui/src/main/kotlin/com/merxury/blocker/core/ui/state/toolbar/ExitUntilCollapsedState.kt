@@ -26,19 +26,19 @@ class ExitUntilCollapsedState(
     scrollOffset: Float = 0f,
 ) : FixedScrollFlagState(heightRange) {
 
-    override var _scrollOffset by mutableFloatStateOf(
+    override var internalScrollOffset by mutableFloatStateOf(
         value = scrollOffset.coerceIn(0f, rangeDifference.toFloat()),
     )
 
     override var scrollOffset: Float
-        get() = _scrollOffset
+        get() = internalScrollOffset
         set(value) {
             if (scrollTopLimitReached) {
-                val oldOffset = _scrollOffset
-                _scrollOffset = value.coerceIn(0f, rangeDifference.toFloat())
-                _consumed = oldOffset - _scrollOffset
+                val oldOffset = internalScrollOffset
+                internalScrollOffset = value.coerceIn(0f, rangeDifference.toFloat())
+                internalConsumed = oldOffset - internalScrollOffset
             } else {
-                _consumed = 0f
+                internalConsumed = 0f
             }
         }
 
