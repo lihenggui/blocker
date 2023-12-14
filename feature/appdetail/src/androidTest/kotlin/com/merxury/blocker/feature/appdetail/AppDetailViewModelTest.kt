@@ -48,9 +48,9 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
-import com.merxury.blocker.feature.appdetail.navigation.keywordArg
-import com.merxury.blocker.feature.appdetail.navigation.packageNameArg
-import com.merxury.blocker.feature.appdetail.navigation.tabArg
+import com.merxury.blocker.feature.appdetail.navigation.KEYWORD_ARG
+import com.merxury.blocker.feature.appdetail.navigation.PACKAGE_NAME_ARG
+import com.merxury.blocker.feature.appdetail.navigation.TAB_ARG
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -81,9 +81,9 @@ class AppDetailViewModelTest {
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
     private val savedStateHandle = SavedStateHandle(
         mapOf(
-            packageNameArg to sampleAppList.first().packageName,
-            tabArg to AppDetailTabs.INFO,
-            keywordArg to "",
+            PACKAGE_NAME_ARG to sampleAppList.first().packageName,
+            TAB_ARG to AppDetailTabs.INFO,
+            KEYWORD_ARG to "",
         ),
     )
     private lateinit var viewModel: AppDetailViewModel
