@@ -28,8 +28,8 @@ class BlockerAppPropertiesDataStore @Inject constructor(
         AppPropertiesData(
             componentDatabaseInitialized = it.componentDatabaseInitialized,
             generalRuleDatabaseInitialized = it.generalRuleDatabaseInitialized,
-            lastOpenAppListHash = it.lastOpenedAppListHash,
-            lastOpenRuleHash = it.lastOpenedRuleHash,
+            lastOpenedAppListHash = it.lastOpenedAppListHash,
+            lastOpenedRuleHash = it.lastOpenedRuleHash,
         )
     }
 
