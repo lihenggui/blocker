@@ -28,6 +28,8 @@ class BlockerAppPropertiesDataStore @Inject constructor(
         AppPropertiesData(
             componentDatabaseInitialized = it.componentDatabaseInitialized,
             generalRuleDatabaseInitialized = it.generalRuleDatabaseInitialized,
+            lastOpenAppListHash = it.lastOpenedAppListHash,
+            lastOpenRuleHash = it.lastOpenedRuleHash,
         )
     }
 
@@ -43,6 +45,22 @@ class BlockerAppPropertiesDataStore @Inject constructor(
         appProperties.updateData {
             it.copy {
                 generalRuleDatabaseInitialized = true
+            }
+        }
+    }
+
+    suspend fun updateLastOpenedAppListHash(hash: String) {
+        appProperties.updateData {
+            it.copy {
+                lastOpenedAppListHash = hash
+            }
+        }
+    }
+
+    suspend fun updateLastOpenedRuleHash(hash: String) {
+        appProperties.updateData {
+            it.copy {
+                lastOpenedRuleHash = hash
             }
         }
     }
