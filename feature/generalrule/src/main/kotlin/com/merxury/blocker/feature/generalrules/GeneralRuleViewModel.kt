@@ -18,7 +18,9 @@ package com.merxury.blocker.feature.generalrules
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
+import com.merxury.blocker.core.data.respository.userdata.AppPropertiesRepository
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.InitializeRuleStorageUseCase
@@ -53,8 +55,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class GeneralRulesViewModel @Inject constructor(
-    private val initGeneralRuleUseCase: InitializeRuleStorageUseCase,
+    private val appRepository: AppRepository,
+    private val appPropertiesRepository: AppPropertiesRepository,
     private val generalRuleRepository: GeneralRuleRepository,
+    private val initGeneralRuleUseCase: InitializeRuleStorageUseCase,
     private val searchRule: SearchGeneralRuleUseCase,
     private val updateRule: UpdateRuleMatchedAppUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
@@ -76,6 +80,11 @@ class GeneralRulesViewModel @Inject constructor(
     private fun loadData() {
         loadRuleJob?.cancel()
         loadRuleJob = viewModelScope.launch {
+            if (!shouldRefreshList()) {
+                Timber.d("No need to refresh the list")
+                showGeneralRuleList()
+                return@launch
+            }
             _uiState.emit(Loading)
             initGeneralRuleUseCase()
                 .catch { _uiState.emit(Error(it.toErrorMessage())) }
@@ -85,19 +94,23 @@ class GeneralRulesViewModel @Inject constructor(
                 }
             Timber.v("Get general rules from local storage")
             updateGeneralRule()
-            searchRule()
-                .catch { _uiState.emit(Error(it.toErrorMessage())) }
-                .distinctUntilChanged()
-                .collect { rules ->
-                    _uiState.update { state ->
-                        if (state is Success) {
-                            state.copy(rules = rules)
-                        } else {
-                            Success(rules = rules)
-                        }
+            showGeneralRuleList()
+        }
+    }
+
+    private suspend fun showGeneralRuleList() {
+        searchRule()
+            .catch { _uiState.emit(Error(it.toErrorMessage())) }
+            .distinctUntilChanged()
+            .collect { rules ->
+                _uiState.update { state ->
+                    if (state is Success) {
+                        state.copy(rules = rules)
+                    } else {
+                        Success(rules = rules)
                     }
                 }
-        }
+            }
     }
 
     private fun updateGeneralRule() = viewModelScope.launch {
@@ -138,6 +151,40 @@ class GeneralRulesViewModel @Inject constructor(
             }
         }
             .awaitAll()
+    }
+
+    private suspend fun shouldRefreshList(): Boolean {
+        val appProperties = appPropertiesRepository.appProperties.first()
+        val lastOpenedAppListHash = appProperties.lastOpenedAppListHash
+        val lastOpenedRuleHash = appProperties.lastOpenedRuleHash
+        if (lastOpenedAppListHash.isEmpty() || lastOpenedRuleHash.isEmpty()) {
+            Timber.d("User opened this screen for the first time, should refresh the list")
+            return true
+        }
+        val currentAppListHash = getCurrentAppListHash()
+        val currentRuleHash = getCurrentRuleHash()
+        val appListChanged = currentAppListHash != lastOpenedAppListHash
+        val ruleChanged = currentRuleHash != lastOpenedRuleHash
+        val shouldReloadList = appListChanged || ruleChanged
+        Timber.d(
+            "App list changed: $appListChanged, rule changed: $ruleChanged, " +
+                "should reload the list: $shouldReloadList",
+        )
+        return shouldReloadList
+    }
+
+    private suspend fun getCurrentAppListHash(): String {
+        return appRepository.getApplicationList()
+            .first()
+            .hashCode()
+            .toString()
+    }
+
+    private suspend fun getCurrentRuleHash(): String {
+        return generalRuleRepository.getGeneralRules()
+            .first()
+            .hashCode()
+            .toString()
     }
 }
 
