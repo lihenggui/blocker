@@ -29,7 +29,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import rikka.shizuku.ShizukuBinderWrapper
 import rikka.shizuku.SystemServiceHelper
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class ShizukuController @Inject constructor(
     @ApplicationContext private val context: Context,
 ) : IController {
