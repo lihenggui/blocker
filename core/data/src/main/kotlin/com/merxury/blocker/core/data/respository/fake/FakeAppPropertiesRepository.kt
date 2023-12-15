@@ -33,4 +33,10 @@ class FakeAppPropertiesRepository @Inject constructor(
 
     override suspend fun markGeneralRuleDatabaseInitialized() =
         appPropertiesDataSource.markGeneralRuleDatabaseInitialized()
+
+    override suspend fun updateLastOpenedAppListHash(hash: String) =
+        appPropertiesDataSource.updateLastOpenedAppListHash(hash)
+
+    override suspend fun updateLastOpenedRuleHash(hash: String) =
+        appPropertiesDataSource.updateLastOpenedRuleHash(hash)
 }
