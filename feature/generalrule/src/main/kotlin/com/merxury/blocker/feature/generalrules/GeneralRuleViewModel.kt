@@ -187,10 +187,8 @@ class GeneralRulesViewModel @Inject constructor(
     }
 
     private suspend fun getCurrentRuleHash(): String {
-        return generalRuleRepository.getGeneralRules()
+        return generalRuleRepository.getRuleHash()
             .first()
-            .hashCode()
-            .toString()
     }
 
     private suspend fun saveHash() {
