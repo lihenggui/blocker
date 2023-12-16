@@ -26,15 +26,16 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.merxury.blocker.core.controllers.ifw.IfwController
-import com.merxury.blocker.core.controllers.root.command.RootController
-import com.merxury.blocker.core.controllers.shizuku.ShizukuController
+import com.merxury.blocker.core.controllers.IController
+import com.merxury.blocker.core.controllers.di.IfwControl
+import com.merxury.blocker.core.controllers.di.RootApiControl
+import com.merxury.blocker.core.controllers.di.ShizukuControl
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.ControllerType.IFW
-import com.merxury.blocker.core.model.data.ControllerType.PM
+import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.rule.BlockerRule
 import com.merxury.blocker.core.rule.EXTENSION
 import com.merxury.blocker.core.rule.R
@@ -56,9 +57,9 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     @Assisted private val context: Context,
     @Assisted params: WorkerParameters,
     private val pm: PackageManager,
-    private val rootController: RootController,
-    private val ifwController: IfwController,
-    private val shizukuController: ShizukuController,
+    @RootApiControl private val rootController: IController,
+    @IfwControl private val ifwController: IController,
+    @ShizukuControl private val shizukuController: IController,
     private val json: Json,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : RuleNotificationWorker(context, params) {
@@ -181,10 +182,10 @@ class ImportBlockerRuleWorker @AssistedInject constructor(
     }
 
     private suspend fun import(rule: BlockerRule, type: ControllerType): Int {
-        val fallbackController = if (type == PM) {
-            rootController
-        } else {
+        val fallbackController = if (type == SHIZUKU) {
             shizukuController
+        } else {
+            rootController
         }
         var count = 0
         rule.components.forEach {
