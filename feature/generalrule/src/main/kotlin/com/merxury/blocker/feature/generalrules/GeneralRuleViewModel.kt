@@ -82,7 +82,7 @@ class GeneralRulesViewModel @Inject constructor(
         loadRuleJob = viewModelScope.launch {
             if (!shouldRefreshList()) {
                 Timber.d("No need to refresh the list")
-                showGeneralRuleList()
+                showGeneralRuleList(skipLoading = true)
                 return@launch
             }
             _uiState.emit(Loading)
@@ -98,16 +98,21 @@ class GeneralRulesViewModel @Inject constructor(
         }
     }
 
-    private suspend fun showGeneralRuleList() {
+    private suspend fun showGeneralRuleList(skipLoading: Boolean = false) {
         searchRule()
             .catch { _uiState.emit(Error(it.toErrorMessage())) }
             .distinctUntilChanged()
             .collect { rules ->
                 _uiState.update { state ->
-                    if (state is Success) {
+                    val newState = if (state is Success) {
                         state.copy(rules = rules)
                     } else {
                         Success(rules = rules)
+                    }
+                    if (!skipLoading) {
+                        newState
+                    } else {
+                        newState.copy(matchProgress = 1F)
                     }
                 }
             }
@@ -151,6 +156,7 @@ class GeneralRulesViewModel @Inject constructor(
             }
         }
             .awaitAll()
+        saveHash()
     }
 
     private suspend fun shouldRefreshList(): Boolean {
@@ -185,6 +191,14 @@ class GeneralRulesViewModel @Inject constructor(
             .first()
             .hashCode()
             .toString()
+    }
+
+    private suspend fun saveHash() {
+        val appListHash = getCurrentAppListHash()
+        val ruleHash = getCurrentRuleHash()
+        Timber.d("Save app list hash: $appListHash, rule hash: $ruleHash")
+        appPropertiesRepository.updateLastOpenedAppListHash(appListHash)
+        appPropertiesRepository.updateLastOpenedRuleHash(ruleHash)
     }
 }
 
