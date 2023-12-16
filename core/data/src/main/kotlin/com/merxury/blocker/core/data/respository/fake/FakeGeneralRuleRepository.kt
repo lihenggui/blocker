@@ -21,6 +21,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -46,6 +47,8 @@ class FakeGeneralRuleRepository @Inject constructor(
             emit(Result.Success(Unit))
         }
     }
+
+    override fun getRuleHash(): Flow<String> = flowOf("")
 
     override suspend fun saveGeneralRule(rule: GeneralRule) { /* no-op */ }
 
