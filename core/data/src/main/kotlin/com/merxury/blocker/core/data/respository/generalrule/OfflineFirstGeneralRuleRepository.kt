@@ -53,6 +53,11 @@ class OfflineFirstGeneralRuleRepository @Inject constructor(
             .mapNotNull { it?.asExternalModel() }
     }
 
+    override fun getRuleHash(): Flow<String> {
+        return dataSource.getGeneralRules()
+            .map { it.hashCode().toString() }
+    }
+
     override fun updateGeneralRule(): Flow<Result<Unit>> {
         return dataSource.getGeneralRules()
             .map { list ->
