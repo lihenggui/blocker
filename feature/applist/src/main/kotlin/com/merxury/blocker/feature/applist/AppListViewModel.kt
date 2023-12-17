@@ -256,10 +256,14 @@ class AppListViewModel @Inject constructor(
             }
         }
 
-    private fun updateInstalledAppList() = viewModelScope.launch {
-        appRepository.updateApplicationList().collect {
-            if (it is Result.Error) {
-                _errorState.emit(it.exception?.toErrorMessage())
+    private var updateAppListJob: Job? = null
+    fun updateInstalledAppList() {
+        updateAppListJob?.cancel()
+        updateAppListJob = viewModelScope.launch {
+            appRepository.updateApplicationList().collect {
+                if (it is Result.Error) {
+                    _errorState.emit(it.exception?.toErrorMessage())
+                }
             }
         }
     }
@@ -385,6 +389,7 @@ class AppListViewModel @Inject constructor(
                 val versionCode = app.getVersionCode()
                 getCurrentAppController().uninstallApp(packageName, versionCode)
                 notifyAppUpdated(packageName)
+                updateInstalledAppList()
                 analyticsHelper.logUninstallAppClicked()
             }
         }
@@ -431,10 +436,9 @@ class AppListViewModel @Inject constructor(
     }
 
     private suspend fun notifyAppUpdated(packageName: String) {
-        appRepository.updateApplication(packageName).collect {
-            if (it is Result.Error) {
-                _errorState.emit(it.exception?.toErrorMessage())
-            }
+        val result = appRepository.updateApplication(packageName).first()
+        if (result is Result.Error) {
+            _errorState.emit(result.exception?.toErrorMessage())
         }
     }
 }
