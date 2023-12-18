@@ -42,6 +42,8 @@ class TestGeneralRuleRepository : GeneralRuleRepository {
         return flowOf(Result.Success(Unit))
     }
 
+    override fun getRuleHash(): Flow<String> = flowOf("")
+
     override suspend fun saveGeneralRule(rule: GeneralRule) {
         // no-op
     }

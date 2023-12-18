@@ -21,4 +21,6 @@ option java_multiple_files = true;
 message AppProperties {
   bool component_database_initialized = 1;
   bool general_rule_database_initialized = 2;
+  string last_opened_app_list_hash = 3;
+  string last_opened_rule_hash = 4;
 }

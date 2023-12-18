@@ -19,4 +19,6 @@ package com.merxury.blocker.core.model.preference
 data class AppPropertiesData(
     val componentDatabaseInitialized: Boolean = false,
     val generalRuleDatabaseInitialized: Boolean = false,
+    val lastOpenedAppListHash: String = "",
+    val lastOpenedRuleHash: String = "",
 )
