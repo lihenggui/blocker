@@ -28,6 +28,8 @@ interface GeneralRuleRepository {
 
     fun getGeneralRule(id: Int): Flow<GeneralRule>
 
+    fun getRuleHash(): Flow<String>
+
     /**
      * Update the general rule from the backend API
      * And emit results in a flow for application to listen

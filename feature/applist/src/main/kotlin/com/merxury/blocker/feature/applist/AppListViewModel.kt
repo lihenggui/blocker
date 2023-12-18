@@ -256,10 +256,14 @@ class AppListViewModel @Inject constructor(
             }
         }
 
-    private fun updateInstalledAppList() = viewModelScope.launch {
-        appRepository.updateApplicationList().collect {
-            if (it is Result.Error) {
-                _errorState.emit(it.exception?.toErrorMessage())
+    private var updateAppListJob: Job? = null
+    fun updateInstalledAppList() {
+        updateAppListJob?.cancel()
+        updateAppListJob = viewModelScope.launch {
+            appRepository.updateApplicationList().collect {
+                if (it is Result.Error) {
+                    _errorState.emit(it.exception?.toErrorMessage())
+                }
             }
         }
     }
@@ -431,11 +435,14 @@ class AppListViewModel @Inject constructor(
     }
 
     private suspend fun notifyAppUpdated(packageName: String) {
-        appRepository.updateApplication(packageName).collect {
-            if (it is Result.Error) {
-                _errorState.emit(it.exception?.toErrorMessage())
+        appRepository.updateApplication(packageName)
+            .takeWhile { it !is Result.Success }
+            .collect {
+                if (it is Result.Error) {
+                    _errorState.emit(it.exception?.toErrorMessage())
+                }
             }
-        }
+        Timber.v("App updated: $packageName")
     }
 }
 

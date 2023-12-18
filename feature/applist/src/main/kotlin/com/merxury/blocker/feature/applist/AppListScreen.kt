@@ -93,7 +93,10 @@ fun AppListRoute(
         navigateToSupportAndFeedback = navigateToSupportAndFeedback,
         navigateTooAppSortScreen = navigateTooAppSortScreen,
         modifier = modifier,
-        onRefresh = viewModel::loadData,
+        onRefresh = {
+            viewModel.loadData()
+            viewModel.updateInstalledAppList()
+        },
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(

@@ -64,10 +64,10 @@ interface InstalledAppDao {
     fun getInstalledApp(packageName: String): Flow<InstalledAppEntity?>
 
     @Upsert
-    fun upsertInstalledApp(app: InstalledAppEntity)
+    suspend fun upsertInstalledApp(app: InstalledAppEntity)
 
     @Upsert
-    fun upsertInstalledApps(app: List<InstalledAppEntity>)
+    suspend fun upsertInstalledApps(app: List<InstalledAppEntity>)
 
     @Delete
     suspend fun deleteApps(apps: List<InstalledAppEntity>): Int
