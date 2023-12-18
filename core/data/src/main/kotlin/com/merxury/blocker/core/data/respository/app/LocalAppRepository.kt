@@ -52,9 +52,11 @@ class LocalAppRepository @Inject constructor(
             }
 
     override fun updateApplication(packageName: String): Flow<Result<Unit>> = flow<Result<Unit>> {
-        val app = localAppDataSource.getApplication(packageName).first()
+        val app = localAppDataSource.getApplication(packageName)
+            .first()
         if (app == null) {
             // If we can't find the application, the application might be uninstalled
+            Timber.i("$packageName uninstalled, remove item in db.")
             installedAppDao.deleteByPackageName(packageName)
             componentRepository.deleteComponents(packageName)
         } else {
