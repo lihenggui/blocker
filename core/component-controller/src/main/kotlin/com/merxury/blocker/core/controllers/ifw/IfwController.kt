@@ -24,7 +24,9 @@ import com.merxury.blocker.core.controllers.IController
 import com.merxury.core.ifw.IIntentFirewall
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class IfwController @Inject constructor(
     private val intentFirewall: IIntentFirewall,
 ) : IController {
