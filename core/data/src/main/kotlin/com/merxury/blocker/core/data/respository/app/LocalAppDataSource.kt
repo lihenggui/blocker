@@ -51,12 +51,8 @@ class LocalAppDataSource @Inject constructor(
         .flowOn(ioDispatcher)
 
     override fun getApplication(packageName: String): Flow<InstalledApp?> = flow {
-        val app = pm.getPackageInfoCompat(packageName, 0)
-        if (app == null) {
-            emit(null)
-            return@flow
-        }
-        emit(app.toInstalledApp())
+        val app = pm.getPackageInfoCompat(packageName, PackageManager.GET_META_DATA)
+        emit(app?.toInstalledApp())
     }
         .flowOn(ioDispatcher)
 
