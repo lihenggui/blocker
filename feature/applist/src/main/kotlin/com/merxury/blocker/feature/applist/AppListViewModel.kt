@@ -389,7 +389,6 @@ class AppListViewModel @Inject constructor(
                 val versionCode = app.getVersionCode()
                 getCurrentAppController().uninstallApp(packageName, versionCode)
                 notifyAppUpdated(packageName)
-                updateInstalledAppList()
                 analyticsHelper.logUninstallAppClicked()
             }
         }
@@ -436,10 +435,14 @@ class AppListViewModel @Inject constructor(
     }
 
     private suspend fun notifyAppUpdated(packageName: String) {
-        val result = appRepository.updateApplication(packageName).first()
-        if (result is Result.Error) {
-            _errorState.emit(result.exception?.toErrorMessage())
-        }
+        appRepository.updateApplication(packageName)
+            .takeWhile { it !is Result.Success }
+            .collect {
+                if (it is Result.Error) {
+                    _errorState.emit(it.exception?.toErrorMessage())
+                }
+            }
+        Timber.v("App updated: $packageName")
     }
 }
 
