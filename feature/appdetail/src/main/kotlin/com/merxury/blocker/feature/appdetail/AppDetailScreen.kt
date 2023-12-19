@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.pullrefresh.PullRefreshIndicator
 import androidx.compose.material.pullrefresh.pullRefresh
@@ -69,6 +70,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.Velocity
@@ -625,8 +628,11 @@ fun AppDetailAppBarActions(
                     placeholder = {
                         Text(
                             text = stringResource(id = string.feature_appdetail_search_components),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     },
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 )
             } else {
                 SearchActionMenu(onSearchModeChange = onSearchModeChange)

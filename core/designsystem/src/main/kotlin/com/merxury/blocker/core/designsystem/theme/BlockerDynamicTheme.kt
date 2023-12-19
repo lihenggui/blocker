@@ -24,7 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.LocalContext
 import com.merxury.blocker.core.model.data.IconBasedThemingState
 
-const val MinContrastOfPrimaryVsSurface = 3f
+const val MIN_CONTRAST_OF_PRIMARY_VS_SURFACE = 3f
 
 @Composable
 fun BlockerDynamicTheme(
@@ -46,7 +46,7 @@ fun BlockerDynamicTheme(
         colorScheme = defaultColorScheme,
     ) { color ->
         // We want a color which has sufficient contrast against the surface color
-        color.contrastAgainst(defaultColorScheme.surface) >= MinContrastOfPrimaryVsSurface
+        color.contrastAgainst(defaultColorScheme.surface) >= MIN_CONTRAST_OF_PRIMARY_VS_SURFACE
     }
     val icon = iconBasedThemingState.icon
     val isDarkTheme = isSystemInDarkTheme()

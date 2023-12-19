@@ -23,16 +23,16 @@ import com.google.accompanist.navigation.material.ExperimentalMaterialNavigation
 import com.google.accompanist.navigation.material.bottomSheet
 import com.merxury.blocker.feature.sort.AppSortBottomSheetRoute
 
-const val appSortRoute = "app_sort_route"
+const val APP_SORT_ROUTE = "app_sort_route"
 fun NavController.navigateToAppSortScreen(navOptions: NavOptions? = null) {
-    this.navigate(appSortRoute, navOptions)
+    this.navigate(APP_SORT_ROUTE, navOptions)
 }
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
 fun NavGraphBuilder.appSortScreen(
     dismissHandler: () -> Unit,
 ) {
-    bottomSheet(route = appSortRoute) {
+    bottomSheet(route = APP_SORT_ROUTE) {
         AppSortBottomSheetRoute(dismissHandler = dismissHandler)
     }
 }
