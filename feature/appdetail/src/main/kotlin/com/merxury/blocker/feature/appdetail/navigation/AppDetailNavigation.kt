@@ -34,13 +34,13 @@ import kotlin.text.Charsets.UTF_8
 private val URL_CHARACTER_ENCODING = UTF_8.name()
 
 @VisibleForTesting
-internal const val packageNameArg = "packageName"
+internal const val PACKAGE_NAME_ARG = "packageName"
 
 @VisibleForTesting
-internal const val tabArg = "tab"
+internal const val TAB_ARG = "tab"
 
 @VisibleForTesting
-internal const val keywordArg = "keyword"
+internal const val KEYWORD_ARG = "keyword"
 
 internal class AppDetailArgs(
     val packageName: String,
@@ -50,11 +50,11 @@ internal class AppDetailArgs(
     constructor(savedStateHandle: SavedStateHandle) :
         this(
             URLDecoder.decode(
-                checkNotNull(savedStateHandle[packageNameArg]),
+                checkNotNull(savedStateHandle[PACKAGE_NAME_ARG]),
                 URL_CHARACTER_ENCODING,
             ),
-            AppDetailTabs.fromName(savedStateHandle[tabArg]),
-            URLDecoder.decode(checkNotNull(savedStateHandle[keywordArg]), URL_CHARACTER_ENCODING)
+            AppDetailTabs.fromName(savedStateHandle[TAB_ARG]),
+            URLDecoder.decode(checkNotNull(savedStateHandle[KEYWORD_ARG]), URL_CHARACTER_ENCODING)
                 .split(","),
         )
 }
@@ -81,11 +81,11 @@ fun NavGraphBuilder.detailScreen(
     navigatedToComponentSortScreen: () -> Unit,
 ) {
     composable(
-        route = "app_detail_route/{$packageNameArg}?screen={$tabArg}?keyword={$keywordArg}",
+        route = "app_detail_route/{$PACKAGE_NAME_ARG}?screen={$TAB_ARG}?keyword={$KEYWORD_ARG}",
         arguments = listOf(
-            navArgument(packageNameArg) { type = NavType.StringType },
-            navArgument(tabArg) { type = NavType.StringType },
-            navArgument(keywordArg) { type = NavType.StringType },
+            navArgument(PACKAGE_NAME_ARG) { type = NavType.StringType },
+            navArgument(TAB_ARG) { type = NavType.StringType },
+            navArgument(KEYWORD_ARG) { type = NavType.StringType },
         ),
     ) {
         AppDetailRoute(

@@ -103,13 +103,13 @@ class AppListViewModel @Inject constructor(
     val warningState = _warningState.asStateFlow()
 
     // Internal list for storing the displayed app list (data storing)
-    private var _appList = listOf<AppItem>()
+    private var appList = listOf<AppItem>()
 
     // Internal list for storing the displayed app list with state (for UI display)
-    private var _appStateList = mutableStateListOf<AppItem>()
+    private var appStateList = mutableStateListOf<AppItem>()
 
     // Flow to indicate the list is changed
-    private val _appListFlow = MutableStateFlow(_appStateList)
+    private val _appListFlow = MutableStateFlow(appStateList)
     val appListFlow: StateFlow<List<AppItem>>
         get() = _appListFlow
 
@@ -166,7 +166,7 @@ class AppListViewModel @Inject constructor(
                         val serviceController = getCurrentServiceController()
                         serviceController.load()
                     }
-                    _appStateList = if (preference.showSystemApps) {
+                    appStateList = if (preference.showSystemApps) {
                         list
                     } else {
                         list.filterNot { it.isSystem }
@@ -198,10 +198,10 @@ class AppListViewModel @Inject constructor(
                             sortedList
                         }
                     }
-                        .also { _appList = it }
+                        .also { appList = it }
                         .toMutableStateList()
                     withContext(mainDispatcher) {
-                        _appListFlow.value = _appStateList
+                        _appListFlow.value = appStateList
                         _uiState.emit(Success(isRefreshing = false))
                     }
                 }
@@ -276,16 +276,16 @@ class AppListViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .drop(1)
                 .collect { userData ->
-                    val newList = _appList.toMutableList()
+                    val newList = appList.toMutableList()
                     newList.sortWith(appComparator(userData.appSorting, userData.appSortingOrder))
                     if (userDataRepository.userData.first().showRunningAppsOnTop) {
                         newList.sortByDescending { it.isRunning }
                     }
                     withContext(mainDispatcher) {
                         refreshServiceJobs.cancelChildren()
-                        _appList = newList
-                        _appStateList = newList.toMutableStateList()
-                        _appListFlow.value = _appStateList
+                        appList = newList
+                        appStateList = newList.toMutableStateList()
+                        _appListFlow.value = appStateList
                     }
                 }
         }
@@ -300,7 +300,7 @@ class AppListViewModel @Inject constructor(
                 .distinctUntilChanged()
                 .drop(1)
                 .collect { showRunningAppsOnTop ->
-                    val newList = _appList.toMutableList()
+                    val newList = appList.toMutableList()
                     if (showRunningAppsOnTop) {
                         newList.sortByDescending { it.isRunning }
                     } else {
@@ -312,9 +312,9 @@ class AppListViewModel @Inject constructor(
                     }
                     withContext(mainDispatcher) {
                         refreshServiceJobs.cancelChildren()
-                        _appList = newList
-                        _appStateList = newList.toMutableStateList()
-                        _appListFlow.value = _appStateList
+                        appList = newList
+                        appStateList = newList.toMutableStateList()
+                        _appListFlow.value = appStateList
                     }
                 }
         }
@@ -339,7 +339,7 @@ class AppListViewModel @Inject constructor(
             if (!userData.showServiceInfo) {
                 return@launch
             }
-            val oldItem = _appStateList.getOrNull(index) ?: return@launch
+            val oldItem = appStateList.getOrNull(index) ?: return@launch
             if (oldItem.appServiceStatus != null) {
                 // Don't get service info again
                 return@launch
@@ -348,7 +348,7 @@ class AppListViewModel @Inject constructor(
             val status = appStateCache.get(packageName)
             val newItem = oldItem.copy(appServiceStatus = status.toAppServiceStatus())
             withContext(mainDispatcher) {
-                _appStateList[index] = newItem
+                appStateList[index] = newItem
             }
         }
     }
@@ -409,11 +409,11 @@ class AppListViewModel @Inject constructor(
         val appController = getCurrentAppController()
         appController.forceStop(packageName)
         appController.refreshRunningAppList()
-        val item = _appList.find { it.packageName == packageName }
+        val item = appList.find { it.packageName == packageName }
         if (item != null) {
-            val index = _appStateList.indexOf(item)
+            val index = appStateList.indexOf(item)
             val newItem = item.copy(isRunning = appController.isAppRunning(packageName))
-            _appStateList[index] = newItem
+            appStateList[index] = newItem
         }
         analyticsHelper.logForceStopClicked()
     }
