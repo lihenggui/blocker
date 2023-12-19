@@ -41,7 +41,7 @@ jobs:
           java-version: 17
 
       - name: Setup Gradle
-        uses: gradle/gradle-build-action@v2.10.0
+        uses: gradle/gradle-build-action@v2.11.0
 
       - name: Install GMD image for baseline profile generation
         run: yes | "$ANDROID_HOME"/cmdline-tools/latest/bin/sdkmanager "system-images;android-33;aosp_atd;arm64-v8a"
@@ -84,21 +84,21 @@ jobs:
 
       - name: Upload built Market apk
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Blocker-${{ steps.apk-info.outputs.version-name }}-market-release.apk
           path: ${{ steps.apk-path.outputs.market_path }}
 
       - name: Upload built Foss apk
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Blocker-${{ steps.apk-info.outputs.version-name }}-foss-release.apk
           path: ${{ steps.apk-path.outputs.foss_path }}
 
       - name: Upload mappings
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mappings
           path: "app-compose/build/outputs/mapping/marketRelease"

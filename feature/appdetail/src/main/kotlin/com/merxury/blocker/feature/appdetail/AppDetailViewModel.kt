@@ -163,7 +163,7 @@ class AppDetailViewModel @Inject constructor(
     private var currentFilterKeyword = appDetailArgs.searchKeyword
         .map { it.trim() }
         .filterNot { it.isEmpty() }
-    private var _unfilteredList = ComponentListUiState()
+    private var unfilteredList = ComponentListUiState()
     private val _componentListUiState = MutableStateFlow(ComponentListUiState())
     val componentListUiState = _componentListUiState.asStateFlow()
     private val _errorState = MutableStateFlow<UiMessage?>(null)
@@ -191,13 +191,11 @@ class AppDetailViewModel @Inject constructor(
     }
 
     fun search(keyword: String) {
+        if (keyword == _appBarUiState.value.keyword) return
+        _appBarUiState.update { it.copy(keyword = keyword) }
         searchJob?.cancel()
         searchJob = viewModelScope.launch(cpuDispatcher + exceptionHandler) {
             Timber.i("Filtering component list with keyword: $keyword")
-            // Update search bar text first
-            withContext(mainDispatcher) {
-                _appBarUiState.update { it.copy(keyword = keyword) }
-            }
             filterAndUpdateComponentList(keyword)
             updateTabState(_componentListUiState.value)
         }
@@ -241,7 +239,7 @@ class AppDetailViewModel @Inject constructor(
             .map { it.trim() }
             .filterNot { it.isEmpty() }
         if (currentFilterKeyword.isEmpty()) {
-            _componentListUiState.emit(_unfilteredList)
+            _componentListUiState.emit(unfilteredList)
             return
         }
         val receiver = mutableStateListOf<ComponentItem>()
@@ -249,13 +247,13 @@ class AppDetailViewModel @Inject constructor(
         val activity = mutableStateListOf<ComponentItem>()
         val provider = mutableStateListOf<ComponentItem>()
         currentFilterKeyword.forEach { subKeyword ->
-            val filteredReceiver = _unfilteredList.receiver
+            val filteredReceiver = unfilteredList.receiver
                 .filter { it.name.contains(subKeyword, ignoreCase = true) }
-            val filteredService = _unfilteredList.service
+            val filteredService = unfilteredList.service
                 .filter { it.name.contains(subKeyword, ignoreCase = true) }
-            val filteredActivity = _unfilteredList.activity
+            val filteredActivity = unfilteredList.activity
                 .filter { it.name.contains(subKeyword, ignoreCase = true) }
-            val filteredProvider = _unfilteredList.provider
+            val filteredProvider = unfilteredList.provider
                 .filter { it.name.contains(subKeyword, ignoreCase = true) }
             receiver.addAll(filteredReceiver)
             service.addAll(filteredService)
@@ -311,7 +309,7 @@ class AppDetailViewModel @Inject constructor(
         val service = list.filter { it.type == SERVICE }
         val activity = list.filter { it.type == ACTIVITY }
         val provider = list.filter { it.type == PROVIDER }
-        _unfilteredList = getComponentListUiState(receiver, service, activity, provider)
+        unfilteredList = getComponentListUiState(receiver, service, activity, provider)
         filterAndUpdateComponentList(currentFilterKeyword.joinToString(","))
         updateTabState(_componentListUiState.value)
     }
@@ -709,7 +707,7 @@ class AppDetailViewModel @Inject constructor(
                 return@withContext
             }
             withContext(mainDispatcher) {
-                list[position] = if (currentController == IFW) {
+                list[position] = if (currentController == IFW && type != PROVIDER) {
                     list[position].copy(ifwBlocked = !enable)
                 } else {
                     list[position].copy(pmBlocked = !enable)

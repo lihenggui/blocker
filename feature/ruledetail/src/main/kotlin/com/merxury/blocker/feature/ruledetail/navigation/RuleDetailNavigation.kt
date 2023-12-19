@@ -30,16 +30,16 @@ import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.feature.ruledetail.RuleDetailRoute
 
 @VisibleForTesting
-internal const val ruleIdArg = "ruleId"
+internal const val RULE_ID_ARG = "ruleId"
 
 @VisibleForTesting
-internal const val tabArg = "tab"
+internal const val TAB_ARG = "tab"
 
 internal class RuleIdArgs(val ruleId: Int, val tabs: RuleDetailTabs = Applicable) {
     constructor(savedStateHandle: SavedStateHandle) :
         this(
-            checkNotNull(savedStateHandle[ruleIdArg]),
-            RuleDetailTabs.fromName(savedStateHandle[tabArg]),
+            checkNotNull(savedStateHandle[RULE_ID_ARG]),
+            RuleDetailTabs.fromName(savedStateHandle[TAB_ARG]),
         )
 }
 
@@ -58,10 +58,10 @@ fun NavGraphBuilder.ruleDetailScreen(
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
 ) {
     composable(
-        route = "rule_detail_route/{$ruleIdArg}?screen={$tabArg}",
+        route = "rule_detail_route/{$RULE_ID_ARG}?screen={$TAB_ARG}",
         arguments = listOf(
-            navArgument(ruleIdArg) { type = NavType.IntType },
-            navArgument(tabArg) { type = NavType.StringType },
+            navArgument(RULE_ID_ARG) { type = NavType.IntType },
+            navArgument(TAB_ARG) { type = NavType.StringType },
         ),
     ) {
         RuleDetailRoute(

@@ -17,5 +17,7 @@
 package com.merxury.blocker.core.model.preference
 
 enum class DarkThemeConfig {
-    FOLLOW_SYSTEM, LIGHT, DARK
+    FOLLOW_SYSTEM,
+    LIGHT,
+    DARK,
 }
