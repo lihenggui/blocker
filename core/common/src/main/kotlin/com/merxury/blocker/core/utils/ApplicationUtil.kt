@@ -83,7 +83,6 @@ object ApplicationUtil {
             val installedPackages = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.getInstalledPackages(PackageManager.PackageInfoFlags.of(0))
             } else {
-                @Suppress("DEPRECATION")
                 pm.getInstalledPackages(0)
             }
             installedPackages
@@ -375,12 +374,11 @@ object ApplicationUtil {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 pm.getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(0))
             } else {
-                @Suppress("DEPRECATION")
                 pm.getApplicationInfo(packageName, 0)
             }
             return true
         } catch (e: PackageManager.NameNotFoundException) {
-            Timber.w(packageName + "is not installed.")
+            Timber.i("$packageName is not installed.")
         }
         return false
     }
