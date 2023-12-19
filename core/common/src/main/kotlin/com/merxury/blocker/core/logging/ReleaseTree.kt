@@ -24,6 +24,8 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
@@ -41,11 +43,14 @@ class ReleaseTree @Inject constructor(
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : Timber.DebugTree() {
     private val writeFile = AtomicReference<File>()
+    private val initMutex: Mutex = Mutex()
 
     init {
-        coroutineScope.launch {
-            createLogFile()
-            clearOldLogsIfNecessary(days = 7)
+        coroutineScope.launch(ioDispatcher) {
+            initMutex.withLock {
+                createLogFile()
+                clearOldLogsIfNecessary(days = 7)
+            }
         }
     }
 
@@ -75,6 +80,10 @@ class ReleaseTree @Inject constructor(
             return
         }
         coroutineScope.launch(ioDispatcher) {
+            // Wait until initMutex being unlocked
+            if (initMutex.isLocked) {
+                initMutex.withLock { }
+            }
             val logFile = writeFile.get() ?: return@launch
             val time = Clock.System.now().toString()
             val level = when (priority) {
