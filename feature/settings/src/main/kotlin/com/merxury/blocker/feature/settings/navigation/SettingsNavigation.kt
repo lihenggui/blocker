@@ -23,10 +23,10 @@ import androidx.navigation.compose.composable
 import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.feature.settings.SettingsRoute
 
-const val settingsRoute = "settings_route"
+const val SETTINGS_ROUTE = "settings_route"
 
 fun NavController.navigateToSettings(navOptions: NavOptions? = null) {
-    this.navigate(settingsRoute, navOptions)
+    this.navigate(SETTINGS_ROUTE, navOptions)
 }
 
 fun NavGraphBuilder.settingsScreen(
@@ -34,7 +34,7 @@ fun NavGraphBuilder.settingsScreen(
     snackbarHostState: SnackbarHostState,
 ) {
     composable(
-        route = settingsRoute,
+        route = SETTINGS_ROUTE,
     ) {
         SettingsRoute(
             onNavigationClick = onBackClick,

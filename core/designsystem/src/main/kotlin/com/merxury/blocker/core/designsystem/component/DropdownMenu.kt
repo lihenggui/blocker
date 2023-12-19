@@ -136,7 +136,7 @@ fun <T> BlockerDropdownMenuButton(
                     MaterialTheme.colorScheme.outline
                 } else {
                     MaterialTheme.colorScheme.onSurface.copy(
-                        alpha = BlockerDropdownMenuDefaults.DisabledDropdownMenuButtonBorderAlpha,
+                        alpha = BlockerDropdownMenuDefaults.DISABLED_DROPDOWN_MENU_BUTTON_BORDER_ALPHA,
                     )
                 },
             ),
@@ -267,7 +267,7 @@ data class DropDownMenuItem(
 object BlockerDropdownMenuDefaults {
     // TODO: File bug
     // OutlinedButton border color doesn't respect disabled state by default
-    const val DisabledDropdownMenuButtonBorderAlpha = 0.12f
+    const val DISABLED_DROPDOWN_MENU_BUTTON_BORDER_ALPHA = 0.12f
 
     // TODO: File bug
     // OutlinedButton default border width isn't exposed via ButtonDefaults

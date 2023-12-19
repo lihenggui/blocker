@@ -323,8 +323,8 @@ private fun animatedScale(animation: AnimationSpec<Float>, visible: Boolean): St
     return scale.asState()
 }
 
-private const val SnackbarFadeInMillis = 150
-private const val SnackbarFadeOutMillis = 75
+private const val SNACKBAR_FADE_IN_MILLIS = 150
+private const val SNACKBAR_FADE_OUT_MILLIS = 75
 
 @Composable
 private fun SnackbarAnimationWithScale(
@@ -345,7 +345,7 @@ private fun SnackbarAnimationWithScale(
                 val isVisible = key == current
                 val isFirstItem = keys.size == 1
                 val duration =
-                    if (isVisible && isFirstItem) SnackbarFadeInMillis else SnackbarFadeOutMillis
+                    if (isVisible && isFirstItem) SNACKBAR_FADE_IN_MILLIS else SNACKBAR_FADE_OUT_MILLIS
                 val opacity = animatedOpacity(
                     animation = tween(
                         easing = LinearEasing,
@@ -376,7 +376,10 @@ private fun SnackbarAnimationWithScale(
                         )
                         .semantics {
                             liveRegion = LiveRegionMode.Polite
-                            dismiss { key.dismiss(); true }
+                            dismiss {
+                                key.dismiss()
+                                true
+                            }
                         },
                 ) {
                     children()

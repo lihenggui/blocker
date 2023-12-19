@@ -27,9 +27,9 @@ abstract class ScrollFlagState(heightRange: IntRange) : ToolbarState {
     protected val minHeight = heightRange.first
     protected val maxHeight = heightRange.last
     protected val rangeDifference = maxHeight - minHeight
-    protected var _consumed: Float = 0f
+    protected var internalConsumed: Float = 0f
 
-    protected abstract var _scrollOffset: Float
+    protected abstract var internalScrollOffset: Float
 
     final override val height: Float
         get() = (maxHeight - scrollOffset).coerceIn(minHeight.toFloat(), maxHeight.toFloat())
@@ -38,7 +38,7 @@ abstract class ScrollFlagState(heightRange: IntRange) : ToolbarState {
         get() = 1 - (maxHeight - height) / rangeDifference
 
     final override val consumed: Float
-        get() = _consumed
+        get() = internalConsumed
 
     final override var scrollTopLimitReached: Boolean = true
 }

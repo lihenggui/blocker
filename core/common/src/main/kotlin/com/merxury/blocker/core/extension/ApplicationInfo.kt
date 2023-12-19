@@ -30,8 +30,9 @@ fun PackageManager.getPackageInfoCompat(packageName: String, flags: Int): Packag
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
                 getPackageInfo(packageName, PackageManager.PackageInfoFlags.of(flags.toLong()))
 
-            else -> @Suppress("DEPRECATION")
-            getPackageInfo(packageName, flags)
+            else ->
+                @Suppress("DEPRECATION")
+                getPackageInfo(packageName, flags)
         }
     } catch (e: NameNotFoundException) {
         Timber.w("$packageName is uninstalled. Can't find package info.")
@@ -44,8 +45,9 @@ fun PackageManager.getApplicationInfoCompat(packageName: String, flags: Int): Ap
         Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
             getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(flags.toLong()))
 
-        else -> @Suppress("DEPRECATION")
-        getApplicationInfo(packageName, flags)
+        else ->
+            @Suppress("DEPRECATION")
+            getApplicationInfo(packageName, flags)
     }
 
 @SuppressLint("QueryPermissionsNeeded")
@@ -53,6 +55,7 @@ fun PackageManager.getInstalledPackagesCompat(flags: Int): List<PackageInfo> = w
     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ->
         getInstalledPackages(PackageManager.PackageInfoFlags.of(flags.toLong()))
 
-    else -> @Suppress("DEPRECATION")
-    getInstalledPackages(flags)
+    else ->
+        @Suppress("DEPRECATION")
+        getInstalledPackages(flags)
 }
