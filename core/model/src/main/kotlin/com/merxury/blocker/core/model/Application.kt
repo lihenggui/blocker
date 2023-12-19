@@ -117,6 +117,7 @@ inline fun <reified T : Parcelable> Parcel.readParcelableCompat(classLoader: Cla
             T::class.java,
         )
 
-        else -> @Suppress("DEPRECATION")
-        readParcelable(classLoader)
+        else ->
+            @Suppress("DEPRECATION")
+            readParcelable(classLoader)
     }

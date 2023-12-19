@@ -26,7 +26,7 @@ class EnterAlwaysState(
     scrollOffset: Float = 0f,
 ) : ScrollFlagState(heightRange) {
 
-    override var _scrollOffset by mutableFloatStateOf(
+    override var internalScrollOffset by mutableFloatStateOf(
         value = scrollOffset.coerceIn(0f, maxHeight.toFloat()),
     )
 
@@ -34,11 +34,11 @@ class EnterAlwaysState(
         get() = -(scrollOffset - rangeDifference).coerceIn(0f, minHeight.toFloat())
 
     override var scrollOffset: Float
-        get() = _scrollOffset
+        get() = internalScrollOffset
         set(value) {
-            val oldOffset = _scrollOffset
-            _scrollOffset = value.coerceIn(0f, maxHeight.toFloat())
-            _consumed = oldOffset - _scrollOffset
+            val oldOffset = internalScrollOffset
+            internalScrollOffset = value.coerceIn(0f, maxHeight.toFloat())
+            internalConsumed = oldOffset - internalScrollOffset
         }
 
     companion object {

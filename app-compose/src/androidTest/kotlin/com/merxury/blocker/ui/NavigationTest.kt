@@ -121,8 +121,8 @@ class NavigationTest {
     }
 
     /*
-    * more icon and sort icon only shows on the Apps tab
-    */
+     * more icon and sort icon only shows on the Apps tab
+     */
     @Test
     fun topLevelDestinations_showMoreAndSortIcon() {
         composeTestRule.apply {

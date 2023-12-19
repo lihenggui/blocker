@@ -136,7 +136,7 @@ fun BlockerOutlinedButton(
                 MaterialTheme.colorScheme.outline
             } else {
                 MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = BlockerButtonDefaults.DisabledOutlinedButtonBorderAlpha,
+                    alpha = BlockerButtonDefaults.DISABLED_OUTLINED_BUTTON_BORDER_ALPHA,
                 )
             },
         ),
@@ -324,7 +324,7 @@ fun BlockerButtonLeadingIconPreview() {
 object BlockerButtonDefaults {
     // TODO: File bug
     // OutlinedButton border color doesn't respect disabled state by default
-    const val DisabledOutlinedButtonBorderAlpha = 0.12f
+    const val DISABLED_OUTLINED_BUTTON_BORDER_ALPHA = 0.12f
 
     // TODO: File bug
     // OutlinedButton default border width isn't exposed via ButtonDefaults
