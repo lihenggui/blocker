@@ -24,10 +24,10 @@ import com.merxury.blocker.core.designsystem.component.SnackbarHostState
 import com.merxury.blocker.core.ui.AppDetailTabs
 import com.merxury.blocker.feature.search.SearchRoute
 
-const val searchRoute = "search_route"
+const val SEARCH_ROUTE = "search_route"
 
 fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
-    this.navigate(searchRoute, navOptions)
+    this.navigate(SEARCH_ROUTE, navOptions)
 }
 
 fun NavGraphBuilder.searchScreen(
@@ -35,7 +35,7 @@ fun NavGraphBuilder.searchScreen(
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
     navigateToRuleDetail: (Int) -> Unit = {},
 ) {
-    composable(route = searchRoute) {
+    composable(route = SEARCH_ROUTE) {
         SearchRoute(
             snackbarHostState = snackbarHostState,
             navigateToAppDetail = navigateToAppDetail,
