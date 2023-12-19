@@ -187,7 +187,6 @@ jobs:
         run: ./gradlew :app-compose:checkMarketReleaseBadging
 
   androidTest:
-    needs: test_and_apk
     runs-on: macos-latest
     timeout-minutes: 90
     strategy:
