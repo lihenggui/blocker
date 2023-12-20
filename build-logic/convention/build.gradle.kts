@@ -41,6 +41,7 @@ dependencies {
     compileOnly(libs.firebase.crashlytics.gradlePlugin)
     compileOnly(libs.roborazzi.gradlePlugin)
     compileOnly(libs.ksp.gradlePlugin)
+    implementation(libs.truth)
 }
 
 tasks {
