@@ -30,7 +30,7 @@ concurrency:
 jobs:
   test_and_apk:
     name: "Local tests and APKs"
-    runs-on: macos-latest
+    runs-on: self-hosted
 
     permissions:
       contents: write
