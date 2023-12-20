@@ -163,18 +163,18 @@ object FileUtils {
                     zipSubFolder(out, sourceFile, it.length)
                 }
             } else {
-                val data = ByteArray(BUFFER_SIZE)
                 val fi = FileInputStream(sourcePath)
                 origin = BufferedInputStream(fi, BUFFER_SIZE)
                 val entry = ZipEntry(getLastPathComponent(sourcePath))
                 entry.setTime(sourceFile.lastModified())
                 out.putNextEntry(entry)
-                var count: Int
-                while (origin.read(data, 0, BUFFER_SIZE).also { count = it } != -1) {
-                    out.write(data, 0, count)
+                out.use {
+                    origin.copyTo(it)
                 }
             }
+            out.closeEntry()
             out.close()
+            dest.close()
         } catch (e: Exception) {
             Timber.e(e, "Failed to zip file at $sourcePath")
             return false
@@ -198,7 +198,6 @@ object FileUtils {
             if (file.isDirectory()) {
                 zipSubFolder(out, file, basePathLength)
             } else {
-                val data = ByteArray(BUFFER_SIZE)
                 val unmodifiedFilePath = file.path
                 val relativePath = unmodifiedFilePath
                     .substring(basePathLength)
@@ -207,11 +206,9 @@ object FileUtils {
                 val entry = ZipEntry(relativePath)
                 entry.setTime(file.lastModified())
                 out.putNextEntry(entry)
-                var count: Int
-                while (origin.read(data, 0, BUFFER_SIZE).also { count = it } != -1) {
-                    out.write(data, 0, count)
+                origin.use {
+                    it.copyTo(out)
                 }
-                origin.close()
             }
         }
     }
