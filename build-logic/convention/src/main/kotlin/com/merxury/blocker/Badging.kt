@@ -21,8 +21,8 @@ import com.android.SdkConstants
 import com.android.build.api.artifact.SingleArtifact
 import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.android.build.gradle.BaseExtension
+import com.google.common.truth.Truth.assertWithMessage
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -41,7 +41,6 @@ import org.gradle.kotlin.dsl.register
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.process.ExecOperations
 import java.io.File
-import java.util.Scanner
 import javax.inject.Inject
 
 @CacheableTask
@@ -101,31 +100,17 @@ abstract class CheckBadgingTask : DefaultTask() {
     fun taskAction() {
         val goldenBadging = goldenBadging.get().asFile
         val generatedBadging = generatedBadging.get().asFile
-        if (!goldenBadging.exists()) {
-            throw GradleException(
-                "Golden badging file does not exist! " +
-                    "If this change is intended, run ./gradlew ${updateBadgingTaskName.get()}",
-            )
-        }
-        if (!generatedBadging.exists()) {
-            throw GradleException("Generated badging file does not exist!")
-        }
-        val goldenBadgingScanner = Scanner(goldenBadging)
-        val generatedBadgingScanner = Scanner(generatedBadging)
-        // Skip the first line, which contains the dynamically generated versions
-        goldenBadgingScanner.nextLine()
-        generatedBadgingScanner.nextLine()
-        while (goldenBadgingScanner.hasNextLine() && generatedBadgingScanner.hasNextLine()) {
-            val goldenLine = goldenBadgingScanner.nextLine()
-            val generatedLine = generatedBadgingScanner.nextLine()
-            if (goldenLine != generatedLine) {
-                throw GradleException(
-                    "Generated badging is different from golden badging! " +
-                        "If this change is intended, run ./gradlew ${updateBadgingTaskName.get()}",
-                )
-            }
-        }
+        assertWithMessage(
+            "Generated badging is different from golden badging! " +
+                "If this change is intended, run ./gradlew ${updateBadgingTaskName.get()}",
+        )
+            .that(generatedBadging.readText().dropFirstLine())
+            .isEqualTo(goldenBadging.readText().dropFirstLine())
     }
+}
+
+private fun String.dropFirstLine(): String {
+    return this.substringAfter('\n')
 }
 
 fun Project.configureBadgingTasks(

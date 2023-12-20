@@ -65,6 +65,7 @@ secrets = "2.0.1"
 shizuku = "13.1.5"
 xmlutil = "0.86.3"
 turbine = "1.0.0"
+truth = "1.1.5"
 material = "1.11.0"
 
 [libraries]
@@ -164,6 +165,7 @@ roborazzi-gradlePlugin = { group = "io.github.takahirom.roborazzi", name = "robo
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
 shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 xmlutil-core-android = { group = "io.github.pdvrieze.xmlutil", name = "core-android", version.ref = "xmlutil" }
