@@ -17,6 +17,7 @@
 package com.merxury.blocker.core.data.respository.generalrule
 
 import com.merxury.blocker.core.data.di.RuleBaseFolder
+import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
 import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.Dispatcher
@@ -26,6 +27,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -34,18 +36,19 @@ import java.io.File
 import javax.inject.Inject
 
 private const val RULES_FOLDER = "rules"
-private const val LANGUAGE = "zh-cn"
 private const val RULE_NAME = "general.json"
 
 class LocalGeneralRuleDataSource @Inject constructor(
     private val json: Json,
+    private val userDataRepository: UserDataRepository,
     @FilesDir private val filesDir: File,
     @RuleBaseFolder private val ruleBaseFolder: String,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
 ) : GeneralRuleDataSource {
     @OptIn(ExperimentalSerializationApi::class)
     override fun getGeneralRules(): Flow<List<GeneralRule>> = flow {
-        val ruleFile = getRuleFile()
+        val language = userDataRepository.getLibDisplayLanguage()
+        val ruleFile = getRuleFile(language)
         ruleFile.inputStream().use { inputStream ->
             val serializedRule = json.decodeFromStream<List<NetworkGeneralRule>>(inputStream)
                 .map { it.asExternalModel() }
@@ -54,22 +57,30 @@ class LocalGeneralRuleDataSource @Inject constructor(
     }
         .flowOn(ioDispatcher)
 
-    private fun getRuleFile(): File {
+    private suspend fun getRuleFile(language: String): File = withContext(ioDispatcher) {
         val ruleFile = filesDir.resolve(ruleBaseFolder)
             .resolve(RULES_FOLDER)
-            .resolve(LANGUAGE)
+            .resolve(language)
             .resolve(RULE_NAME)
         if (ruleFile.exists()) {
-            return ruleFile
+            return@withContext ruleFile
         }
         Timber.i("Fallback to old version of rules")
         // TODO should be removed in future
         val oldRuleFile = filesDir.resolve(ruleBaseFolder)
-            .resolve(LANGUAGE)
+            .resolve(language)
             .resolve(RULE_NAME)
         if (oldRuleFile.exists()) {
-            return oldRuleFile
+            return@withContext oldRuleFile
         }
-        throw IllegalStateException("Cannot find general rule in files folder.")
+        Timber.w("Cannot find general rule in $oldRuleFile")
+        val lowercaseFolder = filesDir.resolve(ruleBaseFolder)
+            .resolve(language.lowercase())
+            .resolve(RULE_NAME)
+        if (lowercaseFolder.exists()) {
+            return@withContext lowercaseFolder
+        }
+        Timber.e("Cannot find general rule in $lowercaseFolder")
+        throw IllegalStateException("Cannot find general rule in files folder. language: $language")
     }
 }
