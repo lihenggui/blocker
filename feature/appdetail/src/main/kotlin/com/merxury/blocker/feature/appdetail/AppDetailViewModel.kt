@@ -315,7 +315,7 @@ class AppDetailViewModel @Inject constructor(
         searchMatchedRuleJob = viewModelScope.launch(exceptionHandler) {
             val packageName = appDetailArgs.packageName
             searchMatchedRuleInAppUseCase(packageName).collect {
-                Timber.i("Received result from searchMatchedRuleInAppUseCase: $it")
+                Timber.v("Received result from searchMatchedRuleInAppUseCase: $it")
             }
         }
     }
