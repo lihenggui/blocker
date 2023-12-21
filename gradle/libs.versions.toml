@@ -180,6 +180,7 @@ androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "a
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+work-testing = { group = "androidx.work", name = "work-testing", version.ref = "androidxWork" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
