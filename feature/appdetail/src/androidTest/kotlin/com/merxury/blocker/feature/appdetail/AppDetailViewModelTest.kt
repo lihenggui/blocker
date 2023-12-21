@@ -185,7 +185,6 @@ class AppDetailViewModelTest {
         assertEquals(
             Success(
                 appInfo = sampleAppList.first().toAppItem(packageInfo),
-                iconBasedTheming = null,
             ),
             viewModel.appInfoUiState.value,
         )

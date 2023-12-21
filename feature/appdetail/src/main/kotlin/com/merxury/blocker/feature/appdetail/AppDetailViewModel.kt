@@ -1031,7 +1031,7 @@ sealed interface AppInfoUiState {
     data class Success(
         val appInfo: AppItem,
         val matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
-        val iconBasedTheming: Bitmap?,
+        val iconBasedTheming: Bitmap? = null,
         val isLibCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
 }
