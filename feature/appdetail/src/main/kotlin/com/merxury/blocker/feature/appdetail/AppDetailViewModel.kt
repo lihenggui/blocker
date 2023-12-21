@@ -50,6 +50,7 @@ import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
 import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
+import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.ComponentType
@@ -63,6 +64,7 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
@@ -72,6 +74,7 @@ import com.merxury.blocker.core.model.preference.ComponentSorting.COMPONENT_NAME
 import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -138,6 +141,7 @@ class AppDetailViewModel @Inject constructor(
     @ShizukuServiceControl private val shizukuServiceController: IServiceController,
     private val zipAllRuleUseCase: ZipAllRuleUseCase,
     private val zipAppRuleUseCase: ZipAppRuleUseCase,
+    private val searchMatchedRuleInAppUseCase: SearchMatchedRuleInAppUseCase,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,
     @Dispatcher(DEFAULT) private val cpuDispatcher: CoroutineDispatcher,
     @Dispatcher(MAIN) private val mainDispatcher: CoroutineDispatcher,
@@ -176,7 +180,6 @@ class AppDetailViewModel @Inject constructor(
     // Int is the RuleWorkResult
     private val _eventFlow = MutableSharedFlow<Pair<RuleWorkType, Int>>()
     val eventFlow = _eventFlow.asSharedFlow()
-    private var loadComponentListJob: Job? = null
     private var searchJob: Job? = null
     private var controlComponentJob: Job? = null
 
@@ -188,6 +191,7 @@ class AppDetailViewModel @Inject constructor(
         updateComponentList()
         listenSortStateChange()
         listenComponentDetailChanges()
+        loadMatchedRule()
     }
 
     fun search(keyword: String) {
@@ -270,6 +274,8 @@ class AppDetailViewModel @Inject constructor(
         )
     }
 
+    private var loadComponentListJob: Job? = null
+
     fun loadComponentList() {
         loadComponentListJob?.cancel()
         loadComponentListJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
@@ -300,6 +306,17 @@ class AppDetailViewModel @Inject constructor(
                         }
                     }
                 }
+        }
+    }
+
+    private var searchMatchedRuleJob: Job? = null
+    private fun loadMatchedRule() {
+        searchMatchedRuleJob?.cancel()
+        searchMatchedRuleJob = viewModelScope.launch(exceptionHandler) {
+            val packageName = appDetailArgs.packageName
+            searchMatchedRuleInAppUseCase(packageName).collect {
+                Timber.i("Received result from searchMatchedRuleInAppUseCase: $it")
+            }
         }
     }
 
@@ -1013,6 +1030,7 @@ sealed interface AppInfoUiState {
     data class Error(val error: UiMessage) : AppInfoUiState
     data class Success(
         val appInfo: AppItem,
+        val matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
         val iconBasedTheming: Bitmap?,
         val isLibCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
