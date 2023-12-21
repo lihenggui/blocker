@@ -650,8 +650,6 @@ fun AppDetailAppBarActions(
                 enableAllComponents = enableAllComponents,
                 onAdvanceSortClick = navigatedToComponentSortScreen,
                 switchSelectedMode = switchSelectedMode,
-                shareAppRule = shareAppRule,
-                shareAllRules = shareAllRules,
             )
         }
     }
