@@ -23,6 +23,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.work.WorkManager
 import com.merxury.blocker.core.domain.ZipAllRuleUseCase
 import com.merxury.blocker.core.domain.ZipAppRuleUseCase
+import com.merxury.blocker.core.domain.detail.SearchMatchedRuleInAppUseCase
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ControllerType
 import com.merxury.blocker.core.model.data.InstalledApp
@@ -39,6 +40,7 @@ import com.merxury.blocker.core.testing.controller.TestServiceController
 import com.merxury.blocker.core.testing.repository.TestAppRepository
 import com.merxury.blocker.core.testing.repository.TestComponentDetailRepository
 import com.merxury.blocker.core.testing.repository.TestComponentRepository
+import com.merxury.blocker.core.testing.repository.TestGeneralRuleRepository
 import com.merxury.blocker.core.testing.repository.TestUserDataRepository
 import com.merxury.blocker.core.testing.util.MainDispatcherRule
 import com.merxury.blocker.core.testing.util.TestAnalyticsHelper
@@ -76,6 +78,7 @@ class AppDetailViewModelTest {
     private val userDataRepository = TestUserDataRepository()
     private val appRepository = TestAppRepository()
     private val componentRepository = TestComponentRepository()
+    private val generalRuleRepository = TestGeneralRuleRepository()
     private val componentDetailRepository = TestComponentDetailRepository()
     private val serviceController = TestServiceController()
     private val dispatcher: CoroutineDispatcher = mainDispatcherRule.testDispatcher
@@ -109,6 +112,11 @@ class AppDetailViewModelTest {
             ruleBaseFolder = "user-generated-rule",
             ioDispatcher = dispatcher,
         )
+        val searchMatchedRuleInAppUseCase = SearchMatchedRuleInAppUseCase(
+            componentRepository = componentRepository,
+            ruleRepository = generalRuleRepository,
+            dispatcher = mainDispatcherRule.testDispatcher,
+        )
         viewModel = AppDetailViewModel(
             savedStateHandle = savedStateHandle,
             pm = pm,
@@ -120,6 +128,7 @@ class AppDetailViewModelTest {
             rootApiServiceController = serviceController,
             analyticsHelper = analyticsHelper,
             workerManager = WorkManager.getInstance(context),
+            searchMatchedRuleInAppUseCase = searchMatchedRuleInAppUseCase,
             zipAppRuleUseCase = zipAppRuleUseCase,
             zipAllRuleUseCase = zipAllRuleUseCase,
             ioDispatcher = dispatcher,
