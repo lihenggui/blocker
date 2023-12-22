@@ -650,8 +650,6 @@ fun AppDetailAppBarActions(
                 enableAllComponents = enableAllComponents,
                 onAdvanceSortClick = navigatedToComponentSortScreen,
                 switchSelectedMode = switchSelectedMode,
-                shareAppRule = shareAppRule,
-                shareAllRules = shareAllRules,
             )
         }
     }
@@ -865,7 +863,6 @@ fun AppDetailScreenPreview(
             AppDetailScreen(
                 appInfoUiState = Success(
                     appInfo = appList[0],
-                    iconBasedTheming = null,
                 ),
                 componentListUiState = ComponentListUiState(),
                 tabState = tabState[0],
@@ -887,7 +884,6 @@ fun AppDetailScreenWithLibCheckerPreview(
             AppDetailScreen(
                 appInfoUiState = Success(
                     appInfo = appList[0],
-                    iconBasedTheming = null,
                     isLibCheckerInstalled = true,
                 ),
                 componentListUiState = ComponentListUiState(),
