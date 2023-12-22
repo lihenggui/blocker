@@ -16,16 +16,13 @@
 
 package com.merxury.blocker.feature.appdetail.ui
 
-import androidx.compose.material.Surface
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import com.merxury.blocker.core.designsystem.component.BlockerAppTopBarMenu
 import com.merxury.blocker.core.designsystem.component.DropDownMenuItem
 import com.merxury.blocker.core.designsystem.icon.BlockerActionIcon
 import com.merxury.blocker.core.designsystem.icon.BlockerIcons
-import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.feature.appdetail.R.string
 import com.merxury.blocker.core.ui.R as UiR
 
@@ -47,8 +44,6 @@ fun MoreActionMenu(
     enableAllComponents: () -> Unit,
     onAdvanceSortClick: () -> Unit = {},
     switchSelectedMode: (Boolean) -> Unit = {},
-    shareAppRule: () -> Unit = {},
-    shareAllRules: () -> Unit = {},
 ) {
     val items = listOf(
         DropDownMenuItem(
@@ -66,41 +61,10 @@ fun MoreActionMenu(
             UiR.string.core_ui_sort_options,
             onAdvanceSortClick,
         ),
-        DropDownMenuItem(
-            string.feature_appdetail_share_rules_of_this_app,
-            shareAppRule,
-        ),
-        DropDownMenuItem(
-            string.feature_appdetail_share_all_rules,
-            shareAllRules,
-        ),
     )
     BlockerAppTopBarMenu(
         menuIcon = BlockerIcons.MoreVert,
         menuIconDesc = UiR.string.core_ui_more_menu,
         menuList = items,
     )
-}
-
-@Preview
-@Composable
-fun MoreActionMenuPreview() {
-    BlockerTheme {
-        Surface {
-            MoreActionMenu(
-                blockAllComponents = {},
-                enableAllComponents = {},
-            )
-        }
-    }
-}
-
-@Preview
-@Composable
-fun SearchActionMenuPreview() {
-    BlockerTheme {
-        Surface {
-            SearchActionMenu(onSearchModeChange = {})
-        }
-    }
 }
