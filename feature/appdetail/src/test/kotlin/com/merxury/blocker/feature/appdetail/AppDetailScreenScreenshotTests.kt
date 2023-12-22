@@ -204,7 +204,6 @@ class AppDetailScreenScreenshotTests {
                 AppDetailScreen(
                     appInfoUiState = Success(
                         appInfo = appList[0],
-                        iconBasedTheming = null,
                         isLibCheckerInstalled = isLibCheckerInstalled,
                     ),
                     componentListUiState = ComponentListUiState(),
