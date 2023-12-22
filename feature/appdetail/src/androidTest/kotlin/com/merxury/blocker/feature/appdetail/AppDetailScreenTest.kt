@@ -129,7 +129,6 @@ class AppDetailScreenTest {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
-                    iconBasedTheming = null,
                 ),
                 topAppBarUiState = AppBarUiState(
                     actions = listOf(
@@ -161,7 +160,6 @@ class AppDetailScreenTest {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
-                    iconBasedTheming = null,
                 ),
                 topAppBarUiState = AppBarUiState(
                     actions = listOf(
@@ -185,7 +183,6 @@ class AppDetailScreenTest {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
-                    iconBasedTheming = null,
                 ),
                 topAppBarUiState = AppBarUiState(),
                 componentListUiState = ComponentListUiState(),
@@ -218,7 +215,6 @@ class AppDetailScreenTest {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
-                    iconBasedTheming = null,
                 ),
                 topAppBarUiState = AppBarUiState(),
                 componentListUiState = ComponentListUiState(receiver = receiverTestData),
@@ -252,7 +248,6 @@ class AppDetailScreenTest {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
-                    iconBasedTheming = null,
                 ),
                 topAppBarUiState = AppBarUiState(
                     isSelectedMode = true,
@@ -293,7 +288,6 @@ class AppDetailScreenTest {
             AppDetailScreen(
                 appInfoUiState = AppInfoUiState.Success(
                     appInfo = appInfoTestData,
-                    iconBasedTheming = null,
                 ),
                 topAppBarUiState = AppBarUiState(
                     isSearchMode = true,
