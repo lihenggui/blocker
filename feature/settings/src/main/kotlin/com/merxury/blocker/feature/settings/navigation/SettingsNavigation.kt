@@ -25,9 +25,8 @@ import com.merxury.blocker.feature.settings.SettingsRoute
 
 const val SETTINGS_ROUTE = "settings_route"
 
-fun NavController.navigateToSettings(navOptions: NavOptions? = null) {
-    this.navigate(SETTINGS_ROUTE, navOptions)
-}
+fun NavController.navigateToSettings(navOptions: NavOptions? = null) =
+    navigate(SETTINGS_ROUTE, navOptions)
 
 fun NavGraphBuilder.settingsScreen(
     onBackClick: () -> Unit,

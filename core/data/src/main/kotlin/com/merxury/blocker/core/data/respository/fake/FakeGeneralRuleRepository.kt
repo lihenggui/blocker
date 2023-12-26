@@ -50,7 +50,7 @@ class FakeGeneralRuleRepository @Inject constructor(
 
     override fun getRuleHash(): Flow<String> = flowOf("")
 
-    override suspend fun saveGeneralRule(rule: GeneralRule) { /* no-op */ }
+    override suspend fun saveGeneralRule(rule: GeneralRule) = Unit
 
     override fun searchGeneralRule(keyword: String): Flow<List<GeneralRule>> {
         return getGeneralRules().map { rules ->

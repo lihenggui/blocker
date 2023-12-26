@@ -24,9 +24,8 @@ import com.merxury.blocker.feature.applist.AppListRoute
 
 const val APP_LIST_ROUTE = "app_list_route"
 
-fun NavController.navigateToAppList(navOptions: NavOptions? = null) {
-    this.navigate(APP_LIST_ROUTE, navOptions)
-}
+fun NavController.navigateToAppList(navOptions: NavOptions) =
+    navigate(APP_LIST_ROUTE, navOptions)
 
 fun NavGraphBuilder.appListScreen(
     navigateToAppDetail: (String) -> Unit,
