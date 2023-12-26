@@ -26,6 +26,8 @@ android {
 dependencies {
     api(kotlin("test"))
     api(libs.androidx.compose.ui.test)
+    api(libs.hilt.android.testing)
+    api(libs.robolectric)
     api(libs.roborazzi)
     api(projects.core.analytics)
     api(projects.core.data)
@@ -36,7 +38,6 @@ dependencies {
     implementation(libs.accompanist.testharness)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.test.rules)
-    implementation(libs.hilt.android.testing)
     implementation(libs.kotlinx.coroutines.test)
     implementation(libs.kotlinx.datetime)
     implementation(libs.robolectric.shadows)
