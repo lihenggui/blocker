@@ -81,7 +81,7 @@ internal abstract class RenameBuildOutputsTask : DefaultTask() {
     fun taskAction() {
         val hasFiles = sources.orNull?.any { directory ->
             directory.asFileTree.files.any {
-                it.isFile && it.parentFile.path.contains("build${File.separator}generated").not()
+                it.isFile && "build${File.separator}generated" !in it.parentFile.path
             }
         } ?: throw RuntimeException("Cannot check sources")
 

@@ -149,9 +149,7 @@ class BlockerPreferencesDataSource @Inject constructor(
 
     suspend fun setDynamicColorPreference(useDynamicColor: Boolean) {
         userPreferences.updateData {
-            it.copy {
-                this.useDynamicColor = useDynamicColor
-            }
+            it.copy { this.useDynamicColor = useDynamicColor }
         }
     }
 

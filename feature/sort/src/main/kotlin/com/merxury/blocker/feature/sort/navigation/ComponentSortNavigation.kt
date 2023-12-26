@@ -24,9 +24,8 @@ import com.google.accompanist.navigation.material.bottomSheet
 import com.merxury.blocker.feature.sort.ComponentSortBottomSheetRoute
 
 const val COMPONENT_SORT_ROUTE = "component_sort_route"
-fun NavController.navigateToComponentSortScreen(navOptions: NavOptions? = null) {
-    this.navigate(COMPONENT_SORT_ROUTE, navOptions)
-}
+fun NavController.navigateToComponentSortScreen(navOptions: NavOptions? = null) =
+    navigate(COMPONENT_SORT_ROUTE, navOptions)
 
 @OptIn(ExperimentalMaterialNavigationApi::class)
 fun NavGraphBuilder.componentSortScreen(

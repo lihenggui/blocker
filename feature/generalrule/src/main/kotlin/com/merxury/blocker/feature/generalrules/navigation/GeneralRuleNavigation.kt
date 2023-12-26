@@ -24,9 +24,8 @@ import com.merxury.blocker.feature.generalrules.GeneralRulesRoute
 
 const val GENERAL_RULE_ROUTE = "rule_list_route"
 
-fun NavController.navigateToGeneralRule(navOptions: NavOptions? = null) {
-    this.navigate(GENERAL_RULE_ROUTE, navOptions)
-}
+fun NavController.navigateToGeneralRule(navOptions: NavOptions) =
+    navigate(GENERAL_RULE_ROUTE, navOptions)
 
 fun NavGraphBuilder.generalRuleScreen(
     navigateToRuleDetail: (Int) -> Unit,
