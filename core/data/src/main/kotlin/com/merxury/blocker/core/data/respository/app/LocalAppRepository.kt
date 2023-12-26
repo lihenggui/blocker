@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.transform
 import timber.log.Timber
 import javax.inject.Inject
 
-class LocalAppRepository @Inject constructor(
+internal class LocalAppRepository @Inject constructor(
     private val localAppDataSource: LocalAppDataSource,
     private val componentRepository: LocalComponentRepository,
     private val installedAppDao: InstalledAppDao,

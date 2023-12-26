@@ -27,23 +27,16 @@ android {
     namespace = "com.merxury.blocker.sync"
 }
 dependencies {
-    implementation(projects.core.analytics)
-    implementation(projects.core.common)
-    implementation(projects.core.data)
-    implementation(projects.core.datastore)
-    implementation(projects.core.model)
-    implementation(projects.core.network)
-    implementation(libs.androidx.lifecycle.livedata.ktx)
+    ksp(libs.hilt.ext.compiler)
+
     implementation(libs.androidx.tracing.ktx)
     implementation(libs.androidx.work.ktx)
     implementation(libs.hilt.ext.work)
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.datetime)
+    implementation(projects.core.analytics)
+    implementation(projects.core.data)
 
-    ksp(libs.hilt.ext.compiler)
-
-    testImplementation(projects.core.testing)
-
-    androidTestImplementation(projects.core.testing)
     androidTestImplementation(libs.androidx.work.testing)
+    androidTestImplementation(libs.hilt.android.testing)
+    androidTestImplementation(libs.kotlinx.coroutines.guava)
+    androidTestImplementation(projects.core.testing)
 }

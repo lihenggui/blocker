@@ -43,7 +43,7 @@ import kotlinx.coroutines.flow.zip
 import timber.log.Timber
 import javax.inject.Inject
 
-class LocalComponentRepository @Inject constructor(
+internal class LocalComponentRepository @Inject constructor(
     private val localDataSource: LocalComponentDataSource,
     private val appComponentDao: AppComponentDao,
     private val userDataRepository: UserDataRepository,
