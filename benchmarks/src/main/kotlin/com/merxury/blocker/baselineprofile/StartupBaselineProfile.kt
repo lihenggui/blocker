@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.baselineprofile
 
+import androidx.benchmark.macro.MacrobenchmarkScope
 import androidx.benchmark.macro.junit4.BaselineProfileRule
 import com.merxury.blocker.PACKAGE_NAME
 import com.merxury.blocker.startActivityAndAllowNotifications
@@ -31,11 +32,9 @@ class StartupBaselineProfile {
     @get:Rule val baselineProfileRule = BaselineProfileRule()
 
     @Test
-    fun generate() =
-        baselineProfileRule.collect(
-            PACKAGE_NAME,
-            includeInStartupProfile = true,
-        ) {
-            startActivityAndAllowNotifications()
-        }
+    fun generate() = baselineProfileRule.collect(
+        PACKAGE_NAME,
+        includeInStartupProfile = true,
+        profileBlock = MacrobenchmarkScope::startActivityAndAllowNotifications,
+    )
 }
