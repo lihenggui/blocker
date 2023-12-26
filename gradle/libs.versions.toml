@@ -47,7 +47,6 @@ kotlinxDatetime = "0.5.0"
 kotlinxSerializationJson = "1.6.2"
 ksp = "1.9.21-1.0.16"
 libsu = "5.2.2"
-lint = "31.2.0"
 okhttp = "4.12.0"
 protobuf = "3.25.1"
 protobufPlugin = "0.9.4"
@@ -137,9 +136,9 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 libsu-core = { group = "com.github.topjohnwu.libsu", name = "core", version.ref = "libsu" }
 libsu-io = { group = "com.github.topjohnwu.libsu", name = "io", version.ref = "libsu" }
 libsu-service = { group = "com.github.topjohnwu.libsu", name = "service", version.ref = "libsu" }
-lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = "lint" }
-lint-checks = { group = "com.android.tools.lint", name = "lint-checks", version.ref = "lint" }
-lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.ref = "lint" }
+lint-api = { group = "com.android.tools.lint", name = "lint-api", version.ref = "androidTools" }
+lint-checks = { group = "com.android.tools.lint", name = "lint-checks", version.ref = "androidTools" }
+lint-tests = { group = "com.android.tools.lint", name = "lint-tests", version.ref = "androidTools" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 okhttp-logging = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp" }
 protobuf-protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protobuf" }
