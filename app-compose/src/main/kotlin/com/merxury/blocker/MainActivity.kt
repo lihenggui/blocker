@@ -85,9 +85,7 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState
-                    .onEach {
-                        uiState = it
-                    }
+                    .onEach { uiState = it }
                     .collect()
             }
         }

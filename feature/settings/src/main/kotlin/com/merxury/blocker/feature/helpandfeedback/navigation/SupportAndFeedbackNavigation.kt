@@ -25,9 +25,8 @@ import com.merxury.blocker.feature.helpandfeedback.SupportAndFeedbackRoute
 
 const val SUPPORT_AND_FEEDBACK_ROUTE = "support_and_feedback_route"
 
-fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) {
-    this.navigate(SUPPORT_AND_FEEDBACK_ROUTE, navOptions)
-}
+fun NavController.navigateToSupportAndFeedback(navOptions: NavOptions? = null) =
+    navigate(SUPPORT_AND_FEEDBACK_ROUTE, navOptions)
 
 fun NavGraphBuilder.supportAndFeedbackScreen(
     onBackClick: () -> Unit,
