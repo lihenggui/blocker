@@ -29,6 +29,8 @@ dependencies {
     implementation(projects.core.domain)
     implementation(libs.coil.kt.compose)
 
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.robolectric)
     testImplementation(projects.core.testing)
 
     androidTestImplementation(projects.core.testing)

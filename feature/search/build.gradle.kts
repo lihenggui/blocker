@@ -30,6 +30,8 @@ dependencies {
     implementation(projects.feature.applist)
     implementation(libs.coil.kt.compose)
 
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.robolectric)
     testImplementation(projects.core.testing)
 
     androidTestImplementation(projects.core.testing)
