@@ -34,6 +34,8 @@ dependencies {
     implementation(libs.androidx.work.ktx)
     implementation(libs.google.oss.licenses)
 
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.robolectric)
     testImplementation(projects.core.testing)
 
     androidTestImplementation(projects.core.testing)
