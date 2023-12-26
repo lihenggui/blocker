@@ -26,9 +26,8 @@ import com.merxury.blocker.feature.search.SearchRoute
 
 const val SEARCH_ROUTE = "search_route"
 
-fun NavController.navigateToSearch(navOptions: NavOptions? = null) {
-    this.navigate(SEARCH_ROUTE, navOptions)
-}
+fun NavController.navigateToSearch(navOptions: NavOptions) =
+    navigate(SEARCH_ROUTE, navOptions)
 
 fun NavGraphBuilder.searchScreen(
     snackbarHostState: SnackbarHostState,

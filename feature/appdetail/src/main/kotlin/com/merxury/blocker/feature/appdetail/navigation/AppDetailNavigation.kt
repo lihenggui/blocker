@@ -66,7 +66,7 @@ fun NavController.navigateToAppDetail(
 ) {
     val encodedId = URLEncoder.encode(packageName, URL_CHARACTER_ENCODING)
     val keywords = URLEncoder.encode(searchKeyword.joinToString(","), URL_CHARACTER_ENCODING)
-    this.navigate("app_detail_route/$encodedId?screen=${tab.name}?keyword=$keywords") {
+    navigate("app_detail_route/$encodedId?screen=${tab.name}?keyword=$keywords") {
         // Avoid multiple copies of the same destination when
         // reselecting the same item
         launchSingleTop = true
