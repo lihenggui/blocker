@@ -20,12 +20,12 @@ package com.merxury.blocker.sync.workers
 import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-fun AnalyticsHelper.logSyncStarted() =
+internal fun AnalyticsHelper.logSyncStarted() =
     logEvent(
         AnalyticsEvent(type = "network_sync_started"),
     )
 
-fun AnalyticsHelper.logSyncFinished(syncedSuccessfully: Boolean) {
+internal fun AnalyticsHelper.logSyncFinished(syncedSuccessfully: Boolean) {
     val eventType = if (syncedSuccessfully) "network_sync_successful" else "network_sync_failed"
     logEvent(
         AnalyticsEvent(type = eventType),

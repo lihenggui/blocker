@@ -26,7 +26,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-object RuleModule {
+internal object RuleModule {
 
     @Provides
     fun provideWorkerManager(@ApplicationContext appContext: Context): WorkManager {

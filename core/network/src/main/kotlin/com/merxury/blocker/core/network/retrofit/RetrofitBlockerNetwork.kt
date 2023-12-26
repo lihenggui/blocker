@@ -38,7 +38,7 @@ import javax.inject.Singleton
  * [Retrofit] backed [BlockerNetworkDataSource]
  */
 @Singleton
-class RetrofitBlockerNetwork @Inject constructor(
+internal class RetrofitBlockerNetwork @Inject constructor(
     private val okhttpCallFactory: Call.Factory,
 ) : BlockerNetworkDataSource {
     override suspend fun getRuleLatestCommitId(provider: RuleServerProvider): NetworkChangeList {

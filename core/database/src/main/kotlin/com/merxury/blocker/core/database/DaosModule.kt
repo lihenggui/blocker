@@ -29,7 +29,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-object DaosModule {
+internal object DaosModule {
     @Provides
     fun provideInstalledAppDao(database: InstalledAppDatabase): InstalledAppDao {
         return database.installedAppDao()

@@ -24,9 +24,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.hilt.android.testing)
     implementation(projects.core.common)
-    api(projects.core.datastore)
-    implementation(projects.core.testing)
-
-    api(libs.androidx.dataStore.core)
+    implementation(projects.core.datastore)
 }

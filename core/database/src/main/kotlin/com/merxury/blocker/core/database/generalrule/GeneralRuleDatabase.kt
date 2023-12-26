@@ -23,6 +23,6 @@ import com.merxury.blocker.core.database.util.ListConverter
 
 @Database(entities = [GeneralRuleEntity::class], version = 2)
 @TypeConverters(ListConverter::class)
-abstract class GeneralRuleDatabase : RoomDatabase() {
+internal abstract class GeneralRuleDatabase : RoomDatabase() {
     abstract fun generalRuleDao(): GeneralRuleDao
 }

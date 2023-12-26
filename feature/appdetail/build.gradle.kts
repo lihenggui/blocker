@@ -26,9 +26,15 @@ android {
 }
 dependencies {
     implementation(projects.core.componentController)
+    implementation(projects.core.data)
+    implementation(projects.core.domain)
     implementation(projects.core.rule)
     implementation(libs.androidx.compose.material)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
     implementation(libs.kotlinx.datetime)
+
+    testImplementation(projects.core.testing)
+
+    androidTestImplementation(projects.core.testing)
 }

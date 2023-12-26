@@ -24,20 +24,20 @@ android {
 }
 
 dependencies {
+    api(projects.core.data)
+    api(projects.core.model)
     implementation(projects.core.common)
     implementation(projects.core.componentController)
-    implementation(projects.core.data)
     implementation(projects.core.ifwApi)
-    implementation(projects.core.model)
     implementation(projects.core.rule)
 
     testImplementation(projects.core.testing)
     implementation(libs.androidx.work.ktx)
-    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.datetime)
     implementation(libs.hilt.android)
-    implementation(libs.hilt.ext.work)
     implementation(libs.timber)
+    implementation(libs.javax.inject)
+
     ksp(libs.hilt.compiler)
 
     testImplementation(projects.core.testing)
