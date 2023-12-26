@@ -25,5 +25,11 @@ android {
 }
 dependencies {
     implementation(projects.core.componentController)
-    implementation(libs.kotlinx.datetime)
+    implementation(projects.core.data)
+    implementation(projects.core.domain)
+    implementation(libs.coil.kt.compose)
+
+    testImplementation(projects.core.testing)
+
+    androidTestImplementation(projects.core.testing)
 }

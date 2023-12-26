@@ -42,12 +42,11 @@ secrets {
 }
 
 dependencies {
-    implementation(projects.core.common)
-    implementation(projects.core.model)
-    testImplementation(projects.core.testing)
+    api(libs.kotlinx.datetime)
+    api(projects.core.common)
+    api(projects.core.model)
+    testImplementation(libs.kotlinx.coroutines.test)
 
-    implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp.logging)
     implementation(libs.retrofit.core)

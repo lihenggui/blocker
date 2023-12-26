@@ -29,11 +29,11 @@ dependencies {
     api(libs.timber)
     api(libs.kotlinx.datetime)
     implementation(libs.hiddenapibypass)
-    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
 
-    testImplementation(projects.core.testing)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
 }
 
 java {

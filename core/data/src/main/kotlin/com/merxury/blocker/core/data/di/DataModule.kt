@@ -41,49 +41,49 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-interface DataModule {
+abstract class DataModule {
     @Binds
-    fun bindUserDataRepository(
+    internal abstract fun bindUserDataRepository(
         userDataRepository: LocalUserDataRepository,
     ): UserDataRepository
 
     @Binds
-    fun bindAppPropertiesRepository(
+    internal abstract fun bindAppPropertiesRepository(
         appPropertiesRepository: LocalAppPropertiesRepository,
     ): AppPropertiesRepository
 
     @Binds
-    fun bindsGeneralRuleRepository(
+    internal abstract fun bindsGeneralRuleRepository(
         generalRuleRepository: OfflineFirstGeneralRuleRepository,
     ): GeneralRuleRepository
 
     @Binds
-    fun bindsComponentDetailRepository(
+    internal abstract fun bindsComponentDetailRepository(
         componentDetailRepository: ComponentDetailRepository,
     ): IComponentDetailRepository
 
     @Binds
-    fun bindsNetworkMonitor(
+    internal abstract fun bindsNetworkMonitor(
         networkMonitor: ConnectivityManagerNetworkMonitor,
     ): NetworkMonitor
 
     @Binds
-    fun bindsLocalComponentRepository(
+    internal abstract fun bindsLocalComponentRepository(
         localComponentRepository: LocalComponentRepository,
     ): ComponentRepository
 
     @Binds
-    fun bindsLocalAppRepository(
+    internal abstract fun bindsLocalAppRepository(
         localAppRepository: LocalAppRepository,
     ): AppRepository
 
     @Binds
-    fun bindLocalGeneralRuleDataSource(
+    internal abstract fun bindLocalGeneralRuleDataSource(
         localGeneralRuleDataSource: LocalGeneralRuleDataSource,
     ): GeneralRuleDataSource
 
     @Binds
-    fun bindPermissionMonitor(
+    internal abstract fun bindPermissionMonitor(
         permissionMonitor: AppPermissionMonitor,
     ): PermissionMonitor
 }
