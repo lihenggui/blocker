@@ -75,6 +75,7 @@ import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.result.Result
+import com.merxury.blocker.core.result.Result.Error
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -92,6 +93,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
@@ -103,6 +105,7 @@ import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SHARE_RULE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import com.merxury.blocker.core.utils.ApplicationUtil
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
+import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.navigation.AppDetailArgs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -212,6 +215,7 @@ class AppDetailViewModel @Inject constructor(
             Service to listUiState.service.size,
             Activity to listUiState.activity.size,
             Provider to listUiState.provider.size,
+            Sdk to 1,
         ).filter { it.value > 0 }
         val nonEmptyItems = itemCountMap.filter { it.value > 0 }.keys.toList()
         if (_tabState.value.selectedItem !in nonEmptyItems) {
@@ -314,8 +318,22 @@ class AppDetailViewModel @Inject constructor(
         searchMatchedRuleJob?.cancel()
         searchMatchedRuleJob = viewModelScope.launch(exceptionHandler) {
             val packageName = appDetailArgs.packageName
-            searchMatchedRuleInAppUseCase(packageName).collect {
-                Timber.v("Received result from searchMatchedRuleInAppUseCase: $it")
+            searchMatchedRuleInAppUseCase(packageName).collect { result ->
+                when (result) {
+                    is Result.Loading -> Timber.v("Searching matched rule in app $packageName")
+                    is Error ->
+                        Timber.e(result.exception, "Fail to find matched rule in app $packageName")
+                    is Result.Success -> Timber.v("Found ${result.data.size} rule in app $packageName")
+                }
+                _appInfoUiState.update {
+                    if (it !is Success) {
+                        it
+                    } else {
+                        it.copy(
+                            matchedGeneralRuleUiState = result,
+                        )
+                    }
+                }
             }
         }
     }
@@ -903,7 +921,7 @@ class AppDetailViewModel @Inject constructor(
             val packageInfo = pm.getPackageInfoCompat(packageName, 0)
             val userData = userDataRepository.userData.first()
             _appInfoUiState.emit(
-                AppInfoUiState.Success(
+                Success(
                     appInfo = app.toAppItem(packageInfo = packageInfo),
                     iconBasedTheming = if (userData.useDynamicColor) {
                         getAppIcon(packageInfo)
