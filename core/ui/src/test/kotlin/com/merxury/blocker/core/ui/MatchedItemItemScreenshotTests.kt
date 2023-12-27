@@ -30,12 +30,12 @@ import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.rule.MatchedAppItemHeader
-import com.merxury.blocker.core.ui.rule.RuleMatchedApp
+import com.merxury.blocker.core.ui.rule.MatchedHeaderData
+import com.merxury.blocker.core.ui.rule.MatchedItem
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -49,7 +49,7 @@ import kotlin.test.Test
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = HiltTestApplication::class, qualifiers = "480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
-class RuleMatchedAppItemScreenshotTests {
+class MatchedItemItemScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
@@ -117,16 +117,15 @@ class RuleMatchedAppItemScreenshotTests {
                 ),
             )
         }
-        val ruleMatchedApp = RuleMatchedApp(
-            app = AppItem(
-                packageName = "com.merxury.example",
-                label = label,
-                packageInfo = null,
+        val matchedItem = MatchedItem(
+            header = MatchedHeaderData(
+                title = label,
+                uniqueId = "com.merxury.example",
             ),
             componentList = componentList,
         )
         MatchedAppItemHeader(
-            ruleMatchedApp = ruleMatchedApp,
+            matchedItem = matchedItem,
             expanded = isLongName,
         )
     }
