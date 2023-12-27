@@ -66,6 +66,7 @@ import kotlinx.coroutines.flow.combineTransform
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -269,11 +270,14 @@ class SearchViewModel @Inject constructor(
                 .catch { exception ->
                     _errorState.emit(exception.toErrorMessage())
                 }
+                .onCompletion {
+                    Timber.i("Control all $current components to state $enable completed")
+                    switchSelectedMode(false)
+                }
                 .collect {
                     action(++current, list.size)
                 }
         }
-        switchSelectedMode(false)
     }
 
     fun dismissAlert() = viewModelScope.launch {
