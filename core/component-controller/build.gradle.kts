@@ -42,7 +42,6 @@ dependencies {
     implementation(projects.core.ifwApi)
 
     implementation(libs.hiddenapibypass)
-    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)

@@ -27,8 +27,16 @@ android {
 
 dependencies {
     implementation(projects.core.componentController)
+    implementation(projects.core.data)
+    implementation(projects.core.domain)
     implementation(projects.core.ifwApi)
     implementation(libs.androidx.compose.material)
     implementation(libs.kotlinx.datetime)
+
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(projects.core.testing)
+
+    androidTestImplementation(projects.core.testing)
 }
 

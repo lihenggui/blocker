@@ -30,8 +30,7 @@ android {
 }
 
 dependencies {
-    implementation(projects.core.model)
-    implementation(libs.kotlinx.coroutines.android)
+    api(projects.core.model)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
 

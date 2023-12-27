@@ -17,6 +17,7 @@ plugins {
     alias(libs.plugins.blocker.android.library)
     alias(libs.plugins.blocker.android.library.compose)
     alias(libs.plugins.blocker.android.library.jacoco)
+    alias(libs.plugins.roborazzi)
 }
 
 android {
@@ -39,11 +40,18 @@ dependencies {
 
     debugApi(libs.androidx.compose.ui.tooling)
 
-    implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.palette)
     implementation(libs.coil.kt.compose)
     implementation(libs.google.android.material)
     implementation(projects.core.model)
 
+    testImplementation(libs.androidx.compose.ui.test)
+    testImplementation(libs.accompanist.testharness)
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.roborazzi)
+    testImplementation(projects.core.testing)
+
+    androidTestImplementation(libs.androidx.compose.ui.test)
     androidTestImplementation(projects.core.testing)
 }

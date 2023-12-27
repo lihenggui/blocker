@@ -24,7 +24,15 @@ android {
     namespace = "com.merxury.blocker.feature.search"
 }
 dependencies {
-    implementation(projects.core.database)
+    implementation(projects.core.componentController)
+    implementation(projects.core.data)
+    implementation(projects.core.domain)
     implementation(projects.feature.applist)
-    implementation(libs.kotlinx.datetime)
+    implementation(libs.coil.kt.compose)
+
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(projects.core.testing)
+
+    androidTestImplementation(projects.core.testing)
 }
