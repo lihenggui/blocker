@@ -23,8 +23,8 @@ import android.net.Uri
 import android.os.Bundle
 import androidx.core.os.bundleOf
 import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.component.LocalComponentDataSource
-import com.merxury.blocker.core.data.respository.component.LocalComponentRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -42,7 +42,7 @@ class ComponentProvider : ContentProvider() {
     interface ComponentRepositoryEntryPoint {
         fun componentDataSource(): LocalComponentDataSource
 
-        fun componentRepository(): LocalComponentRepository
+        fun componentRepository(): ComponentRepository
 
         fun analyticsHelper(): AnalyticsHelper
     }

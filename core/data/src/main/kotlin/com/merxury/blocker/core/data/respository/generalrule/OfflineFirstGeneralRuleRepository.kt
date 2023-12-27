@@ -37,7 +37,7 @@ import kotlinx.coroutines.flow.onStart
 import timber.log.Timber
 import javax.inject.Inject
 
-class OfflineFirstGeneralRuleRepository @Inject constructor(
+internal class OfflineFirstGeneralRuleRepository @Inject constructor(
     private val generalRuleDao: GeneralRuleDao,
     private val dataSource: GeneralRuleDataSource,
     @Dispatcher(IO) private val ioDispatcher: CoroutineDispatcher,

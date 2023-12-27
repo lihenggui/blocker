@@ -23,7 +23,8 @@ android {
     namespace = "com.merxury.blocker.feature.settings"
 }
 dependencies {
-    implementation(projects.core.datastore)
+    implementation(projects.core.data)
+    implementation(projects.core.domain)
     implementation(projects.core.rule)
     implementation(libs.accompanist.permissions)
     implementation(libs.androidx.appcompat)
@@ -31,7 +32,11 @@ dependencies {
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
-    implementation(libs.google.oss.licenses) {
-        exclude(group = "androidx.appcompat")
-    }
+    implementation(libs.google.oss.licenses)
+
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(projects.core.testing)
+
+    androidTestImplementation(projects.core.testing)
 }

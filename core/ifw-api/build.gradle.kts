@@ -37,7 +37,6 @@ dependencies {
     implementation(projects.core.common)
     testImplementation(projects.core.testing)
 
-    implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.libsu.core)
     implementation(libs.libsu.io)
