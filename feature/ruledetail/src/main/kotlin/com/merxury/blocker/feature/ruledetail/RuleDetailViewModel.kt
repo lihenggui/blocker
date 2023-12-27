@@ -30,10 +30,12 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.size.Scale
 import com.merxury.blocker.core.analytics.AnalyticsHelper
+import com.merxury.blocker.core.data.di.RuleBaseFolder
 import com.merxury.blocker.core.data.respository.app.AppRepository
 import com.merxury.blocker.core.data.respository.component.ComponentRepository
 import com.merxury.blocker.core.data.respository.generalrule.GeneralRuleRepository
 import com.merxury.blocker.core.data.respository.userdata.UserDataRepository
+import com.merxury.blocker.core.di.FilesDir
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.DEFAULT
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.IO
 import com.merxury.blocker.core.dispatchers.BlockerDispatchers.MAIN
@@ -72,6 +74,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -79,6 +82,8 @@ class RuleDetailViewModel @Inject constructor(
     private val appContext: Application,
     savedStateHandle: SavedStateHandle,
     private val pm: PackageManager,
+    @FilesDir private val filesDir: File,
+    @RuleBaseFolder private val ruleBaseFolder: String,
     private val ruleRepository: GeneralRuleRepository,
     private val appRepository: AppRepository,
     private val userDataRepository: UserDataRepository,
@@ -125,17 +130,18 @@ class RuleDetailViewModel @Inject constructor(
         loadRuleDetailJob = viewModelScope.launch {
             val context: Context = appContext
             val ruleId = ruleIdArgs.ruleId
-            val baseUrl = userDataRepository.userData
-                .first()
-                .ruleServerProvider
-                .baseUrl
             val rule = ruleRepository.getGeneralRule(ruleId)
                 .first()
-            val ruleWithIcon = rule.copy(iconUrl = baseUrl + rule.iconUrl)
+            val iconFile = withContext(ioDispatcher) {
+                val iconUrl = rule.iconUrl ?: return@withContext null
+                File(filesDir, ruleBaseFolder)
+                    .resolve(iconUrl)
+            }
+            val ruleWithIcon = rule.copy(iconUrl = iconFile?.absolutePath)
             _ruleInfoUiState.update {
                 RuleInfoUiState.Success(
                     ruleInfo = ruleWithIcon,
-                    ruleIcon = getRuleIcon(baseUrl + rule.iconUrl, context = context),
+                    ruleIcon = getRuleIcon(iconFile, context = context),
                     matchedAppsUiState = RuleMatchedAppListUiState.Loading,
                 )
             }
@@ -334,16 +340,16 @@ class RuleDetailViewModel @Inject constructor(
         _tabState.update { it.copy(selectedItem = screen) }
     }
 
-    private suspend fun getRuleIcon(iconUrl: String?, context: Context) =
+    private suspend fun getRuleIcon(icon: File?, context: Context) =
         withContext(ioDispatcher) {
             val request = ImageRequest.Builder(context)
-                .data(iconUrl)
+                .data(icon)
                 // We scale the image to cover 128px x 128px (i.e. min dimension == 128px)
                 .size(128).scale(Scale.FILL)
                 // Disable hardware bitmaps, since Palette uses Bitmap.getPixels()
                 .allowHardware(false)
                 // Set a custom memory cache key to avoid overwriting the displayed image in the cache
-                .memoryCacheKey("$iconUrl.palette")
+                .memoryCacheKey("$icon.palette")
                 .build()
 
             val bitmap = when (val result = context.imageLoader.execute(request)) {
