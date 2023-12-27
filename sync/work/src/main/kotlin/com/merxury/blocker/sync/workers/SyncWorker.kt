@@ -63,7 +63,7 @@ private const val RULE_ZIP_FILENAME = "rules.zip"
  */
 
 @HiltWorker
-class SyncWorker @AssistedInject constructor(
+internal class SyncWorker @AssistedInject constructor(
     @Assisted private val appContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val userDataRepository: UserDataRepository,

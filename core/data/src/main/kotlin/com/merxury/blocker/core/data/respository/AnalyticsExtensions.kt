@@ -20,7 +20,7 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-fun AnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfigName: String) =
+internal fun AnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfigName: String) =
     logEvent(
         AnalyticsEvent(
             type = "dark_theme_config_changed",
@@ -30,7 +30,7 @@ fun AnalyticsHelper.logDarkThemeConfigChanged(darkThemeConfigName: String) =
         ),
     )
 
-fun AnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor: Boolean) =
+internal fun AnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor: Boolean) =
     logEvent(
         AnalyticsEvent(
             type = "dynamic_color_preference_changed",
@@ -40,7 +40,7 @@ fun AnalyticsHelper.logDynamicColorPreferenceChanged(useDynamicColor: Boolean) =
         ),
     )
 
-fun AnalyticsHelper.logControllerTypeChanged(controllerName: String) =
+internal fun AnalyticsHelper.logControllerTypeChanged(controllerName: String) =
     logEvent(
         AnalyticsEvent(
             type = "controller_type_changed",
@@ -50,7 +50,7 @@ fun AnalyticsHelper.logControllerTypeChanged(controllerName: String) =
         ),
     )
 
-fun AnalyticsHelper.logBackupSystemAppPreferenceChanged(backupSystemApp: Boolean) =
+internal fun AnalyticsHelper.logBackupSystemAppPreferenceChanged(backupSystemApp: Boolean) =
     logEvent(
         AnalyticsEvent(
             type = "backup_system_app_preference_changed",
@@ -60,7 +60,7 @@ fun AnalyticsHelper.logBackupSystemAppPreferenceChanged(backupSystemApp: Boolean
         ),
     )
 
-fun AnalyticsHelper.logRestoreSystemAppPreferenceChanged(restoreSystemApp: Boolean) =
+internal fun AnalyticsHelper.logRestoreSystemAppPreferenceChanged(restoreSystemApp: Boolean) =
     logEvent(
         AnalyticsEvent(
             type = "restore_system_app_preference_changed",
@@ -70,7 +70,7 @@ fun AnalyticsHelper.logRestoreSystemAppPreferenceChanged(restoreSystemApp: Boole
         ),
     )
 
-fun AnalyticsHelper.logRuleServerProviderChanged(ruleServerProviderName: String) =
+internal fun AnalyticsHelper.logRuleServerProviderChanged(ruleServerProviderName: String) =
     logEvent(
         AnalyticsEvent(
             type = "rule_server_provider_changed",
@@ -80,7 +80,7 @@ fun AnalyticsHelper.logRuleServerProviderChanged(ruleServerProviderName: String)
         ),
     )
 
-fun AnalyticsHelper.logAppSortingChanged(appSortingName: String) =
+internal fun AnalyticsHelper.logAppSortingChanged(appSortingName: String) =
     logEvent(
         AnalyticsEvent(
             type = "app_sorting_changed",
@@ -90,7 +90,7 @@ fun AnalyticsHelper.logAppSortingChanged(appSortingName: String) =
         ),
     )
 
-fun AnalyticsHelper.logAppSortingOrderChanged(appSortingOrder: String) =
+internal fun AnalyticsHelper.logAppSortingOrderChanged(appSortingOrder: String) =
     logEvent(
         AnalyticsEvent(
             type = "app_sorting_order_changed",
@@ -100,7 +100,7 @@ fun AnalyticsHelper.logAppSortingOrderChanged(appSortingOrder: String) =
         ),
     )
 
-fun AnalyticsHelper.logShowServiceInfoPreferenceChanged(showServiceInfo: Boolean) =
+internal fun AnalyticsHelper.logShowServiceInfoPreferenceChanged(showServiceInfo: Boolean) =
     logEvent(
         AnalyticsEvent(
             type = "show_service_info_preference_changed",
@@ -110,7 +110,7 @@ fun AnalyticsHelper.logShowServiceInfoPreferenceChanged(showServiceInfo: Boolean
         ),
     )
 
-fun AnalyticsHelper.logShowSystemAppPreferenceChanged(showSystemApp: Boolean) =
+internal fun AnalyticsHelper.logShowSystemAppPreferenceChanged(showSystemApp: Boolean) =
     logEvent(
         AnalyticsEvent(
             type = "show_system_app_preference_changed",
@@ -120,7 +120,7 @@ fun AnalyticsHelper.logShowSystemAppPreferenceChanged(showSystemApp: Boolean) =
         ),
     )
 
-fun AnalyticsHelper.logComponentShowPriorityPreferenceChanged(componentShowPriority: String) =
+internal fun AnalyticsHelper.logComponentShowPriorityPreferenceChanged(componentShowPriority: String) =
     logEvent(
         AnalyticsEvent(
             type = "component_show_priority_preference_changed",
@@ -130,7 +130,7 @@ fun AnalyticsHelper.logComponentShowPriorityPreferenceChanged(componentShowPrior
         ),
     )
 
-fun AnalyticsHelper.logComponentSortingPreferenceChanged(componentSorting: String) =
+internal fun AnalyticsHelper.logComponentSortingPreferenceChanged(componentSorting: String) =
     logEvent(
         AnalyticsEvent(
             type = "component_sorting_preference_changed",
@@ -140,7 +140,7 @@ fun AnalyticsHelper.logComponentSortingPreferenceChanged(componentSorting: Strin
         ),
     )
 
-fun AnalyticsHelper.logComponentSortingOrderPreferenceChanged(componentSortingOrder: String) =
+internal fun AnalyticsHelper.logComponentSortingOrderPreferenceChanged(componentSortingOrder: String) =
     logEvent(
         AnalyticsEvent(
             type = "component_sorting_order_preference_changed",
@@ -150,7 +150,7 @@ fun AnalyticsHelper.logComponentSortingOrderPreferenceChanged(componentSortingOr
         ),
     )
 
-fun AnalyticsHelper.logShowRunningAppsOnTopPreferenceChanged(showRunningAppsOnTop: Boolean) =
+internal fun AnalyticsHelper.logShowRunningAppsOnTopPreferenceChanged(showRunningAppsOnTop: Boolean) =
     logEvent(
         AnalyticsEvent(
             type = "show_running_apps_on_top_preference_changed",
@@ -163,14 +163,14 @@ fun AnalyticsHelper.logShowRunningAppsOnTopPreferenceChanged(showRunningAppsOnTo
         ),
     )
 
-fun AnalyticsHelper.logFirstTimeInitializationCompleted() =
+internal fun AnalyticsHelper.logFirstTimeInitializationCompleted() =
     logEvent(
         AnalyticsEvent(
             type = "first_time_initialization_completed",
         ),
     )
 
-fun AnalyticsHelper.logAppDisplayLanguageChanged(language: String) =
+internal fun AnalyticsHelper.logAppDisplayLanguageChanged(language: String) =
     logEvent(
         AnalyticsEvent(
             type = "app_display_language_changed",
@@ -180,7 +180,7 @@ fun AnalyticsHelper.logAppDisplayLanguageChanged(language: String) =
         ),
     )
 
-fun AnalyticsHelper.logLibDisplayLanguageChanged(language: String) =
+internal fun AnalyticsHelper.logLibDisplayLanguageChanged(language: String) =
     logEvent(
         AnalyticsEvent(
             type = "lib_display_language_changed",

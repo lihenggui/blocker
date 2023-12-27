@@ -25,5 +25,12 @@ android {
     namespace = "com.merxury.blocker.feature.sort"
 }
 dependencies {
+    implementation(projects.core.data)
     implementation(libs.accompanist.navigation.material)
+
+    testImplementation(libs.hilt.android.testing)
+    testImplementation(libs.robolectric)
+    testImplementation(projects.core.testing)
+
+    androidTestImplementation(projects.core.testing)
 }

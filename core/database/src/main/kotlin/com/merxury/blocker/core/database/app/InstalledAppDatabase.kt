@@ -23,7 +23,7 @@ import com.merxury.blocker.core.database.util.InstantConverter
 
 @Database(entities = [InstalledAppEntity::class, AppComponentEntity::class], version = 2)
 @TypeConverters(InstantConverter::class)
-abstract class InstalledAppDatabase : RoomDatabase() {
+internal abstract class InstalledAppDatabase : RoomDatabase() {
     abstract fun installedAppDao(): InstalledAppDao
     abstract fun appComponentDao(): AppComponentDao
 }

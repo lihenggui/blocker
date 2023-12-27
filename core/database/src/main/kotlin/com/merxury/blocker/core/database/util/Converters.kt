@@ -21,7 +21,7 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-class ListConverter {
+internal class ListConverter {
     @TypeConverter
     fun fromString(value: String): List<String> {
         return Json.decodeFromString(value)
@@ -33,7 +33,7 @@ class ListConverter {
     }
 }
 
-class InstantConverter {
+internal class InstantConverter {
     @TypeConverter
     fun longToInstant(value: Long?): Instant? =
         value?.let(Instant::fromEpochMilliseconds)

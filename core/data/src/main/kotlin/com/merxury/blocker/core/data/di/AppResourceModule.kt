@@ -23,7 +23,7 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
-object AppResourceModule {
+internal object AppResourceModule {
 
     @Provides
     @RuleBaseFolder
