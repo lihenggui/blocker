@@ -17,10 +17,9 @@
 package com.merxury.blocker.core.ui.rule
 
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 
-data class RuleMatchedApp(
-    val app: AppItem,
+data class MatchedItem(
+    val header: MatchedHeaderData,
     val componentList: SnapshotStateList<ComponentItem>,
 )

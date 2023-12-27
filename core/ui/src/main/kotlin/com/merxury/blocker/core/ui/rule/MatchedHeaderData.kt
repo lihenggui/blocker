@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package com.merxury.blocker.core.testing.testing.data
+package com.merxury.blocker.core.ui.rule
 
-import androidx.compose.runtime.mutableStateListOf
-import com.merxury.blocker.core.ui.rule.MatchedHeaderData
-import com.merxury.blocker.core.ui.rule.MatchedItem
-
-val matchedItemTestData = MatchedItem(
-    header = MatchedHeaderData(
-        title = "Blocker",
-        uniqueId = "com.merxury.blocker",
-    ),
-    componentList = receiverTestData,
-)
-
-val ruleMatchedAppListTestData = mutableStateListOf(
-    matchedItemTestData,
+data class MatchedHeaderData(
+    val title: String,
+    val uniqueId: String,
+    val icon: Any? = null,
 )

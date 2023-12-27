@@ -32,9 +32,9 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
-import com.merxury.blocker.core.ui.rule.RuleMatchedApp
+import com.merxury.blocker.core.ui.rule.MatchedHeaderData
+import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppList
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import dagger.hilt.android.testing.HiltTestApplication
@@ -50,7 +50,7 @@ import kotlin.test.Test
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = HiltTestApplication::class, qualifiers = "480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
-class RuleMatchedAppListScreenshotTests {
+class MatchedItemListScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
@@ -86,7 +86,6 @@ class RuleMatchedAppListScreenshotTests {
 
     @Composable
     private fun RuleMatchedAppListExample() {
-        val appList = AppListPreviewParameterProvider().values.first()
         val components = ComponentListPreviewParameterProvider().values
             .first()
             .toMutableStateList()
@@ -94,21 +93,30 @@ class RuleMatchedAppListScreenshotTests {
             mutableStateListOf<ComponentItem>()
         }
 
-        val ruleMatchedApp = RuleMatchedApp(
-            app = appList[0],
+        val matchedItem = MatchedItem(
+            header = MatchedHeaderData(
+                title = "Blocker",
+                uniqueId = "com.merxury.blocker",
+            ),
             componentList = components,
         )
-        val ruleMatchedApp1 = RuleMatchedApp(
-            app = appList[1],
+        val matchedItem1 = MatchedItem(
+            header = MatchedHeaderData(
+                title = "Blocker Test",
+                uniqueId = "com.test.blocker",
+            ),
             componentList = emptyList,
         )
-        val ruleMatchedApp2 = RuleMatchedApp(
-            app = appList[2],
+        val matchedItem2 = MatchedItem(
+            header = MatchedHeaderData(
+                title = "Blocker Test test long long long long name",
+                uniqueId = "com.test",
+            ),
             componentList = emptyList,
         )
         val uiState = RuleMatchedAppListUiState.Success(
             list = remember {
-                mutableStateListOf(ruleMatchedApp, ruleMatchedApp1, ruleMatchedApp2)
+                mutableStateListOf(matchedItem, matchedItem1, matchedItem2)
             },
         )
         RuleMatchedAppList(ruleMatchedAppListUiState = uiState)

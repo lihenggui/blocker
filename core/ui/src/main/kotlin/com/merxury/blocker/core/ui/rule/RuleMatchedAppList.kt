@@ -55,7 +55,6 @@ import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggab
 import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
-import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
 import com.merxury.blocker.core.ui.component.ComponentListItem
@@ -98,11 +97,11 @@ fun RuleMatchedAppList(
                 ) {
                     ruleMatchedAppListUiState.list.forEachIndexed { index, ruleMatchedApp ->
                         val expanded = isExpandedMap[index] ?: false
-                        item(key = ruleMatchedApp.app.packageName) {
+                        item(key = ruleMatchedApp.header.uniqueId) {
                             MatchedAppItemHeader(
                                 modifier = Modifier.animateItemPlacement(),
                                 iconModifier = Modifier,
-                                ruleMatchedApp = ruleMatchedApp,
+                                matchedItem = ruleMatchedApp,
                                 navigateToAppDetail = navigateToAppDetail,
                                 onBlockAllClick = onBlockAllClick,
                                 onEnableAllClick = onEnableAllClick,
@@ -115,7 +114,7 @@ fun RuleMatchedAppList(
                         if (expanded) {
                             items(
                                 items = ruleMatchedApp.componentList,
-                                key = { item -> ruleMatchedApp.app.packageName + "/" + item.name },
+                                key = { item -> ruleMatchedApp.header.uniqueId + "/" + item.name },
                             ) {
                                 ComponentListItem(
                                     modifier = modifier.animateItemPlacement(),
@@ -185,7 +184,7 @@ fun NoApplicableAppScreen() {
 sealed interface RuleMatchedAppListUiState {
     data object Loading : RuleMatchedAppListUiState
     data class Success(
-        val list: SnapshotStateList<RuleMatchedApp>,
+        val list: SnapshotStateList<MatchedItem>,
     ) : RuleMatchedAppListUiState
 }
 
@@ -211,21 +210,19 @@ fun RuleMatchedAppListPreview() {
         type = ACTIVITY,
         pmBlocked = false,
     )
-    val ruleMatchedApp = RuleMatchedApp(
-        app = AppItem(
-            packageName = "com.merxury.blocker.test1",
-            label = "Blocker",
-            isSystem = false,
+    val matchedItem = MatchedItem(
+        header = MatchedHeaderData(
+            title = "Blocker",
+            uniqueId = "com.merxury.blocker.test1",
         ),
         componentList = remember {
             mutableStateListOf(componentInfo)
         },
     )
-    val ruleMatchedApp2 = RuleMatchedApp(
-        app = AppItem(
-            packageName = "com.merxury.blocker.test2",
-            label = "Test long long long long long name",
-            isSystem = false,
+    val matchedItem2 = MatchedItem(
+        header = MatchedHeaderData(
+            title = "Test long long long long long name",
+            uniqueId = "com.merxury.blocker.test2",
         ),
         componentList = remember {
             mutableStateListOf()
@@ -233,7 +230,7 @@ fun RuleMatchedAppListPreview() {
     )
     val uiState = RuleMatchedAppListUiState.Success(
         list = remember {
-            mutableStateListOf(ruleMatchedApp, ruleMatchedApp2)
+            mutableStateListOf(matchedItem, matchedItem2)
         },
     )
     BlockerTheme {
