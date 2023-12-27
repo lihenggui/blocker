@@ -16,6 +16,7 @@
 
 package com.merxury.blocker.core.ui.rule
 
+import android.content.pm.PackageInfo
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,14 +47,13 @@ import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R
 import com.merxury.blocker.core.ui.R.plurals
 import com.merxury.blocker.core.ui.applist.AppIcon
-import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 
 @Composable
 fun MatchedAppItemHeader(
     modifier: Modifier = Modifier,
     iconModifier: Modifier = Modifier,
-    ruleMatchedApp: RuleMatchedApp,
+    matchedItem: MatchedItem,
     navigateToAppDetail: (String) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
@@ -69,27 +69,27 @@ fun MatchedAppItemHeader(
         DropDownMenuItem(
             R.string.core_ui_open_app_detail,
         ) {
-            navigateToAppDetail(ruleMatchedApp.app.packageName)
+            navigateToAppDetail(matchedItem.header.uniqueId)
         },
         DropDownMenuItem(
             R.string.core_ui_block_all_components,
         ) {
-            onBlockAllClick(ruleMatchedApp.componentList)
+            onBlockAllClick(matchedItem.componentList)
         },
         DropDownMenuItem(
             R.string.core_ui_enable_all_components,
         ) {
-            onEnableAllClick(ruleMatchedApp.componentList)
+            onEnableAllClick(matchedItem.componentList)
         },
     )
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onCardArrowClicked(ruleMatchedApp.app.packageName) }
+            .clickable { onCardArrowClicked(matchedItem.header.uniqueId) }
             .padding(vertical = 8.dp),
     ) {
-        IconButton(onClick = { onCardArrowClicked(ruleMatchedApp.app.packageName) }) {
+        IconButton(onClick = { onCardArrowClicked(matchedItem.header.uniqueId) }) {
             Icon(
                 imageVector = expandIcon,
                 contentDescription = if (expanded) {
@@ -100,14 +100,14 @@ fun MatchedAppItemHeader(
             )
         }
         AppIcon(
-            ruleMatchedApp.app.packageInfo,
+            matchedItem.header.icon as PackageInfo?,
             iconModifier
                 .size(48.dp),
         )
         Spacer(modifier = Modifier.width(16.dp))
         MatchedAppInfo(
-            label = ruleMatchedApp.app.label,
-            matchedComponentCount = ruleMatchedApp.componentList.size,
+            label = matchedItem.header.title,
+            matchedComponentCount = matchedItem.componentList.size,
             modifier = modifier.fillMaxWidth(0.8f),
         )
         Spacer(modifier = Modifier.weight(1f))
@@ -143,18 +143,20 @@ private fun MatchedAppInfo(
 @Composable
 @ThemePreviews
 fun MatchedAppItemHeaderPreview() {
-    val appList = AppListPreviewParameterProvider().values.first()
     val components = ComponentListPreviewParameterProvider().values
         .first()
         .toMutableStateList()
-    val ruleMatchedApp = RuleMatchedApp(
-        app = appList[0],
+    val matchedItem = MatchedItem(
+        header = MatchedHeaderData(
+            title = "Blocker",
+            uniqueId = "com.merxury.blocker",
+        ),
         componentList = components,
     )
     BlockerTheme {
         Surface {
             MatchedAppItemHeader(
-                ruleMatchedApp = ruleMatchedApp,
+                matchedItem = matchedItem,
             )
         }
     }
@@ -163,18 +165,20 @@ fun MatchedAppItemHeaderPreview() {
 @Composable
 @ThemePreviews
 fun MatchedAppItemHeaderLongNamePreview() {
-    val appList = AppListPreviewParameterProvider().values.first()
     val components = ComponentListPreviewParameterProvider().values
         .first()
         .toMutableStateList()
-    val ruleMatchedApp = RuleMatchedApp(
-        app = appList[2],
+    val matchedItem = MatchedItem(
+        header = MatchedHeaderData(
+            title = "Blocker Test test long long long long name",
+            uniqueId = "com.merxury.blocker",
+        ),
         componentList = components,
     )
     BlockerTheme {
         Surface {
             MatchedAppItemHeader(
-                ruleMatchedApp = ruleMatchedApp,
+                matchedItem = matchedItem,
                 expanded = true,
             )
         }

@@ -44,15 +44,15 @@ import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.toAppItem
 import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
+import com.merxury.blocker.core.ui.rule.MatchedHeaderData
+import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Applicable
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs.Description
-import com.merxury.blocker.core.ui.rule.RuleMatchedApp
 import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -196,12 +196,16 @@ class RuleDetailViewModel @Inject constructor(
                     ?: return@mapNotNull null
                 if (!showSystemApps && app.isSystem) return@mapNotNull null
                 val packageInfo = pm.getPackageInfoCompat(packageName, 0)
-                val appItem = app.toAppItem(packageInfo = packageInfo)
+                val headerData = MatchedHeaderData(
+                    title = app.label,
+                    uniqueId = packageName,
+                    icon = packageInfo,
+                )
                 val searchedComponentItem = components
                     .toSet() // Remove duplicate components caused by multiple keywords
                     .map { it.toComponentItem() }
                     .toMutableStateList()
-                RuleMatchedApp(appItem, searchedComponentItem)
+                MatchedItem(headerData, searchedComponentItem)
             }
             .toMutableStateList()
         withContext(mainDispatcher) {
@@ -282,7 +286,7 @@ class RuleDetailViewModel @Inject constructor(
         withContext(cpuDispatcher) {
             val currentController = userDataRepository.userData.first().controllerType
             val matchedApp = matchedAppState.list.firstOrNull { matchedApp ->
-                matchedApp.app.packageName == packageName
+                matchedApp.header.uniqueId == packageName
             }
             if (matchedApp == null) {
                 Timber.e("Cannot find matched app for package name: $packageName")

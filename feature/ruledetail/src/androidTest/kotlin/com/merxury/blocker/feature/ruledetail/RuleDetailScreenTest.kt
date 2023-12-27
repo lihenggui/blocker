@@ -131,7 +131,7 @@ class RuleDetailScreenTest {
         // Check showing rules matched app list
         composeTestRule.onNodeWithTag("rule:matchedAppList")
             .assertExists()
-        composeTestRule.onNodeWithText(ruleMatchedAppListTestData.first().app.label)
+        composeTestRule.onNodeWithText(ruleMatchedAppListTestData.first().header.title)
             .assertExists()
         composeTestRule.onNodeWithContentDescription(expandMore).assertExists()
     }
