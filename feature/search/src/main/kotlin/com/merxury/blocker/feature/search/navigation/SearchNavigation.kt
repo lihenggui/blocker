@@ -32,7 +32,7 @@ fun NavController.navigateToSearch(navOptions: NavOptions) =
 fun NavGraphBuilder.searchScreen(
     snackbarHostState: SnackbarHostState,
     navigateToAppDetail: (String, AppDetailTabs, List<String>) -> Unit = { _, _, _ -> },
-    navigateToRuleDetail: (Int) -> Unit = {},
+    navigateToRuleDetail: (String) -> Unit = {},
 ) {
     composable(route = SEARCH_ROUTE) {
         SearchRoute(

@@ -44,7 +44,7 @@ import com.merxury.blocker.core.model.data.GeneralRule
 fun GeneralRulesList(
     rules: List<GeneralRule>,
     modifier: Modifier = Modifier,
-    onClick: (Int) -> Unit = {},
+    onClick: (String) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
