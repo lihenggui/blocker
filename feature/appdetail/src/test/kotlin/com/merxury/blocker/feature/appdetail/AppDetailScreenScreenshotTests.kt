@@ -19,10 +19,14 @@ package com.merxury.blocker.feature.appdetail
 import androidx.activity.ComponentActivity
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
+import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.GeneralRule
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.testing.util.DefaultTestDevices
 import com.merxury.blocker.core.testing.util.captureForDevice
 import com.merxury.blocker.core.testing.util.captureMultiDevice
@@ -30,6 +34,7 @@ import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.previewparameter.AppDetailTabStatePreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.AppListPreviewParameterProvider
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.SEARCH
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
@@ -57,6 +62,13 @@ class AppDetailScreenScreenshotTests {
     private val tabState = AppDetailTabStatePreviewParameterProvider().values.first()
     private val components = ComponentListPreviewParameterProvider().values.first()
     private val activityComponents = components.filter { it.type == ACTIVITY }.toMutableStateList()
+    private val rule = RuleListPreviewParameterProvider().values.first().first()
+    private val matchedRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> =
+        Result.Success(
+            data = mapOf(
+                rule to components.toMutableStateList(),
+            ),
+        )
 
     @Before
     fun setTimeZone() {
@@ -199,12 +211,14 @@ class AppDetailScreenScreenshotTests {
 
     @Composable
     private fun AppDetailScreen(isLibCheckerInstalled: Boolean = false) {
+
         BlockerTheme {
             Surface {
                 AppDetailScreen(
                     appInfoUiState = Success(
                         appInfo = appList[0],
                         isLibCheckerInstalled = isLibCheckerInstalled,
+                        matchedGeneralRuleUiState = matchedRuleUiState,
                     ),
                     componentListUiState = ComponentListUiState(),
                     tabState = tabState[0],
@@ -247,7 +261,11 @@ class AppDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                    appInfoUiState = Success(
+                        appInfo = appList[0],
+                        iconBasedTheming = null,
+                        matchedGeneralRuleUiState = matchedRuleUiState,
+                    ),
                     tabState = tabState[1],
                     topAppBarUiState = AppBarUiState(
                         actions = listOf(
@@ -268,7 +286,11 @@ class AppDetailScreenScreenshotTests {
         BlockerTheme {
             Surface {
                 AppDetailScreen(
-                    appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                    appInfoUiState = Success(
+                        appInfo = appList[0],
+                        iconBasedTheming = null,
+                        matchedGeneralRuleUiState = matchedRuleUiState,
+                    ),
                     tabState = tabState[1],
                     topAppBarUiState = AppBarUiState(
                         actions = listOf(
@@ -292,7 +314,11 @@ class AppDetailScreenScreenshotTests {
                 BlockerTheme {
                     Surface {
                         AppDetailScreen(
-                            appInfoUiState = Success(appInfo = appList[0], iconBasedTheming = null),
+                            appInfoUiState = Success(
+                                appInfo = appList[0],
+                                iconBasedTheming = null,
+                                matchedGeneralRuleUiState = matchedRuleUiState,
+                            ),
                             componentListUiState = ComponentListUiState(
                                 activity = activityComponents,
                             ),
