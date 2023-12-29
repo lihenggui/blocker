@@ -16,34 +16,24 @@
 
 package com.merxury.blocker.feature.appdetail.sdk
 
-import androidx.compose.foundation.gestures.Orientation.Vertical
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsBottomHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
+import com.merxury.blocker.core.ui.R as uiR
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.unit.dp
-import com.merxury.blocker.core.designsystem.component.scrollbar.FastScrollbar
-import com.merxury.blocker.core.designsystem.component.scrollbar.rememberDraggableScroller
-import com.merxury.blocker.core.designsystem.component.scrollbar.scrollbarState
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import com.merxury.blocker.core.designsystem.component.ThemePreviews
+import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.ui.TrackScrollJank
+import com.merxury.blocker.core.ui.collapseList.CollapseList
 import com.merxury.blocker.core.ui.component.NoComponentScreen
 import com.merxury.blocker.core.ui.data.UiMessage
-import com.merxury.blocker.core.ui.rule.MatchedAppItemHeader
+import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
+import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.MatchedHeaderData
 import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.screen.ErrorScreen
@@ -51,8 +41,9 @@ import com.merxury.blocker.core.ui.screen.LoadingScreen
 
 @Composable
 fun SdkContent(
-    data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>>,
     modifier: Modifier = Modifier,
+    data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+    navigationToRuleDetail: (Int) -> Unit = {},
 ) {
     when (data) {
         is Result.Success -> {
@@ -61,53 +52,60 @@ fun SdkContent(
                 NoComponentScreen()
                 return
             }
-            val listState = rememberLazyListState()
-            val scrollbarState = listState.scrollbarState(
-                itemsAvailable = sdks.size,
-            )
-            TrackScrollJank(scrollableState = listState, stateName = "component:sdk")
-            Box(modifier.fillMaxSize()) {
-                LazyColumn(
-                    modifier = modifier.testTag("component:list"),
-                    state = listState,
-                ) {
-                    itemsIndexed(
-                        items = sdks.entries.toList(),
-                        key = { index, item -> index + item.key.id },
-                    ) { _, item ->
-                        val rule = item.key
-                        val components = item.value
-                        MatchedAppItemHeader(
-                            matchedItem = MatchedItem(
-                                header = MatchedHeaderData(
-                                    title = rule.name,
-                                    uniqueId = rule.id.toString(),
-                                    icon = rule.iconUrl,
-                                ),
-                                componentList = components,
-                            ),
-                        )
-                    }
-                    item {
-                        Spacer(modifier.windowInsetsBottomHeight(WindowInsets.safeDrawing))
-                    }
-                }
-                listState.FastScrollbar(
-                    modifier = modifier
-                        .fillMaxHeight()
-                        .padding(horizontal = 2.dp)
-                        .align(Alignment.CenterEnd),
-                    state = scrollbarState,
-                    orientation = Vertical,
-                    onThumbMoved = listState.rememberDraggableScroller(
-                        itemsAvailable = sdks.size,
+            //Transfer Map<GeneralRule, SnapshotStateList<ComponentItem>> to SnapshotStateList<MatchedItem>
+            val matchedList: MutableList<MatchedItem> = mutableListOf()
+            sdks.forEach { (rule, components) ->
+                val matchedItem = MatchedItem(
+                    header = MatchedHeaderData(
+                        title = rule.name,
+                        uniqueId = rule.id.toString(),
+                        icon = rule.iconUrl,
                     ),
+                    componentList = components,
                 )
+                matchedList.add(matchedItem)
             }
+            CollapseList(
+                modifier = modifier.testTag("app:sdkList"),
+                list = matchedList.toMutableStateList(),
+                navigateToRuleDetail = navigationToRuleDetail,
+                navigationMenuItemDesc = uiR.string.core_ui_open_rule_detail,
+                onAppDetailScreen = true,
+            )
         }
 
         is Result.Error -> ErrorScreen(error = UiMessage(title = data.exception.message.orEmpty()))
 
         is Result.Loading -> LoadingScreen()
+    }
+}
+
+@Composable
+@ThemePreviews
+fun SdkContentPreview(
+    @PreviewParameter(
+        ComponentListPreviewParameterProvider::class,
+    ) components: List<ComponentItem>,
+) {
+    val rule = RuleListPreviewParameterProvider().values.first()[0]
+    val data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Success(
+        data = mapOf(
+            rule to components.toMutableStateList(),
+        ),
+    )
+    BlockerTheme {
+        Surface {
+            SdkContent(data = data)
+        }
+    }
+}
+
+@Composable
+@ThemePreviews
+fun SdkContentLoadingPreview() {
+    BlockerTheme {
+        Surface {
+            SdkContent()
+        }
     }
 }
