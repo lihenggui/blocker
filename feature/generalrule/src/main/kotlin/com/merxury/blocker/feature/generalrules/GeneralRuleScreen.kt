@@ -55,7 +55,7 @@ import com.merxury.blocker.feature.generalrules.GeneralRuleUiState.Success
 
 @Composable
 fun GeneralRulesRoute(
-    navigateToRuleDetail: (Int) -> Unit,
+    navigateToRuleDetail: (String) -> Unit,
     viewModel: GeneralRulesViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,7 +77,7 @@ fun GeneralRulesRoute(
 fun GeneralRulesScreen(
     modifier: Modifier = Modifier,
     uiState: GeneralRuleUiState,
-    navigateToRuleDetail: (Int) -> Unit = {},
+    navigateToRuleDetail: (String) -> Unit = {},
 ) {
     Scaffold(
         topBar = {
