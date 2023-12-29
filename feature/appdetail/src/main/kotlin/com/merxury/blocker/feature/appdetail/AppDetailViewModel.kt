@@ -75,7 +75,6 @@ import com.merxury.blocker.core.model.preference.ComponentSorting.PACKAGE_NAME
 import com.merxury.blocker.core.model.preference.SortingOrder.ASCENDING
 import com.merxury.blocker.core.model.preference.SortingOrder.DESCENDING
 import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.result.Result.Error
 import com.merxury.blocker.core.rule.entity.RuleWorkResult
 import com.merxury.blocker.core.rule.entity.RuleWorkType
 import com.merxury.blocker.core.rule.entity.RuleWorkType.EXPORT_BLOCKER_RULES
@@ -162,6 +161,7 @@ class AppDetailViewModel @Inject constructor(
                 Service,
                 Activity,
                 Provider,
+                Sdk,
             ),
             selectedItem = Info,
         ),
@@ -330,14 +330,29 @@ class AppDetailViewModel @Inject constructor(
         searchMatchedRuleJob = viewModelScope.launch(exceptionHandler) {
             val packageName = appDetailArgs.packageName
             searchMatchedRuleInAppUseCase(packageName).collect { result ->
-                when (result) {
-                    is Result.Loading -> Timber.v("Searching matched rule in app $packageName")
-                    is Error -> Timber.e(
-                            result.exception,
-                        "Fail to find matched rule in app $packageName"
-                    )
+                val matchedRuleUiState = when (result) {
+                    is Result.Loading -> {
+                        Timber.v("Searching matched rule in app $packageName")
+                        Result.Loading
+                    }
 
-                    is Result.Success -> Timber.v("Found ${result.data.size} rule in app $packageName")
+                    is Result.Error -> {
+                        Timber.e(
+                            result.exception,
+                            "Fail to find matched rule in app $packageName",
+                        )
+                        Result.Error(result.exception)
+                    }
+
+                    is Result.Success -> {
+                        Timber.v("Found ${result.data.size} rule in app $packageName")
+                        val map = result.data.mapValues { (_, value) ->
+                            value.map {
+                                it.toComponentItem()
+                            }.toMutableStateList()
+                        }
+                        Result.Success(map)
+                    }
                 }
                 val currentAppInfoUiState = _appInfoUiState.value
                 if (currentAppInfoUiState !is Success) {
@@ -346,11 +361,11 @@ class AppDetailViewModel @Inject constructor(
                 }
                 // Map result with data to StateList
                 // TODO Use a better way to update the UI
-//                _appInfoUiState.update {
-//                    currentAppInfoUiState.copy(
-//                        matchedGeneralRuleUiState = result,
-//                    )
-//                }
+                _appInfoUiState.update {
+                    currentAppInfoUiState.copy(
+                        matchedGeneralRuleUiState = matchedRuleUiState,
+                    )
+                }
                 updateTabState(_componentListUiState.value, _appInfoUiState.value)
             }
         }
@@ -1066,7 +1081,7 @@ sealed interface AppInfoUiState {
     data class Error(val error: UiMessage) : AppInfoUiState
     data class Success(
         val appInfo: AppItem,
-        val matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
+        val matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
         val iconBasedTheming: Bitmap? = null,
         val isLibCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
