@@ -59,6 +59,7 @@
     <string name="core_ui_block_all_components">Bloquear todos los componentes</string>
     <string name="core_ui_enable_all_components">Habilitar todos los componentes</string>
     <string name="core_ui_open_app_detail">Abrir detalles de la aplicación</string>
+    <string name="core_ui_open_rule_detail">Detalles de la regla abierta</string>
     <string name="core_ui_sort_options">Opciones de clasificación</string>
     <string name="core_ui_collapse_list">Contraer lista</string>
     <string name="core_ui_expand_list">Ampliar la lista</string>
