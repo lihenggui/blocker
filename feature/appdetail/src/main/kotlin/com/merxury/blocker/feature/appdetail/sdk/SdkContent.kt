@@ -16,7 +16,6 @@
 
 package com.merxury.blocker.feature.appdetail.sdk
 
-import com.merxury.blocker.core.ui.R as uiR
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -38,6 +37,7 @@ import com.merxury.blocker.core.ui.rule.MatchedHeaderData
 import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
+import com.merxury.blocker.core.ui.R as uiR
 
 @Composable
 fun SdkContent(
@@ -52,7 +52,7 @@ fun SdkContent(
                 NoComponentScreen()
                 return
             }
-            //Transfer Map<GeneralRule, SnapshotStateList<ComponentItem>> to SnapshotStateList<MatchedItem>
+            // Transfer Map<GeneralRule, SnapshotStateList<ComponentItem>> to SnapshotStateList<MatchedItem>
             val matchedList: MutableList<MatchedItem> = mutableListOf()
             sdks.forEach { (rule, components) ->
                 val matchedItem = MatchedItem(

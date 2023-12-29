@@ -88,7 +88,6 @@ import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProv
 import com.merxury.blocker.core.ui.rule.MatchedHeaderData
 import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.rule.RuleDetailTabs
-import com.merxury.blocker.feature.ruledetail.component.RuleMatchedAppList
 import com.merxury.blocker.core.ui.screen.ErrorScreen
 import com.merxury.blocker.core.ui.screen.LoadingScreen
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
@@ -97,6 +96,7 @@ import com.merxury.blocker.core.ui.state.toolbar.ExitUntilCollapsedState
 import com.merxury.blocker.core.ui.state.toolbar.ToolbarState
 import com.merxury.blocker.feature.ruledetail.R.string
 import com.merxury.blocker.feature.ruledetail.component.RuleDescription
+import com.merxury.blocker.feature.ruledetail.component.RuleMatchedAppList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
