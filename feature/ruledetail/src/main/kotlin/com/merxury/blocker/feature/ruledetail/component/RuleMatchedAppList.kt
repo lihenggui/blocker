@@ -34,7 +34,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.ui.R.string
-import com.merxury.blocker.core.ui.collapseList.CollapseList
+import com.merxury.blocker.core.ui.collapseList.CollapsibleList
 import com.merxury.blocker.core.ui.rule.MatchedHeaderData
 import com.merxury.blocker.core.ui.rule.MatchedItem
 import com.merxury.blocker.core.ui.screen.LoadingScreen
@@ -62,7 +62,7 @@ fun RuleMatchedAppList(
                 NoApplicableAppScreen()
                 return
             }
-            CollapseList(
+            CollapsibleList(
                 modifier = modifier.testTag("rule:matchedAppList"),
                 list = ruleMatchedAppListUiState.list,
                 navigateToAppDetail = navigateToAppDetail,

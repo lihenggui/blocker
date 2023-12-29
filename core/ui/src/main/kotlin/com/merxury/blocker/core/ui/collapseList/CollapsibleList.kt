@@ -60,7 +60,7 @@ import com.merxury.blocker.core.ui.rule.MatchedItem
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CollapseList(
+fun CollapsibleList(
     modifier: Modifier = Modifier,
     list: SnapshotStateList<MatchedItem>,
     onStopServiceClick: (String, String) -> Unit = { _, _ -> },
@@ -92,7 +92,7 @@ fun CollapseList(
             list.forEachIndexed { index, ruleMatchedApp ->
                 val expanded = isExpandedMap[index] ?: false
                 item(key = ruleMatchedApp.header.uniqueId) {
-                    CollapseItem(
+                    CollapsibleItem(
                         modifier = Modifier.animateItemPlacement(),
                         matchedItem = ruleMatchedApp,
                         navigationMenuItemDesc = navigationMenuItemDesc,
@@ -207,7 +207,7 @@ fun RuleMatchedAppListPreview() {
     )
     BlockerTheme {
         Surface {
-            CollapseList(
+            CollapsibleList(
                 list = listOf(matchedItem, matchedItem2).toMutableStateList(),
             )
         }
