@@ -34,12 +34,12 @@ internal fun AnalyticsHelper.logComponentSearchResultClicked() =
         ),
     )
 
-internal fun AnalyticsHelper.logRuleSearchResultClicked(id: Int) =
+internal fun AnalyticsHelper.logRuleSearchResultClicked(id: String) =
     logEvent(
         AnalyticsEvent(
             type = "search_screen_rule_result_clicked",
             extras = listOf(
-                Param(key = "id", value = id.toString()),
+                Param(key = "id", value = id),
             ),
         ),
     )

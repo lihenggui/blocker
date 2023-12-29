@@ -20,12 +20,12 @@ import com.merxury.blocker.core.analytics.AnalyticsEvent
 import com.merxury.blocker.core.analytics.AnalyticsEvent.Param
 import com.merxury.blocker.core.analytics.AnalyticsHelper
 
-internal fun AnalyticsHelper.logGeneralRuleClicked(id: Int) =
+internal fun AnalyticsHelper.logGeneralRuleClicked(id: String) =
     logEvent(
         AnalyticsEvent(
             type = "general_rule_clicked",
             extras = listOf(
-                Param(key = "id", value = id.toString()),
+                Param(key = "id", value = id),
             ),
         ),
     )

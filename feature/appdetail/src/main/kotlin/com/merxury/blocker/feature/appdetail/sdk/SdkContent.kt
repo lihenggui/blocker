@@ -43,7 +43,7 @@ import com.merxury.blocker.core.ui.R as uiR
 fun SdkContent(
     modifier: Modifier = Modifier,
     data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
-    navigationToRuleDetail: (Int) -> Unit = {},
+    navigateToRuleDetail: (String) -> Unit = {},
 ) {
     when (data) {
         is Result.Success -> {
@@ -68,9 +68,8 @@ fun SdkContent(
             CollapsibleList(
                 modifier = modifier.testTag("app:sdkList"),
                 list = matchedList.toMutableStateList(),
-                navigateToRuleDetail = navigationToRuleDetail,
+                navigateDetail = navigateToRuleDetail,
                 navigationMenuItemDesc = uiR.string.core_ui_open_rule_detail,
-                onAppDetailScreen = true,
             )
         }
 

@@ -68,12 +68,10 @@ fun CollapsibleList(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
-    navigateToAppDetail: (String) -> Unit = { _ -> },
-    navigateToRuleDetail: (Int) -> Unit = { _ -> },
+    navigateDetail: (String) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
-    onAppDetailScreen: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
@@ -97,11 +95,7 @@ fun CollapsibleList(
                         matchedItem = ruleMatchedApp,
                         navigationMenuItemDesc = navigationMenuItemDesc,
                         navigation = {
-                            if (onAppDetailScreen) {
-                                navigateToRuleDetail(ruleMatchedApp.header.uniqueId.toInt())
-                            } else {
-                                navigateToAppDetail(ruleMatchedApp.header.uniqueId)
-                            }
+                            navigateDetail(ruleMatchedApp.header.uniqueId)
                         },
                         onBlockAllClick = onBlockAllClick,
                         onEnableAllClick = onEnableAllClick,
@@ -138,7 +132,7 @@ fun CollapsibleList(
                             onCopyFullNameClick = { onCopyFullNameClick(it.name) },
                             onSwitchClick = onSwitch,
                         )
-                        // add horizontal divider after last item
+                        // Add horizontal divider after last item
                         if (ruleMatchedApp.componentList.last() == it) {
                             Divider(
                                 modifier = modifier,

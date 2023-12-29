@@ -43,7 +43,7 @@ internal class RuleIdArgs(val ruleId: Int, val tabs: RuleDetailTabs = Applicable
         )
 }
 
-fun NavController.navigateToRuleDetail(ruleId: Int, tab: RuleDetailTabs = Applicable) {
+fun NavController.navigateToRuleDetail(ruleId: String, tab: RuleDetailTabs = Applicable) {
     navigate("rule_detail_route/$ruleId?screen=${tab.name}") {
         // Avoid multiple copies of the same destination when
         // reselecting the same item
