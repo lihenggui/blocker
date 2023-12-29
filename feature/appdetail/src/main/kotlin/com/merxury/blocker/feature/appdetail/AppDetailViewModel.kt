@@ -208,7 +208,10 @@ class AppDetailViewModel @Inject constructor(
         }
     }
 
-    private suspend fun updateTabState(listUiState: ComponentListUiState, appInfoUiState: AppInfoUiState) {
+    private suspend fun updateTabState(
+        listUiState: ComponentListUiState,
+        appInfoUiState: AppInfoUiState,
+    ) {
         val ruleUiState = when (appInfoUiState) {
             is Success -> appInfoUiState.matchedGeneralRuleUiState
             else -> null
@@ -329,19 +332,25 @@ class AppDetailViewModel @Inject constructor(
             searchMatchedRuleInAppUseCase(packageName).collect { result ->
                 when (result) {
                     is Result.Loading -> Timber.v("Searching matched rule in app $packageName")
-                    is Error ->
-                        Timber.e(result.exception, "Fail to find matched rule in app $packageName")
+                    is Error -> Timber.e(
+                            result.exception,
+                        "Fail to find matched rule in app $packageName"
+                    )
+
                     is Result.Success -> Timber.v("Found ${result.data.size} rule in app $packageName")
                 }
-                _appInfoUiState.update {
-                    if (it !is Success) {
-                        it
-                    } else {
-                        it.copy(
-                            matchedGeneralRuleUiState = result,
-                        )
-                    }
+                val currentAppInfoUiState = _appInfoUiState.value
+                if (currentAppInfoUiState !is Success) {
+                    Timber.w("Current app info ui state is not success, skip updating")
+                    return@collect
                 }
+                // Map result with data to StateList
+                // TODO Use a better way to update the UI
+//                _appInfoUiState.update {
+//                    currentAppInfoUiState.copy(
+//                        matchedGeneralRuleUiState = result,
+//                    )
+//                }
                 updateTabState(_componentListUiState.value, _appInfoUiState.value)
             }
         }
@@ -1057,7 +1066,7 @@ sealed interface AppInfoUiState {
     data class Error(val error: UiMessage) : AppInfoUiState
     data class Success(
         val appInfo: AppItem,
-        val matchedGeneralRuleUiState: Result<Map<GeneralRule, List<ComponentInfo>>> = Result.Loading,
+        val matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
         val iconBasedTheming: Bitmap? = null,
         val isLibCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
