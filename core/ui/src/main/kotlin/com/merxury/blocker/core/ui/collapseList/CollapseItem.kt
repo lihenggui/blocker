@@ -58,7 +58,7 @@ fun CollapseItem(
     modifier: Modifier = Modifier,
     matchedItem: MatchedItem,
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
-    navigation: (String) -> Unit = { _ -> },
+    navigation: () -> Unit = {},
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     expanded: Boolean = false,
@@ -73,7 +73,7 @@ fun CollapseItem(
         DropDownMenuItem(
             navigationMenuItemDesc,
         ) {
-            navigation(matchedItem.header.uniqueId)
+            navigation()
         },
         DropDownMenuItem(
             string.core_ui_block_all_components,

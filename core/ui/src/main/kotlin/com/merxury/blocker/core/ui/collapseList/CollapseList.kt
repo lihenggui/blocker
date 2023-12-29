@@ -68,10 +68,12 @@ fun CollapseList(
     onCopyNameClick: (String) -> Unit = { _ -> },
     onCopyFullNameClick: (String) -> Unit = { _ -> },
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
-    navigation: (String) -> Unit = { _ -> },
+    navigateToAppDetail: (String) -> Unit = { _ -> },
+    navigateToRuleDetail: (Int) -> Unit = { _ -> },
     onBlockAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onEnableAllClick: (List<ComponentItem>) -> Unit = { _ -> },
     onSwitch: (String, String, Boolean) -> Unit = { _, _, _ -> },
+    onAppDetailScreen: Boolean = false,
 ) {
     val listState = rememberLazyListState()
     val scrollbarState = listState.scrollbarState(
@@ -94,7 +96,13 @@ fun CollapseList(
                         modifier = Modifier.animateItemPlacement(),
                         matchedItem = ruleMatchedApp,
                         navigationMenuItemDesc = navigationMenuItemDesc,
-                        navigation = navigation,
+                        navigation = {
+                            if (onAppDetailScreen) {
+                                navigateToRuleDetail(ruleMatchedApp.header.uniqueId.toInt())
+                            } else {
+                                navigateToAppDetail(ruleMatchedApp.header.uniqueId)
+                            }
+                        },
                         onBlockAllClick = onBlockAllClick,
                         onEnableAllClick = onEnableAllClick,
                         expanded = expanded,
