@@ -116,6 +116,8 @@ class AppDetailViewModelTest {
             componentRepository = componentRepository,
             ruleRepository = generalRuleRepository,
             dispatcher = mainDispatcherRule.testDispatcher,
+            filesDir = tempFolder.newFolder(),
+            ruleBaseFolder = "blocker-general-rule",
         )
         viewModel = AppDetailViewModel(
             savedStateHandle = savedStateHandle,
