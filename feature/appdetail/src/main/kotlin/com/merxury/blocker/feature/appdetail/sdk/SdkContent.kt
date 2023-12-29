@@ -28,7 +28,7 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
-import com.merxury.blocker.core.ui.collapseList.CollapseList
+import com.merxury.blocker.core.ui.collapseList.CollapsibleList
 import com.merxury.blocker.core.ui.component.NoComponentScreen
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
@@ -65,7 +65,7 @@ fun SdkContent(
                 )
                 matchedList.add(matchedItem)
             }
-            CollapseList(
+            CollapsibleList(
                 modifier = modifier.testTag("app:sdkList"),
                 list = matchedList.toMutableStateList(),
                 navigateToRuleDetail = navigationToRuleDetail,

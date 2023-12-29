@@ -54,7 +54,7 @@ import com.merxury.blocker.core.ui.rule.MatchedHeaderData
 import com.merxury.blocker.core.ui.rule.MatchedItem
 
 @Composable
-fun CollapseItem(
+fun CollapsibleItem(
     modifier: Modifier = Modifier,
     matchedItem: MatchedItem,
     @StringRes navigationMenuItemDesc: Int = string.core_ui_open_app_detail,
@@ -163,7 +163,7 @@ fun CollapseAppItemPreview() {
     )
     BlockerTheme {
         Surface {
-            CollapseItem(
+            CollapsibleItem(
                 matchedItem = matchedItem,
             )
         }
@@ -186,7 +186,7 @@ fun CollapseRuleItemPreview() {
     )
     BlockerTheme {
         Surface {
-            CollapseItem(
+            CollapsibleItem(
                 matchedItem = matchedItem,
             )
         }
@@ -208,7 +208,7 @@ fun CollapseItemLongNamePreview() {
     )
     BlockerTheme {
         Surface {
-            CollapseItem(
+            CollapsibleItem(
                 matchedItem = matchedItem,
                 expanded = true,
             )

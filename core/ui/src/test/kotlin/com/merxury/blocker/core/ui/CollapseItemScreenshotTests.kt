@@ -33,7 +33,7 @@ import com.merxury.blocker.core.model.ComponentType.PROVIDER
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
-import com.merxury.blocker.core.ui.collapseList.CollapseItem
+import com.merxury.blocker.core.ui.collapseList.CollapsibleItem
 import com.merxury.blocker.core.ui.rule.MatchedHeaderData
 import com.merxury.blocker.core.ui.rule.MatchedItem
 import dagger.hilt.android.testing.HiltTestApplication
@@ -124,6 +124,6 @@ class CollapseItemScreenshotTests {
             ),
             componentList = componentList,
         )
-        CollapseItem(matchedItem = matchedItem, expanded = isLongName)
+        CollapsibleItem(matchedItem = matchedItem, expanded = isLongName)
     }
 }
