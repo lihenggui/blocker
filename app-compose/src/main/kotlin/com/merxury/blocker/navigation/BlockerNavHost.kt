@@ -88,6 +88,7 @@ fun BlockerNavHost(
                 navigateToComponentDetail = navController::navigateToComponentDetail,
                 navigatedToComponentSortScreen = navController::navigateToComponentSortScreen,
                 updateIconBasedThemingState = updateIconBasedThemingState,
+                navigationToRuleDetail = navController::navigateToRuleDetail,
             )
             generalRuleScreen(
                 navigateToRuleDetail = navController::navigateToRuleDetail,
