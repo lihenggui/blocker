@@ -34,7 +34,6 @@ import com.merxury.blocker.core.ui.previewparameter.RuleDetailTabStatePreviewPar
 import com.merxury.blocker.core.ui.previewparameter.RuleListPreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.MatchedHeaderData
 import com.merxury.blocker.core.ui.rule.MatchedItem
-import com.merxury.blocker.feature.ruledetail.component.RuleMatchedAppListUiState
 import com.merxury.blocker.core.ui.state.toolbar.AppBarAction.MORE
 import com.merxury.blocker.core.ui.state.toolbar.AppBarUiState
 import dagger.hilt.android.testing.HiltTestApplication
