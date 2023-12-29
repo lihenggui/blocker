@@ -32,11 +32,10 @@ import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
+import com.merxury.blocker.core.ui.collapseList.CollapseList
 import com.merxury.blocker.core.ui.previewparameter.ComponentListPreviewParameterProvider
 import com.merxury.blocker.core.ui.rule.MatchedHeaderData
 import com.merxury.blocker.core.ui.rule.MatchedItem
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppList
-import com.merxury.blocker.core.ui.rule.RuleMatchedAppListUiState
 import dagger.hilt.android.testing.HiltTestApplication
 import org.junit.Rule
 import org.junit.runner.RunWith
@@ -50,49 +49,48 @@ import kotlin.test.Test
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(application = HiltTestApplication::class, qualifiers = "480dpi")
 @LooperMode(LooperMode.Mode.PAUSED)
-class MatchedItemListScreenshotTests {
+class CollapseListScreenshotTests {
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
 
     @Test
-    fun ruleMatchedAppList_multipleThemes() {
-        composeTestRule.captureMultiTheme("RuleMatchedAppList") {
+    fun collapseList_multipleThemes() {
+        composeTestRule.captureMultiTheme("CollapseList") {
             Surface {
-                RuleMatchedAppListExample()
+                CollapseListExample()
             }
         }
     }
 
     @Test
-    fun ruleMatchedAppList_hugeFont() {
+    fun collapseList_hugeFont() {
         composeTestRule.setContent {
             CompositionLocalProvider(
                 LocalInspectionMode provides true,
             ) {
                 TestHarness(fontScale = 2f) {
                     BlockerTheme {
-                        RuleMatchedAppListExample()
+                        CollapseListExample()
                     }
                 }
             }
         }
         composeTestRule.onRoot()
             .captureRoboImage(
-                "src/test/screenshots/RuleMatchedAppList" +
-                    "/RuleMatchedAppList_fontScale2.png",
+                "src/test/screenshots/CollapseList" +
+                    "/CollapseList_fontScale2.png",
                 roborazziOptions = DefaultRoborazziOptions,
             )
     }
 
     @Composable
-    private fun RuleMatchedAppListExample() {
+    private fun CollapseListExample() {
         val components = ComponentListPreviewParameterProvider().values
             .first()
             .toMutableStateList()
         val emptyList = remember {
             mutableStateListOf<ComponentItem>()
         }
-
         val matchedItem = MatchedItem(
             header = MatchedHeaderData(
                 title = "Blocker",
@@ -114,11 +112,12 @@ class MatchedItemListScreenshotTests {
             ),
             componentList = emptyList,
         )
-        val uiState = RuleMatchedAppListUiState.Success(
-            list = remember {
-                mutableStateListOf(matchedItem, matchedItem1, matchedItem2)
-            },
-        )
-        RuleMatchedAppList(ruleMatchedAppListUiState = uiState)
+        BlockerTheme {
+            Surface {
+                CollapseList(
+                    list = listOf(matchedItem, matchedItem1, matchedItem2).toMutableStateList(),
+                )
+            }
+        }
     }
 }
