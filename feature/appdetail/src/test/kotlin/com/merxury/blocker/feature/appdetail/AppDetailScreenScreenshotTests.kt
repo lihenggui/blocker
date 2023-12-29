@@ -211,7 +211,6 @@ class AppDetailScreenScreenshotTests {
 
     @Composable
     private fun AppDetailScreen(isLibCheckerInstalled: Boolean = false) {
-
         BlockerTheme {
             Surface {
                 AppDetailScreen(
