@@ -16,6 +16,8 @@
 
 package com.merxury.blocker.feature.appdetail
 
+import com.merxury.blocker.core.rule.R.string as rulestring
+import com.merxury.blocker.core.ui.R.string as uistring
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.Context
@@ -57,6 +59,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,7 +96,10 @@ import com.merxury.blocker.core.domain.model.ZippedRule
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentInfo
+import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.IconBasedThemingState
+import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.CANCELLED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FINISHED
 import com.merxury.blocker.core.rule.entity.RuleWorkResult.FOLDER_NOT_DEFINED
@@ -106,6 +112,7 @@ import com.merxury.blocker.core.ui.AppDetailTabs.Activity
 import com.merxury.blocker.core.ui.AppDetailTabs.Info
 import com.merxury.blocker.core.ui.AppDetailTabs.Provider
 import com.merxury.blocker.core.ui.AppDetailTabs.Receiver
+import com.merxury.blocker.core.ui.AppDetailTabs.Sdk
 import com.merxury.blocker.core.ui.AppDetailTabs.Service
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.TrackScreenViewEvent
@@ -126,6 +133,7 @@ import com.merxury.blocker.core.ui.topbar.SelectedAppTopBar
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Loading
 import com.merxury.blocker.feature.appdetail.AppInfoUiState.Success
 import com.merxury.blocker.feature.appdetail.R.string
+import com.merxury.blocker.feature.appdetail.sdk.SdkContent
 import com.merxury.blocker.feature.appdetail.summary.SummaryContent
 import com.merxury.blocker.feature.appdetail.ui.MoreActionMenu
 import com.merxury.blocker.feature.appdetail.ui.SearchActionMenu
@@ -133,16 +141,15 @@ import com.merxury.blocker.feature.appdetail.ui.ShareAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
-import com.merxury.blocker.core.rule.R.string as rulestring
-import com.merxury.blocker.core.ui.R.string as uistring
 
 @Composable
 fun AppDetailRoute(
+    modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigatedToComponentSortScreen: () -> Unit,
+    navigationToRuleDetail: (Int) -> Unit = {},
     snackbarHostState: SnackbarHostState,
-    modifier: Modifier = Modifier,
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     viewModel: AppDetailViewModel = hiltViewModel(),
 ) {
@@ -221,6 +228,7 @@ fun AppDetailRoute(
             viewModel.loadComponentList()
             viewModel.updateComponentList()
         },
+        navigationToRuleDetail = navigationToRuleDetail,
     )
     if (errorState != null) {
         BlockerErrorAlertDialog(
@@ -408,6 +416,7 @@ fun AppDetailScreen(
     shareAppRule: () -> Unit = {},
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
+    navigationToRuleDetail: (Int) -> Unit = {},
 ) {
     when (appInfoUiState) {
         is Loading -> {
@@ -453,6 +462,8 @@ fun AppDetailScreen(
                 shareAllRules = shareAllRules,
                 onRefresh = onRefresh,
                 isLibCheckerInstalled = appInfoUiState.isLibCheckerInstalled,
+                matchedGeneralRuleUiState = appInfoUiState.matchedGeneralRuleUiState,
+                navigationToRuleDetail = navigationToRuleDetail,
             )
         }
 
@@ -500,6 +511,8 @@ fun AppDetailContent(
     shareAllRules: () -> Unit = {},
     onRefresh: () -> Unit = {},
     isLibCheckerInstalled: Boolean = false,
+    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+    navigationToRuleDetail: (Int) -> Unit = {},
 ) {
     val listState = rememberLazyListState()
     val systemStatusHeight = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -594,6 +607,8 @@ fun AppDetailContent(
             onRefresh = onRefresh,
             isRefreshing = componentListUiState.isRefreshing,
             isLibCheckerInstalled = isLibCheckerInstalled,
+            matchedGeneralRuleUiState = matchedGeneralRuleUiState,
+            navigationToRuleDetail = navigationToRuleDetail,
         )
     }
 }
@@ -759,6 +774,8 @@ fun AppDetailTabContent(
     onRefresh: () -> Unit = {},
     isRefreshing: Boolean = false,
     isLibCheckerInstalled: Boolean = false,
+    matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+    navigationToRuleDetail: (Int) -> Unit = {},
 ) {
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(initialPage = tabState.currentIndex) { tabState.items.size }
@@ -807,6 +824,11 @@ fun AppDetailTabContent(
                     onExportIfw = onExportIfw,
                     onImportIfw = onImportIfw,
                     onResetIfw = onResetIfw,
+                )
+
+                Sdk -> SdkContent(
+                    data = matchedGeneralRuleUiState,
+                    navigationToRuleDetail = navigationToRuleDetail,
                 )
 
                 else -> {

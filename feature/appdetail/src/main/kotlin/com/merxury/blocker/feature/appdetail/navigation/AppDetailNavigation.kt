@@ -79,6 +79,7 @@ fun NavGraphBuilder.detailScreen(
     updateIconBasedThemingState: (IconBasedThemingState) -> Unit,
     navigateToComponentDetail: (String) -> Unit,
     navigatedToComponentSortScreen: () -> Unit,
+    navigationToRuleDetail: (Int) -> Unit = {},
 ) {
     composable(
         route = "app_detail_route/{$PACKAGE_NAME_ARG}?screen={$TAB_ARG}?keyword={$KEYWORD_ARG}",
@@ -94,6 +95,7 @@ fun NavGraphBuilder.detailScreen(
             navigateToComponentDetail = navigateToComponentDetail,
             navigatedToComponentSortScreen = navigatedToComponentSortScreen,
             updateIconBasedThemingState = updateIconBasedThemingState,
+            navigationToRuleDetail = navigationToRuleDetail,
         )
     }
 }
