@@ -28,6 +28,8 @@ data class ComponentInfo(
     val ifwBlocked: Boolean = false,
     val description: String? = null,
 ) {
+    fun enabled() = !(pmBlocked || ifwBlocked)
+
     fun toAndroidComponentInfo() = android.content.pm.ComponentInfo().apply {
         this@apply.name = this@ComponentInfo.name
         this@apply.packageName = this@ComponentInfo.packageName
