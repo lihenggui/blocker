@@ -18,8 +18,8 @@ package com.merxury.blocker.core.model.data
 
 data class FilteredComponent(
     val app: AppItem,
-    val activity: List<ComponentItem> = listOf(),
-    val service: List<ComponentItem> = listOf(),
-    val receiver: List<ComponentItem> = listOf(),
-    val provider: List<ComponentItem> = listOf(),
+    val activity: List<ComponentInfo> = listOf(),
+    val service: List<ComponentInfo> = listOf(),
+    val receiver: List<ComponentInfo> = listOf(),
+    val provider: List<ComponentInfo> = listOf(),
 )

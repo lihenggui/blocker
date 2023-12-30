@@ -85,7 +85,7 @@ class ComponentListScreenshotTests {
                 ComponentList(
                     components = components,
                     selectedComponentList = listOf(
-                        components[1].toComponentInfo(),
+                        components[1],
                     ),
                     isSelectedMode = true,
                 )

@@ -44,10 +44,8 @@ import com.merxury.blocker.core.dispatchers.Dispatcher
 import com.merxury.blocker.core.extension.exec
 import com.merxury.blocker.core.extension.getPackageInfoCompat
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.GeneralRule
-import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.ui.TabState
 import com.merxury.blocker.core.ui.data.UiMessage
 import com.merxury.blocker.core.ui.data.toErrorMessage
@@ -172,7 +170,7 @@ class RuleDetailViewModel @Inject constructor(
     }
 
     fun controlAllComponents(
-        list: List<ComponentItem>,
+        list: List<ComponentInfo>,
         enable: Boolean,
         action: (Int, Int) -> Unit,
     ) {
@@ -207,11 +205,10 @@ class RuleDetailViewModel @Inject constructor(
                     uniqueId = packageName,
                     icon = packageInfo,
                 )
-                val searchedComponentItem = components
+                val searchedComponentInfo = components
                     .toSet() // Remove duplicate components caused by multiple keywords
-                    .map { it.toComponentItem() }
                     .toMutableStateList()
-                MatchedItem(headerData, searchedComponentItem)
+                MatchedItem(headerData, searchedComponentInfo)
             }
             .toMutableStateList()
         withContext(mainDispatcher) {

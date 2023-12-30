@@ -30,7 +30,7 @@ import com.google.accompanist.testharness.TestHarness
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
 import com.merxury.blocker.core.model.ComponentType.ACTIVITY
 import com.merxury.blocker.core.model.ComponentType.PROVIDER
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.testing.util.DefaultRoborazziOptions
 import com.merxury.blocker.core.testing.util.captureMultiTheme
 import com.merxury.blocker.core.ui.collapseList.CollapsibleItem
@@ -101,14 +101,14 @@ class CollapseItemScreenshotTests {
         }
         val componentList = remember {
             mutableStateListOf(
-                ComponentItem(
+                ComponentInfo(
                     packageName = "com.merxury.example",
                     name = "com.merxury.example.MainActivity",
                     simpleName = "MainActivity",
                     pmBlocked = true,
                     type = ACTIVITY,
                 ),
-                ComponentItem(
+                ComponentInfo(
                     packageName = "com.merxury.example",
                     name = "com.merxury.example.provider",
                     simpleName = "example",

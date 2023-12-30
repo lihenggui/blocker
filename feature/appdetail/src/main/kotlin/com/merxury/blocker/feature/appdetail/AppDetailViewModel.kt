@@ -61,12 +61,10 @@ import com.merxury.blocker.core.model.ComponentType.SERVICE
 import com.merxury.blocker.core.model.data.AppItem
 import com.merxury.blocker.core.model.data.ComponentDetail
 import com.merxury.blocker.core.model.data.ComponentInfo
-import com.merxury.blocker.core.model.data.ComponentItem
 import com.merxury.blocker.core.model.data.ControllerType.IFW
 import com.merxury.blocker.core.model.data.ControllerType.SHIZUKU
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.model.data.toAppItem
-import com.merxury.blocker.core.model.data.toComponentItem
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.DISABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.ENABLED_COMPONENTS_FIRST
 import com.merxury.blocker.core.model.preference.ComponentShowPriority.NONE
@@ -171,7 +169,7 @@ class AppDetailViewModel @Inject constructor(
         .map { it.trim() }
         .filterNot { it.isEmpty() }
     private var unfilteredList = ComponentListUiState()
-    private var unfilteredRuleList: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> =
+    private var unfilteredRuleList: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> =
         Result.Loading
     private val _componentListUiState = MutableStateFlow(ComponentListUiState())
     val componentListUiState = _componentListUiState.asStateFlow()
@@ -273,11 +271,11 @@ class AppDetailViewModel @Inject constructor(
             }
             return
         }
-        val receiver = mutableStateListOf<ComponentItem>()
-        val service = mutableStateListOf<ComponentItem>()
-        val activity = mutableStateListOf<ComponentItem>()
-        val provider = mutableStateListOf<ComponentItem>()
-        val rule = mutableMapOf<GeneralRule, SnapshotStateList<ComponentItem>>()
+        val receiver = mutableStateListOf<ComponentInfo>()
+        val service = mutableStateListOf<ComponentInfo>()
+        val activity = mutableStateListOf<ComponentInfo>()
+        val provider = mutableStateListOf<ComponentInfo>()
+        val rule = mutableMapOf<GeneralRule, SnapshotStateList<ComponentInfo>>()
         currentFilterKeyword.forEach { subKeyword ->
             val filteredReceiver = unfilteredList.receiver
                 .filter { it.name.contains(subKeyword, ignoreCase = true) }
@@ -369,9 +367,7 @@ class AppDetailViewModel @Inject constructor(
                     is Result.Success -> {
                         Timber.v("Found ${result.data.size} rule in app $packageName")
                         val map = result.data.mapValues { (_, value) ->
-                            value.map {
-                                it.toComponentItem()
-                            }.toMutableStateList()
+                            value.toMutableStateList()
                         }
                         Result.Success(map)
                     }
@@ -426,29 +422,16 @@ class AppDetailViewModel @Inject constructor(
         activity: List<ComponentInfo>,
         provider: List<ComponentInfo>,
     ) = ComponentListUiState(
-        receiver = sortAndConvertToComponentItem(
-            list = receiver,
-            type = RECEIVER,
-        ),
-        service = sortAndConvertToComponentItem(
-            list = service,
-            type = SERVICE,
-        ),
-        activity = sortAndConvertToComponentItem(
-            list = activity,
-            type = ACTIVITY,
-        ),
-        provider = sortAndConvertToComponentItem(
-            list = provider,
-            type = PROVIDER,
-        ),
+        receiver = sortAndConvertToComponentItem(list = receiver),
+        service = sortAndConvertToComponentItem(list = service),
+        activity = sortAndConvertToComponentItem(list = activity),
+        provider = sortAndConvertToComponentItem(list = provider),
     )
 
     private suspend fun sortAndConvertToComponentItem(
         list: List<ComponentInfo>,
-        type: ComponentType,
         filterKeyword: String = "",
-    ): SnapshotStateList<ComponentItem> {
+    ): SnapshotStateList<ComponentInfo> {
         val userData = userDataRepository.userData.first()
         val sorting = userData.componentSorting
         val order = userData.componentSortingOrder
@@ -458,15 +441,15 @@ class AppDetailViewModel @Inject constructor(
             rootApiServiceController
         }
         serviceController.load()
-        return list.filter { it.name.contains(filterKeyword, ignoreCase = true) }
+        return list
+            .filter { it.name.contains(filterKeyword, ignoreCase = true) }
             .map {
-                it.toComponentItem(
-                    if (type == SERVICE) {
-                        serviceController.isServiceRunning(it.packageName, it.name)
-                    } else {
-                        false
-                    },
-                )
+                val isServiceRunning = if (it.type == SERVICE) {
+                    serviceController.isServiceRunning(it.packageName, it.name)
+                } else {
+                    false
+                }
+                it.copy(isRunning = isServiceRunning)
             }
             .let { origList ->
                 when (sorting) {
@@ -576,7 +559,7 @@ class AppDetailViewModel @Inject constructor(
     fun controlBatchComponents(
         enable: Boolean,
         componentListType: ComponentListType,
-        componentList: List<ComponentItem>? = null,
+        componentList: List<ComponentInfo>? = null,
         block: suspend (Int, Int) -> Unit,
     ) {
         controlComponentJob?.cancel()
@@ -606,16 +589,12 @@ class AppDetailViewModel @Inject constructor(
                         }
 
                         else -> return@launch
-                    }.map {
-                        it.toComponentInfo()
                     }
                 }
 
                 ComponentListType.MATCHED -> {
                     analyticsHelper.logControlRuleMatchedComponentsClicked(enable)
-                    componentList?.map {
-                        it.toComponentInfo()
-                    } ?: return@launch
+                    componentList ?: return@launch
                 }
 
                 ComponentListType.SELECTED -> {
@@ -763,10 +742,10 @@ class AppDetailViewModel @Inject constructor(
 
     private fun getCurrentTabFilterComponentList(): MutableList<ComponentInfo> {
         return when (tabState.value.selectedItem) {
-            Receiver -> _componentListUiState.value.receiver.map { it.toComponentInfo() }
-            Service -> _componentListUiState.value.service.map { it.toComponentInfo() }
-            Activity -> _componentListUiState.value.activity.map { it.toComponentInfo() }
-            Provider -> _componentListUiState.value.provider.map { it.toComponentInfo() }
+            Receiver -> _componentListUiState.value.receiver
+            Service -> _componentListUiState.value.service
+            Activity -> _componentListUiState.value.activity
+            Provider -> _componentListUiState.value.provider
             else -> listOf()
         }.toMutableList()
     }
@@ -1120,17 +1099,17 @@ sealed interface AppInfoUiState {
     data class Error(val error: UiMessage) : AppInfoUiState
     data class Success(
         val appInfo: AppItem,
-        val matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+        val matchedGeneralRuleUiState: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
         val iconBasedTheming: Bitmap? = null,
         val isLibCheckerInstalled: Boolean = false,
     ) : AppInfoUiState
 }
 
 data class ComponentListUiState(
-    val receiver: SnapshotStateList<ComponentItem> = mutableStateListOf(),
-    val service: SnapshotStateList<ComponentItem> = mutableStateListOf(),
-    val activity: SnapshotStateList<ComponentItem> = mutableStateListOf(),
-    val provider: SnapshotStateList<ComponentItem> = mutableStateListOf(),
+    val receiver: SnapshotStateList<ComponentInfo> = mutableStateListOf(),
+    val service: SnapshotStateList<ComponentInfo> = mutableStateListOf(),
+    val activity: SnapshotStateList<ComponentInfo> = mutableStateListOf(),
+    val provider: SnapshotStateList<ComponentInfo> = mutableStateListOf(),
     val isRefreshing: Boolean = false,
 )
 

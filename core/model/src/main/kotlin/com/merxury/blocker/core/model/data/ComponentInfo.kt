@@ -23,8 +23,9 @@ data class ComponentInfo(
     val simpleName: String,
     val packageName: String,
     val type: ComponentType,
-    val exported: Boolean,
     val pmBlocked: Boolean,
+    val isRunning: Boolean = false,
+    val exported: Boolean = false,
     val ifwBlocked: Boolean = false,
     val description: String? = null,
 ) {

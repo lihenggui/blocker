@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import com.merxury.blocker.core.designsystem.component.ThemePreviews
 import com.merxury.blocker.core.designsystem.theme.BlockerTheme
-import com.merxury.blocker.core.model.data.ComponentItem
+import com.merxury.blocker.core.model.data.ComponentInfo
 import com.merxury.blocker.core.model.data.GeneralRule
 import com.merxury.blocker.core.result.Result
 import com.merxury.blocker.core.ui.collapseList.CollapsibleList
@@ -42,10 +42,10 @@ import com.merxury.blocker.core.ui.R as uiR
 @Composable
 fun SdkContent(
     modifier: Modifier = Modifier,
-    data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Loading,
+    data: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Loading,
     navigateToRuleDetail: (String) -> Unit = {},
-    onBlockMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
-    onEnableMatchedComponentsClick: (List<ComponentItem>) -> Unit = { _ -> },
+    onBlockMatchedComponentsClick: (List<ComponentInfo>) -> Unit = { _ -> },
+    onEnableMatchedComponentsClick: (List<ComponentInfo>) -> Unit = { _ -> },
 ) {
     when (data) {
         is Result.Success -> {
@@ -54,7 +54,7 @@ fun SdkContent(
                 NoComponentScreen()
                 return
             }
-            // Transfer Map<GeneralRule, SnapshotStateList<ComponentItem>> to SnapshotStateList<MatchedItem>
+            // Transfer Map<GeneralRule, SnapshotStateList<ComponentInfo>> to SnapshotStateList<MatchedItem>
             val matchedList: MutableList<MatchedItem> = mutableListOf()
             sdks.forEach { (rule, components) ->
                 val matchedItem = MatchedItem(
@@ -88,10 +88,10 @@ fun SdkContent(
 fun SdkContentPreview(
     @PreviewParameter(
         ComponentListPreviewParameterProvider::class,
-    ) components: List<ComponentItem>,
+    ) components: List<ComponentInfo>,
 ) {
     val rule = RuleListPreviewParameterProvider().values.first()[0]
-    val data: Result<Map<GeneralRule, SnapshotStateList<ComponentItem>>> = Result.Success(
+    val data: Result<Map<GeneralRule, SnapshotStateList<ComponentInfo>>> = Result.Success(
         data = mapOf(
             rule to components.toMutableStateList(),
         ),
