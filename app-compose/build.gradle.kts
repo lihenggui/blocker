@@ -22,11 +22,9 @@ plugins {
     alias(libs.plugins.blocker.android.application.flavors)
     alias(libs.plugins.blocker.android.application.jacoco)
     alias(libs.plugins.blocker.android.hilt)
-    alias(libs.plugins.blocker.android.application.firebase)
     alias(libs.plugins.ksp)
     id("jacoco")
     id("kotlin-parcelize")
-    id("com.google.android.gms.oss-licenses-plugin")
     alias(libs.plugins.baselineprofile)
     alias(libs.plugins.roborazzi)
 }

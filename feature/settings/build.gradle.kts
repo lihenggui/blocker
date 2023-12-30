@@ -32,7 +32,6 @@ dependencies {
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.work.ktx)
-    implementation(libs.google.oss.licenses)
 
     testImplementation(libs.hilt.android.testing)
     testImplementation(libs.robolectric)

@@ -31,13 +31,7 @@ androidxWork = "2.9.0"
 appiconloader = "1.5.0"
 coil = "2.5.0"
 dependencyGuard = "0.4.3"
-firebaseBom = "32.7.0"
-firebaseCrashlyticsPlugin = "2.9.9"
-firebasePerfPlugin = "1.4.2"
-gmsPlugin = "4.4.0"
 googleAndroidMaterial = "1.11.0"
-googleOss = "17.0.1"
-googleOssPlugin = "0.10.6"
 hilt = "2.50"
 hiltExt = "1.1.0"
 jacoco = "0.8.7"
@@ -61,6 +55,7 @@ xmlutil = "0.86.3"
 turbine = "1.0.0"
 truth = "1.2.0"
 material = "1.11.0"
+# Non open-source dependencies
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -113,14 +108,7 @@ appiconloader-coil = { group = "me.zhanghai.android.appiconloader", name = "appi
 coil-kt = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-kt-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 coil-kt-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref="firebaseBom"}
-firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics"}
-firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics"}
-firebase-performance = { group = "com.google.firebase", name = "firebase-perf"}
 google-android-material = { group = "com.google.android.material", name = "material", version.ref = "googleAndroidMaterial" }
-google-services = { module = "com.google.gms:google-services", version.ref = "gmsPlugin" }
-google-oss-licenses = { group = "com.google.android.gms", name = "play-services-oss-licenses", version.ref = "googleOss" }
-google-oss-licenses-plugin = { group = "com.google.android.gms", name = "oss-licenses-plugin", version.ref = "googleOssPlugin" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-ext-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hiltExt" }
 hilt-ext-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hiltExt" }
@@ -159,16 +147,16 @@ xmlutil-core-android = { group = "io.github.pdvrieze.xmlutil", name = "core-andr
 xmlutil-serialization-android = { group = "io.github.pdvrieze.xmlutil", name = "serialization-android", version.ref = "xmlutil" }
 timber = "com.jakewharton.timber:timber:5.0.1"
 hiddenapibypass = "org.lsposed.hiddenapibypass:hiddenapibypass:4.3"
+# Non open-source dependencies
 
 # Dependencies of the included build-logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 android-tools-common = { group = "com.android.tools", name = "common", version.ref = "androidTools" }
-firebase-crashlytics-gradlePlugin = { group = "com.google.firebase", name = "firebase-crashlytics-gradle", version.ref = "firebaseCrashlyticsPlugin" }
-firebase-performance-gradlePlugin = { group = "com.google.firebase", name = "perf-plugin", version.ref = "firebasePerfPlugin" }
 kotlin-gradlePlugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradlePlugin = { group = "com.google.devtools.ksp", name = "com.google.devtools.ksp.gradle.plugin", version.ref = "ksp" }
 room-gradlePlugin = { group = "androidx.room", name = "room-gradle-plugin", version.ref = "room" }
 work-testing = { group = "androidx.work", name = "work-testing", version.ref = "androidxWork" }
+# Non open-source plugins
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
@@ -176,9 +164,6 @@ android-library = { id = "com.android.library", version.ref = "androidGradlePlug
 android-test = { id = "com.android.test", version.ref = "androidGradlePlugin" }
 baselineprofile = { id = "androidx.baselineprofile", version.ref = "androidxMacroBenchmark"}
 dependencyGuard = { id = "com.dropbox.dependency-guard", version.ref = "dependencyGuard" }
-firebase-crashlytics = { id = "com.google.firebase.crashlytics", version.ref = "firebaseCrashlyticsPlugin"}
-firebase-perf = { id = "com.google.firebase.firebase-perf", version.ref = "firebasePerfPlugin"}
-gms = { id = "com.google.gms.google-services", version.ref = "gmsPlugin"}
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -188,11 +173,11 @@ protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 room = { id = "androidx.room", version.ref = "room" }
 secrets = { id = "com.google.android.libraries.mapsplatform.secrets-gradle-plugin", version.ref = "secrets" }
+# Non open-source plugins
 
 # Plugins defined by this project
 blocker-android-application = { id = "blocker.android.application", version = "unspecified" }
 blocker-android-application-compose = { id = "blocker.android.application.compose", version = "unspecified" }
-blocker-android-application-firebase = { id = "blocker.android.application.firebase", version = "unspecified" }
 blocker-android-application-flavors = { id = "blocker.android.application.flavors", version = "unspecified" }
 blocker-android-application-jacoco = { id = "blocker.android.application.jacoco", version = "unspecified" }
 blocker-android-feature = { id = "blocker.android.feature", version = "unspecified" }
